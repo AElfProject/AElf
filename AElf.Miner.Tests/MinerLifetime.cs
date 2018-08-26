@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
-using AElf.ChainControllerImpl.TxMemPool;
 using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
@@ -155,7 +155,7 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             var mock = new Mock<ITxPoolService>();
-            mock.Setup((s) => s.GetReadyTxsAsync()).Returns(Task.FromResult(txs));
+            mock.Setup((s) => s.GetReadyTxsAsync(3000)).Returns(Task.FromResult(txs));
             return mock;
         }
         
@@ -266,7 +266,7 @@ namespace AElf.Kernel.Tests.Miner
 
             miner.Start(keypair);
             
-            var block = await miner.Mine(false);
+            var block = await miner.Mine(Timeout.Infinite, false);
             
             Assert.NotNull(block);
             Assert.Equal((ulong)1, block.Header.Index);
@@ -302,7 +302,7 @@ namespace AElf.Kernel.Tests.Miner
             
             miner.Start(keypair);
             
-            var block = await miner.Mine(false);
+            var block = await miner.Mine(Timeout.Infinite, false);
             
             Assert.NotNull(block);
             Assert.Equal((ulong)1, block.Header.Index);

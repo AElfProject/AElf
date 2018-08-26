@@ -164,9 +164,11 @@ namespace AElf.Runtime.CSharp
                         _currentSmartContractContext.DataProvider.ClearCache();
                         var retVal = await handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
                     }
                     catch (Exception ex)
                     {
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                         _currentTransactionContext.Trace.StdErr += "\n" + ex;
                     }
                 }
@@ -184,14 +186,16 @@ namespace AElf.Runtime.CSharp
                         _currentSmartContractContext.DataProvider.ClearCache();
                         var retVal = handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
                     }
                     catch (Exception ex)
                     {
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                         _currentTransactionContext.Trace.StdErr += "\n" + ex;
                     }
                 }
 
-                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful())
+                if (!methodAbi.IsView && _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
                     _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider.GetValueChanges());
                     if (autoCommit)
@@ -204,6 +208,7 @@ namespace AElf.Runtime.CSharp
             }
             catch (Exception ex)
             {
+                _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
                 _currentTransactionContext.Trace.StdErr += ex + "\n";
             }
             

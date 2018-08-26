@@ -5,15 +5,13 @@ option csharp_namespace = "AElf.SmartContract";
 import "hash.proto";
 import "kernel.proto";
 
-message Resource
-{
+message Resource {
     string Name = 1;
     DataAccessMode DataAccessMode  = 2;
 }
 
 // The function meta data describes the data members of contract object.
-message FunctionMetadata
-{
+message FunctionMetadata {
     // AElf allows one contracts to invoke others. This field record
     // which contracts are invoked by the current contract.
     repeated string SerializeCallingSet = 1;
@@ -22,20 +20,26 @@ message FunctionMetadata
     repeated Resource SerializeFullResourceSet = 2;
 }
 
-message SerializedCallGraph
-{
+message SerializedCallGraph {
     repeated GraphEdge Edges = 1;
     repeated string Vertices = 2;
 }
 
-message GraphEdge
-{
+message GraphEdge {
     string Source = 1;
     string Target = 2;
 }
 
-message TransactionTrace
-{
+enum ExecutionStatus {
+    Undefined = 0;
+    ExecutedAndCommitted = 1;
+    ExecutedButNotCommitted = 2;
+    SystemError = 91;
+    ContractError = 92;
+    Canceled = 99;
+}
+
+message TransactionTrace {
     Hash TransactionId = 1;
     RetVal RetVal = 2;
     string StdOut = 3;
@@ -44,4 +48,5 @@ message TransactionTrace
     repeated TransactionTrace InlineTraces = 6;
     repeated StateValueChange ValueChanges = 7;
     int64 Elapsed = 8;
+    ExecutionStatus ExecutionStatus = 9;
 }

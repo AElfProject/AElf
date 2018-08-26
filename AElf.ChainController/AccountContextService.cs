@@ -6,7 +6,7 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.ChainControllerImpl
+namespace AElf.ChainController
 {
     public class AccountContextService : IAccountContextService
     {

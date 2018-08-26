@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Akka.Util.Internal.Collections;

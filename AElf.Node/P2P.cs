@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.Common.Extensions;
 using AElf.Network;
 using AElf.Network.Peers;
 using AElf.Network.Data;

@@ -2,7 +2,7 @@
 using AElf.ChainController;
 using AElf.Kernel;
 
-namespace AElf.ChainControllerImpl
+namespace AElf.ChainController
 {
     public class ChainContextService : IChainContextService
     {

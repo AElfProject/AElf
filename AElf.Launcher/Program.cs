@@ -3,11 +3,11 @@ using System.IO;
 using System.Net;
 using System.Security;
 using System.Threading;
-using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;
@@ -20,6 +20,9 @@ using AElf.Configuration.Config.Network;
 using AElf.Miner.Miner;
 using AElf.Execution.Scheduling;
 using AElf.Network;
+using AElf.Node;
+using AElf.Node.AElfChain;
+using AElf.RPC;
 using AElf.Runtime.CSharp;
 using AElf.SideChain.Creation;
 using AElf.SmartContract;
@@ -27,22 +30,22 @@ using Autofac;
 using Easy.MessageHub;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ServiceStack;
 using IContainer = Autofac.IContainer;
-using RpcServer = AElf.RPC.RpcServer;
 
 namespace AElf.Launcher
 {
     class Program
     {
-        private static string AssemblyDir { get; } = Path.GetDirectoryName(typeof(Program).Assembly.Location);
         private const string FilePath = @"ChainInfo.json";
         private static int _stopped;
+        private static readonly AutoResetEvent _closing = new AutoResetEvent(false);
 
         static void Main(string[] args)
         {
             // Parse options
+            Console.WriteLine(string.Join(" ",args));
             var confParser = new ConfigParser();
+            
             bool parsed;
             try
             {
@@ -60,6 +63,7 @@ namespace AElf.Launcher
             var minerConfig = confParser.MinerConfig;
             var isMiner = confParser.IsMiner;
             var isNewChain = confParser.NewChain;
+            var chainId = confParser.ChainId;
             var initData = confParser.InitData;
             NodeConfig.Instance.IsChainCreator = confParser.NewChain;
             NodeConfig.Instance.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
@@ -100,8 +104,7 @@ namespace AElf.Launcher
             txPoolConf.EcKeyPair = nodeKey;
 
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, isNewChain, txPoolConf,
-                minerConfig, smartContractRunnerFactory);
+            var container = SetupIocContainer(isMiner, isNewChain, chainId, txPoolConf, minerConfig, smartContractRunnerFactory);
 
             if (container == null)
             {
@@ -118,10 +121,10 @@ namespace AElf.Launcher
             using (var scope = container.BeginLifetimeScope())
             {
                 IActorEnvironment actorEnv = null;
-                if (ParallelConfig.Instance.IsParallelEnable)
+                if (NodeConfig.Instance.ExecutorType == "akka")
                 {
                     actorEnv = scope.Resolve<IActorEnvironment>();
-                    actorEnv.InitActorSystem();   
+                    actorEnv.InitActorSystem();
                 }
 
                 var evListener = scope.Resolve<ChainCreationEventListener>();
@@ -130,9 +133,22 @@ namespace AElf.Launcher
                     await evListener.OnBlockAppended(t);
                 });
                 
-                var node = scope.Resolve<IAElfNode>();
-                // Start the system
-                node.Start(nodeKey, TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
+                /************** Node setup ***************/
+                
+                NodeConfiguation confContext = new NodeConfiguation();
+                confContext.KeyPair = nodeKey;
+                confContext.WithRpc = confParser.Rpc;
+                confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+                
+                var mainChainNodeService = scope.Resolve<INodeService>();
+                var rpc = scope.Resolve<IRpcServer>();
+                rpc.Init(scope, confParser.RpcHost, confParser.RpcPort);
+                var node = scope.Resolve<INode>();
+                node.Register(mainChainNodeService);
+                node.Initialize(confContext);
+                node.Start();
+                
+                /*****************************************/
 
                 var txPoolService = scope.Resolve<ITxPoolService>();
                 MessageHub.Instance.Subscribe<IncomingTransaction>(
@@ -146,80 +162,24 @@ namespace AElf.Launcher
                             txAdded.Transaction.Serialize());
                     }
                 );
-
-                if (confParser.Rpc)
-                {
-                    var rpc = new RpcServer();
-                    rpc.Initialize(scope, confParser.RpcHost, confParser.RpcPort);
-                    rpc.RunAsync();
-                }
-
-                //DoDPos(node);
-                if (actorEnv!=null)
+                
+                if (actorEnv != null)
                 {
                     Console.CancelKeyPress += async (sender, eventArgs) => { await actorEnv.StopAsync(); };
                     actorEnv.TerminationHandle.Wait();
                 }
 
-                Console.CancelKeyPress += (s, e) => { Interlocked.CompareExchange(ref _stopped, 1, 0); };
-                while (_stopped == 0)
-                {
-                    Console.ReadKey();
-                }
+                Console.CancelKeyPress += OnExit;
+                _closing.WaitOne();
             }
         }
-
-        private static byte[] TokenGenesisContractCode
+        
+        protected static void OnExit(object sender, ConsoleCancelEventArgs args)
         {
-            get
-            {
-                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisTokenContractAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
-            }
+            _closing.Set();
         }
 
-        private static byte[] ConsensusGenesisContractCode
-        {
-            get
-            {
-                var contractZeroDllPath =
-                    Path.Combine(AssemblyDir, $"{Globals.GenesisConsensusContractAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
-            }
-        }
-
-        private static byte[] BasicContractZero
-        {
-            get
-            {
-                var contractZeroDllPath =
-                    Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
-            }
-        }
-
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, 
+        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, string chainId,
             ITxPoolConfig txPoolConf, IMinerConfig minerConf,
             SmartContractRunnerFactory smartContractRunnerFactory)
         {
@@ -240,9 +200,12 @@ namespace AElf.Launcher
             builder.RegisterModule(new StorageModule());
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
-
-            if (ParallelConfig.Instance.IsParallelEnable)
+            builder.RegisterType<MainchainNodeService>().As<INodeService>();
+            builder.RegisterType<RpcServer>().As<IRpcServer>().SingleInstance();
+            
+            if (NodeConfig.Instance.ExecutorType == "akka")
             {
+                builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
                 builder.RegisterType<Grouper>().As<IGrouper>();
                 builder.RegisterType<ServicePack>().PropertiesAutowired();
                 builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
@@ -256,11 +219,19 @@ namespace AElf.Launcher
             // register SmartContractRunnerFactory 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
 
-            Hash chainId;
+            Hash chainIdHash;
             if (isNewChain)
             {
-                chainId = Hash.Generate().ToChainId();
-                var obj = new JObject(new JProperty("id", chainId.ToHex()));
+                if (string.IsNullOrWhiteSpace(chainId))
+                {
+                    chainIdHash = Hash.Generate().ToChainId();
+                }
+                else
+                {
+                    chainIdHash = ByteArrayHelpers.FromHexString(chainId);
+                }
+
+                var obj = new JObject(new JProperty("id", chainIdHash.ToHex()));
 
                 // write JSON directly to a file
                 using (var file = File.CreateText(FilePath))
@@ -276,19 +247,19 @@ namespace AElf.Launcher
                 using (var reader = new JsonTextReader(file))
                 {
                     var chain = (JObject) JToken.ReadFrom(reader);
-                    chainId = ByteArrayHelpers.FromHexString(chain.GetValue("id").ToString());
+                    chainIdHash = ByteArrayHelpers.FromHexString(chain.GetValue("id").ToString());
                 }
             }
 
             // register miner config
             var minerConfiguration = isMiner ? minerConf : MinerConfig.Default;
-            minerConfiguration.ChainId = chainId;
+            minerConfiguration.ChainId = chainIdHash;
             builder.RegisterModule(new MinerModule(minerConfiguration));
 
-            NodeConfig.Instance.ChainId = chainId.Value.ToByteArray().ToHex();
+            NodeConfig.Instance.ChainId = chainIdHash.Value.ToByteArray().ToHex();
             builder.RegisterModule(new MainChainNodeModule());
 
-            txPoolConf.ChainId = chainId;
+            txPoolConf.ChainId = chainIdHash;
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
 
             IContainer container;

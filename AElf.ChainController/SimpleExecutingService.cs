@@ -34,7 +34,8 @@ namespace AElf.ChainController
                     traces.Add(new TransactionTrace()
                     {
                         TransactionId = transaction.GetHash(),
-                        StdErr = "Execution Cancelled"
+                        StdErr = "Execution Canceled",
+                        ExecutionStatus = ExecutionStatus.Canceled
                     });
                     continue;
                 }
@@ -57,7 +58,7 @@ namespace AElf.ChainController
                 }
                 catch (Exception ex)
                 {
-                    // TODO: Improve log
+                    txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                     txCtxt.Trace.StdErr += ex + "\n";
                 }
                 finally

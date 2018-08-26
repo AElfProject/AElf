@@ -5,7 +5,7 @@ using AElf.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
 
-namespace AElf.ChainControllerImpl
+namespace AElf.ChainController
 {
     public class ChainCreationService : IChainCreationService
     {
@@ -51,7 +51,7 @@ namespace AElf.ChainControllerImpl
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(e); // todo use logger
                 return null;
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -76,13 +77,14 @@ namespace AElf.Management.Commands
                                 new V1Container
                                 {
                                     Name = DeploymentName,
-                                    Image = "aelf/node",
+                                    Image = "aelf/node:test",
                                     Ports = new List<V1ContainerPort>
                                     {
                                         new V1ContainerPort(NodePort),
                                         new V1ContainerPort(RpcPort),
                                         new V1ContainerPort(ActorPort)
                                     },
+                                    ImagePullPolicy = "Always",
                                     Env = new List<V1EnvVar>
                                     {
                                         new V1EnvVar
@@ -111,9 +113,11 @@ namespace AElf.Management.Commands
                                         "--node.accountpassword",
                                         arg.AccountPassword,
                                         "--dpos.generator",
-                                        "true",
+                                        arg.LauncherArg.IsConsensusInfoGenerator.ToString(),
                                         "--chain.new",
-                                        "true"
+                                        "true",
+                                        "--chain.id",
+                                        chainId.Split('-').First()
                                     },
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
@@ -140,7 +144,14 @@ namespace AElf.Management.Commands
                                 new V1Volume
                                 {
                                     Name = "key",
-                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "config-keys"}
+                                    ConfigMap = new V1ConfigMapVolumeSource
+                                    {
+                                        Name = "config-keys",
+                                        Items = new List<V1KeyToPath>
+                                        {
+                                            new V1KeyToPath{Key = arg.MainChainAccount+".ak",Path = arg.MainChainAccount+".ak"}
+                                        }
+                                    }
                                 }
                             }
                         }

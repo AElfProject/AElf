@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Managers;

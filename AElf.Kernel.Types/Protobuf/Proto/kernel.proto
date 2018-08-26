@@ -20,8 +20,8 @@ message Transaction {
 }
 
 enum TransactionType {
-    DposTransaction = 0;
-    ContractTransaction = 1;
+    ContractTransaction = 0;
+    DposTransaction = 1;
 }
 
 enum Status {
@@ -39,14 +39,9 @@ message TransactionResult {
     bytes RetVal = 5;
 }
 
-message StateValueChange {
+message StateValueChange{
     DataPath Path = 1;
     bytes CurrentValue = 2;
-}
-
-message EventField {
-    string Name = 1;
-    google.protobuf.Any Value = 2;
 }
 
 message LogEvent {

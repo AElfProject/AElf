@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AElf.Kernel
+﻿namespace AElf.Common.Extensions
 {
     public static class HexExtensions
     {

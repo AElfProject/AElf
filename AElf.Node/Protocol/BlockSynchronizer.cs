@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
 using AElf.Kernel.Node.Protocol.Exceptions;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Peers;
+using AElf.Node.AElfChain;
 using Google.Protobuf;
 using NLog;
 
@@ -35,7 +37,7 @@ namespace AElf.Kernel.Node.Protocol
         event EventHandler SyncFinished;
 
         // todo remove The node property : autofac circular dependency problem.
-        Task Start(IAElfNode node, bool doInitialSync);
+        Task Start(MainchainNodeService node, bool doInitialSync);
 
         void IncrementChainHeight();
     }
@@ -66,7 +68,7 @@ namespace AElf.Kernel.Node.Protocol
 
         public int SyncTargetHeight = 0;
 
-        private IAElfNode _mainChainNode;
+        private MainchainNodeService _mainChainNode;
         private readonly ITxPoolService _poolService;
 
         private BlockingCollection<Job> _jobQueue;
@@ -85,7 +87,7 @@ namespace AElf.Kernel.Node.Protocol
         }
 
         // todo remove The node property : autofac circular dependency problem.
-        public async Task Start(IAElfNode node, bool doInitialSync)
+        public async Task Start(MainchainNodeService node, bool doInitialSync)
         {
             _mainChainNode = node;
 
@@ -418,11 +420,6 @@ namespace AElf.Kernel.Node.Protocol
             foreach (var pendingBlock in blcks)
             {
                 var block = pendingBlock.Block;
-                if (_mainChainNode.IsMiningInProcess == 1)
-                {
-                    _logger?.Trace("----- MINING !!");
-                    return toRemove;
-                }
 
                 var res = await _mainChainNode.ExecuteAndAddBlock(block);
                 _logger?.Trace($"TryExecuteBlocks - Block execution result : {res.Executed}, {res.ValidationError} : {block.GetHash().Value.ToByteArray().ToHex()} - Index {block.Header.Index}");

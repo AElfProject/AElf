@@ -1,6 +1,6 @@
 ﻿using AElf.SmartContract;
 using AElf.ChainController;
-using AElf.ChainControllerImpl.TxMemPool;
+using AElf.ChainController.TxMemPool;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Modules.AutofacModule;

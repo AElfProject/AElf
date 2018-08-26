@@ -2,7 +2,7 @@
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 
-namespace AElf.ChainControllerImpl.TxMemPool
+namespace AElf.ChainController.TxMemPool
  {
      public class TxPoolConfig : ITxPoolConfig
      {

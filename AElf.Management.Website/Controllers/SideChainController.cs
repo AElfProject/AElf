@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Website.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -16,24 +17,18 @@ namespace AElf.Management.Website.Controllers
             _sideChainService = sideChainService;
         }
 
-        [HttpGet("{value}")]
-        public ApiResult Test(string value)
-        {
-            return new TestResult {Value = value};
-        }
-
         [HttpPost("{chainId}")]
-        public ApiResult Post(string chainId, [FromBody] DeployArg arg)
+        public ApiEmptyResult Post(string chainId, [FromBody] DeployArg arg)
         {
             _sideChainService.Deploy(chainId, arg);
-            return new ApiResult();
+            return ApiEmptyResult.Default;
         }
 
         [HttpDelete("{chainId}")]
-        public ApiResult Delete(string chainId)
+        public ApiEmptyResult Delete(string chainId)
         {
             _sideChainService.Remove(chainId);
-            return new ApiResult();
+            return ApiEmptyResult.Default;
         }
     }
 }

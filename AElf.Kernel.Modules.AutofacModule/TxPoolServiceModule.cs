@@ -1,5 +1,4 @@
 ﻿using AElf.ChainController.TxMemPool;
-using AElf.ChainControllerImpl.TxMemPool;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule

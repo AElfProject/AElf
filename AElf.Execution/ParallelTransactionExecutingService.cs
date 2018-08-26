@@ -89,7 +89,8 @@ namespace AElf.Execution
             return transactions.Select(tx => new TransactionTrace()
             {
                 TransactionId = tx.GetHash(),
-                StdErr = "Execution Cancelled"
+                ExecutionStatus = ExecutionStatus.Canceled,
+                StdErr = "Execution Canceled"
             }).ToList();
         }
 

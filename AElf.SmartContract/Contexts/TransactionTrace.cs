@@ -44,9 +44,9 @@ namespace AElf.SmartContract
         public async Task<Dictionary<DataPath, StateCache>> CommitChangesAsync(IStateDictator stateDictator)
         {
             Dictionary<DataPath, StateCache> changedDict = new Dictionary<DataPath, StateCache>();
-            if (!IsSuccessful())
+            if (ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
-                throw new InvalidOperationException("Attempting to commit an unsuccessful trace.");
+                throw new InvalidOperationException("Attempting to commit a trace with a wrong status.");
             }
 
             if (!_alreadyCommited)
@@ -69,6 +69,8 @@ namespace AElf.SmartContract
                         changedDict[kv.Key] = kv.Value;
                     }
                 }
+
+                ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
             }
 
             _alreadyCommited = true;

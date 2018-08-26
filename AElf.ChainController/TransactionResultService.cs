@@ -5,7 +5,7 @@ using AElf.ChainController.TxMemPool;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 
-namespace AElf.ChainControllerImpl
+namespace AElf.ChainController
 {
     public class TransactionResultService : ITransactionResultService
     {
