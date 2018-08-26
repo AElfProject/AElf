@@ -390,11 +390,11 @@ namespace AElf.ChainController.TxMemPool
 
 
         /// <inheritdoc/>
-        public ulong GetIncrementId(Hash addr, bool isDPoS = false)
+        public ulong GetIncrementId(Hash addr, bool isBlockProducer = false)
         {
             ILock @lock;
             IPool pool;
-            if (!isDPoS)
+            if (!isBlockProducer)
             {
                 pool = _contractTxPool;
             }

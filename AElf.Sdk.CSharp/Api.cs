@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -98,7 +99,7 @@ namespace AElf.Sdk.CSharp
         {
             if (_dataProviders.TryGetValue(name, out var dp))
                 return dp;
-            
+            Console.WriteLine("Return a new dataprovider");
             dp = _smartContractContext.DataProvider.GetDataProvider(name);
             _dataProviders.Add(name, dp);
 

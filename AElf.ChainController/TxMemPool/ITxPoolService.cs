@@ -87,7 +87,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         Task Stop();
 
-        ulong GetIncrementId(Hash addr, bool isDPoS = false);
+        ulong GetIncrementId(Hash addr, bool isBlockProducer = false);
 
         /// <summary>
         /// 

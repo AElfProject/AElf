@@ -28,8 +28,6 @@ namespace AElf.Kernel
             return Body.AddTransaction(txHash);
         }
 
-        public ulong RoundNumber { get; set; }
-
         public void FillTxsMerkleTreeRootInHeader()
         {
             Header.MerkleTreeRootOfTransactions = Body.CalculateMerkleTreeRoot();

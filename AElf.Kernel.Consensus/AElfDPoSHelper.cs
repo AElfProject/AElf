@@ -549,10 +549,11 @@ namespace AElf.Kernel.Consensus
             Globals.AElfDPoSMiningInterval = MiningInterval.Value;
         }
         
-        public string GetDPoSInfo(ulong height)
+        public void LogDPoSInformation(ulong height)
         {
             _logger?.Trace("Log dpos information - Start");
-            return GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}";
+            _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}");
+            _logger?.Trace("Log dpos information - End");
         }
 
         private string GetRoundInfoToString(UInt64Value roundNumber)

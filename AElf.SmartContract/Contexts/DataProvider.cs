@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common.Extensions;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -39,7 +40,7 @@ namespace AElf.SmartContract
 
         public void ClearCache()
         {
-            StateCache.Clear();
+            StateCache = new Dictionary<DataPath, StateCache>();
         }
 
         /// <summary>
@@ -57,8 +58,8 @@ namespace AElf.SmartContract
             _dataPath = dataPath.Clone();
 
             _dataPath.SetDataProvider(GetHash());
-            Console.WriteLine("Layer: " + layer);
-            Console.WriteLine("DP Hash: " + GetHash().ToHex());
+            //Console.WriteLine("Layer: " + layer);
+            //Console.WriteLine("DP Hash: " + GetHash().ToHex());
         }
 
         private Hash GetHash()
@@ -82,13 +83,13 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-            Console.WriteLine("Key Hash: " + keyHash.ToHex());
+            //Console.WriteLine("Key Hash: " + keyHash.ToHex());
             return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
         }
 
         public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
         {
-            Console.WriteLine("Key Hash: " + keyHash.ToHex());
+            //Console.WriteLine("Key Hash: " + keyHash.ToHex());
             var dataPath = _dataPath.Clone();
             dataPath.SetDataKey(keyHash);
             if (!dataPath.AreYouOk())
@@ -110,8 +111,8 @@ namespace AElf.SmartContract
             {
                 state = new StateCache((await GetDataAsync<T>(keyHash))?.ToByteArray());
             }
-            
             state.CurrentValue = obj;
+
             StateCache[dataPath] = state;
         }
         
@@ -170,16 +171,16 @@ namespace AElf.SmartContract
                 throw new InvalidOperationException("DataPath: I'm not OK.");
             }
             
-            Console.WriteLine($"Try to get {dataPath.ResourcePathHash.ToHex()} from database.");
+            //Console.WriteLine($"Try to get {dataPath.ResourcePathHash.ToHex()} from database.");
             //Get resource pointer.
             var pointerHash = await _stateDictator.GetHashAsync(dataPath.ResourcePathHash);
             if (pointerHash == null)
             {
-                Console.WriteLine("But failed.");
+                //Console.WriteLine("But failed.");
                 return default(T);
             }
             
-            Console.WriteLine($"pointer hash: {pointerHash.ToHex()}");
+            //Console.WriteLine($"pointer hash: {pointerHash.ToHex()}");
             
             return await _stateDictator.GetDataAsync<T>(pointerHash);
         }

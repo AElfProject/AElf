@@ -150,7 +150,7 @@ namespace AElf.ChainController.Rpc
 
                 return Math.Max(idInDB, idInPool);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return 0;
             }

@@ -19,9 +19,12 @@ using Google.Protobuf;
 using NLog;
 using ServiceStack;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
 {
     [LoggerName("Node")]
+    // ReSharper disable once ClassNeverInstantiated.Global
+    // ReSharper disable InconsistentNaming
     public class MainchainNodeService : INodeService
     {
         private readonly ILogger _logger;
@@ -165,20 +168,20 @@ namespace AElf.Kernel.Node
                 }
                 else
                 {
-                    var preBlockHash = _blockChain.GetCurrentBlockHashAsync().Result;
-                    
+                    _stateDictator.BlockHeight = _blockChain.CurrentBlock.Header.Index;
+                    _stateDictator.BlockProducerAccountAddress = Hash.Zero;
                     _stateDictator.SetWorldStateAsync();
-                    _stateDictator.PreBlockHash = preBlockHash;
-                    _stateDictator.RollbackCurrentChangesAsync();
+
+                    _stateDictator.RollbackToPreviousBlock();
                 }
             }
             catch (Exception e)
             {
-                _logger?.Log(LogLevel.Error, "Could not create the chain : " + NodeConfig.Instance.ChainId);
+                _logger?.Error(e, "Could not create the chain : " + NodeConfig.Instance.ChainId);
             }
 
             // set world state
-            _stateDictator.SetChainId(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
 
             #endregion setup
 
@@ -274,14 +277,20 @@ namespace AElf.Kernel.Node
         private void SetupConsensus()
         {
             if (_consensus != null)
+            {
+                _logger?.Trace("Consensus has already initialized.");
                 return;
+            }
 
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
                 {
-                    var dpos = new DPoS(_logger, _stateDictator, _accountContextService, _txPoolService, _p2p, _miner, _blockChain, _synchronizer);
-                    var genesisContractHash = _chainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), SmartContractType.AElfDPoS);
+                    var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+                    
+                    var dpos = new DPoS(_stateDictator, _accountContextService, _txPoolService, _p2p, _miner,
+                        _blockChain, _synchronizer, _logger);
+                    var genesisContractHash = _chainCreationService.GenesisContractHash(chainId, SmartContractType.AElfDPoS);
                     dpos.Initialize(genesisContractHash, _nodeKeyPair);
                     _consensus = dpos;
                 }
@@ -332,17 +341,10 @@ namespace AElf.Kernel.Node
                         //TODO: limit the count of blocks to rollback
                         if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
                         {
+                            _logger?.Trace("Ready to rollback");
                             var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
-                            await _stateDictator.RollbackToBlockHash(block.Header.PreviousBlockHash);
-
                             await _txPoolService.RollBack(txs);
-                            _stateDictator.PreBlockHash = block.Header.PreviousBlockHash;
-                            await _stateDictator.RollbackCurrentChangesAsync();
-
-                            var ws = await _stateDictator.GetWorldStateAsync(block.GetHash());
-                            _logger?.Trace(
-                                $"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
-
+                            await _stateDictator.RollbackToPreviousBlock();
                             error = ValidationError.Success;
                         }
                         else
@@ -359,7 +361,6 @@ namespace AElf.Kernel.Node
 
                 var executed = await _blockExecutor.ExecuteBlock(block);
 
-                Task.WaitAll();
                 await _consensus.Update();
 
                 return new BlockExecutionResult(executed, error);

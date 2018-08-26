@@ -64,7 +64,7 @@ namespace AElf.Kernel.Storages
                 
                 var key = pointerHash.GetKeyString((uint)typeIndex);
                 var res = await _keyValueDatabase.GetAsync(key);
-                Console.WriteLine($"Get: {key} - {res?.Length}");
+                //Console.WriteLine($"Get: {key} - {res?.Length}");
                 return  res == null ? default(T): res.Deserialize<T>();
             }
             catch (Exception e)
@@ -80,7 +80,7 @@ namespace AElf.Kernel.Storages
             {
                 foreach (var kv in pipelineSet)
                 {
-                    Console.WriteLine($"Set: {kv.Key.ToHex()} - {kv.Value.Length}");
+                    //Console.WriteLine($"Set: {kv.Key.ToHex()} - {kv.Value.Length}");
                 }
                 return await _keyValueDatabase.PipelineSetAsync(
                     pipelineSet.ToDictionary(kv => kv.Key.ToHex(), kv => kv.Value));

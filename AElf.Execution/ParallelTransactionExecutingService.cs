@@ -45,7 +45,7 @@ namespace AElf.Execution
             }
             else
             {
-                groups = new List<List<Transaction>>() {transactions};
+                groups = new List<List<Transaction>> {transactions};
                 failedTxs = new Dictionary<Transaction, Exception>();
             }
 

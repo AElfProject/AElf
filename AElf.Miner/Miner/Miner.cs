@@ -96,11 +96,11 @@ namespace AElf.Miner.Miner
         public async Task<IBlock> Mine(int timeoutMilliseconds, bool initial = false)
         {
             _stateDictator.ChainId = Config.ChainId;
-            _stateDictator.BlockProducerAccountAddress = initial ? Hash.Zero : _keyPair.GetAddress();
+            _stateDictator.BlockProducerAccountAddress = _keyPair.GetAddress();
             _stateDictator.BlockHeight = await _chainService.GetBlockChain(Config.ChainId).GetCurrentBlockHeightAsync();
 
             using (var cancellationTokenSource = new CancellationTokenSource())
-            using (var timer = new Timer((s) => cancellationTokenSource.Cancel()))
+            using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
             {
                 timer.Change(timeoutMilliseconds, Timeout.Infinite);
                 try
@@ -220,7 +220,7 @@ namespace AElf.Miner.Miner
 
                     // put back canceled transactions
                     // No await so that it won't affect Consensus
-                    _txPoolService.RollBack(rollback);
+                    await _txPoolService.RollBack(rollback);
                     return block;
                 }
                 catch (Exception e)
