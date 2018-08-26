@@ -56,7 +56,7 @@ namespace AElf.SmartContract
   Task ApplyStateValueChangeAsync(StateValueChange stateValueChange);
   Task<bool> ApplyCachedDataAction(Dictionary<DataPath, StateCache> queue);
   Hash ChainId { get; set; }
-  ulong CurrentRoundNumber { get; set; }
+  ulong BlockHeight { get; set; }
   Hash BlockProducerAccountAddress { get; set; }
  }
 }

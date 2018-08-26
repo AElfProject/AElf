@@ -34,14 +34,12 @@ namespace AElf.Miner.Miner
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private AElfDPoSHelper _consensusHelper;
         private readonly IChainCreationService _chainCreationService;
         private readonly IChainManagerBasic _chainManagerBasic;
         private readonly IBlockManagerBasic _blockManagerBasic;
 
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
-        
         
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
@@ -97,12 +95,7 @@ namespace AElf.Miner.Miner
         {
             _stateDictator.ChainId = Config.ChainId;
             _stateDictator.BlockProducerAccountAddress = initial ? Hash.Zero : _keyPair.GetAddress();
-            
-            var consensusContractAddress = _chainCreationService.GenesisContractHash(
-                ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), SmartContractType.AElfDPoS);
-            _consensusHelper = new AElfDPoSHelper(_stateDictator, Config.ChainId, Miners, consensusContractAddress, _logger);
-            
-            _stateDictator.CurrentRoundNumber = _consensusHelper.CurrentRoundNumber.Value;
+            _stateDictator.BlockHeight = await _chainService.GetBlockChain(Config.ChainId).GetCurrentBlockHeightAsync();
 
             try
             {
@@ -196,8 +189,6 @@ namespace AElf.Miner.Miner
 
                 // append block
                 await blockChain.AddBlocksAsync(new List<IBlock> {block});
-
-                block.RoundNumber = _consensusHelper.CurrentRoundNumber.Value;
                 return block;
             }
             catch (Exception e)

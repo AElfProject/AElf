@@ -26,7 +26,7 @@ namespace AElf.SmartContract
 
         public Hash ChainId { get; set; }
         public Hash BlockProducerAccountAddress { get; set; } = Hash.Zero;
-        public ulong CurrentRoundNumber { get; set; }
+        public ulong BlockHeight { get; set; }
 
         public StateDictator(IHashManager hashManager, ITransactionManager transactionManager, IDataStore dataStore, ILogger logger = null)
         {
@@ -78,7 +78,7 @@ namespace AElf.SmartContract
             var dataPath = new DataPath
             {
                 ChainId = ChainId,
-                BlockHeight = CurrentRoundNumber,
+                BlockHeight = BlockHeight,
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             return await _dataStore.GetAsync<WorldState>(dataPath.StateHash);
@@ -89,7 +89,7 @@ namespace AElf.SmartContract
             var dataPath = new DataPath
             {
                 ChainId = ChainId,
-                BlockHeight = CurrentRoundNumber,
+                BlockHeight = BlockHeight,
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _dataStore.InsertAsync(dataPath.StateHash, _worldState);
@@ -116,7 +116,7 @@ namespace AElf.SmartContract
             var dataPath = new DataPath
             {
                 ChainId = ChainId,
-                BlockHeight = CurrentRoundNumber,
+                BlockHeight = BlockHeight,
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _hashManager.SetHash(dataPath.StateHash, blockHash.OfType(HashType.BlockHash));
@@ -132,7 +132,7 @@ namespace AElf.SmartContract
             var dataPath = new DataPath
             {
                 ChainId = ChainId,
-                BlockHeight = CurrentRoundNumber,
+                BlockHeight = BlockHeight,
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _hashManager.SetHash(blockHash.OfType(HashType.BlockHash), dataPath.StateHash.OfType(HashType.StateHash));

@@ -124,7 +124,7 @@ namespace AElf.Kernel.Node
                 else
                 {
                     _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
-                    _stateDictator.CurrentRoundNumber = BlockChain.CurrentBlock.RoundNumber;
+                    _stateDictator.BlockHeight = BlockChain.CurrentBlock.Header.Index;
                     _stateDictator.BlockProducerAccountAddress = Hash.Zero;
                     _stateDictator.SetWorldStateAsync();
 

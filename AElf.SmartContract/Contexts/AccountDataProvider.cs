@@ -17,7 +17,7 @@ namespace AElf.SmartContract
 
             _dataPath = new DataPath()
                 .SetChainId(stateDictator.ChainId)
-                .SetBlockHeight(stateDictator.CurrentRoundNumber)
+                .SetBlockHeight(stateDictator.BlockHeight)
                 .SetBlockProducerAddress(stateDictator.BlockProducerAccountAddress)
                 .SetAccountAddress(accountAddress);
         }
