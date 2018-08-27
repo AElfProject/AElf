@@ -19,6 +19,8 @@ namespace AElf.ChainController.TxMemPool
         private readonly IChainService _chainService;
         private readonly ITxValidator _txValidator;
         private readonly ITransactionManager _transactionManager;
+        private  ulong Least { get; set; }
+        private  ulong Limit { get; set; }
 
         public TxPoolServiceBM(ILogger logger, IChainService chainService, ITxValidator txValidator,
             ITransactionManager transactionManager)
@@ -184,9 +186,18 @@ namespace AElf.ChainController.TxMemPool
         {
             // TODO: Improve performance
             var txs = _dPoSTxs.Values.ToList();
+            if ( (ulong) _contractTxs.Count < Least)
+            {
+                return txs;
+            }
+
             var invalid = new List<Hash>();
             foreach (var kv in _contractTxs)
             {
+                if ((ulong) txs.Count > Limit)
+                {
+                    continue;
+                }
                 if (!kv.Value.Claim())
                 {
                     continue;
@@ -218,6 +229,8 @@ namespace AElf.ChainController.TxMemPool
 
         public void SetBlockVolume(ulong minimal, ulong maximal)
         {
+            Least = minimal;
+            Limit = maximal;
         }
 
         /// <inheritdoc/>
