@@ -482,7 +482,6 @@ namespace AElf.ChainController.TxMemPool
             }
             
             _logger?.Log(LogLevel.Debug, "Rollbacked {0} txs.", txsOut.Count);
-
         }
 
         public void SetBlockVolume(ulong minimal, ulong maximal)
