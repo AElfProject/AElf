@@ -13,10 +13,6 @@
       <Project>{DAEEB200-1D20-4A56-8C21-CA2ADE976AD5}</Project>
       <Name>AElf.Kernel.Types</Name>
     </ProjectReference>
-    <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj">
-      <Project>{AE13A559-B20D-4680-971A-17BAD5C2AFE6}</Project>
-      <Name>AElf.RPC</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Community.AspNetCore.JsonRpc, Version=1.11.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">

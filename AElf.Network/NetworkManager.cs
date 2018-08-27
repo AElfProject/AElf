@@ -10,22 +10,13 @@ using AElf.Common.Extensions;
 using AElf.Kernel;
 using AElf.Network.Connection;
 using AElf.Network.Data;
+using AElf.Network.Eventing;
 using AElf.Network.Peers;
 using NLog;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Network
 {
-    public class PeerAddedEventArgs : EventArgs
-    {
-        public IPeer Peer { get; set; }
-    }
-    
-    public class PeerRemovedEventArgs : EventArgs
-    {
-        public IPeer Peer { get; set; }
-    }
-
     public class NetMessageReceivedArgs : EventArgs
     {
         public TimeoutRequest Request { get; set; }
@@ -83,12 +74,12 @@ namespace AElf.Network
             _peerManager = peerManager;
             _logger = logger;
             
-            peerManager.PeerAdded += PeerManagerOnPeerAdded;
+            peerManager.PeerEvent += PeerManagerOnPeerAdded;
         }
 
         private void PeerManagerOnPeerAdded(object sender, EventArgs eventArgs)
         {
-            if (eventArgs is PeerAddedEventArgs peer && peer.Peer != null)
+            if (eventArgs is PeerEventArgs peer && peer.Peer != null && peer.Actiontype == PeerEventType.Added)
             {
                 _peers.Add(peer.Peer);
 

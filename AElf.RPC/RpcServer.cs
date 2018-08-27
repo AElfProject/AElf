@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Network;
+using AElf.Network.Peers;
+using AElf.RPC.Hubs.Net;
 using Microsoft.AspNetCore.Hosting;
 using Autofac;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.RPC
 {
@@ -18,9 +23,30 @@ namespace AElf.RPC
                 _host = new WebHostBuilder()
                     .UseKestrel()
                     .UseUrls(url)
-                    .ConfigureServices(sc => RpcServerHelpers.ConfigureServices(sc, scope))
-                    .Configure(ab => RpcServerHelpers.Configure(ab, scope))
+                    .ConfigureServices(sc =>
+                    {
+                        sc.AddSingleton(scope.Resolve<INetworkManager>());
+                        sc.AddSingleton(scope.Resolve<IPeerManager>());
+                        
+                        sc.AddSignalRCore();
+                        sc.AddSignalR();
+                        
+                        sc.AddScoped<NetContext>();
+                        
+                        RpcServerHelpers.ConfigureServices(sc, scope);
+                    })
+                    .Configure(ab =>
+                    {
+                        ab.UseSignalR(routes =>
+                        {
+                            routes.MapHub<NetworkHub>("/events/net");
+                        });
+                        
+                        RpcServerHelpers.Configure(ab, scope);
+                    })
                     .Build();
+
+                _host.Services.GetService<NetContext>();
             }
             catch (Exception e)
             {
@@ -32,7 +58,14 @@ namespace AElf.RPC
 
         public async Task Start()
         {
-            await _host.RunAsync();
+            try
+            {
+                await _host.RunAsync();
+            }
+            catch (Exception e)
+            {
+                ;
+            }
         }
 
         public void Stop()
