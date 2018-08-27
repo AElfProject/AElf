@@ -307,6 +307,8 @@ namespace AElf.CLI
                         Transaction t = new Transaction();
                         t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, parsedCmd.Args.ElementAt(1),
                             DeploySmartContract, serializedParams, TransactionType.ContractTransaction);
+
+                        t = t.AddBlockReference(_rpcAddress);
                         
                         MemoryStream ms = new MemoryStream();
                         Serializer.Serialize(ms, t);
@@ -361,7 +363,6 @@ namespace AElf.CLI
                             _screenManager.PrintError(WrongInputFormat);
                             return;
                         }
-
                         return;
                     }
                     
@@ -403,7 +404,9 @@ namespace AElf.CLI
                             JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
                             tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
                             tr.type = TransactionType.ContractTransaction;
-                            
+
+                            tr = tr.AddBlockReference(_rpcAddress);
+
                             _accountManager.SignTransaction(tr);
                             var resp = SignAndSendTransaction(tr);
                             

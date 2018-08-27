@@ -27,29 +27,35 @@ namespace AElf.CLI.Data.Protobuf
         
         [ProtoMember(2)]
         public Hash To { get; set; }
-        
+
         [ProtoMember(3)]
-        public UInt64 IncrementId { get; set; }
-        
+        public UInt64 RefBlockNumber { get; set; }
+
         [ProtoMember(4)]
-        public string MethodName { get; set; }
+        public byte[] RefBlockPrefix { get; set; }
         
         [ProtoMember(5)]
-        public byte[] Params { get; set; }
+        public UInt64 IncrementId { get; set; }
         
         [ProtoMember(6)]
-        public UInt64 Fee { get; set; }
+        public string MethodName { get; set; }
         
         [ProtoMember(7)]
-        public byte[] R { get; set; }
+        public byte[] Params { get; set; }
         
         [ProtoMember(8)]
-        public byte[] S { get; set; }
+        public UInt64 Fee { get; set; }
         
         [ProtoMember(9)]
-        public byte[] P { get; set; }
+        public byte[] R { get; set; }
         
         [ProtoMember(10)]
+        public byte[] S { get; set; }
+        
+        [ProtoMember(11)]
+        public byte[] P { get; set; }
+        
+        [ProtoMember(12)]
         public TransactionType  type { get; set; }
     }
 
