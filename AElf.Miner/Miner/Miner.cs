@@ -71,7 +71,7 @@ namespace AElf.Miner.Miner
             _blockManagerBasic = blockManagerBasic;
 
 
-            var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+            var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
         

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.Common.Extensions;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -17,13 +18,7 @@ namespace AElf.Kernel.Tests
             _service = service;
         }
         
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
+        private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
         [Fact]
         public async Task Test()
@@ -36,7 +31,7 @@ namespace AElf.Kernel.Tests
                 ContractHash = Hash.Zero
             };
             var chain = await _service.CreateNewChainAsync("Hello".CalculateHash(), new List<SmartContractRegistration>{reg});
-            Assert.Equal("Hello".CalculateHash(), chain.Id);
+            Assert.Equal("Hello".CalculateHash().ToHex(), chain.Id.ToHex());
         }
     }
 }

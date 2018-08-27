@@ -28,17 +28,17 @@ namespace AElf.Kernel.Managers
 
         public async Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody)
         {
-            await _dataStore.InsertAsync(blockHash.OfType(HashType.BlockBodyHash), blockBody);
+            await _dataStore.InsertAsync(blockHash.Clone().OfType(HashType.BlockBodyHash), blockBody);
         }
 
         public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
-            return await _dataStore.GetAsync<BlockHeader>(blockHash.OfType(HashType.BlockHeaderHash));
+            return await _dataStore.GetAsync<BlockHeader>(blockHash.Clone().OfType(HashType.BlockHeaderHash));
         }
 
         public async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
         {
-            return await _dataStore.GetAsync<BlockBody>(bodyHash.OfType(HashType.BlockBodyHash));
+            return await _dataStore.GetAsync<BlockBody>(bodyHash.Clone().OfType(HashType.BlockBodyHash));
         }
 
         public async Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header)
@@ -51,8 +51,8 @@ namespace AElf.Kernel.Managers
         {
             return new Block
             {
-                Header = await _dataStore.GetAsync<BlockHeader>(blockHash.OfType(HashType.BlockHeaderHash)),
-                Body = await _dataStore.GetAsync<BlockBody>(blockHash.OfType(HashType.BlockBodyHash))
+                Header = await _dataStore.GetAsync<BlockHeader>(blockHash.Clone().OfType(HashType.BlockHeaderHash)),
+                Body = await _dataStore.GetAsync<BlockBody>(blockHash.Clone().OfType(HashType.BlockBodyHash))
             };
         }
         

@@ -82,7 +82,7 @@ namespace AElf.Kernel.Tests
             await blockchain.AddBlocksAsync(new List<IBlock> {block});
             
             Assert.Equal(await getNextHeight(), (ulong)2);
-            Assert.Equal(await blockchain.GetCurrentBlockHashAsync(), block.GetHash());
+            Assert.Equal((await blockchain.GetCurrentBlockHashAsync()).ToHex(), block.GetHash().ToHex());
             Assert.Equal(block.Header.Index, (ulong)1);
         }
         

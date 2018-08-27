@@ -51,15 +51,17 @@ namespace AElf.Kernel
 
         public Hash OfType(HashType hashType)
         {
-            HashType = hashType;
-            return this;
+            var hash = Clone();
+            hash.HashType = hashType;
+            return hash;
         }
 
         public Hash OfType(int typeIndex)
         {
+            var hash = Clone();
             var hashType = (HashType) typeIndex;
-            HashType = hashType;
-            return this;
+            hash.HashType = hashType;
+            return hash;
         }
 
         public byte[] GetHashBytes() => Value.ToByteArray();

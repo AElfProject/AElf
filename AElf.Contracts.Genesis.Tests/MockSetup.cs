@@ -22,7 +22,7 @@ namespace AElf.Contracts.Genesis.Tests
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
-        private static int _incrementId = 0;
+        private static int _incrementId;
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
@@ -66,14 +66,14 @@ namespace AElf.Contracts.Genesis.Tests
                 ResourceDetectionService = null,
                 StateDictator = _stateDictator
             };
-        }
+         }
 
-        public byte[] SmartContractZeroCode
+        private byte[] SmartContractZeroCode
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
+                byte[] code;
+                using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
                 {
                     code = file.ReadFully();
                 }
@@ -91,7 +91,7 @@ namespace AElf.Contracts.Genesis.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
             _stateDictator.ChainId = ChainId1;
-            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
+            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.Clone().OfType(HashType.AccountZero));
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Hash address)

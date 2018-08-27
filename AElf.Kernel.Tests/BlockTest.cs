@@ -14,62 +14,29 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class BlockTest
     {
-        private readonly ChainTest _chainTest;
         private readonly IChainCreationService _chainCreationService;
         private readonly IChainService _chainService;
 
-        public BlockTest(IChainService chainService, ChainTest chainTest, IChainCreationService chainCreationService)
+        public BlockTest(IChainService chainService, IChainCreationService chainCreationService)
         {
             //_smartContractZero = smartContractZero;
-            _chainTest = chainTest;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
         }
 
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
-
-//        [Fact]
-//        public async Task GetNextBlockTest()
-//        {
-//            var chain = await CreateChain();
-//            var blockchain = _chainService.GetBlockChain(chain.Id);
-//            
-//            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-//            await blockchain.AddBlocksAsync(new List<IBlock>() {block1});
-////            await _chainManager.AppendBlockToChainAsync(block1);
-////            await _blockManager.AddBlockAsync(block1);
-//            
-//            var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
-//            await blockchain.AddBlocksAsync(new List<IBlock>() {block2});
-////            await _chainManager.AppendBlockToChainAsync(block2);
-////            await _blockManager.AddBlockAsync(block2);
-//
-//            var blockOfHeight2 = await _blockManager.GetNextBlockOf(chain.Id, block1.GetHash());
-//            
-//            Assert.Equal(block2, blockOfHeight2);
-//        }
-
+        private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
+        
         [Fact]
         public async Task GetBlockByHeightTest()
         {
             var chain = await CreateChain();
-            
-            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             var blockchain = _chainService.GetBlockChain(chain.Id);
-            await blockchain.AddBlocksAsync(new List<IBlock>() {block1});
-//            await _chainManager.AppendBlockToChainAsync(block1);
-//            await _blockManager.AddBlockAsync(block1);
+
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
+            await blockchain.AddBlocksAsync(new List<IBlock> {block1});
             
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
-            await blockchain.AddBlocksAsync(new List<IBlock>() {block2});
-//            await _chainManager.AppendBlockToChainAsync(block2);
-//            await _blockManager.AddBlockAsync(block2);
+            await blockchain.AddBlocksAsync(new List<IBlock> {block2});
 
             var blockOfHeight1 = await blockchain.GetBlockByHeightAsync(1);
             Assert.Equal(block1, blockOfHeight1);

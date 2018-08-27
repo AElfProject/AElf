@@ -329,7 +329,8 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var context = await _chainContextService.GetChainContextAsync(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+                var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+                var context = await _chainContextService.GetChainContextAsync(chainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
 
                 if (error != ValidationError.Success)

@@ -21,11 +21,8 @@ namespace AElf.Contracts.Genesis.Tests
         {
             get => Hash.Zero;
         }
-        
-        public Hash Address
-        {
-            get => new Hash(_mock.ChainId1.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
-        }
+
+        private Hash Address => new Hash(_mock.ChainId1.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
         
         public TestContractShim(MockSetup mock)
         {
@@ -51,7 +48,7 @@ namespace AElf.Contracts.Genesis.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(category, code))
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };

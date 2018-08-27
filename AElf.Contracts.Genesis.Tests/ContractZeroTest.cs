@@ -16,12 +16,12 @@ namespace AElf.Contracts.Genesis.Tests
 
         private IExecutive Executive { get; set; }
 
-        public byte[] Code
+        private byte[] Code
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll")))
+                byte[] code;
+                using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll")))
                 {
                     code = file.ReadFully();
                 }
