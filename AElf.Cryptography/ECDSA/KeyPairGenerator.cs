@@ -9,7 +9,7 @@ namespace AElf.Cryptography.ECDSA
         public ECKeyPair Generate()
         {
             ECKeyGenerationParameters keygenParams 
-                = new ECKeyGenerationParameters(Parameters.DomainParams, Parameters.SecureRandom);
+                = new ECKeyGenerationParameters(ECParameters.DomainParams, ECParameters.SecureRandom);
         
             ECKeyPairGenerator generator = new ECKeyPairGenerator();
             generator.Init(keygenParams);
