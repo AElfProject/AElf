@@ -120,7 +120,7 @@ namespace AElf.Contracts.Genesis
 
             Hash creator = Api.GetTransaction().From;
 
-            var info = new ContractInfo()
+            var info = new ContractInfo
             {
                 Owner = creator,
                 SerialNumer = serialNumber

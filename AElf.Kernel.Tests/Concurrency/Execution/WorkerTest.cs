@@ -11,7 +11,8 @@ using AElf.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-    [UseAutofacTestFramework]
+    /*
+     [UseAutofacTestFramework]
     public class WorkerTest : TestKitBase
     {
         private MockSetup _mock;
@@ -42,7 +43,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // Start processing
             var js1 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
-*/
+#1#
             // Return result
             var trace = ExpectMsg<TransactionTraceMessage>().TransactionTraces.FirstOrDefault();
 
@@ -54,7 +55,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             ExpectMsg<JobExecutionStatus>();
             var js2 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
-*/
+#1#
             Assert.Equal(tx1.GetHash(), trace.TransactionId);
             if (!string.IsNullOrEmpty(trace.StdErr))
             {
@@ -73,7 +74,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // Invalid request id as it has already completed
             var js3 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.InvalidRequestId, js3.Status);
-*/
+#1#
         }
 
         [Fact]
@@ -109,7 +110,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
  TODO: https://github.com/AElfProject/AElf/issues/338
             var js1 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
-*/
+#1#
             // Return result
             var trace = ExpectMsg<TransactionTraceMessage>().TransactionTraces;
             var trace1 = trace[0];
@@ -122,7 +123,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
  TODO: https://github.com/AElfProject/AElf/issues/338
             var js2 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
-*/
+#1#
             Assert.Equal(tx1.GetHash(), trace1.TransactionId);
             Assert.Equal(tx2.GetHash(), trace2.TransactionId);
             if (!string.IsNullOrEmpty(trace1.StdErr))
@@ -143,6 +144,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var start2 = _mock.GetTransactionStartTime1(tx2);
             Assert.True(end1 < start2);
         }
+*/
 
 /*
  Temporarily disabled.
@@ -175,6 +177,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             Assert.Equal("Execution Cancelled", traces[2].StdErr);
         }
-*/
     }
+    */
 }
