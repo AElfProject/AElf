@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -23,6 +24,13 @@ namespace AElf.Node
             _logger = logger;
             _rpcServer = rpcServer;
             _netManager = netManager;
+            
+           netManager.MessageReceived += NetManagerOnMessageReceived;
+        }
+
+        private void NetManagerOnMessageReceived(object sender, EventArgs e)
+        {
+            
         }
 
         public void Register(INodeService s)

@@ -10,7 +10,7 @@ namespace AElf.Kernel.Modules.AutofacModule
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<RpcServer>().As<IRpcServer>();
+            builder.RegisterType<RpcServer>().As<IRpcServer>().SingleInstance();
             
             builder.RegisterType<ChainControllerRpcService>().PropertiesAutowired();
             builder.RegisterType<NetRpcService>().PropertiesAutowired();

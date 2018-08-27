@@ -9,6 +9,7 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Newtonsoft.Json;
 using NLog;
 
 namespace AElf.Network.Peers
@@ -37,6 +38,7 @@ namespace AElf.Network.Peers
     /// point for incoming messages and is also used for sending messages to the peer it represents.
     /// This class handles a basic form of authentification as well as ping messages.
     /// </summary>
+    [JsonObject(MemberSerialization.OptIn)]
     public class Peer : IPeer
     {
         private const string LoggerName = "Peer";
@@ -103,6 +105,7 @@ namespace AElf.Network.Peers
         /// <summary>
         /// The data received after the authentification.
         /// </summary>
+        [JsonProperty(PropertyName = "action")]
         public NodeData DistantNodeData { get; set; }
 
         public string IpAddress
