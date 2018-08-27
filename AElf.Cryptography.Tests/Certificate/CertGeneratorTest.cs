@@ -19,55 +19,13 @@ namespace AElf.Cryptography.Tests.Certificate
         [Fact]
         public void GenerateCert()
         {
-            
-            /*AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
-            string pwd = "123";
-            var keyPair = kstore.Create(pwd);
-            kstore.CreateCertificate(keyPair, pwd, "127.0.0.1");*/
-            string test = "Test";
-            
-            /*IAsymmetricCipherKeyPairGenerator ecKpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
-            ecKpg.Init(new KeyGenerationParameters(new SecureRandom(), 2028));
-            var eckeypair = ecKpg.GenerateKeyPair();*/
-            /*ECKeyGenerationParameters keygenParams 
-                = new ECKeyGenerationParameters(ECParameters.DomainParams, ECParameters.SecureRandom);
-        
-            ECKeyPairGenerator generator = new ECKeyPairGenerator();
-            //generator.Init(new KeyGenerationParameters(new SecureRandom(), 256));
-            generator.Init(keygenParams);
-            var eckeypair = generator.GenerateKeyPair();*/
-
             var keypair = new RSAKeyPairGenerator().Generate();
-            var certGenerator = new CertGenerator(test).SetPublicKey(keypair.PublicKey);
+            var certGenerator = new CertGenerator().SetPublicKey(keypair.PublicKey);
             certGenerator.AddALternativeName("127.0.0.1");
             var cert = certGenerator.Generate(keypair.PrivateKey);
-            var path = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "certs");
-            Directory.CreateDirectory(path);
-            var i = new SecureRandom().Next();
-            string name = "main_" + i;
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, name + "_cert.pem"), true)) {
-                PemWriter pw = new PemWriter(outputFile);
-                pw.WriteObject(cert);
-                pw.Writer.Close();
-            }
-            
-            using (StreamReader outputFile = new StreamReader(Path.Combine(path, name + "_cert.pem"), true)) {
-                PemReader pr = new PemReader(outputFile);
-                X509Certificate certificate = (X509Certificate) pr.ReadObject();
-                Assert.Equal(keypair.PublicKey, cert.GetPublicKey());
-                Assert.Equal(cert.CertificateStructure, certificate.CertificateStructure);
-            }
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, name + "_key.pem"), true))
-            {
-                var pw = new PemWriter(outputFile);
-                pw.WriteObject(keypair.PrivateKey);
-                pw.Writer.Close();
-            }
-            using (StreamReader outputFile = new StreamReader(Path.Combine(path, name + "_key.pem"), true)) {
-                PemReader pr = new PemReader(outputFile);
-                AsymmetricCipherKeyPair kp =  pr.ReadObject() as AsymmetricCipherKeyPair;
-                Assert.Equal(keypair.PrivateKey, kp.Private);
-            }
+            var cert_gen = new X509CertificateParser().ReadCertificate(cert.GetEncoded());
+            Assert.Equal(cert, cert_gen);
+            Assert.Equal(keypair.PublicKey, cert.GetPublicKey());
         }
     }
 }

@@ -28,5 +28,15 @@ namespace AElf.Cryptography.Certificate
             var info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo (keyParam);
             return info.GetEncoded ();
         }
+        
+        public byte[] GetAddress()
+        {
+            return GetEncodedPublicKey().Take(AddressLength).ToArray();
+        } 
+        
+        public string GetAddressHex()
+        {
+            return "0x" + BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
+        }
     }
 }

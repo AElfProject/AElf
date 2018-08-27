@@ -20,7 +20,7 @@ namespace AElf.Cryptography.Certificate
         public static double DefautIntervalDays { get; } = 365;
         private SecureRandom random = new SecureRandom();
 
-        public CertGenerator(string name = null, double days = 0)
+        public CertGenerator(double days = 0)
         {
             _certificateGenerator = new X509V3CertificateGenerator();
             _certificateGenerator.SetSignatureAlgorithm(_signatureAlgorithm);

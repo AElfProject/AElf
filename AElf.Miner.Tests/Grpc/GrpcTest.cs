@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Cryptography.Certificate;
 using AElf.Kernel;
 using AElf.Miner.Rpc;
 using AElf.Miner.Rpc.Client;
@@ -61,34 +63,63 @@ namespace AElf.Miner.Tests.Grpc
             return new MinerClient();
         }
 
+
+        public void MockKeyPair(Hash chainId, string dir)
+        {
+            
+            var certificateStore = new CertificateStore(dir);
+            var name = chainId.ToHex();
+            var keyPair = certificateStore.WriteKeyAndCertificate(name, "127.0.0.1");
+        }
+        
         [Fact]
         public void ServerTest()
         {
-            _chainId =
-                ByteArrayHelpers.FromHexString("0xdb4a9b4fdbc3fa6b3ad07052c5bb3080d6f72635365fa243be5e7250f030cef8");
-            _headers = new List<IBlockHeader>
+            string dir = @"/tmp/pems";
+            if(Directory.Exists((Path.Combine(dir, "certs"))))
+                Directory.Delete(Path.Combine(dir, "certs"), true);
+            try
             {
-                MockBlockHeader().Object,
-                MockBlockHeader().Object,
-                MockBlockHeader().Object
-            };
-            var server = MinerServer();
-            server.StartUp(_chainId);
+                _chainId = Hash.Generate();
+            
+                _headers = new List<IBlockHeader>
+                {
+                    MockBlockHeader().Object,
+                    MockBlockHeader().Object,
+                    MockBlockHeader().Object
+                };
+                var server = MinerServer();
+                var sideChainId = ByteArrayHelpers.FromHexString("0xdb4a9b4fdbc3fa6b3ad07052c5bb3080d6f72635365fa243be5e7250f030cef8");
+                MockKeyPair(sideChainId, dir);
+                //start server, sidechain is server-side
+                server.Init(sideChainId, dir);
+                server.StartUp();
 
-            var client = MinerClient();
-            client.Init();
-            
-            
-            var requestInfo = new RequestIndexedInfo
+                // create client, main chian is client-side
+                var client = MinerClient();
+                client.Init(dir);
+                client.StartNewClient(sideChainId);
+                var requestInfo = new RequestIndexedInfo
+                {
+                    ChainId = _chainId,
+                    From = Hash.Generate().ToAccount(),
+                    Height = 0
+                };
+
+                var resp = client.GetHeaderInfo(sideChainId, requestInfo);
+                Assert.Equal(_headers.Count - (int) requestInfo.Height, resp.Headers.Count);
+                Assert.Equal(_headers[(int) requestInfo.Height].GetHash(), resp.Headers[(int) requestInfo.Height].BlockHeaderHash);
+            }
+            catch (Exception e)
             {
-                ChainId = _chainId,
-                From = Hash.Generate().ToAccount(),
-                Height = 0
-            };
-
-            var resp = client.GetHeaderInfo(requestInfo);
-            Assert.Equal(_headers.Count - (int) requestInfo.Height, resp.Headers.Count);
-            Assert.Equal(_headers[(int) requestInfo.Height].GetHash(), resp.Headers[(int) requestInfo.Height].BlockHeaderHash);
+                Console.WriteLine(e);
+                throw;
+            }
+            finally
+            {
+                Directory.Delete(Path.Combine(dir), true);
+            }
+            
         }
     }
 }
