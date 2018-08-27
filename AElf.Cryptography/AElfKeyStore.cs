@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Cryptography.Certificate;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
+using AElf.Cryptography.SSL;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -17,7 +19,7 @@ namespace AElf.Cryptography
 {
     public class AElfKeyStore //: IKeyStore
     {
-        private static readonly SecureRandom _random = new SecureRandom();
+        private static readonly SecureRandom  _random = new SecureRandom();
 
         private const string KeyFileExtension = ".ak";
         private const string KeyFolderName = "keys";
@@ -107,10 +109,10 @@ namespace AElf.Cryptography
             return !res ? null : keyPair;
         }
 
-        /*public bool CreateCertificate(ECKeyPair keyPair)
+        public bool CreateCertificate(ECKeyPair keyPair, string password, params string[] addresses)
         {
-            
-        }*/
+            return WriteCertificate(keyPair, password, addresses);
+        }
 
         public List<string> ListAccounts()
         {
@@ -173,7 +175,7 @@ namespace AElf.Cryptography
                 
             
             // Ensure path exists
-            GetOrCreateKeystoreDir(KeyFileExtension);
+            GetOrCreateKeystoreDir(KeyFolderName);
             
             string fullPath = null;
             try
@@ -211,6 +213,9 @@ namespace AElf.Cryptography
                 return false;
             }
             
+            // Ensure path exists
+            GetOrCreateKeystoreDir(PemFolderName);
+            
             string pemFileFullPath = null;
             try
             {
@@ -223,12 +228,13 @@ namespace AElf.Cryptography
                 return false;
             }
             
-            var akp = new AsymmetricCipherKeyPair(keyPair.PublicKey, keyPair.PrivateKey);
-            
             using (var writer = File.CreateText(pemFileFullPath))
             {
+                var certGenerator = new CertGenerator().SetPublicKey(keyPair.PublicKey);
+                certGenerator.AddALternativeName(addresses);
+                var cert = certGenerator.Generate(keyPair.PrivateKey);
                 var pw = new PemWriter(writer);
-                pw.WriteObject(akp, _algo, password.ToCharArray(), _random);
+                pw.WriteObject(cert);
                 pw.Writer.Close();
             }
 
