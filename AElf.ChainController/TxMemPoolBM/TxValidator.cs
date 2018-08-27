@@ -87,9 +87,8 @@ namespace AElf.ChainController.TxMemPool
                 return TxValidation.TxInsertionAndBroadcastingError.InvalidReferenceBlock;
             }
 
-            if (curHeight > 64 && tx.RefBlockNumber < curHeight - 64)
+            if (curHeight > Globals.ReferenceBlockValidPeriod && tx.RefBlockNumber < curHeight - Globals.ReferenceBlockValidPeriod)
             {
-                Console.WriteLine($"RefBlockNumber {tx.RefBlockNumber} curHeight {curHeight}");
                 return TxValidation.TxInsertionAndBroadcastingError.ExpiredReferenceBlock;
             }
 
