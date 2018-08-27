@@ -73,7 +73,7 @@ namespace AElf.Miner.Tests.Grpc
                 MockBlockHeader().Object
             };
             var server = MinerServer();
-            server.StartUp();
+            server.StartUp(_chainId);
 
             var client = MinerClient();
             client.Init();

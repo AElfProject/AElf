@@ -52,7 +52,7 @@ namespace AElf.Execution
 
         private List<Hash> GetRelatedAccount(ITransaction transaction)
         {
-            //var hashes = Parameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
+            //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
             List<Hash> hashes = new List<Hash>();
             using (MemoryStream mm = new MemoryStream(transaction.Params.ToByteArray()))
             using (CodedInputStream input = new CodedInputStream(mm))

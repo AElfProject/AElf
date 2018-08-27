@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
@@ -9,22 +10,22 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
 
-namespace AElf.Cryptography.SSL
+namespace AElf.Cryptography.Certificate
 {
     public class CertGenerator
     {
         private readonly X509V3CertificateGenerator _certificateGenerator;
-        private string _signatureAlgorithm = "SHA256WITHECDSA";
+        private string _signatureAlgorithm = "SHA256WITHRSA";
         private const string DefaultSubjectName = "aelf";
         public static double DefautIntervalDays { get; } = 365;
         private SecureRandom random = new SecureRandom();
 
-        public CertGenerator(string name, double days = 0)
+        public CertGenerator(string name = null, double days = 0)
         {
             _certificateGenerator = new X509V3CertificateGenerator();
             _certificateGenerator.SetSignatureAlgorithm(_signatureAlgorithm);
             var subjectDn = new X509Name("CN=" + DefaultSubjectName);
-            var issuerDn = new X509Name("CN=" + name);
+            var issuerDn = new X509Name("CN=" + name?? DefaultSubjectName);
             _certificateGenerator.SetIssuerDN(issuerDn);
             _certificateGenerator.SetSubjectDN(subjectDn);
             var notBefore = DateTime.UtcNow.Date;

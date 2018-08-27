@@ -10,7 +10,6 @@ namespace AElf.Cryptography.Tests.SSL
         {
             Writer writer = new Writer();
             writer.PerformTest();
-            
         }
     }
 }
