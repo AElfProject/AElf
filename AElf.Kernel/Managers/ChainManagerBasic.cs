@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
@@ -25,6 +26,7 @@ namespace AElf.Kernel.Managers
 
         public async Task UpdateCurrentBlockHashAsync(Hash chainId, Hash blockHash)
         {
+            Console.WriteLine("update current block hash to " + blockHash.ToHex());
             var key = chainId.OfType(HashType.CurrentHash);
             await _dataStore.InsertAsync(key, blockHash);
         }

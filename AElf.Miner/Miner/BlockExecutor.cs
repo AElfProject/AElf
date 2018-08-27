@@ -69,8 +69,8 @@ namespace AElf.Miner.Miner
                 var blockProducerAddress = recipientKeyPair.GetAddress();
                 
                 _stateDictator.ChainId = block?.Header.ChainId;
-                _stateDictator.BlockHeight = block?.Header.Index ?? 0;
-                _stateDictator.BlockProducerAccountAddress = block?.Header.Index == 1 ? Hash.Zero : blockProducerAddress;
+                _stateDictator.BlockHeight = block?.Header.Index - 1 ?? 0;
+                _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
                 
                 var txs = block?.Body?.Transactions;
                 if (txs != null)
