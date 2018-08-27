@@ -21,12 +21,12 @@ using Grpc.Core;
                  var uri = chainIdUri.Value.Address + ":" + chainIdUri.Value.Port;
                  var channOptions = new List<ChannelOption>
                  {
-                     new ChannelOption(ChannelOptions.SslTargetNameOverride,"127.0.0.1")
+                     new ChannelOption(ChannelOptions.SslTargetNameOverride,"aelf")
                  };
                 // var channelCredentials = new SslCredentials(File.ReadAllText(Path.Combine(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + chainIdUri.Key + "_cert.pem")));
                  string certificate = File.ReadAllText(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + "sidechain_cert.pem");
                  string privateKey = File.ReadAllText(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + "sidechain_key.pem");
-                 string crt = File.ReadAllText(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + "mainchain_cert.pem");
+                 string crt = File.ReadAllText(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + "main_cert.pem");
                  var channelCredentials = new SslCredentials(crt);
                  var channel = new Channel(uri, channelCredentials);
                  _channels.Add(chainIdUri.Key, new HeaderInfoRpc.HeaderInfoRpcClient(channel));

@@ -44,7 +44,7 @@ namespace AElf.Cryptography.Tests.Certificate
             var path = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "certs");
             Directory.CreateDirectory(path);
             var i = new SecureRandom().Next();
-            string name = "sidechain";
+            string name = "main_" + i;
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(path, name + "_cert.pem"), true)) {
                 PemWriter pw = new PemWriter(outputFile);
                 pw.WriteObject(cert);

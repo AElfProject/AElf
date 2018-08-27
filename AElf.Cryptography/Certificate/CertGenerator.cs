@@ -25,7 +25,7 @@ namespace AElf.Cryptography.Certificate
             _certificateGenerator = new X509V3CertificateGenerator();
             _certificateGenerator.SetSignatureAlgorithm(_signatureAlgorithm);
             var subjectDn = new X509Name("CN=" + DefaultSubjectName);
-            var issuerDn = new X509Name("CN=" + name?? DefaultSubjectName);
+            var issuerDn = new X509Name("CN=" + DefaultSubjectName);
             _certificateGenerator.SetIssuerDN(issuerDn);
             _certificateGenerator.SetSubjectDN(subjectDn);
             var notBefore = DateTime.UtcNow.Date;

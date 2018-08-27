@@ -27,8 +27,8 @@ namespace AElf.Miner.Rpc.Server
 
         public void StartUp(Hash chainId)
         {
-            string certificate = File.ReadAllText(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + "mainchain_cert.pem");
-            string privateKey = File.ReadAllText(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + "mainchain_key.pem");
+            string certificate = File.ReadAllText(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + "main_cert.pem");
+            string privateKey = File.ReadAllText(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + "main_key.pem");
             string crt = File.ReadAllText(ApplicationHelpers.GetDefaultDataDir() + "/certs/" + "sidechain_cert.pem");
 
             var keyCertificatePair = new KeyCertificatePair(certificate, privateKey);
