@@ -4,10 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Cryptography.Certificate;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
-using AElf.Cryptography.SSL;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -19,13 +17,10 @@ namespace AElf.Cryptography
 {
     public class AElfKeyStore //: IKeyStore
     {
-        private static readonly SecureRandom  _random = new SecureRandom();
+        private static readonly SecureRandom _random = new SecureRandom();
 
         private const string KeyFileExtension = ".ak";
         private const string KeyFolderName = "keys";
-        
-        private const string PemFileExtension = ".pem";
-        private const string PemFolderName = "pems";
 
         private const string _algo = "AES-256-CFB";
         private readonly string _dataDirectory;
@@ -109,14 +104,9 @@ namespace AElf.Cryptography
             return !res ? null : keyPair;
         }
 
-        public bool CreateCertificate(ECKeyPair keyPair, string password, params string[] addresses)
-        {
-            return WriteCertificate(keyPair, password, addresses);
-        }
-
         public List<string> ListAccounts()
         {
-            var dir = GetOrCreateKeystoreDir(KeyFolderName);
+            var dir = GetOrCreateKeystoreDir();
             FileInfo[] files = dir.GetFiles("*" + KeyFileExtension);
 
             return files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList();
@@ -126,7 +116,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                string keyFilePath = GetFileFullPath(address, KeyFileExtension);
+                string keyFilePath = GetKeyFileFullPath(address);
 
                 AsymmetricCipherKeyPair p;
                 using (var textReader = File.OpenText(keyFilePath))
@@ -175,13 +165,13 @@ namespace AElf.Cryptography
                 
             
             // Ensure path exists
-            GetOrCreateKeystoreDir(KeyFolderName);
+            GetOrCreateKeystoreDir();
             
             string fullPath = null;
             try
             {
                 var address = keyPair.GetAddressHex();
-                fullPath = GetFileFullPath(address, KeyFileExtension);
+                fullPath = GetKeyFileFullPath(address);
             }
             catch (Exception e)
             {
@@ -200,80 +190,35 @@ namespace AElf.Cryptography
 
             return true;
         }
-
-        private bool WriteCertificate(ECKeyPair keyPair, string password, params string[] addresses)
-        {
-            if (keyPair?.PrivateKey == null || keyPair.PublicKey == null)
-                throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
-
-            if (string.IsNullOrEmpty(password))
-            {
-                // Why here we can just invoke Console.WriteLine? should we use Logger?
-                Console.WriteLine("Invalid password.");
-                return false;
-            }
-            
-            // Ensure path exists
-            GetOrCreateKeystoreDir(PemFolderName);
-            
-            string pemFileFullPath = null;
-            try
-            {
-                var address = keyPair.GetAddressHex();
-                pemFileFullPath = GetFileFullPath(address, PemFileExtension);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Could not calculate the address from the keypair.", e);
-                return false;
-            }
-            
-            using (var writer = File.CreateText(pemFileFullPath))
-            {
-                var certGenerator = new CertGenerator().SetPublicKey(keyPair.PublicKey);
-                certGenerator.AddALternativeName(addresses);
-                var cert = certGenerator.Generate(keyPair.PrivateKey);
-                var pw = new PemWriter(writer);
-                pw.WriteObject(cert);
-                pw.Writer.Close();
-            }
-
-            return true;
-        }
         
         /// <summary>
         /// Return the full path of the files 
         /// </summary>
-        private string GetFileFullPath(string address, string extension)
+        private string GetKeyFileFullPath(string address)
         {
-            if(!extension.Equals(KeyFileExtension) && !extension.Equals(PemFileExtension))
-                throw new Exception("Wrong extension type");
-            var path = GetKeyFileFullPathStrict(address.Replace("0x", ""), extension);
+            var path = GetKeyFileFullPathStrict(address.Replace("0x", ""));
             if (File.Exists(path))
             {
                 return path;
             }
 
-            return GetKeyFileFullPathStrict("0x" + address.Replace("0x", ""), extension);
+            return GetKeyFileFullPathStrict("0x" + address.Replace("0x", ""));
         }
 
-        private string GetKeyFileFullPathStrict(string address, string extension)
+        private string GetKeyFileFullPathStrict(string address)
         {
-            if(!extension.Equals(KeyFileExtension) && !extension.Equals(PemFileExtension))
-                throw new Exception("Wrong extension type");
-            string dirPath =
-                GetKeystoreDirectoryPath(extension.Equals(KeyFileExtension) ? KeyFolderName : PemFolderName);
+            string dirPath = GetKeystoreDirectoryPath();
             string filePath = Path.Combine(dirPath, address);
-            string filePathWithExtension = Path.ChangeExtension(filePath, extension);
+            string filePathWithExtension = Path.ChangeExtension(filePath, KeyFileExtension);
 
             return filePathWithExtension;
         }
 
-        private DirectoryInfo GetOrCreateKeystoreDir(string folderName)
+        private DirectoryInfo GetOrCreateKeystoreDir()
         {
             try
             {
-                string dirPath = GetKeystoreDirectoryPath(folderName);
+                string dirPath = GetKeystoreDirectoryPath();
                 return Directory.CreateDirectory(dirPath);
             }
             catch (Exception e)
@@ -282,9 +227,9 @@ namespace AElf.Cryptography
             }
         }
 
-        private string GetKeystoreDirectoryPath(string folderName)
+        private string GetKeystoreDirectoryPath()
         {
-            return Path.Combine(_dataDirectory, folderName);
+            return Path.Combine(_dataDirectory, KeyFolderName);
         }
     }
 }
