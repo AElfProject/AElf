@@ -143,6 +143,7 @@ namespace AElf.Launcher
                 var mainChainNodeService = scope.Resolve<INodeService>();
                 var rpc = scope.Resolve<IRpcServer>();
                 rpc.Init(scope, confParser.RpcHost, confParser.RpcPort);
+
                 var node = scope.Resolve<INode>();
                 node.Register(mainChainNodeService);
                 node.Initialize(confContext);
