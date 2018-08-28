@@ -7,7 +7,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
     public class MockResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        public async Task<IEnumerable<string>> GetResources(Hash chainId, ITransaction transaction)
+        public async Task<IEnumerable<string>> GetResources(Hash chainId, Transaction transaction)
         {
             var list = new List<string>()
             {

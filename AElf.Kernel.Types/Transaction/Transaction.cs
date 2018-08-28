@@ -8,7 +8,7 @@ using Org.BouncyCastle.Math;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class Transaction : ITransaction
+    public partial class Transaction
     {
         public Hash GetHash()
         {
@@ -18,16 +18,6 @@ namespace AElf.Kernel
         public byte[] Serialize()
         {
             return this.ToByteArray();
-        }
-
-        public ITransactionParallelMetaData GetParallelMetaData()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Hash LastBlockHashWhenCreating()
-        {
-            throw new NotImplementedException();
         }
 
         public ECSignature GetSignature()

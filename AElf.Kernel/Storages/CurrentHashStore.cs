@@ -24,7 +24,7 @@ namespace AElf.Kernel.Storages
         public async Task<Hash> GetAsync(Hash chainId)
         {
             var key = chainId.GetKeyString(TypeIndex);
-            var hash = await _keyValueDatabase.GetAsync(key, typeof(Hash));
+            var hash = await _keyValueDatabase.GetAsync(key);
             if (hash == null)
             {
                 return null;   

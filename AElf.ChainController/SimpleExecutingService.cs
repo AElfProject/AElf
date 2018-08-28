@@ -10,19 +10,19 @@ namespace AElf.ChainController
     public class SimpleExecutingService : IExecutingService
     {
         private ISmartContractService _smartContractService;
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
         private IChainService _chainService;
 
         public SimpleExecutingService(ISmartContractService smartContractService,
-            IWorldStateDictator worldStateDictator,
+            IStateDictator stateDictator,
             IChainService chainService)
         {
             _smartContractService = smartContractService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _chainService = chainService;
         }
 
-        public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId,
+        public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
             CancellationToken cancellationToken)
         {
             var blockChain = _chainService.GetBlockChain(chainId);
@@ -54,8 +54,6 @@ namespace AElf.ChainController
                 var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
                 try
                 {
-                    _worldStateDictator.PreBlockHash =
-                        await _chainService.GetBlockChain(chainId).GetCurrentBlockHashAsync();
                     await executive.SetTransactionContext(txCtxt).Apply(true);
                 }
                 catch (Exception ex)

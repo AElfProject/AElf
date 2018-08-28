@@ -15,7 +15,7 @@ namespace AElf.Database
             _client = new PooledRedisClientManager($"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
         }
 
-        public async Task<byte[]> GetAsync(string key, Type type)
+        public async Task<byte[]> GetAsync(string key)
         {
             return await Task.FromResult(_client.GetCacheClient().Get<byte[]>(key));
         }

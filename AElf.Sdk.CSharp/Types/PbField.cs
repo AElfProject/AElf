@@ -7,9 +7,9 @@ using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp.Types
 {
-    public class PbField<T> where T : IMessage
+    public class PbField<T> where T : IMessage, new()
     {
-        public string _name;
+        private readonly string _name;
         public PbField(string name)
         {
             _name = name;
@@ -32,13 +32,13 @@ namespace AElf.Sdk.CSharp.Types
         {
             if (value != null)
             {
-                await Api.GetDataProvider("").SetAsync(_name.CalculateHash(), value.ToByteArray());
+                await Api.GetDataProvider("").SetAsync<T>(_name.CalculateHash(), value.ToByteArray());
             }
         }
 
         public async Task<T> GetAsync()
         {
-            byte[] bytes = await Api.GetDataProvider("").GetAsync(_name.CalculateHash());
+            var bytes = await Api.GetDataProvider("").GetAsync<T>(_name.CalculateHash());
             return Api.Serializer.Deserialize<T>(bytes);
         }
     }
@@ -97,7 +97,7 @@ namespace AElf.Sdk.CSharp.Types
         
         public async Task SetAsync(uint value)
         {
-            await _inner.SetAsync(new UInt32Value() { Value = value });
+            await _inner.SetAsync(new UInt32Value { Value = value });
         }
         public async Task<uint> GetAsync()
         {
@@ -107,7 +107,7 @@ namespace AElf.Sdk.CSharp.Types
 
     public class Int32Field
     {
-        private PbField<SInt32Value> _inner;
+        private readonly PbField<SInt32Value> _inner;
         public Int32Field(string name)
         {
             _inner = new PbField<SInt32Value>(name);
@@ -128,17 +128,18 @@ namespace AElf.Sdk.CSharp.Types
         
         public async Task SetAsync(int value)
         {
-            await _inner.SetAsync(new SInt32Value() { Value = value });
+            await _inner.SetAsync(new SInt32Value { Value = value });
         }
+        
         public async Task<int> GetAsync()
         {
-            return (await _inner.GetAsync())?.Value ?? default(int);
+            return (await _inner.GetAsync())?.Value ?? 0;
         }
     }
 
     public class UInt64Field
     {
-        private PbField<UInt64Value> _inner;
+        private readonly PbField<UInt64Value> _inner;
         public UInt64Field(string name)
         {
             _inner = new PbField<UInt64Value>(name);
@@ -161,6 +162,7 @@ namespace AElf.Sdk.CSharp.Types
         {
             await _inner.SetAsync(new UInt64Value { Value = value });
         }
+        
         public async Task<ulong> GetAsync()
         {
             return (await _inner.GetAsync())?.Value ?? 0;
@@ -169,7 +171,7 @@ namespace AElf.Sdk.CSharp.Types
 
     public class Int64Field
     {
-        private PbField<SInt64Value> _inner;
+        private readonly PbField<SInt64Value> _inner;
         public Int64Field(string name)
         {
             _inner = new PbField<SInt64Value>(name);
@@ -190,8 +192,9 @@ namespace AElf.Sdk.CSharp.Types
         
         public async Task SetAsync(long value)
         {
-            await _inner.SetAsync(new SInt64Value() { Value = value });
+            await _inner.SetAsync(new SInt64Value { Value = value });
         }
+        
         public async Task<long> GetAsync()
         {
             return (await _inner.GetAsync())?.Value ?? default(long);
@@ -225,7 +228,7 @@ namespace AElf.Sdk.CSharp.Types
         }
         public async Task<string> GetAsync()
         {
-            return (await _inner.GetAsync())?.Value ?? default(string);
+            return (await _inner.GetAsync())?.Value;
         }
     }
 

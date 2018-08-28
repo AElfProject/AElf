@@ -17,7 +17,7 @@ namespace AElf.Execution
             _functionMetadataService = functionMetadataService;
         }
 
-        public async Task<IEnumerable<string>> GetResources(Hash chainId, ITransaction transaction)
+        public async Task<IEnumerable<string>> GetResources(Hash chainId, Transaction transaction)
         {
 
             var addrs = GetRelatedAccount(transaction).ToImmutableHashSet()
@@ -45,12 +45,12 @@ namespace AElf.Execution
             return results;
         }
 
-        private string GetFunctionName(ITransaction tx)
+        private string GetFunctionName(Transaction tx)
         {
             return tx.To.ToHex() + "." + tx.MethodName;
         }
 
-        private List<Hash> GetRelatedAccount(ITransaction transaction)
+        private List<Hash> GetRelatedAccount(Transaction transaction)
         {
             //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
             List<Hash> hashes = new List<Hash>();

@@ -10,9 +10,9 @@ namespace AElf.Execution
 {
     public class TransactionExecutingService : ITransactionExecutingService
     {
-        public Dictionary<int, List<ITransaction>> ExecutingPlan { get; private set; }
-        private Dictionary<Hash, List<ITransaction>> _pending;
-        private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
+        public Dictionary<int, List<Transaction>> ExecutingPlan { get; private set; }
+        private Dictionary<Hash, List<Transaction>> _pending;
+        private UndirectedGraph<Transaction, Edge<Transaction>> _graph;
         private readonly ISmartContractService _smartContractService;
         private readonly IChainContext _chainContext;
 
@@ -24,12 +24,12 @@ namespace AElf.Execution
 
 
         /// <summary>
-        /// AElf.kernel.ITransaction executing service. execute async.
+        /// AElf.kernel.Transaction executing service. execute async.
         /// </summary>
         /// <returns>The lf. kernel. IT ransaction executing manager. execute async.</returns>
         /// <param name="tx">Tx.</param>
         /// <param name="chain"></param>
-        public async Task ExecuteAsync(ITransaction tx)
+        public async Task ExecuteAsync(Transaction tx)
         {
             // TODO: *** Contract Issues ***
             //var smartContract = await _smartContractService.GetAsync(tx.To, _chainContext);
@@ -49,12 +49,12 @@ namespace AElf.Execution
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
-        public void Schedule(List<ITransaction> transactions, IChainContext chainContext)
+        public void Schedule(List<Transaction> transactions, IChainContext chainContext)
         {
             // reset 
-            _pending = new Dictionary<Hash, List<ITransaction>>();
-            ExecutingPlan = new Dictionary<int, List<ITransaction>>();
-            _graph = new UndirectedGraph<ITransaction, Edge<ITransaction>>(false);
+            _pending = new Dictionary<Hash, List<Transaction>>();
+            ExecutingPlan = new Dictionary<int, List<Transaction>>();
+            _graph = new UndirectedGraph<Transaction, Edge<Transaction>>(false);
             
             foreach (var tx in transactions)
             {
@@ -65,11 +65,11 @@ namespace AElf.Execution
                        
                     if (!_pending.ContainsKey(res))
                     {
-                        _pending[res] = new List<ITransaction>();
+                        _pending[res] = new List<Transaction>();
                     }
                     foreach (var t in _pending[res])
                     {
-                        _graph.AddEdge(new Edge<ITransaction>(t, tx));
+                        _graph.AddEdge(new Edge<Transaction>(t, tx));
                     }
                     _pending[res].Add(tx);
                 }
@@ -99,10 +99,10 @@ namespace AElf.Execution
         /// <summary>
         /// use coloring algorithm to claasify txs
         /// </summary>
-        private void ColorGraph(List<ITransaction> transactions, IChainContext chainContext)
+        private void ColorGraph(List<Transaction> transactions, IChainContext chainContext)
         {
             // color result for each vertex
-            Dictionary<ITransaction, int> colorResult = new Dictionary<ITransaction, int>();
+            Dictionary<Transaction, int> colorResult = new Dictionary<Transaction, int>();
             
             // coloring whol graph
             GreedyColoring(colorResult, transactions);
@@ -126,7 +126,7 @@ namespace AElf.Execution
         /// </summary>
         /// <param name="colorResult"></param>
         /// <param name="transactions"></param>
-        private void GreedyColoring(Dictionary<ITransaction, int> colorResult, List<ITransaction> transactions)
+        private void GreedyColoring(Dictionary<Transaction, int> colorResult, List<Transaction> transactions)
         {
             // array for colors to represent if available, false == yes, true == no
             var available = new List<bool> {false};
@@ -147,7 +147,7 @@ namespace AElf.Execution
                     if (available[i]) 
                         continue;
                     colorResult[tx] = i;
-                    if(!ExecutingPlan.Keys.Contains(i)) ExecutingPlan[i] = new List<ITransaction>();
+                    if(!ExecutingPlan.Keys.Contains(i)) ExecutingPlan[i] = new List<Transaction>();
                     ExecutingPlan[i].Add(tx);
                     break;
                 }
@@ -155,7 +155,7 @@ namespace AElf.Execution
                 {
                     available.Add(false);
                     colorResult[tx] = i;
-                    if(!ExecutingPlan.Keys.Contains(i)) ExecutingPlan[i] = new List<ITransaction>();
+                    if(!ExecutingPlan.Keys.Contains(i)) ExecutingPlan[i] = new List<Transaction>();
                     ExecutingPlan[i].Add(tx);
                 }
                 

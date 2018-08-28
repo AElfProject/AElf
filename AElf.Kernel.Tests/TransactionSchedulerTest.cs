@@ -27,7 +27,7 @@ namespace AElf.Kernel.Tests
             Mock <IAccount> account=new Mock<IAccount>();
             account.Setup(a => a.GetAddress()).Returns( hash.Object.Value.Take(18).ToArray());
            
-            Mock.Get(account.Object).Setup(a => a.Equals(It.IsAny<ITransaction>()))
+            Mock.Get(account.Object).Setup(a => a.Equals(It.IsAny<Transaction>()))
                 .Returns<IAccount>(t =>t?.GetAddress() == account.Object.GetAddress());
             return account.Object;
         }
@@ -43,20 +43,20 @@ namespace AElf.Kernel.Tests
         }
         
         
-        private ITransaction CreateTransaction(byte b, Hash from, Hash to)
+        private Transaction CreateTransaction(byte b, Hash from, Hash to)
         {
             Mock<Hash> hash = new Mock<Hash>();
             hash.Setup(h => h.GetHashBytes()).Returns(new []{b});
             hash.Setup(h => h.Equals(It.IsAny<Hash>()))
                 .Returns<Hash>(t => t? .GetHashBytes() == t.GetHashBytes() );
             
-            Mock <ITransaction> transaction=new Mock<ITransaction>();
+            Mock <Transaction> transaction=new Mock<Transaction>();
             transaction.Setup(t => t.GetHash()).Returns(hash.Object);
             transaction.Setup(t => t.From).Returns(from);
             transaction.Setup(t => t.To).Returns(to);
 
-            Mock.Get(transaction.Object).Setup(m => m.Equals(It.IsAny<ITransaction>()))
-                .Returns<ITransaction>(t =>t?.GetHash().GetHashBytes() == transaction.Object.GetHash().GetHashBytes());
+            Mock.Get(transaction.Object).Setup(m => m.Equals(It.IsAny<Transaction>()))
+                .Returns<Transaction>(t =>t?.GetHash().GetHashBytes() == transaction.Object.GetHash().GetHashBytes());
             
             return transaction.Object;
         }
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Tests
             // A
             var tx1 = CreateTransaction((byte) 'A', accounts[0], accounts[1]);
             
-            var transactions = new List<ITransaction> {tx1};
+            var transactions = new List<Transaction> {tx1};
             
             transactionExecutingManager.Schedule(transactions, context);
 
@@ -90,7 +90,7 @@ namespace AElf.Kernel.Tests
             // two seperate txs
             // A B
             var tx2 = CreateTransaction((byte) 'B', accounts[2], accounts[3] );
-            transactions = new List<ITransaction>{tx1, tx2};
+            transactions = new List<Transaction>{tx1, tx2};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(1, plan.Count);
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Tests
             // two connected txs
             // A-B
             tx2 = CreateTransaction((byte) 'B', accounts[0], accounts[1] );
-            transactions = new List<ITransaction>{tx1, tx2};
+            transactions = new List<Transaction>{tx1, tx2};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
@@ -119,7 +119,7 @@ namespace AElf.Kernel.Tests
             // two connected and one more seperate
             // A-B C
             var tx3 = CreateTransaction((byte) 'C', accounts[2], accounts[3]);
-            transactions = new List<ITransaction>{tx1, tx2, tx3};
+            transactions = new List<Transaction>{tx1, tx2, tx3};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
@@ -131,7 +131,7 @@ namespace AElf.Kernel.Tests
             // A-B B-C
             tx2 = CreateTransaction((byte) 'B', accounts[1], accounts[2]);
             tx3 = CreateTransaction((byte) 'C', accounts[2], accounts[3]);
-            transactions = new List<ITransaction>{tx1, tx2, tx3};
+            transactions = new List<Transaction>{tx1, tx2, tx3};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
@@ -145,7 +145,7 @@ namespace AElf.Kernel.Tests
             // A-B B-C C-A
             
             tx3 = CreateTransaction((byte) 'C', accounts[0], accounts[2]);
-            transactions = new List<ITransaction>{tx1, tx2, tx3};
+            transactions = new List<Transaction>{tx1, tx2, tx3};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(3, plan.Count);
@@ -161,7 +161,7 @@ namespace AElf.Kernel.Tests
             // A-B C D
             tx3 = CreateTransaction((byte) 'C', accounts[3], accounts[4]);
             var tx4 = CreateTransaction((byte) 'D', accounts[5], accounts[6]);
-            transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
+            transactions = new List<Transaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
@@ -177,7 +177,7 @@ namespace AElf.Kernel.Tests
             tx3 = CreateTransaction((byte) 'C', accounts[3], accounts[4]);
             tx4 = CreateTransaction((byte) 'D', accounts[4], accounts[5]);
 
-            transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
+            transactions = new List<Transaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
@@ -204,7 +204,7 @@ namespace AElf.Kernel.Tests
             tx3 = CreateTransaction((byte) 'C', accounts[2], accounts[3]);
             tx4 = CreateTransaction((byte) 'D', accounts[3], accounts[0]);
 
-            transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
+            transactions = new List<Transaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
@@ -222,7 +222,7 @@ namespace AElf.Kernel.Tests
             tx3 = CreateTransaction((byte) 'C', accounts[1], accounts[3]);
             tx4 = CreateTransaction((byte) 'D', accounts[3], accounts[0]);
 
-            transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
+            transactions = new List<Transaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(3, plan.Count);
@@ -238,7 +238,7 @@ namespace AElf.Kernel.Tests
             tx3 = CreateTransaction((byte) 'C', accounts[0], accounts[1]);
             tx4 = CreateTransaction((byte) 'D', accounts[0], accounts[1]);
 
-            transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
+            transactions = new List<Transaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(4, plan.Count);

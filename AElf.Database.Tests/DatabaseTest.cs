@@ -35,7 +35,7 @@ namespace AElf.Database.Tests
             var value = Guid.NewGuid().ToString();
 
             _database.SetAsync(key, Helper.StringToBytes(value));
-            var getResult = _database.GetAsync(key, null);
+            var getResult = _database.GetAsync(key);
 
             Assert.Equal(value, Helper.BytesToString(getResult.Result));
         }

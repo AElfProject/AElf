@@ -1,5 +1,4 @@
 ﻿using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -8,7 +7,6 @@ namespace AElf.Kernel.Modules.AutofacModule
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<TransactionStore>().As<ITransactionStore>();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
         }
     }

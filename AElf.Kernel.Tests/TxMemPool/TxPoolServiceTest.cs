@@ -19,25 +19,25 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         public TxPoolServiceTest(IAccountContextService accountContextService, ILogger logger, 
-            IWorldStateDictator worldStateDictator)
+            IStateDictator stateDictator)
         {
             _accountContextService = accountContextService;
             _logger = logger;
-            _worldStateDictator = worldStateDictator;
-            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+            _stateDictator = stateDictator;
+            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
         }
 
         private ContractTxPool GetContractTxPool(ITxPoolConfig config)
         {
-            _worldStateDictator.SetChainId(config.ChainId);
+            _stateDictator.ChainId = config.ChainId;
             return new ContractTxPool(config, _logger);
         }
         
         private DPoSTxPool GetDPoSTxPool(ITxPoolConfig config)
         {
-            _worldStateDictator.SetChainId(config.ChainId);
+            _stateDictator.ChainId = config.ChainId;
             return new DPoSTxPool(config, _logger);
         }
 
@@ -225,7 +225,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx4_1 = BuildTransaction(nonce:2, keyPair:kp4);
             
             
-            await poolService.RollBack(new List<ITransaction>{tx1_4, tx1_5, tx2_2, tx3_2, tx4_1, tx4_0});
+            await poolService.RollBack(new List<Transaction>{tx1_4, tx1_5, tx2_2, tx3_2, tx4_1, tx4_0});
             
             Assert.Equal((ulong)0, pool.GetNonce(kp1.GetAddress()).Value);
             Assert.Equal((ulong)0, pool.GetNonce(kp2.GetAddress()).Value);

@@ -8,8 +8,8 @@ namespace AElf.SmartContract
     {
         IExecutive SetSmartContractContext(ISmartContractContext contractContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
-        IExecutive SetWorldStateManager(IWorldStateDictator worldStateDictator);
-        void SetDataCache(Dictionary<Hash, StateCache> cache); //temporary solution to let data provider access actor's state cache
+        IExecutive SetStateDictator(IStateDictator stateDictator);
+        void SetDataCache(Dictionary<DataPath, StateCache> cache); //temporary solution to let data provider access actor's state cache
         Task Apply(bool autoCommit);
     }
 }

@@ -6,6 +6,6 @@ namespace AElf.Execution
 {
     public interface ITransactionExecutingService
     {
-        Task ExecuteAsync(ITransaction tx);
+        Task ExecuteAsync(Transaction tx);
     }
 }

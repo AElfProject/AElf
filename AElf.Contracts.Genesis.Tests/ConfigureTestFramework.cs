@@ -25,7 +25,7 @@ namespace AElf.Contracts.Genesis.Tests
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());
             builder.RegisterModule(new ManagersModule());
-            builder.RegisterModule(new WorldStateDictatorModule());
+            builder.RegisterModule(new StateDictatorModule());
             
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");

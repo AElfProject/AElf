@@ -71,7 +71,7 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(isMiner));
             builder.RegisterModule(new MinerModule(null));
-            builder.RegisterModule(new WorldStateDictatorModule());
+            builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());
             builder.RegisterModule(new ManagersModule());

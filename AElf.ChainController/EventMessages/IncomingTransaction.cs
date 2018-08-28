@@ -4,11 +4,11 @@ namespace AElf.ChainController.EventMessages
 {
     public sealed class IncomingTransaction
     {
-        public IncomingTransaction(ITransaction transaction)
+        public IncomingTransaction(Transaction transaction)
         {
             Transaction = transaction;
         }
 
-        public ITransaction Transaction { get; }
+        public Transaction Transaction { get; }
     }
 }

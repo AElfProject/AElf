@@ -5,7 +5,7 @@ namespace AElf.Kernel.Managers
 {
     public interface ISmartContractManager
     {
-        Task<SmartContractRegistration> GetAsync(Hash account);
-        Task InsertAsync(Hash address, SmartContractRegistration reg);
+        Task<SmartContractRegistration> GetAsync(Hash contractAddress);
+        Task InsertAsync(Hash contractAddress, SmartContractRegistration reg);
     }
 }

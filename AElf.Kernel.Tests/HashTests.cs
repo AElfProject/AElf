@@ -45,34 +45,5 @@ namespace AElf.Kernel.Tests
             
             Assert.False(hash1 == hash2);
         }
-
-        [Fact]
-        public void PathTest()
-        {
-            var path = new ResourcePath();
-            path.SetChainId(Hash.Generate())
-                .SetBlockProducerAddress(Hash.Generate())
-                .SetAccountAddress(Hash.Generate())
-                .SetDataProvider(Hash.Generate())
-                .SetDataKey(Hash.Generate());
-            
-            Assert.False(path.IsPointer);
-            Assert.NotNull(path.GetPathHash());
-        }
-        
-        [Fact]
-        public void PointerTest()
-        {
-            var path = new ResourcePath();
-            path.SetChainId(Hash.Generate())
-                .SetBlockHash(Hash.Generate())
-                .SetBlockProducerAddress(Hash.Generate())
-                .SetAccountAddress(Hash.Generate())
-                .SetDataProvider(Hash.Generate())
-                .SetDataKey(Hash.Generate());
-
-            Assert.True(path.IsPointer);
-            Assert.NotNull(path.GetPointerHash());
-        }
     }
 }

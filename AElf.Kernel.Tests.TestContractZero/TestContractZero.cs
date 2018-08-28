@@ -108,7 +108,7 @@ namespace AElf.Kernel.Tests
 
             var address = info.Address;
             // calculate new account address
-            var account = ResourcePath.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
+            var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
             
             await Api.DeployContractAsync(account, registration);
             Console.WriteLine("Deployment success, {0}", account.ToHex());
