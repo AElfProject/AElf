@@ -129,7 +129,7 @@ namespace AElf.Kernel.Node
 
         #endregion
         
-        public void Initialize(NodeConfiguation conf)
+        public void Initialize(NodeConfiguration conf)
         {
             _nodeKeyPair = conf.KeyPair;
             _assemblyDir = conf.LauncherAssemblyLocation;
