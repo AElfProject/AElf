@@ -41,12 +41,12 @@ namespace AElf.Kernel
         /// </summary>
         public Hash Key => new Key
         {
-            Type = (uint) Type,
+            Type =  Type,
             Value = ByteString.CopyFrom(ResourcePointerHash.GetHashBytes()),
             HashType = (uint) HashType.ResourcePointer
         }.ToByteArray();
             
-        public Types Type { get; set; }
+        public string Type { get; set; }
 
         public DataPath SetChainId(Hash chainId)
         {
@@ -178,5 +178,4 @@ namespace AElf.Kernel
             UserTypeHolder
         }
     }
-
 }

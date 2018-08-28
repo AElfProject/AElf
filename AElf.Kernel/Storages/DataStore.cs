@@ -32,13 +32,8 @@ namespace AElf.Kernel.Storages
                 {
                     throw new Exception("Cannot insert null value.");
                 }
-                
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var typeIndex))
-                {
-                    throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
-                }
 
-                var key = pointerHash.GetKeyString((uint) typeIndex);
+                var key = pointerHash.GetKeyString(typeof(T).Name);
                 await _keyValueDatabase.SetAsync(key, obj.ToByteArray());
             }
             catch (Exception e)
@@ -57,12 +52,7 @@ namespace AElf.Kernel.Storages
                     throw new Exception("Pointer hash cannot be null.");
                 }
                 
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var typeIndex))
-                {
-                    throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
-                }
-                
-                var key = pointerHash.GetKeyString((uint)typeIndex);
+                var key = pointerHash.GetKeyString(typeof(T).Name);
                 var res = await _keyValueDatabase.GetAsync(key);
                 //Console.WriteLine($"Get: {key} - {res?.Length}");
                 return  res == null ? default(T): res.Deserialize<T>();
@@ -78,10 +68,6 @@ namespace AElf.Kernel.Storages
         {
             try
             {
-                foreach (var kv in pipelineSet)
-                {
-                    //Console.WriteLine($"Set: {kv.Key.ToHex()} - {kv.Value.Length}");
-                }
                 return await _keyValueDatabase.PipelineSetAsync(
                     pipelineSet.ToDictionary(kv => kv.Key.ToHex(), kv => kv.Value));
             }
@@ -100,11 +86,8 @@ namespace AElf.Kernel.Storages
                 {
                     throw new Exception("Pointer hash cannot be null.");
                 }
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var typeIndex))
-                {
-                    throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
-                }
-                var key = pointerHash.GetKeyString((uint)typeIndex);
+
+                var key = pointerHash.GetKeyString(typeof(T).Name);
                 await _keyValueDatabase.RemoveAsync(key);
             }
             catch (Exception e)

@@ -7,7 +7,7 @@ namespace AElf.Kernel.Storages
 {
     public static class Helper
     {
-        public static string GetKeyString(this Hash hash, uint type)
+        public static string GetKeyString(this Hash hash, string type)
         {
             return new Key
             {

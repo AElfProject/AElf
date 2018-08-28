@@ -83,7 +83,6 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-            //Console.WriteLine("Key Hash: " + keyHash.ToHex());
             return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
         }
 
@@ -97,12 +96,7 @@ namespace AElf.SmartContract
                 throw new InvalidOperationException("DataPath: I'm not OK.");
             }
             
-            if (!Enum.TryParse<Kernel.Storages.Types>(typeof(T).Name, out var typeIndex))
-            {
-                throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
-            }
-
-            dataPath.Type = (DataPath.Types) (uint) typeIndex;
+            dataPath.Type = typeof(T).Name;
             
             await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
             var state = GetStateAsync(keyHash);
