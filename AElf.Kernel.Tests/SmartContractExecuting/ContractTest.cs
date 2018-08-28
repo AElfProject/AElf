@@ -88,11 +88,10 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             Assert.Equal(reg, copy);
         }
 
-        // TODO: To fix
-        [Fact(Skip = "")]
+        [Fact]
         public async Task DeployUserContract()
         {
-            /*var reg = new SmartContractRegistration
+            var reg = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
@@ -113,7 +112,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
             };
 
-            var txnCtxt = new TransactionContext()
+            var txnCtxt = new TransactionContext
             {
                 Transaction = txnDep
             };
@@ -133,15 +132,14 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             var copy = await _smartContractManager.GetAsync(address);
 
-            Assert.Equal(regExample, copy);*/
+            Assert.Equal(regExample, copy);
         }
 
 
-        // TODO: To fix
-        [Fact(Skip = "")]
+        [Fact]
         public async Task Invoke()
         {
-            /*var reg = new SmartContractRegistration
+            var reg = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
@@ -230,7 +228,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             await executiveUser.SetTransactionContext(txnPrintcxt).Apply(true);
 
             //Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
-            #endregion*/
+            #endregion
         }
     }
 }

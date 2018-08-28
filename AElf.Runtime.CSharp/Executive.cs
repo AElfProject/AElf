@@ -268,7 +268,7 @@ namespace AElf.Runtime.CSharp
                 var parameters = ParamsPacker.Unpack(paramsBytes,
                     methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
                 var msg = await applyHandler(methodInfo, contract, parameters);
-                return new RetVal()
+                return new RetVal
                 {
                     Type = retType,
                     Data = msg.ToByteString()

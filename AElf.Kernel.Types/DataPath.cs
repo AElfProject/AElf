@@ -174,7 +174,8 @@ namespace AElf.Kernel
             Int32Value,
             StringValue,
             Timestamp,
-            SInt32Value
+            SInt32Value,
+            UserTypeHolder
         }
     }
 

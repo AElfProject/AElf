@@ -41,6 +41,7 @@ namespace AElf.Kernel.Storages
         Int32Value,
         StringValue,
         Timestamp,
-        SInt32Value
+        SInt32Value,
+        UserTypeHolder
     }
 }
