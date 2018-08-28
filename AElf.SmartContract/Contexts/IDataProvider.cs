@@ -1,6 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel;
+using Google.Protobuf;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
     /// <summary>
@@ -8,16 +11,45 @@ namespace AElf.SmartContract
     /// </summary>
     public interface IDataProvider
     {
+        int Layer { get; }
+        
+        /// <summary>
+        /// Get sub DataProvider instance using data provider key.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         IDataProvider GetDataProvider(string name);
 
-        Task<Change> SetAsync(Hash keyHash, byte[] obj);
+        Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new();
 
-        Task<byte[]> GetAsync(Hash keyHash);
+        Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new();
+
+        /// <summary>
+        /// Get data from database.
+        /// </summary>
+        /// <param name="keyHash"></param>
+        /// <returns></returns>
+        Task<T> GetDataAsync<T>(Hash keyHash) where T : IMessage, new();
+
+        /// <summary>
+        /// Set data to database.
+        /// </summary>
+        /// <param name="keyHash"></param>
+        /// <param name="obj"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new();
+
+        IEnumerable<StateValueChange> GetValueChanges();
         
-        Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash);
-
-        Hash GetPathFor(Hash keyHash);
-
-        Hash GetHash();
+        /// <summary>
+        /// Injected from outside for entry data provider of the executive (in worker actor)
+        /// </summary>
+        Dictionary<DataPath, StateCache> StateCache { get; set; }
+        
+        /// <summary>
+        /// Clear cache of this instance and sub DataProviders instance.
+        /// </summary>
+        void ClearCache();
     }
 }

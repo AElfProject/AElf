@@ -18,7 +18,6 @@ namespace AElf.Contracts.SideChain.Tests
         public Hash Sender { get; } = Hash.Generate().ToAccount();
         
         public Hash SideChainContractAddress { get; set; }
-
         
         public SideChainContractShim(MockSetup mock, Hash sideChainContractAddress)
         {

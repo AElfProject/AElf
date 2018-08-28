@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Managers;
+﻿using AElf.ChainController;
+using AElf.Kernel.Managers;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -10,6 +11,9 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
             builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
+            builder.RegisterType<HashManager>().As<IHashManager>();
+            builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>();
+            builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
         }
     }
 }

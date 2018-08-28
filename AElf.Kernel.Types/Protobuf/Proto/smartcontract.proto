@@ -16,7 +16,6 @@ message FunctionMetadata {
     // which contracts are invoked by the current contract.
     repeated string SerializeCallingSet = 1;
     
-    
     // All data members except other contracts are recorded by this field.
     repeated Resource SerializeFullResourceSet = 2;
 }
@@ -40,8 +39,7 @@ enum ExecutionStatus {
     Canceled = 99;
 }
 
-message TransactionTrace
-{
+message TransactionTrace {
     Hash TransactionId = 1;
     RetVal RetVal = 2;
     string StdOut = 3;

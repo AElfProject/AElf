@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,7 +8,7 @@ namespace AElf.Database
     {
         private readonly ConcurrentDictionary<string, byte[]> _dictionary = new ConcurrentDictionary<string, byte[]>();
         
-        public Task<byte[]> GetAsync(string key, Type type)
+        public Task<byte[]> GetAsync(string key)
         {
             return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : Task.FromResult<byte[]>(null);
         }
@@ -22,7 +21,7 @@ namespace AElf.Database
 
         public Task RemoveAsync(string key)
         {
-            _dictionary.TryRemove(key, out var _);
+            _dictionary.TryRemove(key, out _);
             return Task.CompletedTask;
         }
 

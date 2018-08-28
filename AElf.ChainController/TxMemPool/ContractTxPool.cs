@@ -12,11 +12,11 @@ namespace AElf.ChainController.TxMemPool
     [LoggerName("ContractTxPool")]
     public class ContractTxPool : IContractTxPool
     {
-        private readonly Dictionary<Hash, List<ITransaction>> _executable =
-            new Dictionary<Hash, List<ITransaction>>();
+        private readonly Dictionary<Hash, List<Transaction>> _executable =
+            new Dictionary<Hash, List<Transaction>>();
 
-        private readonly Dictionary<Hash, Dictionary<ulong, ITransaction>> _waiting =
-            new Dictionary<Hash, Dictionary<ulong, ITransaction>>();
+        private readonly Dictionary<Hash, Dictionary<ulong, Transaction>> _waiting =
+            new Dictionary<Hash, Dictionary<ulong, Transaction>>();
 
         //private readonly Dictionary<Hash, ITransaction> _pool = new Dictionary<Hash, ITransaction>();
         private readonly ILogger _logger;
@@ -92,9 +92,9 @@ namespace AElf.ChainController.TxMemPool
         }*/
 
         /// <inheritdoc/>
-        public List<ITransaction> ReadyTxs()
+        public List<Transaction> ReadyTxs()
         {
-            var res = new List<ITransaction>();
+            var res = new List<Transaction>();
              
             // get txs from miner first
             var minerAddr = _config.EcKeyPair?.GetAddress();
@@ -144,7 +144,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public void EnQueueTxs(HashSet<ITransaction> tmp)
+        public void EnQueueTxs(HashSet<Transaction> tmp)
         {
             foreach (var tx in tmp)
             {
@@ -152,7 +152,7 @@ namespace AElf.ChainController.TxMemPool
             }
         }
 
-        public TxValidation.TxInsertionAndBroadcastingError EnQueueTx(ITransaction tx)
+        public TxValidation.TxInsertionAndBroadcastingError EnQueueTx(Transaction tx)
         {
             // disgard the tx if too old
             if (tx.IncrementId < GetNonce(tx.From))
@@ -176,7 +176,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public bool DiscardTx(ITransaction tx)
+        public bool DiscardTx(Transaction tx)
         {
             // executable
             if (RemoveFromExecutable(out var unValidTxList, tx))
@@ -198,7 +198,7 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public ulong GetExecutableSize()
         {
-            return _executable.Values.Aggregate<List<ITransaction>, ulong>(0,
+            return _executable.Values.Aggregate<List<Transaction>, ulong>(0,
                 (current, p) => current + (ulong) p.Count);
         }
 
@@ -211,7 +211,7 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public ulong GetWaitingSize()
         {
-            return _waiting.Values.Aggregate<Dictionary<ulong, ITransaction>, ulong>(0,
+            return _waiting.Values.Aggregate<Dictionary<ulong, Transaction>, ulong>(0,
                 (current, p) => current + (ulong) p.Count);
         }
 
@@ -222,7 +222,7 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="tx"></param>
         /// <param name="oldTx"></param>
         /// <returns></returns>
-        private bool ReplaceTx(ITransaction tx, ITransaction oldTx)
+        private bool ReplaceTx(Transaction tx, Transaction oldTx)
         {
             // TODO: compare two tx's fee, choose higher one and disgard the lower
             /*var transaction = _pool[executableList[(int) (tx.IncrementId - nonce)]];
@@ -239,7 +239,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private bool AddWaitingTx(ITransaction tx)
+        private bool AddWaitingTx(Transaction tx)
         {
             var addr = tx.From;
 
@@ -254,7 +254,7 @@ namespace AElf.ChainController.TxMemPool
 
             if (!_waiting.TryGetValue(tx.From, out var waitingList))
             {
-                waitingList = _waiting[tx.From] = new Dictionary<ulong, ITransaction>();
+                waitingList = _waiting[tx.From] = new Dictionary<ulong, Transaction>();
             }
             
             if (waitingList.TryGetValue(tx.IncrementId, out var oldTx))
@@ -277,7 +277,7 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="unValidTxList">invalid txs because removing this tx</param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private bool RemoveFromExecutable(out IEnumerable<ITransaction> unValidTxList, ITransaction tx = null)
+        private bool RemoveFromExecutable(out IEnumerable<Transaction> unValidTxList, Transaction tx = null)
         {
             unValidTxList = null;
             // remove the tx 
@@ -328,7 +328,7 @@ namespace AElf.ChainController.TxMemPool
             }
         }
 
-        private List<ITransaction> RemoveExecutableList(Hash addr)
+        private List<Transaction> RemoveExecutableList(Hash addr)
         {
             // fail if not exist
             if (!_executable.TryGetValue(addr, out var executableList))
@@ -343,7 +343,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private bool RemoveFromWaiting(ITransaction tx)
+        private bool RemoveFromWaiting(Transaction tx)
         {
             var addr = tx.From;
             if (!_waiting.TryGetValue(addr, out var waitingList) ||
@@ -402,7 +402,7 @@ namespace AElf.ChainController.TxMemPool
             else if (_nonces.TryGetValue(addr, out var n))
             {
                 w = n;
-                _executable[addr] = new List<ITransaction>();
+                _executable[addr] = new List<Transaction>();
             }
             else
             {

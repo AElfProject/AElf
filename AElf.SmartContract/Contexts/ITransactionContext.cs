@@ -1,4 +1,4 @@
-﻿using AElf.Kernel;
+﻿﻿using AElf.Kernel;
 
 namespace AElf.SmartContract
 {
@@ -8,7 +8,7 @@ namespace AElf.SmartContract
         Hash Miner { get; set; }
         Hash PreviousBlockHash { get; set; }
         ulong BlockHeight { get; set;}
-        ITransaction Transaction { get; set; }
+        Transaction Transaction { get; set; }
         TransactionTrace Trace { get; set; }
     }
 }

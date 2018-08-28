@@ -8,7 +8,7 @@ namespace AElf.Execution
 {
     public interface IConcurrencyExecutingService
     {
-        Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId, IGrouper grouper);
+        Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId, IGrouper grouper);
 
         void InitWorkActorSystem();
 

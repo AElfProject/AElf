@@ -105,7 +105,7 @@ namespace AElf.Benchmark
 
                 var builder = new ContainerBuilder();
                 builder.RegisterModule(new MainModule());
-                builder.RegisterModule(new WorldStateDictatorModule());
+                builder.RegisterModule(new StateDictatorModule());
                 builder.RegisterModule(new DatabaseModule());
                 builder.RegisterModule(new LoggerModule());
                 builder.RegisterModule(new StorageModule());

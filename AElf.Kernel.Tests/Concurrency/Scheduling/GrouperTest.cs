@@ -12,9 +12,9 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         public List<Hash> _accountList = new List<Hash>();
         private ParallelTestDataUtil _dataUtil = new ParallelTestDataUtil();
 
-        public Dictionary<Hash, List<ITransaction>> GetTestData()
+        public Dictionary<Hash, List<Transaction>> GetTestData()
         {
-            Dictionary<Hash, List<ITransaction>> txList = new Dictionary<Hash, List<ITransaction>>();
+            Dictionary<Hash, List<Transaction>> txList = new Dictionary<Hash, List<Transaction>>();
 
 
             for (int i = 0; i < 12; i++)
@@ -35,7 +35,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return txList;
         }
 
-        public void GetTransactionReadyInList(Dictionary<Hash, List<ITransaction>> txList, int from, int to)
+        public void GetTransactionReadyInList(Dictionary<Hash, List<Transaction>> txList, int from, int to)
         {
             var tx = GetTransaction(from, to);
             if (txList.ContainsKey(tx.From))
@@ -44,7 +44,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             }
             else
             {
-                var accountTxList = new List<ITransaction>();
+                var accountTxList = new List<Transaction>();
                 accountTxList.Add(tx);
                 txList.Add(tx.From, accountTxList);
             }
@@ -131,7 +131,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             for (int i = 0; i < testCasesCount; i++)
             {
                 var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
-                var txList = new List<ITransaction>();
+                var txList = new List<Transaction>();
                 unmergedGroup.ForEach(a => txList.AddRange(a));
                 var actualRes = (await grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins, coreCountList[i], Hash.Zero, txList)).Item1;
                 var acutalSizes = actualRes.Select(a => a.Count).ToList();
@@ -185,7 +185,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             for (int i = 0; i < testCasesCount; i++)
             {
                 var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
-                var txList = new List<ITransaction>();
+                var txList = new List<Transaction>();
                 unmergedGroup.ForEach(a => txList.AddRange(a));
                 var actualRes = (await grouper.ProcessWithCoreCount(GroupStrategy.Limited_MinsAddUp, coreCountList[i], Hash.Zero, txList)).Item1;
                 var acutalSizes = actualRes.Select(a => a.Count).ToList();
@@ -194,13 +194,13 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             
         }
 
-        public List<List<ITransaction>> ProduceFakeTxGroup(List<int> groupSizes)
+        public List<List<Transaction>> ProduceFakeTxGroup(List<int> groupSizes)
         {
             int userId = 0;
-            var res = new List<List<ITransaction>>();
+            var res = new List<List<Transaction>>();
             foreach (var size in groupSizes)
             {
-                var txGroup = new List<ITransaction>();
+                var txGroup = new List<Transaction>();
                 for (int i = 0; i < size; i++)
                 {
                     txGroup.Add(new Transaction()

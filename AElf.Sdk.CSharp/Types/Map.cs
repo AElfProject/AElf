@@ -12,8 +12,8 @@ namespace AElf.Sdk.CSharp.Types
 {
     public class Map
     {
-        protected string _name;
-        protected IDataProvider _dataProvider;
+        protected readonly string _name;
+        private IDataProvider _dataProvider;
 
         protected IDataProvider DataProvider
         {
@@ -28,7 +28,7 @@ namespace AElf.Sdk.CSharp.Types
             }
         }
 
-        public Map(string name)
+        protected Map(string name)
         {
             _name = name;
             //_dataProvider = Api.GetDataProvider(name);
@@ -38,37 +38,9 @@ namespace AElf.Sdk.CSharp.Types
         {
             _dataProvider = dataProvider;
         }
-
-        public void SetValue(Hash keyHash, byte[] value)
-        {
-            var task = SetValueAsync(keyHash, value);
-            task.Wait();
-        }
-
-        public byte[] GetValue(Hash keyHash)
-        {
-            var task = GetValueAsync(keyHash);
-            task.Wait();
-            return task.Result;
-        }
-
-        public async Task SetValueAsync(Hash keyHash, byte[] value)
-        {
-            await Api.GetDataProvider(_name).SetAsync(keyHash, value);
-        }
-
-        public async Task<byte[]> GetValueAsync(Hash keyHash)
-        {
-            return await Api.GetDataProvider(_name).GetAsync(keyHash);
-        }
-
-        public IDataProvider GetSubDataProvider(string dataProviderKey)
-        {
-            return Api.GetDataProvider(_name).GetDataProvider(dataProviderKey);
-        }
     }
 
-    public class Map<TKey, TValue> : Map where TKey : IMessage where TValue : IMessage
+    public class Map<TKey, TValue> : Map where TKey : IMessage where TValue : IMessage, new()
     {
         public Map(string name) : base(name)
         {
@@ -99,13 +71,18 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, TValue value)
         {
-            await DataProvider.SetAsync(key.CalculateHash(), value.ToByteArray());
+            await DataProvider.SetAsync<TValue>(key.CalculateHash(), value.ToByteArray());
         }
 
         public async Task<TValue> GetValueAsync(TKey key)
         {
-            var bytes = await DataProvider.GetAsync(key.CalculateHash());
+            var bytes = await DataProvider.GetAsync<TValue>(key.CalculateHash());
             return Api.Serializer.Deserialize<TValue>(bytes);
+        }
+
+        public async Task SetValueToDatabaseAsync(TKey key, TValue value)
+        {
+            await DataProvider.SetDataAsync<TValue>(key.CalculateHash(), value);
         }
     }
 
@@ -448,13 +425,13 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, TValue value)
         {
-            await DataProvider.SetAsync(key.CalculateHash(), value.ToPbMessage().ToByteArray());
+            await DataProvider.SetAsync<UserTypeHolder>(key.CalculateHash(), value.ToPbMessage().ToByteArray());
         }
 
         public async Task<TValue> GetValueAsync(TKey key)
         {
             var obj = (TValue) Activator.CreateInstance(typeof(TValue));
-            var bytes = await DataProvider.GetAsync(key.CalculateHash());
+            var bytes = await DataProvider.GetAsync<UserTypeHolder>(key.CalculateHash());
             var userTypeHolder = Api.Serializer.Deserialize<UserTypeHolder>(bytes);
             obj.Unpack(userTypeHolder);
             return obj;

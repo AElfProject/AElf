@@ -150,13 +150,13 @@ namespace AElf.ChainController.Rpc
 
                 return Math.Max(idInDB, idInPool);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return 0;
             }
         }
 
-        internal static async Task<ITransaction> GetTransaction(this Svc s, Hash txId)
+        internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
         {
             if (s.TxPoolService.TryGetTx(txId, out var tx))
             {
@@ -177,7 +177,7 @@ namespace AElf.ChainController.Rpc
             return s.ChainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), contractType);
         }
 
-        internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, ITransaction tx)
+        internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
         {
             return await s.SmartContractService.GetInvokingParams(tx);
         }
@@ -204,7 +204,7 @@ namespace AElf.ChainController.Rpc
             s.TxPoolService.SetBlockVolume(minimal, maximal);
         }
 
-        internal static async Task<byte[]> CallReadOnly(this Svc s, ITransaction tx)
+        internal static async Task<byte[]> CallReadOnly(this Svc s, Transaction tx)
         {
             var trace = new TransactionTrace
             {

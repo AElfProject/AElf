@@ -4,9 +4,11 @@ namespace AElf.Kernel
 {
     public interface IBlockManagerBasic
     {
-        Task AddBlockHeaderAsync(IBlockHeader header);
-        Task AddBlockBodyAsync(Hash blockHash, IBlockBody blockBody);
-        Task<IBlockHeader> GetBlockHeaderAsync(Hash blockId);
-        Task<IBlock> GetBlockAsync(Hash blockId);
+        Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header);
+        Task<IBlock> AddBlockAsync(IBlock block);
+        Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody);
+        Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash);
+        Task<BlockBody> GetBlockBodyAsync(Hash bodyHash);
+        Task<Block> GetBlockAsync(Hash blockHash);
     }
 }

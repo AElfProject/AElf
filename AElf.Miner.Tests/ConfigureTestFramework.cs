@@ -27,7 +27,7 @@ namespace AElf.Miner.Tests
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new MetadataModule());
-            builder.RegisterModule(new WorldStateDictatorModule());
+            builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());
             builder.RegisterModule(new ManagersModule());

@@ -28,7 +28,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public void ThreeJobsExecutionTest()
         {
             // As there are only two workers, the third job will fail
-            var job = new List<ITransaction>() {_mock.GetSleepTxn1(1000)};
+            var job = new List<Transaction>() {_mock.GetSleepTxn1(1000)};
 
             _mock.Router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _mock.Router));
             _mock.Router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _mock.Router));
@@ -60,7 +60,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public void WorkerBecomeIdleExecutionTest()
         {
             // As there are only two workers, the third job will fail
-            var job = new List<ITransaction>() {_mock.GetSleepTxn1(1000)};
+            var job = new List<Transaction>() {_mock.GetSleepTxn1(1000)};
 
             _mock.Router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _mock.Router));
             _mock.Router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _mock.Router));

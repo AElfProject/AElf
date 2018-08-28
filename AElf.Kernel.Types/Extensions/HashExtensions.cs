@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
 {
@@ -29,6 +30,30 @@ namespace AElf.Kernel
             {
                 obj.WriteTo(stream);
                 another.WriteTo(stream);
+                return CalculateHash(bytes);
+            }
+        }
+        
+        public static byte[] CalculateHashWith(this IMessage obj, ulong another)
+        {
+            var roundNumber = new UInt64Value {Value = another};
+            var bytes = new byte[obj.CalculateSize() + roundNumber.CalculateSize()];
+            using (var stream = new CodedOutputStream(bytes))
+            {
+                obj.WriteTo(stream);
+                roundNumber.WriteTo(stream);
+                return CalculateHash(bytes);
+            }
+        }
+        
+        public static byte[] CalculateHashWith(this IMessage obj, int another)
+        {
+            var roundNumber = new Int32Value() {Value = another};
+            var bytes = new byte[obj.CalculateSize() + roundNumber.CalculateSize()];
+            using (var stream = new CodedOutputStream(bytes))
+            {
+                obj.WriteTo(stream);
+                roundNumber.WriteTo(stream);
                 return CalculateHash(bytes);
             }
         }
@@ -109,5 +134,30 @@ namespace AElf.Kernel
             return SHA256.Create().ComputeHash(bytes);
         }
         
+        /// <summary>
+        /// Calculate hash value of a hash list one by one
+        /// </summary>
+        /// <param name="hashes"></param>
+        /// <returns></returns>
+        public static Hash CalculateHashOfHashList(params Hash[] hashes)
+        {
+            if (hashes[0] == null)
+            {
+                throw new InvalidOperationException("Cannot calculate hash value with null.");
+            }
+            
+            if (hashes.Length == 1)
+            {
+                return hashes[0];
+            }
+            
+            var remains = hashes.Skip(1).ToArray();
+            return hashes[0].CombineHashWith(CalculateHashOfHashList(remains));
+        }
+        
+        public static bool IsNull(this Hash hash)
+        {
+            return hash == null || hash.ToHex().RemoveHexPrefix().Length == 0;
+        }
     }
 }

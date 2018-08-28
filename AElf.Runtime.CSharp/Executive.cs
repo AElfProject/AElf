@@ -65,7 +65,7 @@ namespace AElf.Runtime.CSharp
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
 
         public Executive(Module abiModule)
         {
@@ -75,13 +75,13 @@ namespace AElf.Runtime.CSharp
             }
         }
 
-        public IExecutive SetWorldStateManager(IWorldStateDictator worldStateDictator)
+        public IExecutive SetStateDictator(IStateDictator stateDictator)
         {
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             return this;
         }
 
-        public void SetDataCache(Dictionary<Hash, StateCache> cache)
+        public void SetDataCache(Dictionary<DataPath, StateCache> cache)
         {
             _currentSmartContractContext.DataProvider.StateCache = cache;
         }
@@ -139,7 +139,8 @@ namespace AElf.Runtime.CSharp
 
         public async Task Apply(bool autoCommit)
         {
-            _worldStateDictator.PreBlockHash = _currentTransactionContext.PreviousBlockHash;
+            _stateDictator.BlockHeight = _currentTransactionContext.BlockHeight;
+            _stateDictator.BlockProducerAccountAddress = _currentTransactionContext.Transaction.From;
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = _currentTransactionContext.Transaction.MethodName;
 
@@ -162,7 +163,7 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearTentativeCache();
+                        _currentSmartContractContext.DataProvider.ClearCache();
                         var retVal = await handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
@@ -184,7 +185,7 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearTentativeCache();
+                        _currentSmartContractContext.DataProvider.ClearCache();
                         var retVal = handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
@@ -198,14 +199,11 @@ namespace AElf.Runtime.CSharp
 
                 if (!methodAbi.IsView && _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
-                    _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider
-                        .GetValueChanges());
+                    _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider.GetValueChanges());
                     if (autoCommit)
                     {
-                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateDictator,
-                            _currentSmartContractContext.ChainId);
-                        await _worldStateDictator.ApplyCachedDataAction(changeDict,
-                            _currentSmartContractContext.ChainId);
+                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_stateDictator);
+                        await _stateDictator.ApplyCachedDataAction(changeDict);
                         _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
                     }
                 }
@@ -215,6 +213,7 @@ namespace AElf.Runtime.CSharp
                 _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
                 _currentTransactionContext.Trace.StdErr += ex + "\n";
             }
+            
 
             var e = _currentTransactionContext.Trace.EndTime = DateTime.UtcNow;
             _currentTransactionContext.Trace.Elapsed = (e - s).Ticks;

@@ -10,7 +10,7 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             //TODO : REVIEW - probably not a good idea
 
-            var assembly1 = typeof(IWorldStateDictator).Assembly;
+            var assembly1 = typeof(IStateDictator).Assembly;
 
             builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
 
@@ -19,7 +19,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             var assembly2 = typeof(ISerializer<>).Assembly;
             builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
 
-            var assembly3 = typeof(WorldStateDictator).Assembly;
+            var assembly3 = typeof(StateDictator).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
 
             var assembly4 = typeof(BlockVaildationService).Assembly;
@@ -38,9 +38,6 @@ namespace AElf.Kernel.Modules.AutofacModule
 
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
 
-                        
-
-            
             base.Load(builder);
         }
     }

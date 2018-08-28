@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel
 {
-    public class TransactionParallelMetaData:ITransactionParallelMetaData
+    public class TransactionParallelMetaData: ITransactionParallelMetaData
     {
         public bool IsParallel()
         {
