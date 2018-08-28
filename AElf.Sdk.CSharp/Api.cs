@@ -126,7 +126,8 @@ namespace AElf.Sdk.CSharp
                     IncrementId = ulong.MinValue,
                     MethodName = methodName,
                     Params = ByteString.CopyFrom(args)
-                }
+                },
+                CallDepth = _transactionContext.CallDepth + 1
             };
 
             var svc = _smartContractContext.SmartContractService;

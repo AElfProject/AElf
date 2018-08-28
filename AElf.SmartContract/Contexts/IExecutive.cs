@@ -6,6 +6,7 @@ namespace AElf.SmartContract
 {
     public interface IExecutive
     {
+        IExecutive SetMaxCallDepth(int maxCallDepth);
         IExecutive SetSmartContractContext(ISmartContractContext contractContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
         IExecutive SetStateDictator(IStateDictator stateDictator);

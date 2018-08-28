@@ -66,6 +66,7 @@ namespace AElf.Runtime.CSharp
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
         private IStateDictator _stateDictator;
+        private int _maxCallDepth = 4;
 
         public Executive(Module abiModule)
         {
@@ -73,6 +74,12 @@ namespace AElf.Runtime.CSharp
             {
                 _methodMap.Add(m.Name, m);
             }
+        }
+
+        public IExecutive SetMaxCallDepth(int maxCallDepth)
+        {
+            _maxCallDepth = maxCallDepth;
+            return this;
         }
 
         public IExecutive SetStateDictator(IStateDictator stateDictator)
@@ -139,6 +146,12 @@ namespace AElf.Runtime.CSharp
 
         public async Task Apply(bool autoCommit)
         {
+            if (_currentTransactionContext.CallDepth > _maxCallDepth)
+            {
+                _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                _currentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
+                return;
+            }
             _stateDictator.BlockHeight = _currentTransactionContext.BlockHeight;
             _stateDictator.BlockProducerAccountAddress = _currentTransactionContext.Transaction.From;
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
