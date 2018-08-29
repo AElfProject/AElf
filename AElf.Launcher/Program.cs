@@ -112,11 +112,6 @@ namespace AElf.Launcher
                 return;
             }
 
-            if (!CheckDbConnect(container))
-            {
-                Console.WriteLine("Database connection failed");
-                return;
-            }
 
             using (var scope = container.BeginLifetimeScope())
             {
@@ -195,7 +190,6 @@ namespace AElf.Launcher
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new LoggerModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
-            builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(isMiner));
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterModule(new StorageModule());
@@ -274,20 +268,6 @@ namespace AElf.Launcher
             }
 
             return container;
-        }
-
-        private static bool CheckDbConnect(IComponentContext container)
-        {
-            var db = container.Resolve<IKeyValueDatabase>();
-            try
-            {
-                return db.IsConnected();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return false;
-            }
         }
 
         private static string AskInvisible(string prefix)
