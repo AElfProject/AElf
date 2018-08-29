@@ -68,7 +68,7 @@ namespace AElf.Launcher
             NodeConfig.Instance.IsChainCreator = confParser.NewChain;
             NodeConfig.Instance.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
 
-            var runner = new SmartContractRunner(confParser.RunnerConfig);
+            var runner = new SmartContractRunner();
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);

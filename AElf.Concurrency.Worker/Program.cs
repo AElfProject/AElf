@@ -30,7 +30,7 @@ namespace AElf.Concurrency.Worker
             if (!parsed)
                 return;
 
-            var runner = new SmartContractRunner(confParser.RunnerConfig);
+            var runner = new SmartContractRunner();
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);

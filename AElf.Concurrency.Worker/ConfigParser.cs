@@ -87,23 +87,23 @@ namespace AElf.Concurrency.Worker
                 : opts.DataDir;
             
             // runner config
-            RunnerConfig = new RunnerConfig
-            {
-                SdkDir = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location)
-            };
-
-            if (opts.RunnerConfig != null)
-            {
-                using (var file = File.OpenText(opts.RunnerConfig))
-                using (var reader = new JsonTextReader(file))
-                {
-                    var cfg = (JObject) JToken.ReadFrom(reader);
-                    if (cfg.TryGetValue("csharp", out var j))
-                    {
-                        RunnerConfig = Runtime.CSharp.RunnerConfig.FromJObject((JObject) j);
-                    }
-                }
-            }
+//            RunnerConfig = new RunnerConfig
+//            {
+//                SdkDir = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location)
+//            };
+//
+//            if (opts.RunnerConfig != null)
+//            {
+//                using (var file = File.OpenText(opts.RunnerConfig))
+//                using (var reader = new JsonTextReader(file))
+//                {
+//                    var cfg = (JObject) JToken.ReadFrom(reader);
+//                    if (cfg.TryGetValue("csharp", out var j))
+//                    {
+//                        RunnerConfig = Runtime.CSharp.RunnerConfig.FromJObject((JObject) j);
+//                    }
+//                }
+//            }
         }
     }
 }

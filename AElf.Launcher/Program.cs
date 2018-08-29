@@ -68,10 +68,6 @@ namespace AElf.Launcher
             NodeConfig.Instance.IsChainCreator = confParser.NewChain;
             NodeConfig.Instance.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
 
-            var runner = new SmartContractRunner(confParser.RunnerConfig);
-            var smartContractRunnerFactory = new SmartContractRunnerFactory();
-            smartContractRunnerFactory.AddRunner(0, runner);
-            smartContractRunnerFactory.AddRunner(1, runner);
 
             // todo : quick fix, to be refactored
             ECKeyPair nodeKey = null;
@@ -104,7 +100,7 @@ namespace AElf.Launcher
             txPoolConf.EcKeyPair = nodeKey;
 
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, isNewChain, chainId, txPoolConf, minerConfig, smartContractRunnerFactory);
+            var container = SetupIocContainer(isMiner, isNewChain, chainId, txPoolConf, minerConfig);
 
             if (container == null)
             {
@@ -176,8 +172,7 @@ namespace AElf.Launcher
         }
 
         private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, string chainId,
-            ITxPoolConfig txPoolConf, IMinerConfig minerConf,
-            SmartContractRunnerFactory smartContractRunnerFactory)
+            ITxPoolConfig txPoolConf, IMinerConfig minerConf)
         {
             var builder = new ContainerBuilder();
 
@@ -211,8 +206,6 @@ namespace AElf.Launcher
                 builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
             }
             
-            // register SmartContractRunnerFactory 
-            builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
 
             Hash chainIdHash;
             if (isNewChain)

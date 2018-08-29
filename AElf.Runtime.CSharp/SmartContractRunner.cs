@@ -9,6 +9,7 @@ using Google.Protobuf;
 using Path = System.IO.Path;
 using AElf.ABI.CSharp;
  using AElf.Common.ByteArrayHelpers;
+ using AElf.Configuration.Config.Contract;
  using Mono.Cecil;
 using Module = AElf.ABI.CSharp.Module;
 using AElf.SmartContract;
@@ -24,7 +25,7 @@ namespace AElf.Runtime.CSharp
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
-        public SmartContractRunner(IRunnerConfig runnerConfig) : this(runnerConfig.SdkDir, runnerConfig.BlackList, runnerConfig.WhiteList)
+        public SmartContractRunner() : this(RunnerConfig.Instance.SdkDir, RunnerConfig.Instance.BlackList, RunnerConfig.Instance.WhiteList)
         {
         }
 
