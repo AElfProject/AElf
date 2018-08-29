@@ -2,7 +2,7 @@
 {
     public interface INodeService
     {
-        void Initialize(NodeConfiguation conf);
+        void Initialize(NodeConfiguration conf);
         bool Start();
         void Stop();
     }

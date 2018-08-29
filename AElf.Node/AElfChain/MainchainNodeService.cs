@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -9,22 +9,19 @@ using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
+using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Types;
 using AElf.Miner.Miner;
-using AElf.Node;
-using AElf.Node.AElfChain;
 using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
 
-// ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Node
+namespace AElf.Node.AElfChain
 {
     [LoggerName("Node")]
-    // ReSharper disable once ClassNeverInstantiated.Global
-    // ReSharper disable InconsistentNaming
     public class MainchainNodeService : INodeService
     {
         private readonly ILogger _logger;
@@ -132,7 +129,7 @@ namespace AElf.Kernel.Node
 
         #endregion
         
-        public void Initialize(NodeConfiguation conf)
+        public void Initialize(NodeConfiguration conf)
         {
             _nodeKeyPair = conf.KeyPair;
             _assemblyDir = conf.LauncherAssemblyLocation;
