@@ -19,7 +19,7 @@ namespace AElf.Kernel.Node
             return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
         }
 
-        public async Task<ITransaction> GetTransaction(Hash txId)
+        public async Task<Transaction> GetTransaction(Hash txId)
         {
             if (TxPoolService.TryGetTx(txId, out var tx))
             {

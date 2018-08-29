@@ -111,7 +111,7 @@ namespace AElf.Kernel.Consensus
         }
         
         // ReSharper disable once InconsistentNaming
-        public IDisposable SubscribeAElfDPoSMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot)
+        public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeslot)
         {
             var doNothingObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))

@@ -27,7 +27,6 @@ namespace AElf.Concurrency.Worker
         public ActorEnvironment(ServicePack servicePack)
         {
             _servicePack = servicePack;
-            _servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = ActorConfig.Instance.Benchmark;
         }
 
         public void InitWorkActorSystem()

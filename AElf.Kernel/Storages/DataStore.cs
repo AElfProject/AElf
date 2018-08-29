@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Database;
 using System.Linq;
+using AElf.Kernel.Types;
 using Google.Protobuf;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace AElf.Kernel.Storages
 {
-    public class DataStore : IDataStore
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public sealed class DataStore : IDataStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
 
@@ -15,76 +18,99 @@ namespace AElf.Kernel.Storages
         {
             _keyValueDatabase = keyValueDatabase;
         }
-               
-        public async Task SetDataAsync<T>(Hash pointerHash, byte[] data) where T : IMessage
+
+        public async Task InsertAsync<T>(Hash pointerHash, T obj) where T : IMessage
         {
             try
             {
-                if(!typeof(T).GetInterfaces().Contains(typeof(IMessage)))
-                {
-                    throw new Exception("Wrong Data Type");
-                }
-
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
-                {
-                    throw new Exception($"Not Supported Data Type {typeof(T).Name}");
-                }
-                
-                var key = pointerHash.GetKeyString((uint)result);
-                await _keyValueDatabase.SetAsync(key, data);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-        }
-
-        public async Task<byte[]> GetDataAsync<T>(Hash pointerHash) where T : IMessage
-        {
-            try
-            {
-                if(!typeof(T).GetInterfaces().Contains(typeof(IMessage)))
-                {
-                    throw new Exception("Wrong Data Type");
-                }
                 if (pointerHash == null)
                 {
-                    return null;
+                    throw new Exception("Point hash cannot be null.");
                 }
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
+
+                if (obj == null)
                 {
-                    throw new Exception($"Not Supported Data Type {typeof(T).Name}");
+                    throw new Exception("Cannot insert null value.");
                 }
                 
-                var key = pointerHash.GetKeyString((uint)result);
-                return await _keyValueDatabase.GetAsync(key, typeof(byte[]));
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var typeIndex))
+                {
+                    throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
+                }
+
+                var key = pointerHash.GetKeyString((uint) typeIndex);
+                await _keyValueDatabase.SetAsync(key, obj.ToByteArray());
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                return null;
+                throw;
             }
         }
 
-        public async Task<bool> PipelineSetDataAsync<T>(Dictionary<Hash, byte[]> pipelineSet) where T : IMessage
+        public async Task<T> GetAsync<T>(Hash pointerHash) where T : IMessage, new()
         {
             try
             {
-                if(!typeof(T).GetInterfaces().Contains(typeof(IMessage)))
+                if (pointerHash == null)
                 {
-                    throw new Exception("Wrong Data Type");
+                    throw new Exception("Pointer hash cannot be null.");
                 }
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
+                
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var typeIndex))
                 {
-                    throw new Exception($"Not Supported Data Type {typeof(T).Name}");
+                    throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
+                }
+                
+                var key = pointerHash.GetKeyString((uint)typeIndex);
+                var res = await _keyValueDatabase.GetAsync(key);
+                //Console.WriteLine($"Get: {key} - {res?.Length}");
+                return  res == null ? default(T): res.Deserialize<T>();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        public async Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet)
+        {
+            try
+            {
+                foreach (var kv in pipelineSet)
+                {
+                    //Console.WriteLine($"Set: {kv.Key.ToHex()} - {kv.Value.Length}");
                 }
                 return await _keyValueDatabase.PipelineSetAsync(
-                    pipelineSet.ToDictionary(kv => kv.Key.GetKeyString((uint)result), kv => kv.Value));
+                    pipelineSet.ToDictionary(kv => kv.Key.ToHex(), kv => kv.Value));
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 return false;
+            }
+        }
+
+        public async Task RemoveAsync<T>(Hash pointerHash) where T : IMessage
+        {
+            try
+            {
+                if (pointerHash == null)
+                {
+                    throw new Exception("Pointer hash cannot be null.");
+                }
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var typeIndex))
+                {
+                    throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
+                }
+                var key = pointerHash.GetKeyString((uint)typeIndex);
+                await _keyValueDatabase.RemoveAsync(key);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
         }
     }

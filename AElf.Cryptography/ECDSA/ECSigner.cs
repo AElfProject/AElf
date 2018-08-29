@@ -9,7 +9,7 @@ namespace AElf.Cryptography.ECDSA
         public ECSignature Sign(ECKeyPair keyPair, byte[] data)
         {
             ECDsaSigner ecdsaSigner = new ECDsaSigner();
-            ecdsaSigner.Init(true, new ParametersWithRandom(keyPair.PrivateKey, Parameters.SecureRandom));
+            ecdsaSigner.Init(true, new ParametersWithRandom(keyPair.PrivateKey, ECParameters.SecureRandom));
         
             BigInteger[] signature = ecdsaSigner.GenerateSignature(data);
             

@@ -1,30 +1,34 @@
+using System;
 using AElf.Kernel;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
     public class AccountDataProvider : IAccountDataProvider
     {
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
+        private readonly DataPath _dataPath;
         
         public IAccountDataContext Context { get; set; }
 
-        public AccountDataProvider(Hash chainId, Hash accountAddress, 
-            IWorldStateDictator worldStateDictator)
+        public AccountDataProvider(Hash accountAddress, IStateDictator stateDictator)
         {
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
 
-            //Just use its structure to store info.
-            Context = new AccountDataContext
-            {
-                Address = accountAddress,
-                ChainId = chainId
-            };
-
+            _dataPath = new DataPath()
+                .SetChainId(stateDictator.ChainId)
+                .SetBlockHeight(stateDictator.BlockHeight)
+                .SetBlockProducerAddress(stateDictator.BlockProducerAccountAddress)
+                .SetAccountAddress(accountAddress);
         }
 
         public IDataProvider GetDataProvider()
         {
-            return new DataProvider(Context, _worldStateDictator);
+            //Console.WriteLine($"ChainId: {_dataPath.ChainId.ToHex()}");
+            //Console.WriteLine($"Block Height: {_dataPath.BlockHeight}");
+            //Console.WriteLine($"BP Address: {_dataPath.BlockProducerAddress.ToHex()}");
+            //Console.WriteLine($"Contract Address: {_dataPath.ContractAddress.ToHex()}");
+            return new DataProvider(_dataPath, _stateDictator);
         }
     }
 }

@@ -6,7 +6,7 @@ using Xunit;
 namespace AElf.Kernel.Tests
 {
     /// <summary>
-    /// Use ITransaction to be the type of the merkle node.
+    /// Use Transaction to be the type of the merkle node.
     /// </summary>
     public class MerkleTest
     {

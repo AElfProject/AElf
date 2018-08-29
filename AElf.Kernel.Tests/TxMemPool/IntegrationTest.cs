@@ -20,25 +20,25 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
 
-        public IntegrationTest(ILogger logger, IWorldStateDictator worldStateDictator)
+        public IntegrationTest(ILogger logger, IStateDictator stateDictator)
         {
             _logger = logger;
-            _worldStateDictator = worldStateDictator;
-            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
-            _accountContextService = new AccountContextService(worldStateDictator);
+            _stateDictator = stateDictator;
+            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
+            _accountContextService = new AccountContextService(stateDictator);
         }
         
         private ContractTxPool GetContractTxPool(ITxPoolConfig config)
         {
-            _worldStateDictator.SetChainId(config.ChainId);
+            _stateDictator.ChainId = config.ChainId;
             return new ContractTxPool(config, _logger);
         }
         
         private DPoSTxPool GetDPoSTxPool(ITxPoolConfig config)
         {
-            _worldStateDictator.SetChainId(config.ChainId);
+            _stateDictator.ChainId = config.ChainId;
             return new DPoSTxPool(config, _logger);
         }
 
@@ -108,7 +108,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 i++;
             }
             
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
 
             var txCount = threadNum * r;
             while (count++ < txCount)
@@ -158,8 +158,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             var contractTxPool = GetContractTxPool(config);
             var dPoSPool = GetDPoSTxPool(config);
 
-            _worldStateDictator.SetChainId(TxPoolConfig.Default.ChainId);
-            _accountContextService = new AccountContextService(_worldStateDictator);
+            _stateDictator.ChainId = TxPoolConfig.Default.ChainId;
+            _accountContextService = new AccountContextService(_stateDictator);
 
             var poolService = new TxPoolService(contractTxPool, _accountContextService, _logger, dPoSPool);
 
@@ -193,7 +193,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 i++;
             }
             
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
             
             while (count++ < txNum)
             {

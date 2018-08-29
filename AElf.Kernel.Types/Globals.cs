@@ -23,7 +23,7 @@ namespace AElf.Kernel
 
         public const int AElfDPoSLogRoundCount = 3;
         public static int AElfDPoSMiningInterval = 4000;
-        public const int AElfWaitFirstRoundTime = 1000;
+        public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
         public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
         public const string AElfDPoSInformationString = "AElfDPoSInformation";

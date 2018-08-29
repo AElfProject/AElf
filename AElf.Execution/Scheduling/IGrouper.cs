@@ -7,9 +7,9 @@ namespace AElf.Execution.Scheduling
 {
 	public interface IGrouper
     {
-	    Task<Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>> ProcessNaive(Hash chainId, List<ITransaction> transactions);
+	    Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessNaive(Hash chainId, List<Transaction> transactions);
 
-	    Task<Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId,
-		    List<ITransaction> transactions);
+	    Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId,
+		    List<Transaction> transactions);
     }
 }

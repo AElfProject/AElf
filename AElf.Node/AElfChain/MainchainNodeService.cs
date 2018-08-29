@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -9,17 +9,17 @@ using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
+using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Types;
 using AElf.Miner.Miner;
-using AElf.Node;
-using AElf.Node.AElfChain;
 using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
 
-namespace AElf.Kernel.Node
+namespace AElf.Node.AElfChain
 {
     [LoggerName("Node")]
     public class MainchainNodeService : INodeService
@@ -34,7 +34,7 @@ namespace AElf.Kernel.Node
         private readonly IChainContextService _chainContextService;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         private readonly IBlockSynchronizer _synchronizer;
         private readonly IBlockExecutor _blockExecutor;
         
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Node
             IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService, 
-            IWorldStateDictator worldStateDictator,
+            IStateDictator stateDictator,
             IChainService chainService,
             IBlockExecutor blockExecutor,
             IBlockSynchronizer synchronizer,            
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Node
         {
             _chainCreationService = chainCreationService;
             _chainService = chainService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _txPoolService = poolService;
             _logger = logger;
             _miner = miner;
@@ -69,7 +69,7 @@ namespace AElf.Kernel.Node
             _accountContextService = accountContextService;
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
         }
@@ -165,20 +165,20 @@ namespace AElf.Kernel.Node
                 }
                 else
                 {
-                    var preBlockHash = _blockChain.GetCurrentBlockHashAsync().Result;
-                    
-                    _worldStateDictator.SetWorldStateAsync(preBlockHash);
-                    _worldStateDictator.PreBlockHash = preBlockHash;
-                    _worldStateDictator.RollbackCurrentChangesAsync();
+                    _stateDictator.BlockHeight = _blockChain.CurrentBlock.Header.Index;
+                    _stateDictator.BlockProducerAccountAddress = Hash.Zero;
+                    _stateDictator.SetWorldStateAsync();
+
+                    _stateDictator.RollbackToPreviousBlock();
                 }
             }
             catch (Exception e)
             {
-                _logger?.Log(LogLevel.Error, "Could not create the chain : " + NodeConfig.Instance.ChainId);
+                _logger?.Error(e, "Could not create the chain : " + NodeConfig.Instance.ChainId);
             }
 
             // set world state
-            _worldStateDictator.SetChainId(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
 
             #endregion setup
 
@@ -274,14 +274,20 @@ namespace AElf.Kernel.Node
         private void SetupConsensus()
         {
             if (_consensus != null)
+            {
+                _logger?.Trace("Consensus has already initialized.");
                 return;
+            }
 
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
                 {
-                    var dpos = new DPoS(_logger, _worldStateDictator, _accountContextService, _txPoolService, _p2p, _miner, _blockChain, _synchronizer);
-                    var genesisContractHash = _chainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), SmartContractType.AElfDPoS);
+                    var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+                    
+                    var dpos = new DPoS(_stateDictator, _accountContextService, _txPoolService, _p2p, _miner,
+                        _blockChain, _synchronizer, _logger);
+                    var genesisContractHash = _chainCreationService.GenesisContractHash(chainId, SmartContractType.AElfDPoS);
                     dpos.Initialize(genesisContractHash, _nodeKeyPair);
                     _consensus = dpos;
                 }
@@ -320,7 +326,8 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var context = await _chainContextService.GetChainContextAsync(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+                var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+                var context = await _chainContextService.GetChainContextAsync(chainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
 
                 if (error != ValidationError.Success)
@@ -332,17 +339,10 @@ namespace AElf.Kernel.Node
                         //TODO: limit the count of blocks to rollback
                         if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
                         {
+                            _logger?.Trace("Ready to rollback");
                             var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
-                            await _worldStateDictator.RollbackToBlockHash(block.Header.PreviousBlockHash);
-
                             await _txPoolService.RollBack(txs);
-                            _worldStateDictator.PreBlockHash = block.Header.PreviousBlockHash;
-                            await _worldStateDictator.RollbackCurrentChangesAsync();
-
-                            var ws = await _worldStateDictator.GetWorldStateAsync(block.GetHash());
-                            _logger?.Trace(
-                                $"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
-
+                            await _stateDictator.RollbackToPreviousBlock();
                             error = ValidationError.Success;
                         }
                         else
@@ -359,7 +359,6 @@ namespace AElf.Kernel.Node
 
                 var executed = await _blockExecutor.ExecuteBlock(block);
 
-                Task.WaitAll();
                 await _consensus.Update();
 
                 return new BlockExecutionResult(executed, error);

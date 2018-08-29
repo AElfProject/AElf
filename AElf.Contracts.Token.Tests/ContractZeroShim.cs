@@ -15,7 +15,7 @@ namespace AElf.Contracts.Token.Tests
         public Hash ContractAddres = Hash.Generate();
         public IExecutive Executive { get; set; }
 
-        public ITransactionContext TransactionContext { get; private set; }
+        public TransactionContext TransactionContext { get; private set; }
 
         public Hash Sender
         {

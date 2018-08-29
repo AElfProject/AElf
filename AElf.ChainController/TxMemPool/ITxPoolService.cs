@@ -11,7 +11,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx);
+        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx);
 
         /// <summary>
         /// remove a tx from collection not pool
@@ -28,7 +28,7 @@ namespace AElf.ChainController.TxMemPool
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<ITransaction>> GetReadyTxsAsync(double intervals = 150);
+        Task<List<Transaction>> GetReadyTxsAsync(double intervals = 150);
 
         /// <summary>
         /// return pool size
@@ -41,7 +41,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        bool TryGetTx(Hash txHash, out ITransaction tx);
+        bool TryGetTx(Hash txHash, out Transaction tx);
 
         /// <summary>
         /// Given a block this method will return the blocks transactions
@@ -87,7 +87,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         Task Stop();
 
-        ulong GetIncrementId(Hash addr, bool isDPoS = false);
+        ulong GetIncrementId(Hash addr, bool isBlockProducer = false);
 
         /// <summary>
         /// 
@@ -102,7 +102,7 @@ namespace AElf.ChainController.TxMemPool
         /// roll back
         /// </summary>
         /// <returns></returns>
-        Task RollBack(List<ITransaction> txsOut);
+        Task RollBack(List<Transaction> txsOut);
 
         void SetBlockVolume(ulong minimal, ulong maximal);
     }

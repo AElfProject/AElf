@@ -1,129 +1,188 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Managers;
+using AElf.Common.Extensions;
 using AElf.Kernel;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Enum = System.Enum;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
     public class DataProvider : IDataProvider
     {
-        private readonly IAccountDataContext _accountDataContext;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly DataPath _dataPath;
+        private readonly IStateDictator _stateDictator;
+
+        public IEnumerable<StateValueChange> GetValueChanges()
+        {
+            var changes = new List<StateValueChange>();
+            foreach (var keyState in StateCache)
+            {
+                changes.Add(new StateValueChange
+                {
+                    Path = keyState.Key,
+                    CurrentValue = ByteString.CopyFrom(keyState.Value.CurrentValue ?? new byte[0])
+                });
+            }
+
+            return changes;
+        }
+
+        public int Layer { get; private set; }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// DataPath - StateCache
+        /// </summary>
+        public Dictionary<DataPath, StateCache> StateCache { get; set; } = new Dictionary<DataPath, StateCache>();
+
+        public void ClearCache()
+        {
+            StateCache = new Dictionary<DataPath, StateCache>();
+        }
 
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
-        /// Using a string value is just a choise, actually we can use any type of value, even integer
+        /// Using a string value is just a choise, actually we can use any type of value, even integer.
         /// </summary>
         private readonly string _dataProviderKey;
 
-        private readonly IResourcePath _resourcePath;
-
-        public DataProvider(IAccountDataContext accountDataContext, IWorldStateDictator worldStateDictator,
+        public DataProvider(DataPath dataPath, IStateDictator stateDictator, int layer = 0,
             string dataProviderKey = "")
         {
-            _worldStateDictator = worldStateDictator;
-            _accountDataContext = accountDataContext;
+            _stateDictator = stateDictator;
             _dataProviderKey = dataProviderKey;
+            Layer = layer;
+            _dataPath = dataPath.Clone();
 
-            _resourcePath = new ResourcePath()
-                .SetChainId(_accountDataContext.ChainId)
-                .SetBlockProducerAddress(worldStateDictator.BlockProducerAccountAddress)
-                .SetAccountAddress(_accountDataContext.Address)
-                .SetDataProvider(GetHash());
+            _dataPath.SetDataProvider(GetHash());
+            //Console.WriteLine("Layer: " + layer);
+            //Console.WriteLine("DP Hash: " + GetHash().ToHex());
         }
 
-        public Hash GetHash()
+        private Hash GetHash()
         {
-            // Use AccountDataContext instance + _dataProviderKey to calculate DataProvider's hash.
-            return _accountDataContext.GetHash().CalculateHashWith(_dataProviderKey);
+            return new StringValue {Value = _dataProviderKey}.CalculateHashWith(Layer);
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// Get a sub-level DataProvider.
+        /// Get a child DataProvider.
         /// </summary>
-        /// <param name="dataProviderKey">sub-level DataProvider's name</param>
+        /// <param name="dataProviderKey">child DataProvider's name</param>
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_accountDataContext, _worldStateDictator, dataProviderKey);
+            return new DataProvider(_dataPath, _stateDictator, 1, dataProviderKey)
+            {
+                StateCache = StateCache
+            };
         }
 
-        /// <summary>
-        /// Get data of specifix block by corresponding block hash.
-        /// </summary>
-        /// <param name="keyHash"></param>
-        /// <param name="preBlockHash"></param>
-        /// <returns></returns>
-        public async Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash)
+        public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-            //Get correspoding WorldState instance
-            var worldState = await _worldStateDictator.GetWorldStateAsync(preBlockHash);
-            //Get corresponding path hash
-            var pathHash = _resourcePath.RevertPointerToPath().SetDataKey(keyHash).GetPathHash();
-            //Using path hash to get Change from WorldState
-            var change = await worldState.GetChangeAsync(pathHash);
-
-            return await _worldStateDictator.GetDataAsync(change.After);
+            //Console.WriteLine("Key Hash: " + keyHash.ToHex());
+            return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
         }
 
-        /// <summary>
-        /// Get data from current maybe-not-setted-yet "WorldState"
-        /// </summary>
-        /// <param name="keyHash"></param>
-        /// <returns></returns>
-        public async Task<byte[]> GetAsync(Hash keyHash)
+        public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
         {
-            var pointerHash = await _worldStateDictator.GetPointerAsync(GetPathFor(keyHash));
-            return await _worldStateDictator.GetDataAsync(pointerHash);
+            //Console.WriteLine("Key Hash: " + keyHash.ToHex());
+            var dataPath = _dataPath.Clone();
+            dataPath.SetDataKey(keyHash);
+            if (!dataPath.AreYouOk())
+            {
+                throw new InvalidOperationException("DataPath: I'm not OK.");
+            }
+            
+            if (!Enum.TryParse<Kernel.Storages.Types>(typeof(T).Name, out var typeIndex))
+            {
+                throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
+            }
+
+            dataPath.Type = (DataPath.Types) (uint) typeIndex;
+            
+            await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
+            var state = GetStateAsync(keyHash);
+
+            if (state == null)
+            {
+                state = new StateCache((await GetDataAsync<T>(keyHash))?.ToByteArray());
+            }
+            state.CurrentValue = obj;
+
+            StateCache[dataPath] = state;
+        }
+        
+        private StateCache GetStateAsync(Hash keyHash)
+        {
+            var dataPath = _dataPath.Clone();
+            dataPath.SetDataKey(keyHash);
+            if (!dataPath.AreYouOk())
+            {
+                throw new InvalidOperationException("DataPath: I'm not OK.");
+            }
+
+            if (StateCache.TryGetValue(dataPath, out var state))
+            {
+                return state;
+            }
+            
+            return null;;
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// Set a data and return a related Change.
+        /// Directly set data to database instead of push it to cache.
         /// </summary>
         /// <param name="keyHash"></param>
         /// <param name="obj"></param>
+        /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public async Task<Change> SetAsync(Hash keyHash, byte[] obj)
+        /// <exception cref="T:System.InvalidOperationException">If the DataPath is not ready.</exception>
+        public async Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new()
         {
-            //Generate the path hash.
-            var pathHash = GetPathFor(keyHash);
-
-            //Generate the new pointer hash (using previous block hash)
-            var pointerHashAfter = await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_resourcePath);
-
-            var change = await _worldStateDictator.GetChangeAsync(pathHash);
-            if (change == null)
+            var dataPath = _dataPath.Clone();
+            dataPath.SetDataKey(keyHash);
+            if (!dataPath.AreYouOk())
             {
-                change = new Change
-                {
-                    After = pointerHashAfter
-                };
+                throw new InvalidOperationException("DataPath: I'm not OK.");
             }
-            else
-            {
-                //See whether the latest changes of this Change happened in this height,
-                //If not, clear the change, because this Change is too old to support rollback.
-                if (_worldStateDictator.DeleteChangeBeforesImmidiately || _worldStateDictator.PreBlockHash != change.LatestChangedBlockHash)
-                {
-                    change.ClearChangeBefores();
-                }
-                
-                change.UpdateHashAfter(pointerHashAfter);
-            }
-
-            change.LatestChangedBlockHash = _worldStateDictator.PreBlockHash;
-
-            await _worldStateDictator.InsertChangeAsync(pathHash, change);
-            await _worldStateDictator.SetDataAsync(pointerHashAfter, obj);
-
-            return change;
+            
+            //Directly set to database.
+            await _stateDictator.SetDataAsync(dataPath.ResourcePointerHash, obj);
+            //Set path hash - pointer hash.
+            await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
         }
-
-        public Hash GetPathFor(Hash keyHash)
+        
+        /// <summary>
+        /// Get data from database.
+        /// </summary>
+        /// <param name="keyHash"></param>
+        /// <returns></returns>
+        public async Task<T> GetDataAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-            var pathHash = _resourcePath.RevertPointerToPath().SetDataKey(keyHash).GetPathHash();
-
-            return pathHash;
+            var dataPath = _dataPath.Clone();
+            dataPath.SetDataKey(keyHash);
+            if (!dataPath.AreYouOk())
+            {
+                throw new InvalidOperationException("DataPath: I'm not OK.");
+            }
+            
+            //Console.WriteLine($"Try to get {dataPath.ResourcePathHash.ToHex()} from database.");
+            //Get resource pointer.
+            var pointerHash = await _stateDictator.GetHashAsync(dataPath.ResourcePathHash);
+            if (pointerHash == null)
+            {
+                //Console.WriteLine("But failed.");
+                return default(T);
+            }
+            
+            //Console.WriteLine($"pointer hash: {pointerHash.ToHex()}");
+            
+            return await _stateDictator.GetDataAsync<T>(pointerHash);
         }
     }
 }
