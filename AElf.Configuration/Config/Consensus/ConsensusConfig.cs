@@ -6,6 +6,8 @@ namespace AElf.Configuration.Config.Consensus
     {
         public ConsensusType ConsensusType { get; set; }
 
+        public bool IsConsensusInfoGenerator { get; set; }
+
         public ConsensusConfig()
         {
             ConsensusType = ConsensusType.AElfDPoS;

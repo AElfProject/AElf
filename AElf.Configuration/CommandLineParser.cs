@@ -6,6 +6,7 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Enums;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
+using AElf.Configuration.Config.RPC;
 using CommandLine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -22,12 +23,10 @@ namespace AElf.Configuration
         
         private void MapOptions(CommandLineOptions opts)
         {
-//            Rpc = !opts.NoRpc;
-//            RpcPort = opts.RpcPort;
-//            RpcHost = opts.RpcHost;
-//            NodeAccount = opts.NodeAccount;
-//            NodeAccountPassword = opts.NodeAccountPassword;
-//            InitData = opts.InitData;
+            // Rpc
+            RpcConfig.Instance.UseRpc=!opts.NoRpc;
+            RpcConfig.Instance.Port = opts.RpcPort;
+            RpcConfig.Instance.Host = opts.RpcHost;
 
             // Network
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
@@ -58,11 +57,6 @@ namespace AElf.Configuration
             }
 
             DatabaseConfig.Instance.Number = opts.DBNumber;
-//todo zx lr
-//            if (opts.IsConsensusInfoGenerator)
-//            {
-//                IsConsensusInfoGenerater = true;
-//            }
 
             ConsensusConfig.Instance.ConsensusType = ConsensusTypeHelper.GetType(opts.ConsensusType);
             //todo zx lr
@@ -124,8 +118,10 @@ namespace AElf.Configuration
             NodeConfig.Instance.FullNode = true;
             NodeConfig.Instance.ExecutorType = opts.ExecutorType;
             NodeConfig.Instance.ChainId = opts.ChainId;
-            NodeConfig.Instance.NewChain = opts.NewChain;
+            NodeConfig.Instance.IsChainCreator = opts.NewChain;
             NodeConfig.Instance.NodeAccount = opts.NodeAccount;
+            NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
+            NodeConfig.Instance.ConsensusInfoGenerater = opts.IsConsensusInfoGenerator;
 
             // Actor
             if (opts.ActorIsCluster.HasValue)
@@ -169,19 +165,7 @@ namespace AElf.Configuration
 //            {
 //                SdkDir = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location)
 //            };
-//
-//            if (opts.RunnerConfig != null)
-//            {
-//                using (var file = File.OpenText(opts.RunnerConfig))
-//                using (var reader = new JsonTextReader(file))
-//                {
-//                    var cfg = (JObject) JToken.ReadFrom(reader);
-//                    if (cfg.TryGetValue("csharp", out var j))
-//                    {
-//                        RunnerConfig = Runtime.CSharp.RunnerConfig.FromJObject((JObject) j);
-//                    }
-//                }
-//            }
+
         }
     }
 }
