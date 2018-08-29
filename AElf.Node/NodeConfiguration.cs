@@ -2,7 +2,7 @@
 
 namespace AElf.Node
 {
-    public class NodeConfiguation
+    public class NodeConfiguration
     {
         public ECKeyPair KeyPair { get; set; }
         public bool WithRpc { get; set; }
