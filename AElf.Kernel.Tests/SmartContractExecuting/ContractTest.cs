@@ -16,9 +16,9 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
-        private static int _incrementId = 0;
+        private static int _incrementId;
 
-        public ulong NewIncrementId()
+        private ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
             return (ulong)n;
@@ -53,21 +53,9 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
         }
 
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
+        private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
-        public byte[] ExampleContractCode
-        {
-            get
-            {
-                return ContractCodes.TestContractCode;
-            }
-        }
+        private byte[] ExampleContractCode => ContractCodes.TestContractCode;
 
         [Fact]
         public async Task SmartContractZeroByCreation()
@@ -135,7 +123,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             Assert.Equal(regExample, copy);
         }
 
-
         [Fact]
         public async Task Invoke()
         {
@@ -148,7 +135,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
-            
 
             var code = ExampleContractCode;
 
@@ -210,7 +196,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.Data.DeserializeToUInt64());
             #endregion
-            
             
             #region check account balance
             var txnPrint = new Transaction

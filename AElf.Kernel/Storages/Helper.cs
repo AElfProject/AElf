@@ -17,31 +17,4 @@ namespace AElf.Kernel.Storages
             }.ToByteArray().ToHex();
         }
     }
-    
-    // ReSharper disable UnusedMember.Global
-    public enum Types
-    {
-        UInt64Value = 0,
-        Hash,
-        BlockBody,
-        BlockHeader,
-        Chain,
-        Change,
-        SmartContractRegistration,
-        TransactionResult,
-        Transaction,
-        FunctionMetadata,
-        SerializedCallGraph,
-        SideChain,
-        WorldState,
-        Miners,
-        BlockProducer,
-        Round,
-        AElfDPoSInformation,
-        Int32Value,
-        StringValue,
-        Timestamp,
-        SInt32Value,
-        UserTypeHolder
-    }
 }

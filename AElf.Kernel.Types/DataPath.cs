@@ -151,31 +151,14 @@ namespace AElf.Kernel
         }
 
         #endregion
-        
-        public enum Types
+    }
+
+    public class DataPath<T> where T : IMessage, new()
+    {
+        private readonly DataPath _dataPath;
+        public DataPath(DataPath dataPath)
         {
-            UInt64Value = 0,
-            Hash,
-            BlockBody,
-            BlockHeader,
-            Chain,
-            Change,
-            SmartContractRegistration,
-            TransactionResult,
-            Transaction,
-            FunctionMetadata,
-            SerializedCallGraph,
-            SideChain,
-            WorldState,
-            Miners,
-            BlockProducer,
-            Round,
-            AElfDPoSInformation,
-            Int32Value,
-            StringValue,
-            Timestamp,
-            SInt32Value,
-            UserTypeHolder
+            _dataPath = dataPath;
         }
     }
 }
