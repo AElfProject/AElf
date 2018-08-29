@@ -16,7 +16,6 @@ namespace AElf.Kernel
         
         public static readonly string ConsensusContract = SmartContractType.AElfDPoS.ToString();
         
-        public static ConsensusType ConsensusType = ConsensusType.AElfDPoS;
         public static int BlockProducerNumber = 0;
         public const int AElfLogInterval = 900;
 

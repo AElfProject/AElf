@@ -8,6 +8,7 @@ using AElf.Common.Application;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Enums;
 using AElf.Configuration;
+using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Kernel;
 using AElf.Kernel.Node;
@@ -111,7 +112,7 @@ namespace AElf.Launcher
                 IsConsensusInfoGenerater = true;
             }
 
-            Globals.ConsensusType = opts.ConsensusType;
+            ConsensusConfig.Instance.ConsensusType = opts.ConsensusType;
             Console.WriteLine($"Using consensus: {opts.ConsensusType}");
 
             if (opts.ConsensusType == ConsensusType.AElfDPoS)

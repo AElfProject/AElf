@@ -9,6 +9,7 @@ using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Enums;
 using AElf.Configuration;
+using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Types;
@@ -283,7 +284,7 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            switch (Globals.ConsensusType)
+            switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
                 {
