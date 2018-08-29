@@ -22,7 +22,7 @@
     <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.2.1" />
+    <PackageReference Include="CommandLineParser" Version="2.3.0" />
     <PackageReference Include="Microsoft.NETCore.App" Version="2.1.0" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>
