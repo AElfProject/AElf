@@ -35,20 +35,20 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             // The third job fails
             FishForMessage(
-                (msg) =>
+                msg =>
                     msg is JobExecutionStatus js &&
                     js.RequestId == 2 &&
                     js.Status == JobExecutionStatus.RequestStatus.FailedDueToNoAvailableWorker
             );
             
             FishForMessage(
-                (msg) =>
+                msg =>
                     msg is JobExecutionStatus js &&
                     js.Status == JobExecutionStatus.RequestStatus.Completed
             );
 
             FishForMessage(
-                (msg) =>
+                msg =>
                     msg is JobExecutionStatus js &&
                     js.Status == JobExecutionStatus.RequestStatus.Completed
             );
