@@ -6,6 +6,7 @@ using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Application;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Kernel;

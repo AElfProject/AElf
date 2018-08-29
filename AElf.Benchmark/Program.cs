@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.Common.Enums;
 using AElf.Execution;
 using AElf.Configuration;
 using AElf.Database;

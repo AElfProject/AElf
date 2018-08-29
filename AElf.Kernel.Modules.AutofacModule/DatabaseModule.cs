@@ -1,4 +1,5 @@
-﻿using AElf.Configuration;
+﻿using AElf.Common.Enums;
+using AElf.Configuration;
 using AElf.Database;
 using Autofac;
 
