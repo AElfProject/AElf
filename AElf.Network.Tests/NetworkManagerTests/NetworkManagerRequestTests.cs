@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using AElf.Network.Connection;
+using AElf.Network.Eventing;
 using AElf.Network.Peers;
 using Moq;
 using Xunit;
@@ -22,8 +23,8 @@ namespace AElf.Network.Tests.NetworkManagerTests
             secondPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
             NetworkManager manager = new NetworkManager(peerManager.Object, null);
-            peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = firstPeer.Object });
-            peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = secondPeer.Object });
+            peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));
+            peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(secondPeer.Object, PeerEventType.Added));
 
             Message msg = new Message();
             manager.QueueRequest(msg, firstPeer.Object);
@@ -47,7 +48,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
             
             // Set tries to 1 : no retries.
             manager.RequestMaxRetry = 1;
-            peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = firstPeer.Object });
+            peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));
             
             List<EventArgs> receivedEvents = new List<EventArgs>();
 

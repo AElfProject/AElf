@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 using AElf.ABI.CSharp;
 using AElf.CLI.Command;
 using AElf.CLI.Helpers;
@@ -12,6 +12,7 @@ using AElf.CLI.Http;
 using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
 using AElf.CLI.Screen;
+using AElf.CLI.Streaming;
 using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.ByteArrayHelpers;
@@ -20,7 +21,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Asn1.Misc;
 using ProtoBuf;
 using ServiceStack;
 using Globals = AElf.Kernel.Globals;
@@ -28,7 +28,7 @@ using Method = AElf.CLI.Data.Protobuf.Method;
 using Module = AElf.CLI.Data.Protobuf.Module;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 using TransactionType = AElf.CLI.Data.Protobuf.TransactionType;
-using Type = System.Type;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace AElf.CLI
 {
@@ -52,7 +52,8 @@ namespace AElf.CLI
     public class AElfCliProgram
     {
 
-        private string _rpcAddress;
+        private readonly string _rpcAddress;
+        private readonly int _port;
 
         private string _genesisAddress;
             
@@ -83,6 +84,7 @@ namespace AElf.CLI
         public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, string host = "http://localhost:5000")
         {
             _rpcAddress = host;
+            _port = int.Parse(host.Split(':')[2]);
             
             _screenManager = screenManager;
             _cmdParser = cmdParser;
@@ -116,6 +118,23 @@ namespace AElf.CLI
                 {
                     Stop();
                     break;
+                }
+
+                if (command.StartsWith("sub events") )
+                {
+                    string[] splitOnSpaces = command.Split(' ');
+
+                    if (splitOnSpaces.Length == 3)
+                    {
+                        EventMonitor mon = new EventMonitor(_port, splitOnSpaces[2]);
+                        mon.Start().GetResult();
+                        Console.ReadKey();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Sub events - incorrect arguments");
+                            
+                    }
                 }
                 
                 CmdParseResult parsedCmd = _cmdParser.Parse(command);
