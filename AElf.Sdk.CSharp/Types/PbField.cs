@@ -39,7 +39,7 @@ namespace AElf.Sdk.CSharp.Types
         public async Task<T> GetAsync()
         {
             var bytes = await Api.GetDataProvider("").GetAsync<T>(_name.CalculateHash());
-            return Api.Serializer.Deserialize<T>(bytes);
+            return bytes == null ? default(T) : Api.Serializer.Deserialize<T>(bytes);
         }
 
         public async Task SetDataAsync(T value)
