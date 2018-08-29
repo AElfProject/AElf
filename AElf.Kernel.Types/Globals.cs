@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Types;
+﻿using AElf.Common.Enums;
+using AElf.Kernel.Types;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable once CheckNamespace

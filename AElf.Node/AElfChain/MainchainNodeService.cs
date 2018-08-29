@@ -7,6 +7,7 @@ using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Node.Protocol;

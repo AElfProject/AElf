@@ -1,25 +1,26 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using AElf.Common.Application;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Configuration.Config.Network;
-using CommandLine;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-namespace AElf.Configuration
-{
-    public class CommandLineParser
-    {
-        public void Parse(string[] args)
-        {
-            Parser.Default.ParseArguments<CommandLineOptions>(args)
-                .WithParsed(MapOptions);
-        }
-        
-        private void MapOptions(CommandLineOptions opts)
-        {
+﻿//using System;
+//using System.IO;
+//using System.Linq;
+//using AElf.Common.Application;
+//using AElf.Common.ByteArrayHelpers;
+//using AElf.Common.Enums;
+//using AElf.Configuration.Config.Network;
+//using CommandLine;
+//using Newtonsoft.Json;
+//using Newtonsoft.Json.Linq;
+//
+//namespace AElf.Configuration
+//{
+//    public class CommandLineParser
+//    {
+//        public void Parse(string[] args)
+//        {
+//            Parser.Default.ParseArguments<CommandLineOptions>(args)
+//                .WithParsed(MapOptions);
+//        }
+//        
+//        private void MapOptions(CommandLineOptions opts)
+//        {
 //            Rpc = !opts.NoRpc;
 //            RpcPort = opts.RpcPort;
 //            RpcHost = opts.RpcHost;
@@ -56,9 +57,6 @@ namespace AElf.Configuration
 //            }
 //
 //            DatabaseConfig.Instance.Number = opts.DBNumber;
-//
-//            // to be miner
-//            IsMiner = opts.IsMiner;
 //
 //            if (opts.IsConsensusInfoGenerator)
 //            {
@@ -120,7 +118,7 @@ namespace AElf.Configuration
 //            TxPoolConfig.Maximal = opts.TxCountLimit;
 //
 //            // node config
-//            NodeConfig.Instance.IsMiner = IsMiner;
+//            NodeConfig.Instance.IsMiner = opts.IsMiner;
 //            NodeConfig.Instance.FullNode = true;
 //            NodeConfig.Instance.ExecutorType = opts.ExecutorType;
 //
@@ -179,6 +177,6 @@ namespace AElf.Configuration
 //                    }
 //                }
 //            }
-        }
-    }
-}
+//        }
+//    }
+//}

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AElf.Common.Enums;
 using AElf.Kernel.Types;
 using CommandLine;
 
