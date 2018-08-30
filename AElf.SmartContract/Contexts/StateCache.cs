@@ -7,7 +7,7 @@ namespace AElf.SmartContract
         
         public StateCache(byte[] currentValue)
         {
-            CurrentValue = currentValue;
+            CurrentValue = currentValue ?? new byte[0];
         }
     }
 }

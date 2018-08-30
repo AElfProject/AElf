@@ -77,10 +77,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void MultipleTransactionExecutionTest()
         {
-            Hash address1 = Hash.Generate();
-            Hash address2 = Hash.Generate();
-            Hash address3 = Hash.Generate();
-            Hash address4 = Hash.Generate();
+            var address1 = Hash.Generate();
+            var address2 = Hash.Generate();
+            var address3 = Hash.Generate();
+            var address4 = Hash.Generate();
 
             _mock.Initialize1(address1, 100);
             _mock.Initialize1(address2, 0);
@@ -97,8 +97,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 tx2
             };
 
-            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor,
-                TestActor));
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor, TestActor));
 
             // Start processing
 

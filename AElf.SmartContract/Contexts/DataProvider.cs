@@ -94,15 +94,8 @@ namespace AElf.SmartContract
             dataPath.Type = typeof(T).Name;
             
             await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
-            var state = GetStateAsync(keyHash);
 
-            if (state == null)
-            {
-                state = new StateCache((await GetDataAsync<T>(keyHash))?.ToByteArray());
-            }
-            state.CurrentValue = obj;
-
-            StateCache[dataPath] = state;
+            StateCache[dataPath] = new StateCache(obj);
         }
         
         private StateCache GetStateAsync(Hash keyHash)

@@ -8,6 +8,7 @@ using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
@@ -43,6 +44,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             _stateDictator = stateDictator;
+            _stateDictator.ChainId = Hash.Generate();
+            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _transactionManager = transactionManager;
@@ -168,7 +171,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "Initialize",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, (ulong)101))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, new UInt64Value {Value = 101}))
             };
             var txnInitCtxt = new TransactionContext()
             {

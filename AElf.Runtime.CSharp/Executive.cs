@@ -163,7 +163,6 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearCache();
                         var retVal = await handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
@@ -185,7 +184,6 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearCache();
                         var retVal = handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
@@ -214,7 +212,6 @@ namespace AElf.Runtime.CSharp
                 _currentTransactionContext.Trace.StdErr += ex + "\n";
             }
             
-
             var e = _currentTransactionContext.Trace.EndTime = DateTime.UtcNow;
             _currentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }

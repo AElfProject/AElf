@@ -2,6 +2,7 @@
 using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
+using Google.Protobuf.WellKnownTypes;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -27,17 +28,16 @@ namespace AElf.Benchmark.TestContract
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
-        public bool Transfer(Hash from, Hash to, ulong qty)
+        public bool Transfer(Hash from, Hash to, UInt64Value qty)
         {
-            
             var fromBal = Balances.GetValue(from);
             //Console.WriteLine("from pass");
             var toBal = Balances.GetValue(to);
             //Console.WriteLine("to pass");
-            var newFromBal = fromBal - qty;
-            Api.Assert(fromBal > qty);
+            var newFromBal = fromBal - qty.Value;
+            Api.Assert(fromBal > qty.Value);
             
-            var newToBal = toBal + qty;
+            var newToBal = toBal + qty.Value;
             
             Balances.SetValue(from, newFromBal);
             //Console.WriteLine("set from pass");

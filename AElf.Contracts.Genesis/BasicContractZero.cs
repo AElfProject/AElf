@@ -128,7 +128,7 @@ namespace AElf.Contracts.Genesis
 
             _contractInfos[address] = info;
 
-            SmartContractRegistration reg = new SmartContractRegistration
+            var reg = new SmartContractRegistration
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(code),
@@ -170,6 +170,7 @@ namespace AElf.Contracts.Genesis
 
         public Hash GetContractOwner(Hash contractAddress)
         {
+            return Hash.Zero;
             var info = _contractInfos[contractAddress];
             return info.Owner;
         }
