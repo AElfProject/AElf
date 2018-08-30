@@ -113,7 +113,7 @@ namespace AElf.Benchmark
                 builder.RegisterModule(new StorageModule());
                 builder.RegisterModule(new ServicesModule());
                 builder.RegisterModule(new KernelAutofacModule());
-                builder.RegisterModule(new MetadataModule());
+                builder.RegisterModule(new SmartContractAutofacModule());
                 builder.RegisterType<Benchmarks>().WithParameter("options", opts);
                 var runner = new SmartContractRunner(opts.SdkDir);
                 SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();

@@ -7,16 +7,11 @@ namespace AElf.SmartContract
     {
         public void Init(ContainerBuilder builder)
         {
-            var assembly1 = typeof(IStateDictator).Assembly;
-            builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
-            
-            var assembly2 = typeof(StateDictator).Assembly;
-            builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
+            builder.RegisterModule(new SmartContractAutofacModule());
         }
 
         public void Run(ILifetimeScope scope)
         {
-            throw new System.NotImplementedException();
         }
     }
 }

@@ -76,7 +76,7 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());
             builder.RegisterModule(new KernelAutofacModule());
-            builder.RegisterModule(new MetadataModule());
+            builder.RegisterModule(new SmartContractAutofacModule());
 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
             builder.RegisterType<ServicePack>().PropertiesAutowired();
