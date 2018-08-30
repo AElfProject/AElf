@@ -9,6 +9,7 @@ using AElf.Execution;
 using AElf.Configuration;
 using AElf.Database;
 using AElf.Execution.Scheduling;
+using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
@@ -111,7 +112,7 @@ namespace AElf.Benchmark
                 builder.RegisterModule(new LoggerModule());
                 builder.RegisterModule(new StorageModule());
                 builder.RegisterModule(new ServicesModule());
-                builder.RegisterModule(new ManagersModule());
+                builder.RegisterModule(new KernelAutofacModule());
                 builder.RegisterModule(new MetadataModule());
                 builder.RegisterType<Benchmarks>().WithParameter("options", opts);
                 var runner = new SmartContractRunner(opts.SdkDir);

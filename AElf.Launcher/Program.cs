@@ -98,7 +98,7 @@ namespace AElf.Launcher
             // Register everything
 
             // Module registrations
-            builder.RegisterModule(new ManagersModule());
+            builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new StateDictatorModule());

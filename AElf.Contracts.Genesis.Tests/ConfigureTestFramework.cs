@@ -44,7 +44,7 @@ namespace AElf.Contracts.Genesis.Tests
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());
-            builder.RegisterModule(new ManagersModule());
+            builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new StateDictatorModule());
             
             var smartContractRunnerFactory = new SmartContractRunnerFactory();

@@ -1,6 +1,7 @@
 ﻿using System;
 using AElf.Database;
 using AElf.Execution;
+using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
@@ -74,7 +75,7 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());
-            builder.RegisterModule(new ManagersModule());
+            builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new MetadataModule());
 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();

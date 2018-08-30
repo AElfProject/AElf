@@ -190,7 +190,7 @@ namespace AElf.Launcher
             //builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
 
             // Module registrations
-            builder.RegisterModule(new ManagersModule());
+            builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new StateDictatorModule());

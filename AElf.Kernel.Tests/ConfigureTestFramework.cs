@@ -48,7 +48,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());
-            builder.RegisterModule(new ManagersModule());
+            builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterInstance(new TxPoolConfig()).As<ITxPoolConfig>();
             builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
             builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();

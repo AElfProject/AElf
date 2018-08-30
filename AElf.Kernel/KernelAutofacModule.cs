@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using AElf.Kernel.Managers;
+using Autofac;
 
 namespace AElf.Kernel
 {
@@ -17,6 +18,13 @@ namespace AElf.Kernel
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
 
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
+            
+            builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
+            builder.RegisterType<TransactionManager>().As<ITransactionManager>();
+            builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
+            builder.RegisterType<HashManager>().As<IHashManager>();
+            builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>();
+            builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
         }
     }
 }
