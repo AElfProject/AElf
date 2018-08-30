@@ -10,6 +10,9 @@ namespace AElf.Execution
     {
         public void Init(ContainerBuilder builder)
         {
+            var assembly = typeof(ParallelTransactionExecutingService).Assembly;
+            builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
+            
             if (NodeConfig.Instance.ExecutorType == "akka")
             {
                 builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();

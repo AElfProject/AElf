@@ -4,7 +4,7 @@ using AElf.SmartContract;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
-    public class MainModule : Module
+    public class MainModule0 : Module
     {
         protected override void Load(ContainerBuilder builder)
         {

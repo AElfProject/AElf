@@ -1,10 +1,12 @@
 ﻿using System.IO;
+using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Kernel;
 using Autofac;
+using Easy.MessageHub;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -55,6 +57,8 @@ namespace AElf.ChainController
             txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;
             txPoolConfig.ChainId = chainIdHash;
             
+            var assembly = typeof(BlockVaildationService).Assembly;
+            builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
             builder.RegisterInstance(txPoolConfig).As<ITxPoolConfig>();
             builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
             builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
@@ -62,6 +66,9 @@ namespace AElf.ChainController
 
         public void Run(ILifetimeScope scope)
         {
+            var txPoolService = scope.Resolve<ITxPoolService>();
+            MessageHub.Instance.Subscribe<IncomingTransaction>(
+                async (inTx) => { await txPoolService.AddTxAsync(inTx.Transaction); });
         }
     }
 }

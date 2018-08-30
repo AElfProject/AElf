@@ -187,7 +187,7 @@ namespace AElf.Launcher
             var builder = new ContainerBuilder();
 
             // Register everything
-            builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
+            //builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
 
             // Module registrations
             builder.RegisterModule(new ManagersModule());

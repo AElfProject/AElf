@@ -8,6 +8,7 @@ using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
+using AElf.Common.Module;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;
@@ -38,51 +39,55 @@ namespace AElf.Launcher
     {
         static void Main(string[] args)
         {
+            Console.WriteLine(string.Join(" ",args));
+
+            var parsed = new CommandLineParser();
+            parsed.Parse(args);
+
+            var handler = new AElfModuleHandler();
+            handler.Register(new KernelAElfModule());
+            handler.Register(new SmartContractAElfModule());
+            handler.Register(new ChainAElfModule());
+            handler.Register(new ExecutionAElfModule());
+            handler.Register(new NodeAElfModule());
+            
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
+            
+            
+            
+            
+            handler.Register(new LauncherAElfModule());
+            handler.Build();
+                
+                
+            
             // Parse options
             Console.WriteLine(string.Join(" ",args));
             var confParser = new ConfigParser();
             
-            bool parsed;
+
             try
             {
-                parsed = confParser.Parse(args);
+                confParser.Parse(args);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
-
-            if (!parsed)
-                return;
-
+            
             var minerConfig = confParser.MinerConfig;
             var isMiner = confParser.IsMiner;
 
-
-            // todo : quick fix, to be refactored
-            ECKeyPair nodeKey = null;
-            
             // Setup ioc 
             var container = SetupIocContainer(isMiner, minerConfig);
-
-
-            using (var scope = container.BeginLifetimeScope())
-            {
-                
-                var txPoolService = scope.Resolve<ITxPoolService>();
-                MessageHub.Instance.Subscribe<IncomingTransaction>(
-                    async (inTx) => { await txPoolService.AddTxAsync(inTx.Transaction); });
-
-                var netManager = scope.Resolve<INetworkManager>();
-                MessageHub.Instance.Subscribe<TransactionAddedToPool>(
-                    async (txAdded) =>
-                    {
-                        await netManager.BroadcastMessage(AElfProtocolType.BroadcastTx,
-                            txAdded.Transaction.Serialize());
-                    }
-                );
-            }
         }
 
         private static IContainer SetupIocContainer(bool isMiner, IMinerConfig minerConf)
@@ -90,7 +95,6 @@ namespace AElf.Launcher
             var builder = new ContainerBuilder();
 
             // Register everything
-            builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
 
             // Module registrations
             builder.RegisterModule(new ManagersModule());

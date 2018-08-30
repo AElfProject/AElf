@@ -105,7 +105,7 @@ namespace AElf.Benchmark
                 ParallelConfig.Instance.IsParallelEnable = true;
 
                 var builder = new ContainerBuilder();
-                builder.RegisterModule(new MainModule());
+                //builder.RegisterModule(new MainModule());
                 builder.RegisterModule(new StateDictatorModule());
                 builder.RegisterModule(new DatabaseModule());
                 builder.RegisterModule(new LoggerModule());

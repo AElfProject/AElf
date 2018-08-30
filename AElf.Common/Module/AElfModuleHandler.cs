@@ -19,6 +19,11 @@ namespace AElf.Common.Module
             _modlules = new List<IAElfModlule>();
         }
 
+        public void Register(IAElfModlule modlule)
+        {
+            _modlules.Add(modlule);
+        }
+
         public void Build()
         {
             _modlules.ForEach(m => m.Init(_builder));

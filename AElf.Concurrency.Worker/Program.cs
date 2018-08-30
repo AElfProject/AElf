@@ -63,7 +63,7 @@ namespace AElf.Concurrency.Worker
         {
             var builder = new ContainerBuilder();
 
-            builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
+            //builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
 
             // Module registrations
             builder.RegisterModule(new TransactionManagerModule());
