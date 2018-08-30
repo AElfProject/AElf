@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 using Autofac;
 
 namespace AElf.Kernel
@@ -25,6 +26,8 @@ namespace AElf.Kernel
             builder.RegisterType<HashManager>().As<IHashManager>();
             builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>();
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
+            builder.RegisterType<DataStore>().As<IDataStore>();
+
         }
     }
 }

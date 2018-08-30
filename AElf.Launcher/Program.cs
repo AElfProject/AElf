@@ -117,7 +117,6 @@ namespace AElf.Launcher
             builder.RegisterModule(new LoggerModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
             builder.RegisterModule(new NetworkAutofacModule());
             //builder.RegisterModule(new RpcServicesModule());
-            builder.RegisterModule(new StorageModule());
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
             builder.RegisterType<MainchainNodeService>().As<INodeService>();
