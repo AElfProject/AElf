@@ -114,6 +114,11 @@ namespace AElf.Sdk.CSharp
 
         #region Transaction API
 
+        public static void SendInline(Hash contractAddress, string methodName, params object[] args)
+        {
+            throw new NotImplementedException();
+        }
+
         public static bool Call(Hash contractAddress, string methodName, byte[] args)
         {
             _lastInlineCallContext = new TransactionContext()
