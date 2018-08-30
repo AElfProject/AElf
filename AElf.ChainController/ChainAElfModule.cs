@@ -60,9 +60,8 @@ namespace AElf.ChainController
             builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
         }
 
-        public void Run(IContainer container)
+        public void Run(ILifetimeScope scope)
         {
-            throw new System.NotImplementedException();
         }
     }
 }

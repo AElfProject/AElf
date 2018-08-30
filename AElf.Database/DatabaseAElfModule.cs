@@ -24,9 +24,9 @@ namespace AElf.Database
             }
         }
 
-        public void Run(IContainer container)
+        public void Run(ILifetimeScope scope)
         {
-            var db = container.Resolve<IKeyValueDatabase>();
+            var db = scope.Resolve<IKeyValueDatabase>();
             var result = db.IsConnected();
             if (!result)
             {

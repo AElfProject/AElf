@@ -17,9 +17,8 @@ namespace AElf.Runtime.CSharp
 
         }
 
-        public void Run(IContainer container)
+        public void Run(ILifetimeScope scope)
         {
-            throw new System.NotImplementedException();
         }
     }
 }

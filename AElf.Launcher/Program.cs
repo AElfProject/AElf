@@ -73,18 +73,6 @@ namespace AElf.Launcher
 
             using (var scope = container.BeginLifetimeScope())
             {
-                IActorEnvironment actorEnv = null;
-                if (NodeConfig.Instance.ExecutorType == "akka")
-                {
-                    actorEnv = scope.Resolve<IActorEnvironment>();
-                    actorEnv.InitActorSystem();
-                }
-
-                var evListener = scope.Resolve<ChainCreationEventListener>();
-                MessageHub.Instance.Subscribe<IBlock>(async (t) =>
-                {
-                    await evListener.OnBlockAppended(t);
-                });
                 
                 /************** Node setup ***************/
                 
@@ -116,12 +104,6 @@ namespace AElf.Launcher
                             txAdded.Transaction.Serialize());
                     }
                 );
-                
-                if (actorEnv != null)
-                {
-                    Console.CancelKeyPress += async (sender, eventArgs) => { await actorEnv.StopAsync(); };
-                    actorEnv.TerminationHandle.Wait();
-                }
 
                 Console.CancelKeyPress += OnExit;
                 _closing.WaitOne();
@@ -153,19 +135,6 @@ namespace AElf.Launcher
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
             builder.RegisterType<MainchainNodeService>().As<INodeService>();
             builder.RegisterType<RpcServer>().As<IRpcServer>().SingleInstance();
-            
-            if (NodeConfig.Instance.ExecutorType == "akka")
-            {
-                builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
-                builder.RegisterType<Grouper>().As<IGrouper>();
-                builder.RegisterType<ServicePack>().PropertiesAutowired();
-                builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
-                builder.RegisterType<ParallelTransactionExecutingService>().As<IExecutingService>();
-            }
-            else
-            {
-                builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
-            }
             
 
             Hash chainIdHash=null;

@@ -29,7 +29,10 @@ namespace AElf.Common.Module
                 throw new Exception("IoC setup failed");
             }
 
-            _modlules.ForEach(m => m.Run(_container));
+             using (var scope = _container.BeginLifetimeScope())
+            {
+                _modlules.ForEach(m => m.Run(scope));
+            }
         }
     }
 }

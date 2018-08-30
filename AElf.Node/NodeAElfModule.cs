@@ -1,10 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Security;
 using AElf.Common.Module;
 using AElf.Configuration;
+using AElf.Configuration.Config.Network;
+using AElf.Configuration.Config.RPC;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Node.AElfChain;
 using Autofac;
 
 namespace AElf.Node
@@ -42,8 +46,18 @@ namespace AElf.Node
             TransactionPoolConfig.Instance.EcKeyPair = nodeKey;
         }
 
-        public void Run(IContainer container)
+        public void Run(ILifetimeScope scope)
         {
+            NodeConfiguation confContext = new NodeConfiguation();
+            confContext.KeyPair = TransactionPoolConfig.Instance.EcKeyPair;
+            confContext.WithRpc = RpcConfig.Instance.UseRpc;
+            confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node).Assembly.Location);
+                
+            var mainChainNodeService = scope.Resolve<INodeService>();
+            var node = scope.Resolve<INode>();
+            node.Register(mainChainNodeService);
+            node.Initialize(confContext);
+            node.Start();
         }
         
         private static string AskInvisible(string prefix)
