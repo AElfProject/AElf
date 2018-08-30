@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+    <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Config\Executor\actor.json" Link="config\actor.json">

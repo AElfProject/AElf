@@ -71,31 +71,7 @@ namespace AElf.Launcher
 
             // todo : quick fix, to be refactored
             ECKeyPair nodeKey = null;
-            if (!string.IsNullOrWhiteSpace(confParser.NodeAccount))
-            {
-                try
-                {
-                    var ks = new AElfKeyStore(NodeConfig.Instance.DataDir);
-                    var pass = string.IsNullOrWhiteSpace(confParser.NodeAccountPassword)
-                        ? AskInvisible(confParser.NodeAccount)
-                        : confParser.NodeAccountPassword;
-                    ks.OpenAsync(confParser.NodeAccount, pass, false);
-
-                    ManagementConfig.Instance.NodeAccount = confParser.NodeAccount;
-                    ManagementConfig.Instance.NodeAccountPassword = pass;
-                    
-                    nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
-                    if (nodeKey == null)
-                    {
-                        Console.WriteLine("Load keystore failed");
-                    }
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Load keystore failed");
-                }
-            }
-
+            
             var txPoolConf = confParser.TxPoolConfig;
             txPoolConf.EcKeyPair = nodeKey;
 

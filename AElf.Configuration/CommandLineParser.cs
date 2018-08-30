@@ -158,6 +158,8 @@ namespace AElf.Configuration
             {
                 ManagementConfig.Instance.SideChainServicePath = opts.ManagementSideChainServicePath;
             }
+            ManagementConfig.Instance.NodeAccount=opts.NodeAccount;
+            ManagementConfig.Instance.NodeAccount=opts.NodeAccountPassword;
 
             //todo zx lr
             // runner config

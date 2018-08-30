@@ -1,4 +1,6 @@
-﻿namespace AElf.Configuration
+﻿using AElf.Cryptography.ECDSA;
+
+namespace AElf.Configuration
 {
     public class TransactionPoolConfig: ConfigBase<TransactionPoolConfig>
     {
@@ -12,6 +14,8 @@
         public ulong Minimal { get; set; }
         
         public ulong Maximal { get; set; }
+        
+        ECKeyPair EcKeyPair { get; set; }
          
         public TransactionPoolConfig()
         {
