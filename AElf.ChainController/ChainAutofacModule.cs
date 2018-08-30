@@ -1,21 +1,22 @@
-﻿using Autofac;
-using AElf.ChainController;
+﻿using AElf.ChainController.TxMemPool;
 using AElf.SmartContract;
 using AElf.SmartContract.Metadata;
+using Autofac;
 
-namespace AElf.Kernel.Modules.AutofacModule
+namespace AElf.ChainController
 {
-    public class ServicesModule : Module
+    public class ChainAutofacModule: Module
     {
         protected override void Load(ContainerBuilder builder)
         {
+            var assembly = typeof(BlockVaildationService).Assembly;
+            builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
+            builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
+            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
             builder.RegisterType<ChainCreationService>().As<IChainCreationService>();
             builder.RegisterType<ChainContextService>().As<IChainContextService>();
             builder.RegisterType<TransactionResultService>().As<ITransactionResultService>();
-            builder.RegisterType<SmartContractService>().As<ISmartContractService>();
             builder.RegisterType<AccountContextService>().As<IAccountContextService>().SingleInstance();
-//            builder.RegisterType<ConcurrencyExecutingService>().As<IExecutingService>();
-            builder.RegisterType<FunctionMetadataService>().As<IFunctionMetadataService>();
             builder.RegisterType<ChainService>().As<IChainService>();
         }
     }

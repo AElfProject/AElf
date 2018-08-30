@@ -56,12 +56,9 @@ namespace AElf.ChainController
             txPoolConfig.Maximal = TransactionPoolConfig.Instance.Maximal;
             txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;
             txPoolConfig.ChainId = chainIdHash;
-            
-            var assembly = typeof(BlockVaildationService).Assembly;
-            builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
             builder.RegisterInstance(txPoolConfig).As<ITxPoolConfig>();
-            builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
-            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
+
+            builder.RegisterModule(new ChainAutofacModule());
         }
 
         public void Run(ILifetimeScope scope)

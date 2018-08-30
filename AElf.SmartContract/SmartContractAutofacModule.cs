@@ -13,7 +13,8 @@ namespace AElf.SmartContract
             var assembly2 = typeof(StateDictator).Assembly;
             builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
             
-            builder.RegisterType(typeof(FunctionMetadataService)).As<IFunctionMetadataService>().SingleInstance();
+            builder.RegisterType<SmartContractService>().As<ISmartContractService>();
+            builder.RegisterType<FunctionMetadataService>().As<IFunctionMetadataService>().SingleInstance();
         }
     }
 }

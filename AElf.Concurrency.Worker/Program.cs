@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.ChainController;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Kernel;
@@ -76,7 +77,7 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new MinerAutofacModule(null));
             builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());
-            builder.RegisterModule(new ServicesModule());
+            builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
 

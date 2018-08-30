@@ -43,9 +43,10 @@ namespace AElf.Sdk.CSharp.Tests
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new StorageModule());
-            builder.RegisterModule(new ServicesModule());
+            builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new StateDictatorModule());
+            builder.RegisterModule(new SmartContractAutofacModule());
             
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
