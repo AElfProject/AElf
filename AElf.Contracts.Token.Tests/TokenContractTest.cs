@@ -34,7 +34,7 @@ namespace AElf.Contracts.Token.Tests
         public void Test()
         {
             _contract.GetContractOwner(new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.BasicContractZero.ToString())).ToAccount());
-            Assert.Null(_contract.TransactionContext.Trace.StdErr);
+            Assert.True(_contract.TransactionContext.Trace.StdErr.IsNullOrEmpty());
             var owner = _contract.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
 
             Assert.Equal(_contract.Sender, owner);

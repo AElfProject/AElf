@@ -158,7 +158,7 @@ namespace AElf.Execution
                 {
                     if (chainContext == null)
                     {
-                        trace = new TransactionTrace()
+                        trace = new TransactionTrace
                         {
                             TransactionId = tx.GetHash(),
                             ExecutionStatus = ExecutionStatus.SystemError,

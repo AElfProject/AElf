@@ -141,6 +141,7 @@ namespace AElf.Runtime.CSharp
         {
             _stateDictator.BlockHeight = _currentTransactionContext.BlockHeight;
             _stateDictator.BlockProducerAccountAddress = _currentTransactionContext.Transaction.From;
+            
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = _currentTransactionContext.Transaction.MethodName;
 

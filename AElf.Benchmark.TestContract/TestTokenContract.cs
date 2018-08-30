@@ -11,7 +11,7 @@ namespace AElf.Benchmark.TestContract
     public class TestTokenContract : CSharpSmartContract
     {
         [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
-        public readonly MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
+        public MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public StringField TokenContractName;
         
@@ -30,17 +30,20 @@ namespace AElf.Benchmark.TestContract
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
         public bool Transfer(Hash from, Hash to, UInt64Value qty)
         {
+
             var fromBal = Balances.GetValue(from);
             //Console.WriteLine("from pass");
+
             var toBal = Balances.GetValue(to);
             //Console.WriteLine("to pass");
             var newFromBal = fromBal - qty.Value;
             Api.Assert(fromBal > qty.Value);
             
             var newToBal = toBal + qty.Value;
-            
+
             Balances.SetValue(from, newFromBal);
             //Console.WriteLine("set from pass");
+
             Balances.SetValue(to, newToBal);
             //Console.WriteLine("set to pass");
             //Console.WriteLine($"After transfer: {from.ToHex()} - {newFromBal} || {to.ToHex()} - {newToBal}");
