@@ -20,6 +20,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Miner.Miner;
 using AElf.Execution.Scheduling;
+using AElf.Miner;
 using AElf.Network;
 using AElf.Node;
 using AElf.Node.AElfChain;
@@ -51,9 +52,10 @@ namespace AElf.Launcher
             handler.Register(new ChainAElfModule());
             handler.Register(new ExecutionAElfModule());
             handler.Register(new NodeAElfModule());
+            handler.Register(new MinerAElfModule());
             
             
-            handler.Register(new KernelAElfModule());
+            
             handler.Register(new KernelAElfModule());
             handler.Register(new KernelAElfModule());
             handler.Register(new KernelAElfModule());
@@ -117,7 +119,7 @@ namespace AElf.Launcher
             // register miner config
             var minerConfiguration = isMiner ? minerConf : MinerConfig.Default;
             minerConfiguration.ChainId = chainIdHash;
-            builder.RegisterModule(new MinerModule(minerConfiguration));
+            builder.RegisterModule(new MinerAutofacModule(minerConfiguration));
 
             NodeConfig.Instance.ChainId = chainIdHash.Value.ToByteArray().ToHex();
             builder.RegisterModule(new NodeAutofacModule());

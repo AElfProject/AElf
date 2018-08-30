@@ -3,6 +3,7 @@ using AElf.Database;
 using AElf.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
+using AElf.Miner;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Autofac;
@@ -71,7 +72,7 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new NetworkModule(isMiner));
-            builder.RegisterModule(new MinerModule(null));
+            builder.RegisterModule(new MinerAutofacModule(null));
             builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());
