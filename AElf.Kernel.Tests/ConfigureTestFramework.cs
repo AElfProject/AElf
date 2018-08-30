@@ -1,10 +1,10 @@
 ﻿using AElf.SmartContract;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
+using AElf.Common;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
-using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
 using Autofac;
 using Xunit;
@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
             
-            builder.RegisterModule(new LoggerModule());
+            builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
             builder.RegisterModule(new ChainAutofacModule());

@@ -1,8 +1,8 @@
 ﻿using AElf.ChainController;
+using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.SmartContract;
-using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
 using Autofac;
 using Xunit;
@@ -41,7 +41,7 @@ namespace AElf.Contracts.Token.Tests
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
             
             builder.RegisterModule(new DatabaseAutofacModule());
-            builder.RegisterModule(new LoggerModule());
+            builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());

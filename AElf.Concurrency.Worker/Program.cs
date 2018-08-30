@@ -1,9 +1,9 @@
 ﻿using System;
 using AElf.ChainController;
+using AElf.Common;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Modules.AutofacModule;
 using AElf.Miner;
 using AElf.Network;
 using AElf.Runtime.CSharp;
@@ -70,7 +70,7 @@ namespace AElf.Concurrency.Worker
             //builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
 
             // Module registrations
-            builder.RegisterModule(new LoggerModule());
+            builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new NetworkAutofacModule());
             builder.RegisterModule(new MinerAutofacModule(null));

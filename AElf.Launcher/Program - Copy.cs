@@ -6,6 +6,7 @@ using System.Threading;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
+using AElf.Common;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
 using AElf.Cryptography;
@@ -13,7 +14,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
@@ -193,7 +193,7 @@ namespace AElf.Launcher
             // Module registrations
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
-            builder.RegisterModule(new LoggerModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
+            builder.RegisterModule(new LoggerAutofacModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new NetworkAutofacModule());
             //builder.RegisterModule(new RpcServicesModule());
