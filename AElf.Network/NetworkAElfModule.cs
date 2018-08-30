@@ -7,6 +7,7 @@ namespace AElf.Network
     {
         public void Init(ContainerBuilder builder)
         {
+            builder.RegisterModule(new NetworkAutofacModule());
         }
 
         public void Run(ILifetimeScope scope)
