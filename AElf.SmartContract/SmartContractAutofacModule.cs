@@ -15,6 +15,7 @@ namespace AElf.SmartContract
             
             builder.RegisterType<SmartContractService>().As<ISmartContractService>();
             builder.RegisterType<FunctionMetadataService>().As<IFunctionMetadataService>().SingleInstance();
+            builder.RegisterType<StateDictator>().As<IStateDictator>().SingleInstance();
         }
     }
 }

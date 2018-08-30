@@ -47,7 +47,6 @@ namespace AElf.Miner.Tests
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
-            builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());

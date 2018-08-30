@@ -45,7 +45,6 @@ namespace AElf.Contracts.Token.Tests
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
-            builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new SmartContractAutofacModule());
             
             var smartContractRunnerFactory = new SmartContractRunnerFactory();

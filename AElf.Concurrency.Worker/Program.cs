@@ -75,7 +75,6 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new NetworkAutofacModule());
             builder.RegisterModule(new MinerAutofacModule(null));
-            builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
