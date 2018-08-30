@@ -5,6 +5,7 @@ using System.Security;
 using System.Threading;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
+using AElf.ChainController.Rpc;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
@@ -21,6 +22,7 @@ using AElf.Configuration.Config.Network;
 using AElf.Miner.Miner;
 using AElf.Execution.Scheduling;
 using AElf.Miner;
+using AElf.Net.Rpc;
 using AElf.Network;
 using AElf.Node;
 using AElf.Node.AElfChain;
@@ -28,6 +30,7 @@ using AElf.RPC;
 using AElf.Runtime.CSharp;
 using AElf.SideChain.Creation;
 using AElf.SmartContract;
+using AElf.Wallet.Rpc;
 using Autofac;
 using Easy.MessageHub;
 using Newtonsoft.Json;
@@ -53,9 +56,17 @@ namespace AElf.Launcher
             handler.Register(new ExecutionAElfModule());
             handler.Register(new NodeAElfModule());
             handler.Register(new MinerAElfModule());
-            
-            
-            
+            handler.Register(new NetworkAElfModule());
+            handler.Register(new RpcAElfModule());
+            handler.Register(new ChainContrallerRpcAElfModule());
+            handler.Register(new NetRpcAElfModule());
+            handler.Register(new WalletRpcAElfModule());
+
+
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
+            handler.Register(new KernelAElfModule());
             handler.Register(new KernelAElfModule());
             handler.Register(new KernelAElfModule());
             handler.Register(new KernelAElfModule());
@@ -106,7 +117,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new LoggerModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
             builder.RegisterModule(new NetworkAutofacModule());
-            builder.RegisterModule(new RpcServicesModule());
+            //builder.RegisterModule(new RpcServicesModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();

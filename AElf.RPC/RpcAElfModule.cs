@@ -8,7 +8,7 @@ namespace AElf.RPC
     {
         public void Init(ContainerBuilder builder)
         {
-            
+            builder.RegisterModule(new RpcAutofacModule());
         }
 
         public void Run(ILifetimeScope scope)
