@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using Autofac;
 
 namespace AElf.Common.Module
@@ -22,6 +24,10 @@ namespace AElf.Common.Module
             _modlules.ForEach(m => m.Init(_builder));
 
             _container = _builder.Build();
+            if (_container == null)
+            {
+                throw new Exception("IoC setup failed");
+            }
 
             _modlules.ForEach(m => m.Run(_container));
         }

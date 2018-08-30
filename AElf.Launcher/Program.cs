@@ -62,27 +62,13 @@ namespace AElf.Launcher
 
             var minerConfig = confParser.MinerConfig;
             var isMiner = confParser.IsMiner;
-            var isNewChain = confParser.NewChain;
-            var chainId = confParser.ChainId;
-            var initData = confParser.InitData;
-            NodeConfig.Instance.IsChainCreator = confParser.NewChain;
-            NodeConfig.Instance.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
 
 
             // todo : quick fix, to be refactored
             ECKeyPair nodeKey = null;
             
-            var txPoolConf = confParser.TxPoolConfig;
-            txPoolConf.EcKeyPair = nodeKey;
-
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, isNewChain, chainId, txPoolConf, minerConfig);
-
-            if (container == null)
-            {
-                Console.WriteLine("IoC setup failed");
-                return;
-            }
+            var container = SetupIocContainer(isMiner, minerConfig);
 
 
             using (var scope = container.BeginLifetimeScope())
@@ -147,8 +133,7 @@ namespace AElf.Launcher
             _closing.Set();
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, string chainId,
-            ITxPoolConfig txPoolConf, IMinerConfig minerConf)
+        private static IContainer SetupIocContainer(bool isMiner, IMinerConfig minerConf)
         {
             var builder = new ContainerBuilder();
 
@@ -183,37 +168,7 @@ namespace AElf.Launcher
             }
             
 
-            Hash chainIdHash;
-            if (isNewChain)
-            {
-                if (string.IsNullOrWhiteSpace(chainId))
-                {
-                    chainIdHash = Hash.Generate().ToChainId();
-                }
-                else
-                {
-                    chainIdHash = ByteArrayHelpers.FromHexString(chainId);
-                }
-
-                var obj = new JObject(new JProperty("id", chainIdHash.ToHex()));
-
-                // write JSON directly to a file
-                using (var file = File.CreateText(FilePath))
-                using (var writer = new JsonTextWriter(file))
-                {
-                    obj.WriteTo(writer);
-                }
-            }
-            else
-            {
-                // read JSON directly from a file
-                using (var file = File.OpenText(FilePath))
-                using (var reader = new JsonTextReader(file))
-                {
-                    var chain = (JObject) JToken.ReadFrom(reader);
-                    chainIdHash = ByteArrayHelpers.FromHexString(chain.GetValue("id").ToString());
-                }
-            }
+            Hash chainIdHash=null;
 
             // register miner config
             var minerConfiguration = isMiner ? minerConf : MinerConfig.Default;
@@ -222,9 +177,6 @@ namespace AElf.Launcher
 
             NodeConfig.Instance.ChainId = chainIdHash.Value.ToByteArray().ToHex();
             builder.RegisterModule(new MainChainNodeModule());
-
-            txPoolConf.ChainId = chainIdHash;
-            builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
 
             IContainer container;
             try
@@ -237,35 +189,6 @@ namespace AElf.Launcher
             }
 
             return container;
-        }
-
-        private static string AskInvisible(string prefix)
-        {
-            Console.Write("Node account password: ");
-            var pwd = new SecureString();
-            while (true)
-            {
-                var i = Console.ReadKey(true);
-                if (i.Key == ConsoleKey.Enter)
-                {
-                    break;
-                }
-
-                if (i.Key == ConsoleKey.Backspace)
-                {
-                    if (pwd.Length > 0)
-                    {
-                        pwd.RemoveAt(pwd.Length - 1);
-                    }
-                }
-                else
-                {
-                    pwd.AppendChar(i.KeyChar);
-                }
-            }
-
-            Console.WriteLine();
-            return new NetworkCredential("", pwd).Password;
         }
     }
 }

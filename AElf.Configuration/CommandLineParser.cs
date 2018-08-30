@@ -101,12 +101,6 @@ namespace AElf.Configuration
 //                CoinBase = Coinbase
 //            };
 
-            //todo zx lr
-            // tx pool config
-//            TxPoolConfig = ChainController.TxMemPool.TxPoolConfig.Default;
-//            TxPoolConfig.FeeThreshold = opts.MinimalFee;
-//            TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
-//            TxPoolConfig.Maximal = opts.TxCountLimit;
             
             // tx pool config
             TransactionPoolConfig.Instance.FeeThreshold = opts.MinimalFee;

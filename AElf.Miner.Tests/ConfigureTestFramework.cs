@@ -31,7 +31,9 @@ namespace AElf.Miner.Tests
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());
             builder.RegisterModule(new ManagersModule());
-            builder.RegisterModule(new TxPoolServiceModule(new TxPoolConfig()));
+            builder.RegisterInstance(new TxPoolConfig()).As<ITxPoolConfig>();
+            builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
+            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<Grouper>().As<IGrouper>();
             builder.RegisterType<ServicePack>().PropertiesAutowired();

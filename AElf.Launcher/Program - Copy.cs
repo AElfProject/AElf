@@ -261,7 +261,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new MainChainNodeModule());
 
             txPoolConf.ChainId = chainIdHash;
-            builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
+            //builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
 
             IContainer container;
             try

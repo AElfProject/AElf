@@ -39,6 +39,7 @@ namespace AElf.Node
                 }
             }
 
+            TransactionPoolConfig.Instance.EcKeyPair = nodeKey;
         }
 
         public void Run(IContainer container)

@@ -15,7 +15,7 @@ namespace AElf.Configuration
         
         public ulong Maximal { get; set; }
         
-        ECKeyPair EcKeyPair { get; set; }
+        public ECKeyPair EcKeyPair { get; set; }
          
         public TransactionPoolConfig()
         {
