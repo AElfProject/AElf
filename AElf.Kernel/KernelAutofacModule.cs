@@ -27,7 +27,6 @@ namespace AElf.Kernel
             builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>();
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
             builder.RegisterType<DataStore>().As<IDataStore>();
-
         }
     }
 }

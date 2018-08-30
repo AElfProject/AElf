@@ -193,7 +193,6 @@ namespace AElf.Launcher
             // Module registrations
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
-            builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new NetworkAutofacModule());

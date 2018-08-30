@@ -70,7 +70,6 @@ namespace AElf.Concurrency.Worker
             //builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
 
             // Module registrations
-            builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new NetworkAutofacModule());
