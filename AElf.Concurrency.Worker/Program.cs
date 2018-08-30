@@ -68,7 +68,7 @@ namespace AElf.Concurrency.Worker
             // Module registrations
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterModule(new DatabaseModule());
+            builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new NetworkModule(isMiner));
             builder.RegisterModule(new MinerModule(null));
             builder.RegisterModule(new StateDictatorModule());

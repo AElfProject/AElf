@@ -1,5 +1,6 @@
 ﻿using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
+using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel;
@@ -7,6 +8,7 @@ using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Autofac;
+using Autofac.Core;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Frameworks.Autofac;
@@ -43,7 +45,7 @@ namespace AElf.Miner.Tests
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
             
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterModule(new DatabaseModule());
+            builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());

@@ -1,4 +1,5 @@
 ﻿using AElf.ChainController;
+using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.SmartContract;
@@ -39,7 +40,7 @@ namespace AElf.Sdk.CSharp.Tests
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
             
-            builder.RegisterModule(new DatabaseModule());
+            builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new StorageModule());
             builder.RegisterModule(new ServicesModule());

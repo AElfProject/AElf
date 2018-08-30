@@ -1,6 +1,7 @@
 ﻿using AElf.SmartContract;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
+using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Modules.AutofacModule;
@@ -42,7 +43,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
             
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterModule(new DatabaseModule());
+            builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new StorageModule());

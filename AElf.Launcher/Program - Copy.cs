@@ -195,7 +195,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new LoggerModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
-            builder.RegisterModule(new DatabaseModule());
+            builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new NetworkModule(isMiner));
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterModule(new StorageModule());

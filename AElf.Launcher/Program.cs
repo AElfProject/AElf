@@ -45,13 +45,14 @@ namespace AElf.Launcher
             parsed.Parse(args);
 
             var handler = new AElfModuleHandler();
+            handler.Register(new DatabaseAElfModule());
             handler.Register(new KernelAElfModule());
             handler.Register(new SmartContractAElfModule());
             handler.Register(new ChainAElfModule());
             handler.Register(new ExecutionAElfModule());
             handler.Register(new NodeAElfModule());
             
-            handler.Register(new KernelAElfModule());
+            
             handler.Register(new KernelAElfModule());
             handler.Register(new KernelAElfModule());
             handler.Register(new KernelAElfModule());
