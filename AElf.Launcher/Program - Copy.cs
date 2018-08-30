@@ -258,7 +258,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new MinerModule(minerConfiguration));
 
             NodeConfig.Instance.ChainId = chainIdHash.Value.ToByteArray().ToHex();
-            builder.RegisterModule(new MainChainNodeModule());
+            builder.RegisterModule(new NodeAutofacModule());
 
             txPoolConf.ChainId = chainIdHash;
             //builder.RegisterModule(new TxPoolServiceModule(txPoolConf));

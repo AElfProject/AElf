@@ -45,8 +45,9 @@ namespace AElf.Node
 
             TransactionPoolConfig.Instance.EcKeyPair = nodeKey;
             
-            var assembly = typeof(Node).Assembly;
-            builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
+
+
+            builder.RegisterModule(new NodeAutofacModule());
         }
 
         public void Run(ILifetimeScope scope)
