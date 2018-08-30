@@ -36,10 +36,6 @@ namespace AElf.Launcher
 {
     class Program
     {
-        private const string FilePath = @"ChainInfo.json";
-        private static int _stopped;
-        private static readonly AutoResetEvent _closing = new AutoResetEvent(false);
-
         static void Main(string[] args)
         {
             // Parse options
@@ -74,24 +70,6 @@ namespace AElf.Launcher
             using (var scope = container.BeginLifetimeScope())
             {
                 
-                /************** Node setup ***************/
-                
-                NodeConfiguation confContext = new NodeConfiguation();
-                confContext.KeyPair = nodeKey;
-                confContext.WithRpc = confParser.Rpc;
-                confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Program).Assembly.Location);
-                
-                var mainChainNodeService = scope.Resolve<INodeService>();
-                var rpc = scope.Resolve<IRpcServer>();
-                rpc.Init(scope, confParser.RpcHost, confParser.RpcPort);
-
-                var node = scope.Resolve<INode>();
-                node.Register(mainChainNodeService);
-                node.Initialize(confContext);
-                node.Start();
-                
-                /*****************************************/
-
                 var txPoolService = scope.Resolve<ITxPoolService>();
                 MessageHub.Instance.Subscribe<IncomingTransaction>(
                     async (inTx) => { await txPoolService.AddTxAsync(inTx.Transaction); });
@@ -104,15 +82,7 @@ namespace AElf.Launcher
                             txAdded.Transaction.Serialize());
                     }
                 );
-
-                Console.CancelKeyPress += OnExit;
-                _closing.WaitOne();
             }
-        }
-        
-        protected static void OnExit(object sender, ConsoleCancelEventArgs args)
-        {
-            _closing.Set();
         }
 
         private static IContainer SetupIocContainer(bool isMiner, IMinerConfig minerConf)
