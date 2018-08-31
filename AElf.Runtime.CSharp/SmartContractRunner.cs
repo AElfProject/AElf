@@ -1,5 +1,6 @@
 ﻿﻿using System;
-using System.Collections.Generic;
+ using System.Collections.Concurrent;
+ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,6 +22,7 @@ namespace AElf.Runtime.CSharp
 {
     public class SmartContractRunner : ISmartContractRunner
     {
+        private readonly ConcurrentDictionary<AssemblyName, MemoryStream> _cachedSdkStreams = new ConcurrentDictionary<AssemblyName, MemoryStream>();
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
@@ -41,7 +43,7 @@ namespace AElf.Runtime.CSharp
         private ContractCodeLoadContext GetLoadContext()
         {
             // To make sure each smart contract resides in an isolated context with an Api singleton
-            return new ContractCodeLoadContext(_sdkDir);
+            return new ContractCodeLoadContext(_sdkDir, _cachedSdkStreams);
         }
 
         public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
