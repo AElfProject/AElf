@@ -11,9 +11,8 @@ using AElf.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-/*
- Temporarily disabled.
- TODO: https://github.com/AElfProject/AElf/issues/338
+ /*Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338 */
     [UseAutofacTestFramework]
     public class TrackedRouterTest : TestKitBase
     {
@@ -24,7 +23,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             _mock = mock;
         }
 
-        [Fact]
+        [Fact(Skip = "Ignore for now")]
         public void ThreeJobsExecutionTest()
         {
             // As there are only two workers, the third job will fail
@@ -36,27 +35,27 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             // The third job fails
             FishForMessage(
-                (msg) =>
+                msg =>
                     msg is JobExecutionStatus js &&
                     js.RequestId == 2 &&
                     js.Status == JobExecutionStatus.RequestStatus.FailedDueToNoAvailableWorker
             );
             
             FishForMessage(
-                (msg) =>
+                msg =>
                     msg is JobExecutionStatus js &&
                     js.Status == JobExecutionStatus.RequestStatus.Completed
             );
 
             FishForMessage(
-                (msg) =>
+                msg =>
                     msg is JobExecutionStatus js &&
                     js.Status == JobExecutionStatus.RequestStatus.Completed
             );
 
         }
         
-        [Fact]
+        [Fact(Skip = "Ignore for now")]
         public void WorkerBecomeIdleExecutionTest()
         {
             // As there are only two workers, the third job will fail
@@ -88,5 +87,4 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             );
         }
     }
-*/
 }

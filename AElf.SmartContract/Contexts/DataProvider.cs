@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common.Extensions;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Enum = System.Enum;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -30,7 +28,7 @@ namespace AElf.SmartContract
             return changes;
         }
 
-        public int Layer { get; private set; }
+        private int Layer { get; }
 
         /// <inheritdoc />
         /// <summary>
@@ -58,8 +56,6 @@ namespace AElf.SmartContract
             _dataPath = dataPath.Clone();
 
             _dataPath.SetDataProvider(GetHash());
-            //Console.WriteLine("Layer: " + layer);
-            //Console.WriteLine("DP Hash: " + GetHash().ToHex());
         }
 
         private Hash GetHash()
@@ -83,13 +79,11 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-            //Console.WriteLine("Key Hash: " + keyHash.ToHex());
             return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
         }
 
         public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
         {
-            //Console.WriteLine("Key Hash: " + keyHash.ToHex());
             var dataPath = _dataPath.Clone();
             dataPath.SetDataKey(keyHash);
             if (!dataPath.AreYouOk())
@@ -97,23 +91,11 @@ namespace AElf.SmartContract
                 throw new InvalidOperationException("DataPath: I'm not OK.");
             }
             
-            if (!Enum.TryParse<Kernel.Storages.Types>(typeof(T).Name, out var typeIndex))
-            {
-                throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
-            }
-
-            dataPath.Type = (DataPath.Types) (uint) typeIndex;
+            dataPath.Type = typeof(T).Name;
             
             await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
-            var state = GetStateAsync(keyHash);
 
-            if (state == null)
-            {
-                state = new StateCache((await GetDataAsync<T>(keyHash))?.ToByteArray());
-            }
-            state.CurrentValue = obj;
-
-            StateCache[dataPath] = state;
+            StateCache[dataPath] = new StateCache(obj);
         }
         
         private StateCache GetStateAsync(Hash keyHash)
@@ -171,16 +153,12 @@ namespace AElf.SmartContract
                 throw new InvalidOperationException("DataPath: I'm not OK.");
             }
             
-            //Console.WriteLine($"Try to get {dataPath.ResourcePathHash.ToHex()} from database.");
             //Get resource pointer.
             var pointerHash = await _stateDictator.GetHashAsync(dataPath.ResourcePathHash);
             if (pointerHash == null)
             {
-                //Console.WriteLine("But failed.");
                 return default(T);
             }
-            
-            //Console.WriteLine($"pointer hash: {pointerHash.ToHex()}");
             
             return await _stateDictator.GetDataAsync<T>(pointerHash);
         }

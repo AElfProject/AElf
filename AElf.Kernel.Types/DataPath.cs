@@ -41,12 +41,12 @@ namespace AElf.Kernel
         /// </summary>
         public Hash Key => new Key
         {
-            Type = (uint) Type,
+            Type =  Type,
             Value = ByteString.CopyFrom(ResourcePointerHash.GetHashBytes()),
             HashType = (uint) HashType.ResourcePointer
         }.ToByteArray();
             
-        public Types Type { get; set; }
+        public string Type { get; set; }
 
         public DataPath SetChainId(Hash chainId)
         {
@@ -151,31 +151,14 @@ namespace AElf.Kernel
         }
 
         #endregion
-        
-        public enum Types
-        {
-            UInt64Value = 0,
-            Hash,
-            BlockBody,
-            BlockHeader,
-            Chain,
-            Change,
-            SmartContractRegistration,
-            TransactionResult,
-            Transaction,
-            FunctionMetadata,
-            SerializedCallGraph,
-            SideChain,
-            WorldState,
-            Miners,
-            BlockProducer,
-            Round,
-            AElfDPoSInformation,
-            Int32Value,
-            StringValue,
-            Timestamp,
-            SInt32Value
-        }
     }
 
+    public class DataPath<T> where T : IMessage, new()
+    {
+        private readonly DataPath _dataPath;
+        public DataPath(DataPath dataPath)
+        {
+            _dataPath = dataPath;
+        }
+    }
 }

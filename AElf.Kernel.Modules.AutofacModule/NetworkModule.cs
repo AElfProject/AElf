@@ -3,7 +3,6 @@ using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Peers;
 using Autofac;
-using Community.AspNetCore.JsonRpc;
 
 namespace AElf.Kernel.Modules.AutofacModule
  {

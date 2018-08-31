@@ -37,7 +37,7 @@ namespace AElf.Network.Peers
         private readonly IConnectionListener _connectionListener;
         
         private System.Threading.Timer _maintenanceTimer;
-        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(2);
+        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(10);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
         
         private readonly List<IPeer> _authentifyingPeer = new List<IPeer>();

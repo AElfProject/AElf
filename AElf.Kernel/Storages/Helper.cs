@@ -7,7 +7,7 @@ namespace AElf.Kernel.Storages
 {
     public static class Helper
     {
-        public static string GetKeyString(this Hash hash, uint type)
+        public static string GetKeyString(this Hash hash, string type)
         {
             return new Key
             {
@@ -16,31 +16,5 @@ namespace AElf.Kernel.Storages
                 HashType = (uint) hash.HashType
             }.ToByteArray().ToHex();
         }
-    }
-    
-    // ReSharper disable UnusedMember.Global
-    public enum Types
-    {
-        UInt64Value = 0,
-        Hash,
-        BlockBody,
-        BlockHeader,
-        Chain,
-        Change,
-        SmartContractRegistration,
-        TransactionResult,
-        Transaction,
-        FunctionMetadata,
-        SerializedCallGraph,
-        SideChain,
-        WorldState,
-        Miners,
-        BlockProducer,
-        Round,
-        AElfDPoSInformation,
-        Int32Value,
-        StringValue,
-        Timestamp,
-        SInt32Value
     }
 }
