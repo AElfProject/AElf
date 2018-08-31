@@ -25,7 +25,7 @@ namespace AElf.Configuration.Tests
             Assert.Equal(TestConfig.Instance.StringValue, "str-a");
 
             ChangeFile(fileName);
-            Thread.Sleep(6000);
+            Thread.Sleep(8000);
             
             Assert.Equal(TestConfig.Instance.StringValue, "str-b");
             
