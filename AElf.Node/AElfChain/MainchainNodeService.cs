@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -11,22 +11,19 @@ using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
+using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Types;
 using AElf.Miner.Miner;
-using AElf.Node;
-using AElf.Node.AElfChain;
 using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
 
-// ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Node
+namespace AElf.Node.AElfChain
 {
     [LoggerName("Node")]
-    // ReSharper disable once ClassNeverInstantiated.Global
-    // ReSharper disable InconsistentNaming
     public class MainchainNodeService : INodeService
     {
         private readonly ILogger _logger;
@@ -134,7 +131,7 @@ namespace AElf.Kernel.Node
 
         #endregion
         
-        public void Initialize(NodeConfiguation conf)
+        public void Initialize(NodeConfiguration conf)
         {
             _nodeKeyPair = conf.KeyPair;
             _assemblyDir = conf.LauncherAssemblyLocation;
@@ -337,28 +334,10 @@ namespace AElf.Kernel.Node
 
                 if (error != ValidationError.Success)
                 {
-                    var blockchain = _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
-                    var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
-                    if (error == ValidationError.OrphanBlock)
+                    var e = await CheckRollback(block, error);
+                    if (e != ValidationError.Success)
                     {
-                        //TODO: limit the count of blocks to rollback
-                        if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
-                        {
-                            _logger?.Trace("Ready to rollback");
-                            var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
-                            await _txPoolService.RollBack(txs);
-                            await _stateDictator.RollbackToPreviousBlock();
-                            error = ValidationError.Success;
-                        }
-                        else
-                        {
-                            return new BlockExecutionResult(false, ValidationError.OrphanBlock);
-                        }
-                    }
-                    else
-                    {
-                        _logger?.Trace("Invalid block received from network: " + error);
-                        return new BlockExecutionResult(false, error);
+                        return new BlockExecutionResult(false, e);
                     }
                 }
 
@@ -373,6 +352,26 @@ namespace AElf.Kernel.Node
                 _logger?.Error(e, "Block synchronzing failed");
                 return new BlockExecutionResult(e);
             }
+        }
+
+        public async Task<ValidationError> CheckRollback(IBlock block, ValidationError error)
+        {
+            var blockchain = _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
+            switch (error)
+            {
+                case ValidationError.OrphanBlock when block.Header.Time.ToDateTime() >= localCorrespondingBlock.Header.Time.ToDateTime():
+                    return ValidationError.OrphanBlock;
+                case ValidationError.OrphanBlock:
+                    _logger?.Trace("Ready to rollback");
+                    var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
+                    await _txPoolService.RollBack(txs);
+                    await _stateDictator.RollbackToPreviousBlock();
+                    return ValidationError.Success;
+            }
+            
+            _logger?.Trace("Invalid block received from network: " + error);
+            return error;
         }
 
         #endregion Legacy Methods

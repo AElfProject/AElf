@@ -136,7 +136,7 @@ namespace AElf.Launcher
                 
                 /************** Node setup ***************/
                 
-                NodeConfiguation confContext = new NodeConfiguation();
+                NodeConfiguration confContext = new NodeConfiguration();
                 confContext.KeyPair = nodeKey;
                 confContext.WithRpc = confParser.Rpc;
                 confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Program).Assembly.Location);

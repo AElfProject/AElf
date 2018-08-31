@@ -4,7 +4,7 @@ using Autofac;
 
 namespace AElf.Net.Rpc
 {
-    public class NetRpcAElfModule:IAElfModlule
+    public class NetRpcAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

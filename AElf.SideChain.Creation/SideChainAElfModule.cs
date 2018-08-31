@@ -5,7 +5,7 @@ using Easy.MessageHub;
 
 namespace AElf.SideChain.Creation
 {
-    public class SideChainAElfModule:IAElfModlule
+    public class SideChainAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

@@ -4,7 +4,7 @@ using Autofac;
 
 namespace AElf.RPC
 {
-    public class RpcAElfModule:IAElfModlule
+    public class RpcAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

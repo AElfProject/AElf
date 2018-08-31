@@ -7,7 +7,7 @@ using Google.Protobuf;
 
 namespace AElf.Miner
 {
-    public class MinerAElfModule:IAElfModlule
+    public class MinerAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

@@ -177,7 +177,7 @@ enum DataAccessMode {
 
 message Key {
     bytes Value = 1;
-    uint32 type = 2;
+    string type = 2;
     uint32 HashType = 3;
 }
 

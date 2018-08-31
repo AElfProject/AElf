@@ -5,7 +5,7 @@ using Autofac;
 
 namespace AElf.Launcher
 {
-    public class LauncherAElfModule:IAElfModlule
+    public class LauncherAElfModule:IAElfModule
     {
         private int _stopped;
         private readonly AutoResetEvent _closing = new AutoResetEvent(false);

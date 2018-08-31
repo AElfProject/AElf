@@ -3,7 +3,7 @@ using Autofac;
 
 namespace AElf.SmartContract
 {
-    public class SmartContractAElfModule:IAElfModlule
+    public class SmartContractAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

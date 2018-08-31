@@ -9,15 +9,9 @@ using Autofac;
 
 namespace AElf.Kernel
 {
-    public class KernelAElfModule:IAElfModlule
+    public class KernelAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
-        {
-            builder.RegisterModule(new KernelAutofacModule());
-            builder.RegisterModule(new LoggerAutofacModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
-        }
-
-        public void Run(ILifetimeScope scope)
         {
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {
@@ -40,6 +34,14 @@ namespace AElf.Kernel
                 Globals.SingleNodeTestMiningInterval = ConsensusConfig.Instance.SingleNodeTestMiningInterval;
                 Console.WriteLine($"Mining interval: {Globals.SingleNodeTestMiningInterval} ms");
             }
+            
+            builder.RegisterModule(new KernelAutofacModule());
+            builder.RegisterModule(new LoggerAutofacModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
+        }
+
+        public void Run(ILifetimeScope scope)
+        {
+
         }
     }
 }

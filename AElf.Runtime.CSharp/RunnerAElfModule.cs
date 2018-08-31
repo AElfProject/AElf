@@ -6,7 +6,7 @@ using Autofac;
 
 namespace AElf.Runtime.CSharp
 {
-    public class RunnerAElfModule:IAElfModlule
+    public class RunnerAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

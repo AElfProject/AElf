@@ -2,7 +2,7 @@
 
 namespace AElf.Common.Module
 {
-    public interface IAElfModlule
+    public interface IAElfModule
     {
         void Init(ContainerBuilder builder);
         void Run(ILifetimeScope scope);

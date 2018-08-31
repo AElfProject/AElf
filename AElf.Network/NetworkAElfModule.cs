@@ -3,7 +3,7 @@ using Autofac;
 
 namespace AElf.Network
 {
-    public class NetworkAElfModule:IAElfModlule
+    public class NetworkAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

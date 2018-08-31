@@ -5,7 +5,6 @@ using System.Security;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
-using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -14,7 +13,7 @@ using Autofac;
 
 namespace AElf.Node
 {
-    public class NodeAElfModule:IAElfModlule
+    public class NodeAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {
@@ -57,8 +56,8 @@ namespace AElf.Node
             {
                 throw new Exception("NodeAccount is needed");
             }
-            
-            NodeConfiguation confContext = new NodeConfiguation();
+             
+            NodeConfiguration confContext = new NodeConfiguration();
             confContext.KeyPair = TransactionPoolConfig.Instance.EcKeyPair;
             confContext.WithRpc = RpcConfig.Instance.UseRpc;
             confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node).Assembly.Location);

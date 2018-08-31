@@ -4,7 +4,7 @@ using Autofac;
 
 namespace AElf.Wallet.Rpc
 {
-    public class WalletRpcAElfModule:IAElfModlule
+    public class WalletRpcAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

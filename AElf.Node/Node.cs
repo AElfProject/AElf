@@ -38,7 +38,7 @@ namespace AElf.Node
             _services.Add(s);
         }
 
-        public void Initialize(NodeConfiguation conf)
+        public void Initialize(NodeConfiguration conf)
         {
             _startRpc = conf.WithRpc;
             

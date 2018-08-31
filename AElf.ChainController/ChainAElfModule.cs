@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AElf.ChainController
 {
-    public class ChainAElfModule:IAElfModlule
+    public class ChainAElfModule:IAElfModule
     {
         private const string FilePath = @"ChainInfo.json";
         

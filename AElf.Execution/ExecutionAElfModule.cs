@@ -6,7 +6,7 @@ using Autofac;
 
 namespace AElf.Execution
 {
-    public class ExecutionAElfModule:IAElfModlule
+    public class ExecutionAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

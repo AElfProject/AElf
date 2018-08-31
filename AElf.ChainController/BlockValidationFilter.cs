@@ -5,13 +5,16 @@ using AElf.Kernel;
 
 namespace AElf.ChainController
 {
+    /// <summary>
+    /// Validate the tx merkle tree root.
+    /// </summary>
     public class BlockValidationFilter : IBlockValidationFilter
     {
         public Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
-            if (block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
-                return Task.FromResult(ValidationError.InvalidBlock);
-            return Task.FromResult(ValidationError.Success);
+            return Task.FromResult(block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions
+                ? ValidationError.IncorrectTxMerkleTreeRoot
+                : ValidationError.Success);
         }
     }
 }

@@ -119,6 +119,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Miner.Tests", "AElf.Mi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Wallet.Rpc", "AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj", "{1F7DA3BB-54AC-41D5-B93D-88C74500937D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Sim", "AElf.Network.Sim\AElf.Network.Sim.csproj", "{01A3C6AA-5F83-4875-837E-16381394894B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Sim.Node", "AElf.Network.Sim.Node\AElf.Network.Sim.Node.csproj", "{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -353,6 +357,14 @@ Global
 		{1F7DA3BB-54AC-41D5-B93D-88C74500937D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F7DA3BB-54AC-41D5-B93D-88C74500937D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F7DA3BB-54AC-41D5-B93D-88C74500937D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01A3C6AA-5F83-4875-837E-16381394894B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01A3C6AA-5F83-4875-837E-16381394894B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01A3C6AA-5F83-4875-837E-16381394894B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01A3C6AA-5F83-4875-837E-16381394894B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

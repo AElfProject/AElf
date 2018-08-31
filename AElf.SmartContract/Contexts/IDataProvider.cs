@@ -11,8 +11,6 @@ namespace AElf.SmartContract
     /// </summary>
     public interface IDataProvider
     {
-        int Layer { get; }
-        
         /// <summary>
         /// Get sub DataProvider instance using data provider key.
         /// </summary>
@@ -23,13 +21,6 @@ namespace AElf.SmartContract
         Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new();
 
         Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new();
-
-        /// <summary>
-        /// Get data from database.
-        /// </summary>
-        /// <param name="keyHash"></param>
-        /// <returns></returns>
-        Task<T> GetDataAsync<T>(Hash keyHash) where T : IMessage, new();
 
         /// <summary>
         /// Set data to database.

@@ -24,11 +24,10 @@ namespace AElf.Contracts.SideChain.Tests
                 new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount());
         }
 
-        // TODO: To fix
-        [Fact(Skip = "")]
+        [Fact]
         public async Task Test()
         {
-            /*var chainId = Hash.Generate();
+            var chainId = Hash.Generate();
             var lockedAddress = Hash.Generate().ToAccount();
             ulong lockedToken = 10000;
             // create new chain
@@ -60,7 +59,7 @@ namespace AElf.Contracts.SideChain.Tests
             Assert.True(_contract.TransactionContext.Trace.IsSuccessful());
             
             status = await _contract.GetChainStatus(chainId);
-            Assert.Equal(3, status);*/
+            Assert.Equal(3, status);
         }
     }
 }

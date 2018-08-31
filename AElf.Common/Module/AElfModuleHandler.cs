@@ -11,17 +11,17 @@ namespace AElf.Common.Module
         private readonly ContainerBuilder _builder;
         private IContainer _container;
 
-        private List<IAElfModlule> _modlules;
+        private List<IAElfModule> _modlules;
 
         public AElfModuleHandler()
         {
             _builder = new ContainerBuilder();
-            _modlules = new List<IAElfModlule>();
+            _modlules = new List<IAElfModule>();
         }
 
-        public void Register(IAElfModlule modlule)
+        public void Register(IAElfModule module)
         {
-            _modlules.Add(modlule);
+            _modlules.Add(module);
         }
 
         public void Build()

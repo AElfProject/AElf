@@ -6,7 +6,7 @@ using Autofac;
 
 namespace AElf.Database
 {
-    public class DatabaseAElfModule : IAElfModlule
+    public class DatabaseAElfModule : IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {
