@@ -46,8 +46,6 @@ namespace AElf.Node
 
             TransactionPoolConfig.Instance.EcKeyPair = nodeKey;
             
-
-
             builder.RegisterModule(new NodeAutofacModule());
         }
 

@@ -49,16 +49,16 @@ namespace AElf.ChainController
                     chainIdHash = ByteArrayHelpers.FromHexString(chain.GetValue("id").ToString());
                 }
             }
-            
-            var txPoolConfig = TxMemPool.TxPoolConfig.Default;
+
+            builder.RegisterModule(new ChainAutofacModule());
+
+            var txPoolConfig = TxPoolConfig.Default;
             txPoolConfig.FeeThreshold = TransactionPoolConfig.Instance.Minimal;
             txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;
             txPoolConfig.Maximal = TransactionPoolConfig.Instance.Maximal;
             txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;
             txPoolConfig.ChainId = chainIdHash;
             builder.RegisterInstance(txPoolConfig).As<ITxPoolConfig>();
-
-            builder.RegisterModule(new ChainAutofacModule());
         }
 
         public void Run(ILifetimeScope scope)
