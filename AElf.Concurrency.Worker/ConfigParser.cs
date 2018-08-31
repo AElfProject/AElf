@@ -1,22 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using AElf.ChainController;
-using AElf.Common.Application;
-using AElf.Common.ByteArrayHelpers;
+﻿using AElf.Common.Application;
 using AElf.Common.Enums;
-using AElf.Concurrency.Worker;
 using AElf.Configuration;
-using AElf.Configuration.Config.Network;
-using AElf.Kernel;
-using AElf.Kernel.Node;
-using AElf.Kernel.Types;
 using AElf.Runtime.CSharp;
 using CommandLine;
-using Google.Protobuf;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AElf.Concurrency.Worker
 {

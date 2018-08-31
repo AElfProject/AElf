@@ -20,7 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
+    <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
+    <ProjectReference Include="..\AElf.Network\AElf.Network.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
   </ItemGroup>
 </Project>
