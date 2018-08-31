@@ -170,7 +170,6 @@ namespace AElf.Contracts.Genesis
 
         public Hash GetContractOwner(Hash contractAddress)
         {
-            return Hash.Zero;
             var info = _contractInfos[contractAddress];
             return info.Owner;
         }

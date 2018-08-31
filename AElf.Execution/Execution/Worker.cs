@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -169,8 +170,7 @@ namespace AElf.Execution
                     {
                         // TODO: The job is still running but we will leave it, we need a way to abort the job if it runs for too long
                         var task = Task.Run(
-                            async () => await ExecuteTransaction(chainContext, tx,
-                                stateCache.ToDictionary(kv => kv.Key, kv => kv.Value)),
+                            async () => await ExecuteTransaction(chainContext, tx, stateCache),
                             _cancellationTokenSource.Token);
                         try
                         {
@@ -182,6 +182,7 @@ namespace AElf.Execution
                                 var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.StateDictator);
                                 foreach (var kv in bufferedStateUpdates)
                                 {
+                                    Debug.WriteLine("Path: " + kv.Key.ResourcePointerHash.ToHex());
                                     stateCache[kv.Key] = kv.Value;
                                 }
                             }

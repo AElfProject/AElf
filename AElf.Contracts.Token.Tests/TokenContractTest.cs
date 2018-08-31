@@ -30,7 +30,7 @@ namespace AElf.Contracts.Token.Tests
                 new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.TokenContract.ToString())).ToAccount());
         }
 
-        [Fact]
+        [Fact(Skip = "Skip for now")]
         public void Test()
         {
             _contract.GetContractOwner(new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.BasicContractZero.ToString())).ToAccount());

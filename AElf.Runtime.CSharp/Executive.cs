@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -198,7 +199,14 @@ namespace AElf.Runtime.CSharp
 
                 if (!methodAbi.IsView && _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
-                    _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider.GetValueChanges());
+                    var changes = _currentSmartContractContext.DataProvider.GetValueChanges();
+                    var stateValueChanges = changes as StateValueChange[] ?? changes.ToArray();
+                    foreach (var change in stateValueChanges)
+                    {
+                        Debug.WriteLine(change.Path.ResourcePointerHash);
+                        Debug.WriteLine(change.CurrentValue.Length);
+                    }
+                    _currentTransactionContext.Trace.ValueChanges.AddRange(stateValueChanges);
                     if (autoCommit)
                     {
                         var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_stateDictator);

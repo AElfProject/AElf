@@ -84,14 +84,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var address5 = Hash.Generate();
             var address6 = Hash.Generate();
             
-            _mock.Initialize1(address1, 1000000);
+            _mock.Initialize1(address1, 100);
             _mock.Initialize1(address2, 0);
             _mock.Initialize1(address3, 200);
             _mock.Initialize1(address4, 0);
             _mock.Initialize1(address5, 300);
             _mock.Initialize1(address6, 0);
 
-            var tx1 = _mock.GetTransferTxn1(address1, address2, 100000);
+            var tx1 = _mock.GetTransferTxn1(address1, address2, 10);
             var tx2 = _mock.GetTransferTxn1(address3, address4, 10);
             var tx3 = _mock.GetTransferTxn1(address5, address6, 10);
 
@@ -135,8 +135,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Assert.Null(trace1.StdErr);
             }
-            Assert.Equal((ulong) 900000, _mock.GetBalance1(address1));
-            Assert.Equal((ulong) 100000, _mock.GetBalance1(address2));
+            Assert.Equal((ulong) 90, _mock.GetBalance1(address1));
+            Assert.Equal((ulong) 10, _mock.GetBalance1(address2));
             
             if (!string.IsNullOrEmpty(trace2.StdErr))
             {

@@ -30,7 +30,6 @@ namespace AElf.Benchmark.TestContract
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
         public bool Transfer(Hash from, Hash to, UInt64Value qty)
         {
-
             var fromBal = Balances.GetValue(from);
             //Console.WriteLine("from pass");
 
