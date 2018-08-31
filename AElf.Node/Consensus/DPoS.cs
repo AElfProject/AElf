@@ -11,6 +11,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Node.Protocol;
 using AElf.Miner.Miner;
+using AElf.Node;
 using AElf.Node.AElfChain;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
@@ -49,7 +50,7 @@ namespace AElf.Kernel.Node
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
         private bool _incrementIdNeedToAddOne;
 
-        private ECKeyPair _nodeKeyPair;
+        private NodeKeyPair _nodeKeyPair;
         private Hash _contractAccountAddressHash;
         
         private int _flag;
@@ -81,7 +82,7 @@ namespace AElf.Kernel.Node
         public void Initialize(Hash contractAccountHash, ECKeyPair nodeKeyPair)
         {
             _dposHelpers = new AElfDPoSHelper(_stateDictator, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
-            _nodeKeyPair = nodeKeyPair;
+            _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
             _contractAccountAddressHash = contractAccountHash;
         }
 
@@ -110,7 +111,7 @@ namespace AElf.Kernel.Node
 
             isMining = true;
 
-            if (!Miners.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+            if (!Miners.Nodes.Contains(_nodeKeyPair.Address.ToHex().RemoveHexPrefix()))
             {
                 return;
             }
@@ -140,7 +141,7 @@ namespace AElf.Kernel.Node
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
 
-                _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
+                _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
                 _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
 
                 var block = await _miner.Mine(Globals.AElfDPoSMiningInterval * 9 / 10, initial);
@@ -184,7 +185,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var isBlockProducer = accountAddress.Equals(_nodeKeyPair.GetAddress()) ||
+                var isBlockProducer = accountAddress.Equals(_nodeKeyPair.Address) ||
                               _dposHelpers.Miners.Nodes.Contains(accountAddress.ToHex().RemoveHexPrefix());
                 var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
                 
@@ -204,11 +205,11 @@ namespace AElf.Kernel.Node
         {
             var tx = new Transaction
             {
-                From = _nodeKeyPair.GetAddress(),
+                From = _nodeKeyPair.Address,
                 To = _contractAccountAddressHash,
-                IncrementId = GetIncrementId(_nodeKeyPair.GetAddress()).Result + incrementIdOffset,
+                IncrementId = GetIncrementId(_nodeKeyPair.Address).Result + incrementIdOffset,
                 MethodName = methodName,
-                P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded()),
+                P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey),
                 Type = TransactionType.DposTransaction
             };
 
@@ -271,7 +272,7 @@ namespace AElf.Kernel.Node
             var parameters = new List<byte[]>
             {
                 _dposHelpers.CurrentRoundNumber.ToByteArray(),
-                new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()}.ToByteArray(),
+                new StringValue {Value = _nodeKeyPair.Address.ToHex().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray(),
                 signature.ToByteArray()
             };
@@ -299,7 +300,7 @@ namespace AElf.Kernel.Node
             var parameters = new List<byte[]>
             {
                 currentRoundNumber.ToByteArray(),
-                new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()}.ToByteArray(),
+                new StringValue {Value = _nodeKeyPair.Address.ToHex().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray()
             };
 
@@ -344,7 +345,7 @@ namespace AElf.Kernel.Node
             }
 
             // Update observer.
-            var address = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix();
+            var address = _nodeKeyPair.Address.ToHex().RemoveHexPrefix();
             var blockProducerInfoOfCurrentRound = _dposHelpers[address];
             ConsensusDisposable = AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound, 
                 _dposHelpers.ExtraBlockTimeslot);
@@ -361,7 +362,7 @@ namespace AElf.Kernel.Node
 
         private async Task BroadcastTransaction(Transaction tx)
         {
-            if(tx.From.Equals(_nodeKeyPair.GetAddress()))
+            if(tx.From.Equals(_nodeKeyPair.Address))
                 _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
                                Thread.CurrentThread.ManagedThreadId);
             try
