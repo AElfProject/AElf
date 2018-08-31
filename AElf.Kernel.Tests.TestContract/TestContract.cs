@@ -4,6 +4,7 @@ using AElf.Types.CSharp.MetadataAttribute;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using Api = AElf.Sdk.CSharp.Api;
 using AElf.Kernel;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Benchmark.TestContract
 {
@@ -22,10 +23,10 @@ namespace AElf.Benchmark.TestContract
         public MapToString<Hash> TransactionEndTimes = new MapToString<Hash>("TransactionEndTimes");
 
         [SmartContractFunction("${this}.Initialize", new string[]{}, new []{"${this}.Balances"})]
-        public bool Initialize(Hash account, ulong qty)
+        public bool Initialize(Hash account, UInt64Value qty)
         {
-            Console.WriteLine("Initialize");
-            Balances.SetValue(account, qty);
+            Console.WriteLine($"Initialize {account.ToHex()} to {qty.Value}");
+            Balances.SetValue(account, qty.Value);
             return true;
         }
 
@@ -44,19 +45,26 @@ namespace AElf.Benchmark.TestContract
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances", "${this}.TransactionStartTimes", "${this}.TransactionEndTimes"})]
-        public bool Transfer(Hash from, Hash to, ulong qty)
+        public bool Transfer(Hash from, Hash to, UInt64Value qty)
         {
+            Console.WriteLine("From: " + from.ToHex());
+            Console.WriteLine("To: " + to.ToHex());
+
             // This is for testing batched transaction sequence
             TransactionStartTimes.SetValue(Api.GetTransaction().GetHash(), Now());
-
             var fromBal = Balances.GetValue(from);
+            Console.WriteLine("Old From Balance: " + fromBal);
 
             var toBal = Balances.GetValue(to);
+            Console.WriteLine("Old To Balance: " + toBal);
 
-            Api.Assert(fromBal > qty);
+            Console.WriteLine("Assertion: " + (fromBal > qty.Value));
+            Api.Assert(fromBal > qty.Value);
             
-            var newFromBal = fromBal - qty;
-            var newToBal = toBal + qty;
+            var newFromBal = fromBal - qty.Value;
+            var newToBal = toBal + qty.Value;
+            Console.WriteLine("New From Balance: " + newFromBal);
+            Console.WriteLine("New To Balance: " + newToBal);
             Balances.SetValue(from, newFromBal);
             Balances.SetValue(to, newToBal);
 

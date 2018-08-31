@@ -261,7 +261,7 @@ namespace AElf.Contracts.Token.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(TokenContractAddress))
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };

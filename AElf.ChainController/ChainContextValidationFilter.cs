@@ -51,15 +51,13 @@ namespace AElf.ChainController
                 // can be added to chain
                 if (previousBlockHash == Hash.Genesis ||  index == currentChainHeight + 1)
                 {
-                    if (!currentPreviousBlockHash.Equals(previousBlockHash))
-                    {
-                        _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.ToHex());
-                        _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.ToHex());
-                    }
-                    
-                    return currentPreviousBlockHash.Equals(previousBlockHash)
-                        ? ValidationError.Success
-                        : ValidationError.OrphanBlock;
+                    if (currentPreviousBlockHash.Equals(previousBlockHash))
+                        return ValidationError.Success;
+
+                    _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.ToHex());
+                    _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.ToHex());
+
+                    return ValidationError.IncorrectPreBlockHash;
                 }
                 
                 if (index <= currentChainHeight)
@@ -75,6 +73,7 @@ namespace AElf.ChainController
                         : ValidationError.OrphanBlock;
                 }
                 
+                _logger?.Error("Incomplete validation scheme.");
                 return ValidationError.DontKnowReason;
             }
             catch (Exception e)

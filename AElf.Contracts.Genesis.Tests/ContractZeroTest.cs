@@ -34,11 +34,10 @@ namespace AElf.Contracts.Genesis.Tests
             _contractShim = contractShim;
         }
 
-        // TODO: To fix
-        [Fact(Skip = "")]
+        [Fact]
         public void Test()
         {
-            /*// deploy contract
+            // deploy contract
             _contractShim.DeploySmartContract(0, Code);
             Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal);
             
@@ -55,7 +54,7 @@ namespace AElf.Contracts.Genesis.Tests
             _contractShim.ChangeContractOwner(address, newOwner);
             _contractShim.GetContractOwner(address);
             var queryNewOwner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
-            Assert.Equal(newOwner, queryNewOwner);    */        
+            Assert.Equal(newOwner, queryNewOwner);     
         }
     }
 }

@@ -13,7 +13,7 @@ using ServiceStack;
 
 namespace AElf.Contracts.Token.Tests
 {
-    public class     MockSetup
+    public class MockSetup
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
