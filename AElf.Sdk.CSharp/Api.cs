@@ -19,7 +19,7 @@ namespace AElf.Sdk.CSharp
         private static Dictionary<string, IDataProvider> _dataProviders;
         private static ISmartContractContext _smartContractContext;
         private static ITransactionContext _transactionContext;
-        private static ITransactionContext _lastInlineCallContext;
+        private static ITransactionContext _lastCallContext;
 
         public static ProtobufSerializer Serializer { get; } = new ProtobufSerializer();
 
@@ -92,7 +92,7 @@ namespace AElf.Sdk.CSharp
                 return GetCallResult().DeserializeToPbMessage<Hash>();
             }
 
-            throw new InternalError("Failed to get owner of contract.\n" + _lastInlineCallContext.Trace.StdErr);
+            throw new InternalError("Failed to get owner of contract.\n" + _lastCallContext.Trace.StdErr);
         }
 
         public static IDataProvider GetDataProvider(string name)
@@ -116,34 +116,37 @@ namespace AElf.Sdk.CSharp
 
         public static void SendInline(Hash contractAddress, string methodName, params object[] args)
         {
-            throw new NotImplementedException();
+            _transactionContext.Trace.InlineTransactions.Add(new Transaction()
+            {
+                From = _transactionContext.Transaction.From,
+                To=contractAddress,
+                MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+            });
         }
 
         public static bool Call(Hash contractAddress, string methodName, byte[] args)
         {
-            _lastInlineCallContext = new TransactionContext()
+            _lastCallContext = new TransactionContext()
             {
                 Transaction = new Transaction()
                 {
                     From = _smartContractContext.ContractAddress,
                     To = contractAddress,
-                    // TODO: Get increment id from AccountDataContext
-                    IncrementId = ulong.MinValue,
                     MethodName = methodName,
                     Params = ByteString.CopyFrom(args)
-                },
-                CallDepth = _transactionContext.CallDepth + 1
+                }
             };
 
             var svc = _smartContractContext.SmartContractService;
-            var ctxt = _lastInlineCallContext;
+            var ctxt = _lastCallContext;
             var chainId = _smartContractContext.ChainId;
             Task.Factory.StartNew(async () =>
             {
                 var executive = await svc.GetExecutiveAsync(contractAddress, chainId);
-                // Inline calls are not auto-committed.
                 try
                 {
+                    // view only, write actions need to be sent via SendInline
                     await executive.SetTransactionContext(ctxt).Apply(false);
                 }
                 finally
@@ -152,20 +155,16 @@ namespace AElf.Sdk.CSharp
                 }
             }).Unwrap().Wait();
 
-            _transactionContext.Trace.InlineTraces.Add(_lastInlineCallContext.Trace);
+            // TODO: Maybe put readonly call trace into inlinetraces to record data access
 
-            // TODO: Put inline transactions into Transaction Result of calling transaction
-
-            // True: success
-            // False: error
-            return _lastInlineCallContext.Trace.IsSuccessful();
+            return _lastCallContext.Trace.IsSuccessful();
         }
 
         public static byte[] GetCallResult()
         {
-            if (_lastInlineCallContext != null)
+            if (_lastCallContext != null)
             {
-                return _lastInlineCallContext.Trace.RetVal.Data.ToByteArray();
+                return _lastCallContext.Trace.RetVal.Data.ToByteArray();
             }
 
             return new byte[] { };

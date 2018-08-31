@@ -46,8 +46,9 @@ message TransactionTrace {
     string StdOut = 3;
     string StdErr = 4;
     repeated LogEvent Logs = 5;
-    repeated TransactionTrace InlineTraces = 6;
-    repeated StateValueChange ValueChanges = 7;
-    int64 Elapsed = 8;
-    ExecutionStatus ExecutionStatus = 9;
+    repeated Transaction InlineTransactions = 6;
+    repeated TransactionTrace InlineTraces = 7;
+    repeated StateValueChange ValueChanges = 8;
+    int64 Elapsed = 9;
+    ExecutionStatus ExecutionStatus = 10;
 }
