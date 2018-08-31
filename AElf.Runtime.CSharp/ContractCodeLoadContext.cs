@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Loader;
@@ -12,13 +13,14 @@ namespace AElf.Runtime.CSharp
     /// </summary>
     public class ContractCodeLoadContext : AssemblyLoadContext
     {
-        private readonly Dictionary<AssemblyName, MemoryStream> _cachedSdkStreams = new Dictionary<AssemblyName, MemoryStream>();
+        private readonly ConcurrentDictionary<AssemblyName, MemoryStream> _cachedSdkStreams;
         private readonly string _sdkDir;
         public Assembly Sdk { get; private set; }
 
-        public ContractCodeLoadContext(string sdkDir)
+        public ContractCodeLoadContext(string sdkDir, ConcurrentDictionary<AssemblyName, MemoryStream> cachedSdkStreams)
         {
             _sdkDir = sdkDir;
+            _cachedSdkStreams = cachedSdkStreams ?? new ConcurrentDictionary<AssemblyName, MemoryStream>();
         }
 
         protected override Assembly Load(AssemblyName assemblyName)
@@ -45,7 +47,7 @@ namespace AElf.Runtime.CSharp
                 var fs = new FileStream(path + ".dll", FileMode.Open, FileAccess.Read);
                 ms = new MemoryStream();
                 fs.CopyTo(ms);
-                _cachedSdkStreams.Add(assemblyName, ms);
+                _cachedSdkStreams.TryAdd(assemblyName, ms);
             }
 
             ms.Position = 0;
