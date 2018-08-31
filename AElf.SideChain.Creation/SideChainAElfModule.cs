@@ -9,7 +9,7 @@ namespace AElf.SideChain.Creation
     {
         public void Init(ContainerBuilder builder)
         {
-            
+            builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
         }
 
         public void Run(ILifetimeScope scope)

@@ -4,6 +4,7 @@ using System.Net;
 using System.Security;
 using AElf.Common.Module;
 using AElf.Configuration;
+using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using AElf.Cryptography;
@@ -52,6 +53,13 @@ namespace AElf.Node
 
         public void Run(ILifetimeScope scope)
         {
+            Console.WriteLine($"Using consensus: {ConsensusConfig.Instance.ConsensusType}");
+            
+            if (NodeConfig.Instance.IsMiner && string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccount))
+            {
+                throw new Exception("NodeAccount is needed");
+            }
+            
             NodeConfiguation confContext = new NodeConfiguation();
             confContext.KeyPair = TransactionPoolConfig.Instance.EcKeyPair;
             confContext.WithRpc = RpcConfig.Instance.UseRpc;

@@ -6,11 +6,18 @@ namespace AElf.Configuration.Config.Consensus
     {
         public ConsensusType ConsensusType { get; set; }
 
-        public bool IsConsensusInfoGenerator { get; set; }
+        public int DPoSMiningInterval { get; set; }
+
+        public ulong ExpectedTransanctionCount { get; set; }
+
+        public int SingleNodeTestMiningInterval { get; set; }
 
         public ConsensusConfig()
         {
             ConsensusType = ConsensusType.AElfDPoS;
+            DPoSMiningInterval = 4000;
+            ExpectedTransanctionCount = 8000;
+            SingleNodeTestMiningInterval = 4000;
         }
     }
 }

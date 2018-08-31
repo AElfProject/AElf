@@ -59,49 +59,7 @@ namespace AElf.Configuration
             DatabaseConfig.Instance.Number = opts.DBNumber;
 
             ConsensusConfig.Instance.ConsensusType = ConsensusTypeHelper.GetType(opts.ConsensusType);
-            //todo zx lr
-            //Console.WriteLine($"Using consensus: {opts.ConsensusType}");
-//todo zx lr
-//            if (opts.ConsensusType == ConsensusType.AElfDPoS)
-//            {
-//                Globals.AElfDPoSMiningInterval = opts.AElfDPoSMiningInterval;
-//                if (opts.IsConsensusInfoGenerator)
-//                {
-//                    Console.WriteLine($"Mining interval: {Globals.AElfDPoSMiningInterval} ms");
-//                }
-//            }
-//
-//            if (opts.ConsensusType == ConsensusType.PoTC)
-//            {
-//                Globals.BlockProducerNumber = 1;
-//                Globals.ExpectedTransanctionCount = opts.ExpectedTxsCount;
-//            }
-//
-//            if (opts.ConsensusType == ConsensusType.SingleNode)
-//            {
-//                Globals.BlockProducerNumber = 1;
-//                Globals.SingleNodeTestMiningInterval = opts.MiningInterval;
-//                Console.WriteLine($"Mining interval: {Globals.SingleNodeTestMiningInterval} ms");
-//            }
-
-//todo zx lr
-//            if (IsMiner)
-//            {
-//                if (string.IsNullOrEmpty(opts.NodeAccount))
-//                {
-//                    throw new Exception("NodeAccount is needed");
-//                }
-//
-//                Coinbase = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeAccount));
-//            }
-
-            //todo zx lr
-//            MinerConfig = new MinerConfig
-//            {
-//                CoinBase = Coinbase
-//            };
-
-            
+ 
             // tx pool config
             TransactionPoolConfig.Instance.FeeThreshold = opts.MinimalFee;
             TransactionPoolConfig.Instance.PoolLimitSize = opts.PoolCapacity;
@@ -154,14 +112,6 @@ namespace AElf.Configuration
             }
             ManagementConfig.Instance.NodeAccount=opts.NodeAccount;
             ManagementConfig.Instance.NodeAccount=opts.NodeAccountPassword;
-
-            //todo zx lr
-            // runner config
-//            RunnerConfig = new RunnerConfig
-//            {
-//                SdkDir = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location)
-//            };
-
         }
     }
 }
