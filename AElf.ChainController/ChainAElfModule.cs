@@ -50,6 +50,8 @@ namespace AElf.ChainController
                 }
             }
 
+            NodeConfig.Instance.ChainId = chainIdHash.ToHex();
+
             builder.RegisterModule(new ChainAutofacModule());
 
             var txPoolConfig = TxPoolConfig.Default;
