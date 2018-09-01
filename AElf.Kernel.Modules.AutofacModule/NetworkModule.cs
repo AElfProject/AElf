@@ -2,6 +2,7 @@
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Peers;
+using AElf.Node.Protocol;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule

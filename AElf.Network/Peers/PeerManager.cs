@@ -371,8 +371,7 @@ namespace AElf.Network.Peers
                 {
                     Type = (int)MessageType.Peers,
                     Length = payload.Length,
-                    Payload = payload,
-                    OutboundTrace = Guid.NewGuid().ToString()
+                    Payload = payload
                 };
                         
                 _logger?.Trace($"Sending peers : {pListData} to {args.Peer}");

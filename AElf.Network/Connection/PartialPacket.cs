@@ -7,6 +7,9 @@
         public bool IsEnd { get; set; }
         public int TotalDataSize { get; set; }
         
+        public bool HasId { get; set; }
+        public byte[] Id { get; set; }
+        
         public byte[] Data { get; set; }
     }
 }

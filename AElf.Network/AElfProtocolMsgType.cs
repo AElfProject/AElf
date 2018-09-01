@@ -1,15 +1,15 @@
 ﻿namespace AElf.Network
 {
-    public enum AElfProtocolType
+    public enum AElfProtocolMsgType
     {
         TxRequest = 10,
-        Tx,
+        NewTransaction,
         
         HeightRequest,
         Height,
         
-        BroadcastTx,
-        BroadcastBlock,
+        Transactions,
+        NewBlock,
         
         RequestBlock,
         Block

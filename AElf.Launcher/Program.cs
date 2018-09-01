@@ -150,19 +150,6 @@ namespace AElf.Launcher
                 node.Start();
                 
                 /*****************************************/
-
-                var txPoolService = scope.Resolve<ITxPoolService>();
-                MessageHub.Instance.Subscribe<IncomingTransaction>(
-                    async (inTx) => { await txPoolService.AddTxAsync(inTx.Transaction); });
-
-                var netManager = scope.Resolve<INetworkManager>();
-                MessageHub.Instance.Subscribe<TransactionAddedToPool>(
-                    async (txAdded) =>
-                    {
-                        await netManager.BroadcastMessage(AElfProtocolType.BroadcastTx,
-                            txAdded.Transaction.Serialize());
-                    }
-                );
                 
                 if (actorEnv != null)
                 {

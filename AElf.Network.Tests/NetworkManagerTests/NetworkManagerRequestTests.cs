@@ -4,6 +4,8 @@ using System.Threading;
 using AElf.Network.Connection;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;
+using AElf.Node.Protocol;
+using AElf.Node.Protocol.Events;
 using Moq;
 using Xunit;
 
@@ -22,7 +24,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
             Mock<IPeer> secondPeer = new Mock<IPeer>();
             secondPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
-            NetworkManager manager = new NetworkManager(peerManager.Object, null);
+            NetworkManager manager = new NetworkManager(null, peerManager.Object, null);
             peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));
             peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(secondPeer.Object, PeerEventType.Added));
 
@@ -44,7 +46,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
             Mock<IPeer> firstPeer = new Mock<IPeer>();
             firstPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
-            NetworkManager manager = new NetworkManager(peerManager.Object, null);
+            NetworkManager manager = new NetworkManager(null, peerManager.Object, null);
             
             // Set tries to 1 : no retries.
             manager.RequestMaxRetry = 1;
@@ -65,8 +67,8 @@ namespace AElf.Network.Tests.NetworkManagerTests
             firstPeer.Verify(mock => mock.EnqueueOutgoing(It.IsAny<Message>()), Times.Once());
             
             Assert.Equal(1, receivedEvents.Count);
-            RequestFailedArgs reqFailArgs = Assert.IsType<RequestFailedArgs>(receivedEvents[0]);
-            Assert.True(reqFailArgs.TriedPeers.Contains(firstPeer.Object));
+            RequestFailedEventArgs reqFailEventArgs = Assert.IsType<RequestFailedEventArgs>(receivedEvents[0]);
+            Assert.True(reqFailEventArgs.TriedPeers.Contains(firstPeer.Object));
         }
     }
 }

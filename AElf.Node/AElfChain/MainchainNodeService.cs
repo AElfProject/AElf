@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -14,6 +14,7 @@ using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Types;
 using AElf.Miner.Miner;
+using AElf.Node.Protocol;
 using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;

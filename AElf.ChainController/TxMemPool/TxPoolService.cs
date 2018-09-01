@@ -50,15 +50,10 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
         {
-            if (Cts.IsCancellationRequested) return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
+            if (Cts.IsCancellationRequested) 
+                return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
             
-            var res = await AddTransaction(tx);
-            if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
-            {
-                MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-            }
-
-            return res;
+            return await AddTransaction(tx);
         }
 
         /// <summary>
@@ -77,7 +72,6 @@ namespace AElf.ChainController.TxMemPool
             await TrySetNonce(tx.From, TransactionType.ContractTransaction);
             return await ContractTxLock.WriteLock(() => AddContractTransaction(tx));
         }
-
         
         /// <summary>
         /// enqueue dpos tx
@@ -142,7 +136,6 @@ namespace AElf.ChainController.TxMemPool
             }
         }
 
-
         /// <inheritdoc/>
         public void RemoveAsync(Hash txHash)
         {
@@ -156,7 +149,6 @@ namespace AElf.ChainController.TxMemPool
         {
             throw new NotImplementedException();
         }
-
 
         /// <summary>
         /// persist txs with storage
@@ -279,7 +271,6 @@ namespace AElf.ChainController.TxMemPool
                 : ContractTxLock.WriteLock(() => { return _contractTxPool.ReadyTxs(addr, start, ids); });
         }
 
-
         /// <inheritdoc/>
         public async Task<ulong> GetPoolSize()
         {
@@ -333,8 +324,7 @@ namespace AElf.ChainController.TxMemPool
         {
             return await ContractTxLock.ReadLock(() => _contractTxPool.GetExecutableSize()) +
                    await DPoSTxLock.ReadLock(() => _dpoSTxPool.GetExecutableSize());
-        }        
-
+        }
 
         /// <inheritdoc/>
         public async Task UpdateAccountContext(HashSet<Hash> addrs)
@@ -369,7 +359,6 @@ namespace AElf.ChainController.TxMemPool
             Cts = new CancellationTokenSource();
         }
 
-
         /// <inheritdoc/>
         public Task Stop()
         {
@@ -388,7 +377,6 @@ namespace AElf.ChainController.TxMemPool
             });
         }
 
-
         /// <inheritdoc/>
         public ulong GetIncrementId(Hash addr, bool isBlockProducer = false)
         {
@@ -404,7 +392,6 @@ namespace AElf.ChainController.TxMemPool
             }
             return pool.GetPendingIncrementId(addr);
         }
-
 
         /// <inheritdoc/>
         public async Task RollBack(List<Transaction> txsOut)
