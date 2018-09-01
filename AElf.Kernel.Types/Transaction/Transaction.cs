@@ -15,6 +15,11 @@ namespace AElf.Kernel
             return SHA256.Create().ComputeHash(GetSignatureData());
         }
 
+        public byte[] GetHashBytes()
+        {
+            return SHA256.Create().ComputeHash(GetSignatureData());
+        }
+
         public byte[] Serialize()
         {
             return this.ToByteArray();

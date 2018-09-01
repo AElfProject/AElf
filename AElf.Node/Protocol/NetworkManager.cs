@@ -2,80 +2,82 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Collections;
 using AElf.Common.Extensions;
 using AElf.Kernel;
+using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;
+using AElf.Node.Protocol.Events;
+using Easy.MessageHub;
+using Google.Protobuf;
 using NLog;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
-namespace AElf.Network
+namespace AElf.Node.Protocol
 {
-    public class NetMessageReceivedArgs : EventArgs
-    {
-        public TimeoutRequest Request { get; set; }
-        public Message Message { get; set; }
-        public PeerMessageReceivedArgs PeerMessage { get; set; }
-    }
-
-    public class RequestFailedArgs : EventArgs
-    {
-        public Message RequestMessage { get; set; }
-        
-        public byte[] ItemHash { get; set; }
-        public int BlockIndex { get; set; }
-        
-        public List<IPeer> TriedPeers = new List<IPeer>();
-    }
-    
     [LoggerName(nameof(NetworkManager))]
     public class NetworkManager : INetworkManager
     {
+        #region Settings
+
         public const int DefaultMaxBlockHistory = 15;
         public const int DefaultMaxTransactionHistory = 15;
         
-        public const int DefaultRequestTimeout = 1000;
+        public const int DefaultRequestTimeout = 2000;
         public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
         
-        public event EventHandler MessageReceived;
-        public event EventHandler RequestFailed;
-        
-        private readonly IPeerManager _peerManager;
-        private readonly ILogger _logger;
-        
-        // List of non bootnode peers
-        private readonly List<IPeer> _peers = new List<IPeer>();
-
-        public int RequestTimeout { get; set; } = DefaultRequestTimeout;
-        public int RequestMaxRetry { get; set; } = DefaultRequestMaxRetry;
-
-        private Object _pendingRequestsLock = new Object();
-        public List<TimeoutRequest> _pendingRequests;
-
-        private BoundedByteArrayQueue _lastBlocksReceived;
         public int MaxBlockHistory { get; set; } = DefaultMaxBlockHistory;
         public int MaxTransactionHistory { get; set; } = DefaultMaxTransactionHistory;
         
+        public int RequestTimeout { get; set; } = DefaultRequestTimeout;
+        public int RequestMaxRetry { get; set; } = DefaultRequestMaxRetry;
+
+        #endregion
+        
+        public event EventHandler MessageReceived;
+        public event EventHandler RequestFailed;
+        public event EventHandler BlockReceived;
+        public event EventHandler TransactionsReceived;
+
+        private readonly ITxPoolService _transactionPoolService;
+        private readonly IPeerManager _peerManager;
+        private readonly ILogger _logger;
+        
+        private readonly List<IPeer> _peers = new List<IPeer>();
+
+        private readonly Object _pendingRequestsLock = new Object();
+        private readonly List<TimeoutRequest> _pendingRequests;
+
+        private BoundedByteArrayQueue _lastBlocksReceived;
         private BoundedByteArrayQueue _lastTxReceived;
 
-        private BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
+        private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
 
-        public NetworkManager(IPeerManager peerManager, ILogger logger)
+        public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, ILogger logger)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _pendingRequests = new List<TimeoutRequest>();
-            
+
+            _transactionPoolService = transactionPoolService;
             _peerManager = peerManager;
             _logger = logger;
             
             peerManager.PeerEvent += PeerManagerOnPeerAdded;
+            
+            MessageHub.Instance.Subscribe<TransactionAddedToPool>(
+                async (inTx) => { await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize()); });
         }
+
+        #region Eventing
 
         private void PeerManagerOnPeerAdded(object sender, EventArgs eventArgs)
         {
@@ -87,6 +89,35 @@ namespace AElf.Network
                 peer.Peer.PeerDisconnected += ProcessClientDisconnection;
             }
         }
+        
+        /// <summary>
+        /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
+        /// the manager from the events and removes it from the list.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ProcessClientDisconnection(object sender, EventArgs e)
+        {
+            if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
+            {
+                IPeer peer = args.Peer;
+                
+                peer.MessageReceived -= HandleNewMessage;
+                peer.PeerDisconnected -= ProcessClientDisconnection;
+                
+                _peers.Remove(args.Peer);
+            }
+        }
+        
+        private void HandleNewMessage(object sender, EventArgs e)
+        {
+            if (e is PeerMessageReceivedArgs args)
+            {
+                _incomingJobs.Enqueue(args, 0);
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// This method start the server that listens for incoming
@@ -98,7 +129,6 @@ namespace AElf.Network
             _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
             _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
             
-            //todo _peerManager.PeerAdded 
             _peerManager.Start();
             
             Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
@@ -124,93 +154,185 @@ namespace AElf.Network
         
         private void ProcessPeerMessage(PeerMessageReceivedArgs args)
         {
-            TimeoutRequest originalRequest = null;
-            
-            if (args.Message.HasId)
-                originalRequest = HandleMessage(args.Peer, args.Message);
-
-            // todo should not be here 
-            if (args.Message.Type == (int) AElfProtocolType.BroadcastBlock)
+            if (args?.Peer == null || args.Message == null)
             {
-                Block b = Block.Parser.ParseFrom(args.Message.Payload); // todo later deserializations will be redundant
-                byte[] blockHash = b.GetHash().Value.ToByteArray();
-                    
-                if (_lastBlocksReceived.Contains(blockHash))
-                    return;
-                    
-                _lastBlocksReceived.Enqueue(blockHash);
-                    
-                foreach (var peer in _peers.Where(p => !p.Equals(args.Peer)))
-                {
-                    try 
-                    {
-                        peer.EnqueueOutgoing(args.Message); 
-                    }
-                    catch (Exception ex) { } // todo think about removing this try/catch, enqueue should be fire and forget
-                }
+                _logger.Error("Invalid message from peer.");
+                return;
             }
-            else if (args.Message.Type == (int) AElfProtocolType.BroadcastTx)
+            
+            AElfProtocolMsgType msgType = (AElfProtocolMsgType) args.Message.Type;
+            
+            switch (msgType)
             {
-                Transaction t = Transaction.Parser.ParseFrom(args.Message.Payload);
-                byte[] txHash = t.GetHash().Value.ToByteArray();
+                // New blocks and requested blocks will be added to the sync
+                // Subscribe to the BlockReceived event.
+                case AElfProtocolMsgType.NewBlock:
+                case AElfProtocolMsgType.Block:
+                    HandleBlockReception(msgType, args.Message, args.Peer);
+                    break;
+                // Transactions requested from the sync.
+                case AElfProtocolMsgType.Transactions:
+                    HandleTransactionsMessage(msgType, args.Message, args.Peer);
+                    break;
+                // New transaction issue from a broadcast.
+                case AElfProtocolMsgType.NewTransaction:
+                    HandleNewTransaction(msgType, args.Message, args.Peer);
+                    break;
+            }
+            
+            // Re-fire the event for higher levels if needed.
+            BubbleMessageReceivedEvent(args);
+        }
+        
+        private void BubbleMessageReceivedEvent(PeerMessageReceivedArgs args)
+        {
+            MessageReceived?.Invoke(this, new NetMessageReceivedEventArgs(args.Message, args));
+        }
+
+        private void HandleTransactionsMessage(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        {
+            try
+            {
+                if (msg.HasId)
+                    GetAndClearRequest(msg);
+                
+                TransactionList txList = TransactionList.Parser.ParseFrom(msg.Payload);
+                
+                // The sync should subscribe to this and add to pool
+                TransactionsReceived?.Invoke(this, new TransactionsReceivedEventArgs(txList, peer, msgType));
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while deserializing transaction list.");
+            }
+        }
+
+        private void HandleNewTransaction(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        {
+            try
+            {
+                Transaction tx = Transaction.Parser.ParseFrom(msg.Payload);
+                
+                byte[] txHash = tx.GetHashBytes();
 
                 if (_lastTxReceived.Contains(txHash))
                     return;
 
                 _lastTxReceived.Enqueue(txHash);
-            }
-                
-            var evt = new NetMessageReceivedArgs {
-                Message = args.Message,
-                PeerMessage = args,
-                Request = originalRequest
-            };
 
-            // raise the event so the higher levels can process it.
-            MessageReceived?.Invoke(this, evt);
-        }
-        
-        private void HandleNewMessage(object sender, EventArgs e)
-        {
-            if (e is PeerMessageReceivedArgs args)
+                // Add to the pool; if valid, rebroadcast.
+                var addResult = _transactionPoolService.AddTxAsync(tx).GetAwaiter().GetResult();
+
+                if (addResult == TxValidation.TxInsertionAndBroadcastingError.Success)
+                {
+                    _logger?.Trace($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
+                        
+                    foreach (var p in _peers.Where(p => !p.Equals(peer)))
+                        p.EnqueueOutgoing(msg);
+                }
+                else
+                {
+                    _logger?.Trace($"New transaction from {peer} not added to the pool: {addResult}");
+                }
+            }
+            catch (Exception e)
             {
-                _incomingJobs.Enqueue(args, 0);
+                _logger?.Error(e, "Error while handling new transaction reception");
+            }
+        }
+
+        private void HandleBlockReception(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        {
+            try
+            {
+                Block block = Block.Parser.ParseFrom(msg.Payload);
+            
+                byte[] blockHash = block.GetHashBytes();
+
+                if (_lastBlocksReceived.Contains(blockHash))
+                    return;
+                
+                _lastBlocksReceived.Enqueue(blockHash);
+                    
+                // Rebroadcast to peers - note that the block has not been validated
+                foreach (var p in _peers.Where(p => !p.Equals(peer)))
+                    p.EnqueueOutgoing(msg);
+                
+                BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer));
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while handling block reception");
             }
         }
 
         #endregion
         
-//        public void QueueTransactionRequest(byte[] transactionHash, IPeer hint)
-//        {
-//            try
-//            {
-//                IPeer selectedPeer = hint ?? _peers.FirstOrDefault();
-//            
-//                if(selectedPeer == null)
-//                    return;
-//            
-//                TxRequest br = new TxRequest { TxHash = ByteString.CopyFrom(transactionHash) };
-//                var msg = NetRequestFactory.CreateMessage(AElfProtocolType.TxRequest, br.ToByteArray());
-//            
-//                // Select peer for request
-//                TimeoutRequest request = new TimeoutRequest(transactionHash, msg, RequestTimeout);
-//                request.MaxRetryCount = RequestMaxRetry;
-//            
-//                lock (_pendingRequestsLock)
-//                {
-//                    _pendingRequests.Add(request);
-//                }
-//            
-//                request.RequestTimedOut += RequestOnRequestTimedOut;
-//                request.TryPeer(selectedPeer);
-//                
-//                _logger?.Trace($"Request for transaction {transactionHash?.ToHex()} send to {selectedPeer}");
-//            }
-//            catch (Exception e)
-//            {
-//                _logger?.Trace(e, $"Error while requesting transaction {transactionHash?.ToHex()}.");
-//            }
-//        }
+        public void QueueTransactionRequest(List<byte[]> transactionHashes, IPeer hint)
+        {
+            try
+            {
+                IPeer selectedPeer = hint ?? _peers.FirstOrDefault();
+            
+                if(selectedPeer == null)
+                    return;
+            
+                // Create the message
+                TxRequest br = new TxRequest();
+                br.TxHashes.Add(transactionHashes.Select(h => ByteString.CopyFrom(h)).ToList());
+                var msg = NetRequestFactory.CreateMessage(AElfProtocolMsgType.TxRequest, br.ToByteArray());
+                
+                // Identification
+                msg.HasId = true;
+                msg.Id = Guid.NewGuid().ToByteArray();
+            
+                // Select peer for request
+                TimeoutRequest request = new TimeoutRequest(transactionHashes, msg, RequestTimeout);
+                request.MaxRetryCount = RequestMaxRetry;
+            
+                lock (_pendingRequestsLock)
+                {
+                    _pendingRequests.Add(request);
+                }
+            
+                request.RequestTimedOut += RequestOnRequestTimedOut;
+                request.TryPeer(selectedPeer);
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error while requesting transactions.");
+            }
+        }
+        
+        public void QueueBlockRequestByIndex(int index)
+        {
+            try
+            {
+                Peer selectedPeer = (Peer)_peers.FirstOrDefault();
+            
+                if(selectedPeer == null)
+                    return;
+                
+                // Create the request object
+                BlockRequest br = new BlockRequest { Height = index };
+                Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
+                
+                // Select peer for request
+                TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
+                request.MaxRetryCount = RequestMaxRetry;
+                
+                lock (_pendingRequestsLock)
+                {
+                    _pendingRequests.Add(request);
+                }
+
+                request.TryPeer(selectedPeer);
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Error while requesting block for index {index}.");
+            }
+        }
 
         /// <summary>
         /// Callback called when the requests internal timer has executed.
@@ -227,7 +349,12 @@ namespace AElf.Network
 
             if (sender is TimeoutRequest req)
             {
-                _logger?.Trace("Request timeout : " + req.RequestMessage.RequestLogString + $", with {req.Peer} and timeout : {TimeSpan.FromMilliseconds(req.Timeout)}.");
+                _logger?.Trace("Request timeout : " + req.IsBlockRequest + $", with {req.Peer} and timeout : {TimeSpan.FromMilliseconds(req.Timeout)}.");
+                
+                if (req.IsTxRequest && req.TransactionHashes != null && req.TransactionHashes.Any())
+                {
+                    _logger?.Trace("Hashes : [" + string.Join(", ", req.TransactionHashes.Select(kvp => kvp.ToHex())) + "]");
+                }
                 
                 if (req.HasReachedMaxRetry)
                 {
@@ -257,7 +384,7 @@ namespace AElf.Network
 
         private void FireRequestFailed(TimeoutRequest req)
         {
-            RequestFailedArgs reqFailedArgs = new RequestFailedArgs
+            RequestFailedEventArgs reqFailedEventArgs = new RequestFailedEventArgs
             {
                 RequestMessage = req.RequestMessage,
                 TriedPeers = req.TriedPeers.ToList()
@@ -265,72 +392,43 @@ namespace AElf.Network
 
             _logger?.Trace("Request failed : " + req.RequestMessage.RequestLogString + $" after {req.TriedPeers.Count} tries. Max tries : {req.MaxRetryCount}.");
                     
-            RequestFailed?.Invoke(this, reqFailedArgs);
+            RequestFailed?.Invoke(this, reqFailedEventArgs);
         }
 
-//        public void QueueBlockRequestByIndex(int index)
+//        public void QueueRequest(Message message, IPeer hint)
 //        {
 //            try
 //            {
-//                Peer selectedPeer = (Peer)_peers.FirstOrDefault();
+//                //todo
+//                IPeer selectedPeer = hint ?? _peers.FirstOrDefault();
 //            
 //                if(selectedPeer == null)
 //                    return;
+//
+//                message.HasId = true;
+//                message.Id = Guid.NewGuid().ToByteArray();
 //            
-//                BlockRequest br = new BlockRequest { Height = index };
-//                Message message = NetRequestFactory.CreateMessage(MessageType.RequestBlock, br.ToByteArray()); 
-//            
-//                // Select peer for request
-//                TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
+//                TimeoutRequest request = new TimeoutRequest(message, RequestTimeout);
 //                request.MaxRetryCount = RequestMaxRetry;
-//                
+//            
 //                lock (_pendingRequestsLock)
 //                {
 //                    _pendingRequests.Add(request);
 //                }
 //
+//                request.RequestTimedOut += RequestOnRequestTimedOut;
 //                request.TryPeer(selectedPeer);
-//                _logger?.Trace($"Request for block at index {index}");
+//                _logger?.Trace($"Request fired : {message.RequestLogString}");
 //            }
 //            catch (Exception e)
 //            {
-//                _logger?.Trace(e, $"Error while requesting block for index {index}.");
+//                _logger?.Trace(e, $"Error while requesting : {message?.RequestLogString}.");
 //            }
 //        }
-
-        public void QueueRequest(Message message, IPeer hint)
-        {
-            try
-            {
-                IPeer selectedPeer = hint ?? _peers.FirstOrDefault();
-            
-                if(selectedPeer == null)
-                    return;
-
-                message.HasId = true;
-                message.Id = Guid.NewGuid().ToByteArray();
-            
-                TimeoutRequest request = new TimeoutRequest(message, RequestTimeout);
-                request.MaxRetryCount = RequestMaxRetry;
-            
-                lock (_pendingRequestsLock)
-                {
-                    _pendingRequests.Add(request);
-                }
-
-                request.RequestTimedOut += RequestOnRequestTimedOut;
-                request.TryPeer(selectedPeer);
-                _logger?.Trace($"Request fired : {message.RequestLogString}");
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, $"Error while requesting : {message?.RequestLogString}.");
-            }
-        }
         
-        internal TimeoutRequest HandleMessage(Peer peer, Message msg)
+        internal TimeoutRequest GetAndClearRequest(Message msg)
         {
-            if (peer == null || msg == null)
+            if (msg == null)
             {
                 _logger?.Trace("Handle message : peer or message null.");
                 return null;
@@ -355,7 +453,10 @@ namespace AElf.Network
                         _pendingRequests.Remove(request);
                     }
                     
-                    _logger?.Trace($"Request matched and removed : { request?.RequestMessage.RequestLogString}.");
+                    if (request.IsTxRequest && request.TransactionHashes != null && request.TransactionHashes.Any())
+                    {
+                        _logger?.Trace("Matched : [" + string.Join(", ", request.TransactionHashes.Select(kvp => kvp.ToHex()).ToList()) + "]");
+                    }
                 }
                 else
                 {
@@ -368,38 +469,6 @@ namespace AElf.Network
             {
                 _logger?.Trace(e, "Exception while handling request message.");
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// Returns the first occurence of the peer. IPeer
-        /// implementations may override the equality logic.
-        /// </summary>
-        /// <param name="peer"></param>
-        /// <returns></returns>
-        public IPeer GetPeer(IPeer peer)
-        {
-            return _peers?.FirstOrDefault(p => p.Equals(peer));
-        }
-        
-        /// <summary>
-        /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
-        /// the manager from the events and removes it from the list.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ProcessClientDisconnection(object sender, EventArgs e)
-        {
-            if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
-            {
-                IPeer peer = args.Peer;
-                
-                peer.MessageReceived -= HandleNewMessage;
-                peer.PeerDisconnected -= ProcessClientDisconnection;
-                
-                // todo check already in list
-                
-                _peers.Remove(args.Peer);
             }
         }
 
@@ -498,7 +567,7 @@ namespace AElf.Network
         public async Task<int> BroadcastBock(byte[] hash, byte[] payload)
         {
             _lastBlocksReceived.Enqueue(hash);
-            return await BroadcastMessage(AElfProtocolType.BroadcastBlock, payload);
+            return await BroadcastMessage(AElfProtocolMsgType.NewBlock, payload);
         }
 
         /// <summary>
@@ -506,16 +575,16 @@ namespace AElf.Network
         /// sends a <see cref="AElfPacketData"/> object with the provided pay-
         /// load and message type.
         /// </summary>
-        /// <param name="messageType"></param>
+        /// <param name="messageMsgType"></param>
         /// <param name="payload"></param>
         /// <param name="messageId"></param>
         /// <returns></returns>
-        public async Task<int> BroadcastMessage(AElfProtocolType messageType, byte[] payload)
+        public async Task<int> BroadcastMessage(AElfProtocolMsgType messageMsgType, byte[] payload)
         {
             try
             {
                 
-                Message packet = NetRequestFactory.CreateMessage(messageType, payload);
+                Message packet = NetRequestFactory.CreateMessage(messageMsgType, payload);
                 return BroadcastMessage(packet);
             }
             catch (Exception e)

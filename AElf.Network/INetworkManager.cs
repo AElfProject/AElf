@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -9,15 +10,17 @@ namespace AElf.Network
     public interface INetworkManager
     {
         event EventHandler MessageReceived;
+        event EventHandler BlockReceived;
+        event EventHandler TransactionsReceived;
         
         void Start();
         
-//        void QueueTransactionRequest(byte[] transaction, IPeer hint);
-//        void QueueBlockRequestByIndex(int index);
+        void QueueTransactionRequest(List<byte[]> transactionHashes, IPeer hint);
+        void QueueBlockRequestByIndex(int index);
 
-        void QueueRequest(Message message, IPeer hint);
+        //void QueueRequest(Message message, IPeer hint);
 
         Task<int> BroadcastBock(byte[] hash, byte[] payload);
-        Task<int> BroadcastMessage(AElfProtocolType messageType, byte[] payload);
+        Task<int> BroadcastMessage(AElfProtocolMsgType messageMsgType, byte[] payload);
     }
 }

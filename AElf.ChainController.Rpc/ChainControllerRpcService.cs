@@ -187,8 +187,8 @@ namespace AElf.ChainController.Rpc
             var hexString = ByteArrayHelpers.FromHexString(raw64);
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
-            // TODO: Wrap Transaction into a message
-            MessageHub.Instance.Publish(new IncomingTransaction(transaction));
+            if (await TxPoolService.AddTxAsync(transaction) == TxValidation.TxInsertionAndBroadcastingError.Success)
+                MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
 
             var res = new JObject {["hash"] = transaction.GetHash().ToHex()};
             return await Task.FromResult(res);

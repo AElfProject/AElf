@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
@@ -13,8 +14,10 @@ using AElf.Kernel.Node.Protocol;
 using AElf.Miner.Miner;
 using AElf.Node;
 using AElf.Node.AElfChain;
+using AElf.Node.Protocol;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
+using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -367,7 +370,8 @@ namespace AElf.Kernel.Node
                                Thread.CurrentThread.ManagedThreadId);
             try
             {
-                await _txPoolService.AddTxAsync(tx);
+                if (await _txPoolService.AddTxAsync(tx) == TxValidation.TxInsertionAndBroadcastingError.Success)
+                    MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
             }
             catch (Exception e)
             {

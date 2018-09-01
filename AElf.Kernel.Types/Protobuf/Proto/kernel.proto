@@ -19,6 +19,10 @@ message Transaction {
     TransactionType type = 10;
 }
 
+message TransactionList {
+    repeated Transaction Transactions = 1;
+}
+
 enum TransactionType {
     ContractTransaction = 0;
     DposTransaction = 1;

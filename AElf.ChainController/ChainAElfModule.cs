@@ -65,9 +65,6 @@ namespace AElf.ChainController
 
         public void Run(ILifetimeScope scope)
         {
-            var txPoolService = scope.Resolve<ITxPoolService>();
-            MessageHub.Instance.Subscribe<IncomingTransaction>(
-                async (inTx) => { await txPoolService.AddTxAsync(inTx.Transaction); });
         }
     }
 }

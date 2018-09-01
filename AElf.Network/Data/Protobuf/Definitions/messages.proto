@@ -31,7 +31,7 @@ message BlockRequest {
 }
 
 message TxRequest {
-    bytes TxHash = 1;
+    repeated bytes TxHashes = 1;
 }
 
 message HeightData {
