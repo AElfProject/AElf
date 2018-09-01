@@ -147,7 +147,7 @@ namespace AElf.Sdk.CSharp
                 try
                 {
                     // view only, write actions need to be sent via SendInline
-                    await executive.SetTransactionContext(ctxt).Apply(false);
+                    await executive.SetTransactionContext(ctxt).Apply();
                 }
                 finally
                 {

@@ -54,7 +54,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
@@ -73,7 +74,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
@@ -92,7 +94,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
@@ -111,7 +114,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32()??0;
         }
 
@@ -130,7 +134,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
@@ -149,7 +154,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
@@ -173,7 +179,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
         }
 
         public void Transfer(Hash to, ulong amount)
@@ -191,7 +198,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
         }
 
         public void TransferFrom(Hash from, Hash to, ulong amount)
@@ -209,7 +217,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
         }
 
         public void Approve(Hash spender, ulong amount)
@@ -227,7 +236,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
         }
 
         public void UnApprove(Hash spender, ulong amount)
@@ -245,7 +255,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
         }
 
         public Hash GetContractOwner(Hash scZeroAddress)
@@ -265,7 +276,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
         }
         

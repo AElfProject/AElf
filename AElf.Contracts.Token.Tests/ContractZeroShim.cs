@@ -55,7 +55,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
@@ -74,7 +75,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
         }
         
         public Hash GetContractOwner(Hash contractAddress)
@@ -92,7 +94,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
         }
     }

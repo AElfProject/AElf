@@ -145,7 +145,7 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public async Task Apply(bool autoCommit)
+        public async Task Apply()
         {
             if (_currentTransactionContext.CallDepth > _maxCallDepth)
             {
@@ -210,7 +210,7 @@ namespace AElf.Runtime.CSharp
                     }
                 }
 
-                if (!methodAbi.IsView && _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
+                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() && _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
                     var changes = _currentSmartContractContext.DataProvider.GetValueChanges();
                     var stateValueChanges = changes as StateValueChange[] ?? changes.ToArray();
@@ -220,12 +220,12 @@ namespace AElf.Runtime.CSharp
                         Debug.WriteLine(change.CurrentValue.Length);
                     }
                     _currentTransactionContext.Trace.ValueChanges.AddRange(stateValueChanges);
-                    if (autoCommit)
-                    {
-                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_stateDictator);
-                        await _stateDictator.ApplyCachedDataAction(changeDict);
-                        _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
-                    }
+//                    if (autoCommit)
+//                    {
+//                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_stateDictator);
+//                        await _stateDictator.ApplyCachedDataAction(changeDict);
+//                        _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
+//                    }
                 }
             }
             catch (Exception ex)

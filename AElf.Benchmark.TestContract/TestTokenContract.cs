@@ -36,7 +36,7 @@ namespace AElf.Benchmark.TestContract
             var toBal = Balances.GetValue(to);
             //Console.WriteLine("to pass");
             var newFromBal = fromBal - qty.Value;
-            Api.Assert(fromBal > qty.Value);
+            Api.Assert(fromBal > qty.Value, $"Insufficient balance, {qty.Value} is required but there is only {fromBal}.");
             
             var newToBal = toBal + qty.Value;
 
