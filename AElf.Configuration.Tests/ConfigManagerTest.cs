@@ -16,7 +16,6 @@ namespace AElf.Configuration.Tests
             Assert.Equal(config1, config2);
         }
 
-        [Fact]
         public void FileChangeTest()
         {
             var fileName = "test.json";
