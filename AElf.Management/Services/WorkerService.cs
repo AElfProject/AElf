@@ -3,6 +3,8 @@ using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using k8s;
+using k8s.Models;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace AElf.Management.Services
 {
@@ -25,6 +27,13 @@ namespace AElf.Management.Services
             }
 
             return result;
+        }
+
+        public void ModifyWorkerCount(string chainId, int workerCount)
+        {
+            var patch = new JsonPatchDocument<V1Deployment>();
+            patch.Replace(e => e.Spec.Replicas, workerCount);
+            K8SRequestHelper.GetClient().PatchNamespacedDeployment(new V1Patch(patch), "deploy-worker", chainId);
         }
     }
 }

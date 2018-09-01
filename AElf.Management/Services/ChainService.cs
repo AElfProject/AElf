@@ -75,8 +75,9 @@ namespace AElf.Management.Services
             arg1.AccountPassword = password;
             arg1.DBArg = new DeployDBArg();
             arg1.ManagerArg=new DeployManagerArg();
-            arg1.ManagerArg.IsCluster = false;
+            arg1.ManagerArg.IsCluster = true;
             arg1.WorkArg = new DeployWorkArg();
+            arg1.WorkArg.WorkerCount = 2;
             arg1.WorkArg.ActorCount = 4;
             arg1.LauncherArg=new DeployLauncherArg();
             arg1.LauncherArg.IsConsensusInfoGenerator = true;
@@ -117,8 +118,9 @@ namespace AElf.Management.Services
             arg2.AccountPassword = password;
             arg2.DBArg = new DeployDBArg();
             arg2.ManagerArg=new DeployManagerArg();
-            arg2.ManagerArg.IsCluster = false;
+            arg2.ManagerArg.IsCluster = true;
             arg2.WorkArg = new DeployWorkArg();
+            arg2.WorkArg.WorkerCount = 2;
             arg2.WorkArg.ActorCount = 4;
             arg2.LauncherArg=new DeployLauncherArg();
             arg2.LauncherArg.IsConsensusInfoGenerator = false;
@@ -160,8 +162,9 @@ namespace AElf.Management.Services
             arg3.AccountPassword = password;
             arg3.DBArg = new DeployDBArg();
             arg3.ManagerArg=new DeployManagerArg();
-            arg3.ManagerArg.IsCluster = false;
+            arg3.ManagerArg.IsCluster = true;
             arg3.WorkArg = new DeployWorkArg();
+            arg3.WorkArg.WorkerCount = 2;
             arg3.WorkArg.ActorCount = 4;
             arg3.LauncherArg=new DeployLauncherArg();
             arg3.LauncherArg.IsConsensusInfoGenerator = false;

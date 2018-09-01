@@ -33,5 +33,11 @@ namespace AElf.Management.Tests
             var space2 = K8SRequestHelper.GetClient().ListNamespace();
             Assert.False(space2.Items.Select(n => n.Metadata.Name == name).Any());
         }
+
+        [Fact]
+        public void Test()
+        {
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod("0xef23b649fcd3fd35b8389b2aec3da6fa51e9-1", labelSelector: "name=deploy-launcher");
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -12,12 +13,17 @@ namespace AElf.Management.Commands
         private const string ConfigName = "config-redis";
         private const string ServiceName = "service-redis";
         private const string StatefulSetName = "set-redis";
+        private const int Replicas = 1;
 
         public void Action(string chainId, DeployArg arg)
         {
             AddConfig(chainId,arg);
             AddService(chainId,arg);
-            AddStatefulSet(chainId,arg);
+            var addSetResult = AddStatefulSet(chainId, arg);
+            if (!addSetResult)
+            {
+                //throw new Exception("failed to deploy manager");
+            }
         }
 
         private void AddConfig(string chainId, DeployArg arg)
@@ -72,16 +78,16 @@ namespace AElf.Management.Commands
             K8SRequestHelper.GetClient().CreateNamespacedService(body, chainId);
         }
 
-        private void AddStatefulSet(string chainId, DeployArg arg)
+        private bool AddStatefulSet(string chainId, DeployArg arg)
         {
-            var body = new V1beta1StatefulSet
+            var body = new V1StatefulSet
             {
                 Metadata = new V1ObjectMeta
                 {
                     Name = StatefulSetName,
                     Labels = new Dictionary<string, string> {{"name", StatefulSetName}}
                 },
-                Spec = new V1beta1StatefulSetSpec
+                Spec = new V1StatefulSetSpec
                 {
                     Selector = new V1LabelSelector
                     {
@@ -91,7 +97,7 @@ namespace AElf.Management.Commands
                         }
                     },
                     ServiceName = ServiceName,
-                    Replicas = 1,
+                    Replicas = Replicas,
                     Template = new V1PodTemplateSpec
                     {
                         Metadata = new V1ObjectMeta
@@ -109,13 +115,6 @@ namespace AElf.Management.Commands
                                     Ports = new List<V1ContainerPort> {new V1ContainerPort(arg.DBArg.Port)},
                                     Command = new List<string> {"redis-server"},
                                     Args = new List<string> {"/redis/redis.conf"},
-                                    Resources = new V1ResourceRequirements
-                                    {
-                                        Limits = new Dictionary<string, ResourceQuantity>()
-                                        {
-                                            {"cpu", new ResourceQuantity("0.1")}
-                                        }
-                                    },
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
                                         new V1VolumeMount("/redisdata", "data"),
@@ -152,7 +151,40 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedStatefulSet1(body, chainId);
+            var result = K8SRequestHelper.GetClient().CreateNamespacedStatefulSet(body, chainId);
+
+            var set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, chainId);
+            var retryGetCount = 0;
+            var retryDeleteCount = 0;
+            while (true)
+            {
+                if (set.Status.ReadyReplicas.HasValue && set.Status.ReadyReplicas.Value == Replicas)
+                {
+                    break;
+                }
+                if (retryGetCount > GlobalSetting.DeployRetryTime)
+                {
+                    DeletePod(chainId, arg);
+                    retryDeleteCount++;
+                    retryGetCount = 0;
+                }
+                
+                if (retryDeleteCount > GlobalSetting.DeployRetryTime)
+                {
+                    return false;
+                }
+
+                retryGetCount++;
+                Thread.Sleep(3000);
+                set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, chainId);
+            }
+
+            return true;
+        }
+        
+        private void DeletePod(string chainId, DeployArg arg)
+        {
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + StatefulSetName);
         }
     }
 }

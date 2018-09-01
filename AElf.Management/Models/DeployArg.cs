@@ -48,12 +48,15 @@ namespace AElf.Management.Models
 
     public class DeployWorkArg
     {
+        public int WorkerCount { get; set; }
+
         public int ActorCount { get; set; }
 
         public int ConcurrencyLevel { get; set; }
 
         public DeployWorkArg()
         {
+            WorkerCount = 1;
             ActorCount = 8;
             ConcurrencyLevel = 16;
         }
