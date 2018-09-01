@@ -5,14 +5,14 @@ namespace AElf.Configuration
 {
     public class CommandLineOptions
     {
-         #region Chain
+        #region Chain
 
         [Option('n', "chain.new", Default = false, HelpText = "Create a new chain if true")]
         public bool NewChain { get; set; }
 
         [Option("chain.coinbase", HelpText = "Miner coinbase when a new chain created")]
         public string CoinBase { get; set; }
-        
+
         [Option("chain.id", HelpText = "The ID of new chain")]
         public string ChainId { get; set; }
 
@@ -31,7 +31,7 @@ namespace AElf.Configuration
 
         [Option("node.account", HelpText = "The key used by the node.")]
         public string NodeAccount { get; set; }
-        
+
         [Option("node.accountpassword", HelpText = "The password of the account key.")]
         public string NodeAccountPassword { get; set; }
 
@@ -40,6 +40,7 @@ namespace AElf.Configuration
 
         [Option('e', "node.executor", Default = "simple", HelpText = "The type of txn executor. Must be in [simple, akka].")]
         public string ExecutorType { get; set; }
+
         #endregion
 
         #region Block
@@ -106,14 +107,14 @@ namespace AElf.Configuration
 
         [Option("consensus.type", Default = "AElfDPoS", HelpText = "Select the consensus type: AElfDPoS,PoTC or SingleNode")]
         public string ConsensusType { get; set; }
-        
+
         [Option("dpos.interval", Default = 4000, HelpText = "Mining interval of AElf DPoS.")]
         // ReSharper disable once InconsistentNaming
         public int AElfDPoSMiningInterval { get; set; }
 
         [Option("potc.count", Default = (ulong) 8000, HelpText = "Expected transactions count.")]
         public ulong ExpectedTxsCount { get; set; }
-        
+
         [Option("single.interval", Default = 4000, HelpText = "Mining interval if use single node to test other logic.")]
         public int MiningInterval { get; set; }
 
@@ -151,19 +152,19 @@ namespace AElf.Configuration
 
         #region Debug
 
-        [Option("debug", HelpText = "Enable debug.")]
-        public bool? Debug { get; set; }
-
-        [Option("debug.initfile", HelpText = "Debug: initial chain to load")]
-        public string InitData { get; set; }
+        [Option("debug.level", HelpText = "Debug level: 6=Off, 5=Fatal 4=Error, 3=Warn, 2=Info, 1=Debug, 0=Trace (default: 2)")]
+        public int DebugLevel { get; set; } = 2;
 
         #endregion
 
         #region Management
+
         [Option("management.url", HelpText = "The url for the management api.")]
         public string ManagementUrl { get; set; }
+
         [Option("management.sidechainservicepath", Default = "/api/sidechain", HelpText = "The path for the side chain service endpoint.")]
         public string ManagementSideChainServicePath { get; set; }
+
         #endregion
     }
 }
