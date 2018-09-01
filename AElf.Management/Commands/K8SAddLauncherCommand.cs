@@ -11,8 +11,6 @@ namespace AElf.Management.Commands
 {
     public class K8SAddLauncherCommand : IDeployCommand
     {
-        private const string ServiceName = "service-launcher";
-        private const string DeploymentName = "deploy-launcher";
         private const int NodePort = 30800;
         private const int RpcPort = 30600;
         private const int ActorPort = 32550;
@@ -26,7 +24,7 @@ namespace AElf.Management.Commands
 
             if (!addDeployResult)
             {
-                //throw new Exception("failed to deploy launcher");
+                throw new Exception("failed to deploy launcher");
             }
         }
 
@@ -36,10 +34,10 @@ namespace AElf.Management.Commands
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = ServiceName,
+                    Name = GlobalSetting.LauncherServiceName,
                     Labels = new Dictionary<string, string>
                     {
-                        {"name", ServiceName}
+                        {"name", GlobalSetting.LauncherServiceName}
                     }
                 },
                 Spec = new V1ServiceSpec
@@ -52,7 +50,7 @@ namespace AElf.Management.Commands
                     },
                     Selector = new Dictionary<string, string>
                     {
-                        {"name", DeploymentName}
+                        {"name", GlobalSetting.LauncherName}
                     }
                 }
             };
@@ -68,24 +66,24 @@ namespace AElf.Management.Commands
                 Kind = "Deployment",
                 Metadata = new V1ObjectMeta
                 {
-                    Name = DeploymentName,
-                    Labels = new Dictionary<string, string> {{"name", DeploymentName}}
+                    Name = GlobalSetting.LauncherName,
+                    Labels = new Dictionary<string, string> {{"name", GlobalSetting.LauncherName}}
                 },
 
                 Spec = new V1DeploymentSpec
                 {
-                    Selector = new V1LabelSelector {MatchLabels = new Dictionary<string, string> {{"name", DeploymentName}}},
+                    Selector = new V1LabelSelector {MatchLabels = new Dictionary<string, string> {{"name", GlobalSetting.LauncherName}}},
                     Replicas = Replicas,
                     Template = new V1PodTemplateSpec
                     {
-                        Metadata = new V1ObjectMeta {Labels = new Dictionary<string, string> {{"name", DeploymentName}}},
+                        Metadata = new V1ObjectMeta {Labels = new Dictionary<string, string> {{"name", GlobalSetting.LauncherName}}},
                         Spec = new V1PodSpec
                         {
                             Containers = new List<V1Container>
                             {
                                 new V1Container
                                 {
-                                    Name = DeploymentName,
+                                    Name = GlobalSetting.LauncherName,
                                     Image = "aelf/node:test",
                                     Ports = new List<V1ContainerPort>
                                     {
@@ -205,7 +203,7 @@ namespace AElf.Management.Commands
 
         private void DeletePod(string chainId, DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + DeploymentName);
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LauncherName);
         }
     }
 }

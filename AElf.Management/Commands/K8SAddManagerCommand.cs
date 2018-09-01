@@ -10,8 +10,6 @@ namespace AElf.Management.Commands
 {
     public class K8SAddManagerCommand:IDeployCommand
     {
-        private const string ServiceName = "service-manager";
-        private const string StatefulSetName = "set-manager";
         private const int Port = 4053;
         private const int Replicas = 1;
         
@@ -23,7 +21,7 @@ namespace AElf.Management.Commands
                 var addSetResult = AddStatefulSet(chainId, arg);
                 if (!addSetResult)
                 {
-                    //throw new Exception("failed to deploy manager");
+                    throw new Exception("failed to deploy manager");
                 }
             }
         }
@@ -34,10 +32,10 @@ namespace AElf.Management.Commands
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = ServiceName,
+                    Name = GlobalSetting.ManagerServiceName,
                     Labels = new Dictionary<string, string>
                     {
-                        {"name", ServiceName}
+                        {"name", GlobalSetting.ManagerServiceName}
                     }
                 },
                 Spec = new V1ServiceSpec
@@ -48,7 +46,7 @@ namespace AElf.Management.Commands
                     },
                     Selector = new Dictionary<string, string>
                     {
-                        {"name", StatefulSetName}
+                        {"name", GlobalSetting.ManagerName}
                     },
                     ClusterIP = "None"
                 }
@@ -63,8 +61,8 @@ namespace AElf.Management.Commands
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = StatefulSetName,
-                    Labels = new Dictionary<string, string> {{"name", StatefulSetName}}
+                    Name = GlobalSetting.ManagerName,
+                    Labels = new Dictionary<string, string> {{"name", GlobalSetting.ManagerName}}
                 },
                 Spec = new V1StatefulSetSpec
                 {
@@ -72,16 +70,16 @@ namespace AElf.Management.Commands
                     {
                         MatchExpressions = new List<V1LabelSelectorRequirement>
                         {
-                            new V1LabelSelectorRequirement("name", "In", new List<string> {StatefulSetName})
+                            new V1LabelSelectorRequirement("name", "In", new List<string> {GlobalSetting.ManagerName})
                         }
                     },
-                    ServiceName = ServiceName,
+                    ServiceName = GlobalSetting.ManagerServiceName,
                     Replicas = Replicas,
                     Template = new V1PodTemplateSpec
                     {
                         Metadata = new V1ObjectMeta
                         {
-                            Labels = new Dictionary<string, string> {{"name", StatefulSetName}}
+                            Labels = new Dictionary<string, string> {{"name", GlobalSetting.ManagerName}}
                         },
                         Spec = new V1PodSpec
                         {
@@ -89,7 +87,7 @@ namespace AElf.Management.Commands
                             {
                                 new V1Container
                                 {
-                                    Name = StatefulSetName,
+                                    Name = GlobalSetting.ManagerName,
                                     Image = "aelf/node:test",
                                     Ports = new List<V1ContainerPort> {new V1ContainerPort(Port)},
                                     Env = new List<V1EnvVar>
@@ -101,7 +99,7 @@ namespace AElf.Management.Commands
                                         }
                                     },
                                     Command = new List<string> {"dotnet", "AElf.Concurrency.Manager.dll"},
-                                    Args = new List<string> {"--actor.host", "$(POD_NAME)." + ServiceName, "--actor.port", Port.ToString()},
+                                    Args = new List<string> {"--actor.host", "$(POD_NAME)." + GlobalSetting.ManagerServiceName, "--actor.port", Port.ToString()},
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
                                         new V1VolumeMount("/app/aelf/config", "config")
@@ -154,7 +152,7 @@ namespace AElf.Management.Commands
         
         private void DeletePod(string chainId, DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + StatefulSetName);
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.ManagerName);
         }
     }
 }

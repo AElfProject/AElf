@@ -10,7 +10,6 @@ namespace AElf.Management.Commands
 {
     public class K8SAddWorkerCommand:IDeployCommand
     {
-        private const string DeploymentName = "deploy-worker";
         private const int Port = 32551;
 
         public void Action(string chainId, DeployArg arg)
@@ -20,7 +19,7 @@ namespace AElf.Management.Commands
                 var addDeployResult = AddDeployment(chainId, arg);
                 if (!addDeployResult)
                 {
-                    //throw new Exception("failed to deploy worker");
+                    throw new Exception("failed to deploy worker");
                 }
             }
         }
@@ -33,24 +32,24 @@ namespace AElf.Management.Commands
                 Kind = "Deployment",
                 Metadata = new V1ObjectMeta
                 {
-                    Name = DeploymentName,
-                    Labels = new Dictionary<string, string> {{"name", DeploymentName}}
+                    Name = GlobalSetting.WorkerName,
+                    Labels = new Dictionary<string, string> {{"name", GlobalSetting.WorkerName}}
                 },
 
                 Spec = new V1DeploymentSpec
                 {
-                    Selector = new V1LabelSelector {MatchLabels = new Dictionary<string, string> {{"name", DeploymentName}}},
+                    Selector = new V1LabelSelector {MatchLabels = new Dictionary<string, string> {{"name", GlobalSetting.WorkerName}}},
                     Replicas = arg.WorkArg.WorkerCount,
                     Template = new V1PodTemplateSpec
                     {
-                        Metadata = new V1ObjectMeta {Labels = new Dictionary<string, string> {{"name", DeploymentName}}},
+                        Metadata = new V1ObjectMeta {Labels = new Dictionary<string, string> {{"name", GlobalSetting.WorkerName}}},
                         Spec = new V1PodSpec
                         {
                             Containers = new List<V1Container>
                             {
                                 new V1Container
                                 {
-                                    Name = DeploymentName,
+                                    Name = GlobalSetting.WorkerName,
                                     Image = "aelf/node:test",
                                     Ports = new List<V1ContainerPort>
                                     {
@@ -124,7 +123,7 @@ namespace AElf.Management.Commands
         
         private void DeletePod(string chainId, DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + DeploymentName);
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.WorkerName);
         }
     }
 }

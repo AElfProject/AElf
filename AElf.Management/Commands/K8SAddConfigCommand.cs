@@ -12,8 +12,6 @@ namespace AElf.Management.Commands
 {
     public class K8SAddConfigCommand : IDeployCommand
     {
-        private const string ConfigName = "config-common";
-
         public void Action(string chainId, DeployArg arg)
         {
             var body = new V1ConfigMap
@@ -22,7 +20,7 @@ namespace AElf.Management.Commands
                 Kind = V1ConfigMap.KubeKind,
                 Metadata = new V1ObjectMeta
                 {
-                    Name = ConfigName,
+                    Name = GlobalSetting.CommonConfigName,
                     NamespaceProperty = chainId
                 },
                 Data = new Dictionary<string, string>
