@@ -1,5 +1,6 @@
 ﻿﻿using System;
-using System.Collections.Generic;
+ using System.Collections.Concurrent;
+ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,6 +10,7 @@ using Google.Protobuf;
 using Path = System.IO.Path;
 using AElf.ABI.CSharp;
  using AElf.Common.ByteArrayHelpers;
+ using AElf.Configuration.Config.Contract;
  using Mono.Cecil;
 using Module = AElf.ABI.CSharp.Module;
 using AElf.SmartContract;
@@ -21,10 +23,11 @@ namespace AElf.Runtime.CSharp
 {
     public class SmartContractRunner : ISmartContractRunner
     {
+        private readonly ConcurrentDictionary<AssemblyName, MemoryStream> _cachedSdkStreams = new ConcurrentDictionary<AssemblyName, MemoryStream>();
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
-        public SmartContractRunner(IRunnerConfig runnerConfig) : this(runnerConfig.SdkDir, runnerConfig.BlackList, runnerConfig.WhiteList)
+        public SmartContractRunner() : this(RunnerConfig.Instance.SdkDir, RunnerConfig.Instance.BlackList, RunnerConfig.Instance.WhiteList)
         {
         }
 
@@ -41,7 +44,7 @@ namespace AElf.Runtime.CSharp
         private ContractCodeLoadContext GetLoadContext()
         {
             // To make sure each smart contract resides in an isolated context with an Api singleton
-            return new ContractCodeLoadContext(_sdkDir);
+            return new ContractCodeLoadContext(_sdkDir, _cachedSdkStreams);
         }
 
         public async Task<IExecutive> RunAsync(SmartContractRegistration reg)

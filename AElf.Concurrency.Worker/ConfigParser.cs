@@ -1,21 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using AElf.ChainController;
-using AElf.Common.Application;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Concurrency.Worker;
+﻿using AElf.Common.Application;
+using AElf.Common.Enums;
 using AElf.Configuration;
-using AElf.Configuration.Config.Network;
-using AElf.Kernel;
-using AElf.Kernel.Node;
-using AElf.Kernel.Types;
 using AElf.Runtime.CSharp;
 using CommandLine;
-using Google.Protobuf;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AElf.Concurrency.Worker
 {
@@ -86,23 +73,23 @@ namespace AElf.Concurrency.Worker
                 : opts.DataDir;
             
             // runner config
-            RunnerConfig = new RunnerConfig
-            {
-                SdkDir = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location)
-            };
-
-            if (opts.RunnerConfig != null)
-            {
-                using (var file = File.OpenText(opts.RunnerConfig))
-                using (var reader = new JsonTextReader(file))
-                {
-                    var cfg = (JObject) JToken.ReadFrom(reader);
-                    if (cfg.TryGetValue("csharp", out var j))
-                    {
-                        RunnerConfig = Runtime.CSharp.RunnerConfig.FromJObject((JObject) j);
-                    }
-                }
-            }
+//            RunnerConfig = new RunnerConfig
+//            {
+//                SdkDir = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location)
+//            };
+//
+//            if (opts.RunnerConfig != null)
+//            {
+//                using (var file = File.OpenText(opts.RunnerConfig))
+//                using (var reader = new JsonTextReader(file))
+//                {
+//                    var cfg = (JObject) JToken.ReadFrom(reader);
+//                    if (cfg.TryGetValue("csharp", out var j))
+//                    {
+//                        RunnerConfig = Runtime.CSharp.RunnerConfig.FromJObject((JObject) j);
+//                    }
+//                }
+//            }
         }
     }
 }

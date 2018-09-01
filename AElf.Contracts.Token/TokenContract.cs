@@ -33,7 +33,7 @@ namespace AElf.Contracts.Token
 
     #endregion Events
 
-    public class TokenContract : CSharpSmartContract
+    public class  TokenContract : CSharpSmartContract
     {
         [SmartContractFieldData("${this}._initialized", DataAccessMode.ReadWriteAccountSharing)]
         private readonly BoolField _initialized = new BoolField("_Initialized_");

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace AElf.Configuration
+namespace AElf.Common.Enums
 {
     public enum DatabaseType
     {

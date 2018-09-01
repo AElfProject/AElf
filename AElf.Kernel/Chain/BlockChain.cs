@@ -11,6 +11,8 @@ namespace AElf.Kernel
     public class BlockChain : LightChain, IBlockChain
     {
         private readonly ITransactionManager _transactionManager;
+
+        private readonly List<BackupChain> _backupChains = new List<BackupChain>();
         
         public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
             ITransactionManager transactionManager, IDataStore dataStore) : base(

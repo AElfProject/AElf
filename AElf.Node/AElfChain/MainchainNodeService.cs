@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -7,12 +7,12 @@ using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Enums;
 using AElf.Configuration;
+using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Node;
-using AElf.Kernel.Node.Protocol;
-using AElf.Kernel.Types;
 using AElf.Miner.Miner;
 using AElf.Node.Protocol;
 using AElf.SmartContract;
@@ -280,7 +280,7 @@ namespace AElf.Node.AElfChain
                 return;
             }
 
-            switch (Globals.ConsensusType)
+            switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
                 {

@@ -12,6 +12,7 @@ using AElf.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Types.CSharp;
 using Akka.Actor;
+using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
@@ -66,11 +67,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         public MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
-            IChainService chainService,
+            IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger, HashManager hashManager, TransactionManager transactionManager)
         {
             _logger = logger;
+            ActorEnvironment = actorEnvironment;
             if (!ActorEnvironment.Initialized)
             {
                 ActorEnvironment.InitActorSystem();
@@ -106,13 +108,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Requestor = Sys.ActorOf(AElf.Execution.Requestor.Props(Router));
         }
 
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
+        public byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
         private async Task Init()
         {
@@ -149,10 +145,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Executive2 = await SmartContractService.GetExecutiveAsync(SampleContractAddress2, ChainId2);
         }
 
-        public byte[] ExampleContractCode
-        {
-            get { return ContractCodes.TestContractCode; }
-        }
+        public byte[] ExampleContractCode => ContractCodes.TestContractCode;
 
         public void Initialize1(Hash account, ulong qty)
         {
@@ -174,7 +167,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 To = contractAddress,
                 IncrementId = NewIncrementId(),
                 MethodName = "Initialize",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, qty))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, new UInt64Value {Value = qty}))
             };
             return new TransactionContext()
             {
@@ -236,7 +229,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 To = contractAddress,
                 IncrementId = NewIncrementId(),
                 MethodName = "Transfer",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, qty))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, new UInt64Value {Value = qty}))
             };
         }
 
@@ -310,7 +303,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             var dtStr = txnCtxt.Trace.RetVal.Data.DeserializeToString();
-            //var dtStr = BitConverter.ToString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray()).Replace("-", "");
 
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }

@@ -1,4 +1,6 @@
-﻿using AElf.Kernel;
+﻿using System.Collections.Generic;
+using AElf.Configuration.Config.Contract;
+using AElf.Kernel;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -50,32 +52,29 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public void CodeCheckTest()
         {
-            var bl1 = new []
+            var bl1 = new List<string>
             {
                 @"System\.Reflection\..*",
                 @"System\.IO\..*",
                 @"System\.Net\..*",
                 @"System\.Threading\..*",
             };
-            var runner1 = new SmartContractRunner(new RunnerConfig()
-            {
-                SdkDir = _mock.SdkDir,
-                BlackList = bl1,
-                WhiteList = new string[] {}
-            });
+
+            RunnerConfig.Instance.SdkDir = _mock.SdkDir;
+            RunnerConfig.Instance.BlackList = bl1;
+            RunnerConfig.Instance.WhiteList = new List<string>();
+            
+            var runner1 = new SmartContractRunner();
             runner1.CodeCheck(_mock.ContractCode, true);
 
-            var bl2 = new []
+            var bl2 = new List<string>
             {
                 @".*"
             };
             
-            var runner2 = new SmartContractRunner(new RunnerConfig()
-            {
-                SdkDir = _mock.SdkDir,
-                BlackList = bl2,
-                WhiteList = new string[] {}
-            });
+            RunnerConfig.Instance.BlackList = bl2;
+            
+            var runner2 = new SmartContractRunner();
             Assert.Throws<InvalidCodeException>(()=>runner2.CodeCheck(_mock.ContractCode, true));
         }
     }

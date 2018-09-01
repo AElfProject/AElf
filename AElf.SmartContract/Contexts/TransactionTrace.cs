@@ -53,11 +53,12 @@ namespace AElf.SmartContract
             {
                 foreach (var vc in ValueChanges)
                 {
-                    await stateDictator.ApplyStateValueChangeAsync(vc);
+                    await stateDictator.ApplyStateValueChangeAsync(vc.Clone());
 
                     //add changes
                     var valueCache = new StateCache(vc.CurrentValue.ToByteArray());
                     changedDict[vc.Path] = valueCache;
+                    Console.WriteLine($"{vc.Path.KeyHash.ToHex()} : {valueCache.CurrentValue.Length}");
                 }
 
                 //TODO: Question: should inline trace commit to tentative cache once the calling func return? In other word, does inlineTraces overwrite the original content in changeDict?

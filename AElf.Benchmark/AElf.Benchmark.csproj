@@ -9,11 +9,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Benchmark.TestContract\AElf.Benchmark.TestContract.csproj" />
+    <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj">
-      <Project>{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}</Project>
-      <Name>AElf.Kernel.Modules.AutofacModule</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj">
       <Project>{01FDA9AA-9328-449A-91CA-93424049F57D}</Project>
@@ -22,7 +20,7 @@
     <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.2.1" />
+    <PackageReference Include="CommandLineParser" Version="2.3.0" />
     <PackageReference Include="Microsoft.NETCore.App" Version="2.1.0" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>

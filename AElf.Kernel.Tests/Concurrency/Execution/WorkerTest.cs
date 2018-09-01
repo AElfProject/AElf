@@ -1,18 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
-using AElf.SmartContract;
 using AElf.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-    /*
-     [UseAutofacTestFramework]
+    [UseAutofacTestFramework]
     public class WorkerTest : TestKitBase
     {
         private MockSetup _mock;
@@ -43,7 +40,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // Start processing
             var js1 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
-#1#
+*/
             // Return result
             var trace = ExpectMsg<TransactionTraceMessage>().TransactionTraces.FirstOrDefault();
 
@@ -55,7 +52,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             ExpectMsg<JobExecutionStatus>();
             var js2 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
-#1#
+*/
             Assert.Equal(tx1.GetHash(), trace.TransactionId);
             if (!string.IsNullOrEmpty(trace.StdErr))
             {
@@ -74,34 +71,39 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // Invalid request id as it has already completed
             var js3 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.InvalidRequestId, js3.Status);
-#1#
+*/
         }
 
         [Fact]
         public void MultipleTransactionExecutionTest()
         {
-            Hash address1 = Hash.Generate();
-            Hash address2 = Hash.Generate();
-            Hash address3 = Hash.Generate();
-            Hash address4 = Hash.Generate();
-
+            var address1 = Hash.Generate();
+            var address2 = Hash.Generate();
+            var address3 = Hash.Generate();
+            var address4 = Hash.Generate();
+            var address5 = Hash.Generate();
+            var address6 = Hash.Generate();
+            
             _mock.Initialize1(address1, 100);
             _mock.Initialize1(address2, 0);
             _mock.Initialize1(address3, 200);
             _mock.Initialize1(address4, 0);
+            _mock.Initialize1(address5, 300);
+            _mock.Initialize1(address6, 0);
 
             var tx1 = _mock.GetTransferTxn1(address1, address2, 10);
             var tx2 = _mock.GetTransferTxn1(address3, address4, 10);
+            var tx3 = _mock.GetTransferTxn1(address5, address6, 10);
 
             // Normal transfer
             var job1 = new List<Transaction>
             {
                 tx1,
-                tx2
+                tx2,
+                tx3
             };
 
-            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor,
-                TestActor));
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor, TestActor));
 
             // Start processing
 
@@ -110,11 +112,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
  TODO: https://github.com/AElfProject/AElf/issues/338
             var js1 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
-#1#
+*/
             // Return result
             var trace = ExpectMsg<TransactionTraceMessage>().TransactionTraces;
             var trace1 = trace[0];
             var trace2 = trace[1];
+            var trace3 = trace[2];
 
             // Completed
 
@@ -123,28 +126,37 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
  TODO: https://github.com/AElfProject/AElf/issues/338
             var js2 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
-#1#
+*/
             Assert.Equal(tx1.GetHash(), trace1.TransactionId);
             Assert.Equal(tx2.GetHash(), trace2.TransactionId);
+            Assert.Equal(tx3.GetHash(), trace3.TransactionId);
+
             if (!string.IsNullOrEmpty(trace1.StdErr))
             {
                 Assert.Null(trace1.StdErr);
             }
             Assert.Equal((ulong) 90, _mock.GetBalance1(address1));
             Assert.Equal((ulong) 10, _mock.GetBalance1(address2));
+            
             if (!string.IsNullOrEmpty(trace2.StdErr))
             {
                 Assert.Null(trace2.StdErr);
             }
             Assert.Equal((ulong) 190, _mock.GetBalance1(address3));
             Assert.Equal((ulong) 10, _mock.GetBalance1(address4));
-
+            
+            if (!string.IsNullOrEmpty(trace3.StdErr))
+            {
+                Assert.Null(trace3.StdErr);
+            }
+            Assert.Equal((ulong) 290, _mock.GetBalance1(address5));
+            Assert.Equal((ulong) 10, _mock.GetBalance1(address6));
+            
             // Check sequence
             var end1 = _mock.GetTransactionEndTime1(tx1);
             var start2 = _mock.GetTransactionStartTime1(tx2);
             Assert.True(end1 < start2);
         }
-*/
 
 /*
  Temporarily disabled.
@@ -152,7 +164,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void JobCancelTest()
         {
-            var job = new List<Transaction>()
+            var job = new List<ITransaction>()
             {
                 _mock.GetSleepTxn1(1000),
                 _mock.GetSleepTxn1(1000),
@@ -177,6 +189,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             Assert.Equal("Execution Cancelled", traces[2].StdErr);
         }
+*/
     }
-    */
 }

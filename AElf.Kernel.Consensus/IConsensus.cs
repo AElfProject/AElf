@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Types;
+using AElf.Common.Enums;
 
 namespace AElf.Kernel.Consensus
 {

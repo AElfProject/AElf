@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using AElf.Kernel.Types;
 using CommandLine;
 
-namespace AElf.Launcher
+namespace AElf.Configuration
 {
-    public class AElfOptions
+    public class CommandLineOptions
     {
-        #region Chain
+         #region Chain
 
         [Option('n', "chain.new", Default = false, HelpText = "Create a new chain if true")]
         public bool NewChain { get; set; }
@@ -105,8 +104,8 @@ namespace AElf.Launcher
         [Option('g', "dpos.generator", Default = false, HelpText = "Is the one who will generate DPoS information")]
         public bool IsConsensusInfoGenerator { get; set; }
 
-        [Option("consensus.type", Default = ConsensusType.AElfDPoS, HelpText = "Select the consensus type: 1, AElf DPoS; 2. PoTC; 3. SingleNode")]
-        public ConsensusType ConsensusType { get; set; }
+        [Option("consensus.type", Default = "AElfDPoS", HelpText = "Select the consensus type: AElfDPoS,PoTC or SingleNode")]
+        public string ConsensusType { get; set; }
         
         [Option("dpos.interval", Default = 4000, HelpText = "Mining interval of AElf DPoS.")]
         // ReSharper disable once InconsistentNaming
