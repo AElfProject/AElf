@@ -4,11 +4,8 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
-    <ProjectReference Include="..\AElf.Network.Sim.Node\AElf.Network.Sim.Node.csproj" />
-    <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="1.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="1.1.0-preview1-35029" />
   </ItemGroup>
 </Project>

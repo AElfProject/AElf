@@ -7,7 +7,9 @@ using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Enums;
 using AElf.Configuration;
+using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Node;
@@ -279,7 +281,7 @@ namespace AElf.Node.AElfChain
                 return;
             }
 
-            switch (Globals.ConsensusType)
+            switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
                 {

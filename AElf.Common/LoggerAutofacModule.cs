@@ -7,13 +7,13 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 
-namespace AElf.Kernel.Modules.AutofacModule
+namespace AElf.Common
 {
-    public class LoggerModule : Module
+    public class LoggerAutofacModule : Autofac.Module
     {
         private readonly string _nodeName;
 
-        public LoggerModule(string nodeName = null)
+        public LoggerAutofacModule(string nodeName = null)
         {
             _nodeName = nodeName;
         }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Management.Helper;

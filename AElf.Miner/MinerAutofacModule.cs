@@ -1,14 +1,13 @@
-﻿using Autofac;
-using AElf.Execution;
-using AElf.Miner.Miner;
+﻿using AElf.Miner.Miner;
+using Autofac;
 
-namespace AElf.Kernel.Modules.AutofacModule
+namespace AElf.Miner
 {
-    public class MinerModule : Module
+    public class MinerAutofacModule : Module
     {
         public IMinerConfig MinerConf { get; }
 
-        public MinerModule(IMinerConfig minerConfig)
+        public MinerAutofacModule(IMinerConfig minerConfig)
         {
             MinerConf = minerConfig;
         }
@@ -24,8 +23,8 @@ namespace AElf.Kernel.Modules.AutofacModule
                 builder.RegisterInstance(MinerConfig.Default).As<IMinerConfig>();
             }
             
-            builder.RegisterType(typeof(Miner.Miner.Miner)).As<IMiner>();
+            builder.RegisterType(typeof(Miner.Miner)).As<IMiner>();
             builder.RegisterType(typeof(BlockExecutor)).As<IBlockExecutor>();
         }
     }
-}    
+}

@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.8.0" />
+    <PackageReference Include="Autofac" Version="4.8.1" />
     <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="xunit.frameworks.autofac" Version="0.1.0" />
   </ItemGroup>
@@ -16,10 +16,5 @@
     </ProjectReference>
     <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
     <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="NLog.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

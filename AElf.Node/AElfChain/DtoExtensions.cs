@@ -15,7 +15,8 @@ namespace AElf.Node.AElfChain
                     {"From", tx.From.ToHex()},
                     {"To", tx.To.ToHex()},
                     {"Method", tx.MethodName},
-                    {"IncrementId", tx.IncrementId}
+                    {"IncrementId", tx.IncrementId},
+                    {"Type", tx.Type.ToString()}
                 }
             };
         }
