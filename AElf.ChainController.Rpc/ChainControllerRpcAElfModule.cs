@@ -4,7 +4,7 @@ using Autofac;
 
 namespace AElf.ChainController.Rpc
 {
-    public class ChainContrallerRpcAElfModule:IAElfModule
+    public class ChainControllerRpcAElfModule:IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {

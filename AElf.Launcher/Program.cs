@@ -33,7 +33,7 @@ namespace AElf.Launcher
             handler.Register(new SmartContractAElfModule());
             handler.Register(new ChainAElfModule());
             handler.Register(new MinerAElfModule());
-            handler.Register(new ChainContrallerRpcAElfModule());
+            handler.Register(new ChainControllerRpcAElfModule());
             handler.Register(new NetRpcAElfModule());
             handler.Register(new WalletRpcAElfModule());
             handler.Register(new RunnerAElfModule());
