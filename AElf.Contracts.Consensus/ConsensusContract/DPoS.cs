@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common.Enums;
 using AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;

@@ -55,6 +55,7 @@ namespace AElf.ChainController
             };
             executive.SetTransactionContext(tc).Apply(true).Wait();
             var trace = tc.Trace;
+            
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())
             {

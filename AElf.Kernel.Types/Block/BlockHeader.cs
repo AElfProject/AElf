@@ -26,6 +26,14 @@ namespace AElf.Kernel
 
             return _blockHash;
         }
+
+        public byte[] GetHashBytes()
+        {
+            if (_blockHash == null)
+                _blockHash = SHA256.Create().ComputeHash(GetSignatureData());
+
+            return _blockHash.GetHashBytes();
+        }
         
         public ECSignature GetSignature()
         {

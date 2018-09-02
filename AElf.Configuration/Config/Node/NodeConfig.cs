@@ -10,5 +10,7 @@
         public bool IsChainCreator { get; set; }
         public bool ConsensusInfoGenerater { get; set; }
         public string ExecutorType { get; set; }
+        public string NodeAccount { get; set; }
+        public string NodeAccountPassword { get; set; }
     }
 }

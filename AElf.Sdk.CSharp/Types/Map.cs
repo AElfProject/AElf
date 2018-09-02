@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.SmartContract;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp.Types
 {
     public class Map
     {
-        protected readonly string _name;
+        protected readonly string Name;
         private IDataProvider _dataProvider;
 
         protected IDataProvider DataProvider
@@ -21,7 +19,7 @@ namespace AElf.Sdk.CSharp.Types
             {
                 if (_dataProvider == null)
                 {
-                    _dataProvider = Api.GetDataProvider(_name);
+                    _dataProvider = Api.GetDataProvider(Name);
                 }
 
                 return _dataProvider;
@@ -30,8 +28,7 @@ namespace AElf.Sdk.CSharp.Types
 
         protected Map(string name)
         {
-            _name = name;
-            //_dataProvider = Api.GetDataProvider(name);
+            Name = name;
         }
 
         internal Map(IDataProvider dataProvider)
@@ -77,12 +74,12 @@ namespace AElf.Sdk.CSharp.Types
         public async Task<TValue> GetValueAsync(TKey key)
         {
             var bytes = await DataProvider.GetAsync<TValue>(key.CalculateHash());
-            return Api.Serializer.Deserialize<TValue>(bytes);
+            return bytes == null ? default(TValue) : Api.Serializer.Deserialize<TValue>(bytes);
         }
 
         public async Task SetValueToDatabaseAsync(TKey key, TValue value)
         {
-            await DataProvider.SetDataAsync<TValue>(key.CalculateHash(), value);
+            await DataProvider.SetDataAsync(key.CalculateHash(), value);
         }
     }
 
@@ -108,7 +105,7 @@ namespace AElf.Sdk.CSharp.Types
             task.Wait();
         }
 
-        public bool GetValue(TKey keyHash)
+        public new bool GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
@@ -117,7 +114,7 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, bool value)
         {
-            await base.SetValueAsync(key, new BoolValue()
+            await base.SetValueAsync(key, new BoolValue
             {
                 Value = value
             });
@@ -126,7 +123,7 @@ namespace AElf.Sdk.CSharp.Types
         public new async Task<bool> GetValueAsync(TKey key)
         {
             var retval = await base.GetValueAsync(key);
-            return retval.Value;
+            return retval?.Value ?? false;
         }
     }
 
@@ -152,7 +149,7 @@ namespace AElf.Sdk.CSharp.Types
             task.Wait();
         }
 
-        public uint GetValue(TKey keyHash)
+        public new uint GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
@@ -161,7 +158,7 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, uint value)
         {
-            await base.SetValueAsync(key, new UInt32Value()
+            await base.SetValueAsync(key, new UInt32Value
             {
                 Value = value
             });
@@ -170,7 +167,7 @@ namespace AElf.Sdk.CSharp.Types
         public new async Task<uint> GetValueAsync(TKey key)
         {
             var retval = await base.GetValueAsync(key);
-            return retval.Value;
+            return retval?.Value ?? 0;
         }
     }
 
@@ -196,7 +193,7 @@ namespace AElf.Sdk.CSharp.Types
             task.Wait();
         }
 
-        public int GetValue(TKey keyHash)
+        public new int GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
@@ -205,7 +202,7 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, int value)
         {
-            await base.SetValueAsync(key, new SInt32Value()
+            await base.SetValueAsync(key, new SInt32Value
             {
                 Value = value
             });
@@ -214,7 +211,7 @@ namespace AElf.Sdk.CSharp.Types
         public new async Task<int> GetValueAsync(TKey key)
         {
             var retval = await base.GetValueAsync(key);
-            return retval.Value;
+            return retval?.Value ?? 0;
         }
     }
 
@@ -240,7 +237,7 @@ namespace AElf.Sdk.CSharp.Types
             task.Wait();
         }
 
-        public ulong GetValue(TKey keyHash)
+        public new ulong GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
@@ -249,7 +246,7 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, ulong value)
         {
-            await base.SetValueAsync(key, new UInt64Value()
+            await base.SetValueAsync(key, new UInt64Value
             {
                 Value = value
             });
@@ -258,7 +255,7 @@ namespace AElf.Sdk.CSharp.Types
         public new async Task<ulong> GetValueAsync(TKey key)
         {
             var retval = await base.GetValueAsync(key);
-            return retval.Value;
+            return retval?.Value ?? 0;
         }
     }
 
@@ -284,7 +281,7 @@ namespace AElf.Sdk.CSharp.Types
             task.Wait();
         }
 
-        public long GetValue(TKey keyHash)
+        public new long GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
@@ -293,7 +290,7 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, long value)
         {
-            await base.SetValueAsync(key, new Int64Value()
+            await base.SetValueAsync(key, new Int64Value
             {
                 Value = value
             });
@@ -302,7 +299,7 @@ namespace AElf.Sdk.CSharp.Types
         public new async Task<long> GetValueAsync(TKey key)
         {
             var retval = await base.GetValueAsync(key);
-            return retval.Value;
+            return retval?.Value ?? 0;
         }
     }
 
@@ -328,7 +325,7 @@ namespace AElf.Sdk.CSharp.Types
             task.Wait();
         }
 
-        public byte[] GetValue(TKey keyHash)
+        public new byte[] GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
@@ -337,7 +334,7 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, byte[] value)
         {
-            await base.SetValueAsync(key, new BytesValue()
+            await base.SetValueAsync(key, new BytesValue
             {
                 Value = ByteString.CopyFrom(value)
             });
@@ -346,7 +343,7 @@ namespace AElf.Sdk.CSharp.Types
         public new async Task<byte[]> GetValueAsync(TKey key)
         {
             var retval = await base.GetValueAsync(key);
-            return retval.Value.ToByteArray();
+            return retval?.Value.ToByteArray() ?? new byte[0];
         }
     }
 
@@ -372,7 +369,7 @@ namespace AElf.Sdk.CSharp.Types
             task.Wait();
         }
 
-        public string GetValue(TKey keyHash)
+        public new string GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
@@ -381,7 +378,7 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, string value)
         {
-            await base.SetValueAsync(key, new StringValue()
+            await base.SetValueAsync(key, new StringValue
             {
                 Value = value
             });
@@ -390,7 +387,7 @@ namespace AElf.Sdk.CSharp.Types
         public new async Task<string> GetValueAsync(TKey key)
         {
             var retval = await base.GetValueAsync(key);
-            return retval.Value;
+            return retval?.Value ?? "";
         }
     }
 
@@ -432,6 +429,10 @@ namespace AElf.Sdk.CSharp.Types
         {
             var obj = (TValue) Activator.CreateInstance(typeof(TValue));
             var bytes = await DataProvider.GetAsync<UserTypeHolder>(key.CalculateHash());
+            if (bytes == null)
+            {
+                return default(TValue);
+            }
             var userTypeHolder = Api.Serializer.Deserialize<UserTypeHolder>(bytes);
             obj.Unpack(userTypeHolder);
             return obj;
@@ -439,7 +440,7 @@ namespace AElf.Sdk.CSharp.Types
 
         public IDataProvider GetSubDataProvider(string dataProviderKey)
         {
-            return Api.GetDataProvider(_name).GetDataProvider(dataProviderKey);
+            return Api.GetDataProvider(Name).GetDataProvider(dataProviderKey);
         }
     }
 }

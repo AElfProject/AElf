@@ -11,8 +11,6 @@ namespace AElf.Network.Connection
         
         public int Length { get; set; } 
         public byte[] Payload { get; set; }
-        
-        public string OutboundTrace { get; set; } // todo remove
 
         public override string ToString()
         {
