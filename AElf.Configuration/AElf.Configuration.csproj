@@ -46,7 +46,10 @@
     <None Update="Config\Management\management.json" Link="config\management.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\GRPC\grpc.json" Link="config\grpc.json">
+    <None Update="Config\GRPC\grpclocal.json" Link="config\grpclocal.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\GRPC\grpcremote.json" Link="config\grpcremote.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
