@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
 using AElf.Miner.Rpc;
@@ -15,6 +16,7 @@ using NLog;
 using NServiceKit.Common.Extensions;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Miner.Tests.Grpc
 {
@@ -90,15 +92,26 @@ namespace AElf.Miner.Tests.Grpc
                     MockBlockHeader().Object
                 };
                 var server = MinerServer();
-                var sideChainId = ByteArrayHelpers.FromHexString("0xdb4a9b4fdbc3fa6b3ad07052c5bb3080d6f72635365fa243be5e7250f030cef8");
+                var sideChainId = Hash.Generate();
                 MockKeyPair(sideChainId, dir);
                 //start server, sidechain is server-side
+                GrpcLocalConfig.Instance.LocalServerPort = 50052;
+                GrpcLocalConfig.Instance.LocalServerIP = "127.0.0.1";
+
                 server.Init(sideChainId, dir);
                 server.StartUp();
 
                 // create client, main chian is client-side
                 var generator = MinerClientGenerator();
                 generator.Init(dir);
+                GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
+                {
+                    {sideChainId.ToHex(), new Uri
+                    {
+                        Address = GrpcLocalConfig.Instance.LocalServerIP,
+                        Port = GrpcLocalConfig.Instance.LocalServerPort
+                    }}
+                };
                 var client = generator.StartNewClientToSideChain(sideChainId);
 
                 CancellationTokenSource cancellationTokenSource =
