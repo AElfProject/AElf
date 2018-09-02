@@ -181,12 +181,8 @@ message Key {
     uint32 HashType = 3;
 }
 
-message SideChain {
-    Hash ChainId = 1;
-    Hash LockedAddress = 2;
-    uint64 LockedToken = 3;
-    uint64 CreationHeight = 4;
-    bool Indexed = 5;
+message SideChainIdList {
+    repeated Hash chainIds =1;
 }
 
 message DataPath {
