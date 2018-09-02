@@ -12,6 +12,7 @@ using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Server;
 using Moq;
 using NLog;
+using NServiceKit.Common.Extensions;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -55,12 +56,12 @@ namespace AElf.Miner.Tests.Grpc
 
         public MinerServer MinerServer()
         {
-            return new MinerServer(_logger, new HeaderInfoServerImpl(MockChainService().Object));
+            return new MinerServer(_logger, new HeaderInfoServerImpl(MockChainService().Object, _logger));
         }
 
-        public MinerClient MinerClient()
+        public MinerClientGenerator MinerClientGenerator()
         {
-            return new MinerClient();
+            return new MinerClientGenerator();
         }
 
 
@@ -76,7 +77,7 @@ namespace AElf.Miner.Tests.Grpc
         public void ServerTest()
         {
             string dir = @"/tmp/pems";
-            if(Directory.Exists((Path.Combine(dir, "certs"))))
+            if(Directory.Exists(Path.Combine(dir, "certs")))
                 Directory.Delete(Path.Combine(dir, "certs"), true);
             try
             {
@@ -96,19 +97,31 @@ namespace AElf.Miner.Tests.Grpc
                 server.StartUp();
 
                 // create client, main chian is client-side
-                var client = MinerClient();
-                client.Init(dir);
-                client.StartNewClient(sideChainId);
-                var requestInfo = new RequestIndexedInfo
-                {
-                    ChainId = _chainId,
-                    From = Hash.Generate().ToAccount(),
-                    Height = 0
-                };
+                var generator = MinerClientGenerator();
+                generator.Init(dir);
+                var client = generator.StartNewClientToSideChain(sideChainId);
 
-                var resp = client.GetHeaderInfo(sideChainId, requestInfo);
-                Assert.Equal(_headers.Count - (int) requestInfo.Height, resp.Headers.Count);
-                Assert.Equal(_headers[(int) requestInfo.Height].GetHash(), resp.Headers[(int) requestInfo.Height].BlockHeaderHash);
+                CancellationTokenSource cancellationTokenSource =
+                    new CancellationTokenSource(TimeSpan.FromMilliseconds(3000));
+                client.Index(cancellationTokenSource.Token, 0);
+                Thread.Sleep(500);
+                Assert.Equal(1, client.IndexedInfoQueue.Count);
+                Assert.Equal((ulong)0, ((ResponseIndexedInfoMessage)client.IndexedInfoQueue.First()).Height);
+                // remove the first one
+                Assert.True(client.IndexedInfoQueue.TryTake(out _));
+                
+                Thread.Sleep(1000);
+                Assert.Equal(1, client.IndexedInfoQueue.Count);
+                Assert.Equal((ulong)1, ((ResponseIndexedInfoMessage)client.IndexedInfoQueue.First()).Height);
+                Thread.Sleep(1000);
+                Assert.Equal(2, client.IndexedInfoQueue.Count);
+                Assert.Equal((ulong)1, ((ResponseIndexedInfoMessage)client.IndexedInfoQueue.First()).Height);
+                
+                // remove 2rd item
+                Assert.True(client.IndexedInfoQueue.TryTake(out _));
+                Assert.Equal(1, client.IndexedInfoQueue.Count);
+                Assert.Equal((ulong)2, ((ResponseIndexedInfoMessage)client.IndexedInfoQueue.First()).Height);
+
             }
             catch (Exception e)
             {
