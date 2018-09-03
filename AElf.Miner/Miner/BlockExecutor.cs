@@ -24,18 +24,18 @@ namespace AElf.Miner.Miner
         private readonly IChainService _chainService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
         private ILogger _logger;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
-            IWorldStateDictator worldStateDictator,
+            IStateDictator stateDictator,
             IExecutingService executingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
             _chainService = chainService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _executingService = executingService;
             _logger = logger;
             _transactionManager = transactionManager;
@@ -50,12 +50,8 @@ namespace AElf.Miner.Miner
         /// <inheritdoc/>
         public async Task<bool> ExecuteBlock(IBlock block)
         {
-            var readyTxs = new List<ITransaction>();
+            var readyTxs = new List<Transaction>();
 
-            await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
-            var worldState = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
-            //_logger?.Trace($"Merkle Tree Root before execution:{(await worldState.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
-            
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
@@ -68,29 +64,35 @@ namespace AElf.Miner.Miner
                 if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
                     _logger?.Trace($"ExecuteBlock - Null block or no transactions.");
 
-                var uncompressedPrivKey = block.Header.P.ToByteArray();
+                var uncompressedPrivKey = block?.Header.P.ToByteArray();
                 var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-                _worldStateDictator.BlockProducerAccountAddress = recipientKeyPair.GetAddress();
+                var blockProducerAddress = recipientKeyPair.GetAddress();
                 
-                var txs = block.Body.Transactions;
-                foreach (var id in txs)
-                {
-                    if (!_txPoolService.TryGetTx(id, out var tx))
+                _stateDictator.ChainId = block?.Header.ChainId;
+                _stateDictator.BlockHeight = block?.Header.Index - 1 ?? 0;
+                _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
+                
+                var txs = block?.Body?.Transactions;
+                if (txs != null)
+                    foreach (var id in txs)
                     {
-                        _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.ToHex()}.");
-                        await Rollback(readyTxs);
-                        return false;
-                    }
-                    readyTxs.Add(tx);
-                    
-                    // remove from tx collection
-                    _txPoolService.RemoveAsync(tx.GetHash());
-                    var from = tx.From;
-                    if (!map.ContainsKey(from))
-                        map[from] = new HashSet<ulong>();
+                        if (!_txPoolService.TryGetTx(id, out var tx))
+                        {
+                            _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.ToHex()}.");
+                            await Rollback(readyTxs);
+                            return false;
+                        }
 
-                    map[from].Add(tx.IncrementId);
-                }
+                        readyTxs.Add(tx);
+
+                        // remove from tx collection
+                        _txPoolService.RemoveAsync(tx.GetHash());
+                        var from = tx.From;
+                        if (!map.ContainsKey(@from))
+                            map[@from] = new HashSet<ulong>();
+
+                        map[@from].Add(tx.IncrementId);
+                    }
 
                 // promote txs from these address
                 //await _txPoolService.PromoteAsync(map.Keys.ToList());
@@ -154,9 +156,12 @@ namespace AElf.Miner.Miner
 
                 var addrs = await InsertTxs(readyTxs, results);
                 await _txPoolService.UpdateAccountContext(addrs);
+
+                await _stateDictator.SetBlockHashAsync(block?.GetHash());
+                await _stateDictator.SetStateHashAsync(block?.GetHash());
                 
-                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
-                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+                await _stateDictator.SetWorldStateAsync();
+                var ws = await _stateDictator.GetLatestWorldStateAsync();
 
                 if (ws == null)
                 {
@@ -165,20 +170,18 @@ namespace AElf.Miner.Miner
                     return false;
                 }
 
-                if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
+                if (await ws.GetWorldStateMerkleTreeRootAsync() != block?.Header.MerkleTreeRootOfWorldState)
                 {
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
                     _logger?.Trace($"Merkle tree root hash of execution: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
-                    _logger?.Trace($"Merkle tree root hash of received block: {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
-                    _logger?.Trace($"Pre block hash of mime:{_worldStateDictator.PreBlockHash.ToHex()}");
-                    _logger?.Trace($"Pre block hash of received block:{block.Header.PreviousBlockHash.ToHex()}");
+                    _logger?.Trace($"Merkle tree root hash of received block: {block?.Header.MerkleTreeRootOfWorldState.ToHex()}");
 
                     await Rollback(readyTxs);
                     return false;
                 }
 
                 var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
-                await blockchain.AddBlocksAsync(new List<IBlock>() {block});
+                await blockchain.AddBlocksAsync(new List<IBlock> {block});
             }
             catch (Exception e)
             {
@@ -195,7 +198,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<ITransaction> executedTxs, List<TransactionResult> txResults)
+        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
         {
             var addrs = new HashSet<Hash>();
             foreach (var t in executedTxs)
@@ -216,10 +219,10 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="readyTxs"></param>
         /// <returns></returns>
-        private async Task Rollback(List<ITransaction> readyTxs)
+        private async Task Rollback(List<Transaction> readyTxs)
         {
             await _txPoolService.RollBack(readyTxs);
-            await _worldStateDictator.RollbackCurrentChangesAsync();
+            await _stateDictator.RollbackToPreviousBlock();
         }
         
         public void Start()

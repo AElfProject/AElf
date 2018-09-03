@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel;
 using AElf.SmartContract;
-using Akka.Dispatch;
 
 /*
     Todo: #338
@@ -13,6 +14,7 @@ using Akka.Dispatch;
     Some of the code is annotated, marked with "todo" and optimized later.
  */
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Execution
 {
     /// <summary>
@@ -119,8 +121,7 @@ namespace AElf.Execution
 
             Exception chainContextException = null;
             
-            //path <-> value
-            Dictionary<Hash, StateCache> stateCache = new Dictionary<Hash, StateCache>();
+            var stateCache = new Dictionary<DataPath, StateCache>();
             
             try
             {
@@ -158,7 +159,7 @@ namespace AElf.Execution
                 {
                     if (chainContext == null)
                     {
-                        trace = new TransactionTrace()
+                        trace = new TransactionTrace
                         {
                             TransactionId = tx.GetHash(),
                             ExecutionStatus = ExecutionStatus.SystemError,
@@ -168,7 +169,8 @@ namespace AElf.Execution
                     else
                     {
                         // TODO: The job is still running but we will leave it, we need a way to abort the job if it runs for too long
-                        var task = Task.Run(async () => await ExecuteTransaction(chainContext, tx, stateCache),
+                        var task = Task.Run(
+                            async () => await ExecuteTransaction(chainContext, tx, stateCache),
                             _cancellationTokenSource.Token);
                         try
                         {
@@ -177,9 +179,10 @@ namespace AElf.Execution
                             if (trace.IsSuccessful())
                             {
                                 //commit update results to state cache
-                                var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.WorldStateDictator, chainContext.ChainId);
+                                var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.StateDictator);
                                 foreach (var kv in bufferedStateUpdates)
                                 {
+                                    Debug.WriteLine("Path: " + kv.Key.ResourcePointerHash.ToHex());
                                     stateCache[kv.Key] = kv.Value;
                                 }
                             }
@@ -209,7 +212,7 @@ namespace AElf.Execution
 
             if (chainContext != null)
             {
-                await _servicePack.WorldStateDictator.ApplyCachedDataAction(stateCache, chainContext.ChainId);
+                await _servicePack.StateDictator.ApplyCachedDataAction(stateCache);
             }
             stateCache.Clear();
             
@@ -234,7 +237,7 @@ namespace AElf.Execution
             return retMsg;
         }
 
-        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, ITransaction transaction, Dictionary<Hash, StateCache> stateCache)
+        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, Transaction transaction, Dictionary<DataPath, StateCache> stateCache)
         {
             
             var trace = new TransactionTrace()

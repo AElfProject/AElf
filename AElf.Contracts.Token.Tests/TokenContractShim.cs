@@ -11,7 +11,7 @@ namespace AElf.Contracts.Token.Tests
         public Hash ContractAddres = Hash.Generate();
         public IExecutive Executive { get; set; }
 
-        public ITransactionContext TransactionContext { get; private set; }
+        public TransactionContext TransactionContext { get; private set; }
 
         public Hash Sender
         {
@@ -261,7 +261,7 @@ namespace AElf.Contracts.Token.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(TokenContractAddress))
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };

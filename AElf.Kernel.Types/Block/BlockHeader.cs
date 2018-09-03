@@ -8,7 +8,7 @@ using Org.BouncyCastle.Math;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class BlockHeader : IBlockHeader
+    public partial class BlockHeader: IBlockHeader
     {
         private Hash _blockHash;
         
@@ -27,9 +27,12 @@ namespace AElf.Kernel
             return _blockHash;
         }
 
-        public byte[] Serialize()
+        public byte[] GetHashBytes()
         {
-            return this.ToByteArray();
+            if (_blockHash == null)
+                _blockHash = SHA256.Create().ComputeHash(GetSignatureData());
+
+            return _blockHash.GetHashBytes();
         }
         
         public ECSignature GetSignature()

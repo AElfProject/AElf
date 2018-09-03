@@ -16,7 +16,7 @@ namespace AElf.Runtime.CSharp.Tests
         private ContractCodeLoadContext _loadContext;
         public ContractCodeLoadContextTest()
         {
-            _loadContext = new ContractCodeLoadContext(System.IO.Path.GetFullPath(_apiDllDirectory));
+            _loadContext = new ContractCodeLoadContext(System.IO.Path.GetFullPath(_apiDllDirectory), null);
         }
 
         [Fact]

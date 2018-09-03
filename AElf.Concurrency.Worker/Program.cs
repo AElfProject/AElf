@@ -1,7 +1,11 @@
 ﻿using System;
+using AElf.ChainController;
+using AElf.Common;
 using AElf.Database;
 using AElf.Execution;
-using AElf.Kernel.Modules.AutofacModule;
+using AElf.Kernel;
+using AElf.Miner;
+using AElf.Network;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Autofac;
@@ -30,7 +34,7 @@ namespace AElf.Concurrency.Worker
             if (!parsed)
                 return;
 
-            var runner = new SmartContractRunner(confParser.RunnerConfig);
+            var runner = new SmartContractRunner();
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
@@ -63,19 +67,16 @@ namespace AElf.Concurrency.Worker
         {
             var builder = new ContainerBuilder();
 
-            builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
+            //builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
 
             // Module registrations
-            builder.RegisterModule(new TransactionManagerModule());
-            builder.RegisterModule(new LoggerModule());
-            builder.RegisterModule(new DatabaseModule());
-            builder.RegisterModule(new NetworkModule(isMiner));
-            builder.RegisterModule(new MinerModule(null));
-            builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new StorageModule());
-            builder.RegisterModule(new ServicesModule());
-            builder.RegisterModule(new ManagersModule());
-            builder.RegisterModule(new MetadataModule());
+            builder.RegisterModule(new LoggerAutofacModule());
+            builder.RegisterModule(new DatabaseAutofacModule());
+            builder.RegisterModule(new NetworkAutofacModule());
+            builder.RegisterModule(new MinerAutofacModule(null));
+            builder.RegisterModule(new ChainAutofacModule());
+            builder.RegisterModule(new KernelAutofacModule());
+            builder.RegisterModule(new SmartContractAutofacModule());
 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
             builder.RegisterType<ServicePack>().PropertiesAutowired();

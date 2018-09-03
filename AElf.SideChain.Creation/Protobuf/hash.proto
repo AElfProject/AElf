@@ -2,6 +2,28 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Kernel";
 
-message Hash{
+message Hash
+{
     bytes Value = 1;
+    HashType HashType = 2;
+}
+
+enum HashType
+{
+    General = 0;
+    AccountAddress = 1;
+    ResourcePath = 2;
+    ResourcePointer = 3;
+    StateHash = 4;
+    BlockHash = 5;
+    AccountZero = 6;
+    ChainHeight = 7;
+    PreviousBlockHash = 8;
+    CallingGraph = 9;
+    TxResult = 10;
+    CanonicalHash = 11;
+    CurrentHash = 12;
+    GenesisHash = 13;
+    BlockHeaderHash = 14;
+    BlockBodyHash = 15;
 }

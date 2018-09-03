@@ -4,7 +4,6 @@ using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    /// <inheritdoc cref="" />
     /// <summary>
     /// Hash result
     /// </summary>

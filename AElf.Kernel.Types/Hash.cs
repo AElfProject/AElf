@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -35,14 +36,32 @@ namespace AElf.Kernel
         public static readonly Hash Default = new Hash(new byte[]{});
         
         public static readonly Hash Genesis = new Hash("Genesis".CalculateHash());
+            
         public Hash(byte[] buffer)
         {
             Value = ByteString.CopyFrom(buffer);
+            HashType = HashType.General;
         }
 
         public Hash(ByteString value)
         {
             Value = value;
+            HashType = HashType.General;
+        }
+
+        public Hash OfType(HashType hashType)
+        {
+            var hash = Clone();
+            hash.HashType = hashType;
+            return hash;
+        }
+
+        public Hash OfType(int typeIndex)
+        {
+            var hash = Clone();
+            var hashType = (HashType) typeIndex;
+            hash.HashType = hashType;
+            return hash;
         }
 
         public byte[] GetHashBytes() => Value.ToByteArray();

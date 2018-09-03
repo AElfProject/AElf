@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Types.Merkle;
+﻿using AElf.Kernel.Types;
+using AElf.Kernel.Types.Merkle;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -28,9 +29,9 @@ namespace AElf.Kernel
             return merkleTree.ComputeRootHash();
         }
 
-        public byte[] Serialize()
+        public IBlockBody Deserialize(byte[] bytes)
         {
-            return this.ToByteArray();
+            return Parser.ParseFrom(bytes);
         }
 
         public Hash GetHash()

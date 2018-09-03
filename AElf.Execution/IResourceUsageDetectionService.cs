@@ -7,6 +7,6 @@ namespace AElf.Execution
 {
     public interface IResourceUsageDetectionService
     {
-        Task<IEnumerable<string>> GetResources(Hash chainId, ITransaction transaction);
+        Task<IEnumerable<string>> GetResources(Hash chainId, Transaction transaction);
     }
 }

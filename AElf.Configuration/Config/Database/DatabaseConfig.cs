@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AElf.Common.Enums;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace AElf.Configuration

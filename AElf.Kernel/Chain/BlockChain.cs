@@ -1,25 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Microsoft.AspNetCore.Server.Kestrel.Transport.Libuv.Internal.Networking;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class BlockChain : LightChain, IBlockChain
     {
         private readonly ITransactionManager _transactionManager;
+
+        private readonly List<BackupChain> _backupChains = new List<BackupChain>();
         
         public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
-            ITransactionManager transactionManager, ICanonicalHashStore canonicalHashStore) : base(
-            chainId, chainManager, blockManager, canonicalHashStore)
+            ITransactionManager transactionManager, IDataStore dataStore) : base(
+            chainId, chainManager, blockManager, dataStore)
         {
             _transactionManager = transactionManager;
         }
 
-        // TODO: Implement
-        public IBlock CurrentBlock { get; }
+        public IBlock CurrentBlock
+        {
+            get
+            {
+                var currentBlockHash = _chainManager.GetCurrentBlockHashAsync(_chainId).Result;
+                return _blockManager.GetBlockAsync(currentBlockHash).Result;
+            }
+        }
 
         public async Task<bool> HasBlock(Hash blockId)
         {
@@ -64,12 +73,12 @@ namespace AElf.Kernel
             return await GetBlockByHashAsync(header.GetHash());
         }
 
-        public async Task<List<ITransaction>> RollbackToHeight(ulong height)
+        public async Task<List<Transaction>> RollbackToHeight(ulong height)
         {   
             var currentHash = await GetCurrentBlockHashAsync();
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
             
-            var txs = new List<ITransaction>();
+            var txs = new List<Transaction>();
             if (currentHeight == height)
             {
                 return txs;
@@ -89,7 +98,7 @@ namespace AElf.Kernel
 
             for (var i = currentHeight - 1; i > height; i--)
             {
-                await _canonicalHashStore.RemoveAsync(GetHeightHash(currentHeight));
+                await _dataStore.RemoveAsync<Hash>(GetHeightHash(currentHeight).OfType(HashType.CanonicalHash));
             }
 
             var hash = await GetCanonicalHashAsync(height);

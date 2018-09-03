@@ -13,11 +13,11 @@ namespace AElf.ChainController
         private readonly ConcurrentDictionary<Hash, IAccountDataContext> _accountDataContexts =
             new ConcurrentDictionary<Hash, IAccountDataContext>();
 
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
 
-        public AccountContextService(IWorldStateDictator worldStateDictator)
+        public AccountContextService(IStateDictator stateDictator)
         {   
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
         }
         
         /// <inheritdoc/>
@@ -28,9 +28,10 @@ namespace AElf.ChainController
             {
                 return ctx;
             }
-            
-            var adp = await _worldStateDictator.SetChainId(chainId).GetAccountDataProvider(account);
-            var idBytes = await adp.GetDataProvider().GetAsync(GetKeyForIncrementId());
+
+            _stateDictator.ChainId = chainId;
+            var adp = _stateDictator.GetAccountDataProvider(account);
+            var idBytes = await adp.GetDataProvider().GetAsync<UInt64Value>(GetKeyForIncrementId());
             var id = idBytes == null ? 0 : UInt64Value.Parser.ParseFrom(idBytes).Value;
             
             var accountDataContext = new AccountDataContext
@@ -51,10 +52,10 @@ namespace AElf.ChainController
             _accountDataContexts.AddOrUpdate(accountDataContext.ChainId.CalculateHashWith(accountDataContext.Address),
                 accountDataContext, (hash, context) => accountDataContext);
             
-            var adp = await _worldStateDictator.GetAccountDataProvider(accountDataContext.Address);
+            var adp = _stateDictator.GetAccountDataProvider(accountDataContext.Address);
 
             //await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
-            await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), new UInt64Value
+            await adp.GetDataProvider().SetAsync<UInt64Value>(GetKeyForIncrementId(), new UInt64Value
             {
                 Value = accountDataContext.IncrementId
             }.ToByteArray());

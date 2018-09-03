@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Common.Synchronisation;
 using AElf.Kernel;
@@ -41,22 +43,17 @@ namespace AElf.ChainController.TxMemPool
         private TxPoolSchedulerLock DPoSTxLock { get; } = new TxPoolSchedulerLock();
 
 
-        private readonly ConcurrentDictionary<Hash, ITransaction> _contractTxs = new ConcurrentDictionary<Hash, ITransaction>();
-        private readonly ConcurrentDictionary<Hash, ITransaction> _dPoSTxs = new ConcurrentDictionary<Hash, ITransaction>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _contractTxs = new ConcurrentDictionary<Hash, Transaction>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _dPoSTxs = new ConcurrentDictionary<Hash, Transaction>();
         private readonly ConcurrentBag<Hash> _bpAddrs = new ConcurrentBag<Hash>();
 
         /// <inheritdoc/>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
         {
-            if (Cts.IsCancellationRequested) return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
+            if (Cts.IsCancellationRequested) 
+                return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
             
-            var res = await AddTransaction(tx);
-            if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
-            {
-                MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-            }
-
-            return res;
+            return await AddTransaction(tx);
         }
 
         /// <summary>
@@ -64,7 +61,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
+        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx)
         {
             if (tx.Type == TransactionType.DposTransaction)
             {
@@ -75,14 +72,13 @@ namespace AElf.ChainController.TxMemPool
             await TrySetNonce(tx.From, TransactionType.ContractTransaction);
             return await ContractTxLock.WriteLock(() => AddContractTransaction(tx));
         }
-
         
         /// <summary>
         /// enqueue dpos tx
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private TxValidation.TxInsertionAndBroadcastingError AddDPoSTransaction(ITransaction tx)
+        private TxValidation.TxInsertionAndBroadcastingError AddDPoSTransaction(Transaction tx)
         {
             if (tx.Type != TransactionType.DposTransaction) return TxValidation.TxInsertionAndBroadcastingError.Failed;
             if (_dPoSTxs.ContainsKey(tx.GetHash()))
@@ -103,7 +99,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private TxValidation.TxInsertionAndBroadcastingError AddContractTransaction(ITransaction tx)
+        private TxValidation.TxInsertionAndBroadcastingError AddContractTransaction(Transaction tx)
         {
             if (tx.Type != TransactionType.ContractTransaction)
                 return TxValidation.TxInsertionAndBroadcastingError.Failed;
@@ -140,7 +136,6 @@ namespace AElf.ChainController.TxMemPool
             }
         }
 
-
         /// <inheritdoc/>
         public void RemoveAsync(Hash txHash)
         {
@@ -155,13 +150,12 @@ namespace AElf.ChainController.TxMemPool
             throw new NotImplementedException();
         }
 
-
         /// <summary>
         /// persist txs with storage
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        private void PersistTxs(IEnumerable<ITransaction> txs)
+        private void PersistTxs(IEnumerable<Transaction> txs)
         {
             foreach (var t in txs)
             {
@@ -171,7 +165,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task<List<ITransaction>> GetReadyTxsAsync(double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(double intervals = 150)
         {
             // get dpos transanction
             var dpos = await DPoSTxLock.WriteLock(() =>
@@ -185,7 +179,7 @@ namespace AElf.ChainController.TxMemPool
                 return readyTxs;
             });
             
-            List<ITransaction> contractTxs = null;
+            List<Transaction> contractTxs = null;
             bool available = false;
             long count = -1;
             using (var tokenSource = new CancellationTokenSource())
@@ -277,7 +271,6 @@ namespace AElf.ChainController.TxMemPool
                 : ContractTxLock.WriteLock(() => { return _contractTxPool.ReadyTxs(addr, start, ids); });
         }
 
-
         /// <inheritdoc/>
         public async Task<ulong> GetPoolSize()
         {
@@ -291,7 +284,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public bool TryGetTx(Hash txHash, out ITransaction tx)
+        public bool TryGetTx(Hash txHash, out Transaction tx)
         {
             return _contractTxs.TryGetValue(txHash, out tx) || _dPoSTxs.TryGetValue(txHash, out tx);
         }
@@ -331,8 +324,7 @@ namespace AElf.ChainController.TxMemPool
         {
             return await ContractTxLock.ReadLock(() => _contractTxPool.GetExecutableSize()) +
                    await DPoSTxLock.ReadLock(() => _dpoSTxPool.GetExecutableSize());
-        }        
-
+        }
 
         /// <inheritdoc/>
         public async Task UpdateAccountContext(HashSet<Hash> addrs)
@@ -367,7 +359,6 @@ namespace AElf.ChainController.TxMemPool
             Cts = new CancellationTokenSource();
         }
 
-
         /// <inheritdoc/>
         public Task Stop()
         {
@@ -386,13 +377,12 @@ namespace AElf.ChainController.TxMemPool
             });
         }
 
-
         /// <inheritdoc/>
-        public ulong GetIncrementId(Hash addr, bool isDPoS = false)
+        public ulong GetIncrementId(Hash addr, bool isBlockProducer = false)
         {
             ILock @lock;
             IPool pool;
-            if (!isDPoS)
+            if (!isBlockProducer)
             {
                 pool = _contractTxPool;
             }
@@ -403,9 +393,8 @@ namespace AElf.ChainController.TxMemPool
             return pool.GetPendingIncrementId(addr);
         }
 
-
         /// <inheritdoc/>
-        public async Task RollBack(List<ITransaction> txsOut)
+        public async Task RollBack(List<Transaction> txsOut)
         {
             _logger?.Log(LogLevel.Debug, "Rollback {0} txs ...", txsOut.Count);
 
@@ -414,11 +403,11 @@ namespace AElf.ChainController.TxMemPool
                 var nonces = txsOut.Select(async p => await TrySetNonce(p.From, p.Type));
                 await Task.WhenAll(nonces);
 
-                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
+                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<Transaction>>(),  (current, p) =>
                 {
                     if (!current.TryGetValue(p.From, out _))
                     {
-                        current[p.From] = new HashSet<ITransaction>();
+                        current[p.From] = new HashSet<Transaction>();
                     }
 
                     current[p.From].Add(p);
@@ -426,7 +415,6 @@ namespace AElf.ChainController.TxMemPool
                     return current;
                 });
                 
-
                 foreach (var kv in tmap)
                 {
                     

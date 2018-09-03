@@ -27,7 +27,6 @@ namespace AElf.Benchmark
         private readonly BenchmarkOptions _options;
         private readonly IExecutingService _executingService;
 
-
         private readonly ServicePack _servicePack;
 
         private readonly TransactionDataGenerator _dataGenerater;
@@ -52,13 +51,13 @@ namespace AElf.Benchmark
         public Benchmarks(IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
             ILogger logger, IFunctionMetadataService functionMetadataService,
-            IAccountContextService accountContextService, IWorldStateDictator worldStateDictator, BenchmarkOptions options, IExecutingService executingService)
+            IAccountContextService accountContextService, IStateDictator stateDictator, BenchmarkOptions options, IExecutingService executingService)
         {
             ChainId = Hash.Generate();
             
-            var worldStateDictator1 = worldStateDictator;
-            worldStateDictator1.SetChainId(ChainId).DeleteChangeBeforesImmidiately = true;
-            
+            var stateDictator1 = stateDictator;
+            stateDictator1.ChainId = ChainId;
+                
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;
             _logger = logger;
@@ -71,7 +70,7 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                WorldStateDictator = worldStateDictator1,
+                StateDictator = stateDictator1,
                 AccountContextService = accountContextService,
             };
 
@@ -176,7 +175,7 @@ namespace AElf.Benchmark
             return new KeyValuePair<string,double>(str, time);
         }
 
-        private List<Hash> GetTargetHashesForTransfer(List<ITransaction> transactions)
+        private List<Hash> GetTargetHashesForTransfer(List<Transaction> transactions)
         {
             if (transactions.Count(a => a.MethodName != "Transfer") != 0)
             {
@@ -312,7 +311,7 @@ namespace AElf.Benchmark
                 await _smartContractService.PutExecutiveAsync(contractAddr, executiveUser);    
             }
             //init contract
-            var initTxList = new List<ITransaction>();
+            var initTxList = new List<Transaction>();
             foreach (var addr in addrBook)
             {
                 var txnBalInit = new Transaction

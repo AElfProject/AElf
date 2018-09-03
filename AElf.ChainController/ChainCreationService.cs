@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
 
@@ -41,8 +40,8 @@ namespace AElf.ChainController
 
                 // add block to storage
                 var blockchain = _chainService.GetBlockChain(chainId);
-                await blockchain.AddBlocksAsync(new List<IBlock>() {builder.Block});
-                var chain = new Chain()
+                await blockchain.AddBlocksAsync(new List<IBlock> {builder.Block});
+                var chain = new Chain
                 {
                     GenesisBlockHash = await blockchain.GetCurrentBlockHashAsync(),
                     Id = chainId
