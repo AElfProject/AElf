@@ -152,8 +152,8 @@ namespace AElf.Configuration
 
         #region Debug
 
-        [Option("debug.level", HelpText = "Debug level: 6=Off, 5=Fatal 4=Error, 3=Warn, 2=Info, 1=Debug, 0=Trace (default: 2)")]
-        public int DebugLevel { get; set; } = 2;
+        [Option("log.level", HelpText = "Log level: 6=Off, 5=Fatal 4=Error, 3=Warn, 2=Info, 1=Debug, 0=Trace (default: 2)")]
+        public int LogLevel { get; set; } = 2;
 
         #endregion
 

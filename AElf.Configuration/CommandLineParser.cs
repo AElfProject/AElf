@@ -110,7 +110,7 @@ namespace AElf.Configuration
             ManagementConfig.Instance.NodeAccount = opts.NodeAccount;
             ManagementConfig.Instance.NodeAccount = opts.NodeAccountPassword;
 
-            LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.DebugLevel);
+            LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }
     }
 }

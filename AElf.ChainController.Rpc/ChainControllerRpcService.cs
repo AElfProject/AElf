@@ -16,6 +16,7 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
+using NLog;
 
 namespace AElf.ChainController.Rpc
 {
@@ -35,7 +36,12 @@ namespace AElf.ChainController.Rpc
 
         #endregion Properties
 
+        private readonly ILogger _logger;
 
+        public ChainControllerRpcService(ILogger logger)
+        {
+            _logger = logger;
+        }
         #region Methods
 
         [JsonRpcMethod("get_commands")]
@@ -361,7 +367,7 @@ namespace AElf.ChainController.Rpc
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Error("ProcSetBlockVolume failed: " + e);
                 return await Task.FromResult(new JObject
                 {
                     ["error"] = "Failed"
