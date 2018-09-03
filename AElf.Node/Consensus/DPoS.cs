@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
@@ -13,10 +14,13 @@ using AElf.Kernel.Node.Protocol;
 using AElf.Miner.Miner;
 using AElf.Node;
 using AElf.Node.AElfChain;
+using AElf.Node.Protocol;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
+using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Mono.Cecil.Cil;
 using NLog;
 
 // ReSharper disable once CheckNamespace
@@ -239,11 +243,13 @@ namespace AElf.Kernel.Node
         
         private async Task MiningWithInitializingAElfDPoSInformation()
         {
+            var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
             var parameters = new List<byte[]>
             {
                 Miners.ToByteArray(),
                 _dposHelpers.GenerateInfoForFirstTwoRounds().ToByteArray(),
-                new SInt32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray()
+                new SInt32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray(),
+                logLevel.ToByteArray()
             };
             _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms");
             var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
@@ -367,7 +373,8 @@ namespace AElf.Kernel.Node
                                Thread.CurrentThread.ManagedThreadId);
             try
             {
-                await _txPoolService.AddTxAsync(tx);
+                if (await _txPoolService.AddTxAsync(tx) == TxValidation.TxInsertionAndBroadcastingError.Success)
+                    MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
             }
             catch (Exception e)
             {

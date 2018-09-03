@@ -54,7 +54,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public ServicePack ServicePack;
 
-        public IStateDictator StateDictator;
+        public IStateDictator StateDictator { get; }
         private IChainCreationService _chainCreationService;
         private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;

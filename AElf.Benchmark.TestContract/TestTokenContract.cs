@@ -28,17 +28,17 @@ namespace AElf.Benchmark.TestContract
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
-        public bool Transfer(Hash from, Hash to, UInt64Value qty)
+        public bool Transfer(Hash from, Hash to, ulong qty)
         {
             var fromBal = Balances.GetValue(from);
             //Console.WriteLine("from pass");
 
             var toBal = Balances.GetValue(to);
             //Console.WriteLine("to pass");
-            var newFromBal = fromBal - qty.Value;
-            Api.Assert(fromBal > qty.Value, $"Insufficient balance, {qty.Value} is required but there is only {fromBal}.");
+            var newFromBal = fromBal - qty;
+            Api.Assert(fromBal > qty, $"Insufficient balance, {qty} is required but there is only {fromBal}.");
             
-            var newToBal = toBal + qty.Value;
+            var newToBal = toBal + qty;
 
             Balances.SetValue(from, newFromBal);
             //Console.WriteLine("set from pass");

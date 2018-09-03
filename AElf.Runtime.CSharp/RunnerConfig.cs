@@ -4,11 +4,12 @@ using Newtonsoft.Json.Linq;
 
 namespace AElf.Runtime.CSharp
 {
-    public class RunnerConfig : IRunnerConfig
+    // todo zx lr
+    public class RunnerConfig0 : IRunnerConfig
     {
-        public static RunnerConfig FromJObject(JObject jObject)
+        public static RunnerConfig0 FromJObject(JObject jObject)
         {
-            var obj = new RunnerConfig();
+            var obj = new RunnerConfig0();
             if (jObject.TryGetValue("sdkdir", out var sdkdir))
             {
                 obj.SdkDir = sdkdir.ToString();

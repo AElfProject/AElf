@@ -4,7 +4,6 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
     <ProjectReference Include="..\AElf.Net.Rpc\AElf.Net.Rpc.csproj" />
     <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
   </ItemGroup>

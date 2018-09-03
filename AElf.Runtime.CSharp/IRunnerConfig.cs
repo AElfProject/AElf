@@ -2,6 +2,7 @@
 
 namespace AElf.Runtime.CSharp
 {
+    // todo zx lr
     public interface IRunnerConfig
     {
         string SdkDir { get; set; }

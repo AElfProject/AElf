@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
 using AElf.Configuration.Config.Network;
-using AElf.Kernel.Modules.AutofacModule;
 using AElf.Net.Rpc;
 using AElf.Node;
 using AElf.Node.AElfChain;
@@ -21,15 +21,11 @@ namespace AElf.Network.Sim.Node
     
             var builder = new ContainerBuilder();
             
-            builder.RegisterModule(new RpcServicesModule());
-            builder.RegisterModule(new NetworkModule(false));
-            builder.RegisterModule(new LoggerModule("aelf-node-" + 1578));
-
-            
-            builder.RegisterType<RpcServer>().As<IRpcServer>().SingleInstance();
-            builder.RegisterType<NetRpcService>().PropertiesAutowired();
-            
-            builder.RegisterType<AElf.Node.Node>().As<INode>();
+            builder.RegisterModule(new RpcAutofacModule());
+            builder.RegisterModule(new NetRpcAutofacModule());
+            builder.RegisterModule(new NodeAutofacModule());
+            builder.RegisterModule(new NetworkAutofacModule());
+            builder.RegisterModule(new LoggerAutofacModule());
                 
             IContainer container = null;
             

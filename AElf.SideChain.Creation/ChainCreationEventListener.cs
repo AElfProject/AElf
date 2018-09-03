@@ -5,9 +5,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.Common.Application;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
+using AElf.Cryptography.Certificate;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
@@ -28,13 +30,15 @@ namespace AElf.SideChain.Creation
         private IChainCreationService ChainCreationService { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
+        private ISideChainManager _sideChainManager;
 
-        public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager,
-            IChainCreationService chainCreationService)
+        public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager, 
+            IChainCreationService chainCreationService, ISideChainManager sideChainManager)
         {
             _logger = logger;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
+            _sideChainManager = sideChainManager;
             _interestedLogEvent = new LogEvent()
             {
                 Address = GetGenesisContractHash(),
@@ -69,7 +73,7 @@ namespace AElf.SideChain.Creation
                         break;
                     }
                 }
-
+                
                 res.Add(
                     (SideChainInfo) ParamsPacker.Unpack(le.Data.ToByteArray(),
                         new System.Type[] {typeof(SideChainInfo)})[0]
@@ -87,6 +91,7 @@ namespace AElf.SideChain.Creation
                 return;
             }
 
+            var chainId = block.Header.ChainId;
             var infos = new List<SideChainInfo>();
             foreach (var txId in block.Body.Transactions)
             {
@@ -99,7 +104,8 @@ namespace AElf.SideChain.Creation
                 _logger?.Info("Chain creation event: " + info);
                 try
                 {
-                    var response = await SendChainDeploymentRequestFor(info.ChainId);
+                    var response = await SendChainDeploymentRequestFor(info.ChainId, chainId);
+                    
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
                         _logger?.Error(
@@ -113,6 +119,9 @@ namespace AElf.SideChain.Creation
                             $"Successfully sent sidechain deployment request for {info.ChainId}. " +
                             "Management API return message: " + await response.Content.ReadAsStringAsync()
                         );
+                        
+                        // insert 
+                        await _sideChainManager.AddSideChain(info.ChainId);
                     }
                 }
                 catch (Exception e)
@@ -129,10 +138,10 @@ namespace AElf.SideChain.Creation
             _client = new HttpClient {BaseAddress = new Uri(ManagementConfig.Instance.Url)};
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
-
-        private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash chainId)
+    
+        private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash sideChainId, Hash parentChainId)
         {
-            var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + chainId.ToHex();
+            var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + sideChainId.ToHex();
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var content = new JObject()
             {

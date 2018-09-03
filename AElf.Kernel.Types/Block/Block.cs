@@ -37,5 +37,10 @@ namespace AElf.Kernel
         {
             return Header.GetHash();
         }
+
+        public byte[] GetHashBytes()
+        {
+            return Header.GetHashBytes();
+        }
     }
 }

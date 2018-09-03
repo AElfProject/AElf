@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
@@ -30,10 +31,8 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public async Task TestTryAddNewContract()
         {
-            var runner = new SmartContractRunner(new RunnerConfig()
-            {
-                SdkDir = _mock.SdkDir
-            });
+            RunnerConfig.Instance.SdkDir = _mock.SdkDir;
+            var runner = new SmartContractRunner();
             
             var reg = new SmartContractRegistration
             {
