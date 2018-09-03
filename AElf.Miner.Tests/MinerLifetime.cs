@@ -9,6 +9,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using AElf.Miner.Miner;
+using AElf.Miner.Rpc.Client;
 using AElf.Miner.Tests;
 using Akka.Actor;
 using Akka.TestKit;
@@ -226,9 +227,10 @@ namespace AElf.Kernel.Tests.Miner
         }
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
-        {            
+        {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
-                _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger, _chainCreationService, _chainManagerBasic, _blockManagerBasic);
+                _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
+                new MinerClientGenerator(_logger));
 
             return miner;
         }
@@ -264,7 +266,7 @@ namespace AElf.Kernel.Tests.Miner
             
             var miner = GetMiner(minerconfig, poolService);
 
-            miner.Start(keypair);
+            miner.Init(keypair);
             
             var block = await miner.Mine(Timeout.Infinite, false);
             
@@ -300,7 +302,7 @@ namespace AElf.Kernel.Tests.Miner
             /*var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
                 new Grouper(_servicePack.ResourceDetectionService));*/
             
-            miner.Start(keypair);
+            miner.Init(keypair);
             
             var block = await miner.Mine(Timeout.Infinite, false);
             

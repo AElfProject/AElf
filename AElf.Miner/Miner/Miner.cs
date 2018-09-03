@@ -15,6 +15,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel.Consensus;
 using AElf.Miner.Miner;
+using AElf.Miner.Rpc.Client;
 using NLog;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
@@ -31,13 +32,11 @@ namespace AElf.Miner.Miner
         private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
         private readonly IStateDictator _stateDictator;
-        private readonly ISmartContractService _smartContractService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IChainCreationService _chainCreationService;
-        private readonly IChainManagerBasic _chainManagerBasic;
-        private readonly IBlockManagerBasic _blockManagerBasic;
+        private readonly MinerClientGenerator _clientGenerator;
+        private readonly ISideChainManager _sideChainManager;
 
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
@@ -53,24 +52,20 @@ namespace AElf.Miner.Miner
         public Hash Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
-            IStateDictator stateDictator,  ISmartContractService smartContractService, 
-            IExecutingService executingService, ITransactionManager transactionManager, 
-            ITransactionResultManager transactionResultManager, ILogger logger, 
-            IChainCreationService chainCreationService, IChainManagerBasic chainManagerBasic, 
-            IBlockManagerBasic blockManagerBasic)
+            IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager, 
+            ITransactionResultManager transactionResultManager, ILogger logger, MinerClientGenerator clientGenerator, 
+            ISideChainManager sideChainManager)
         {
             Config = config;
             _txPoolService = txPoolService;
             _chainService = chainService;
             _stateDictator = stateDictator;
-            _smartContractService = smartContractService;
             _executingService = executingService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
-            _chainCreationService = chainCreationService;
-            _chainManagerBasic = chainManagerBasic;
-            _blockManagerBasic = blockManagerBasic;
+            _clientGenerator = clientGenerator;
+            _sideChainManager = sideChainManager;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
@@ -219,7 +214,7 @@ namespace AElf.Miner.Miner
 
                     // put back canceled transactions
                     // No await so that it won't affect Consensus
-                    await _txPoolService.Revert(rollback);
+                    _txPoolService.Revert(rollback);
                     return block;
                 }
                 catch (Exception e)
@@ -335,11 +330,10 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// start mining  
         /// </summary>
-        public void Start(ECKeyPair nodeKeyPair)
+        public void Init(ECKeyPair nodeKeyPair)
         {
-//            Cts = new CancellationTokenSource();
             _keyPair = nodeKeyPair;
-            //MiningResetEvent = new AutoResetEvent(false);
+            
         }
 
         /// <summary>

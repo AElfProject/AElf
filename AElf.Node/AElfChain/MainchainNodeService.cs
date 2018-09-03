@@ -192,7 +192,7 @@ namespace AElf.Node.AElfChain
             
             if (NodeConfig.Instance.IsMiner)
             {
-                _miner.Start(_nodeKeyPair);
+                _miner.Init(_nodeKeyPair);
 
                 _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.ToHex());
             }
