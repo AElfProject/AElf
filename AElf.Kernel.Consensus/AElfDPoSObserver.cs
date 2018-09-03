@@ -17,7 +17,8 @@ namespace AElf.Kernel.Consensus
         // ReSharper disable once InconsistentNaming
         private readonly Func<Task> _miningWithInitializingAElfDPoSInformation;
         private readonly Func<Task> _miningWithPublishingOutValueAndSignature;
-        private readonly Func<Task> _publishInValue;
+        private readonly Func<Task>
+            _publishInValue;
         // ReSharper disable once InconsistentNaming
         private readonly Func<Task> _miningWithUpdatingAElfDPoSInformation;
 
