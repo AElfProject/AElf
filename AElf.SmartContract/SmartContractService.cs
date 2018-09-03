@@ -80,7 +80,7 @@ namespace AElf.SmartContract
 
         public async Task PutExecutiveAsync(Hash account, IExecutive executive)
         {
-            // TODO: Maybe reset TransactionContext
+            executive.SetTransactionContext(new TransactionContext());
             executive.SetDataCache(new Dictionary<DataPath, StateCache>());
             GetPoolFor(account).Add(executive);
             await Task.CompletedTask;
