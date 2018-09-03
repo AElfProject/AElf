@@ -31,7 +31,7 @@ namespace AElf.Kernel.Consensus
                         .GetAsync<Miners>(Globals.AElfDPoSBlockProducerString.CalculateHash()).Result);
                     foreach (var node in miners.Nodes)
                     {
-                        Console.WriteLine($"Miner: {node}");
+                        _logger?.Info($"Miner: {node}");
                     }
                     return miners;
                 }

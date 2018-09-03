@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using AElf.Common.Attributes;
 using Autofac;
@@ -17,15 +18,14 @@ namespace AElf.Common
         {
             _nodeName = nodeName;
         }
-        
+
         protected override void Load(ContainerBuilder builder)
         {
             try
             {
-                var logConfigFile = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NLog.config");
+                var logConfigFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NLog.config");
                 LogManager.Configuration = new XmlLoggingConfiguration(logConfigFile);
-            
-                var target = (FileTarget)LogManager.Configuration.FindTargetByName("file");
+                var target = (FileTarget) LogManager.Configuration.FindTargetByName("file");
 
                 if (string.IsNullOrWhiteSpace(_nodeName))
                 {
@@ -36,11 +36,12 @@ namespace AElf.Common
                     target.FileName = "logs/" + _nodeName + ".log";
                     target.ArchiveFileName = "logs/archives/" + _nodeName + "--{#}.arc";
                 }
-                
+
                 LogManager.ReconfigExistingLoggers();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Init NLog failed. {ex}");
             }
         }
 
@@ -63,7 +64,7 @@ namespace AElf.Common
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine($"Init NLog failed. {ex}");
             }
 
             e.Parameters = e.Parameters.Union(

@@ -16,8 +16,6 @@ namespace AElf.Miner.Rpc.Server
     {
         private readonly HeaderInfoServerImpl _headerInfoServerImpl;
         private readonly ILogger _logger;
-        private static readonly int Port = GrpcConfig.Instance.LocalMinerServerPort;
-        private static readonly string Address = GrpcConfig.Instance.LocalMinerServerIP;
         private Grpc.Core.Server _server;
 
         private CertificateStore _certificateStore;
@@ -40,7 +38,12 @@ namespace AElf.Miner.Rpc.Server
             if(privateKey == null)
                 throw new PrivateKeyException("Unable to load private key.");
             var keyCertificatePair = new KeyCertificatePair(certificate, privateKey);
+            
+            // create credential
             _sslServerCredentials = new SslServerCredentials(new List<KeyCertificatePair> {keyCertificatePair});
+            
+            // init server impl
+            _headerInfoServerImpl.Init(chainId);
         }
         
         
@@ -49,10 +52,14 @@ namespace AElf.Miner.Rpc.Server
             _server = new Grpc.Core.Server
             {
                 Services = {HeaderInfoRpc.BindService(_headerInfoServerImpl)},
-                Ports = {new ServerPort(Address, Port, _sslServerCredentials)}
+                Ports =
+                {
+                    new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, GrpcLocalConfig.Instance.LocalServerPort, 
+                        _sslServerCredentials)
+                }
             };
             _server.Start();
-            _logger.Log(LogLevel.Debug, "Miner server listening on port " + Port);          
+            _logger.Log(LogLevel.Debug, "Miner server listening on port " + GrpcLocalConfig.Instance.LocalServerPort);          
         }
 
         public void Stop()

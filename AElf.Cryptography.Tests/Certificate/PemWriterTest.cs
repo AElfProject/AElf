@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using AElf.Cryptography.Certificate;
-using AElf.Cryptography.SSL;
 using AElf.Kernel;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.X509;
