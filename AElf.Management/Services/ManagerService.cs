@@ -10,7 +10,7 @@ namespace AElf.Management.Services
     {
         public List<ManagerResult> GetAllManagers(string chainId)
         {
-            var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=set-manager");
+            var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.ManagerName);
 
             var result = new List<ManagerResult>();
             foreach (var pod in pods.Items)

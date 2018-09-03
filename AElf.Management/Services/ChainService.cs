@@ -91,7 +91,7 @@ namespace AElf.Management.Services
             while (true)
             {
                 Thread.Sleep(3000);
-                var service1 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", namespace1);
+                var service1 = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, namespace1);
                 var ingress = service1.Status.LoadBalancer.Ingress;
                 if (ingress == null)
                 {
@@ -103,7 +103,7 @@ namespace AElf.Management.Services
                     continue;
                 }
 
-                var pod1 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace1, labelSelector: "name=deploy-launcher");
+                var pod1 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace1, labelSelector: "name=" + GlobalSetting.LauncherName);
                 if (pod1 == null || pod1.Items.First().Status.Phase != "Running")
                 {
                     continue;
@@ -135,7 +135,7 @@ namespace AElf.Management.Services
             while (true)
             {
                 Thread.Sleep(3000);
-                var service2 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", namespace2);
+                var service2 = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, namespace2);
                 var ingress = service2.Status.LoadBalancer.Ingress;
                 if (ingress == null)
                 {
@@ -147,7 +147,7 @@ namespace AElf.Management.Services
                     continue;
                 }
 
-                var pod2 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace2, labelSelector: "name=deploy-launcher");
+                var pod2 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace2, labelSelector: "name=" + GlobalSetting.LauncherName);
                 if (pod2 == null || pod2.Items.First().Status.Phase != "Running")
                 {
                     continue;
@@ -183,7 +183,7 @@ namespace AElf.Management.Services
             while (true)
             {
                 Thread.Sleep(3000);
-                var service3 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", namespace3);
+                var service3 = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, namespace3);
                 var ingress = service3.Status.LoadBalancer.Ingress;
                 if (ingress == null)
                 {

@@ -10,7 +10,7 @@ namespace AElf.Management.Services
     {
         public List<LauncherResult> GetAllLaunchers(string chainId)
         {
-            var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=deploy-launcher");
+            var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LauncherName);
 
             var result = new List<LauncherResult>();
             foreach (var pod in pods.Items)
