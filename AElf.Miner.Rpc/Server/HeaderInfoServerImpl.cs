@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.Common.Attributes;
 using AElf.Kernel;
 using Grpc.Core;
 using NLog;
 
 namespace AElf.Miner.Rpc.Server
 {
+    [LoggerName("MinerServer")]
     public class HeaderInfoServerImpl : HeaderInfoRpc.HeaderInfoRpcBase
     {
         private readonly IChainService _chainService;
@@ -34,8 +36,6 @@ namespace AElf.Miner.Rpc.Server
                 var requestInfo = requestStream.Current;
                 var requestedHeight = requestInfo.NextHeight;
                 var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);
-                System.Diagnostics.Debug.WriteLine("Server response..");
-
                 var res = new ResponseIndexedInfoMessage
                 {
                     Height = requestedHeight,
@@ -43,8 +43,7 @@ namespace AElf.Miner.Rpc.Server
                     TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
                     Success = true
                 };
-
-
+                _logger?.Log(LogLevel.Debug, "Server responsed IndexedInfo message.");
                 await responseStream.WriteAsync(res);
             }
         }

@@ -4,22 +4,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common.Collections;
+using AElf.Common.Attributes;
 using AElf.Kernel;
 using Grpc.Core;
+using NLog;
+using NLog.Fluent;
 
 namespace AElf.Miner.Rpc.Client
 {
+    [LoggerName("MinerClient")]
     public class MinerClient
     {
         private readonly HeaderInfoRpc.HeaderInfoRpcClient _client;
         private ulong _next;
+        private readonly ILogger _logger;
+        private Hash _targetChainId;
 
         public BlockingCollection<ResponseIndexedInfoMessage> IndexedInfoQueue { get; } =
             new BlockingCollection<ResponseIndexedInfoMessage>(new ConcurrentQueue<ResponseIndexedInfoMessage>());
 
-        public MinerClient(Channel channel)
+        public MinerClient(Channel channel, ILogger logger, Hash targetChainId)
         {
+            _logger = logger;
+            _targetChainId = targetChainId;
             _client = new HeaderInfoRpc.HeaderInfoRpcClient(channel);
         }
 
@@ -53,8 +60,9 @@ namespace AElf.Miner.Rpc.Client
                         {
                             NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                         };
+                        _logger.Log(LogLevel.Debug,
+                            $"Request IndexedInfo message of height {request.NextHeight} from chain \"{_targetChainId.ToHex()}\"");
                         await call.RequestStream.WriteAsync(request);
-                        System.Diagnostics.Debug.WriteLine("request");
 
                         await Task.Delay(1000);
                     }

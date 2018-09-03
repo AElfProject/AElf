@@ -63,7 +63,7 @@ namespace AElf.Miner.Tests.Grpc
 
         public MinerClientGenerator MinerClientGenerator()
         {
-            return new MinerClientGenerator();
+            return new MinerClientGenerator(_logger);
         }
 
 
