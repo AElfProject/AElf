@@ -53,7 +53,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public ServicePack ServicePack;
 
-        private IStateDictator _stateDictator;
+        public IStateDictator StateDictator { get; }
         private IChainCreationService _chainCreationService;
         private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;
@@ -69,7 +69,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger, HashManager hashManager, TransactionManager transactionManager)
+            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger,
+            IStateDictator stateDictator,
+            HashManager hashManager, TransactionManager transactionManager)
         {
             _logger = logger;
             ActorEnvironment = actorEnvironment;
@@ -79,7 +81,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             }
             _hashManager = hashManager;
             _transactionManager = transactionManager;
-            _stateDictator = new StateDictator(_hashManager,transactionManager, dataStore, _logger);
+            StateDictator = stateDictator;//new StateDictator(_hashManager,transactionManager, dataStore, _logger);
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             ChainContextService = chainContextService;
@@ -88,7 +90,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _stateDictator,
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
@@ -96,9 +98,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                StateDictator = _stateDictator
+                StateDictator = StateDictator
             };
 
+            // These are only required for workertest
+            // other tests use ActorEnvironment
             var workers = new[] {"/user/worker1", "/user/worker2"};
             Worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
             Worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
@@ -121,13 +125,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
 
-            _stateDictator.ChainId = ChainId1;
-            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
+            StateDictator.ChainId = ChainId1;
+            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             
-            _stateDictator.ChainId = ChainId2;
-            DataProvider2 = _stateDictator.GetAccountDataProvider(ChainId2.OfType(HashType.AccountZero));
+            StateDictator.ChainId = ChainId2;
+            DataProvider2 = StateDictator.GetAccountDataProvider(ChainId2.OfType(HashType.AccountZero));
         }
 
         private async Task DeploySampleContracts()
