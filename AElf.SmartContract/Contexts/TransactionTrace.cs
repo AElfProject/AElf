@@ -35,7 +35,7 @@ namespace AElf.SmartContract
             var successful = string.IsNullOrEmpty(StdErr);
             foreach (var trace in InlineTraces)
             {
-                successful &= IsSuccessful();
+                successful &= trace.IsSuccessful();
             }
 
             return successful;
