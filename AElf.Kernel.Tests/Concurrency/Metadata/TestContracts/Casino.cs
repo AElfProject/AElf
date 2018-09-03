@@ -83,7 +83,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 //            var type = GetType();
 //            var member = type.GetMethod(methodname);
 //            // params array
-//            var parameters = ECParameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
+//            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
 //            
 //            // invoke
 //            await (Task<object>) member.Invoke(this, parameters);
