@@ -229,8 +229,7 @@ namespace AElf.Kernel.Tests.Miner
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
-                _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
-                new MinerClientGenerator(_logger));
+                _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger);
 
             return miner;
         }

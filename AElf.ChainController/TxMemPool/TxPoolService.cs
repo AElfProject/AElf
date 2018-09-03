@@ -191,6 +191,7 @@ namespace AElf.ChainController.TxMemPool
                 {
                     if (token.IsCancellationRequested)
                     {
+                        //case 2
                         _logger.Log(LogLevel.Debug, "TIMEOUT! - No time left to get txs.");
                         return;
                     }
@@ -198,15 +199,17 @@ namespace AElf.ChainController.TxMemPool
                     var execCount = _contractTxPool.GetExecutableSize();
                     if (token.IsCancellationRequested)
                     {
+                        //case 2
                         return;
                     }
                     count = (long) execCount;
                     if (execCount < _contractTxPool.Least)
                     {
+                        // case 3
                         return;
                     }
                     available = true;
-                    contractTxs = _contractTxPool.ReadyTxs();
+                    contractTxs = _contractTxPool.ReadyTxs(); //case 1
                 }, token);
                 
                 try
@@ -236,6 +239,7 @@ namespace AElf.ChainController.TxMemPool
             
             if (contractTxs != null)
             {
+                // case 1
                 // get txs successfully
                 prior.AddRange(contractTxs);
             
@@ -247,15 +251,22 @@ namespace AElf.ChainController.TxMemPool
             }
             else if(available)
             {
-                // something wrong which sholud not happen
+                // something is wrong which should not happen
                 _logger.Log(LogLevel.Error, "FAILED to get all transactions，some would be lost!");
             }
-            else if (count == -1 || count >= (long) _contractTxPool.Least)
+            else if (count == -1)
             {
+                // case 2
                 _logger.Log(LogLevel.Debug, "TIMEOUT! - Unable to get txs.");
+            }
+            else if(count >= (long) _contractTxPool.Least)
+            {
+                // only few cases.
+                _logger.Log(LogLevel.Debug, "TIMEOUT! - Enough txs but no time left to get txs.");
             }
             else
             {
+                // case 3
                 _logger.Log(LogLevel.Debug,
                     $"Only {count} Contract tx(s) in pool are ready: less than {_contractTxPool.Least}.");
             }

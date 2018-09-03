@@ -35,8 +35,8 @@ namespace AElf.Miner.Miner
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly MinerClientGenerator _clientGenerator;
-        private readonly ISideChainManager _sideChainManager;
+        //private readonly MinerClientGenerator _clientGenerator;
+        //private readonly ISideChainManager _sideChainManager;
 
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
@@ -53,8 +53,7 @@ namespace AElf.Miner.Miner
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager, 
-            ITransactionResultManager transactionResultManager, ILogger logger, MinerClientGenerator clientGenerator, 
-            ISideChainManager sideChainManager)
+            ITransactionResultManager transactionResultManager, ILogger logger)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -64,8 +63,8 @@ namespace AElf.Miner.Miner
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
-            _clientGenerator = clientGenerator;
-            _sideChainManager = sideChainManager;
+            //_clientGenerator = clientGenerator;
+            //_sideChainManager = sideChainManager;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
