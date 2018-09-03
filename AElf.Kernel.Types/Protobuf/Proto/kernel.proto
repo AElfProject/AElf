@@ -25,7 +25,8 @@ message TransactionList {
 
 enum TransactionType {
     ContractTransaction = 0;
-    DposTransaction = 1;
+    PriorTransaction = 1;
+    
 }
 
 enum Status {

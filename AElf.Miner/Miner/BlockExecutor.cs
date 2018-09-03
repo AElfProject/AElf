@@ -221,7 +221,7 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         private async Task Rollback(List<Transaction> readyTxs)
         {
-            await _txPoolService.RollBack(readyTxs);
+            await _txPoolService.Revert(readyTxs);
             await _stateDictator.RollbackToPreviousBlock();
         }
         

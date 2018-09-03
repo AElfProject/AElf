@@ -256,7 +256,7 @@ namespace AElf.Miner.Tests
             poolconfig.ChainId = chain.Id;
             
             var contractTxPool = new ContractTxPool(poolconfig, _logger);
-            var dPoSTxPool = new DPoSTxPool(poolconfig, _logger);
+            var dPoSTxPool = new PriorTxPool(poolconfig, _logger);
             
             var poolService = new TxPoolService(contractTxPool, _accountContextService, _logger, dPoSTxPool);
             

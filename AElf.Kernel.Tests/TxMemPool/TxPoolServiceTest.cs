@@ -35,10 +35,10 @@ namespace AElf.Kernel.Tests.TxMemPool
             return new ContractTxPool(config, _logger);
         }
         
-        private DPoSTxPool GetDPoSTxPool(ITxPoolConfig config)
+        private PriorTxPool GetDPoSTxPool(ITxPoolConfig config)
         {
             _stateDictator.ChainId = config.ChainId;
-            return new DPoSTxPool(config, _logger);
+            return new PriorTxPool(config, _logger);
         }
 
         [Fact]
@@ -225,7 +225,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx4_1 = BuildTransaction(nonce:2, keyPair:kp4);
             
             
-            await poolService.RollBack(new List<Transaction>{tx1_4, tx1_5, tx2_2, tx3_2, tx4_1, tx4_0});
+            await poolService.Revert(new List<Transaction>{tx1_4, tx1_5, tx2_2, tx3_2, tx4_1, tx4_0});
             
             Assert.Equal((ulong)0, pool.GetNonce(kp1.GetAddress()).Value);
             Assert.Equal((ulong)0, pool.GetNonce(kp2.GetAddress()).Value);

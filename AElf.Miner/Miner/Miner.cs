@@ -219,7 +219,7 @@ namespace AElf.Miner.Miner
 
                     // put back canceled transactions
                     // No await so that it won't affect Consensus
-                    await _txPoolService.RollBack(rollback);
+                    await _txPoolService.Revert(rollback);
                     return block;
                 }
                 catch (Exception e)

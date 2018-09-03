@@ -1,6 +1,6 @@
 ﻿namespace AElf.ChainController.TxMemPool
 {
-    public interface IDPoSTxPool : IPool
+    public interface IPriorTxPool : IPool
     {
         
     }

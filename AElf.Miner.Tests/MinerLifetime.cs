@@ -252,7 +252,7 @@ namespace AElf.Kernel.Tests.Miner
             var poolconfig = TxPoolConfig.Default;
             poolconfig.ChainId = chain.Id;
             var pool = new ContractTxPool(poolconfig, _logger);
-            var dPoSPool = new DPoSTxPool(poolconfig, _logger);
+            var dPoSPool = new PriorTxPool(poolconfig, _logger);
             var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             poolService.Start();
 
@@ -290,7 +290,7 @@ namespace AElf.Kernel.Tests.Miner
             var poolconfig = TxPoolConfig.Default;
             poolconfig.ChainId = chain.Id;
             var pool = new ContractTxPool(poolconfig, _logger);
-            var dPoSPool = new DPoSTxPool(poolconfig, _logger);
+            var dPoSPool = new PriorTxPool(poolconfig, _logger);
             var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             
             poolService.Start();

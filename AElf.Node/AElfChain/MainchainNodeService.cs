@@ -358,7 +358,7 @@ namespace AElf.Node.AElfChain
                         {
                             _logger?.Trace("Ready to rollback");
                             var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
-                            await _txPoolService.RollBack(txs);
+                            await _txPoolService.Revert(txs);
                             await _stateDictator.RollbackToPreviousBlock();
                             error = ValidationError.Success;
                         }

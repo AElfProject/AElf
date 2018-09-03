@@ -213,7 +213,7 @@ namespace AElf.Kernel.Node
                 IncrementId = GetIncrementId(_nodeKeyPair.Address).Result + incrementIdOffset,
                 MethodName = methodName,
                 P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey),
-                Type = TransactionType.DposTransaction
+                Type = TransactionType.PriorTransaction
             };
 
             switch (parameters.Count)
