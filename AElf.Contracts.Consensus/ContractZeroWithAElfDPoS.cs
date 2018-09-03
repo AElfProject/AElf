@@ -26,9 +26,9 @@ namespace AElf.Contracts.Consensus
             MiningIntervalField = new Int32Field(Globals.AElfDPoSMiningIntervalString)
         });
         
-        public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval)
+        public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval, byte[] logLevel)
         {
-            await _consensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo, miningInterval});
+            await _consensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo, miningInterval, logLevel});
         }
 
         public async Task UpdateAElfDPoS(byte[] currentRoundInfo, byte[] nextRoundInfo, byte[] nextExtraBlockProducer)

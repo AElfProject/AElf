@@ -28,18 +28,18 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             }
         }
 
-        public bool PrintLogs => true;
+        public int LogLevel { get; set; }
 
         public Hash Nonce { get; set; } = Hash.Default;
 
         #region Protobuf fields and maps
-        
+
         private readonly UInt64Field _currentRoundNumberField;
 
         private readonly PbField<Miners> _blockProducerField;
 
         private readonly Map<UInt64Value, Round> _dPoSInfoMap;
-        
+
         // ReSharper disable once InconsistentNaming
         private readonly Map<UInt64Value, StringValue> _eBPMap;
 
@@ -81,11 +81,11 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// <returns></returns>
         public async Task Initialize(List<byte[]> args)
         {
-            if (args.Count != 3)
+            if (args.Count != 4)
             {
                 return;
             }
-            
+
             var round1 = new UInt64Value {Value = 1};
             var round2 = new UInt64Value {Value = 2};
             Miners miners;
@@ -96,13 +96,14 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 miners = Miners.Parser.ParseFrom(args[0]);
                 dPoSInfo = AElfDPoSInformation.Parser.ParseFrom(args[1]);
                 miningInterval = SInt32Value.Parser.ParseFrom(args[2]);
+                LogLevel = Int32Value.Parser.ParseFrom(args[3]).Value;
             }
             catch (Exception e)
             {
                 ConsoleWriteLine(nameof(Initialize), "Failed to parse from byte array.", e);
                 return;
             }
-            
+
             // 1. Set block producers;
             try
             {
@@ -112,7 +113,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             {
                 ConsoleWriteLine(nameof(Initialize), "Failed to set block producers.", e);
             }
-            
+
             // 2. Set current round number to 1;
             try
             {
@@ -122,7 +123,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             {
                 ConsoleWriteLine(nameof(Initialize), "Failed to update current round number.", e);
             }
-            
+
             // 3. Set mining interval;
             try
             {
@@ -132,7 +133,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             {
                 ConsoleWriteLine(nameof(Initialize), "Failed to set mining interval.", e);
             }
-            
+
             // 4. Set first place of round 1 and 2 using DPoSInfo;
             try
             {
@@ -196,7 +197,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             {
                 return;
             }
-            
+
             Round currentRoundInfo;
             Round nextRoundInfo;
             StringValue nextExtraBlockProducer;
@@ -240,7 +241,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             {
                 return;
             }
-            
+
             UInt64Value roundNumber;
             StringValue accountAddress;
             try
@@ -253,7 +254,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array.", e);
                 return;
             }
-            
+
             // ReSharper disable once ConvertIfStatementToSwitchStatement
             if (args.Count == 4)
             {
@@ -287,7 +288,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                     ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
                     return;
                 }
-                
+
                 await PublishInValue(roundNumber, accountAddress, inValue);
             }
         }
@@ -344,6 +345,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             {
                 ConsoleWriteLine(nameof(Initialize), $"Set Miner: {bp}");
             }
+
             await _blockProducerField.SetAsync(miners);
         }
 
@@ -362,7 +364,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await _firstPlaceMap.SetValueToDatabaseAsync(roundNumber,
                 new StringValue {Value = info.GetRoundInfo(roundNumber.Value).BlockProducers.First().Key});
         }
-        
+
         private async Task SetFirstPlaceOfSpecificRound(UInt64Value roundNumber, StringValue accountAddress)
         {
             await _firstPlaceMap.SetValueToDatabaseAsync(roundNumber, accountAddress);
@@ -372,7 +374,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         {
             await _dPoSInfoMap.SetValueToDatabaseAsync(roundNumber, info.GetRoundInfo(roundNumber.Value));
         }
-        
+
         private async Task SetDPoSInfoToMap(UInt64Value roundNumber, Round roundInfo)
         {
             await _dPoSInfoMap.SetValueToDatabaseAsync(roundNumber, roundInfo);
@@ -394,12 +396,12 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             var timeslot = GetTimestampWithOffset(lastMinerTimeslot, Interval);
             await _timeForProducingExtraBlockField.SetAsync(timeslot);
         }
-        
+
         private async Task SetExtraBlockMiningTimeslotOfSpecificRound(Timestamp timestamp)
         {
             await _timeForProducingExtraBlockField.SetAsync(timestamp);
         }
-        
+
         // ReSharper disable once InconsistentNaming
         private async Task SupplyDPoSInformationOfCurrentRound(Round currentRoundInfo)
         {
@@ -421,9 +423,9 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 {
                     //If one Block Producer failed to pulish his in value (with a tx),
                     //it means maybe something wrong happened to him.
-                    if (infoPair.Value.InValue != null && infoPair.Value.OutValue != null) 
+                    if (infoPair.Value.InValue != null && infoPair.Value.OutValue != null)
                         continue;
-                
+
                     //So the Extra Block Producer of this round will help him to supply all the needed information
                     //which contains in value, out value, signature.
                     var supplyValue = currentRoundInfo.BlockProducers.First(info => info.Key == infoPair.Key)
@@ -436,7 +438,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             catch (Exception e)
             {
                 ConsoleWriteLine(nameof(Update), "Failed to supply information of current round.", e);
-                
+
                 ConsoleWriteLine(nameof(Update), "Current RoundInfo:");
 
                 foreach (var key in currentRoundInfo.BlockProducers.Keys)
@@ -455,7 +457,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await UpdateCurrentRoundNumber();
 
             var newRoundNumber = new UInt64Value {Value = CurrentRoundNumber};
-            
+
             //Update ExtraBlockProducer.
             await SetExtraBlockProducerOfSpecificRound(newRoundNumber, nextExtraBlockProducer);
 
@@ -467,7 +469,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
             //Update First Place.
             await SetFirstPlaceOfSpecificRound(newRoundNumber, new StringValue {Value = nextRoundInfo.BlockProducers.First().Key});
-            
+
             //Update Extra Block Timeslot.
             await SetExtraBlockMiningTimeslotOfSpecificRound(GetTimestampWithOffset(
                 nextRoundInfo.BlockProducers.Last().Value.TimeSlot, Interval));
@@ -489,7 +491,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         {
             await _currentRoundNumberField.SetAsync(CurrentRoundNumber + 1);
         }
-        
+
         // ReSharper disable once UnusedMember.Global
         private async Task PublishOutValueAndSignature(UInt64Value roundNumber, StringValue accountAddress, Hash outValue, Hash signature)
         {
@@ -514,13 +516,13 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
             await _dPoSInfoMap.SetValueToDatabaseAsync(roundNumber, roundInfo);
         }
-        
+
         // ReSharper disable once InconsistentNaming
         private async Task<BlockProducer> GetBPInfoOfSpecificRound(StringValue accountAddress, UInt64Value roundNumber)
         {
             return (await _dPoSInfoMap.GetValueAsync(roundNumber)).BlockProducers[accountAddress.Value];
         }
-        
+
         // ReSharper disable once InconsistentNaming
         private async Task<BlockProducer> GetBPInfoOfCurrentRound(StringValue accountAddress)
         {
@@ -532,7 +534,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             var blockProducer = _blockProducerField.GetValue();
             return blockProducer.Nodes.Contains(accountAddress.Value);
         }
-        
+
         #endregion
 
         #region Utilities
@@ -542,25 +544,27 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         {
             return DateTime.UtcNow.ToLocalTime();
         }
-        
+
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
         }
-        
+
         private void ConsoleWriteLine(string prefix, string log, Exception ex = null)
         {
-            if (!PrintLogs) 
+            // Debug level: 6=Off, 5=Fatal 4=Error, 3=Warn, 2=Info, 1=Debug, 0=Trace
+            // TODO logging by LogLevel
+            if (LogLevel == 6)
                 return;
-            
+
             Console.WriteLine($"[{GetLocalTime():HH:mm:ss} - AElfDPoS]{prefix} - {log}");
             if (ex != null)
             {
                 Console.WriteLine(ex);
             }
         }
-        
+
         /// <summary>
         /// Return true if ts1 >= ts2
         /// </summary>
