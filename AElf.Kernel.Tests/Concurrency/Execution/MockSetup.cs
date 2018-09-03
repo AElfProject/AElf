@@ -70,7 +70,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger, HashManager hashManager, TransactionManager transactionManager)
+            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger,
+            IStateDictator stateDictator,
+            HashManager hashManager, TransactionManager transactionManager)
         {
             _logger = logger;
             ActorEnvironment = actorEnvironment;
@@ -80,7 +82,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             }
             _hashManager = hashManager;
             _transactionManager = transactionManager;
-            StateDictator = new StateDictator(_hashManager,transactionManager, dataStore, _logger);
+            StateDictator = stateDictator;//new StateDictator(_hashManager,transactionManager, dataStore, _logger);
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             ChainContextService = chainContextService;
@@ -100,6 +102,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 StateDictator = StateDictator
             };
 
+            // These are only required for workertest
+            // other tests use ActorEnvironment
             var workers = new[] {"/user/worker1", "/user/worker2"};
             Worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
             Worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
