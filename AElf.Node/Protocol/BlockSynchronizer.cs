@@ -20,6 +20,7 @@ using AElf.Node.AElfChain;
 using AElf.Node.Protocol.Events;
 using Google.Protobuf;
 using NLog;
+using ServiceStack;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 
@@ -118,6 +119,9 @@ namespace AElf.Node.Protocol
         {
             _mainChainNode = node;
 
+            CurrentExecHeight = node.GetCurrentHeight() + 1;
+            _logger?.Trace($"Initial chain height {CurrentExecHeight}.");
+
             ShouldDoInitialSync = doInitialSync;
             IsInitialSyncInProgress = false; // started by first block
 
@@ -125,35 +129,6 @@ namespace AElf.Node.Protocol
                 _logger?.Trace("Initial sync started.");
             else
                 Task.Run(() => DoSync());
-        }
-
-        private void ProcessPeerMessage(object sender, EventArgs e)
-        {
-//            if (sender != null && e is NetMessageReceivedEventArgs args && args.Message != null)
-//            {
-//                var message = args.Message;
-//                var msgType = (AElfProtocolMsgType) message.Type;
-//                
-//                _logger?.Trace($"Handling message {message} from {args.PeerMessage.Peer}.");
-//
-//                if (msgType == AElfProtocolMsgType.NewTransaction || msgType == AElfProtocolMsgType.Transactions)
-//                {
-//                    HandleTransactionMessage(message);
-//                }
-//                else if (message.Type == (int) AElfProtocolMsgType.Block || message.Type == (int) AElfProtocolMsgType.NewBlock)
-//                {
-//                    try
-//                    {
-//                        var b = Block.Parser.ParseFrom(message.Payload);
-//                        EnqueueJob(new Job {Block = b, Peer = args.PeerMessage?.Peer});
-//                        _logger?.Trace("Block enqueued: " + b.GetHash().ToHex());
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        _logger?.Trace(ex, "Error while receiving HandleBlockReception.");
-//                    }
-//                }
-//            }
         }
 
         /// <summary>
@@ -488,6 +463,11 @@ namespace AElf.Node.Protocol
                         // height as already been executed so it can safely be
                         // remove from the pending blocks.
                         toRemove.Add(pendingBlock);
+
+                        if (IsInitialSyncInProgress && (int)pendingBlock.Block.Header.Index == CurrentExecHeight)
+                        {
+                            Interlocked.Increment(ref CurrentExecHeight);
+                        }
                     }
                     else if (res.ValidationError == ValidationError.Pending)
                     {
