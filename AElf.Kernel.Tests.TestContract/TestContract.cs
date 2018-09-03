@@ -105,5 +105,13 @@ namespace AElf.Kernel.Tests.TestContract
         {
             Console.WriteLine("Hello, {0}", name);
         }
+
+        public void InlineTxnBackToSelf(int recurseCount)
+        {
+            if (recurseCount > 0)
+            {
+                Api.SendInline(Api.GetContractAddress(), "InlineTxnBackToSelf", recurseCount - 1);                
+            }
+        }
     }
 }
