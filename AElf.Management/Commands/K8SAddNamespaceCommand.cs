@@ -17,7 +17,7 @@ namespace AElf.Management.Commands
             {
                 if (retryCount > GlobalSetting.DeployRetryTime)
                 {
-                    //throw new Exception("failed to deploy namespace");
+                    throw new Exception("failed to deploy namespace");
                 }
                 retryCount++;
                 Thread.Sleep(3000);
