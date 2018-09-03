@@ -313,6 +313,22 @@ namespace AElf.Node.AElfChain
             }
         }
 
+        public int GetCurrentHeight()
+        {
+            int height = 1;
+            
+            try
+            {
+                height = (int)_blockChain.GetCurrentBlockHeightAsync().Result;
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Exception while getting chain height");
+            }
+
+            return height;
+        }
+
         #endregion private methods
 
         #region Legacy Methods
