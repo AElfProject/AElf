@@ -361,7 +361,7 @@ namespace AElf.ChainController.Rpc
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Error(e);
                 return await Task.FromResult(new JObject
                 {
                     ["error"] = "Failed"

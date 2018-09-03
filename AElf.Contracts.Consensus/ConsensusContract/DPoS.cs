@@ -554,6 +554,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         private void ConsoleWriteLine(string prefix, string log, Exception ex = null)
         {
             // Debug level: 6=Off, 5=Fatal 4=Error, 3=Warn, 2=Info, 1=Debug, 0=Trace
+            // TODO logging by LogLevel
             if (LogLevel == 6)
                 return;
 

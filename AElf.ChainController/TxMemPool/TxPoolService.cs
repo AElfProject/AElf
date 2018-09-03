@@ -224,7 +224,7 @@ namespace AElf.ChainController.TxMemPool
                 catch (AggregateException ae)
                 {
                     if (ae.InnerExceptions.Any(e => e is TaskCanceledException))
-                        Console.WriteLine("Exception: " + ae.Message);
+                        _logger.Error("Exception: " + ae.Message);
                     else
                         throw;
                 }
@@ -465,7 +465,7 @@ namespace AElf.ChainController.TxMemPool
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Error(e);
                 throw;
             }
             
