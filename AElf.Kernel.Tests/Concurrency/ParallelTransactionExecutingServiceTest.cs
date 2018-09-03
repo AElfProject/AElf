@@ -13,7 +13,7 @@ using AElf.Execution.Scheduling;
 using AElf.Kernel.Tests.Concurrency.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency
-{/*
+{
     [UseAutofacTestFramework]
     public class ParallelTransactionExecutingServiceTest : TestKitBase
     {
@@ -22,6 +22,7 @@ namespace AElf.Kernel.Tests.Concurrency
         public ParallelTransactionExecutingServiceTest(MockSetup mock) : base(new XunitAssertions())
         {
             _mock = mock;
+            _mock.StateDictator.ChainId = _mock.ChainId1;
         }
 
         [Fact]
@@ -78,7 +79,7 @@ namespace AElf.Kernel.Tests.Concurrency
              *  Job 1: (0-1, 10), (1-2, 9)
              *  Job 2: (3-4, 8)
              *  Job 3: (5-6, 10)
-             #1#
+             */
 
             var balances = new List<ulong>()
             {
@@ -135,5 +136,5 @@ namespace AElf.Kernel.Tests.Concurrency
                 string.Join(" ", addresses.Select(a => _mock.GetBalance1(a)))
             );
         }
-    }*/
+    }
 }
