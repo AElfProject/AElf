@@ -99,5 +99,25 @@ namespace AElf.Sdk.CSharp.Tests
             tc.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return tc.Trace.RetVal.Data.DeserializeToString();
         }
+
+        public TransactionTrace InlineCallToZero()
+        {
+            // This is not a standard way of writing shim method
+            var tx = new Transaction
+            {
+                From = Hash.Zero,
+                To = ContractAddres,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "InlineCallToZero",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            var tc = new TransactionContext()
+            {
+                Transaction = tx
+            };
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
+            return tc.Trace;            
+        }
     }
 }
