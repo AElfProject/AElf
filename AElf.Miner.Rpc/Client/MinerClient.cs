@@ -1,53 +1,73 @@
-﻿using System;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using AElf.Common.Application;
-using AElf.Configuration.Config.GRPC;
-using AElf.Cryptography.Certificate;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using AElf.Common.Collections;
 using AElf.Kernel;
-using AElf.Miner.Rpc.Exceptions;
 using Grpc.Core;
- 
- namespace AElf.Miner.Rpc.Client
- {
-     public class MinerClient
-     {
-         private readonly Dictionary<Hash, HeaderInfoRpc.HeaderInfoRpcClient> _clients =
-             new Dictionary<Hash, HeaderInfoRpc.HeaderInfoRpcClient>();
 
-         private CertificateStore _certificateStore;
+namespace AElf.Miner.Rpc.Client
+{
+    public class MinerClient
+    {
+        private readonly HeaderInfoRpc.HeaderInfoRpcClient _client;
+        private ulong _next;
 
-         public ReponseIndexedInfo GetHeaderInfo(Hash chainId, RequestIndexedInfo request)
-         {
-             if (!_clients.TryGetValue(chainId, out var client))
-             {
-                 throw new ClientNotFoundException("Not existed client");
-             }
-             var headerInfo = client.GetHeaderInfo(request);
-             return headerInfo;
-         }
+        public BlockingCollection<ResponseIndexedInfoMessage> IndexedInfoQueue { get; } =
+            new BlockingCollection<ResponseIndexedInfoMessage>(new ConcurrentQueue<ResponseIndexedInfoMessage>());
 
-         public void Init(string dir)
-         {
-             _certificateStore =
-                 new CertificateStore(dir);
-         }
-         
-         public HeaderInfoRpc.HeaderInfoRpcClient StartNewClient(Hash targetChainId)
-         {
-             if (_clients.TryGetValue(targetChainId, out var client)) return client;
-             string ch = targetChainId.ToHex();
-             if(!GrpcConfig.Instance.ChildChains.ContainsKey(ch))
-                 throw new ChainInfoNotFoundException("Unable to get chain Info.");
-             var chainIdUri = GrpcConfig.Instance.ChildChains[ch];
-             var uri = chainIdUri.Address + ":" + chainIdUri.Port;
-             string crt = _certificateStore.GetCertificate(ch);
-             if(crt == null)
-                 throw new CertificateException("Unable to load Certificate.");
-             var channelCredentials = new SslCredentials(crt);
-             var channel = new Channel(uri, channelCredentials);
-             client = new HeaderInfoRpc.HeaderInfoRpcClient(channel);
-             _clients.Add(targetChainId, client);
-             return client;
-         }
-     }
- }
+        public MinerClient(Channel channel)
+        {
+            _client = new HeaderInfoRpc.HeaderInfoRpcClient(channel);
+        }
+
+        public async Task Index(CancellationToken cancellationToken, ulong next)
+        {
+            _next = next;
+            try
+            {
+                using (var call = _client.Index())
+                {
+                    // response reader task
+                    var responseReaderTask = Task.Run(async () =>
+                    {
+                        while (await call.ResponseStream.MoveNext())
+                        {
+
+                            var indexedInfo = call.ResponseStream.Current;
+
+                            // request failed or useless response
+                            if(!indexedInfo.Success || indexedInfo.Height != _next)
+                                continue;
+                            if(IndexedInfoQueue.TryAdd(indexedInfo))
+                                _next++;
+                        }
+                    });
+
+                    // send request every second until cancellation
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        var request = new RequestIndexedInfoMessage
+                        {
+                            NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
+                        };
+                        await call.RequestStream.WriteAsync(request);
+                        System.Diagnostics.Debug.WriteLine("request");
+
+                        await Task.Delay(1000);
+                    }
+                    await call.RequestStream.CompleteAsync();
+                    await responseReaderTask;
+                }
+            }
+            catch (RpcException e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
+        }
+    }
+}

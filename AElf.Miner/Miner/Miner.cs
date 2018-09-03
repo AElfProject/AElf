@@ -55,7 +55,9 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
             IStateDictator stateDictator,  ISmartContractService smartContractService, 
             IExecutingService executingService, ITransactionManager transactionManager, 
-            ITransactionResultManager transactionResultManager, ILogger logger, IChainCreationService chainCreationService, IChainManagerBasic chainManagerBasic, IBlockManagerBasic blockManagerBasic)
+            ITransactionResultManager transactionResultManager, ILogger logger, 
+            IChainCreationService chainCreationService, IChainManagerBasic chainManagerBasic, 
+            IBlockManagerBasic blockManagerBasic)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -69,8 +71,6 @@ namespace AElf.Miner.Miner
             _chainCreationService = chainCreationService;
             _chainManagerBasic = chainManagerBasic;
             _blockManagerBasic = blockManagerBasic;
-
-
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
@@ -194,7 +194,6 @@ namespace AElf.Miner.Miner
                     var addrs = await InsertTxs(executed, results);
                     await _txPoolService.UpdateAccountContext(addrs);
 
-                    
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
 
