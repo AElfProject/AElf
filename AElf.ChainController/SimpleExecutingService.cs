@@ -30,7 +30,7 @@ namespace AElf.ChainController
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                var trace = await ExecuteOneAsync(transaction, chainId, chainContext, stateCache, cancellationToken);
+                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
                 if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
                     var bufferedStateUpdates = await trace.CommitChangesAsync(_stateDictator);
@@ -39,13 +39,15 @@ namespace AElf.ChainController
                         stateCache[kv.Key] = kv.Value;
                     }
                 }
+
                 traces.Add(trace);
             }
+
             await _stateDictator.ApplyCachedDataAction(stateCache);
             return traces;
         }
 
-        private async Task<TransactionTrace> ExecuteOneAsync(Transaction transaction, Hash chainId,
+        private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
             IChainContext chainContext, Dictionary<DataPath, StateCache> stateCache,
             CancellationToken cancellationToken)
         {
@@ -59,15 +61,18 @@ namespace AElf.ChainController
                 };
             }
 
+            var trace = new TransactionTrace()
+            {
+                TransactionId = transaction.GetHash()
+            };
+
             var txCtxt = new TransactionContext()
             {
                 PreviousBlockHash = chainContext.BlockHash,
                 Transaction = transaction,
                 BlockHeight = chainContext.BlockHeight,
-                Trace = new TransactionTrace()
-                {
-                    TransactionId = transaction.GetHash()
-                }
+                Trace = trace,
+                CallDepth = depth
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
@@ -77,7 +82,9 @@ namespace AElf.ChainController
                 await executive.SetTransactionContext(txCtxt).Apply();
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
-                    await ExecuteOneAsync(inlineTx, chainId, chainContext, stateCache, cancellationToken);
+                    var inlineTrace = await ExecuteOneAsync(depth + 1, inlineTx, chainId, chainContext, stateCache,
+                        cancellationToken);
+                    trace.InlineTraces.Add(inlineTrace);
                 }
             }
             catch (Exception ex)
@@ -90,7 +97,7 @@ namespace AElf.ChainController
                 await _smartContractService.PutExecutiveAsync(transaction.To, executive);
             }
 
-            return txCtxt.Trace;
+            return trace;
         }
     }
 }
