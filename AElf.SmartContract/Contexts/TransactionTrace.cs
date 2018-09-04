@@ -35,7 +35,7 @@ namespace AElf.SmartContract
             var successful = string.IsNullOrEmpty(StdErr);
             foreach (var trace in InlineTraces)
             {
-                successful &= IsSuccessful();
+                successful &= trace.IsSuccessful();
             }
 
             return successful;
@@ -46,7 +46,7 @@ namespace AElf.SmartContract
             Dictionary<DataPath, StateCache> changedDict = new Dictionary<DataPath, StateCache>();
             if (ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
-                throw new InvalidOperationException("Attempting to commit a trace with a wrong status.");
+                throw new InvalidOperationException($"Attempting to commit a trace with a wrong status {ExecutionStatus}.");
             }
 
             if (!_alreadyCommited)

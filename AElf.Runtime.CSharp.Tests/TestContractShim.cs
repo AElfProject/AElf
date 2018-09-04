@@ -87,7 +87,8 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
 
             return true;
         }
@@ -111,7 +112,8 @@ namespace AElf.Runtime.CSharp.Tests
                 Transaction = tx
             };
             
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             
             return tc.Trace.RetVal.Data.DeserializeToBool();
         }
@@ -130,7 +132,8 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return tc.Trace.RetVal.Data.DeserializeToUInt64();
         }
 
@@ -148,7 +151,8 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return tc.Trace.RetVal.Data.DeserializeToString();
         }
 
@@ -166,7 +170,8 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return tc.Trace.RetVal.Data.DeserializeToString();
         }
     }

@@ -53,7 +53,7 @@ namespace AElf.ChainController
             {
                 Transaction = tx
             };
-            executive.SetTransactionContext(tc).Apply(true).Wait();
+            await executive.SetTransactionContext(tc).Apply();
             var trace = tc.Trace;
             
             //If failed to execute the transaction of checking time slot

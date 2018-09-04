@@ -179,7 +179,7 @@ namespace AElf.ChainController.TxMemPool
                 return readyTxs;
             });
             
-            List<Transaction> contractTxs = null;
+             List<Transaction> contractTxs = null;
             bool available = false;
             bool complete = false;
             long count = -1;
@@ -215,10 +215,9 @@ namespace AElf.ChainController.TxMemPool
                 
                 try
                 {
-                    Thread.Sleep(TimeSpan.FromMilliseconds(intervals - 50));
-                    tokenSource.Cancel();
-                    t.Wait(TimeSpan.FromMilliseconds(intervals));
-                    
+                    bool res = t.Wait(TimeSpan.FromMilliseconds(intervals));
+                    if(!res)
+                        tokenSource.Cancel();
                     // NOTE: be careful, some txs maybe lost here without this
                     if (available && !complete)
                     {

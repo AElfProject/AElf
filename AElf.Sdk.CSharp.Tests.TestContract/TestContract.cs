@@ -2,6 +2,7 @@
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using AElf.Types.CSharp.MetadataAttribute;
+using Google.Protobuf;
 
 
 namespace AElf.Sdk.CSharp.Tests
@@ -54,6 +55,11 @@ namespace AElf.Sdk.CSharp.Tests
                 Name = account.Name
             }.Fire();
             return account.Name;
+        }
+
+        public void InlineCallToZero()
+        {
+            Api.SendInline(Hash.Zero, "Dummy");
         }
     }
 }
