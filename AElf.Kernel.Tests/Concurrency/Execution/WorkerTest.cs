@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -44,6 +45,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // Return result
             var trace = ExpectMsg<TransactionTraceMessage>().TransactionTraces.FirstOrDefault();
 
+                        
+//            var t = _mock.GetBalanceTxn(_mock.SampleContractAddress1, from);
+//            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, new List<Transaction>(){t}, TestActor, TestActor));
+//            var tt = ExpectMsg<TransactionTraceMessage>().TransactionTraces;
+//            Assert.Null(tt);
+
+            
 /*
  Temporarily disabled.
  TODO: https://github.com/AElfProject/AElf/issues/338
@@ -119,6 +127,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var trace2 = trace[1];
             var trace3 = trace[2];
 
+//            Assert.Null(trace1);
+//            _mock.CommitTrace(trace1).Wait();
+//            _mock.CommitTrace(trace2).Wait();
+//            _mock.CommitTrace(trace3).Wait();
             // Completed
 
 /*

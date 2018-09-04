@@ -224,7 +224,7 @@ namespace AElf.ChainController.Rpc
 
             try
             {
-                await executive.SetTransactionContext(txCtxt).Apply(false);
+                await executive.SetTransactionContext(txCtxt).Apply();
             }
             finally
             {

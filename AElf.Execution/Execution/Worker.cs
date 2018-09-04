@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using Akka.Actor;
 using AElf.Kernel;
 using AElf.SmartContract;
@@ -33,6 +34,7 @@ namespace AElf.Execution
         private State _state = State.PendingSetSericePack;
         private long _servingRequestId = -1;
         private ServicePack _servicePack;
+        private IExecutingService _proxyExecutingService;
 
         // TODO: Add cancellation
         private CancellationTokenSource _cancellationTokenSource;
@@ -45,6 +47,7 @@ namespace AElf.Execution
                     if (_state == State.PendingSetSericePack)
                     {
                         _servicePack = res.ServicePack;
+                        _proxyExecutingService  = new SimpleExecutingService(_servicePack.SmartContractService, _servicePack.StateDictator, _servicePack.ChainContextService);
                         _state = State.Idle;
                     }
 
@@ -116,106 +119,7 @@ namespace AElf.Execution
  TODO: https://github.com/AElfProject/AElf/issues/338
             _state = State.Running;
 */
-
-            IChainContext chainContext = null;
-
-            Exception chainContextException = null;
-            
-            var stateCache = new Dictionary<DataPath, StateCache>();
-            
-            try
-            {
-                chainContext = await _servicePack.ChainContextService.GetChainContextAsync(request.ChainId);
-            }
-            catch (Exception e)
-            {
-                chainContextException = e;
-            }
-
-            var result = new List<TransactionTrace>(request.Transactions.Count);
-            foreach (var tx in request.Transactions)
-            {
-                TransactionTrace trace;
-
-                if (chainContextException != null)
-                {
-                    trace = new TransactionTrace()
-                    {
-                        TransactionId = tx.GetHash(),
-                        ExecutionStatus = ExecutionStatus.SystemError,
-                        StdErr = chainContextException + "\n"
-                    };
-                }
-                else if (_cancellationTokenSource.IsCancellationRequested)
-                {
-                    trace = new TransactionTrace()
-                    {
-                        TransactionId = tx.GetHash(),
-                        ExecutionStatus = ExecutionStatus.Canceled,
-                        StdErr = "Execution Canceled"
-                    };
-                }
-                else
-                {
-                    if (chainContext == null)
-                    {
-                        trace = new TransactionTrace
-                        {
-                            TransactionId = tx.GetHash(),
-                            ExecutionStatus = ExecutionStatus.SystemError,
-                            StdErr = "Invalid chain"
-                        };
-                    }
-                    else
-                    {
-                        // TODO: The job is still running but we will leave it, we need a way to abort the job if it runs for too long
-                        var task = Task.Run(
-                            async () => await ExecuteTransaction(chainContext, tx, stateCache),
-                            _cancellationTokenSource.Token);
-                        try
-                        {
-                            task.Wait(_cancellationTokenSource.Token);
-                            trace = await task;
-                            if (trace.IsSuccessful())
-                            {
-                                //commit update results to state cache
-                                var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.StateDictator);
-                                foreach (var kv in bufferedStateUpdates)
-                                {
-                                    Debug.WriteLine("Path: " + kv.Key.ResourcePointerHash.ToHex());
-                                    stateCache[kv.Key] = kv.Value;
-                                }
-                            }
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            trace = new TransactionTrace()
-                            {
-                                TransactionId = tx.GetHash(),
-                                ExecutionStatus = ExecutionStatus.Canceled,
-                                StdErr = "Execution Canceled"
-                            };
-                        }
-                        catch (Exception e)
-                        {
-                            trace = new TransactionTrace()
-                            {
-                                TransactionId = tx.GetHash(),
-                                ExecutionStatus = ExecutionStatus.SystemError,
-                                StdErr = e + "\n"
-                            };
-                        }
-                    }
-                }
-                result.Add(trace);
-            }
-
-            if (chainContext != null)
-            {
-                await _servicePack.StateDictator.ApplyCachedDataAction(stateCache);
-            }
-            stateCache.Clear();
-            
+            var result = await _proxyExecutingService.ExecuteAsync(request.Transactions, request.ChainId, _cancellationTokenSource.Token);
             request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
 
             // TODO: What if actor died in the middle
@@ -237,50 +141,5 @@ namespace AElf.Execution
             return retMsg;
         }
 
-        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, Transaction transaction, Dictionary<DataPath, StateCache> stateCache)
-        {
-            
-            var trace = new TransactionTrace()
-            {
-                TransactionId = transaction.GetHash()
-            };
-
-
-            var txCtxt = new TransactionContext()
-            {
-                PreviousBlockHash = chainContext.BlockHash,
-                Transaction = transaction,
-                Trace = trace,
-                BlockHeight = chainContext.BlockHeight
-            };
-
-            IExecutive executive = null;
-
-            try
-            {
-                executive = await _servicePack.SmartContractService
-                    .GetExecutiveAsync(transaction.To, chainContext.ChainId);
-
-                executive.SetDataCache(stateCache);
-
-                await executive.SetTransactionContext(txCtxt).Apply(false);
-                // TODO: Check run results / logs etc.
-            }
-            catch (Exception ex)
-            {
-                txCtxt.Trace.ExecutionStatus = ExecutionStatus.SystemError;
-                // TODO: Improve log
-                txCtxt.Trace.StdErr += ex + "\n";
-            }
-            finally
-            {
-                if (executive != null)
-                {
-                    await _servicePack.SmartContractService.PutExecutiveAsync(transaction.To, executive);
-                }
-            }
-
-            return trace;
-        }
     }
 }

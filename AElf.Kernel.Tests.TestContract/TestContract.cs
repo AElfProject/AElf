@@ -6,7 +6,7 @@ using Api = AElf.Sdk.CSharp.Api;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Benchmark.TestContract
+namespace AElf.Kernel.Tests.TestContract
 {
     public class TestContract : CSharpSmartContract
     {
@@ -59,7 +59,7 @@ namespace AElf.Benchmark.TestContract
             Console.WriteLine("Old To Balance: " + toBal);
 
             Console.WriteLine("Assertion: " + (fromBal > qty.Value));
-            Api.Assert(fromBal > qty.Value);
+            Api.Assert(fromBal > qty.Value, $"Insufficient balance, {qty.Value} is required but there is only {fromBal}.");
             
             var newFromBal = fromBal - qty.Value;
             var newToBal = toBal + qty.Value;
@@ -104,6 +104,14 @@ namespace AElf.Benchmark.TestContract
         public void Print(string name)
         {
             Console.WriteLine("Hello, {0}", name);
+        }
+
+        public void InlineTxnBackToSelf(int recurseCount)
+        {
+            if (recurseCount > 0)
+            {
+                Api.SendInline(Api.GetContractAddress(), "InlineTxnBackToSelf", recurseCount - 1);                
+            }
         }
     }
 }

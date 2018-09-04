@@ -67,6 +67,7 @@ namespace AElf.Runtime.CSharp
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
         private IStateDictator _stateDictator;
+        private int _maxCallDepth = 4;
 
         public Executive(Module abiModule)
         {
@@ -74,6 +75,12 @@ namespace AElf.Runtime.CSharp
             {
                 _methodMap.Add(m.Name, m);
             }
+        }
+
+        public IExecutive SetMaxCallDepth(int maxCallDepth)
+        {
+            _maxCallDepth = maxCallDepth;
+            return this;
         }
 
         public IExecutive SetStateDictator(IStateDictator stateDictator)
@@ -138,8 +145,14 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public async Task Apply(bool autoCommit)
+        public async Task Apply()
         {
+            if (_currentTransactionContext.CallDepth > _maxCallDepth)
+            {
+                _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                _currentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
+                return;
+            }
             _stateDictator.BlockHeight = _currentTransactionContext.BlockHeight;
             _stateDictator.BlockProducerAccountAddress = _currentTransactionContext.Transaction.From;
             
@@ -197,7 +210,7 @@ namespace AElf.Runtime.CSharp
                     }
                 }
 
-                if (!methodAbi.IsView && _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
+                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() && _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
                     var changes = _currentSmartContractContext.DataProvider.GetValueChanges();
                     var stateValueChanges = changes as StateValueChange[] ?? changes.ToArray();
@@ -207,12 +220,12 @@ namespace AElf.Runtime.CSharp
                         Debug.WriteLine(change.CurrentValue.Length);
                     }
                     _currentTransactionContext.Trace.ValueChanges.AddRange(stateValueChanges);
-                    if (autoCommit)
-                    {
-                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_stateDictator);
-                        await _stateDictator.ApplyCachedDataAction(changeDict);
-                        _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
-                    }
+//                    if (autoCommit)
+//                    {
+//                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_stateDictator);
+//                        await _stateDictator.ApplyCachedDataAction(changeDict);
+//                        _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
+//                    }
                 }
             }
             catch (Exception ex)

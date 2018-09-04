@@ -29,6 +29,18 @@ namespace AElf.Sdk.CSharp.Tests
             Assert.Equal("AElf", resName);
         }
 
+        [Fact]
+        public void InlineCallTest()
+        {
+            var trace = _contractShim.InlineCallToZero();
+            var expected =new Transaction()
+            {
+                From = Hash.Zero,
+                To = Hash.Zero,
+                MethodName = "Dummy"
+            };
+            Assert.Equal(expected, trace.InlineTransactions[0]);
+        }
         // TODO: Add more test cases
     }
 }
