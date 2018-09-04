@@ -29,7 +29,7 @@ namespace AElf.Management.Website
             
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
+                c.SwaggerDoc("v1", new Info { Title = "AElf API", Version = "v1" });
             });
             
             var builder = new ContainerBuilder();
@@ -64,7 +64,7 @@ namespace AElf.Management.Website
             // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "AElf API");
                 c.RoutePrefix = "help";
             });
 
