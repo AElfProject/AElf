@@ -38,11 +38,6 @@ namespace AElf.SmartContract
   Task SetDataAsync<T>(Hash pointerHash, T data) where T : IMessage;
   Task<T> GetDataAsync<T>(Hash pointerHash) where T : IMessage, new();
 
-  /*
-   * Chain height
-   */
-  Task<ulong> GetChainCurrentHeightAsync(Hash chainId);
-  Task SetChainCurrentHeightAsync(Hash chainId, ulong height);
 
   /*
    * Block hash - State hash
