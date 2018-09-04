@@ -14,7 +14,7 @@ namespace AElf.Network.Connection
     /// </summary>
     public class MessageWriter : IMessageWriter
     {
-        private const int DefaultMaxOutboundPacketSize = 1024;
+        private const int DefaultMaxOutboundPacketSize = 20148;
         
         private readonly ILogger _logger;
         private readonly NetworkStream _stream;
@@ -127,6 +127,12 @@ namespace AElf.Network.Connection
                             Data = endSlice
                         };
 
+                        if (p.HasId)
+                        {
+                            endPartial.HasId = true;
+                            endPartial.Id = p.Id;
+                        }
+
                         partials.Add(endPartial);
 
                         _logger?.Trace($"Message split into {partials.Count} packets.");
@@ -164,7 +170,7 @@ namespace AElf.Network.Connection
             byte[] length = BitConverter.GetBytes(p.Length);
             byte[] arrData = p.Payload;
 
-            byte[] b = null;
+            byte[] b;
             
             if (p.HasId)
             {
@@ -175,19 +181,13 @@ namespace AElf.Network.Connection
                 b = ByteArrayHelpers.Combine(type, hasId, isbuffered, length, arrData);
             }
             
-            if (!string.IsNullOrWhiteSpace(p.OutboundTrace))
-                _logger?.Trace($"About to dequeued message with trace : {p.OutboundTrace}");
-            
             _stream.Write(b, 0, b.Length);
-            
-            if (!string.IsNullOrWhiteSpace(p.OutboundTrace))
-                _logger?.Trace($"Dequeued message with trace : {p.OutboundTrace}");
         }
 
         internal void SendPartialPacket(PartialPacket p)
         {
             byte[] type = { (byte)p.Type };
-            byte[] hasId = { 0 };
+            byte[] hasId = { p.HasId ? (byte)1 : (byte)0 };
             byte[] isbuffered = { 1 };
             byte[] length = BitConverter.GetBytes(p.Data.Length);
 
@@ -196,8 +196,17 @@ namespace AElf.Network.Connection
             byte[] totalLengthBytes = BitConverter.GetBytes(p.TotalDataSize);
             
             byte[] arrData = p.Data;
+
+            byte[] b;
+            if (p.HasId)
+            {
+                b = ByteArrayHelpers.Combine(type, hasId, p.Id, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
+            }
+            else
+            {
+                b = ByteArrayHelpers.Combine(type, hasId, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
+            }
             
-            byte[] b = ByteArrayHelpers.Combine(type, hasId, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
             _stream.Write(b, 0, b.Length);
         }
         

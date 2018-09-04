@@ -11,9 +11,9 @@ namespace AElf.Execution
 {
     public class MockResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        public async Task<IEnumerable<string>> GetResources(Hash chainId, ITransaction transaction)
+        public async Task<IEnumerable<string>> GetResources(Hash chainId, Transaction transaction)
         {
-            //var hashes = Parameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
+            //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
             List<Hash> hashes = new List<Hash>();
             using (MemoryStream mm = new MemoryStream(transaction.Params.ToByteArray()))
             using (CodedInputStream input = new CodedInputStream(mm))

@@ -3,7 +3,7 @@
     public interface INode
     {
         void Register(INodeService s);
-        void Initialize(NodeConfiguation conf);
+        void Initialize(NodeConfiguration conf);
         bool Start();
     }
 }

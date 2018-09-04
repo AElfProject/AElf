@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
+using NLog;
 
 namespace AElf.ChainController
 {
@@ -11,11 +11,13 @@ namespace AElf.ChainController
     {
         private readonly IChainService _chainService;
         private readonly ISmartContractService _smartContractService;
+        private readonly ILogger _logger;
 
-        public ChainCreationService(IChainService chainService, ISmartContractService smartContractService)
+        public ChainCreationService(IChainService chainService, ISmartContractService smartContractService, ILogger logger)
         {
             _chainService = chainService;
             _smartContractService = smartContractService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -41,8 +43,8 @@ namespace AElf.ChainController
 
                 // add block to storage
                 var blockchain = _chainService.GetBlockChain(chainId);
-                await blockchain.AddBlocksAsync(new List<IBlock>() {builder.Block});
-                var chain = new Chain()
+                await blockchain.AddBlocksAsync(new List<IBlock> {builder.Block});
+                var chain = new Chain
                 {
                     GenesisBlockHash = await blockchain.GetCurrentBlockHashAsync(),
                     Id = chainId
@@ -51,7 +53,7 @@ namespace AElf.ChainController
             }
             catch (Exception e)
             {
-                Console.WriteLine(e); // todo use logger
+                _logger.Error("CreateNewChainAsync Error: " + e);
                 return null;
             }
         }

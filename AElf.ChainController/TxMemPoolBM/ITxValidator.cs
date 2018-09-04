@@ -22,7 +22,7 @@ namespace AElf.ChainController.TxMemPool
 
     public interface ITxValidator
     {
-        TxValidation.TxInsertionAndBroadcastingError ValidateTx(ITransaction tx);
-        Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(ITransaction tx);
+        TxValidation.TxInsertionAndBroadcastingError ValidateTx(Transaction tx);
+        Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(Transaction tx);
     }
 }

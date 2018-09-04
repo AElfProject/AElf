@@ -13,28 +13,40 @@ namespace AElf.Kernel
     /// </summary>
     public interface IResourcePath
     {
-        bool IsPointer { get; }
+        /// <summary>
+        /// To identity one specific block's state.
+        /// Chain Id - Round Number - Block Producer Account
+        /// </summary>
+        Hash StateHash { get; }
 
-        /*
-         * To compose a PathContext, we need:
-         * Chain Id - (Previous) Block Hash - Block Producer Address -
-         * Account Address - Data Provider (can be multiple levels) - 
-         * Key Hash (final decision of which resource to locate)
-         */
+        /// <summary>
+        /// Data Provider - Data Key
+        /// </summary>
+        Hash ResourcePathHash { get; }
+        
+        /// <summary>
+        /// StateHash - DataHash
+        /// </summary>
+        Hash ResourcePointerHash { get; }
+
         ResourcePath SetChainId(Hash chainId);
-        ResourcePath SetBlockHash(Hash blockHash);
+        ResourcePath SetRoundNumber(ulong roundNumber);
         ResourcePath SetBlockProducerAddress(Hash blockProducerAddress);
-        ResourcePath SetAccountAddress(Hash accountAddress);
+
+        ResourcePath SetAccountAddress(Hash contractAddress);
         ResourcePath SetDataProvider(Hash dataProvider);
         ResourcePath SetDataKey(Hash keyHash);
 
         /// <summary>
-        /// Basically revert a pointer to a path.
+        /// Remove State.
         /// </summary>
         /// <returns></returns>
-        ResourcePath RevertPointerToPath();
-        
-        Hash GetPointerHash();
-        Hash GetPathHash();
+        ResourcePath RemoveState();
+
+        /// <summary>
+        /// Remove Path.
+        /// </summary>
+        /// <returns></returns>
+        ResourcePath RemovePath();
     }
 }

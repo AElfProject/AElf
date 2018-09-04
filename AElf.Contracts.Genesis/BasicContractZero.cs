@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf;
-using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Genesis
 {
@@ -72,13 +70,13 @@ namespace AElf.Contracts.Genesis
 
                 return _value;
             }
-            private set { _value = value; }
+            private set => _value = value;
         }
 
         public ContractSerialNumber Increment()
         {
-            this.Value = this.Value + 1;
-            SetValue(this.Value);
+            Value = Value + 1;
+            SetValue(Value);
             return this;
         }
     }
@@ -120,7 +118,7 @@ namespace AElf.Contracts.Genesis
 
             Hash creator = Api.GetTransaction().From;
 
-            var info = new ContractInfo()
+            var info = new ContractInfo
             {
                 Owner = creator,
                 SerialNumer = serialNumber
@@ -130,7 +128,7 @@ namespace AElf.Contracts.Genesis
 
             _contractInfos[address] = info;
 
-            SmartContractRegistration reg = new SmartContractRegistration()
+            var reg = new SmartContractRegistration
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(code),
@@ -162,7 +160,7 @@ namespace AElf.Contracts.Genesis
             var oldOwner = info.Owner;
             info.Owner = newOwner;
             _contractInfos[contractAddress] = info;
-            new OwnerHasBeenChanged()
+            new OwnerHasBeenChanged
             {
                 Address = contractAddress,
                 OldOwner = oldOwner,

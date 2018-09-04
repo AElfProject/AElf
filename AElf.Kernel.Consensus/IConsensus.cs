@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Types;
+using AElf.Common.Enums;
 
 namespace AElf.Kernel.Consensus
 {
@@ -30,7 +30,7 @@ namespace AElf.Kernel.Consensus
         /// <summary>
         /// Print logs or not.
         /// </summary>
-        bool PrintLogs { get; }
+        int LogLevel { get; set; }
 
         /// <summary>
         /// To adjust the difficulty of PoW mining.

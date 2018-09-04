@@ -2,6 +2,7 @@
 using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
+using Google.Protobuf.WellKnownTypes;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -10,7 +11,7 @@ namespace AElf.Benchmark.TestContract
     public class TestTokenContract : CSharpSmartContract
     {
         [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
-        public readonly MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
+        public MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public StringField TokenContractName;
         
@@ -29,18 +30,19 @@ namespace AElf.Benchmark.TestContract
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
         public bool Transfer(Hash from, Hash to, ulong qty)
         {
-            
             var fromBal = Balances.GetValue(from);
             //Console.WriteLine("from pass");
+
             var toBal = Balances.GetValue(to);
             //Console.WriteLine("to pass");
             var newFromBal = fromBal - qty;
-            Api.Assert(fromBal > qty);
+            Api.Assert(fromBal > qty, $"Insufficient balance, {qty} is required but there is only {fromBal}.");
             
             var newToBal = toBal + qty;
-            
+
             Balances.SetValue(from, newFromBal);
             //Console.WriteLine("set from pass");
+
             Balances.SetValue(to, newToBal);
             //Console.WriteLine("set to pass");
             //Console.WriteLine($"After transfer: {from.ToHex()} - {newFromBal} || {to.ToHex()} - {newToBal}");

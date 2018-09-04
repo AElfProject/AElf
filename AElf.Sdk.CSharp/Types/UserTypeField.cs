@@ -31,14 +31,14 @@ namespace AElf.Sdk.CSharp.Types
         {
             if (value != null)
             {
-                await Api.GetDataProvider("").SetAsync(_name.CalculateHash(), value.Pack().ToByteArray());
+                await Api.GetDataProvider("").SetAsync<UserTypeHolder>(_name.CalculateHash(), value.Pack().ToByteArray());
             }
         }
 
         public async Task<T> GetAsync()
         {
             var obj = (T)Activator.CreateInstance(typeof(T));
-            byte[] bytes = await Api.GetDataProvider("").GetAsync(_name.CalculateHash());
+            byte[] bytes = await Api.GetDataProvider("").GetAsync<UserTypeHolder>(_name.CalculateHash());
             var userTypeValue = Api.Serializer.Deserialize<UserTypeHolder>(bytes);
             obj.Unpack(userTypeValue);
             return obj;

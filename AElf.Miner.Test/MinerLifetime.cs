@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
-using AElf.ChainController.TxMemPool;
-using AElf.ChainControllerImpl.TxMemPool;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
-using AElf.Miner.Miner;
+using AElf.Kernel.TxMemPool;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
@@ -48,7 +48,7 @@ namespace AElf.Kernel.Tests.Miner
         private IActorRef _generalExecutor;
         private IChainCreationService _chainCreationService;
         private readonly ILogger _logger;
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
         private ISmartContractManager _smartContractManager;
 
         private IActorRef _serviceRouter;
@@ -61,8 +61,10 @@ namespace AElf.Kernel.Tests.Miner
         private IExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
+        private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly IBlockManagerBasic _blockManagerBasic;
         
-        public MinerLifetime(IWorldStateDictator worldStateDictator, 
+        public MinerLifetime(IStateDictator stateDictator, 
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
@@ -82,8 +84,7 @@ namespace AElf.Kernel.Tests.Miner
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
 
-            _worldStateDictator = worldStateDictator;
-            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+            _stateDictator = stateDictator;
             Initialize();
         }
 
@@ -92,7 +93,7 @@ namespace AElf.Kernel.Tests.Miner
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
         }
         
         public byte[] SmartContractZeroCode
@@ -153,7 +154,7 @@ namespace AElf.Kernel.Tests.Miner
             txnDep.R = ByteString.CopyFrom(signature.R); 
             txnDep.S = ByteString.CopyFrom(signature.S);
             
-            var txs = new List<ITransaction>(){
+            var txs = new List<Transaction>(){
                 txnDep
             };
             
@@ -163,7 +164,7 @@ namespace AElf.Kernel.Tests.Miner
         }
         
         
-        public List<ITransaction> CreateTxs(Hash chainId)
+        public List<Transaction> CreateTxs(Hash chainId)
         {
             var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
@@ -206,7 +207,7 @@ namespace AElf.Kernel.Tests.Miner
             txPrint.R = ByteString.CopyFrom(signature.R); 
             txPrint.S = ByteString.CopyFrom(signature.S);
             
-            var txs = new List<ITransaction>(){
+            var txs = new List<Transaction>(){
                 txPrint
             };
 
@@ -224,14 +225,15 @@ namespace AElf.Kernel.Tests.Miner
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
-            _worldStateDictator.SetChainId(chainId);
+            _stateDictator.ChainId = chainId;
             return chain;
         }
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
-        {            
-            var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _worldStateDictator,
-                _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger);
+        {
+            var miner = new ChainController.Miner(config, poolService, _chainService, _stateDictator,
+                _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager,
+                _logger, _chainCreationService, _chainManagerBasic, _blockManagerBasic);
 
             return miner;
         }

@@ -3,24 +3,19 @@ syntax = "proto3";
 option csharp_namespace = "AElf.Miner.Rpc";
 import "hash.proto";
 
-message ReponseIndexedInfo{
-    repeated HeaderInfo Headers = 1;
+message RequestIndexedInfoMessage {
+    uint64 NextHeight = 1;
 }
 
-
-message RequestIndexedInfo{
-    Hash From = 1;
-    Hash ChainId = 2;
-    uint64 Height = 3;
-}
-
-message HeaderInfo{
-    Hash BlockHeaderHash = 1;
-    Hash TransactionMKRoot = 2;
+message ResponseIndexedInfoMessage {
+    uint64 Height = 1;
+    Hash BlockHeaderHash = 2;
+    Hash TransactionMKRoot = 3;
+    bool Success = 4;
 }
 
 service HeaderInfoRpc {
-    rpc GetHeaderInfo(RequestIndexedInfo) returns (ReponseIndexedInfo) {}
+    rpc Index (stream RequestIndexedInfoMessage) returns (stream ResponseIndexedInfoMessage) {}
 }
 
 

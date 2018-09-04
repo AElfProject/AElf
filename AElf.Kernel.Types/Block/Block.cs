@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel
+﻿using AElf.Kernel.Types;
+
+namespace AElf.Kernel
 {
     public partial class Block : IBlock
     {
@@ -34,6 +36,11 @@
         public Hash GetHash()
         {
             return Header.GetHash();
+        }
+
+        public byte[] GetHashBytes()
+        {
+            return Header.GetHashBytes();
         }
     }
 }

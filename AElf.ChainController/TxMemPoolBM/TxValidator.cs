@@ -40,7 +40,7 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="pool"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public TxValidation.TxInsertionAndBroadcastingError ValidateTx(ITransaction tx)
+        public TxValidation.TxInsertionAndBroadcastingError ValidateTx(Transaction tx)
         {
             // Basically the same as TxValidation.ValidateTx but without TransactionType
             if (tx.From == Hash.Zero || tx.MethodName == "")
@@ -78,7 +78,7 @@ namespace AElf.ChainController.TxMemPool
             return TxValidation.TxInsertionAndBroadcastingError.Valid;
         }
 
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(Transaction tx)
         {
             var bc = BlockChain;
             var curHeight = await bc.GetCurrentBlockHeightAsync();

@@ -9,8 +9,7 @@ using AElf.Common.Attributes;
 using AElf.Configuration.Config.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
-using AElf.RPC;
-using Community.AspNetCore.JsonRpc;
+using AElf.Network.Eventing;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using NLog;
@@ -30,7 +29,7 @@ namespace AElf.Network.Peers
     [LoggerName(nameof(PeerManager))]
     public class PeerManager : IPeerManager
     {
-        public event EventHandler PeerAdded;
+        public event EventHandler PeerEvent;
                 
         public const int TargetPeerCount = 8;
         
@@ -38,7 +37,7 @@ namespace AElf.Network.Peers
         private readonly IConnectionListener _connectionListener;
         
         private System.Threading.Timer _maintenanceTimer;
-        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(2);
+        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(10);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
         
         private readonly List<IPeer> _authentifyingPeer = new List<IPeer>();
@@ -282,7 +281,7 @@ namespace AElf.Network.Peers
             
             peer.MessageReceived += OnPeerMessageReceived;
                 
-            PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
+            PeerEvent?.Invoke(this, new PeerEventArgs(peer, PeerEventType.Added));
         }
 
         private void OnPeerMessageReceived(object sender, EventArgs args)
@@ -331,9 +330,15 @@ namespace AElf.Network.Peers
                 peer.AuthFinished -= PeerOnPeerAuthentified;
 
                 _authentifyingPeer.Remove(args.Peer);
-                
-                if (!_peers.Remove(args.Peer))
+
+                if (_peers.Remove(args.Peer))
+                {
+                    PeerEvent?.Invoke(this, new PeerEventArgs(peer, PeerEventType.Removed));
+                }
+                else
+                {
                     _logger?.Trace($"Tried to remove peer, but not in list {args.Peer}");
+                }
             }
         }
         
@@ -366,8 +371,7 @@ namespace AElf.Network.Peers
                 {
                     Type = (int)MessageType.Peers,
                     Length = payload.Length,
-                    Payload = payload,
-                    OutboundTrace = Guid.NewGuid().ToString()
+                    Payload = payload
                 };
                         
                 _logger?.Trace($"Sending peers : {pListData} to {args.Peer}");

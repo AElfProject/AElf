@@ -6,12 +6,12 @@ namespace AElf.Kernel
 {
     public interface ILightChain
     {
-        Task<bool> HasHeader(Hash blockId);
+        Task<bool> HasHeader(Hash blockHash);
         Task<bool> IsOnCanonical(Hash blockId);
         Task AddHeadersAsync(IEnumerable<IBlockHeader> headers);
         Task<ulong> GetCurrentBlockHeightAsync();
         Task<Hash> GetCurrentBlockHashAsync();
-        Task<IBlockHeader> GetHeaderByHashAsync(Hash blockId);
+        Task<IBlockHeader> GetHeaderByHashAsync(Hash blockHash);
         Task<IBlockHeader> GetHeaderByHeightAsync(ulong height);
         Task<Hash> GetCanonicalHashAsync(ulong height);
     }

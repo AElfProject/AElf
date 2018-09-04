@@ -9,19 +9,19 @@ namespace AElf.ChainController.TxMemPool
         /// queue txs from tmp to waiting
         /// </summary>
         /// <param name="txs"></param>
-        void EnQueueTxs(HashSet<ITransaction> txs);
+        void EnQueueTxs(HashSet<Transaction> txs);
         
         /// <summary>
         /// queue txs from tmp to waiting
         /// </summary>
         /// <param name="tx"></param>
-        TxValidation.TxInsertionAndBroadcastingError EnQueueTx(ITransaction tx);
+        TxValidation.TxInsertionAndBroadcastingError EnQueueTx(Transaction tx);
         
         /// <summary>
         /// remove a tx
         /// </summary>
         /// <param name="tx"></param>
-        bool DiscardTx(ITransaction tx);
+        bool DiscardTx(Transaction tx);
 
         /// <summary>
         /// promote txs from waiting to executable
@@ -38,7 +38,7 @@ namespace AElf.ChainController.TxMemPool
         /// <summary>
         /// return tx list can be executed
         /// </summary>
-        List<ITransaction> ReadyTxs();
+        List<Transaction> ReadyTxs();
         
         /// <summary>
         /// return chain id for this pool

@@ -8,6 +8,7 @@ using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
@@ -16,15 +17,15 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
-        private static int _incrementId = 0;
+        private static int _incrementId;
 
-        public ulong NewIncrementId()
+        private ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
             return (ulong)n;
         }
 
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
         private IChainService _chainService;
@@ -37,12 +38,14 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
         private Hash ChainId { get; } = Hash.Generate();
 
-        public ContractTest(IWorldStateDictator worldStateDictator,
+        public ContractTest(IStateDictator stateDictator,
             IChainCreationService chainCreationService, IChainService chainService,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
+            _stateDictator.ChainId = Hash.Generate();
+            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _transactionManager = transactionManager;
@@ -50,24 +53,12 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
         }
 
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
+        private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
-        public byte[] ExampleContractCode
-        {
-            get
-            {
-                return ContractCodes.TestContractCode;
-            }
-        }
+        private byte[] ExampleContractCode => ContractCodes.TestContractCode;
 
         [Fact]
         public async Task SmartContractZeroByCreation()
@@ -112,13 +103,14 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
             };
 
-            var txnCtxt = new TransactionContext()
+            var txnCtxt = new TransactionContext
             {
                 Transaction = txnDep
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
-            await executive.SetTransactionContext(txnCtxt).Apply(true);
+            await executive.SetTransactionContext(txnCtxt).Apply();
+            await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
             
             Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
@@ -135,7 +127,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             Assert.Equal(regExample, copy);
         }
 
-
         [Fact]
         public async Task Invoke()
         {
@@ -148,7 +139,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
-            
 
             var code = ExampleContractCode;
 
@@ -169,7 +159,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
-            await executive.SetTransactionContext(txnCtxt).Apply(true);
+            await executive.SetTransactionContext(txnCtxt).Apply();
+            await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
 
             var bs = txnCtxt.Trace.RetVal;
             var address = bs.Data.DeserializeToBytes();
@@ -182,14 +173,15 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "Initialize",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, (ulong)101))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, new UInt64Value {Value = 101}))
             };
             var txnInitCtxt = new TransactionContext()
             {
                 Transaction = txnInit
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(address, ChainId);
-            await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
+            await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
+            await txnInitCtxt.Trace.CommitChangesAsync(_stateDictator);
             
             #endregion initialize account balance
 
@@ -206,11 +198,10 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Transaction = txnBal
             };
-            await executiveUser.SetTransactionContext(txnBalCtxt).Apply(true);
+            await executiveUser.SetTransactionContext(txnBalCtxt).Apply();
 
             Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.Data.DeserializeToUInt64());
             #endregion
-            
             
             #region check account balance
             var txnPrint = new Transaction
@@ -225,7 +216,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Transaction = txnBal
             };
-            await executiveUser.SetTransactionContext(txnPrintcxt).Apply(true);
+            await executiveUser.SetTransactionContext(txnPrintcxt).Apply();
+            await txnPrintcxt.Trace.CommitChangesAsync(_stateDictator);
 
             //Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
             #endregion

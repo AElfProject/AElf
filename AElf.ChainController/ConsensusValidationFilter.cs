@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
+using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.SmartContract;
@@ -52,8 +53,9 @@ namespace AElf.ChainController
             {
                 Transaction = tx
             };
-            executive.SetTransactionContext(tc).Apply(true).Wait();
+            await executive.SetTransactionContext(tc).Apply();
             var trace = tc.Trace;
+            
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())
             {
@@ -65,7 +67,7 @@ namespace AElf.ChainController
                 : ValidationError.InvalidTimeslot;
         }
 
-        private ITransaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)
+        private Transaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)
         {
             if (contractAccountHash == null || keyPair == null || recepientAddress == null)
             {

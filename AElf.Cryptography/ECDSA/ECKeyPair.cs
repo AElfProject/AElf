@@ -29,7 +29,7 @@ namespace AElf.Cryptography.ECDSA
         public static ECKeyPair FromPublicKey(byte[] publicKey)
         {
             ECPublicKeyParameters pubKey
-                = new ECPublicKeyParameters(Parameters.Curve.Curve.DecodePoint(publicKey), Parameters.DomainParams);
+                = new ECPublicKeyParameters(ECParameters.Curve.Curve.DecodePoint(publicKey), ECParameters.DomainParams);
 
             ECKeyPair k = new ECKeyPair(null, pubKey);
 

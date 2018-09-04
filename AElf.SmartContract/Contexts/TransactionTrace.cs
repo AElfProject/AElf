@@ -6,6 +6,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
     public partial class TransactionTrace
@@ -34,37 +35,35 @@ namespace AElf.SmartContract
             var successful = string.IsNullOrEmpty(StdErr);
             foreach (var trace in InlineTraces)
             {
-                successful &= IsSuccessful();
+                successful &= trace.IsSuccessful();
             }
 
             return successful;
         }
 
-        public async Task<Dictionary<Hash, StateCache>> CommitChangesAsync(IWorldStateDictator worldStateDictator,
-            Hash chainId)
+        public async Task<Dictionary<DataPath, StateCache>> CommitChangesAsync(IStateDictator stateDictator)
         {
-            Dictionary<Hash, StateCache> changedDict = new Dictionary<Hash, StateCache>();
+            Dictionary<DataPath, StateCache> changedDict = new Dictionary<DataPath, StateCache>();
             if (ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
-                throw new InvalidOperationException("Attempting to commit a trace with a wrong status.");
+                throw new InvalidOperationException($"Attempting to commit a trace with a wrong status {ExecutionStatus}.");
             }
 
             if (!_alreadyCommited)
             {
                 foreach (var vc in ValueChanges)
                 {
-                    await worldStateDictator.ApplyStateValueChangeAsync(vc, chainId);
+                    await stateDictator.ApplyStateValueChangeAsync(vc.Clone());
 
-                    //add changes into 
-                    var valueCache = new StateCache(vc.BeforeValue.ToByteArray());
-                    valueCache.CurrentValue = vc.AfterValue.ToByteArray();
+                    //add changes
+                    var valueCache = new StateCache(vc.CurrentValue.ToByteArray());
                     changedDict[vc.Path] = valueCache;
                 }
 
                 //TODO: Question: should inline trace commit to tentative cache once the calling func return? In other word, does inlineTraces overwrite the original content in changeDict?
                 foreach (var trc in InlineTraces)
                 {
-                    var inlineCacheDict = await trc.CommitChangesAsync(worldStateDictator, chainId);
+                    var inlineCacheDict = await trc.CommitChangesAsync(stateDictator);
                     foreach (var kv in inlineCacheDict)
                     {
                         changedDict[kv.Key] = kv.Value;

@@ -5,7 +5,7 @@ namespace AElf.Node.AElfChain
 {
     internal static class DtoExtensions
     {
-        internal static JObject GetTransactionInfo(this ITransaction tx)
+        internal static JObject GetTransactionInfo(this Transaction tx)
         {
             return new JObject
             {
@@ -15,7 +15,8 @@ namespace AElf.Node.AElfChain
                     {"From", tx.From.ToHex()},
                     {"To", tx.To.ToHex()},
                     {"Method", tx.MethodName},
-                    {"IncrementId", tx.IncrementId}
+                    {"IncrementId", tx.IncrementId},
+                    {"Type", tx.Type.ToString()}
                 }
             };
         }

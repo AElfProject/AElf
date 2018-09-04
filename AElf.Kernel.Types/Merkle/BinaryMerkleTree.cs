@@ -29,16 +29,17 @@ namespace AElf.Kernel.Types.Merkle
             ComputeRootHash();
         }
 
-        public void AddNodes(IEnumerable<Hash> hashes)
+        public BinaryMerkleTree AddNodes(IEnumerable<Hash> hashes)
         {
             var enumerable = hashes as Hash[] ?? hashes.ToArray();
             var hashesList = enumerable.ToList();
             hashesList.Sort(CompareHash);
             foreach (var hash in hashesList)
             {
-                //Console.WriteLine($"Add hash to calculate merkle tree root: {hash.ToHex()}");
                 Nodes.Add(hash);
             }
+
+            return this;
         }
 
         public Hash ComputeRootHash() => ComputeRootHash(Nodes);
@@ -178,13 +179,11 @@ namespace AElf.Kernel.Types.Merkle
             {
                 if (xValue[i] > yValue[i])
                 {
-                    //Console.WriteLine($"{x.ToHex()} > {y.ToHex()}");
                     return 1;
                 }
 
                 if (xValue[i] < yValue[i])
                 {
-                    //Console.WriteLine($"{x.ToHex()} < {y.ToHex()}");
                     return -1;
                 }
             }

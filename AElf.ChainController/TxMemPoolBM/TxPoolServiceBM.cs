@@ -40,16 +40,16 @@ namespace AElf.ChainController.TxMemPool
             return Task.CompletedTask;
         }
 
-        private readonly ConcurrentDictionary<Hash, ITransaction> _contractTxs =
-            new ConcurrentDictionary<Hash, ITransaction>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _contractTxs =
+            new ConcurrentDictionary<Hash, Transaction>();
 
-        private readonly ConcurrentDictionary<Hash, ITransaction> _dPoSTxs =
-            new ConcurrentDictionary<Hash, ITransaction>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _dPoSTxs =
+            new ConcurrentDictionary<Hash, Transaction>();
 
         private readonly ConcurrentBag<Hash> _bpAddrs = new ConcurrentBag<Hash>();
 
         /// <inheritdoc/>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
         {
             var txExecuted = await _transactionManager.GetTransaction(tx.GetHash());
             if (txExecuted != null)
@@ -71,7 +71,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
+        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx)
         {
             var res = _txValidator.ValidateTx(tx);
             if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
@@ -98,7 +98,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private TxValidation.TxInsertionAndBroadcastingError AddDPoSTransaction(ITransaction tx)
+        private TxValidation.TxInsertionAndBroadcastingError AddDPoSTransaction(Transaction tx)
         {
             if (tx.Type != TransactionType.DposTransaction) return TxValidation.TxInsertionAndBroadcastingError.Failed;
             if (_dPoSTxs.ContainsKey(tx.GetHash()))
@@ -118,7 +118,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private TxValidation.TxInsertionAndBroadcastingError AddContractTransaction(ITransaction tx)
+        private TxValidation.TxInsertionAndBroadcastingError AddContractTransaction(Transaction tx)
         {
             if (tx.Type != TransactionType.ContractTransaction)
                 return TxValidation.TxInsertionAndBroadcastingError.Failed;
@@ -134,7 +134,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task RollBack(List<ITransaction> txsOut)
+        public async Task RollBack(List<Transaction> txsOut)
         {
             foreach (var tx in txsOut)
             {
@@ -153,7 +153,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public bool TryGetTx(Hash txHash, out ITransaction tx)
+        public bool TryGetTx(Hash txHash, out Transaction tx)
         {
             return _contractTxs.TryGetValue(txHash, out tx) || _dPoSTxs.TryGetValue(txHash, out tx);
         }
@@ -182,7 +182,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task<List<ITransaction>> GetReadyTxsAsync()
+        public async Task<List<Transaction>> GetReadyTxsAsync(double intervals = 150)
         {
             // TODO: Improve performance
             var txs = _dPoSTxs.Values.ToList();

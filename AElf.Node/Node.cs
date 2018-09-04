@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -30,7 +31,7 @@ namespace AElf.Node
             _services.Add(s);
         }
 
-        public void Initialize(NodeConfiguation conf)
+        public void Initialize(NodeConfiguration conf)
         {
             _startRpc = conf.WithRpc;
             

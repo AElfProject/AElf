@@ -10,68 +10,94 @@ namespace AElf.ChainController
     public class SimpleExecutingService : IExecutingService
     {
         private ISmartContractService _smartContractService;
-        private IWorldStateDictator _worldStateDictator;
-        private IChainService _chainService;
+        private IStateDictator _stateDictator;
+        private IChainContextService _chainContextService;
 
         public SimpleExecutingService(ISmartContractService smartContractService,
-            IWorldStateDictator worldStateDictator,
-            IChainService chainService)
+            IStateDictator stateDictator,
+            IChainContextService chainContextService)
         {
             _smartContractService = smartContractService;
-            _worldStateDictator = worldStateDictator;
-            _chainService = chainService;
+            _stateDictator = stateDictator;
+            _chainContextService = chainContextService;
         }
 
-        public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId,
+        public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
             CancellationToken cancellationToken)
         {
-            var blockChain = _chainService.GetBlockChain(chainId);
+            var chainContext = await _chainContextService.GetChainContextAsync(chainId);
+            var stateCache = new Dictionary<DataPath, StateCache>();
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                if (cancellationToken.IsCancellationRequested)
+                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
+                if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
-                    traces.Add(new TransactionTrace()
+                    var bufferedStateUpdates = await trace.CommitChangesAsync(_stateDictator);
+                    foreach (var kv in bufferedStateUpdates)
                     {
-                        TransactionId = transaction.GetHash(),
-                        StdErr = "Execution Canceled",
-                        ExecutionStatus = ExecutionStatus.Canceled
-                    });
-                    continue;
-                }
-
-                var txCtxt = new TransactionContext()
-                {
-                    PreviousBlockHash = await blockChain.GetCurrentBlockHashAsync(),
-                    Transaction = transaction,
-                    BlockHeight = await blockChain.GetCurrentBlockHeightAsync(),
-                    Trace = new TransactionTrace()
-                    {
-                        TransactionId = transaction.GetHash()
+                        stateCache[kv.Key] = kv.Value;
                     }
-                };
-
-                var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
-                try
-                {
-                    _worldStateDictator.PreBlockHash =
-                        await _chainService.GetBlockChain(chainId).GetCurrentBlockHashAsync();
-                    await executive.SetTransactionContext(txCtxt).Apply(true);
-                }
-                catch (Exception ex)
-                {
-                    txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                    txCtxt.Trace.StdErr += ex + "\n";
-                }
-                finally
-                {
-                    await _smartContractService.PutExecutiveAsync(transaction.To, executive);
                 }
 
-                traces.Add(txCtxt.Trace);
+                traces.Add(trace);
             }
 
+            await _stateDictator.ApplyCachedDataAction(stateCache);
             return traces;
+        }
+
+        private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
+            IChainContext chainContext, Dictionary<DataPath, StateCache> stateCache,
+            CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return new TransactionTrace()
+                {
+                    TransactionId = transaction.GetHash(),
+                    StdErr = "Execution Canceled",
+                    ExecutionStatus = ExecutionStatus.Canceled
+                };
+            }
+
+            var trace = new TransactionTrace()
+            {
+                TransactionId = transaction.GetHash()
+            };
+
+            var txCtxt = new TransactionContext()
+            {
+                PreviousBlockHash = chainContext.BlockHash,
+                Transaction = transaction,
+                BlockHeight = chainContext.BlockHeight,
+                Trace = trace,
+                CallDepth = depth
+            };
+
+            var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
+            try
+            {
+                executive.SetDataCache(stateCache);
+                await executive.SetTransactionContext(txCtxt).Apply();
+                foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
+                {
+                    var inlineTrace = await ExecuteOneAsync(depth + 1, inlineTx, chainId, chainContext, stateCache,
+                        cancellationToken);
+                    trace.InlineTraces.Add(inlineTrace);
+                }
+            }
+            catch (Exception ex)
+            {
+                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                txCtxt.Trace.StdErr += ex + "\n";
+            }
+            finally
+            {
+                await _smartContractService.PutExecutiveAsync(transaction.To, executive);
+            }
+
+            return trace;
         }
     }
 }

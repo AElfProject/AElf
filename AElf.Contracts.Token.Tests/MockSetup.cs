@@ -13,7 +13,7 @@ using ServiceStack;
 
 namespace AElf.Contracts.Token.Tests
 {
-    public class     MockSetup
+    public class MockSetup
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
@@ -35,31 +35,31 @@ namespace AElf.Contracts.Token.Tests
 
         public ServicePack ServicePack;
 
-        private IWorldStateDictator _worldStateDictator;
+        public IStateDictator StateDictator { get; }
         private IChainCreationService _chainCreationService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IStateDictator stateDictator, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateDictator = worldStateDictator;
+            StateDictator = stateDictator;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            SmartContractManager = new SmartContractManager(smartContractStore);
+            SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                WorldStateDictator = _worldStateDictator
+                StateDictator = StateDictator
             };
         }
 
@@ -109,9 +109,8 @@ namespace AElf.Contracts.Token.Tests
             var chain1 =
                 await _chainCreationService.CreateNewChainAsync(ChainId1,
                     new List<SmartContractRegistration> {reg0, reg1});
-            DataProvider1 =
-                await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
-                    ResourcePath.CalculatePointerForAccountZero(ChainId1));
+            StateDictator.ChainId = ChainId1;
+            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Hash address)

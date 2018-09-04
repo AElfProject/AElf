@@ -6,6 +6,7 @@ namespace AElf.SmartContract
     public class SmartContractRunnerFactory : ISmartContractRunnerFactory
     {
         private readonly ConcurrentDictionary<int, ISmartContractRunner> _runners = new ConcurrentDictionary<int, ISmartContractRunner>();
+        
         public ISmartContractRunner GetRunner(int category)
         {
             if (_runners.TryGetValue(category, out var runner))

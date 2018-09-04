@@ -10,6 +10,7 @@
       <Project>{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}</Project>
       <Name>AElf.Network</Name>
     </ProjectReference>
+    <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />

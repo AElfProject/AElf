@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using AElf.Common.Enums;
 using AElf.Configuration;
+using AElf.Configuration.Config.Network;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -26,7 +29,9 @@ namespace AElf.Management.Commands
                 {
                     {"actor.json", GetActorConfigJson(chainId, arg)}, 
                     {"database.json", GetDatabaseConfigJson(chainId, arg)}, 
-                    {"miners.json", GetMinersConfigJson(chainId, arg)}
+                    {"miners.json", GetMinersConfigJson(chainId, arg)}, 
+                    {"parallel.json", GetParallelConfigJson(chainId, arg)}, 
+                    {"network.json", GetNetworkConfigJson(chainId, arg)}
                 }
             };
 
@@ -37,7 +42,7 @@ namespace AElf.Management.Commands
         {
             var config = new ActorConfig
             {
-                IsCluster = true,
+                IsCluster = arg.ManagerArg.IsCluster,
                 HostName = "127.0.0.1",
                 Port = 0,
                 ActorCount = arg.WorkArg.ActorCount,
@@ -71,17 +76,48 @@ namespace AElf.Management.Commands
 
         private string GetMinersConfigJson(string chainId, DeployArg arg)
         {
-            var config = new MinersConfig
+            var config = new MinersConfig();
+            var i = 1;
+            config.Producers=new Dictionary<string, Dictionary<string, string>>();
+            foreach (var miner in arg.Miners)
             {
-                Producers = new Dictionary<string, Dictionary<string, string>>
-                {
-                    {"1", new Dictionary<string, string> {{"address", arg.MainChainAccount}}}
-                }
+                
+                config.Producers.Add(i.ToString(),new Dictionary<string, string>{{"address",miner}});
+                i++;
+            }
+
+            var result = JsonSerializer.Instance.Serialize(config);
+
+            return result;
+        }
+
+        private string GetParallelConfigJson(string chainId, DeployArg arg)
+        {
+            var config = new ParallelConfig
+            {
+                IsParallelEnable = false
             };
 
             var result = JsonSerializer.Instance.Serialize(config);
 
             return result;
         }
+
+        private string GetNetworkConfigJson(string chainId, DeployArg arg)
+        {
+            var config = new NetworkConfig();
+            config.Bootnodes=new List<string>();
+            config.Peers = new List<string>();
+
+            if (arg.LauncherArg.Bootnodes != null && arg.LauncherArg.Bootnodes.Any())
+            {
+                config.Bootnodes = arg.LauncherArg.Bootnodes;
+            }
+
+            var result = JsonSerializer.Instance.Serialize(config);
+
+            return result;
+        }
+        
     }
 }

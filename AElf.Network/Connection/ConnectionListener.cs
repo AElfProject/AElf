@@ -49,7 +49,7 @@ namespace AElf.Network.Connection
             LogConnection(client);
             IncomingConnection?.Invoke(this, new IncomingConnectionArgs { Client = client});
         }
-
+        
         private void LogConnection(TcpClient client)
         {
             IPEndPoint remoteIpEndPoint = client?.Client?.RemoteEndPoint as IPEndPoint;

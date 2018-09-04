@@ -26,7 +26,7 @@ namespace AElf.Benchmark
         private readonly ILogger _logger;
         private readonly BenchmarkOptions _options;
         private readonly IExecutingService _executingService;
-
+        private readonly IStateDictator _stateDictator;
 
         private readonly ServicePack _servicePack;
 
@@ -52,13 +52,13 @@ namespace AElf.Benchmark
         public Benchmarks(IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
             ILogger logger, IFunctionMetadataService functionMetadataService,
-            IAccountContextService accountContextService, IWorldStateDictator worldStateDictator, BenchmarkOptions options, IExecutingService executingService)
+            IAccountContextService accountContextService, IStateDictator stateDictator, BenchmarkOptions options, IExecutingService executingService)
         {
             ChainId = Hash.Generate();
             
-            var worldStateDictator1 = worldStateDictator;
-            worldStateDictator1.SetChainId(ChainId).DeleteChangeBeforesImmidiately = true;
-            
+            _stateDictator = stateDictator;
+            _stateDictator.ChainId = ChainId;
+                
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;
             _logger = logger;
@@ -71,7 +71,7 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                WorldStateDictator = worldStateDictator1,
+                StateDictator = _stateDictator,
                 AccountContextService = accountContextService,
             };
 
@@ -176,7 +176,7 @@ namespace AElf.Benchmark
             return new KeyValuePair<string,double>(str, time);
         }
 
-        private List<Hash> GetTargetHashesForTransfer(List<ITransaction> transactions)
+        private List<Hash> GetTargetHashesForTransfer(List<Transaction> transactions)
         {
             if (transactions.Count(a => a.MethodName != "Transfer") != 0)
             {
@@ -215,7 +215,7 @@ namespace AElf.Benchmark
                 var executive = await _smartContractService.GetExecutiveAsync(tokenContractAddr, ChainId);
                 try
                 {
-                    await executive.SetTransactionContext(txnCtxt).Apply(true);
+                    await executive.SetTransactionContext(txnCtxt).Apply();
                 }
                 finally
                 {
@@ -269,7 +269,9 @@ namespace AElf.Benchmark
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             try
             {
-                await executive.SetTransactionContext(txnCtxt).Apply(true);
+                await executive.SetTransactionContext(txnCtxt).Apply();
+                var changesDict = await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
+                await _stateDictator.ApplyCachedDataAction(changesDict);
             }
             finally
             {
@@ -305,14 +307,16 @@ namespace AElf.Benchmark
             var executiveUser = await _smartContractService.GetExecutiveAsync(contractAddr, ChainId);
             try
             {
-                await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
+                await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
+                var changesDict = await txnInitCtxt.Trace.CommitChangesAsync(_stateDictator);
+                await _stateDictator.ApplyCachedDataAction(changesDict);
             }
             finally
             {
                 await _smartContractService.PutExecutiveAsync(contractAddr, executiveUser);    
             }
             //init contract
-            var initTxList = new List<ITransaction>();
+            var initTxList = new List<Transaction>();
             foreach (var addr in addrBook)
             {
                 var txnBalInit = new Transaction

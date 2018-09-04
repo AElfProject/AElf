@@ -1,44 +1,40 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
 {
     public class ChainManagerBasic : IChainManagerBasic
     {
-        private readonly IGenesisHashStore _genesisHashStore;
-        private readonly ICurrentHashStore _currentHashStore;
-        private readonly ICanonicalHashStore _canonicalHashStore;
+        private readonly IDataStore _dataStore;
 
-        // TODO: Replace ChainManager class with this class
-        public ChainManagerBasic(IGenesisHashStore genesisHashStore, ICurrentHashStore currentHashStore, ICanonicalHashStore canonicalHashStore)
+        public ChainManagerBasic(IDataStore dataStore)
         {
-            _genesisHashStore = genesisHashStore;
-            _currentHashStore = currentHashStore;
-            _canonicalHashStore = canonicalHashStore;
+            _dataStore = dataStore;
         }
 
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
         {
-            await _genesisHashStore.InsertAsync(chainId, genesisBlockHash);
+            await _dataStore.InsertAsync(chainId.OfType(HashType.GenesisHash), genesisBlockHash);
             await UpdateCurrentBlockHashAsync(chainId, genesisBlockHash);
         }
 
         public async Task<Hash> GetGenesisBlockHashAsync(Hash chainId)
         {
-            var hash = await _genesisHashStore.GetAsync(chainId);
-            return hash;
+            return await _dataStore.GetAsync<Hash>(chainId.OfType(HashType.GenesisHash));
         }
 
         public async Task UpdateCurrentBlockHashAsync(Hash chainId, Hash blockHash)
         {
-            await _currentHashStore.InsertOrUpdateAsync(chainId, blockHash);
+            var key = chainId.OfType(HashType.CurrentHash);
+            await _dataStore.InsertAsync(key, blockHash);
         }
         
         public async Task<Hash> GetCurrentBlockHashAsync(Hash chainId)
         {
-            var hash = await _currentHashStore.GetAsync(chainId);
+            var key = chainId.OfType(HashType.CurrentHash);
+            var hash = await _dataStore.GetAsync<Hash>(key);
             return hash;
         }
-
     }
 }

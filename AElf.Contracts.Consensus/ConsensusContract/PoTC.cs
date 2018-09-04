@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common.Enums;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
@@ -16,7 +17,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         public int Interval => 0;
 
-        public bool PrintLogs => true;
+        public int LogLevel { get; set; }
 
         public Hash Nonce { get; set; } = Hash.Default;
         

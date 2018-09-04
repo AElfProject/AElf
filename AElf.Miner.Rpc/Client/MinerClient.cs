@@ -1,38 +1,73 @@
-﻿using System;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Configuration.Config.GRPC;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using AElf.Common.Collections;
 using AElf.Kernel;
-using Akka.Util.Internal;
 using Grpc.Core;
- 
- namespace AElf.Miner.Rpc.Client
- {
-     public class MinerClient
-     {
-         private readonly Dictionary<Hash, HeaderInfoRpc.HeaderInfoRpcClient> _channels = new Dictionary<Hash, HeaderInfoRpc.HeaderInfoRpcClient>();
-         public void Init()
-         {
-             var childChains = GrpcConfig.Instance.ChildChains;
-             foreach (var chainIdUri in childChains)
-             {
-                 var uri = chainIdUri.Value.Address + ":" + chainIdUri.Value.Port;
-                 _channels.Add(ByteArrayHelpers.FromHexString(chainIdUri.Key),
-                     new HeaderInfoRpc.HeaderInfoRpcClient(new Channel(uri, ChannelCredentials.Insecure)));
-             }
-             /*var channelCredentials = new SslCredentials(File.ReadAllText("roots.pem"));  // Load a custom roots file.
-             var channel = new Channel("myservice.example.com", channelCredentials);*/
-         }
 
-         public ReponseIndexedInfo GetHeaderInfo(RequestIndexedInfo request)
-         {
-             if (!_channels.TryGetValue(request.ChainId, out var client))
-             {
-                 throw new Exception("Not existed chain");
-             }
+namespace AElf.Miner.Rpc.Client
+{
+    public class MinerClient
+    {
+        private readonly HeaderInfoRpc.HeaderInfoRpcClient _client;
+        private ulong _next;
 
-             var headerInfo = client.GetHeaderInfo(request);
-             return headerInfo;
-         }
-     }
- }
+        public BlockingCollection<ResponseIndexedInfoMessage> IndexedInfoQueue { get; } =
+            new BlockingCollection<ResponseIndexedInfoMessage>(new ConcurrentQueue<ResponseIndexedInfoMessage>());
+
+        public MinerClient(Channel channel)
+        {
+            _client = new HeaderInfoRpc.HeaderInfoRpcClient(channel);
+        }
+
+        public async Task Index(CancellationToken cancellationToken, ulong next)
+        {
+            _next = next;
+            try
+            {
+                using (var call = _client.Index())
+                {
+                    // response reader task
+                    var responseReaderTask = Task.Run(async () =>
+                    {
+                        while (await call.ResponseStream.MoveNext())
+                        {
+
+                            var indexedInfo = call.ResponseStream.Current;
+
+                            // request failed or useless response
+                            if(!indexedInfo.Success || indexedInfo.Height != _next)
+                                continue;
+                            if(IndexedInfoQueue.TryAdd(indexedInfo))
+                                _next++;
+                        }
+                    });
+
+                    // send request every second until cancellation
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        var request = new RequestIndexedInfoMessage
+                        {
+                            NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
+                        };
+                        await call.RequestStream.WriteAsync(request);
+                        System.Diagnostics.Debug.WriteLine("request");
+
+                        await Task.Delay(1000);
+                    }
+                    await call.RequestStream.CompleteAsync();
+                    await responseReaderTask;
+                }
+            }
+            catch (RpcException e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
+        }
+    }
+}
