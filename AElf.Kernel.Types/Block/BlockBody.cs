@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Types;
+﻿using System.Collections.Generic;
+using AElf.Kernel.Types;
 using AElf.Kernel.Types.Merkle;
 using Google.Protobuf;
 
@@ -7,24 +8,20 @@ namespace AElf.Kernel
 {
     public partial class BlockBody : IBlockBody
     {
-        public int TransactionsCount => Transactions.Count;
+        public int TransactionsCount => txs.Count;
         
+        private HashSet<Hash> txs = new HashSet<Hash>();
         public bool AddTransaction(Hash tx)
         {
-            if (Transactions.Contains(tx))
-                return false;
-            
-            Transactions.Add(tx);
-            
-            return true;
+            return txs.Add(tx);
         }
 
         public Hash CalculateMerkleTreeRoot()
         {
-            if (Transactions.Count == 0)
+            if (TransactionsCount == 0)
                 return Hash.Default; 
             var merkleTree = new BinaryMerkleTree();
-            merkleTree.AddNodes(transactions_);
+            merkleTree.AddNodes(txs);
             
             return merkleTree.ComputeRootHash();
         }
@@ -37,6 +34,12 @@ namespace AElf.Kernel
         public Hash GetHash()
         {
             return BlockHeader.CalculateHashWith(CalculateMerkleTreeRoot());
+        }
+        
+        public void Complete(Hash blockHeaderHash)
+        {
+            BlockHeader = blockHeaderHash;
+            Transactions.Add(txs);
         }
     }
 }

@@ -42,5 +42,12 @@ namespace AElf.Kernel
         {
             return Header.GetHashBytes();
         }
+
+        public Block Complete()
+        {
+            Header.MerkleTreeRootOfTransactions = Body.CalculateMerkleTreeRoot();
+            Body.Complete(Header.GetHash());
+            return this;
+        }
     }
 }

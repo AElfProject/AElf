@@ -7,5 +7,7 @@ namespace AElf.Kernel
         RepeatedField<Hash> Transactions { get; }
 
         bool AddTransaction(Hash tx);
+
+        void Complete(Hash blockHeaderHash);
     }
 }

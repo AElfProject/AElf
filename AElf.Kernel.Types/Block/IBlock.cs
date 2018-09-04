@@ -6,5 +6,6 @@
         BlockHeader Header { get; set; }
         BlockBody Body { get; set; }
         void FillTxsMerkleTreeRootInHeader();
+        Block Complete();
     }
 }

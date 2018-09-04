@@ -275,10 +275,7 @@ namespace AElf.Miner.Miner
                 block.AddTransaction(r.TransactionId);
             }
 
-            // calculate and set tx merkle tree root
-            block.FillTxsMerkleTreeRootInHeader();
 
-            
             // set ws merkle tree root
             await _stateDictator.SetWorldStateAsync();
             var ws = await _stateDictator.GetLatestWorldStateAsync();
@@ -288,9 +285,9 @@ namespace AElf.Miner.Miner
             {
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
             }
-               
-            block.Body.BlockHeader = block.Header.GetHash();
-
+            // calculate and set tx merkle tree root 
+            block.Complete();
+            
             await _stateDictator.SetBlockHashAsync(block.GetHash());
             await _stateDictator.SetStateHashAsync(block.GetHash());
 
