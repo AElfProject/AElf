@@ -18,7 +18,7 @@ using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 namespace AElf.ChainController.TxMemPool
 {
     [LoggerName("Txpool")]
-    public class TxPoolService : ChainController.TxMemPool.ITxPoolService
+    public class TxPoolService : ITxPoolService
     {
         private readonly IContractTxPool _contractTxPool;
         private readonly IPriorTxPool _priorTxPool;
@@ -175,17 +175,18 @@ namespace AElf.ChainController.TxMemPool
                 {
                     _priorTxs.TryRemove(tx.GetHash(), out _);
                 }
-                _logger.Log(LogLevel.Debug, $"Got {readyTxs.Count} prior tx");
+                _logger.Log(LogLevel.Debug, $"Got {readyTxs.Count} prior tx(s)");
                 return readyTxs;
             });
             
             List<Transaction> contractTxs = null;
             bool available = false;
+            bool complete = false;
             long count = -1;
             using (var tokenSource = new CancellationTokenSource())
             {
                 intervals = Math.Max(intervals, 150);
-                tokenSource.CancelAfter(TimeSpan.FromMilliseconds(intervals - 50));
+                
                 var token = tokenSource.Token;
                 var t = ContractTxLock.WriteLock(() =>
                 {
@@ -196,28 +197,30 @@ namespace AElf.ChainController.TxMemPool
                         return;
                     }
                 
-                    var execCount = _contractTxPool.GetExecutableSize();
+                    count = (long) _contractTxPool.GetExecutableSize();
+                    if (count < (long) _contractTxPool.Least)
+                    {
+                        // case 3
+                        return;
+                    }
                     if (token.IsCancellationRequested)
                     {
                         //case 2
                         return;
                     }
-                    count = (long) execCount;
-                    if (execCount < _contractTxPool.Least)
-                    {
-                        // case 3
-                        return;
-                    }
                     available = true;
                     contractTxs = _contractTxPool.ReadyTxs(); //case 1
+                    complete = true;
                 }, token);
                 
                 try
                 {
+                    Thread.Sleep(TimeSpan.FromMilliseconds(intervals - 50));
+                    tokenSource.Cancel();
                     t.Wait(TimeSpan.FromMilliseconds(intervals));
                     
                     // NOTE: be careful, some txs maybe lost here without this
-                    if (available && contractTxs == null)
+                    if (available && !complete)
                     {
                         _logger.Log(LogLevel.Debug, "Be careful! it takes more time to get txs!");
                         t.Wait();
@@ -227,7 +230,7 @@ namespace AElf.ChainController.TxMemPool
                 catch (AggregateException ae)
                 {
                     if (ae.InnerExceptions.Any(e => e is TaskCanceledException))
-                        Console.WriteLine("Exception: " + ae.Message);
+                        _logger.Log(LogLevel.Debug, "Exception: " + ae.Message);
                     else
                         throw;
                 }
@@ -237,7 +240,7 @@ namespace AElf.ChainController.TxMemPool
                 }
             }
             
-            if (contractTxs != null)
+            if (complete)
             {
                 // case 1
                 // get txs successfully
@@ -256,19 +259,19 @@ namespace AElf.ChainController.TxMemPool
             }
             else if (count == -1)
             {
-                // case 2
-                _logger.Log(LogLevel.Debug, "TIMEOUT! - Unable to get txs.");
+                // case 3
+                _logger.Log(LogLevel.Debug, "TIMEOUT! - Unable to count txs.");
             }
-            else if(count >= (long) _contractTxPool.Least)
-            {
-                // only few cases.
-                _logger.Log(LogLevel.Debug, "TIMEOUT! - Enough txs but no time left to get txs.");
-            }
-            else
+            else if(count < (long) _contractTxPool.Least)
             {
                 // case 3
                 _logger.Log(LogLevel.Debug,
                     $"Only {count} Contract tx(s) in pool are ready: less than {_contractTxPool.Least}.");
+            }
+            else
+            {
+                // only few cases.
+                _logger.Log(LogLevel.Debug, "TIMEOUT! - Enough txs but no time left to get txs.");
             }
                 
             return prior;
@@ -482,7 +485,7 @@ namespace AElf.ChainController.TxMemPool
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Error(e);
                 throw;
             }
             

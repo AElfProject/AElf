@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         public int Interval => 0;
 
-        public bool PrintLogs => true;
+        public int LogLevel { get; set; }
 
         public Hash Nonce { get; set; } = Hash.Default;
         

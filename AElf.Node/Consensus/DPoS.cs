@@ -20,6 +20,7 @@ using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Mono.Cecil.Cil;
 using NLog;
 
 // ReSharper disable once CheckNamespace
@@ -242,11 +243,13 @@ namespace AElf.Kernel.Node
         
         private async Task MiningWithInitializingAElfDPoSInformation()
         {
+            var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
             var parameters = new List<byte[]>
             {
                 Miners.ToByteArray(),
                 _dposHelpers.GenerateInfoForFirstTwoRounds().ToByteArray(),
-                new SInt32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray()
+                new SInt32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray(),
+                logLevel.ToByteArray()
             };
             _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms");
             var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
