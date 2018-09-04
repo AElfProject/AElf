@@ -19,8 +19,8 @@ namespace AElf.ChainController.TxMemPool
         private readonly IChainService _chainService;
         private readonly ITxValidator _txValidator;
         private readonly ITransactionManager _transactionManager;
-        private  ulong Least { get; set; }
-        private  ulong Limit { get; set; }
+        private ulong Least { get; set; }
+        private ulong Limit { get; set; }
 
         public TxPoolServiceBM(ILogger logger, IChainService chainService, ITxValidator txValidator,
             ITransactionManager transactionManager)
@@ -146,6 +146,7 @@ namespace AElf.ChainController.TxMemPool
                 {
                     AddContractTransaction(tx);
                 }
+
                 tx.Unclaim();
             }
 
@@ -186,18 +187,22 @@ namespace AElf.ChainController.TxMemPool
         {
             // TODO: Improve performance
             var txs = _dPoSTxs.Values.ToList();
-            if ( (ulong) _contractTxs.Count < Least)
+            _logger.Debug($"Got {txs.Count} DPoS tx");
+            if ((ulong) _contractTxs.Count < Least)
             {
+                _logger.Debug($"Regular txs {Least} required, but we only have {_contractTxs.Count}");
                 return txs;
             }
 
             var invalid = new List<Hash>();
             foreach (var kv in _contractTxs)
             {
-                if ((ulong) txs.Count > Limit)
+                if (Limit != 0 && (ulong) txs.Count > Limit)
                 {
+                    _logger.Debug($"Regular txs limit {Limit} reached.");
                     continue;
                 }
+
                 if (!kv.Value.Claim())
                 {
                     continue;
@@ -219,6 +224,7 @@ namespace AElf.ChainController.TxMemPool
                 _contractTxs.TryRemove(hash, out _);
             }
 
+            _logger.Debug($"Got {txs.Count} total tx");
             return txs;
         }
 
