@@ -199,7 +199,6 @@ namespace AElf.ChainController.TxMemPool
             {
                 if (Limit != 0 && (ulong) txs.Count > Limit)
                 {
-                    _logger.Debug($"Regular txs limit {Limit} reached.");
                     continue;
                 }
 
