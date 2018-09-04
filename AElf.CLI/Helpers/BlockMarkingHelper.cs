@@ -21,7 +21,7 @@ namespace AElf.CLI.Helpers
         {
             var height = _cachedHeight;
             var hash = _cachedHash;
-            if (height == default(ulong) || (DateTime.Now - _refBlockTime).Seconds > 60)
+            if (height == default(ulong) || (DateTime.Now - _refBlockTime).TotalSeconds > 60)
             {
                 height = ulong.Parse(GetBlkHeight(rpcAddress));
                 hash = GetBlkHash(rpcAddress, height.ToString());
@@ -29,7 +29,6 @@ namespace AElf.CLI.Helpers
                 _cachedHash = hash;
                 _refBlockTime = DateTime.Now;
             }
-
             transaction.RefBlockNumber = height;
             transaction.RefBlockPrefix = ByteArrayHelpers.FromHexString(hash).Where((b, i) => i < 4).ToArray();
             return transaction;
