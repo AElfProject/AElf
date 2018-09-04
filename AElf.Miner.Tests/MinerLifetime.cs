@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
+using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
@@ -47,8 +48,6 @@ namespace AElf.Kernel.Tests.Miner
 
         private IActorRef _serviceRouter;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
-        private ISmartContractService _smartContractService;
-        private IChainContextService _chainContextService;
         private IAccountContextService _accountContextService;
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
@@ -56,18 +55,17 @@ namespace AElf.Kernel.Tests.Miner
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
         private readonly IChainManagerBasic _chainManagerBasic;
-        private readonly IBlockManagerBasic _blockManagerBasic;
+        private readonly ISideChainManager _sideChainManager;
         
         public MinerLifetime(IStateDictator stateDictator, 
-            IChainCreationService chainCreationService, 
-            IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
+            IChainCreationService chainCreationService, ILogger logger, IAccountContextService accountContextService, 
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             IChainService chainService, ISmartContractManager smartContractManager, 
             IFunctionMetadataService functionMetadataService, 
-            IExecutingService concurrencyExecutingService, IChainManagerBasic chainManagerBasic, IBlockManagerBasic blockManagerBasic) : base(new XunitAssertions())
+            IExecutingService concurrencyExecutingService, IChainManagerBasic chainManagerBasic, 
+            ISideChainManager sideChainManager) : base(new XunitAssertions())
         {
             _chainCreationService = chainCreationService;
-            _chainContextService = chainContextService;
             _logger = logger;
             _accountContextService = accountContextService;
             _transactionManager = transactionManager;
@@ -78,7 +76,7 @@ namespace AElf.Kernel.Tests.Miner
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
             _chainManagerBasic = chainManagerBasic;
-            _blockManagerBasic = blockManagerBasic;
+            _sideChainManager = sideChainManager;
 
             _stateDictator = stateDictator;
             _stateDictator.BlockProducerAccountAddress = Hash.Generate();
@@ -90,7 +88,7 @@ namespace AElf.Kernel.Tests.Miner
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
+            new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
         }
         
         public byte[] SmartContractZeroCode
@@ -225,11 +223,18 @@ namespace AElf.Kernel.Tests.Miner
             _stateDictator.ChainId = chainId;
             return chain;
         }
+
+        public MinerClientManager MockClientGenerator(ILogger logger)
+        {
+            Mock<MinerClientManager> mock = new Mock<MinerClientManager>(logger);
+            mock.
+        }
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
-                _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger);
+                _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger, 
+                new MinerClientManager(_logger), _sideChainManager);
 
             return miner;
         }
@@ -265,7 +270,9 @@ namespace AElf.Kernel.Tests.Miner
             
             var miner = GetMiner(minerconfig, poolService);
 
-            miner.Init(keypair);
+            GrpcLocalConfig.Instance.IsCluster = false;
+            GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
+            await miner.Init(keypair);
             
             var block = await miner.Mine(Timeout.Infinite, false);
             
@@ -301,7 +308,7 @@ namespace AElf.Kernel.Tests.Miner
             /*var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
                 new Grouper(_servicePack.ResourceDetectionService));*/
             
-            miner.Init(keypair);
+            await miner.Init(keypair);
             
             var block = await miner.Mine(Timeout.Infinite, false);
             

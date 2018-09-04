@@ -61,9 +61,9 @@ namespace AElf.Miner.Tests.Grpc
             return new MinerServer(_logger, new HeaderInfoServerImpl(MockChainService().Object, _logger));
         }
 
-        public MinerClientGenerator MinerClientGenerator()
+        public MinerClientManager MinerClientGenerator()
         {
-            return new MinerClientGenerator(_logger);
+            return new MinerClientManager(_logger);
         }
 
 
@@ -119,21 +119,21 @@ namespace AElf.Miner.Tests.Grpc
                 client.Index(cancellationTokenSource.Token, 0);
                 Thread.Sleep(500);
                 Assert.Equal(1, client.IndexedInfoQueue.Count);
-                Assert.Equal((ulong)0, ((ResponseIndexedInfoMessage)client.IndexedInfoQueue.First()).Height);
+                Assert.Equal((ulong)0, ((ResponseSideChainIndexedInfo)client.IndexedInfoQueue.First()).Height);
                 // remove the first one
                 Assert.True(client.IndexedInfoQueue.TryTake(out _));
                 
                 Thread.Sleep(1000);
                 Assert.Equal(1, client.IndexedInfoQueue.Count);
-                Assert.Equal((ulong)1, ((ResponseIndexedInfoMessage)client.IndexedInfoQueue.First()).Height);
+                Assert.Equal((ulong)1, ((ResponseSideChainIndexedInfo)client.IndexedInfoQueue.First()).Height);
                 Thread.Sleep(1000);
                 Assert.Equal(2, client.IndexedInfoQueue.Count);
-                Assert.Equal((ulong)1, ((ResponseIndexedInfoMessage)client.IndexedInfoQueue.First()).Height);
+                Assert.Equal((ulong)1, ((ResponseSideChainIndexedInfo)client.IndexedInfoQueue.First()).Height);
                 
                 // remove 2rd item
                 Assert.True(client.IndexedInfoQueue.TryTake(out _));
                 Assert.Equal(1, client.IndexedInfoQueue.Count);
-                Assert.Equal((ulong)2, ((ResponseIndexedInfoMessage)client.IndexedInfoQueue.First()).Height);
+                Assert.Equal((ulong)2, ((ResponseSideChainIndexedInfo)client.IndexedInfoQueue.First()).Height);
 
             }
             catch (Exception e)

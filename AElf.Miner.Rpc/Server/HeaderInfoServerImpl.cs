@@ -26,8 +26,8 @@ namespace AElf.Miner.Rpc.Server
             LightChain = _chainService.GetLightChain(chainId);
         }
         //
-        public override async Task Index(IAsyncStreamReader<RequestIndexedInfoMessage> requestStream, 
-            IServerStreamWriter<ResponseIndexedInfoMessage> responseStream, ServerCallContext context)
+        public override async Task Index(IAsyncStreamReader<RequestSideChainIndexedInfo> requestStream, 
+            IServerStreamWriter<ResponseSideChainIndexedInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
 
@@ -36,12 +36,13 @@ namespace AElf.Miner.Rpc.Server
                 var requestInfo = requestStream.Current;
                 var requestedHeight = requestInfo.NextHeight;
                 var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);
-                var res = new ResponseIndexedInfoMessage
+                var res = new ResponseSideChainIndexedInfo
                 {
                     Height = requestedHeight,
                     BlockHeaderHash = blockHeader.GetHash(),
                     TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
-                    Success = true
+                    Success = true,
+                    ChainId = blockHeader.ChainId
                 };
                 _logger?.Log(LogLevel.Debug, "Server responsed IndexedInfo message.");
                 await responseStream.WriteAsync(res);

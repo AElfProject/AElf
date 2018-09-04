@@ -5,21 +5,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
+using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Kernel.Consensus;
-using AElf.Miner.Miner;
 using AElf.Miner.Rpc.Client;
 using NLog;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
-using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 using Status = AElf.Kernel.Status;
 
 // ReSharper disable once CheckNamespace
@@ -35,17 +32,10 @@ namespace AElf.Miner.Miner
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        //private readonly MinerClientGenerator _clientGenerator;
-        //private readonly ISideChainManager _sideChainManager;
+        private readonly MinerClientManager _clientManager;
 
-        private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
-        
-        
-        /// <summary>
-        /// Signals to a CancellationToken that mining should be canceled
-        /// </summary>
-        public CancellationTokenSource Cts { get; private set; }
+        private CancellationTokenSource _rpcCancellationTokenSource;
 
         public IMinerConfig Config { get; }
 
@@ -53,7 +43,7 @@ namespace AElf.Miner.Miner
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager, 
-            ITransactionResultManager transactionResultManager, ILogger logger)
+            ITransactionResultManager transactionResultManager, ILogger logger, MinerClientManager clientManager)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -63,8 +53,7 @@ namespace AElf.Miner.Miner
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
-            //_clientGenerator = clientGenerator;
-            //_sideChainManager = sideChainManager;
+            _clientManager = clientManager;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
@@ -262,7 +251,10 @@ namespace AElf.Miner.Miner
                     ChainId = chainId
                 }
             };
-
+            
+            // side chain info
+            block.Header.IndexedInfo.Add(await CollectSideChainIndexedInfo());
+            
             // add tx hash
             foreach (var r in results)
             {
@@ -326,35 +318,43 @@ namespace AElf.Miner.Miner
             return header;
         }
 
+
         /// <summary>
-        /// start mining  
+        /// side chains header info    
+        /// </summary>
+        /// <returns></returns>
+        private async Task<List<SideChainIndexedInfo>> CollectSideChainIndexedInfo()
+        {
+            // interval waiting for each side chain 
+            var interval = GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
+            
+            return await _clientManager.CollectSideChainIndexedInfo(interval);
+        }
+
+        /// <summary>
+        /// start mining
+        /// init clients to side chain node 
         /// </summary>
         public void Init(ECKeyPair nodeKeyPair)
         {
             _keyPair = nodeKeyPair;
-            
+            if (!GrpcLocalConfig.Instance.IsCluster)
+                return;
+            _rpcCancellationTokenSource = new CancellationTokenSource();
+            _clientManager.CreateClientsToSideChain(_rpcCancellationTokenSource.Token);
         }
-
+        
+        
         /// <summary>
         /// stop mining
         /// </summary>
-        public void Stop()
+        public void Close()
         {
-            Lock.WriteLock(() =>
-            {
-//                Cts.Cancel();
-//                Cts.Dispose();
-                _keyPair = null;
-                //MiningResetEvent.Dispose();
-            });
+            if (_rpcCancellationTokenSource == null)
+                return;
+            _rpcCancellationTokenSource.Cancel();
+            _rpcCancellationTokenSource.Dispose();
         }
-    }
-
-    /// <inheritdoc />
-    /// <summary>
-    /// A lock for managing asynchronous access to memory pool.
-    /// </summary>
-    public class MinerLock : ReaderWriterLock
-    {
+        
     }
 }

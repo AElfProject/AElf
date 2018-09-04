@@ -20,8 +20,8 @@ namespace AElf.Miner.Rpc.Client
         private readonly ILogger _logger;
         private Hash _targetChainId;
 
-        public BlockingCollection<ResponseIndexedInfoMessage> IndexedInfoQueue { get; } =
-            new BlockingCollection<ResponseIndexedInfoMessage>(new ConcurrentQueue<ResponseIndexedInfoMessage>());
+        public BlockingCollection<ResponseSideChainIndexedInfo> IndexedInfoQueue { get; } =
+            new BlockingCollection<ResponseSideChainIndexedInfo>(new ConcurrentQueue<ResponseSideChainIndexedInfo>());
 
         public MinerClient(Channel channel, ILogger logger, Hash targetChainId)
         {
@@ -56,7 +56,7 @@ namespace AElf.Miner.Rpc.Client
                     // send request every second until cancellation
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                        var request = new RequestIndexedInfoMessage
+                        var request = new RequestSideChainIndexedInfo
                         {
                             NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                         };

@@ -7,6 +7,7 @@ namespace AElf.Miner.Miner
     public interface IMiner
     {
         void Init(ECKeyPair nodeKeyPair);
+        void Close();
 
         Hash Coinbase { get; }
         
