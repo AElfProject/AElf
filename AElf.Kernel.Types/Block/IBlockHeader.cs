@@ -9,5 +9,6 @@ namespace AElf.Kernel
         int Version { get; set; }
         Hash MerkleTreeRootOfTransactions { get; set; }
         ECSignature GetSignature();
+        Hash ChainId { get; set; }
     }
 }
