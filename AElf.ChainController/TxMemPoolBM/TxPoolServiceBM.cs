@@ -58,10 +58,6 @@ namespace AElf.ChainController.TxMemPool
             }
 
             var res = await AddTransaction(tx);
-            if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
-            {
-                MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-            }
 
             return res;
         }
