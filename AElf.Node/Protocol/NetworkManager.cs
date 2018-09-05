@@ -73,7 +73,11 @@ namespace AElf.Node.Protocol
             peerManager.PeerEvent += PeerManagerOnPeerAdded;
             
             MessageHub.Instance.Subscribe<TransactionAddedToPool>(
-                async (inTx) => { await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize()); });
+                async (inTx) =>
+                {
+                    _logger?.Debug($"[event] tx added to the pool {inTx?.Transaction?.GetHashBytes()?.ToHex()}.");
+                    await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx?.Transaction?.Serialize());
+                });
         }
 
         #region Eventing
