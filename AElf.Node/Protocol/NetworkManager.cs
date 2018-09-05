@@ -76,7 +76,7 @@ namespace AElf.Node.Protocol
                 async (inTx) =>
                 {
                     await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
-                    _logger?.Debug($"[event] tx added to the pool {inTx?.Transaction?.GetHashBytes()?.ToHex()}.");
+                    _logger?.Trace($"[event] tx added to the pool {inTx?.Transaction?.GetHashBytes()?.ToHex()}.");
                 });
             MessageHub.Instance.Subscribe<BlockMinedMessage>(async b =>
             {
