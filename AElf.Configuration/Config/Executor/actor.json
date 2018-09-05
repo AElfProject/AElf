@@ -8,7 +8,7 @@
     "Seeds": [
         {
             "HostName": "127.0.0.1",
-            "Port": 32551
+            "Port": 4053
         }
     ],
     "SingleHoconFile": "single.hocon",
