@@ -193,10 +193,24 @@ namespace AElf.ChainController.Rpc
             var hexString = ByteArrayHelpers.FromHexString(raw64);
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
-            if (await TxPoolService.AddTxAsync(transaction) == TxValidation.TxInsertionAndBroadcastingError.Success)
-                MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
-
             var res = new JObject {["hash"] = transaction.GetHash().ToHex()};
+            try
+            {
+                var valRes = await TxPoolService.AddTxAsync(transaction);
+                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
+                {
+                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
+                }
+                else
+                {
+                    res["error"] = valRes.ToString();
+                }
+            }
+            catch (Exception e)
+            {
+                res["error"] = e.ToString();
+            }
+
             return await Task.FromResult(res);
         }
 
