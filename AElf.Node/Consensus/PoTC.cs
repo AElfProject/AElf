@@ -49,7 +49,7 @@ namespace AElf.Kernel.Node
                 {
                     _logger?.Trace("Will produce one block.");
                     var block = await _miner.Mine(Globals.AElfDPoSMiningInterval * 9 / 10, false);
-                    await _p2p.BroadcastBlock(block);
+                    //await _p2p.BroadcastBlock(block);
                 }
             }
         }

@@ -98,7 +98,7 @@ namespace AElf.Kernel
             return DataPath.CalculatePointerForGettingBlockHashByHeight(_chainId, height);
         }
 
-        protected async Task<Hash> GetCanonicalHashAsync(ulong height)
+        public async Task<Hash> GetCanonicalHashAsync(ulong height)
         {
             var blockHash = await _dataStore.GetAsync<Hash>(GetHeightHash(height).OfType(HashType.CanonicalHash));
             return blockHash;

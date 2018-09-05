@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
@@ -14,7 +15,9 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Miner.Rpc.Client;
+using Easy.MessageHub;
 using NLog;
+using NLog.Fluent;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using Status = AElf.Kernel.Status;
@@ -36,7 +39,8 @@ namespace AElf.Miner.Miner
 
         private readonly ILogger _logger;
         private CancellationTokenSource _rpcCancellationTokenSource;
-
+        private IBlockChain _blockChain;
+        
         public IMinerConfig Config { get; }
 
         public Hash Coinbase => Config.CoinBase;
@@ -78,10 +82,6 @@ namespace AElf.Miner.Miner
 
         public async Task<IBlock> Mine(int timeoutMilliseconds, bool initial = false)
         {
-            _stateDictator.ChainId = Config.ChainId;
-            _stateDictator.BlockProducerAccountAddress = _keyPair.GetAddress();
-            _stateDictator.BlockHeight = await _chainService.GetBlockChain(Config.ChainId).GetCurrentBlockHeightAsync();
-
             using (var cancellationTokenSource = new CancellationTokenSource())
             using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
             {
@@ -97,112 +97,35 @@ namespace AElf.Miner.Miner
                     // reset Promotable and update account context
 
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
-
-                    var blockChain = _chainService.GetBlockChain(Config.ChainId);
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
                         : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token);
                     _logger?.Log(LogLevel.Debug, "Executed Transactions.");
-                    var canceledTxIds = new List<Hash>();
-                    var results = new List<TransactionResult>();
-                    foreach (var trace in traces)
-                    {
-                        switch (trace.ExecutionStatus)
-                        {
-                            case ExecutionStatus.Canceled:
-                                // Put back transaction
-                                canceledTxIds.Add(trace.TransactionId);
-                                break;
-                            case ExecutionStatus.ExecutedAndCommitted:
-                                // Successful
-                                var txRes = new TransactionResult()
-                                {
-                                    TransactionId = trace.TransactionId,
-                                    Status = Status.Mined,
-                                    RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes())
-                                };
-                                txRes.UpdateBloom();
-                                results.Add(txRes);
-                                break;
-                            case ExecutionStatus.ContractError:
-                                var txResF = new TransactionResult()
-                                {
-                                    TransactionId = trace.TransactionId,
-                                    Status = Status.Failed
-                                };
-                                results.Add(txResF);
-                                break;
-                            case ExecutionStatus.Undefined:
-                                _logger?.Fatal(
-                                    $@"Transaction Id ""{
-                                            trace.TransactionId
-                                        } is executed with status Undefined. Transaction trace: {trace}""");
-                                break;
-                            case ExecutionStatus.SystemError:
-                                // SystemError shouldn't happen, and need to fix
-                                _logger?.Fatal(
-                                    $@"Transaction Id ""{
-                                            trace.TransactionId
-                                        } is executed with status SystemError. Transaction trace: {trace}""");
-                                break;
-                            case ExecutionStatus.ExecutedButNotCommitted:
-                                // If this happens, there's problem with the code
-                                _logger?.Fatal(
-                                    $@"Transaction Id ""{
-                                            trace.TransactionId
-                                        } is executed with status ExecutedButNotCommitted. Transaction trace: {
-                                            trace
-                                        }""");
-                                break;
-                        }
-                    }
+                    
+                    // transaction results
+                    ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
+                    var addrs = executed.Select(t => t.From).ToHashSet();
 
-                    // insert txs to db
                     // update tx pool state
-                    var canceled = canceledTxIds.ToHashSet();
-                    var executed = new List<Transaction>();
-                    var rollback = new List<Transaction>();
-                    foreach (var tx in readyTxs)
-                    {
-                        if (canceled.Contains(tx.GetHash()))
-                        {
-                            rollback.Add(tx);
-                        }
-                        else
-                        {
-                            executed.Add(tx);
-                        }
-                    }
-
-                    var addrs = await InsertTxs(executed, results);
                     await _txPoolService.UpdateAccountContext(addrs);
-
+                    
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
-
-                    block.Header.Bloom = ByteString.CopyFrom(
-                        Bloom.AndMultipleBloomBytes(
-                            results.Where(x => !x.Bloom.IsEmpty).Select(x => x.Bloom.ToByteArray())
-                        )
-                    );
-                    _logger?.Log(LogLevel.Debug, $"Generated block {block.Header.Index}.");
-
+                    _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index}");
+                    
                     // sign block
-                    ECSigner signer = new ECSigner();
-                    var hash = block.GetHash();
-                    var bytes = hash.GetHashBytes();
-                    ECSignature signature = signer.Sign(_keyPair, bytes);
+                    block.Sign(_keyPair);
 
-                    block.Header.P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded());
-                    block.Header.R = ByteString.CopyFrom(signature.R);
-                    block.Header.S = ByteString.CopyFrom(signature.S);
-
+                    // broadcast
+                    MessageHub.Instance.Publish(new BlockMinedMessage(block));
+                    
                     // append block
-                    await blockChain.AddBlocksAsync(new List<IBlock>() {block});
-
+                    await _blockChain.AddBlocksAsync(new List<IBlock> {block});
                     // put back canceled transactions
                     // No await so that it won't affect Consensus
                     _txPoolService.Revert(rollback);
+                    // insert txs to db
+                    InsertTxs(executed, results);
                     return block;
                 }
                 catch (Exception e)
@@ -212,23 +135,101 @@ namespace AElf.Miner.Miner
                 }
             }
         }
+
+        /// <summary>
+        /// extract tx results from traces
+        /// </summary>
+        /// <param name="readyTxs"></param>
+        /// <param name="traces"></param>
+        /// <param name="executed"></param>
+        /// <param name="rollback"></param>
+        /// <param name="results"></param>
+        private void ExtractTransactionResults(IEnumerable<Transaction> readyTxs, IEnumerable<TransactionTrace> traces, 
+            out List<Transaction> executed, out List<Transaction> rollback, out List<TransactionResult> results)
+        {
+            var canceledTxIds = new List<Hash>();
+            results = new List<TransactionResult>();
+            foreach (var trace in traces)
+            {
+                switch (trace.ExecutionStatus)
+                {
+                    case ExecutionStatus.Canceled:
+                        // Put back transaction
+                        canceledTxIds.Add(trace.TransactionId);
+                        break;
+                    case ExecutionStatus.ExecutedAndCommitted:
+                        // Successful
+                        var txRes = new TransactionResult()
+                        {
+                            TransactionId = trace.TransactionId,
+                            Status = Status.Mined,
+                            RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes())
+                        };
+                        txRes.UpdateBloom();
+                        results.Add(txRes);
+                        break;
+                    case ExecutionStatus.ContractError:
+                        var txResF = new TransactionResult()
+                        {
+                            TransactionId = trace.TransactionId,
+                            Status = Status.Failed
+                        };
+                        results.Add(txResF);
+                        break;
+                    case ExecutionStatus.Undefined:
+                        _logger?.Fatal(
+                            $@"Transaction Id ""{
+                                    trace.TransactionId
+                                } is executed with status Undefined. Transaction trace: {trace}""");
+                        break;
+                    case ExecutionStatus.SystemError:
+                        // SystemError shouldn't happen, and need to fix
+                        _logger?.Fatal(
+                            $@"Transaction Id ""{
+                                    trace.TransactionId
+                                } is executed with status SystemError. Transaction trace: {trace}""");
+                        break;
+                    case ExecutionStatus.ExecutedButNotCommitted:
+                        // If this happens, there's problem with the code
+                        _logger?.Fatal(
+                            $@"Transaction Id ""{
+                                    trace.TransactionId
+                                } is executed with status ExecutedButNotCommitted. Transaction trace: {
+                                    trace
+                                }""");
+                        break;
+                }
+            }
+            
+            var canceled = canceledTxIds.ToHashSet();
+            executed = new List<Transaction>();
+            rollback = new List<Transaction>();
+            foreach (var tx in readyTxs)
+            {
+                if (canceled.Contains(tx.GetHash()))
+                {
+                    rollback.Add(tx);
+                }
+                else
+                {
+                    executed.Add(tx);
+                }
+            }
+        }
         
         /// <summary>
         /// update database
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
+        private async Task InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
         {
-            var addrs = new HashSet<Hash>();
-            foreach (var t in executedTxs)
-            {
-                addrs.Add(t.From);
-                await _transactionManager.AddTransactionAsync(t);
-            }
-
+            executedTxs.AsParallel().ForEach(async tx =>
+                {
+                    await _transactionManager.AddTransactionAsync(tx);
+                    _txPoolService.RemoveAsync(tx.GetHash());
+                });
             txResults.ForEach(async r => { await _transactionResultManager.AddTransactionResultAsync(r); });
-            return addrs;
         }
         
         /// <summary>
@@ -237,7 +238,7 @@ namespace AElf.Miner.Miner
         /// <param name="chainId"></param>
         /// <param name="results"></param>
         /// <returns></returns>
-        public async Task<IBlock> GenerateBlockAsync(Hash chainId, IEnumerable<TransactionResult> results)
+        private async Task<IBlock> GenerateBlockAsync(Hash chainId, List<TransactionResult> results)
         {
             var blockChain = _chainService.GetBlockChain(chainId);
 
@@ -248,7 +249,12 @@ namespace AElf.Miner.Miner
                 Header =
                 {
                     Index = index,
-                    ChainId = chainId
+                    ChainId = chainId,
+                    Bloom = ByteString.CopyFrom(
+                        Bloom.AndMultipleBloomBytes(
+                            results.Where(x => !x.Bloom.IsEmpty).Select(x => x.Bloom.ToByteArray())
+                        )
+                    )
                 }
             };
             
@@ -256,14 +262,7 @@ namespace AElf.Miner.Miner
             block.Header.IndexedInfo.Add(await CollectSideChainIndexedInfo());
             
             // add tx hash
-            foreach (var r in results)
-            {
-                block.AddTransaction(r.TransactionId);
-            }
-
-            // calculate and set tx merkle tree root
-            block.FillTxsMerkleTreeRootInHeader();
-
+            block.AddTransactions(results.Select(r => r.TransactionId));
             
             // set ws merkle tree root
             await _stateDictator.SetWorldStateAsync();
@@ -274,12 +273,9 @@ namespace AElf.Miner.Miner
             {
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
             }
-               
-            block.Body.BlockHeader = block.Header.GetHash();
-
-            await _stateDictator.SetBlockHashAsync(block.GetHash());
-            await _stateDictator.SetStateHashAsync(block.GetHash());
-
+            // calculate and set tx merkle tree root 
+            block.Complete();
+            
             return block;
         }
         
@@ -338,9 +334,11 @@ namespace AElf.Miner.Miner
         public void Init(ECKeyPair nodeKeyPair)
         {
             _keyPair = nodeKeyPair;
+            _blockChain = _chainService.GetBlockChain(Config.ChainId);
             if (!GrpcLocalConfig.Instance.IsCluster)
                 return;
             _rpcCancellationTokenSource = new CancellationTokenSource();
+            
             _clientManager.CreateClientsToSideChain(_rpcCancellationTokenSource.Token);
         }
         

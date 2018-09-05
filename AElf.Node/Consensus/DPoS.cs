@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -136,7 +137,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        private async Task<IBlock> Mine(bool initial = false)
+        private async Task<IBlock> Mine(bool initial)
         {
             var res = Interlocked.CompareExchange(ref _flag, 1, 0);
             if (res == 1)
@@ -144,19 +145,16 @@ namespace AElf.Kernel.Node
             try
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
-
+                _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
                 _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
                 _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
 
                 var block = await _miner.Mine(Globals.AElfDPoSMiningInterval * 9 / 10, initial);
 
-                var b = Interlocked.CompareExchange(ref _flag, 0, 1);
+                await _stateDictator.SetBlockHashAsync(block.GetHash());
+                await _stateDictator.SetStateHashAsync(block.GetHash());
 
                 _syncer.IncrementChainHeight();
-
-                _logger?.Trace($"Mine - Leaving mining {b}");
-
-                Task.WaitAll();
 
                 //Update DPoS observables.
                 try
@@ -175,8 +173,13 @@ namespace AElf.Kernel.Node
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                Interlocked.CompareExchange(ref _flag, 0, 1);
                 return null;
+            }
+            finally
+            {
+                // release lock
+                var b = Interlocked.CompareExchange(ref _flag, 0, 1);
+                _logger?.Trace($"Mine - Leaving mining {b}");
             }
         }
 
@@ -187,31 +190,41 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task<ulong> GetIncrementId(Hash accountAddress)
         {
-            try
-            {
-                var isBlockProducer = accountAddress.Equals(_nodeKeyPair.Address) ||
-                              _dposHelpers.Miners.Nodes.Contains(accountAddress.ToHex().RemoveHexPrefix());
-                var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
-                
-                var idInDB = (await _accountContextService.GetAccountDataContext(accountAddress, chainId)).IncrementId;
-                var idInPool = _txPoolService.GetIncrementId(accountAddress, isBlockProducer);
-
-                return Math.Max(idInDB, idInPool);
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Failed to get increment id.");
-                return 0;
-            }
+//            try
+//            {
+//                bool isDPoS = addr.Equals(_nodeKeyPair.GetAddress()) ||
+//                              _dposHelpers.BlockProducer.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
+//
+//                // ReSharper disable once InconsistentNaming
+//                var idInDB = (await _accountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
+//                    .IncrementId;
+//                _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
+//                var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);
+//                _logger?.Log(LogLevel.Debug, $"End Trying to get increment id, {isDPoS}");
+//
+//                return Math.Max(idInDB, idInPool);
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Error(e, "Failed to get increment id.");
+//                return 0;
+//            }
+            return ulong.MaxValue;
         }
 
-        private Transaction GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters, ulong incrementIdOffset = 0)
+        // ReSharper disable once InconsistentNaming
+        private async Task<Transaction> GenerateTransactionAsync(string methodName, IReadOnlyList<byte[]> parameters,
+            ulong incrementIdOffset = 0)
         {
+            var bn = await _blockchain.GetCurrentBlockHeightAsync();
+            var bh = await _blockchain.GetCurrentBlockHashAsync();
+            var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
             var tx = new Transaction
             {
                 From = _nodeKeyPair.Address,
                 To = _contractAccountAddressHash,
-                IncrementId = GetIncrementId(_nodeKeyPair.Address).Result + incrementIdOffset,
+                RefBlockNumber = bn,
+                RefBlockPrefix = ByteString.CopyFrom(bhPref),
                 MethodName = methodName,
                 P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey),
                 Type = TransactionType.PriorTransaction
@@ -240,23 +253,25 @@ namespace AElf.Kernel.Node
 
             return tx;
         }
-        
-        private async Task MiningWithInitializingAElfDPoSInformation()
+
+        // ReSharper disable once InconsistentNaming
+        public async Task MiningWithInitializingAElfDPoSInformation()
         {
             var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
             var parameters = new List<byte[]>
             {
                 Miners.ToByteArray(),
                 _dposHelpers.GenerateInfoForFirstTwoRounds().ToByteArray(),
-                new SInt32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray(),
+                new Int32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray(),
                 logLevel.ToByteArray()
             };
-            _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms");
-            var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
+            _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");
+            // ReSharper disable once InconsistentNaming
+            var txToInitializeAElfDPoS = await GenerateTransactionAsync("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);
 
             var block = await Mine(true);
-            await _p2p.BroadcastBlock(block);
+            //await _p2p.BroadcastBlock(block);
         }
 
         private async Task MiningWithPublishingOutValueAndSignature()
@@ -283,12 +298,12 @@ namespace AElf.Kernel.Node
                 signature.ToByteArray()
             };
 
-            var txToPublishOutValueAndSignature = GenerateTransaction("PublishOutValueAndSignature", parameters);
+            var txToPublishOutValueAndSignature = await GenerateTransactionAsync("PublishOutValueAndSignature", parameters);
 
             await BroadcastTransaction(txToPublishOutValueAndSignature);
 
-            var block = await Mine();
-            await _p2p.BroadcastBlock(block);
+            var block = await Mine(false);
+            //await _p2p.BroadcastBlock(block);
         }
 
         private async Task PublishInValue()
@@ -310,7 +325,7 @@ namespace AElf.Kernel.Node
                 _consensusData.Pop().ToByteArray()
             };
 
-            var txToPublishInValue = GenerateTransaction("PublishInValue", parameters);
+            var txToPublishInValue = await GenerateTransactionAsync("PublishInValue", parameters);
             await BroadcastTransaction(txToPublishInValue);
         }
 
@@ -325,15 +340,15 @@ namespace AElf.Kernel.Node
                 extraBlockResult.Item3.ToByteArray()
             };
 
-            var txForExtraBlock = GenerateTransaction(
+            var txForExtraBlock = await GenerateTransactionAsync(
                 "UpdateAElfDPoS",
                 parameters,
                 _incrementIdNeedToAddOne ? (ulong) 1 : 0);
 
             await BroadcastTransaction(txForExtraBlock);
 
-            var block = await Mine();
-            await _p2p.BroadcastBlock(block);
+            var block = await Mine(false);
+            //await _p2p.BroadcastBlock(block);
         }
 
         public async Task Update()
