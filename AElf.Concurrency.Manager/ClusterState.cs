@@ -78,7 +78,7 @@ namespace AElf.Concurrency.Manager
             var addressStr = address.ToString();
             if (MemberInfos.ContainsKey(addressStr))
             {
-                MemberInfos[addressStr].RoleLeader = true;
+                MemberInfos[addressStr].ClusterLeader = true;
             }
         }
         
@@ -88,7 +88,7 @@ namespace AElf.Concurrency.Manager
             {
                 if (member.Roles == roleLeader.Role)
                 {
-                    member.ClusterLeader = false;
+                    member.RoleLeader = false;
                 }
             }
 

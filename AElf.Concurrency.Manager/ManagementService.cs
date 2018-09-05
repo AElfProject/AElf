@@ -74,7 +74,6 @@ namespace AElf.Concurrency.Manager
 //                }
 //
 //            }
-
         }
 
         public async Task StopAsync()

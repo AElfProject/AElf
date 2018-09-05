@@ -66,6 +66,9 @@ namespace AElf.Concurrency.Manager
                         ClusterState.AddOrUpdate(member);
                     }
                     break;
+                case ClusterEvent.MemberJoined memberJoined:
+                    ClusterState.AddOrUpdate(memberJoined.Member);
+                    break;
                 case ClusterEvent.MemberUp memberUp:
                     ClusterState.AddOrUpdate(memberUp.Member);
                     break;
