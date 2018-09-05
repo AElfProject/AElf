@@ -28,6 +28,12 @@ namespace AElf.Miner.Rpc.Client
          {
              _logger = logger;
              _chainManagerBasic = chainManagerBasic;
+             GrpcRemoteConfig.ConfigChanged+= GrpcRemoteConfigOnConfigChanged;
+         }
+
+         private void GrpcRemoteConfigOnConfigChanged(object sender, EventArgs e)
+         {
+             throw new NotImplementedException();
          }
 
          public void Init(string dir)
