@@ -71,13 +71,21 @@ namespace AElf.Node.Protocol
             _logger = logger;
             
             peerManager.PeerEvent += PeerManagerOnPeerAdded;
-            
+
             MessageHub.Instance.Subscribe<TransactionAddedToPool>(
                 async (inTx) =>
                 {
-                    _logger?.Debug($"[event] tx added to the pool {inTx?.Transaction?.GetHashBytes()?.ToHex()}.");
-                    await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx?.Transaction?.Serialize());
+                    await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
+                    _logger?.Trace($"[event] tx added to the pool {inTx?.Transaction?.GetHashBytes()?.ToHex()}.");
                 });
+            MessageHub.Instance.Subscribe<BlockMinedMessage>(async b =>
+            {
+                var serializedBlock = b.Block.Serialize();
+                await BroadcastBlock(b.Block.GetHash().GetHashBytes(), serializedBlock);
+                _logger?.Trace(
+                    $"Broadcasted block \"{b.Block.GetHash().GetHashBytes().ToHex()}\" to peers with {b.Block.Body.TransactionsCount} tx(s). Block height: [{b.Block.Header.Index}].");
+            });
+                    
         }
 
         #region Eventing
@@ -567,7 +575,7 @@ namespace AElf.Node.Protocol
 //            }
 //        }
 
-        public async Task<int> BroadcastBock(byte[] hash, byte[] payload)
+        public async Task<int> BroadcastBlock(byte[] hash, byte[] payload)
         {
             _lastBlocksReceived.Enqueue(hash);
             return await BroadcastMessage(AElfProtocolMsgType.NewBlock, payload);
