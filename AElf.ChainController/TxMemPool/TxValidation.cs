@@ -20,7 +20,9 @@ namespace AElf.ChainController.TxMemPool
             PoolClosed,
             BroadCastFailed,
             Failed,
-            AlreadyExecuted
+            AlreadyExecuted,
+            InvalidReferenceBlock,
+            ExpiredReferenceBlock
         }
         /// <summary>
         /// validate a tx size, signature, account format

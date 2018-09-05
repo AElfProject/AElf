@@ -242,7 +242,11 @@ namespace AElf.Miner.Miner
         /// <param name="txResults"></param>
         private async Task InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
         {
-            executedTxs.AsParallel().ForEach(async tx => { await _transactionManager.AddTransactionAsync(tx);});
+            executedTxs.AsParallel().ForEach(async tx =>
+                {
+                    await _transactionManager.AddTransactionAsync(tx);
+                    _txPoolService.RemoveAsync(tx.GetHash());
+                });
             txResults.ForEach(async r => { await _transactionResultManager.AddTransactionResultAsync(r); });
         }
         

@@ -31,6 +31,15 @@ namespace AElf.Kernel
             return GetHashBytes().Take(ECKeyPair.AddressLength).ToArray();
         }
         
+        public bool CheckPrefix(ByteString prefix ){
+            if (prefix.Length > Value.Length)
+            {
+                return false;
+            }
+
+            return !prefix.Where((t, i) => t != Value[i]).Any();
+        }
+
         public static readonly Hash Zero = new Hash("AElf".CalculateHash()).ToAccount();
         
         public static readonly Hash Default = new Hash(new byte[]{});

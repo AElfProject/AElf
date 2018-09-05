@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
@@ -77,6 +76,7 @@ namespace AElf.Node.Protocol
                 async (inTx) =>
                 {
                     await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
+                    _logger?.Debug($"[event] tx added to the pool {inTx?.Transaction?.GetHashBytes()?.ToHex()}.");
                 });
             MessageHub.Instance.Subscribe<BlockMinedMessage>(async b =>
             {
@@ -85,6 +85,7 @@ namespace AElf.Node.Protocol
                 _logger?.Trace(
                     $"Broadcasted block \"{b.Block.GetHash().GetHashBytes().ToHex()}\" to peers with {b.Block.Body.TransactionsCount} tx(s). Block height: [{b.Block.Header.Index}].");
             });
+                    
         }
 
         #region Eventing
@@ -157,7 +158,7 @@ namespace AElf.Node.Protocol
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace(e, "Error while processing incoming messages");
+                    _logger?.Error(e, "Error while processing incoming messages");
                 }
             }
         }
@@ -166,7 +167,7 @@ namespace AElf.Node.Protocol
         {
             if (args?.Peer == null || args.Message == null)
             {
-                _logger.Error("Invalid message from peer.");
+                _logger.Warn("Invalid message from peer.");
                 return;
             }
             
@@ -235,14 +236,14 @@ namespace AElf.Node.Protocol
 
                 if (addResult == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Trace($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
+                    _logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
                         
                     foreach (var p in _peers.Where(p => !p.Equals(peer)))
                         p.EnqueueOutgoing(msg);
                 }
                 else
                 {
-                    _logger?.Trace($"New transaction from {peer} not added to the pool: {addResult}");
+                    _logger?.Debug($"New transaction from {peer} not added to the pool: {addResult}");
                 }
             }
             catch (Exception e)
@@ -310,7 +311,7 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error while requesting transactions.");
+                _logger?.Error(e, "Error while requesting transactions.");
             }
         }
         
@@ -340,7 +341,7 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error while requesting block for index {index}.");
+                _logger?.Error(e, $"Error while requesting block for index {index}.");
             }
         }
 
@@ -353,7 +354,7 @@ namespace AElf.Node.Protocol
         {
             if (sender == null)
             {
-                _logger?.Trace("Request timeout - sender null.");
+                _logger?.Warn("Request timeout - sender null.");
                 return;
             }
 
@@ -400,7 +401,7 @@ namespace AElf.Node.Protocol
                 TriedPeers = req.TriedPeers.ToList()
             };
 
-            _logger?.Trace("Request failed : " + req.RequestMessage.RequestLogString + $" after {req.TriedPeers.Count} tries. Max tries : {req.MaxRetryCount}.");
+            _logger?.Warn("Request failed : " + req.RequestMessage.RequestLogString + $" after {req.TriedPeers.Count} tries. Max tries : {req.MaxRetryCount}.");
                     
             RequestFailed?.Invoke(this, reqFailedEventArgs);
         }
@@ -440,7 +441,7 @@ namespace AElf.Node.Protocol
         {
             if (msg == null)
             {
-                _logger?.Trace("Handle message : peer or message null.");
+                _logger?.Warn("Handle message : peer or message null.");
                 return null;
             }
             
@@ -465,19 +466,19 @@ namespace AElf.Node.Protocol
                     
                     if (request.IsTxRequest && request.TransactionHashes != null && request.TransactionHashes.Any())
                     {
-                        _logger?.Trace("Matched : [" + string.Join(", ", request.TransactionHashes.Select(kvp => kvp.ToHex()).ToList()) + "]");
+                        _logger?.Debug("Matched : [" + string.Join(", ", request.TransactionHashes.Select(kvp => kvp.ToHex()).ToList()) + "]");
                     }
                 }
                 else
                 {
-                    _logger?.Trace($"Request not found. Index : {msg.Id.ToHex()}.");
+                    _logger?.Warn($"Request not found. Index : {msg.Id.ToHex()}.");
                 }
 
                 return request;
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Exception while handling request message.");
+                _logger?.Error(e, "Exception while handling request message.");
                 return null;
             }
         }
