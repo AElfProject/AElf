@@ -21,7 +21,6 @@ using AElf.Node.Protocol.Events;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
-using Status = Akka.Actor.Status;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 
@@ -459,6 +458,7 @@ namespace AElf.Node.Protocol
                     }
                     else
                     {
+                        // Validation was successfull, but execution failed.
                         _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }}  was not executed.");
                     }
                 }
