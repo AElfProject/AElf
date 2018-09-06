@@ -20,7 +20,7 @@ namespace AElf.Network
 
         //void QueueRequest(Message message, IPeer hint);
 
-        Task<int> BroadcastBock(byte[] hash, byte[] payload);
+        Task<int> BroadcastBlock(byte[] hash, byte[] payload);
         Task<int> BroadcastMessage(AElfProtocolMsgType messageMsgType, byte[] payload);
     }
 }

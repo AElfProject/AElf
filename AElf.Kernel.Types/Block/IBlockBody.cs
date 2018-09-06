@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.Collections;
+﻿using System.Collections.Generic;
+using Google.Protobuf.Collections;
 
 namespace AElf.Kernel
 {
@@ -7,5 +8,9 @@ namespace AElf.Kernel
         RepeatedField<Hash> Transactions { get; }
 
         bool AddTransaction(Hash tx);
+
+        bool AddTransactions(IEnumerable<Hash> hashes);
+        
+        void Complete(Hash blockHeaderHash);
     }
 }

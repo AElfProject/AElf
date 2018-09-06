@@ -130,7 +130,7 @@ namespace AElf.Node
             }
 
             var serializedBlock = b.ToByteArray();
-            await _netManager.BroadcastBock(block.GetHash().Value.ToByteArray(), serializedBlock);
+            await _netManager.BroadcastBlock(block.GetHash().Value.ToByteArray(), serializedBlock);
 
             var bh = block.GetHash().ToHex();
             _logger?.Trace(

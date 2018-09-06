@@ -77,7 +77,6 @@ namespace AElf.Node.Protocol
 
             _logger = LogManager.GetLogger("BlockSync");
 
-            //_networkManager.MessageReceived += ProcessPeerMessage;
             _networkManager.BlockReceived += OnBlockReceived;
             _networkManager.TransactionsReceived += OnTransactionReceived;
         }
@@ -97,11 +96,10 @@ namespace AElf.Node.Protocol
                 try
                 {
                     EnqueueJob(new Job {Block = blockReceivedArgs.Block, Peer = blockReceivedArgs.Peer});
-                    _logger?.Trace("Block enqueued: " + blockReceivedArgs.Block.GetHash().ToHex());
                 }
                 catch (Exception ex)
                 {
-                    _logger?.Trace(ex, "Error while receiving HandleBlockReception.");
+                    _logger?.Error(ex, "Error while enqueing HandleBlockReception.");
                 }
             }
         }
@@ -120,7 +118,7 @@ namespace AElf.Node.Protocol
             _mainChainNode = node;
 
             CurrentExecHeight = node.GetCurrentHeight() + 1;
-            _logger?.Trace($"Initial chain height {CurrentExecHeight}.");
+            _logger?.Debug($"Initial chain height {CurrentExecHeight}.");
 
             ShouldDoInitialSync = doInitialSync;
             IsInitialSyncInProgress = false; // started by first block
@@ -141,7 +139,7 @@ namespace AElf.Node.Protocol
         {
             var txs = txsEventArgs.Transactions;
             
-            _logger?.Trace($"Handling transaction list message : {txs.ToDebugString()} from {txsEventArgs.Peer}");
+            _logger?.Debug($"Handling transaction list message : {txs.ToDebugString()} from {txsEventArgs.Peer}");
 
             var receivedTxs = new List<byte[]>();
             
@@ -158,7 +156,7 @@ namespace AElf.Node.Protocol
                     }
                     else
                     {
-                        _logger?.Trace($"Failed to add the following transaction to the pool (reason: {result}): "
+                        _logger?.Warn($"Failed to add the following transaction to the pool (reason: {result}): "
                                        + $"{tx.GetTransactionInfo()}");
                     }
                 }
@@ -174,7 +172,7 @@ namespace AElf.Node.Protocol
         public void IncrementChainHeight()
         {
             Interlocked.Increment(ref CurrentExecHeight);
-            _logger?.Trace("Height has been incremented, new value: " + CurrentExecHeight);
+            _logger?.Debug("Height has been incremented, new value: " + CurrentExecHeight);
         }
 
         public void EnqueueJob(Job job)
@@ -191,7 +189,7 @@ namespace AElf.Node.Protocol
                     // Start the sync
                     Task.Run(() => DoSync());
 
-                    _logger?.Trace($"Initial synchronisation has started at target height {SyncTargetHeight}.");
+                    _logger?.Debug($"Initial synchronisation has started at target height {SyncTargetHeight}.");
                 }
 
                 // Enqueue the job
@@ -199,13 +197,13 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                _logger?.Trace("Error while adding " + job?.Block?.GetHash().Value.ToByteArray().ToHex());
+                _logger?.Error("Error while adding " + job?.Block?.GetHash().Value.ToByteArray().ToHex());
             }
         }
 
         internal void RequestNextBlocks()
         {
-            _logger?.Trace($"Request state, current height {CurrentExecHeight}, sync target {SyncTargetHeight}, current requests {_currentBlockRequests.Count}");
+            _logger?.Debug($"Request state, current height {CurrentExecHeight}, sync target {SyncTargetHeight}, current requests {_currentBlockRequests.Count}");
             
             lock (currentBlockRequestLock)
             {
@@ -214,12 +212,11 @@ namespace AElf.Node.Protocol
                     if (!_currentBlockRequests.Contains(i))
                     {
                         _currentBlockRequests.Add(i);
-                        //_networkManager.QueueRequest(GetRequestMessageForIndex(i), null);
                         _networkManager.QueueBlockRequestByIndex(i);
                         
                         Thread.Sleep(5);
                 
-                        _logger?.Trace($"Requested block at index {i}.");
+                        _logger?.Debug($"Requested block at index {i}.");
                     }
                 }
             }
@@ -238,7 +235,7 @@ namespace AElf.Node.Protocol
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace("Error while dequeuing " + job?.Block.GetHash().ToHex());
+                    _logger?.Error("Error while dequeuing " + job?.Block.GetHash().ToHex());
                     continue;
                 }
                 
@@ -257,13 +254,12 @@ namespace AElf.Node.Protocol
                     else
                     {
                         // A block was queued for processing 
-                        _logger?.Trace($"Dequed block : {job.Block.GetHash()} of height {job.Block.Header.Index} ");
 
                         var succeed = AddBlockToSync(job.Block, job.Peer).Result;
 
                         /* print candidates */
                         if (!succeed)
-                            _logger?.Trace("Could not add block to sync");
+                            _logger?.Warn("Could not add block to sync");
                     }
 
                     if (PendingBlocks == null || PendingBlocks.Count <= 0)
@@ -303,7 +299,7 @@ namespace AElf.Node.Protocol
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace(e, "Error while dequeuing and processing job.");
+                    _logger?.Error(e, "Error while dequeuing and processing job.");
                 }
             }
         }
@@ -349,7 +345,7 @@ namespace AElf.Node.Protocol
             if (listOfMissingTxToRequest.Any())
             {
                 _networkManager.QueueTransactionRequest(listOfMissingTxToRequest.Select(kvp => kvp.Key).ToList(), listOfMissingTxToRequest.First().Value);
-                _logger?.Trace($"Requested the following {listOfMissingTxToRequest.Count} transactions [" + string.Join(", ", listOfMissingTxToRequest.Select(kvp => kvp.Key.ToHex())) + "]");
+                _logger?.Debug($"Requested the following {listOfMissingTxToRequest.Count} transactions [" + string.Join(", ", listOfMissingTxToRequest.Select(kvp => kvp.Key.ToHex())) + "]");
             }
         }
 
@@ -398,20 +394,19 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                //theEvent.WaitOne();
                 throw new InvalidBlockException("Invalid block hash");
             }
 
             if (GetBlock(blockHash) != null)
             {
-                _logger?.Trace("Block already in pending list.");
+                _logger?.Warn("Block already in pending list.");
                 return false;
             }
 
             var missingTxs = _poolService.GetMissingTransactions(block);
             if (missingTxs == null)
             {
-                // todo what happend when the pool fails ?
+                _logger?.Warn("Unknown exception in the pool.");
                 return false;
             }
 
@@ -420,7 +415,7 @@ namespace AElf.Node.Protocol
 
             PendingBlocks.Add(newPendingBlock);
 
-            _logger?.Trace("Added block to sync : " + blockHash.ToHex());
+            _logger?.Debug($"Added block to sync {{ id : {blockHash.ToHex()}, index : {block.Header.Index}, tx-count : {block.Body.Transactions.Count} }} ");
 
             return true;
         }
@@ -443,44 +438,67 @@ namespace AElf.Node.Protocol
                 var block = pendingBlock.Block;
 
                 var res = await _mainChainNode.ExecuteAndAddBlock(block);
-                _logger?.Trace($"TryExecuteBlocks - Block execution result : {res.Executed}, {res.ValidationError} : {block.GetHash().Value.ToByteArray().ToHex()} - Index {block.Header.Index}");
 
-                if (res.ValidationError == ValidationError.Success && res.Executed)
+                var blockHexHash = block.GetHash().Value.ToByteArray().ToHex();
+                int blockIndex = (int)block.Header.Index;
+
+                if (res.ValidationError == ValidationError.Success)
                 {
-                    // The block was executed and validation was a success: remove the pending block.
-                    toRemove.Add(pendingBlock);
-                    executed.Add(pendingBlock);
-                    Interlocked.Increment(ref CurrentExecHeight);
-                    
-                    lock (currentBlockRequestLock)
+                    if (res.Executed)
                     {
-                        _currentBlockRequests.Remove((int)block.Header.Index);
+                        // The block was executed and validation was a success: remove the pending block.
+                    
+                        toRemove.Add(pendingBlock);
+                        executed.Add(pendingBlock);
+                    
+                        Interlocked.Increment(ref CurrentExecHeight);
+                    
+                        lock (currentBlockRequestLock)
+                        {
+                            _currentBlockRequests.Remove(blockIndex);
+                        }
+                    
+                        _logger?.Debug($"Block {{ id : {blockHexHash}, index: {blockIndex} }}  was successfully executed.");
+                    }
+                    else
+                    {
+                        // Validation was successfull, but execution failed.
+                        _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }}  was not executed.");
                     }
                 }
                 else
                 {
-                    // The block wasn't executed or validation failed
-                    if (res.ValidationError == ValidationError.AlreadyExecuted || res.ValidationError == ValidationError.OrphanBlock)
+                    // The blocks validation failed
+                    if (res.ValidationError == ValidationError.AlreadyExecuted 
+                            || res.ValidationError == ValidationError.OrphanBlock)
                     {
                         // The block is an earlier block and one with the same
                         // height as already been executed so it can safely be
-                        // remove from the pending blocks.
+                        // removed from the pending blocks.
                         toRemove.Add(pendingBlock);
 
-                        if (IsInitialSyncInProgress && (int)pendingBlock.Block.Header.Index == CurrentExecHeight)
+                        if (IsInitialSyncInProgress && blockIndex == CurrentExecHeight)
                         {
                             Interlocked.Increment(ref CurrentExecHeight);
                         }
+                        
+                        _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }} " +
+                                      $"ignored because validation returned {res.ValidationError}.");
                     }
                     else if (res.ValidationError == ValidationError.Pending)
                     {
                         // The current blocks index is higher than the current height so we're missing
                         if (!ShouldDoInitialSync && (int) block.Header.Index > CurrentExecHeight)
                         {
-                            //_networkManager.QueueRequest(GetRequestMessageForIndex(CurrentExecHeight), null);
                             _networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
+                            _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }} is pending, " +
+                                          $"requesting block with index {CurrentExecHeight}.");
                             break;
                         }
+                    }
+                    else
+                    {
+                        _logger?.Warn($"Block execution failed: {res.Executed}, {res.ValidationError} - {{ id : {blockHexHash}, index: {blockIndex} }}");
                     }
                 }
             }
@@ -498,7 +516,8 @@ namespace AElf.Node.Protocol
             {
                 ShouldDoInitialSync = false;
                 IsInitialSyncInProgress = false;
-                _logger?.Trace("-- Initial sync is finished at height: " + CurrentExecHeight);
+                
+                _logger?.Debug("Initial sync is finished at height: " + CurrentExecHeight);
 
                 SyncFinished?.Invoke(this, EventArgs.Empty);
             }
@@ -512,19 +531,23 @@ namespace AElf.Node.Protocol
         /// synchronizer).
         /// It removes the transaction from the corresponding missing block.
         /// </summary>
-        /// <param name="txHashs"></param>
-        private void SetTransactions(List<byte[]> txHashs)
+        /// <param name="txHashes"></param>
+        private void SetTransactions(List<byte[]> txHashes)
         {
-            foreach (var txHash in txHashs)
+            foreach (var txHash in txHashes)
             {
                 var block = RemoveTxFromBlock(txHash);
 
                 if (block == null)
                 {
-                    _logger?.Trace($"The following transaction was not found in any of the blocks : {txHash.ToHex()}");
+                    _logger?.Warn($"The following transaction was not found in any of the blocks : {txHash.ToHex()}");
                 }
-
-                _logger?.Trace("Transaction removed from sync: " + txHash.ToHex());
+                else
+                {
+                    var blockHexHash = block.Block?.GetHash().Value.ToByteArray().ToHex();
+                    int blockIndex = (int)block.Block?.Header?.Index;
+                    _logger?.Debug($"Transaction {{ id: {txHash.ToHex()} }} synced from block {{ id : {blockHexHash}, index: {blockIndex} }}");
+                }
             }
         }
 

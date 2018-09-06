@@ -148,19 +148,16 @@ namespace AElf.Kernel.Node
             try
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
-
+                _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
                 _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
                 _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
 
                 var block = await _miner.Mine(Globals.AElfDPoSMiningInterval * 9 / 10, initial);
 
-                var b = Interlocked.CompareExchange(ref _flag, 0, 1);
+                await _stateDictator.SetBlockHashAsync(block.GetHash());
+                await _stateDictator.SetStateHashAsync(block.GetHash());
 
                 _syncer.IncrementChainHeight();
-
-                _logger?.Trace($"Mine - Leaving mining {b}");
-
-                Task.WaitAll();
 
                 //Update DPoS observables.
                 try
@@ -179,8 +176,13 @@ namespace AElf.Kernel.Node
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                Interlocked.CompareExchange(ref _flag, 0, 1);
                 return null;
+            }
+            finally
+            {
+                // release lock
+                var b = Interlocked.CompareExchange(ref _flag, 0, 1);
+                _logger?.Trace($"Mine - Leaving mining {b}");
             }
         }
 
@@ -273,7 +275,7 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txToInitializeAElfDPoS);
 
             var block = await Mine(true);
-            await _p2p.BroadcastBlock(block);
+            //await _p2p.BroadcastBlock(block);
         }
 
         private async Task MiningWithPublishingOutValueAndSignature()
@@ -306,7 +308,7 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txToPublishOutValueAndSignature);
 
             var block = await Mine(false);
-            await _p2p.BroadcastBlock(block);
+            //await _p2p.BroadcastBlock(block);
         }
 
         private async Task PublishInValue()
@@ -351,7 +353,7 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txForExtraBlock);
 
             var block = await Mine(false);
-            await _p2p.BroadcastBlock(block);
+            //await _p2p.BroadcastBlock(block);
         }
 
         public async Task Update()

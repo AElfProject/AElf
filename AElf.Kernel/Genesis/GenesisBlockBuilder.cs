@@ -26,10 +26,7 @@ namespace AElf.Kernel
             // Genesis block is empty
             // TODO: Maybe add info like Consensus protocol in Genesis block
 
-            
-            block.FillTxsMerkleTreeRootInHeader();
-            block.Body.BlockHeader = block.Header.GetHash();
-            
+            block.Complete();          
             Block = block;
 
             return this;

@@ -48,7 +48,8 @@ namespace AElf.Kernel
                 Index = Index,
                 PreviousBlockHash = PreviousBlockHash.Clone(),
                 MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions.Clone(),
-                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone()
+                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone(),
+                Bloom = Bloom
             };
 
             if (Index != 0)
