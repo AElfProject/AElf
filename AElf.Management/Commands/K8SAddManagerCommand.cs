@@ -40,9 +40,11 @@ namespace AElf.Management.Commands
                 },
                 Spec = new V1ServiceSpec
                 {
+                    Type = "LoadBalancer",
                     Ports = new List<V1ServicePort>
                     {
-                        new V1ServicePort(Port)
+                        new V1ServicePort(Port),
+                        new V1ServicePort(9099, "manager-port", null, "TCP", 9099),
                     },
                     Selector = new Dictionary<string, string>
                     {
@@ -89,7 +91,11 @@ namespace AElf.Management.Commands
                                 {
                                     Name = GlobalSetting.ManagerName,
                                     Image = "aelf/node:test",
-                                    Ports = new List<V1ContainerPort> {new V1ContainerPort(Port)},
+                                    Ports = new List<V1ContainerPort>
+                                    {
+                                        new V1ContainerPort(Port),
+                                        new V1ContainerPort(9099)
+                                    },
                                     Env = new List<V1EnvVar>
                                     {
                                         new V1EnvVar

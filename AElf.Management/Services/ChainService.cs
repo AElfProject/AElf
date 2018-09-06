@@ -86,6 +86,7 @@ namespace AElf.Management.Services
             var namespace1 = chainId + "-1";
 
             DeployMainChain(namespace1, arg1);
+            return null;
             
             string host1 = null;
             while (true)

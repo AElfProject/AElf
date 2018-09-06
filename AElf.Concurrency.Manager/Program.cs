@@ -31,7 +31,7 @@ namespace AElf.Concurrency.Manager
             var managementService = new ManagementService();
             managementService.StartSeedNodes();
             
-            var url = "http://127.0.0.1:9099";
+            var url = "http://0.0.0.0:9099";
             
             var _host = new WebHostBuilder()
                 .UseKestrel()
