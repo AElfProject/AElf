@@ -17,7 +17,6 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Miner.Rpc.Client;
 using Easy.MessageHub;
 using NLog;
-using NLog.Fluent;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using Status = AElf.Kernel.Status;
@@ -40,13 +39,13 @@ namespace AElf.Miner.Miner
         private readonly ILogger _logger;
         private CancellationTokenSource _rpcCancellationTokenSource;
         private IBlockChain _blockChain;
-        
+
         public IMinerConfig Config { get; }
 
         public Hash Coinbase => Config.CoinBase;
 
-        public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
-            IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager, 
+        public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
+            IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
             ITransactionResultManager transactionResultManager, ILogger logger, MinerClientManager clientManager)
         {
             Config = config;
@@ -61,7 +60,7 @@ namespace AElf.Miner.Miner
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
-        
+
         private static Miners Miners
         {
             get
@@ -92,33 +91,28 @@ namespace AElf.Miner.Miner
                         return null;
 
                     var readyTxs = await _txPoolService.GetReadyTxsAsync();
-                    // TODO：dispatch txs with ISParallel, return list of tx results
-
-                    // reset Promotable and update account context
 
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
                         : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token);
                     _logger?.Log(LogLevel.Debug, "Executed Transactions.");
-                    
+
                     // transaction results
                     ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
-                    var addrs = executed.Select(t => t.From).ToHashSet();
+                    //var addrs = executed.Select(t => t.From).ToHashSet();
 
                     // update tx pool state
-                    await _txPoolService.UpdateAccountContext(addrs);
-                    
+                    // with transaction block marking no need to update
+                    // await _txPoolService.UpdateAccountContext(addrs);
+
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
                     _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index}");
-                    
-                    // sign block
-                    block.Sign(_keyPair);
 
                     // broadcast
                     MessageHub.Instance.Publish(new BlockMinedMessage(block));
-                    
+
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
                     // put back canceled transactions
@@ -144,7 +138,7 @@ namespace AElf.Miner.Miner
         /// <param name="executed"></param>
         /// <param name="rollback"></param>
         /// <param name="results"></param>
-        private void ExtractTransactionResults(IEnumerable<Transaction> readyTxs, IEnumerable<TransactionTrace> traces, 
+        private void ExtractTransactionResults(IEnumerable<Transaction> readyTxs, IEnumerable<TransactionTrace> traces,
             out List<Transaction> executed, out List<Transaction> rollback, out List<TransactionResult> results)
         {
             var canceledTxIds = new List<Hash>();
@@ -200,7 +194,7 @@ namespace AElf.Miner.Miner
                         break;
                 }
             }
-            
+
             var canceled = canceledTxIds.ToHashSet();
             executed = new List<Transaction>();
             rollback = new List<Transaction>();
@@ -216,7 +210,7 @@ namespace AElf.Miner.Miner
                 }
             }
         }
-        
+
         /// <summary>
         /// update database
         /// </summary>
@@ -225,13 +219,16 @@ namespace AElf.Miner.Miner
         private async Task InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
         {
             executedTxs.AsParallel().ForEach(async tx =>
-                {
-                    await _transactionManager.AddTransactionAsync(tx);
-                    _txPoolService.RemoveAsync(tx.GetHash());
-                });
-            txResults.ForEach(async r => { await _transactionResultManager.AddTransactionResultAsync(r); });
+            {
+                await _transactionManager.AddTransactionAsync(tx);
+                _txPoolService.RemoveAsync(tx.GetHash());
+            });
+            txResults.AsParallel().ForEach(async r =>
+            {
+                await _transactionResultManager.AddTransactionResultAsync(r);
+            });
         }
-        
+
         /// <summary>
         /// generate block
         /// </summary>
@@ -257,13 +254,12 @@ namespace AElf.Miner.Miner
                     )
                 }
             };
-            
+
             // side chain info
-            block.Header.IndexedInfo.Add(await CollectSideChainIndexedInfo());
-            
+            await CollectSideChainIndexedInfo(block);
             // add tx hash
             block.AddTransactions(results.Select(r => r.TransactionId));
-            
+
             // set ws merkle tree root
             await _stateDictator.SetWorldStateAsync();
             var ws = await _stateDictator.GetLatestWorldStateAsync();
@@ -273,13 +269,15 @@ namespace AElf.Miner.Miner
             {
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
             }
+
             // calculate and set tx merkle tree root 
             block.Complete();
-            
+
+            block.Sign(_keyPair);
             return block;
         }
-        
-        
+
+
         /// <summary>
         /// generate block header
         /// </summary>
@@ -290,7 +288,7 @@ namespace AElf.Miner.Miner
         {
             // get ws merkle tree root
             var blockChain = _chainService.GetBlockChain(chainId);
-            
+
             var lastBlockHash = await blockChain.GetCurrentBlockHashAsync();
             // TODO: Generic IBlockHeader
             var lastHeader = (BlockHeader) await blockChain.GetHeaderByHashAsync(lastBlockHash);
@@ -298,11 +296,11 @@ namespace AElf.Miner.Miner
             var block = new Block(lastBlockHash);
             block.Header.Index = index + 1;
             block.Header.ChainId = chainId;
-            
-            
+
+
             var ws = await _stateDictator.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
-            
+
             var header = new BlockHeader
             {
                 Version = 0,
@@ -319,12 +317,13 @@ namespace AElf.Miner.Miner
         /// side chains header info    
         /// </summary>
         /// <returns></returns>
-        private async Task<List<SideChainIndexedInfo>> CollectSideChainIndexedInfo()
+        private async Task CollectSideChainIndexedInfo(IBlock block)
         {
-            // interval waiting for each side chain 
-            var interval = GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
-            
-            return await _clientManager.CollectSideChainIndexedInfo(interval);
+            if (!GrpcLocalConfig.Instance.IsCluster)
+                return;
+            // interval waiting for each side chain
+            var sideChainInfo = await _clientManager.CollectSideChainIndexedInfo();
+            block.Header.IndexedInfo.Add(sideChainInfo);
         }
 
         /// <summary>
@@ -338,11 +337,9 @@ namespace AElf.Miner.Miner
             if (!GrpcLocalConfig.Instance.IsCluster)
                 return;
             _rpcCancellationTokenSource = new CancellationTokenSource();
-            
-            _clientManager.CreateClientsToSideChain(_rpcCancellationTokenSource.Token);
+            _clientManager.CreateClientsToSideChain(_rpcCancellationTokenSource.Token).Wait();
         }
-        
-        
+
         /// <summary>
         /// stop mining
         /// </summary>
@@ -353,6 +350,5 @@ namespace AElf.Miner.Miner
             _rpcCancellationTokenSource.Cancel();
             _rpcCancellationTokenSource.Dispose();
         }
-        
     }
 }

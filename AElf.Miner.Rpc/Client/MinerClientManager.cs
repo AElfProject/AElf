@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Application;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
@@ -19,11 +20,12 @@ namespace AElf.Miner.Rpc.Client
      [LoggerName("MinerClient")]
      public class MinerClientManager
      {
-         private readonly Dictionary<Hash, MinerClient> _clients = new Dictionary<Hash, MinerClient>();
+         private readonly Dictionary<string, MinerClient> _clients = new Dictionary<string, MinerClient>();
 
          private CertificateStore _certificateStore;
          private ILogger _logger;
          private IChainManagerBasic _chainManagerBasic;
+         private Dictionary<string , Uri> ChildChains => GrpcRemoteConfig.Instance.ChildChains;
          public MinerClientManager(ILogger logger, IChainManagerBasic chainManagerBasic)
          {
              _logger = logger;
@@ -43,18 +45,18 @@ namespace AElf.Miner.Rpc.Client
 
          /// <summary>
          /// create multi client for different side chains
-         /// this would be invoked when miner is inited 
+         /// this would be invoked when miner starts or configuration reloaded 
          /// </summary>
          /// <param name="token"></param>
          /// <returns></returns>
          public async Task CreateClientsToSideChain(CancellationToken token)
          {
              _clients.Clear();
-             var sideChainIdList = await _chainManagerBasic.GetSideChainIdList();
-             foreach (var sideChainId in sideChainIdList.ChainIds)
+             foreach (var sideChainId in ChildChains.Keys)
              {
                  var client = StartNewClientToSideChain(sideChainId);
-                 var height = await _chainManagerBasic.GetCurrentBlockHeightsync(sideChainId);
+                 var height =
+                     await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(sideChainId));
                 
                  // keep-alive
                  client.Index(token, height);
@@ -67,14 +69,13 @@ namespace AElf.Miner.Rpc.Client
          /// <param name="targetChainId"></param>
          /// <returns></returns>
          /// <exception cref="ChainInfoNotFoundException"></exception>
-         public MinerClient StartNewClientToSideChain(Hash targetChainId)
+         public MinerClient StartNewClientToSideChain(string targetChainId)
          {
              // NOTE: do not use cache if configuration is managed by cluster
              //if (_clients.TryGetValue(targetChainId, out var client)) return client;
-             string ch = targetChainId.ToHex();
-             if(!GrpcRemoteConfig.Instance.ChildChains.TryGetValue(ch, out var chainUri))
-                 throw new ChainInfoNotFoundException("Unable to get chain Info.");
-             MinerClient client =  CreateClient(chainUri, targetChainId);
+             if(!ChildChains.TryGetValue(targetChainId, out var chainUri))
+                 throw new ChainInfoNotFoundException($"Unable to get chain Info of {targetChainId}.");
+             MinerClient client = CreateClient(chainUri, targetChainId);
              _clients.Add(targetChainId, client);
              return client;
          }
@@ -85,12 +86,11 @@ namespace AElf.Miner.Rpc.Client
          /// <param name="targetChainId"></param>
          /// <returns></returns>
          /// <exception cref="ChainInfoNotFoundException"></exception>
-         public MinerClient StartNewClientToParentChain(Hash targetChainId)
+         public MinerClient StartNewClientToParentChain(string targetChainId)
          {
              // do not use cache since configuration is managed by cluster
-             string ch = targetChainId.ToHex();
-             if(!GrpcRemoteConfig.Instance.ParentChain.TryGetValue(ch, out var chainUri))
-                 throw new ChainInfoNotFoundException("Unable to get chain Info.");
+             if(!GrpcRemoteConfig.Instance.ParentChain.TryGetValue(targetChainId, out var chainUri))
+                 throw new ChainInfoNotFoundException($"Unable to get chain Info of {targetChainId}.");
              return CreateClient(chainUri, targetChainId);
          }
 
@@ -100,7 +100,7 @@ namespace AElf.Miner.Rpc.Client
          /// <param name="uri"></param>
          /// <param name="targetChainId"></param>
          /// <returns></returns>
-         private MinerClient CreateClient(Uri uri, Hash targetChainId)
+         private MinerClient CreateClient(Uri uri, string targetChainId)
          {
              var uriStr = uri.Address + ":" + uri.Port;
              var channel = CreateChannel(uriStr, targetChainId);
@@ -114,10 +114,9 @@ namespace AElf.Miner.Rpc.Client
          /// <param name="targetChainId"></param>
          /// <returns></returns>
          /// <exception cref="CertificateException"></exception>
-         private Channel CreateChannel(string uriStr, Hash targetChainId)
+         private Channel CreateChannel(string uriStr, string targetChainId)
          {
-             string ch = targetChainId.ToHex();
-             string crt = _certificateStore.GetCertificate(ch);
+             string crt = _certificateStore.GetCertificate(targetChainId);
              if(crt == null)
                  throw new CertificateException("Unable to load Certificate.");
              var channelCredentials = new SslCredentials(crt);
@@ -129,15 +128,19 @@ namespace AElf.Miner.Rpc.Client
          /// take each side chain's header info 
          /// </summary>
          /// <returns></returns>
-         public async Task<List<SideChainIndexedInfo>> CollectSideChainIndexedInfo(int interval)
+         public async Task<List<SideChainIndexedInfo>> CollectSideChainIndexedInfo()
          {
+             
+             int interval = GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
+
              List<SideChainIndexedInfo> res = new List<SideChainIndexedInfo>();
              foreach (var _ in _clients)
              {
                  // take side chain info
-                 var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightsync(_.Key);
-                 if (_.Value.IndexedInfoQueue.Count == 0 || _.Value.IndexedInfoQueue.ElementAt(0).Height != targetHeight || _.Value.IndexedInfoQueue.TryTake(out var responseSideChainIndexedInfo, interval)) 
+                 var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(_.Key));
+                 if (!_.Value.TryTake(interval, out var responseSideChainIndexedInfo) || responseSideChainIndexedInfo.Height != targetHeight) 
                      continue;
+                 System.Diagnostics.Debug.WriteLine("Got header info!");
                  res.Add(new SideChainIndexedInfo
                  {
                      BlockHeaderHash = responseSideChainIndexedInfo.BlockHeaderHash,

@@ -4,14 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using Akka.Dispatch;
-using Easy.MessageHub;
 using NLog;
 
-namespace AElf.ChainController.TxMemPool
+namespace AElf.ChainController.TxMemPoolBM
 {
     public class TxPoolServiceBM : ITxPoolService
     {
@@ -41,7 +39,7 @@ namespace AElf.ChainController.TxMemPool
         private readonly ConcurrentDictionary<Hash, Transaction> _contractTxs =
             new ConcurrentDictionary<Hash, Transaction>();
 
-        private readonly ConcurrentDictionary<Hash, Transaction> _dPoSTxs =
+        private readonly ConcurrentDictionary<Hash, Transaction> _priorTxs =
             new ConcurrentDictionary<Hash, Transaction>();
 
         private readonly ConcurrentBag<Hash> _bpAddrs = new ConcurrentBag<Hash>();
@@ -79,9 +77,9 @@ namespace AElf.ChainController.TxMemPool
                 return res;
             }
 
-            if (tx.Type == TransactionType.DposTransaction)
+            if (tx.Type == TransactionType.PriorTransaction)
             {
-                return await Task.FromResult(AddDPoSTransaction(tx));
+                return await Task.FromResult(AddPriorTransaction(tx));
             }
 
             return await Task.FromResult(AddContractTransaction(tx));
@@ -92,13 +90,13 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private TxValidation.TxInsertionAndBroadcastingError AddDPoSTransaction(Transaction tx)
+        private TxValidation.TxInsertionAndBroadcastingError AddPriorTransaction(Transaction tx)
         {
-            if (tx.Type != TransactionType.DposTransaction) return TxValidation.TxInsertionAndBroadcastingError.Failed;
-            if (_dPoSTxs.ContainsKey(tx.GetHash()))
+            if (tx.Type != TransactionType.PriorTransaction) return TxValidation.TxInsertionAndBroadcastingError.Failed;
+            if (_priorTxs.ContainsKey(tx.GetHash()))
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
 
-            if (_dPoSTxs.TryAdd(tx.GetHash(), tx))
+            if (_priorTxs.TryAdd(tx.GetHash(), tx))
             {
                 _bpAddrs.Add(tx.From);
                 return TxValidation.TxInsertionAndBroadcastingError.Success;
@@ -132,15 +130,11 @@ namespace AElf.ChainController.TxMemPool
         {
             foreach (var tx in txsOut)
             {
-                if (tx.Type == TransactionType.DposTransaction)
-                {
-                    AddDPoSTransaction(tx);
-                }
-                else
+                // only contract txs could be reverted
+                if (tx.Type == TransactionType.ContractTransaction)
                 {
                     AddContractTransaction(tx);
                 }
-
                 tx.Unclaim();
             }
 
@@ -150,7 +144,7 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public bool TryGetTx(Hash txHash, out Transaction tx)
         {
-            return _contractTxs.TryGetValue(txHash, out tx) || _dPoSTxs.TryGetValue(txHash, out tx);
+            return _contractTxs.TryGetValue(txHash, out tx) || _priorTxs.TryGetValue(txHash, out tx);
         }
 
         public List<Hash> GetMissingTransactions(IBlock block)
@@ -171,7 +165,7 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public void RemoveAsync(Hash txHash)
         {
-            if (_dPoSTxs.TryRemove(txHash, out _))
+            if (_priorTxs.TryRemove(txHash, out _))
                 return;
             _contractTxs.TryRemove(txHash, out _);
         }
@@ -180,7 +174,7 @@ namespace AElf.ChainController.TxMemPool
         public async Task<List<Transaction>> GetReadyTxsAsync(double intervals = 150)
         {
             // TODO: Improve performance
-            var txs = _dPoSTxs.Values.ToList();
+            var txs = _priorTxs.Values.ToList();
             _logger.Debug($"Got {txs.Count} DPoS tx");
             if ((ulong) _contractTxs.Count < Least)
             {
@@ -222,8 +216,9 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAccountContext(HashSet<Hash> addrs)
+        public Task UpdateAccountContext(HashSet<Hash> addrs)
         {
+            throw new NotImplementedException();
         }
 
         public void SetBlockVolume(ulong minimal, ulong maximal)

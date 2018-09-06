@@ -1,6 +1,5 @@
 ﻿using AElf.ChainController.TxMemPool;
-using AElf.SmartContract;
-using AElf.SmartContract.Metadata;
+using AElf.ChainController.TxMemPoolBM;
 using Autofac;
 
 namespace AElf.ChainController

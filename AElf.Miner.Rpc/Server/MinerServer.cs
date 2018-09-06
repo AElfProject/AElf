@@ -67,7 +67,5 @@ namespace AElf.Miner.Rpc.Server
             _server.ShutdownAsync().Wait();
             _logger.Log(LogLevel.Debug, "Shutdowning miner server..");
         }
-        
-        
     }
 }

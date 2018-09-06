@@ -86,7 +86,6 @@ message BlockHeader {
     google.protobuf.Timestamp Time = 10;
     Hash ChainId = 11;
     repeated SideChainIndexedInfo IndexedInfo = 12;
-    
 }
 
 message BlockBody {

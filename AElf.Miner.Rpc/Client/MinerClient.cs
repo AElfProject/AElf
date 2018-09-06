@@ -18,12 +18,12 @@ namespace AElf.Miner.Rpc.Client
         private readonly HeaderInfoRpc.HeaderInfoRpcClient _client;
         private ulong _next;
         private readonly ILogger _logger;
-        private Hash _targetChainId;
+        private string _targetChainId;
 
-        public BlockingCollection<ResponseSideChainIndexedInfo> IndexedInfoQueue { get; } =
+        private BlockingCollection<ResponseSideChainIndexedInfo> IndexedInfoQueue { get; } =
             new BlockingCollection<ResponseSideChainIndexedInfo>(new ConcurrentQueue<ResponseSideChainIndexedInfo>());
 
-        public MinerClient(Channel channel, ILogger logger, Hash targetChainId)
+        public MinerClient(Channel channel, ILogger logger, string targetChainId)
         {
             _logger = logger;
             _targetChainId = targetChainId;
@@ -42,14 +42,16 @@ namespace AElf.Miner.Rpc.Client
                     {
                         while (await call.ResponseStream.MoveNext())
                         {
-
                             var indexedInfo = call.ResponseStream.Current;
 
                             // request failed or useless response
                             if(!indexedInfo.Success || indexedInfo.Height != _next)
                                 continue;
-                            if(IndexedInfoQueue.TryAdd(indexedInfo))
+                            if (IndexedInfoQueue.TryAdd(indexedInfo))
+                            {
+                                System.Diagnostics.Debug.WriteLine("Got header info at height {0}", indexedInfo.Height);
                                 _next++;
+                            }
                         }
                     });
 
@@ -61,9 +63,8 @@ namespace AElf.Miner.Rpc.Client
                             NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                         };
                         _logger.Log(LogLevel.Debug,
-                            $"Request IndexedInfo message of height {request.NextHeight} from chain \"{_targetChainId.ToHex()}\"");
+                            $"Request IndexedInfo message of height {request.NextHeight} from chain \"{_targetChainId}\"");
                         await call.RequestStream.WriteAsync(request);
-
                         await Task.Delay(1000);
                     }
                     await call.RequestStream.CompleteAsync();
@@ -75,7 +76,13 @@ namespace AElf.Miner.Rpc.Client
                 Console.WriteLine(e);
                 throw;
             }
-            
         }
+
+        public bool TryTake(int interval, out ResponseSideChainIndexedInfo responseSideChainIndexedInfo)
+        {
+            return IndexedInfoQueue.TryTake(out responseSideChainIndexedInfo, interval);
+        }
+
+        public int IndexedInfoQueueCount => IndexedInfoQueue.Count;
     }
 }
