@@ -4,10 +4,13 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using AElf.Miner.Rpc;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Server;
@@ -23,118 +26,160 @@ namespace AElf.Miner.Tests.Grpc
     [UseAutofacTestFramework]
     public class GrpcTest
     {
-        private readonly ILogger _logger;
-        private List<IBlockHeader> _headers = new List<IBlockHeader>();
-        private Hash _chainId;
-        public Mock<ILightChain> MockLightChain()
-        {
-            Mock<ILightChain> mock = new Mock<ILightChain>();
-            mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1));
-            mock.Setup(lc => lc.GetHeaderByHeightAsync(It.IsAny<ulong>()))
-                .Returns<ulong>(p => Task.FromResult(_headers[(int) p]));
+        private readonly MockSetup _mock;
 
-            return mock;
-        }
-        
-        public Mock<IChainService> MockChainService()
+        public GrpcTest(ILogger logger, MockSetup mock)
         {
-            Mock<IChainService> mock = new Mock<IChainService>();
-            mock.Setup(cs => cs.GetLightChain(It.IsAny<Hash>())).Returns(MockLightChain().Object);
-            return mock;
-        }
-
-        public Mock<IBlockHeader> MockBlockHeader()
-        {
-            Mock<IBlockHeader> mock = new Mock<IBlockHeader>();
-            mock.Setup(bh => bh.GetHash()).Returns(Hash.Generate());
-            mock.Setup(bh => bh.MerkleTreeRootOfTransactions).Returns(Hash.Generate());
-            return mock;
-        }
-
-        public GrpcTest(ILogger logger)
-        {
-            _logger = logger;
-        }
-
-        public MinerServer MinerServer()
-        {
-            return new MinerServer(_logger, new HeaderInfoServerImpl(MockChainService().Object, _logger));
-        }
-
-        public MinerClientManager MinerClientGenerator()
-        {
-            return new MinerClientManager(_logger);
+            _mock = mock;
         }
 
 
-        public void MockKeyPair(Hash chainId, string dir)
-        {
-            
-            var certificateStore = new CertificateStore(dir);
-            var name = chainId.ToHex();
-            var keyPair = certificateStore.WriteKeyAndCertificate(name, "127.0.0.1");
-        }
-        
         [Fact]
-        public void ServerTest()
+        public void ServerClientTest()
         {
-            string dir = @"/tmp/pems";
-            if(Directory.Exists(Path.Combine(dir, "certs")))
-                Directory.Delete(Path.Combine(dir, "certs"), true);
+            string dir = @"/tmp/ServerClientTest";
+            _mock.CreateDirectory(dir);
             try
             {
-                _chainId = Hash.Generate();
-            
-                _headers = new List<IBlockHeader>
-                {
-                    MockBlockHeader().Object,
-                    MockBlockHeader().Object,
-                    MockBlockHeader().Object
-                };
-                var server = MinerServer();
-                var sideChainId = Hash.Generate();
-                MockKeyPair(sideChainId, dir);
-                //start server, sidechain is server-side
-                GrpcLocalConfig.Instance.LocalServerPort = 50052;
-                GrpcLocalConfig.Instance.LocalServerIP = "127.0.0.1";
-
-                server.Init(sideChainId, dir);
-                server.StartUp();
+                var sideChainId = _mock.MockServer(50052, "127.0.0.1", dir);
 
                 // create client, main chian is client-side
-                var generator = MinerClientGenerator();
-                generator.Init(dir);
-                GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
-                {
-                    {sideChainId.ToHex(), new Uri
-                    {
-                        Address = GrpcLocalConfig.Instance.LocalServerIP,
-                        Port = GrpcLocalConfig.Instance.LocalServerPort
-                    }}
-                };
-                var client = generator.StartNewClientToSideChain(sideChainId);
+                var manager = _mock.MinerClientManager();
+                manager.Init(dir);
+                var client = manager.StartNewClientToSideChain(sideChainId.ToHex());
 
                 CancellationTokenSource cancellationTokenSource =
                     new CancellationTokenSource(TimeSpan.FromMilliseconds(3000));
                 client.Index(cancellationTokenSource.Token, 0);
                 Thread.Sleep(500);
-                Assert.Equal(1, client.IndexedInfoQueue.Count);
-                Assert.Equal((ulong)0, ((ResponseSideChainIndexedInfo)client.IndexedInfoQueue.First()).Height);
                 // remove the first one
-                Assert.True(client.IndexedInfoQueue.TryTake(out _));
+                Assert.Equal(1, client.IndexedInfoQueueCount);
+                Assert.True(client.TryTake(10, out var responseSideChainIndexedInfo));
+                Assert.Equal((ulong)0, responseSideChainIndexedInfo.Height);
                 
                 Thread.Sleep(1000);
-                Assert.Equal(1, client.IndexedInfoQueue.Count);
-                Assert.Equal((ulong)1, ((ResponseSideChainIndexedInfo)client.IndexedInfoQueue.First()).Height);
-                Thread.Sleep(1000);
-                Assert.Equal(2, client.IndexedInfoQueue.Count);
-                Assert.Equal((ulong)1, ((ResponseSideChainIndexedInfo)client.IndexedInfoQueue.First()).Height);
+                Assert.Equal(1, client.IndexedInfoQueueCount);
                 
-                // remove 2rd item
-                Assert.True(client.IndexedInfoQueue.TryTake(out _));
-                Assert.Equal(1, client.IndexedInfoQueue.Count);
-                Assert.Equal((ulong)2, ((ResponseSideChainIndexedInfo)client.IndexedInfoQueue.First()).Height);
+                Thread.Sleep(1000);
+                Assert.Equal(2, client.IndexedInfoQueueCount);
+                
+                // remove 2nd item
+                Assert.True(client.TryTake(10, out responseSideChainIndexedInfo));
+                Assert.Equal(1, client.IndexedInfoQueueCount);
+                Assert.Equal((ulong)1, responseSideChainIndexedInfo.Height);
 
+                // remove 3rd item
+                Assert.True(client.TryTake(10, out responseSideChainIndexedInfo));
+                Assert.Equal(0, client.IndexedInfoQueueCount);
+                Assert.Equal((ulong)2, responseSideChainIndexedInfo.Height);
+                
+                Assert.False(client.TryTake(10, out _));
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            finally
+            {
+                Directory.Delete(Path.Combine(dir), true);
+            }
+            
+        }
+        
+        
+        [Fact]
+        public async Task ServerClientsTest()
+        {
+            string dir = @"/tmp/ServerClientsTest";
+            _mock.CreateDirectory(dir);
+            try
+            {
+                var sideChainId = _mock.MockServer(50052, "127.0.0.1", dir);
+                
+                // create client, main chian is client-side
+                var manager = _mock.MinerClientManager();
+                manager.Init(dir);
+                
+                CancellationTokenSource cancellationTokenSource =
+                    new CancellationTokenSource(TimeSpan.FromMilliseconds(3000));
+                await manager.CreateClientsToSideChain(cancellationTokenSource.Token);
+
+                GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
+                Thread.Sleep(500);
+                var result = await manager.CollectSideChainIndexedInfo();
+                Assert.Equal(1, result.Count);
+                Assert.Equal((ulong)0, result[0].Height);
+                
+                Thread.Sleep(1000);
+                result = await manager.CollectSideChainIndexedInfo();
+                Assert.Equal(1, result.Count);
+                Assert.Equal((ulong)1, result[0].Height);
+                
+                Thread.Sleep(1000);
+                result = await manager.CollectSideChainIndexedInfo();
+                Assert.Equal(1, result.Count);
+                Assert.Equal((ulong)2, result[0].Height);
+                
+                Thread.Sleep(1000);
+                result = await manager.CollectSideChainIndexedInfo();
+                Assert.Equal(0, result.Count);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            finally
+            {
+                Directory.Delete(Path.Combine(dir), true);
+            }
+        }
+        
+        [Fact]
+        public async Task MineWithIndexingSideChain()
+        {
+            string dir = @"/tmp/minerpems";
+            var chain = await _mock.CreateChain();
+            var poolService = _mock.CreateTxPoolService(chain.Id);
+            poolService.Start();
+
+            try
+            {
+                _mock.CreateDirectory(dir);
+                _mock.MockServer(50054, "127.0.0.1", dir);
+                var keypair = new KeyPairGenerator().Generate();
+                var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
+                var manager = _mock.MinerClientManager();
+                manager.Init(dir);
+                var miner = _mock.GetMiner(minerconfig, poolService, manager);
+                GrpcLocalConfig.Instance.IsCluster = true;
+                miner.Init(keypair);
+            
+                Thread.Sleep(500);
+                var block = await miner.Mine(Timeout.Infinite, false);
+                Assert.NotNull(block);
+                Assert.NotNull(block.Header.IndexedInfo);
+                Assert.Equal(1, block.Header.IndexedInfo.Count);
+                Assert.Equal((ulong)0, block.Header.IndexedInfo[0].Height);
+                Assert.Equal((ulong)1, block.Header.Index);
+            
+                Thread.Sleep(1000);
+                block = await miner.Mine(Timeout.Infinite, false);
+                Assert.NotNull(block);
+                Assert.NotNull(block.Header.IndexedInfo);
+                Assert.Equal(1, block.Header.IndexedInfo.Count);
+                Assert.Equal((ulong)1, block.Header.IndexedInfo[0].Height);
+                Assert.Equal((ulong)2, block.Header.Index);
+            
+                Thread.Sleep(1000);
+                block = await miner.Mine(Timeout.Infinite, false);
+                Assert.NotNull(block);
+                Assert.NotNull(block.Header.IndexedInfo);
+                Assert.Equal(1, block.Header.IndexedInfo.Count);
+                Assert.Equal((ulong)2, block.Header.IndexedInfo[0].Height);
+                Assert.Equal((ulong)3, block.Header.Index);
             }
             catch (Exception e)
             {

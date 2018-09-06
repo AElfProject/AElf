@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using AElf.Kernel.Managers;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Tests;
+using AElf.Miner.Tests.Grpc;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
@@ -26,7 +28,7 @@ using MinerConfig = AElf.Miner.Miner.MinerConfig;
 namespace AElf.Kernel.Tests.Miner
 {
     [UseAutofacTestFramework]
-    public class MinerLifetime : TestKitBase
+    public class MinerLifetime
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
@@ -39,58 +41,16 @@ namespace AElf.Kernel.Tests.Miner
             return (ulong) res;
         }
 
-        private ActorSystem sys = ActorSystem.Create("test");
-        private IActorRef _generalExecutor;
-        private IChainCreationService _chainCreationService;
-        private readonly ILogger _logger;
-        private IStateDictator _stateDictator;
-        private ISmartContractManager _smartContractManager;
+        public readonly ILogger _logger;
+        private MockSetup _mock;
 
-        private IActorRef _serviceRouter;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
-        private IAccountContextService _accountContextService;
-        private ITransactionManager _transactionManager;
-        private ITransactionResultManager _transactionResultManager;
-        private IExecutingService _concurrencyExecutingService;
-        private IFunctionMetadataService _functionMetadataService;
-        private IChainService _chainService;
-        private readonly IChainManagerBasic _chainManagerBasic;
-        private readonly ISideChainManager _sideChainManager;
-        
-        public MinerLifetime(IStateDictator stateDictator, 
-            IChainCreationService chainCreationService, ILogger logger, IAccountContextService accountContextService, 
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            IChainService chainService, ISmartContractManager smartContractManager, 
-            IFunctionMetadataService functionMetadataService, 
-            IExecutingService concurrencyExecutingService, IChainManagerBasic chainManagerBasic, 
-            ISideChainManager sideChainManager) : base(new XunitAssertions())
+        public MinerLifetime(MockSetup mock, ILogger logger)
         {
-            _chainCreationService = chainCreationService;
+            _mock = mock;
             _logger = logger;
-            _accountContextService = accountContextService;
-            _transactionManager = transactionManager;
-            _transactionResultManager = transactionResultManager;
-
-            _chainService = chainService;
-            _smartContractManager = smartContractManager;
-            _functionMetadataService = functionMetadataService;
-            _concurrencyExecutingService = concurrencyExecutingService;
-            _chainManagerBasic = chainManagerBasic;
-            _sideChainManager = sideChainManager;
-
-            _stateDictator = stateDictator;
-            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
-            Initialize();
         }
 
-        private void Initialize()
-        {
-            _smartContractRunnerFactory = new SmartContractRunnerFactory();
-            var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, runner);
-            new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
-        }
-        
+
         public byte[] SmartContractZeroCode
         {
             get
@@ -209,57 +169,12 @@ namespace AElf.Kernel.Tests.Miner
             return txs;
         }
         
-        public async Task<IChain> CreateChain()
-        {
-            var chainId = Hash.Generate();
-            var reg = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = SmartContractZeroCode.CalculateHash()
-            };
-
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
-            _stateDictator.ChainId = chainId;
-            return chain;
-        }
-
-        public MinerClientManager MockClientGenerator(ILogger logger)
-        {
-            Mock<MinerClientManager> mock = new Mock<MinerClientManager>(logger);
-            mock.
-        }
-        
-        public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
-        {
-            var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
-                _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger, 
-                new MinerClientManager(_logger), _sideChainManager);
-
-            return miner;
-        }
-
-        public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
-        {
-            return new MinerConfig
-            {
-                ChainId = chainId,
-                CoinBase = getAddress
-            };
-        }
-       
         
         [Fact]
         public async Task Mine()
         {
-            var keypair = new KeyPairGenerator().Generate();
-            var chain = await CreateChain();
-            var minerconfig = GetMinerConfig(chain.Id, 10, keypair.GetAddress());
-            var poolconfig = TxPoolConfig.Default;
-            poolconfig.ChainId = chain.Id;
-            var pool = new ContractTxPool(poolconfig, _logger);
-            var dPoSPool = new PriorTxPool(poolconfig, _logger);
-            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
+            var chain = await _mock.CreateChain();
+            var poolService = _mock.CreateTxPoolService(chain.Id);
             poolService.Start();
 
             var txs = CreateTxs(chain.Id);
@@ -268,11 +183,14 @@ namespace AElf.Kernel.Tests.Miner
                 await poolService.AddTxAsync(tx);
             }
             
-            var miner = GetMiner(minerconfig, poolService);
+            // create miner
+            var keypair = new KeyPairGenerator().Generate();
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
+            var miner = _mock.GetMiner(minerconfig, poolService);
 
             GrpcLocalConfig.Instance.IsCluster = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
-            await miner.Init(keypair);
+            miner.Init(keypair);
             
             var block = await miner.Mine(Timeout.Infinite, false);
             
@@ -286,30 +204,22 @@ namespace AElf.Kernel.Tests.Miner
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
             Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()));
-
         }
         
         [Fact]
         public async Task ExecuteWithoutTransaction()
         {
-            var keypair = new KeyPairGenerator().Generate();
-            var chain = await CreateChain();
-            var minerconfig = GetMinerConfig(chain.Id, 10, keypair.GetAddress());
-            var poolconfig = TxPoolConfig.Default;
-            poolconfig.ChainId = chain.Id;
-            var pool = new ContractTxPool(poolconfig, _logger);
-            var dPoSPool = new PriorTxPool(poolconfig, _logger);
-            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
-            
+            var chain = await _mock.CreateChain();
+            var poolService = _mock.CreateTxPoolService(chain.Id);
             poolService.Start();
 
-            var miner = GetMiner(minerconfig, poolService);
-            
-            /*var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
-                new Grouper(_servicePack.ResourceDetectionService));*/
-            
-            await miner.Init(keypair);
-            
+            // create miner
+            var keypair = new KeyPairGenerator().Generate();
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
+            var miner = _mock.GetMiner(minerconfig, poolService);
+            GrpcLocalConfig.Instance.IsCluster = false;
+            miner.Init(keypair);
+
             var block = await miner.Mine(Timeout.Infinite, false);
             
             Assert.NotNull(block);
@@ -324,5 +234,7 @@ namespace AElf.Kernel.Tests.Miner
             Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()));
 
         }
+
+        
     }
 }
