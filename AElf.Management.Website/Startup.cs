@@ -39,6 +39,7 @@ namespace AElf.Management.Website
             builder.RegisterType<WorkerService>().As<IWorkerService>().SingleInstance();
             builder.RegisterType<ManagerService>().As<IManagerService>().SingleInstance();
             builder.RegisterType<LauncherService>().As<ILauncherService>().SingleInstance();
+            builder.RegisterType<ActorService>().As<IActorService>().SingleInstance();
 
             builder.Populate(services);
             var ApplicationContainer = builder.Build();

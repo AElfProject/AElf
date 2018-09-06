@@ -33,12 +33,9 @@ namespace AElf.Concurrency.Manager
                 (current, seed) => current + @"""" + seed + @""", ");
             seedConfigString += "]";
             
-            var receptionistAddress = string.Format("akka.tcp://{0}@{1}:{2}/system/receptionist", systemName, ipAddress, port);
-
             var finalConfig = ConfigurationFactory.ParseString(seedConfigString)
                 .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName))
                 .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorConfig.Instance.Port))
-                .WithFallback(ConfigurationFactory.ParseString(@"akka.cluster.client.initial-contacts = [""" + receptionistAddress + @"""]"))
                 .WithFallback(clusterConfig);
             return ActorSystem.Create(systemName, finalConfig);
         }
@@ -46,34 +43,7 @@ namespace AElf.Concurrency.Manager
         public void StartSeedNodes()
         {
             _actorSystem = CreateActorSystem();
-//            var pbm = PetabridgeCmd.Get(_actorSystem);
-//            pbm.RegisterCommandPalette(ClusterCommands.Instance);
-//            pbm.Start();
-            
-            var listener = _actorSystem.ActorOf(Props.Create(typeof(ClusterListener)), "clusterListener");
-            
-//            var _clusterManagerActor  = _actorSystem.ActorOf(Props.Create(() => new ManagerActor2()));
-//            //_clusterManagerActor.Tell(new SubscribeToManager());
-//            
-//            _clusterManagerActor.Tell(new StartSchedule(2));
-//            
-//            _actorSystem
-
-//            var i = 0;
-//            while (true)
-//            {
-//                Thread.Sleep(3000);
-//                
-//                Akka.Cluster.Cluster.Get(_actorSystem).SendCurrentClusterState(listener);
-//                i++;
-//
-//                if (i == 5)
-//                {
-//                    Akka.Cluster.Cluster.Get(_actorSystem).Down(new Address("akka.tcp", "AElfSystem", "127.0.0.1", 2551));
-//
-//                }
-//
-//            }
+            _actorSystem.ActorOf(Props.Create(typeof(ClusterListener)), "clusterListener");
         }
 
         public async Task StopAsync()

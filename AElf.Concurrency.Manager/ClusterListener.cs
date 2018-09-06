@@ -26,38 +26,6 @@ namespace AElf.Concurrency.Manager
 
         protected override void OnReceive(object message)
         {
-//            var up = message as ClusterEvent.MemberUp;
-//            if (up != null)
-//            {
-//                var mem = up;
-//                Console.WriteLine("Member is Up: {0}", mem.Member);
-//            }
-//            else if (message is ClusterEvent.UnreachableMember)
-//            {
-//                var unreachable = (ClusterEvent.UnreachableMember) message;
-//                Console.WriteLine("Member detected as unreachable: {0}", unreachable.Member);
-//            }
-//            else if (message is ClusterEvent.MemberRemoved)
-//            {
-//                var removed = (ClusterEvent.MemberRemoved) message;
-//                Console.WriteLine("Member is Removed: {0}", removed.Member);
-//            }
-//            else if (message is ClusterEvent.IMemberEvent)
-//            {
-//                Console.WriteLine("ClusterEvent.IMemberEvent++++++++++++++++");            
-//            }
-//            else if (message is ClusterEvent.CurrentClusterState)
-//            {
-//                var state = message as ClusterEvent.CurrentClusterState;
-//                foreach (var member in state.Members)
-//                {
-//                    Console.WriteLine("CurrentClusterState==" + member.Address + "--" + member.Status);
-//                }
-//            }
-//            else
-//            {
-//                Unhandled(message);
-//            }
             switch (message)
             {
                 case ClusterEvent.CurrentClusterState state:
@@ -91,8 +59,6 @@ namespace AElf.Concurrency.Manager
                     ClusterState.ChangeRoleLeader(roleLeaderChanged);
                     break;
             }
-            
-            ClusterState.Print();
         }
     }
 }

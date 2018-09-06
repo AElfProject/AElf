@@ -1,4 +1,9 @@
 ﻿using System;
+using System.Reflection.Metadata.Ecma335;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using NLog;
 
 namespace AElf.Concurrency.Manager
@@ -25,6 +30,17 @@ namespace AElf.Concurrency.Manager
                 return;
             var managementService = new ManagementService();
             managementService.StartSeedNodes();
+            
+            var url = "http://127.0.0.1:9099";
+            
+            var _host = new WebHostBuilder()
+                .UseKestrel()
+                .UseUrls(url)
+                .UseStartup<Startup>()
+                .Build();
+
+            _host.RunAsync();
+            
             Console.WriteLine("Press Control + C to terminate.");
             Console.CancelKeyPress += async (sender, eventArgs) => { await managementService.StopAsync(); };
             managementService.TerminationHandle.Wait();
