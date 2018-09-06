@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
-using Microsoft.AspNetCore.Server.Kestrel.Transport.Libuv.Internal.Networking;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel

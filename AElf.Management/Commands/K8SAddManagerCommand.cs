@@ -23,6 +23,7 @@ namespace AElf.Management.Commands
                 {
                     throw new Exception("failed to deploy manager");
                 }
+                AddServiceMonitor(chainId, arg);
             }
         }
 
@@ -40,11 +41,9 @@ namespace AElf.Management.Commands
                 },
                 Spec = new V1ServiceSpec
                 {
-                    Type = "LoadBalancer",
                     Ports = new List<V1ServicePort>
                     {
-                        new V1ServicePort(Port),
-                        new V1ServicePort(9099, "manager-port", null, "TCP", 9099),
+                        new V1ServicePort(Port)
                     },
                     Selector = new Dictionary<string, string>
                     {
@@ -91,6 +90,7 @@ namespace AElf.Management.Commands
                                 {
                                     Name = GlobalSetting.ManagerName,
                                     Image = "aelf/node:test",
+                                    ImagePullPolicy = "Always",
                                     Ports = new List<V1ContainerPort>
                                     {
                                         new V1ContainerPort(Port),
@@ -159,6 +159,35 @@ namespace AElf.Management.Commands
         private void DeletePod(string chainId, DeployArg arg)
         {
             K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.ManagerName);
+        }
+        
+        private void AddServiceMonitor(string chainId, DeployArg arg)
+        {
+            var body = new V1Service
+            {
+                Metadata = new V1ObjectMeta
+                {
+                    Name = GlobalSetting.ManagerServiceName+'-'+"Monitor",
+                    Labels = new Dictionary<string, string>
+                    {
+                        {"name", GlobalSetting.ManagerServiceName+'-'+"Monitor"}
+                    }
+                },
+                Spec = new V1ServiceSpec
+                {
+                    Type = "LoadBalancer",
+                    Ports = new List<V1ServicePort>
+                    {
+                        new V1ServicePort(9099, "monitor-port", null, "TCP", 9099)
+                    },
+                    Selector = new Dictionary<string, string>
+                    {
+                        {"name", GlobalSetting.ManagerName}
+                    },
+                }
+            };
+
+            K8SRequestHelper.GetClient().CreateNamespacedService(body, chainId);
         }
     }
 }

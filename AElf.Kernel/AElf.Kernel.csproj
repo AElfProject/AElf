@@ -35,7 +35,6 @@
     <PackageReference Include="Easy.MessageHub" Version="3.4.0" />
     <PackageReference Include="LiteDB" Version="4.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.0-rc1-final" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
