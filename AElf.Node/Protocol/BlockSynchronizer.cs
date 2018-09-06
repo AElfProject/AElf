@@ -254,6 +254,7 @@ namespace AElf.Node.Protocol
                     else
                     {
                         // A block was queued for processing 
+
                         var succeed = AddBlockToSync(job.Block, job.Peer).Result;
 
                         /* print candidates */
@@ -323,10 +324,11 @@ namespace AElf.Node.Protocol
         {
             var listOfMissingTxToRequest = new List<KeyValuePair<byte[], IPeer>>();
 
-            foreach (var pdBlock in PendingBlocks)
+            foreach (var pdBlock in PendingBlocks.OrderBy(x=>x.Block.Header.Index))
             {
                 if (!pdBlock.IsSynced)
                 {
+                    _logger?.Debug($"{pdBlock.MissingTxs.Count} missing txn for block {pdBlock.Block.Header.Index}");
                     foreach (var tx in pdBlock.MissingTxs.Where(m => !m.IsRequestInProgress))
                     {
                         if (listOfMissingTxToRequest.Count >= MaxOngoingTxRequests)
@@ -335,6 +337,8 @@ namespace AElf.Node.Protocol
                         listOfMissingTxToRequest.Add(new KeyValuePair<byte[], IPeer>(tx.Hash, pdBlock.Peer));
                         tx.IsRequestInProgress = true;
                     }
+
+                    break;
                 }
             }
 
