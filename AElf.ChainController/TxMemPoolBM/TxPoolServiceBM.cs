@@ -19,7 +19,7 @@ namespace AElf.ChainController.TxMemPoolBM
         private ulong Least { get; set; }
         private ulong Limit { get; set; }
 
-        public TxPoolServiceBM(ILogger logger, TxValidator txValidator,
+        public TxPoolServiceBM(ILogger logger, ITxValidator txValidator,
             ITransactionManager transactionManager)
         {
             _logger = logger;

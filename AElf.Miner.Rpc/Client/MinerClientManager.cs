@@ -40,6 +40,7 @@ namespace AElf.Miner.Rpc.Client
 
          public void Init(string dir)
          {
+             _logger?.Debug(dir);
              _certificateStore = new CertificateStore(dir);
          }
 
