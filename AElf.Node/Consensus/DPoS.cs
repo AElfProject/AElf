@@ -227,7 +227,7 @@ namespace AElf.Kernel.Node
                 RefBlockPrefix = ByteString.CopyFrom(bhPref),
                 MethodName = methodName,
                 P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey),
-                Type = TransactionType.PriorTransaction
+                Type = TransactionType.DposTransaction
             };
 
             switch (parameters.Count)

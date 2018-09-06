@@ -40,7 +40,7 @@ namespace AElf.ChainController.TxMemPool
         public ulong MinimalFee => _config.FeeThreshold;
         
         /// <inheritdoc/>
-        public TransactionType Type => TransactionType.PriorTransaction;
+        public TransactionType Type => TransactionType.DposTransaction;
 
 
         private ConcurrentDictionary<Hash, ulong> _nonces  = new ConcurrentDictionary<Hash, ulong>();

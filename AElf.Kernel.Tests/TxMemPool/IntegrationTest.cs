@@ -202,7 +202,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 sortedSet[addrList[index].GetAddress()].Add(id);
                 var tx = BuildTransaction(keyPair: addrList[index], nonce: (ulong) id,
                     type: index == 0
-                        ? TransactionType.PriorTransaction
+                        ? TransactionType.DposTransaction
                         : TransactionType.ContractTransaction);
                 txList.Add(tx);
             }

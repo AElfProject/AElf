@@ -63,9 +63,9 @@ namespace AElf.ChainController.TxMemPool
         /// <returns></returns>
         private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx)
         {
-            if (tx.Type == TransactionType.PriorTransaction)
+            if (tx.Type == TransactionType.DposTransaction)
             {
-                await TrySetNonce(tx.From, TransactionType.PriorTransaction);
+                await TrySetNonce(tx.From, TransactionType.DposTransaction);
                 return await PriorTxLock.WriteLock(() => AddPriorTransaction(tx));
             }
 
@@ -80,7 +80,7 @@ namespace AElf.ChainController.TxMemPool
         /// <returns></returns>
         private TxValidation.TxInsertionAndBroadcastingError AddPriorTransaction(Transaction tx)
         {
-            if (tx.Type != TransactionType.PriorTransaction) return TxValidation.TxInsertionAndBroadcastingError.Failed;
+            if (tx.Type != TransactionType.DposTransaction) return TxValidation.TxInsertionAndBroadcastingError.Failed;
             if (_priorTxs.ContainsKey(tx.GetHash()))
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
             
