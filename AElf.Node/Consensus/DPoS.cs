@@ -9,6 +9,7 @@ using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
 using AElf.Configuration;
+using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Node.Protocol;
@@ -23,6 +24,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using NLog;
+using NServiceKit.Common.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -149,7 +151,7 @@ namespace AElf.Kernel.Node
                 _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
                 _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
 
-                var block = await _miner.Mine(Globals.AElfDPoSMiningInterval * 9 / 10, initial);
+                var block = await _miner.Mine();
 
                 await _stateDictator.SetBlockHashAsync(block.GetHash());
                 await _stateDictator.SetStateHashAsync(block.GetHash());
@@ -167,7 +169,8 @@ namespace AElf.Kernel.Node
                     //In case just config one node to produce blocks.
                     await RecoverMining();
                 }
-                _logger?.Debug($"Indexed side chain info in main block {block.Header.Index}:\n{block.Header.GetIndexedSideChainBlcokInfo()}");
+                if(!block.Header.IndexedInfo.IsEmpty())
+                    _logger?.Debug($"Indexed side chain info in main block {block.Header.Index}:\n{block.Header.GetIndexedSideChainBlcokInfo()}");
                 return block;
             }
             catch (Exception e)

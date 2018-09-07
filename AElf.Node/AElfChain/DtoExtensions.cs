@@ -27,7 +27,12 @@ namespace AElf.Node.AElfChain
             var res = new JObject();
             foreach (var sideChainIndexedInfo in blockHeader.IndexedInfo)
             {
-                res.Add(new JObject(JsonFormatter.Default.Format(sideChainIndexedInfo)));
+                res.Add(sideChainIndexedInfo.ChainId.ToHex(), new JObject
+                {
+                    {"Height", sideChainIndexedInfo.Height},
+                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.ToHex()},
+                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.ToHex()}
+                });
             }
 
             return res;

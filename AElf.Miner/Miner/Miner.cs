@@ -37,9 +37,9 @@ namespace AElf.Miner.Miner
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly MinerClientManager _clientManager;
         private readonly MinerServer _minerServer;
+        private int _timeoutMilliseconds;
 
         private readonly ILogger _logger;
-        private CancellationTokenSource _rpcCancellationTokenSource;
         private IBlockChain _blockChain;
 
         public IMinerConfig Config { get; }
@@ -83,12 +83,12 @@ namespace AElf.Miner.Miner
             }
         }
 
-        public async Task<IBlock> Mine(int timeoutMilliseconds, bool initial = false)
+        public async Task<IBlock> Mine()
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
             using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
             {
-                timer.Change(timeoutMilliseconds, Timeout.Infinite);
+                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
                 try
                 {
                     if (cancellationTokenSource.IsCancellationRequested)
@@ -336,12 +336,12 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init(ECKeyPair nodeKeyPair)
         {
+            _timeoutMilliseconds = Globals.AElfMiningInterval;
             _keyPair = nodeKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
             if (GrpcLocalConfig.Instance.Client)
             {
-                _rpcCancellationTokenSource = new CancellationTokenSource();
-                _clientManager.CreateClientsToSideChain(_rpcCancellationTokenSource.Token).Wait();
+                _clientManager.CreateClientsToSideChain().Wait();
             }
 
             if (GrpcLocalConfig.Instance.Server)
@@ -356,10 +356,8 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Close()
         {
-            if (_rpcCancellationTokenSource == null)
-                return;
-            _rpcCancellationTokenSource.Cancel();
-            _rpcCancellationTokenSource.Dispose();
+            if (GrpcLocalConfig.Instance.Client)
+                _clientManager.Close();
         }
     }
 }

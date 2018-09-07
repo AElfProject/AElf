@@ -15,6 +15,6 @@ namespace AElf.Miner.Miner
         /// mining functionality
         /// </summary>
         /// <returns></returns>
-        Task<IBlock> Mine(int timeoutMilliseconds, bool initial);
+        Task<IBlock> Mine();
     }
 }
