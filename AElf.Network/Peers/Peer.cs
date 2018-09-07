@@ -438,19 +438,19 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         public void EnqueueOutgoing(Message msg)
         {
-            if (!IsAuthentified)
-            {
-                _logger?.Trace($"Can't write : not identified {DistantNodeData}.");
-            }
-            
-            if (_messageWriter == null)
-            {
-                _logger?.Trace($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
-                return;
-            }
-
             try
             {
+                if (!IsAuthentified)
+                {
+                    _logger?.Trace($"Can't write : not identified {DistantNodeData}.");
+                }
+                
+                if (_messageWriter == null)
+                {
+                    _logger?.Trace($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
+                    return;
+                }
+                
                 _messageWriter.EnqueueMessage(msg);
             }
             catch (Exception e)
