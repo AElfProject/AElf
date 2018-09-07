@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Peers;
@@ -49,7 +50,7 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, peerPort, null);
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, peerPort, ByteArrayHelpers.RandomFill(10));
 
             Message authMessage = null;
             messageWritter.Setup(w => w.EnqueueMessage(It.IsAny<Message>())).Callback<Message>(m => authMessage = m);
@@ -70,7 +71,7 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, null);
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, ByteArrayHelpers.RandomFill(1));
             p.AuthTimeout = 100;
 
             AuthFinishedArgs authFinishedArgs = null;
@@ -94,7 +95,7 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, null);
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, ByteArrayHelpers.RandomFill(1));
             p.AuthTimeout = 100;
             
             AuthFinishedArgs authFinishedArgs = null;
