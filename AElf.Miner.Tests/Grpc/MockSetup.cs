@@ -25,17 +25,17 @@ namespace AElf.Miner.Tests.Grpc
         public List<IBlockHeader> _headers = new List<IBlockHeader>();
         public readonly ILogger _logger;
         public ulong _i;
-        private IChainCreationService _chainCreationService;
-        private IStateDictator _stateDictator;
-        private ISmartContractManager _smartContractManager;
+        private readonly IChainCreationService _chainCreationService;
+        private readonly IStateDictator _stateDictator;
+        private readonly ISmartContractManager _smartContractManager;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
-        private IAccountContextService _accountContextService;
-        private ITransactionManager _transactionManager;
-        private ITransactionResultManager _transactionResultManager;
-        private IExecutingService _concurrencyExecutingService;
-        private IFunctionMetadataService _functionMetadataService;
-        private IChainService _chainService;
+        private readonly IAccountContextService _accountContextService;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly IExecutingService _concurrencyExecutingService;
+        private readonly IFunctionMetadataService _functionMetadataService;
+        private readonly IChainService _chainService;
         
         public MockSetup(ILogger logger, IChainCreationService chainCreationService, IStateDictator stateDictator, 
             ISmartContractManager smartContractManager, IAccountContextService accountContextService, 
