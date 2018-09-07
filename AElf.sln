@@ -121,6 +121,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Sim", "AElf.Ne
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Sim.Node", "AElf.Network.Sim.Node\AElf.Network.Sim.Node.csproj", "{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Monitor", "AElf.Monitor\AElf.Monitor.csproj", "{A4FCD006-B47C-44D9-903B-848E77053422}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -359,6 +361,10 @@ Global
 		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4FCD006-B47C-44D9-903B-848E77053422}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4FCD006-B47C-44D9-903B-848E77053422}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4FCD006-B47C-44D9-903B-848E77053422}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4FCD006-B47C-44D9-903B-848E77053422}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

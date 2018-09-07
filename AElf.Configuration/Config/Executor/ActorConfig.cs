@@ -18,11 +18,13 @@ namespace AElf.Configuration
         public string MasterHoconFile { get; set; } = "";
         public string WorkerHoconFile { get; set; } = "";
         public string ManagerHoconFile { get; set; } = "";
+        public string MonitorHoconFile { get; set; } = "";
 
         private string _singleHoconConfig;
         private string _masterHoconConfig;
         private string _workerHoconConfig;
         private string _managerHoconConfig;
+        private string _monitorHoconConfig;
 
         [JsonIgnore]
         public string SingleHoconConfig
@@ -65,6 +67,17 @@ namespace AElf.Configuration
                 if (string.IsNullOrEmpty(_managerHoconConfig))
                     _managerHoconConfig = ReadConfFile(Instance.ManagerHoconFile);
                 return _managerHoconConfig;
+            }
+        }
+        
+        [JsonIgnore]
+        public string MonitorHoconConfig
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_monitorHoconConfig))
+                    _monitorHoconConfig = ReadConfFile(Instance.MonitorHoconFile);
+                return _monitorHoconConfig;
             }
         }
 

@@ -14,5 +14,6 @@
     "SingleHoconFile": "single.hocon",
     "MasterHoconFile": "master.hocon",
     "WorkerHoconFile": "worker.hocon",
-    "ManagerHoconFile": "manager.hocon"
+    "ManagerHoconFile": "manager.hocon",
+    "MonitorHoconFile": "monitor.hocon"
 }
