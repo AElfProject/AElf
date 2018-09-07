@@ -85,7 +85,7 @@ namespace AElf.Node.Protocol
         {
             if (e is TransactionsReceivedEventArgs txsEventArgs)
             {
-                HandleTransactionMessage(txsEventArgs);
+                Task.Run(async () => { await HandleTransactionMessage(txsEventArgs); }).ConfigureAwait(false);
             }
         }
 
