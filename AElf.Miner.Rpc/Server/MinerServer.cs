@@ -44,6 +44,8 @@ namespace AElf.Miner.Rpc.Server
             
             // init server impl
             _headerInfoServerImpl.Init(chainId);
+            
+            _logger?.Debug("Init miner server.");
         }
         
         
@@ -59,7 +61,7 @@ namespace AElf.Miner.Rpc.Server
                 }
             };
             _server.Start();
-            _logger.Log(LogLevel.Debug, "Miner server listening on port " + GrpcLocalConfig.Instance.LocalServerPort);          
+            _logger.Log(LogLevel.Debug, "Miner server listening on :" + GrpcLocalConfig.Instance.LocalServerIP + GrpcLocalConfig.Instance.LocalServerPort);          
         }
 
         public void Stop()

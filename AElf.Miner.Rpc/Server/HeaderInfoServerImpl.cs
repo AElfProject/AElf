@@ -30,6 +30,7 @@ namespace AElf.Miner.Rpc.Server
             IServerStreamWriter<ResponseSideChainIndexedInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
+            _logger?.Log(LogLevel.Debug, "Server received IndexedInfo message.");
 
             while (await requestStream.MoveNext())
             {
