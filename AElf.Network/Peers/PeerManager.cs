@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Network.Connection;
@@ -48,15 +49,46 @@ namespace AElf.Network.Peers
         
         private BlockingCollection<PeerManagerJob> _jobQueue;
         
-        private readonly string _nodeName;
+        private readonly List<byte[]> _bpKeys;
+        
+        private byte[] _nodeKey;
+        private string _nodeName;
+        private bool _isBp;
 
         public PeerManager(IConnectionListener connectionListener, ILogger logger)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
+            _bpKeys = new List<byte[]>();
+            
             _connectionListener = connectionListener;
             _logger = logger;
             
             _nodeName = NodeConfig.Instance.NodeName;
+
+            SetBpConfig();
+        }
+        
+        private void SetBpConfig()
+        {
+            var producers = MinersConfig.Instance.Producers;
+            
+            // Set the list of block producers
+            try
+            {
+                foreach (var bp in producers.Values)
+                {
+                    byte[] key = ByteArrayHelpers.FromHexString(bp["address"]);
+                    _bpKeys.Add(key);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Warn(e, "Error while reading mining info.");
+            }
+            
+            // This nodes key
+            _nodeKey = ByteArrayHelpers.FromHexString(NodeConfig.Instance.NodeAccount);
+            _isBp = _bpKeys.Any(k => k.BytesEqual(_nodeKey));
         }
 
         public void Start()
