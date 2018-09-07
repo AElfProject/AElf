@@ -26,6 +26,7 @@ namespace AElf.Miner
             builder.RegisterModule(new MinerAutofacModule(minerConfig));
             builder.RegisterType<MinerClientManager>().SingleInstance().OnActivated(mc =>
                 mc.Instance.Init(ApplicationHelpers.GetDefaultDataDir() + "/certs"));
+            builder.RegisterType<HeaderInfoServerImpl>().As<HeaderInfoServerImpl>();
             builder.RegisterType<MinerServer>().SingleInstance().OnActivated(mc =>
                 mc.Instance.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
                     ApplicationHelpers.GetDefaultDataDir() + "/certs"));
