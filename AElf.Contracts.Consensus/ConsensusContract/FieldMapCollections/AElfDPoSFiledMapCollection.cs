@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         /// Current round number.
         /// </summary>
         public UInt64Field CurrentRoundNumberField;
-        
+
         /// <summary>
         /// Current block producers / miners.
         /// </summary>
