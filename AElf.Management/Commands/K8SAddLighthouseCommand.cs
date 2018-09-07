@@ -8,20 +8,20 @@ using k8s.Models;
 
 namespace AElf.Management.Commands
 {
-    public class K8SAddManagerCommand:IDeployCommand
+    public class K8SAddLighthouseCommand:IDeployCommand
     {
         private const int Port = 4053;
         private const int Replicas = 1;
         
         public void Action(string chainId, DeployArg arg)
         {
-            if (arg.ManagerArg.IsCluster)
+            if (arg.LighthouseArg.IsCluster)
             {
                 AddService(chainId, arg);
                 var addSetResult = AddStatefulSet(chainId, arg);
                 if (!addSetResult)
                 {
-                    throw new Exception("failed to deploy manager");
+                    throw new Exception("failed to deploy lighthouse");
                 }
             }
         }
@@ -32,10 +32,10 @@ namespace AElf.Management.Commands
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = GlobalSetting.ManagerServiceName,
+                    Name = GlobalSetting.LighthouseServiceName,
                     Labels = new Dictionary<string, string>
                     {
-                        {"name", GlobalSetting.ManagerServiceName}
+                        {"name", GlobalSetting.LighthouseServiceName}
                     }
                 },
                 Spec = new V1ServiceSpec
@@ -46,7 +46,7 @@ namespace AElf.Management.Commands
                     },
                     Selector = new Dictionary<string, string>
                     {
-                        {"name", GlobalSetting.ManagerName}
+                        {"name", GlobalSetting.LighthouseName}
                     },
                     ClusterIP = "None"
                 }
@@ -61,8 +61,8 @@ namespace AElf.Management.Commands
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = GlobalSetting.ManagerName,
-                    Labels = new Dictionary<string, string> {{"name", GlobalSetting.ManagerName}}
+                    Name = GlobalSetting.LighthouseName,
+                    Labels = new Dictionary<string, string> {{"name", GlobalSetting.LighthouseName}}
                 },
                 Spec = new V1StatefulSetSpec
                 {
@@ -70,16 +70,16 @@ namespace AElf.Management.Commands
                     {
                         MatchExpressions = new List<V1LabelSelectorRequirement>
                         {
-                            new V1LabelSelectorRequirement("name", "In", new List<string> {GlobalSetting.ManagerName})
+                            new V1LabelSelectorRequirement("name", "In", new List<string> {GlobalSetting.LighthouseName})
                         }
                     },
-                    ServiceName = GlobalSetting.ManagerServiceName,
+                    ServiceName = GlobalSetting.LighthouseServiceName,
                     Replicas = Replicas,
                     Template = new V1PodTemplateSpec
                     {
                         Metadata = new V1ObjectMeta
                         {
-                            Labels = new Dictionary<string, string> {{"name", GlobalSetting.ManagerName}}
+                            Labels = new Dictionary<string, string> {{"name", GlobalSetting.LighthouseName}}
                         },
                         Spec = new V1PodSpec
                         {
@@ -87,7 +87,7 @@ namespace AElf.Management.Commands
                             {
                                 new V1Container
                                 {
-                                    Name = GlobalSetting.ManagerName,
+                                    Name = GlobalSetting.LighthouseName,
                                     Image = "aelf/node:test",
                                     ImagePullPolicy = "Always",
                                     Ports = new List<V1ContainerPort>
@@ -101,8 +101,8 @@ namespace AElf.Management.Commands
                                             ValueFrom = new V1EnvVarSource {FieldRef = new V1ObjectFieldSelector("metadata.name")}
                                         }
                                     },
-                                    Command = new List<string> {"dotnet", "AElf.Concurrency.Manager.dll"},
-                                    Args = new List<string> {"--actor.host", "$(POD_NAME)." + GlobalSetting.ManagerServiceName, "--actor.port", Port.ToString()},
+                                    Command = new List<string> {"dotnet", "AElf.Concurrency.Lighthouse.dll"},
+                                    Args = new List<string> {"--actor.host", "$(POD_NAME)." + GlobalSetting.LighthouseServiceName, "--actor.port", Port.ToString()},
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
                                         new V1VolumeMount("/app/aelf/config", "config")
@@ -155,7 +155,7 @@ namespace AElf.Management.Commands
         
         private void DeletePod(string chainId, DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.ManagerName);
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LighthouseName);
         }
     }
 }

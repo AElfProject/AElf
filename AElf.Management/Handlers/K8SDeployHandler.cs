@@ -24,7 +24,7 @@ namespace AElf.Management.Handlers
             _deployCommands.Add(new K8SAddRedisCommand());
             _deployCommands.Add(new K8SAddConfigCommand());
             _deployCommands.Add(new K8SAddAccountKeyCommand());
-            _deployCommands.Add(new K8SAddManagerCommand());
+            _deployCommands.Add(new K8SAddLighthouseCommand());
             _deployCommands.Add(new K8SAddWorkerCommand());
             _deployCommands.Add(new K8SAddLauncherCommand());
 

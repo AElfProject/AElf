@@ -46,9 +46,10 @@ namespace AElf.Management.Services
                 new K8SAddRedisCommand(), 
                 new K8SAddConfigCommand(), 
                 new K8SAddAccountKeyCommand(), 
-                new K8SAddManagerCommand(), 
+                new K8SAddLighthouseCommand(), 
                 new K8SAddWorkerCommand(), 
-                new K8SAddLauncherCommand()
+                new K8SAddLauncherCommand(),
+                new K8SAddMonitorCommand()
             };
 
             commands.ForEach(c => c.Action(chainId, arg));
@@ -74,8 +75,8 @@ namespace AElf.Management.Services
             arg1.MainChainAccount = accounts[0];
             arg1.AccountPassword = password;
             arg1.DBArg = new DeployDBArg();
-            arg1.ManagerArg=new DeployManagerArg();
-            arg1.ManagerArg.IsCluster = true;
+            arg1.LighthouseArg=new DeployLighthouseArg();
+            arg1.LighthouseArg.IsCluster = true;
             arg1.WorkArg = new DeployWorkArg();
             arg1.WorkArg.WorkerCount = 2;
             arg1.WorkArg.ActorCount = 4;
@@ -118,8 +119,8 @@ namespace AElf.Management.Services
             arg2.MainChainAccount = accounts[1];
             arg2.AccountPassword = password;
             arg2.DBArg = new DeployDBArg();
-            arg2.ManagerArg=new DeployManagerArg();
-            arg2.ManagerArg.IsCluster = true;
+            arg2.LighthouseArg=new DeployLighthouseArg();
+            arg2.LighthouseArg.IsCluster = true;
             arg2.WorkArg = new DeployWorkArg();
             arg2.WorkArg.WorkerCount = 2;
             arg2.WorkArg.ActorCount = 4;
@@ -162,8 +163,8 @@ namespace AElf.Management.Services
             arg3.MainChainAccount = accounts[2];
             arg3.AccountPassword = password;
             arg3.DBArg = new DeployDBArg();
-            arg3.ManagerArg=new DeployManagerArg();
-            arg3.ManagerArg.IsCluster = true;
+            arg3.LighthouseArg=new DeployLighthouseArg();
+            arg3.LighthouseArg.IsCluster = true;
             arg3.WorkArg = new DeployWorkArg();
             arg3.WorkArg.WorkerCount = 2;
             arg3.WorkArg.ActorCount = 4;

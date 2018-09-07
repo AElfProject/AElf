@@ -40,17 +40,17 @@ namespace AElf.Management.Commands
         {
             var config = new ActorConfig
             {
-                IsCluster = arg.ManagerArg.IsCluster,
+                IsCluster = arg.LighthouseArg.IsCluster,
                 HostName = "127.0.0.1",
                 Port = 0,
                 ActorCount = arg.WorkArg.ActorCount,
                 Benchmark = false,
                 ConcurrencyLevel = arg.WorkArg.ConcurrencyLevel,
-                Seeds = new List<SeedNode> {new SeedNode {HostName = "set-manager-0.service-manager", Port = 4053}},
+                Seeds = new List<SeedNode> {new SeedNode {HostName = "set-lighthouse-0.service-lighthouse", Port = 4053}},
                 SingleHoconFile = "single.hocon",
                 MasterHoconFile = "master.hocon",
                 WorkerHoconFile = "worker.hocon",
-                LighthouseHoconFile = "manager.hocon"
+                LighthouseHoconFile = "lighthouse.hocon"
             };
 
             var result = JsonSerializer.Instance.Serialize(config);

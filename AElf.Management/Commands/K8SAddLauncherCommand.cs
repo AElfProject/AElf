@@ -126,7 +126,7 @@ namespace AElf.Management.Commands
                                         "--chain.id",
                                         chainId.Split('-').First(),
                                         "--node.executor",
-                                        arg.ManagerArg.IsCluster?"akka":"simple"
+                                        arg.LighthouseArg.IsCluster?"akka":"simple"
                                     },
                                     VolumeMounts = new List<V1VolumeMount>
                                     {

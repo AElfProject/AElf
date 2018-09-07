@@ -19,7 +19,7 @@ namespace AElf.Management.Commands
             var addSetResult = AddStatefulSet(chainId, arg);
             if (!addSetResult)
             {
-                throw new Exception("failed to deploy manager");
+                throw new Exception("failed to deploy redis");
             }
         }
 

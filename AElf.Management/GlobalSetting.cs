@@ -14,14 +14,18 @@
         
         public const string RedisName = "set-redis";
 
-        public const string ManagerServiceName = "service-manager";
+        public const string LighthouseServiceName = "service-lighthouse";
         
-        public const string ManagerName = "set-manager";
+        public const string LighthouseName = "set-lighthouse";
 
         public const string WorkerName = "deploy-worker";
         
         public const string LauncherServiceName = "service-launcher";
         
         public const string LauncherName = "deploy-launcher";
+        
+        public const string MonitorServiceName = "service-monitor";
+        
+        public const string MonitorName = "deploy-monitor";
     }
 }

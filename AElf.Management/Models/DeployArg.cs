@@ -18,7 +18,7 @@ namespace AElf.Management.Models
 
         public DeployDBArg DBArg { get; set; }
 
-        public DeployManagerArg ManagerArg { get; set; }
+        public DeployLighthouseArg LighthouseArg { get; set; }
         
         public DeployWorkArg WorkArg { get; set; }
         
@@ -41,7 +41,7 @@ namespace AElf.Management.Models
         }
     }
 
-    public class DeployManagerArg
+    public class DeployLighthouseArg
     {
         public bool IsCluster { get; set; }
     }
