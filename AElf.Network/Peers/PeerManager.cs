@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -46,12 +47,16 @@ namespace AElf.Network.Peers
         private Object _peerListLock = new Object(); 
         
         private BlockingCollection<PeerManagerJob> _jobQueue;
+        
+        private readonly string _nodeName;
 
         public PeerManager(IConnectionListener connectionListener, ILogger logger)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
             _connectionListener = connectionListener;
             _logger = logger;
+            
+            _nodeName = NodeConfig.Instance.NodeName;
         }
 
         public void Start()

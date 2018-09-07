@@ -28,6 +28,9 @@ namespace AElf.Configuration
 
         [Option("node.port", HelpText = "The port this node is listening on.")]
         public int? Port { get; set; }
+        
+        [Option("node.name", HelpText = "The name used to describe the node.")]
+        public string NodeName { get; set; }
 
         [Option("node.account", HelpText = "The key used by the node.")]
         public string NodeAccount { get; set; }
