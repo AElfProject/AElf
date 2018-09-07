@@ -50,7 +50,7 @@ namespace AElf.Management.Commands
                 SingleHoconFile = "single.hocon",
                 MasterHoconFile = "master.hocon",
                 WorkerHoconFile = "worker.hocon",
-                ManagerHoconFile = "manager.hocon"
+                LighthouseHoconFile = "manager.hocon"
             };
 
             var result = JsonSerializer.Instance.Serialize(config);

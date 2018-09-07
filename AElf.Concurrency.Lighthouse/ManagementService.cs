@@ -1,14 +1,10 @@
 ﻿using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Configuration;
 using Akka.Actor;
 using Akka.Configuration;
-using Akka.Util.Internal;
-using Petabridge.Cmd.Cluster;
-using Petabridge.Cmd.Host;
 
-namespace AElf.Concurrency.Manager
+namespace AElf.Concurrency.Lighthouse
 {
     public class ManagementService
     {
@@ -17,7 +13,7 @@ namespace AElf.Concurrency.Manager
 
         private static ActorSystem CreateActorSystem()
         {
-            var clusterConfig = ConfigurationFactory.ParseString(ActorConfig.Instance.ManagerHoconConfig);
+            var clusterConfig = ConfigurationFactory.ParseString(ActorConfig.Instance.LighthouseHoconConfig);
             var systemName = clusterConfig.GetConfig("manager").GetString("system-name");
 //            var ipAddress = clusterConfig.GetConfig("akka.remote").GetString("dot-netty.tcp.hostname");
 //            var port = clusterConfig.GetConfig("akka.remote").GetString("dot-netty.tcp.port");

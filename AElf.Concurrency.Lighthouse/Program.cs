@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using NLog;
 
-namespace AElf.Concurrency.Manager
+namespace AElf.Concurrency.Lighthouse
 {
     class Program
     {
