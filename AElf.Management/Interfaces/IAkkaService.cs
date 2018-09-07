@@ -3,7 +3,7 @@ using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
-    public interface IActorService
+    public interface IAkkaService
     {
         List<MemberInfo> GetState(string chainId);
     }

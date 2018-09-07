@@ -10,18 +10,18 @@ namespace AElf.Management.Website.Controllers
     [ApiController]
     public class ActorController : ControllerBase
     {
-        private readonly IActorService _actorService;
+        private readonly IAkkaService _akkaService;
 
-        public ActorController(IActorService actorService)
+        public ActorController(IAkkaService akkaService)
         {
-            _actorService = actorService;
+            _akkaService = akkaService;
         }
         
         [HttpGet]
         [Route("state/{chainId}")]
         public ApiResult<List<MemberInfo>> State(string chainId)
         {
-            var result = _actorService.GetState(chainId);
+            var result = _akkaService.GetState(chainId);
             return new ApiResult<List<MemberInfo>>(result);
         }
     }
