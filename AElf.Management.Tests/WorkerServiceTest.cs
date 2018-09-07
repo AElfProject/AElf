@@ -5,7 +5,8 @@ namespace AElf.Management.Tests
 {
     public class WorkerServiceTest
     {
-        [Fact]
+        [Fact(Skip = "require aws account")]
+        //[Fact]
         public void TestModifyWorkerCount()
         {
             var service = new WorkerService();
