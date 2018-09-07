@@ -121,8 +121,8 @@ namespace AElf.Miner.Rpc.Client
              if(crt == null)
                  throw new CertificateException("Unable to load Certificate.");
              var channelCredentials = new SslCredentials(crt);
-             //var channel = new Channel(uriStr, channelCredentials);
-             var channel = new Channel(uriStr, ChannelCredentials.Insecure);
+             var channel = new Channel(uriStr, channelCredentials);
+             //var channel = new Channel(uriStr, ChannelCredentials.Insecure);
              return channel;
          }
 

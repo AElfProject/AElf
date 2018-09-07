@@ -1,6 +1,7 @@
 ﻿using System;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Types;
+using Google.Protobuf.Collections;
 
 namespace AElf.Kernel
 {
@@ -10,5 +11,6 @@ namespace AElf.Kernel
         Hash MerkleTreeRootOfTransactions { get; set; }
         ECSignature GetSignature();
         Hash ChainId { get; set; }
+        RepeatedField<SideChainIndexedInfo> IndexedInfo { get;  }
     }
 }

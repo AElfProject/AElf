@@ -167,7 +167,7 @@ namespace AElf.Kernel.Node
                     //In case just config one node to produce blocks.
                     await RecoverMining();
                 }
-
+                _logger?.Debug($"Indexed side chain info in main block {block.Header.Index}:\n{block.Header.GetIndexedSideChainBlcokInfo()}");
                 return block;
             }
             catch (Exception e)
@@ -393,7 +393,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
+                _logger?.Debug("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
             }
         } 
     }

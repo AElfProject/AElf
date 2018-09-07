@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel;
+using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.Node.AElfChain
@@ -19,6 +20,17 @@ namespace AElf.Node.AElfChain
                     {"Type", tx.Type.ToString()}
                 }
             };
+        }
+        
+        internal static JObject GetIndexedSideChainBlcokInfo(this IBlockHeader blockHeader)
+        {
+            var res = new JObject();
+            foreach (var sideChainIndexedInfo in blockHeader.IndexedInfo)
+            {
+                res.Add(new JObject(JsonFormatter.Default.Format(sideChainIndexedInfo)));
+            }
+
+            return res;
         }
     }
 }

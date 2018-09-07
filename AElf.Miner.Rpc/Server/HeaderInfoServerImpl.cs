@@ -43,12 +43,12 @@ namespace AElf.Miner.Rpc.Server
                     var res = new ResponseSideChainIndexedInfo
                     {
                         Height = requestedHeight,
-                        BlockHeaderHash = blockHeader.GetHash(),
-                        TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
-                        Success = true,
-                        ChainId = blockHeader.ChainId
+                        BlockHeaderHash = blockHeader?.GetHash(),
+                        TransactionMKRoot = blockHeader?.MerkleTreeRootOfTransactions,
+                        Success = blockHeader != null,
+                        ChainId = blockHeader?.ChainId
                     };
-                    _logger?.Log(LogLevel.Debug, "Server responsed IndexedInfo message.");
+                    _logger?.Log(LogLevel.Debug, $"Server responsed IndexedInfo message of height {requestedHeight}");
                     await responseStream.WriteAsync(res);
                 }
             }

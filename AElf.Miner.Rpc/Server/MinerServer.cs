@@ -56,8 +56,8 @@ namespace AElf.Miner.Rpc.Server
                 Services = {HeaderInfoRpc.BindService(_headerInfoServerImpl)},
                 Ports =
                 {
-                    //new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, GrpcLocalConfig.Instance.LocalServerPort, _sslServerCredentials)
-                    new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, GrpcLocalConfig.Instance.LocalServerPort, ServerCredentials.Insecure)
+                    new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, GrpcLocalConfig.Instance.LocalServerPort, _sslServerCredentials)
+                    //new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, GrpcLocalConfig.Instance.LocalServerPort, ServerCredentials.Insecure)
                 }
             };
             _server.Start();
