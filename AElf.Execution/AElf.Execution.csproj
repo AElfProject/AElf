@@ -3,8 +3,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Akka.Cluster" Version="1.3.8" />
-    <PackageReference Include="Akka.Serialization.Hyperion" Version="1.3.8-beta66" />
+    <PackageReference Include="Akka.Cluster" Version="1.3.9" />
+    <PackageReference Include="Akka.Serialization.Hyperion" Version="1.3.9-beta68" />
     <PackageReference Include="LiteDB" Version="4.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.0-rc1-final" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
