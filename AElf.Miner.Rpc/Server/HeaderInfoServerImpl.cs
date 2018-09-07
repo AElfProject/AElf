@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
@@ -32,22 +33,31 @@ namespace AElf.Miner.Rpc.Server
             // TODO: verify the from address and the chain 
             _logger?.Log(LogLevel.Debug, "Server received IndexedInfo message.");
 
-            while (await requestStream.MoveNext())
+            try
             {
-                var requestInfo = requestStream.Current;
-                var requestedHeight = requestInfo.NextHeight;
-                var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);
-                var res = new ResponseSideChainIndexedInfo
+                while (await requestStream.MoveNext())
                 {
-                    Height = requestedHeight,
-                    BlockHeaderHash = blockHeader.GetHash(),
-                    TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
-                    Success = true,
-                    ChainId = blockHeader.ChainId
-                };
-                _logger?.Log(LogLevel.Debug, "Server responsed IndexedInfo message.");
-                await responseStream.WriteAsync(res);
+                    var requestInfo = requestStream.Current;
+                    var requestedHeight = requestInfo.NextHeight;
+                    var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);
+                    var res = new ResponseSideChainIndexedInfo
+                    {
+                        Height = requestedHeight,
+                        BlockHeaderHash = blockHeader.GetHash(),
+                        TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
+                        Success = true,
+                        ChainId = blockHeader.ChainId
+                    };
+                    _logger?.Log(LogLevel.Debug, "Server responsed IndexedInfo message.");
+                    await responseStream.WriteAsync(res);
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
         }
     }
 }
