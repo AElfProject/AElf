@@ -183,6 +183,8 @@ namespace AElf.Kernel
             var blockHeader = (BlockHeader) header;
             if (blockHeader.Index == 0)
             {
+                await _dataStore.InsertAsync(GetHeightHash(blockHeader.Index).OfType(HashType.CanonicalHash),
+                    header.GetHash());
                 return;
             }
             
