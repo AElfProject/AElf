@@ -64,7 +64,7 @@ namespace AElf.Kernel.Managers
         {
             var key = chainId.OfType(HashType.ChainHeight);
             var height = await _dataStore.GetAsync<UInt64Value>(key);
-            return height.Value;
+            return height?.Value ?? 0;
         }
         
         public async Task AddSideChainId(Hash chainId)
