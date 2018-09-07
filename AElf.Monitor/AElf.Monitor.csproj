@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.3" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+    <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
+  </ItemGroup>
 </Project>

@@ -31,15 +31,15 @@ namespace AElf.Concurrency.Manager
             var managementService = new ManagementService();
             managementService.StartSeedNodes();
             
-            var url = "http://0.0.0.0:9099";
-            
-            var _host = new WebHostBuilder()
-                .UseKestrel()
-                .UseUrls(url)
-                .UseStartup<Startup>()
-                .Build();
-
-            _host.RunAsync();
+//            var url = "http://0.0.0.0:9099";
+//            
+//            var _host = new WebHostBuilder()
+//                .UseKestrel()
+//                .UseUrls(url)
+//                .UseStartup<Startup>()
+//                .Build();
+//
+//            _host.RunAsync();
             
             Console.WriteLine("Press Control + C to terminate.");
             Console.CancelKeyPress += async (sender, eventArgs) => { await managementService.StopAsync(); };
