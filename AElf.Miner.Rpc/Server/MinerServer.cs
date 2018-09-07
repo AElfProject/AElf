@@ -26,10 +26,9 @@ namespace AElf.Miner.Rpc.Server
             _headerInfoServerImpl = headerInfoServerImpl;
         }
 
-        public void Init(Hash chainId, string dir)
+        public void Init(Hash chainId, string dir = "")
         {
-            _certificateStore =
-                new CertificateStore(dir);
+            _certificateStore = new CertificateStore(dir == "" ? ApplicationHelpers.GetDefaultDataDir() : dir);
             string ch = chainId.ToHex();
             string certificate = _certificateStore.GetCertificate(ch);
             if(certificate == null)

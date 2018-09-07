@@ -26,6 +26,8 @@ namespace AElf.Miner.Rpc.Client
          private ILogger _logger;
          private IChainManagerBasic _chainManagerBasic;
          private Dictionary<string , Uri> ChildChains => GrpcRemoteConfig.Instance.ChildChains;
+         private CancellationTokenSource _tokenSource;
+         private int _interval;
          public MinerClientManager(ILogger logger, IChainManagerBasic chainManagerBasic)
          {
              _logger = logger;
@@ -35,22 +37,33 @@ namespace AElf.Miner.Rpc.Client
 
          private void GrpcRemoteConfigOnConfigChanged(object sender, EventArgs e)
          {
-             throw new NotImplementedException();
+             _tokenSource?.Cancel();
+             _tokenSource?.Dispose();
+             
+             // reset
+             _tokenSource = new CancellationTokenSource();
+             
+             // client cache would be cleared since configuration has been changed
+             // Todo: only clear clients which is needed
+             _clients.Clear();
+             Init();
+             if(GrpcLocalConfig.Instance.Client)
+                CreateClientsToSideChain();
          }
 
-         public void Init(string dir)
+         public void Init(string dir = "", int interval = 0)
          {
-             _logger?.Debug(dir);
-             _certificateStore = new CertificateStore(dir);
+             _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
+             _tokenSource = new CancellationTokenSource();
+             _interval = interval == 0 ? _interval : interval;
          }
 
          /// <summary>
          /// create multi client for different side chains
          /// this would be invoked when miner starts or configuration reloaded 
          /// </summary>
-         /// <param name="token"></param>
          /// <returns></returns>
-         public async Task CreateClientsToSideChain(CancellationToken token)
+         public async Task CreateClientsToSideChain()
          {
              _clients.Clear();
              foreach (var sideChainId in ChildChains.Keys)
@@ -60,7 +73,7 @@ namespace AElf.Miner.Rpc.Client
                      await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(sideChainId));
                 
                  // keep-alive
-                 client.Index(token, height);
+                 client.Index(_tokenSource.Token, height);
              }
          }
          
@@ -105,7 +118,7 @@ namespace AElf.Miner.Rpc.Client
          {
              var uriStr = uri.Address + ":" + uri.Port;
              var channel = CreateChannel(uriStr, targetChainId);
-             return new MinerClient(channel, _logger, targetChainId);
+             return new MinerClient(channel, _logger, targetChainId, _interval);
          }
 
          /// <summary>
@@ -154,6 +167,18 @@ namespace AElf.Miner.Rpc.Client
                      responseSideChainIndexedInfo.Height + 1);
              }
              return res;
+         }
+
+         /// <summary>
+         /// close and clear all clients
+         /// </summary>
+         public void Close()
+         {
+             _tokenSource?.Cancel();
+             _tokenSource?.Dispose();
+             
+             //Todo: probably not needed
+             _clients.Clear();
          }
      }
  }

@@ -19,14 +19,16 @@ namespace AElf.Miner.Rpc.Client
         private ulong _next;
         private readonly ILogger _logger;
         private string _targetChainId;
+        private int _interval;
 
         private BlockingCollection<ResponseSideChainIndexedInfo> IndexedInfoQueue { get; } =
             new BlockingCollection<ResponseSideChainIndexedInfo>(new ConcurrentQueue<ResponseSideChainIndexedInfo>());
 
-        public MinerClient(Channel channel, ILogger logger, string targetChainId)
+        public MinerClient(Channel channel, ILogger logger, string targetChainId, int interval)
         {
             _logger = logger;
             _targetChainId = targetChainId;
+            _interval = interval;
             _client = new HeaderInfoRpc.HeaderInfoRpcClient(channel);
         }
 
@@ -62,10 +64,10 @@ namespace AElf.Miner.Rpc.Client
                         {
                             NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                         };
-                        _logger.Log(LogLevel.Debug,
+                        _logger.Log(LogLevel.Trace,
                             $"Request IndexedInfo message of height {request.NextHeight} from chain \"{_targetChainId}\"");
                         await call.RequestStream.WriteAsync(request);
-                        await Task.Delay(1000);
+                        await Task.Delay(_interval);
                     }
                     await call.RequestStream.CompleteAsync();
                     await responseReaderTask;

@@ -3,6 +3,7 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
+using AElf.Kernel;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Server;
@@ -29,7 +30,7 @@ namespace AElf.Miner
                 {
                     if (GrpcLocalConfig.Instance.Client)
                     {
-                        mc.Instance.Init(ApplicationHelpers.GetDefaultDataDir());
+                        mc.Instance.Init(dir: ApplicationHelpers.GetDefaultDataDir(),interval: Globals.AElfDPoSMiningInterval);
                     }
                 }
             );
@@ -37,8 +38,7 @@ namespace AElf.Miner
             builder.RegisterType<MinerServer>().SingleInstance().OnActivated(mc =>
                 {
                     if (GrpcLocalConfig.Instance.Server)
-                        mc.Instance.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
-                            ApplicationHelpers.GetDefaultDataDir());
+                        mc.Instance.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
                 }
             );
         }
