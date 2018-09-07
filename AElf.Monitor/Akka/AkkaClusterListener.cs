@@ -58,6 +58,8 @@ namespace AElf.Monitor
                     AkkaClusterState.ChangeRoleLeader(roleLeaderChanged);
                     break;
             }
+            
+            AkkaClusterState.Print();
         }
     }
 }
