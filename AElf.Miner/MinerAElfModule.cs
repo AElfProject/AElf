@@ -4,6 +4,7 @@ using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc.Client;
+using AElf.Miner.Rpc.Server;
 using Autofac;
 using Google.Protobuf;
 
@@ -25,6 +26,9 @@ namespace AElf.Miner
             builder.RegisterModule(new MinerAutofacModule(minerConfig));
             builder.RegisterType<MinerClientManager>().SingleInstance().OnActivated(mc =>
                 mc.Instance.Init(ApplicationHelpers.GetDefaultDataDir() + "/certs"));
+            builder.RegisterType<MinerServer>().SingleInstance().OnActivated(mc =>
+                mc.Instance.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
+                    ApplicationHelpers.GetDefaultDataDir() + "/certs"));
         }
 
         public void Run(ILifetimeScope scope)

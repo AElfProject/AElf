@@ -15,6 +15,7 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Miner.Rpc.Client;
+using AElf.Miner.Rpc.Server;
 using Easy.MessageHub;
 using NLog;
 using NServiceKit.Common.Extensions;
@@ -35,6 +36,7 @@ namespace AElf.Miner.Miner
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly MinerClientManager _clientManager;
+        private readonly MinerServer _minerServer;
 
         private readonly ILogger _logger;
         private CancellationTokenSource _rpcCancellationTokenSource;
@@ -46,7 +48,8 @@ namespace AElf.Miner.Miner
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
-            ITransactionResultManager transactionResultManager, ILogger logger, MinerClientManager clientManager)
+            ITransactionResultManager transactionResultManager, ILogger logger, MinerClientManager clientManager, 
+            MinerServer minerServer)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -57,6 +60,7 @@ namespace AElf.Miner.Miner
             _transactionResultManager = transactionResultManager;
             _logger = logger;
             _clientManager = clientManager;
+            _minerServer = minerServer;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
@@ -319,7 +323,7 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         private async Task CollectSideChainIndexedInfo(IBlock block)
         {
-            if (!GrpcLocalConfig.Instance.IsCluster)
+            if (!GrpcLocalConfig.Instance.SideChain)
                 return;
             // interval waiting for each side chain
             var sideChainInfo = await _clientManager.CollectSideChainIndexedInfo();
@@ -334,10 +338,17 @@ namespace AElf.Miner.Miner
         {
             _keyPair = nodeKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
-            if (!GrpcLocalConfig.Instance.IsCluster)
-                return;
-            _rpcCancellationTokenSource = new CancellationTokenSource();
-            _clientManager.CreateClientsToSideChain(_rpcCancellationTokenSource.Token).Wait();
+            if (GrpcLocalConfig.Instance.SideChain)
+            {
+                _rpcCancellationTokenSource = new CancellationTokenSource();
+                _clientManager.CreateClientsToSideChain(_rpcCancellationTokenSource.Token).Wait();
+            }
+
+            if (GrpcLocalConfig.Instance.ParentChain)
+            {
+                _minerServer.StartUp();
+            }
+            
         }
 
         /// <summary>

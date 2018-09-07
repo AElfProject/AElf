@@ -82,8 +82,7 @@ namespace AElf.Miner.Tests.Grpc
 
         
         public async Task<IChain> CreateChain()
-        {
-            var chainId = Hash.Generate();
+        {            var chainId = Hash.Generate();
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -100,7 +99,7 @@ namespace AElf.Miner.Tests.Grpc
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
-                minerClientManager);
+                minerClientManager, MinerServer());
 
             return miner;
         }
@@ -164,6 +163,7 @@ namespace AElf.Miner.Tests.Grpc
 
         public MinerServer MinerServer()
         {
+            GrpcLocalConfig.Instance.ParentChain = false;
             return new MinerServer(_logger, new HeaderInfoServerImpl(MockChainService().Object, _logger));
         }
 
