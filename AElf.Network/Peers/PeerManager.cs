@@ -99,7 +99,8 @@ namespace AElf.Network.Peers
             _connectionListener.IncomingConnection += OnIncomingConnection;
             _connectionListener.ListeningStopped += OnListeningStopped;
 
-            _maintenanceTimer = new System.Threading.Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
+            if (!_isBp)
+                _maintenanceTimer = new System.Threading.Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
 
             // Add the provided bootnodes
             if (NetworkConfig.Instance.Bootnodes != null && NetworkConfig.Instance.Bootnodes.Any())
@@ -385,12 +386,20 @@ namespace AElf.Network.Peers
         {
             try
             {
+                _logger?.Trace($"Received peer request from {args.Peer}.");
+                
                 ReqPeerListData req = ReqPeerListData.Parser.ParseFrom(args.Message.Payload);
                 ushort numPeers = (ushort) req.NumPeers;
                     
                 PeerListData pListData = new PeerListData();
 
-                foreach (var peer in _peers.Where(p => p.DistantNodeData != null && !p.DistantNodeData.Equals(args.Peer.DistantNodeData)))
+                // Filter the requestor out
+                // Filter out BPs
+                var peersToSend = _peers
+                    .Where(p => p.DistantNodeData != null && !p.DistantNodeData.Equals(args.Peer.DistantNodeData))
+                    .Where(p => !p.IsBp);
+                
+                foreach (var peer in peersToSend)
                 {
                     pListData.NodeData.Add(peer.DistantNodeData);
                             
@@ -399,7 +408,10 @@ namespace AElf.Network.Peers
                 }
 
                 if (!pListData.NodeData.Any())
+                {
+                    _logger?.Trace("No peers to return.");
                     return;
+                }
 
                 byte[] payload = pListData.ToByteArray();
                 var resp = new Message
@@ -524,9 +536,6 @@ namespace AElf.Network.Peers
         }
         
         #endregion Closing and disposing
-        
-        
-        // todo remove duplicate
 
         public int BroadcastMessage(Message message)
         {
