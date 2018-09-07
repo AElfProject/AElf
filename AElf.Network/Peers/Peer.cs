@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Timers;
+using AElf.Common.Extensions;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -84,6 +85,11 @@ namespace AElf.Network.Peers
         private readonly int _port;
         
         /// <summary>
+        /// This nodes public key.
+        /// </summary>
+        private byte[] _nodeAddress;
+        
+        /// <summary>
         /// The underlying network client.
         /// </summary>
         private readonly TcpClient _client;
@@ -108,6 +114,13 @@ namespace AElf.Network.Peers
         [JsonProperty(PropertyName = "action")]
         public NodeData DistantNodeData { get; set; }
 
+        public byte[] DistantNodeAddress
+        {
+            get { return DistantNodeData?.Address.ToByteArray(); }
+        }
+        
+        public bool IsBp { get; internal set; } 
+
         public string IpAddress
         {
             get
@@ -124,7 +137,7 @@ namespace AElf.Network.Peers
             }
         }
         
-        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port)
+        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, byte[] nodeAddress)
         {
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
@@ -132,6 +145,7 @@ namespace AElf.Network.Peers
             SetupHeartbeat();
             
             _port = port;
+            _nodeAddress = nodeAddress;
             _logger = LogManager.GetLogger(LoggerName);
             
             _client = client;
@@ -337,10 +351,10 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         private void StartAuthentification()
         {
-            var nd = new NodeData { Port = _port };
+            var nd = new NodeData { Port = _port, Address = ByteString.CopyFrom(_nodeAddress) };
             byte[] packet = nd.ToByteArray();
             
-            _logger?.Trace($"Sending authentification : {nd}");
+            _logger?.Trace($"Sending authentification : {{ port: {nd.Port}, addr: {nd.Address.ToByteArray().ToHex()} }}");
             
             _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
             
@@ -381,13 +395,11 @@ namespace AElf.Network.Peers
                 
                 NodeData n = NodeData.Parser.ParseFrom(aMessage.Payload);
             
+                // Update with the real IP address
                 IPEndPoint remoteEndPoint = (IPEndPoint)_client.Client.RemoteEndPoint;
-                    
-                NodeData distant = new NodeData();
-                distant.IpAddress = remoteEndPoint.Address.ToString();
-                distant.Port = n.Port;
+                n.IpAddress = remoteEndPoint.Address.ToString();
                 
-                AuthentifyWith(distant);
+                AuthentifyWith(n);
                 
                 _pingPongTimer.Start();
             }

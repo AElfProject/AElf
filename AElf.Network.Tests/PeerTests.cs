@@ -16,7 +16,7 @@ namespace AElf.Network.Tests
         [Fact]
         public void Peer_InitialState()
         {
-            Peer p = new Peer(new TcpClient(), null, null, 1234);
+            Peer p = new Peer(new TcpClient(), null, null, 1234, null);
             Assert.False(p.IsAuthentified);
             Assert.False(p.IsDisposed);
         }
@@ -24,7 +24,7 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_Disposed_ThrowsException()
         {
-            Peer p = new Peer(new TcpClient(), null, null, 1234);
+            Peer p = new Peer(new TcpClient(), null, null, 1234, null);
             p.Dispose();
 
             Assert.Throws<ObjectDisposedException>(() => p.Start());
@@ -33,7 +33,7 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_Disposed_ThrowsInvalidOperationException()
         {
-            Peer p = new Peer(new TcpClient(), null, null, 1234);
+            Peer p = new Peer(new TcpClient(), null, null, 1234, null);
             
             p.AuthentifyWith(new NodeData { Port = 1234 });
 
@@ -49,7 +49,7 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, peerPort);
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, peerPort, null);
 
             Message authMessage = null;
             messageWritter.Setup(w => w.EnqueueMessage(It.IsAny<Message>())).Callback<Message>(m => authMessage = m);
@@ -70,7 +70,7 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234);
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, null);
             p.AuthTimeout = 100;
 
             AuthFinishedArgs authFinishedArgs = null;
@@ -94,7 +94,7 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234);
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, null);
             p.AuthTimeout = 100;
             
             AuthFinishedArgs authFinishedArgs = null;

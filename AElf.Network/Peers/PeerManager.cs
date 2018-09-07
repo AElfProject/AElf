@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Network.Connection;
@@ -246,7 +247,7 @@ namespace AElf.Network.Peers
             MessageReader reader = new MessageReader(nsStream);
             MessageWriter writer = new MessageWriter(nsStream);
             
-            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort);
+            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort, _nodeKey);
             
             return peer;
         }
@@ -268,10 +269,7 @@ namespace AElf.Network.Peers
         {
             if (sender is Peer peer)
             {
-                // todo verify authentified
-                // todo peer.MessageReceived += HandleNewMessage;
-                // todo failed authentification
-
+                peer.IsBp = peer.DistantNodeAddress != null && _bpKeys.Any(k => k.BytesEqual(peer.DistantNodeAddress)); 
                 AddAuthentifiedPeer(peer);
             }
         }
@@ -314,7 +312,7 @@ namespace AElf.Network.Peers
                 _peers.Add(peer);
             }
                 
-            _logger?.Trace($"Peer authentified and added : {peer}");
+            _logger?.Trace($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress.ToHex() }, bp: {peer.IsBp} }}");
             
             peer.MessageReceived += OnPeerMessageReceived;
                 
