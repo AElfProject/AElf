@@ -17,9 +17,10 @@ namespace AElf.Cryptography.Tests.SSL
                 Directory.Delete(Path.Combine(dir, "certs"), true);
             var certificateStore = new CertificateStore(dir);
             var name = Hash.Generate().ToHex();
-            var keyPair = certificateStore.WriteKeyAndCertificate(name, "127.0.0.1");
+            var keyPair =
+                certificateStore.WriteKeyAndCertificate("0x041864a2b51a16c7418a31a2754cd81aaa7a", "192.168.197.45");
             
-            using (StreamReader streamReader = new StreamReader(Path.Combine(dir, "certs", name + ".cert.pem")))
+            using (StreamReader streamReader = new StreamReader(Path.Combine(dir, "certs", "0x041864a2b51a16c7418a31a2754cd81aaa7a" + ".cert.pem")))
             {
                 PemReader pr = new PemReader(streamReader);
                 X509Certificate certificate = (X509Certificate) pr.ReadObject();

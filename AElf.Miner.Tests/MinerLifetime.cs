@@ -188,7 +188,7 @@ namespace AElf.Kernel.Tests.Miner
             var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
             var miner = _mock.GetMiner(minerconfig, poolService);
 
-            GrpcLocalConfig.Instance.SideChain = false;
+            GrpcLocalConfig.Instance.Client = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
             miner.Init(keypair);
             
@@ -217,7 +217,7 @@ namespace AElf.Kernel.Tests.Miner
             var keypair = new KeyPairGenerator().Generate();
             var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
             var miner = _mock.GetMiner(minerconfig, poolService);
-            GrpcLocalConfig.Instance.SideChain = false;
+            GrpcLocalConfig.Instance.Client = false;
             miner.Init(keypair);
 
             var block = await miner.Mine(Timeout.Infinite, false);

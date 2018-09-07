@@ -163,7 +163,7 @@ namespace AElf.Miner.Tests.Grpc
 
         public MinerServer MinerServer()
         {
-            GrpcLocalConfig.Instance.ParentChain = false;
+            GrpcLocalConfig.Instance.Server = false;
             return new MinerServer(_logger, new HeaderInfoServerImpl(MockChainService().Object, _logger));
         }
 

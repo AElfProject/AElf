@@ -154,7 +154,7 @@ namespace AElf.Miner.Tests.Grpc
                 var manager = _mock.MinerClientManager();
                 manager.Init(dir);
                 var miner = _mock.GetMiner(minerconfig, poolService, manager);
-                GrpcLocalConfig.Instance.SideChain = true;
+                GrpcLocalConfig.Instance.Client = true;
                 miner.Init(keypair);
             
                 Thread.Sleep(500);
