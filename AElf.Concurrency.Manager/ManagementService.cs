@@ -43,7 +43,6 @@ namespace AElf.Concurrency.Manager
         public void StartSeedNodes()
         {
             _actorSystem = CreateActorSystem();
-            //_actorSystem.ActorOf(Props.Create(typeof(ClusterListener)), "clusterListener");
         }
 
         public async Task StopAsync()
