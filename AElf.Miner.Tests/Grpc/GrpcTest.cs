@@ -28,7 +28,7 @@ namespace AElf.Miner.Tests.Grpc
     {
         private readonly MockSetup _mock;
 
-        public GrpcTest(ILogger logger, MockSetup mock)
+        public GrpcTest(MockSetup mock)
         {
             _mock = mock;
         }
@@ -45,22 +45,23 @@ namespace AElf.Miner.Tests.Grpc
 
                 // create client, main chian is client-side
                 var manager = _mock.MinerClientManager();
-                manager.Init(dir);
+                int t = 1000;
+                manager.Init(dir, t);
                 var client = manager.StartNewClientToSideChain(sideChainId.ToHex());
 
                 CancellationTokenSource cancellationTokenSource =
                     new CancellationTokenSource(TimeSpan.FromMilliseconds(3000));
                 client.Index(cancellationTokenSource.Token, 0);
-                Thread.Sleep(500);
+                Thread.Sleep(t/2);
                 // remove the first one
                 Assert.Equal(1, client.IndexedInfoQueueCount);
                 Assert.True(client.TryTake(10, out var responseSideChainIndexedInfo));
                 Assert.Equal((ulong)0, responseSideChainIndexedInfo.Height);
                 
-                Thread.Sleep(1000);
+                Thread.Sleep(t);
                 Assert.Equal(1, client.IndexedInfoQueueCount);
                 
-                Thread.Sleep(1000);
+                Thread.Sleep(t);
                 Assert.Equal(2, client.IndexedInfoQueueCount);
                 
                 // remove 2nd item
@@ -100,29 +101,28 @@ namespace AElf.Miner.Tests.Grpc
                 
                 // create client, main chian is client-side
                 var manager = _mock.MinerClientManager();
+                int t = 1000;
                 manager.Init(dir);
                 
-                CancellationTokenSource cancellationTokenSource =
-                    new CancellationTokenSource(TimeSpan.FromMilliseconds(3000));
-                await manager.CreateClientsToSideChain(cancellationTokenSource.Token);
+                await manager.CreateClientsToSideChain();
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
-                Thread.Sleep(500);
+                Thread.Sleep(t/2);
                 var result = await manager.CollectSideChainIndexedInfo();
                 Assert.Equal(1, result.Count);
                 Assert.Equal((ulong)0, result[0].Height);
                 
-                Thread.Sleep(1000);
+                Thread.Sleep(t);
                 result = await manager.CollectSideChainIndexedInfo();
                 Assert.Equal(1, result.Count);
                 Assert.Equal((ulong)1, result[0].Height);
                 
-                Thread.Sleep(1000);
+                Thread.Sleep(t);
                 result = await manager.CollectSideChainIndexedInfo();
                 Assert.Equal(1, result.Count);
                 Assert.Equal((ulong)2, result[0].Height);
                 
-                Thread.Sleep(1000);
+                Thread.Sleep(t);
                 result = await manager.CollectSideChainIndexedInfo();
                 Assert.Equal(0, result.Count);
             }
@@ -152,29 +152,30 @@ namespace AElf.Miner.Tests.Grpc
                 var keypair = new KeyPairGenerator().Generate();
                 var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
                 var manager = _mock.MinerClientManager();
-                manager.Init(dir);
+                int t = 1000;
+                manager.Init(dir, t);
                 var miner = _mock.GetMiner(minerconfig, poolService, manager);
                 GrpcLocalConfig.Instance.Client = true;
                 miner.Init(keypair);
             
-                Thread.Sleep(500);
-                var block = await miner.Mine(Timeout.Infinite, false);
+                Thread.Sleep(t/2);
+                var block = await miner.Mine();
                 Assert.NotNull(block);
                 Assert.NotNull(block.Header.IndexedInfo);
                 Assert.Equal(1, block.Header.IndexedInfo.Count);
                 Assert.Equal((ulong)0, block.Header.IndexedInfo[0].Height);
                 Assert.Equal((ulong)1, block.Header.Index);
             
-                Thread.Sleep(1000);
-                block = await miner.Mine(Timeout.Infinite, false);
+                Thread.Sleep(t);
+                block = await miner.Mine();
                 Assert.NotNull(block);
                 Assert.NotNull(block.Header.IndexedInfo);
                 Assert.Equal(1, block.Header.IndexedInfo.Count);
                 Assert.Equal((ulong)1, block.Header.IndexedInfo[0].Height);
                 Assert.Equal((ulong)2, block.Header.Index);
             
-                Thread.Sleep(1000);
-                block = await miner.Mine(Timeout.Infinite, false);
+                Thread.Sleep(t);
+                block = await miner.Mine();
                 Assert.NotNull(block);
                 Assert.NotNull(block.Header.IndexedInfo);
                 Assert.Equal(1, block.Header.IndexedInfo.Count);

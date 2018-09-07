@@ -192,7 +192,7 @@ namespace AElf.Kernel.Tests.Miner
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
             miner.Init(keypair);
             
-            var block = await miner.Mine(Timeout.Infinite, false);
+            var block = await miner.Mine();
             
             Assert.NotNull(block);
             Assert.Equal((ulong)1, block.Header.Index);
@@ -220,7 +220,7 @@ namespace AElf.Kernel.Tests.Miner
             GrpcLocalConfig.Instance.Client = false;
             miner.Init(keypair);
 
-            var block = await miner.Mine(Timeout.Infinite, false);
+            var block = await miner.Mine();
             
             Assert.NotNull(block);
             Assert.Equal((ulong)1, block.Header.Index);
