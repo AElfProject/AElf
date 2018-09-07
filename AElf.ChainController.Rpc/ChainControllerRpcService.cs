@@ -335,7 +335,8 @@ namespace AElf.ChainController.Rpc
                         ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
-                        ["ChainId"] = blockinfo.Header.ChainId.ToHex()
+                        ["ChainId"] = blockinfo.Header.ChainId.ToHex(),
+                        ["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                     },
                     ["Body"] = new JObject
                     {

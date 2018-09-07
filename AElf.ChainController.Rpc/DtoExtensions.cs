@@ -19,5 +19,21 @@ namespace AElf.ChainController.Rpc
                 }
             };
         }
+        
+        internal static JObject GetIndexedSideChainBlcokInfo(this IBlockHeader blockHeader)
+        {
+            var res = new JObject();
+            foreach (var sideChainIndexedInfo in blockHeader.IndexedInfo)
+            {
+                res.Add(sideChainIndexedInfo.ChainId.ToHex(), new JObject
+                {
+                    {"Height", sideChainIndexedInfo.Height},
+                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.ToHex()},
+                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.ToHex()}
+                });
+            }
+
+            return res;
+        }
     }
 }
