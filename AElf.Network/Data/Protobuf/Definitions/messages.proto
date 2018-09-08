@@ -7,16 +7,8 @@ import "google/protobuf/timestamp.proto";
 message NodeData {
     string IpAddress = 1;
     int32 Port = 2;
+    bytes Address  = 3;
 }
-
-//message Message {
-//    int32 msgType = 1;
-//    int32 Id = 2;
-//    int32 length = 3;
-//    bytes payload = 4;
-//}
-
-// Payloads
 
 message PeerListData {
     repeated NodeData nodeData = 1;

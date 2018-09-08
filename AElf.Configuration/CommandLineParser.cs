@@ -66,6 +66,7 @@ namespace AElf.Configuration
             NodeConfig.Instance.ExecutorType = opts.ExecutorType;
             NodeConfig.Instance.ChainId = opts.ChainId;
             NodeConfig.Instance.IsChainCreator = opts.NewChain;
+            NodeConfig.Instance.NodeName = opts.NodeName;
             NodeConfig.Instance.NodeAccount = opts.NodeAccount;
             NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
             NodeConfig.Instance.ConsensusInfoGenerater = opts.IsConsensusInfoGenerator;

@@ -14,10 +14,12 @@ namespace AElf.Network.Peers
         ushort Port { get; }
 
         bool IsAuthentified { get; }
+        bool IsBp { get; }
 
         bool Start();
         
         NodeData DistantNodeData { get; }
+        byte[] DistantNodeAddress { get; }
         void EnqueueOutgoing(Message msg);
     }
 }

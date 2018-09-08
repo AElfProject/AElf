@@ -1,5 +1,5 @@
-﻿using AElf.Kernel;
-using Google.Protobuf;
+using AElf.Common.Extensions;
+using AElf.Kernel;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.Node.AElfChain
@@ -17,6 +17,8 @@ namespace AElf.Node.AElfChain
                     {"To", tx.To.ToHex()},
                     {"Method", tx.MethodName},
                     {"IncrementId", tx.IncrementId},
+                    {"RefBlockNumber", tx.RefBlockNumber},
+                    {"RefBlockPrefix", tx.RefBlockPrefix.ToByteArray().ToHex()},
                     {"Type", tx.Type.ToString()}
                 }
             };

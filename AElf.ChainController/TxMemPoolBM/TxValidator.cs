@@ -80,7 +80,12 @@ namespace AElf.ChainController.TxMemPoolBM
         }
 
         public async Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(Transaction tx)
-        {
+        {            
+            if (tx.RefBlockNumber == 0 && Hash.Genesis.CheckPrefix(tx.RefBlockPrefix))
+            {
+                return TxValidation.TxInsertionAndBroadcastingError.Valid;
+            }
+
             var bc = BlockChain;
             var curHeight = await bc.GetCurrentBlockHeightAsync();
             if (tx.RefBlockNumber > curHeight)
@@ -100,7 +105,7 @@ namespace AElf.ChainController.TxMemPoolBM
             {
                 throw new Exception($"Unable to get canonical hash for height {tx.RefBlockNumber}");
             }
-
+            
             return canonicalHash.CheckPrefix(tx.RefBlockPrefix)
                 ? TxValidation.TxInsertionAndBroadcastingError.Valid
                 : TxValidation.TxInsertionAndBroadcastingError.InvalidReferenceBlock;

@@ -36,8 +36,9 @@ namespace AElf.Kernel.Node
         /// Actually store the round number of DPoS processing.
         /// </summary>
         private ulong ConsensusMemory { get; set; }
+
         private IDisposable ConsensusDisposable { get; set; }
-        
+
         private bool isMining;
 
         private readonly IStateDictator _stateDictator;
@@ -50,27 +51,28 @@ namespace AElf.Kernel.Node
         private readonly ILogger _logger;
 
         private AElfDPoSHelper _dposHelpers;
-        
+
         /// <summary>
         /// In Value and Out Value.
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
+
         private bool _incrementIdNeedToAddOne;
 
         private NodeKeyPair _nodeKeyPair;
         private Hash _contractAccountAddressHash;
-        
+
         private int _flag;
 
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(_logger,
             MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateDictator stateDictator, 
-            IAccountContextService accountContextService, 
-            ITxPoolService txPoolService, 
+        public DPoS(IStateDictator stateDictator,
+            IAccountContextService accountContextService,
+            ITxPoolService txPoolService,
             IP2P p2p,
-            IMiner miner, 
+            IMiner miner,
             IBlockChain blockchain,
             IBlockSynchronizer syncer,
             ILogger logger = null
@@ -88,7 +90,8 @@ namespace AElf.Kernel.Node
 
         public void Initialize(Hash contractAccountHash, ECKeyPair nodeKeyPair)
         {
-            _dposHelpers = new AElfDPoSHelper(_stateDictator, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
+            _dposHelpers = new AElfDPoSHelper(_stateDictator,
+                ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
             _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
             _contractAccountAddressHash = contractAccountHash;
         }
@@ -220,7 +223,8 @@ namespace AElf.Kernel.Node
             ulong incrementIdOffset = 0)
         {
             var bn = await _blockchain.GetCurrentBlockHeightAsync();
-            var bh = await _blockchain.GetCurrentBlockHashAsync();
+            bn = bn > 4 ? bn - 4 : 0;
+            var bh = bn == 0 ? Hash.Genesis : (await _blockchain.GetHeaderByHeightAsync(bn)).GetHash();
             var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
             var tx = new Transaction
             {
@@ -301,7 +305,8 @@ namespace AElf.Kernel.Node
                 signature.ToByteArray()
             };
 
-            var txToPublishOutValueAndSignature = await GenerateTransactionAsync("PublishOutValueAndSignature", parameters);
+            var txToPublishOutValueAndSignature =
+                await GenerateTransactionAsync("PublishOutValueAndSignature", parameters);
 
             await BroadcastTransaction(txToPublishOutValueAndSignature);
 
@@ -357,10 +362,10 @@ namespace AElf.Kernel.Node
         public async Task Update()
         {
             _dposHelpers.LogDPoSInformation(await _blockchain.GetCurrentBlockHeightAsync());
-            
+
             if (ConsensusMemory == _dposHelpers.CurrentRoundNumber.Value)
                 return;
-            
+
             // Dispose previous observer.
             if (ConsensusDisposable != null)
             {
@@ -371,7 +376,7 @@ namespace AElf.Kernel.Node
             // Update observer.
             var address = _nodeKeyPair.Address.ToHex().RemoveHexPrefix();
             var blockProducerInfoOfCurrentRound = _dposHelpers[address];
-            ConsensusDisposable = AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound, 
+            ConsensusDisposable = AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
                 _dposHelpers.ExtraBlockTimeslot);
 
             // Update current round number.
@@ -386,7 +391,7 @@ namespace AElf.Kernel.Node
 
         private async Task BroadcastTransaction(Transaction tx)
         {
-            if(tx.From.Equals(_nodeKeyPair.Address))
+            if (tx.From.Equals(_nodeKeyPair.Address))
                 _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
                                Thread.CurrentThread.ManagedThreadId);
             try
@@ -398,6 +403,6 @@ namespace AElf.Kernel.Node
             {
                 _logger?.Debug("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
             }
-        } 
+        }
     }
 }
