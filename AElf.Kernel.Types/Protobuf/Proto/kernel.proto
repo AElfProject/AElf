@@ -87,6 +87,7 @@ message BlockHeader {
     bytes P = 9;
     google.protobuf.Timestamp Time = 10;
     Hash ChainId = 11;
+    repeated SideChainIndexedInfo IndexedInfo = 12;
 }
 
 message BlockBody {
@@ -97,7 +98,13 @@ message BlockBody {
 message Block {
     BlockHeader Header = 1;
     BlockBody Body = 2;
-    repeated Transaction fullTransactions = 3;
+}
+
+message SideChainIndexedInfo{
+    uint64 Height = 1;
+    Hash BlockHeaderHash = 2;
+    Hash TransactionMKRoot = 3;
+    Hash ChainId = 4;
 }
 
 message SmartContractRegistration {

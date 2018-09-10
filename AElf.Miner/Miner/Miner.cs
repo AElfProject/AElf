@@ -6,22 +6,20 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common.Attributes;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
+using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Kernel.Consensus;
-using AElf.Miner.Miner;
+using AElf.Miner.Rpc.Client;
+using AElf.Miner.Rpc.Server;
 using Easy.MessageHub;
 using NLog;
-using NLog.Fluent;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
-using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 using Status = AElf.Kernel.Status;
 
 // ReSharper disable once CheckNamespace
@@ -34,51 +32,39 @@ namespace AElf.Miner.Miner
         private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
         private readonly IStateDictator _stateDictator;
-        private readonly ISmartContractService _smartContractService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IChainCreationService _chainCreationService;
-        private readonly IChainManagerBasic _chainManagerBasic;
-        private readonly IBlockManagerBasic _blockManagerBasic;
+        private readonly MinerClientManager _clientManager;
+        private readonly MinerServer _minerServer;
+        private int _timeoutMilliseconds;
 
-        private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
         private IBlockChain _blockChain;
-        
-        
-        /// <summary>
-        /// Signals to a CancellationToken that mining should be canceled
-        /// </summary>
-        public CancellationTokenSource Cts { get; private set; }
 
         public IMinerConfig Config { get; }
 
         public Hash Coinbase => Config.CoinBase;
 
-        public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
-            IStateDictator stateDictator,  ISmartContractService smartContractService, 
-            IExecutingService executingService, ITransactionManager transactionManager, 
-            ITransactionResultManager transactionResultManager, ILogger logger, 
-            IChainCreationService chainCreationService, IChainManagerBasic chainManagerBasic, 
-            IBlockManagerBasic blockManagerBasic)
+        public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
+            IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
+            ITransactionResultManager transactionResultManager, ILogger logger, MinerClientManager clientManager, 
+            MinerServer minerServer)
         {
             Config = config;
             _txPoolService = txPoolService;
             _chainService = chainService;
             _stateDictator = stateDictator;
-            _smartContractService = smartContractService;
             _executingService = executingService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
-            _chainCreationService = chainCreationService;
-            _chainManagerBasic = chainManagerBasic;
-            _blockManagerBasic = blockManagerBasic;
+            _clientManager = clientManager;
+            _minerServer = minerServer;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
-        
+
         private static Miners Miners
         {
             get
@@ -97,53 +83,47 @@ namespace AElf.Miner.Miner
             }
         }
 
-        public async Task<IBlock> Mine(int timeoutMilliseconds, bool initial = false)
+        public async Task<IBlock> Mine()
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
             using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
             {
-                timer.Change(timeoutMilliseconds, Timeout.Infinite);
+                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
                 try
                 {
                     if (cancellationTokenSource.IsCancellationRequested)
                         return null;
 
                     var readyTxs = await _txPoolService.GetReadyTxsAsync();
-                    // TODO：dispatch txs with ISParallel, return list of tx results
-
-                    // reset Promotable and update account context
 
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
                         : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token);
                     _logger?.Log(LogLevel.Debug, "Executed Transactions.");
-                    
+
                     // transaction results
                     ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
-                    var addrs = executed.Select(t => t.From).ToHashSet();
+                    //var addrs = executed.Select(t => t.From).ToHashSet();
 
                     // update tx pool state
-                    await _txPoolService.UpdateAccountContext(addrs);
-                    
+                    // with transaction block marking no need to update
+                    // await _txPoolService.UpdateAccountContext(addrs);
+
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
                     _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index}");
-                    
-                    // sign block
-                    block.Sign(_keyPair);
 
                     // broadcast
                     MessageHub.Instance.Publish(new BlockMinedMessage(block));
-                    
+
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
                     // put back canceled transactions
                     // No await so that it won't affect Consensus
-                    _txPoolService.RollBack(rollback);
+                    _txPoolService.Revert(rollback);
                     // insert txs to db
                     InsertTxs(executed, results, block);
-                    
                     return block;
                 }
                 catch (Exception e)
@@ -162,7 +142,7 @@ namespace AElf.Miner.Miner
         /// <param name="executed"></param>
         /// <param name="rollback"></param>
         /// <param name="results"></param>
-        private void ExtractTransactionResults(IEnumerable<Transaction> readyTxs, IEnumerable<TransactionTrace> traces, 
+        private void ExtractTransactionResults(IEnumerable<Transaction> readyTxs, IEnumerable<TransactionTrace> traces,
             out List<Transaction> executed, out List<Transaction> rollback, out List<TransactionResult> results)
         {
             var canceledTxIds = new List<Hash>();
@@ -218,7 +198,7 @@ namespace AElf.Miner.Miner
                         break;
                 }
             }
-            
+
             var canceled = canceledTxIds.ToHashSet();
             executed = new List<Transaction>();
             rollback = new List<Transaction>();
@@ -234,7 +214,7 @@ namespace AElf.Miner.Miner
                 }
             }
         }
-        
+
         /// <summary>
         /// update database
         /// </summary>
@@ -256,7 +236,7 @@ namespace AElf.Miner.Miner
                 await _transactionResultManager.AddTransactionResultAsync(r);
             });
         }
-        
+
         /// <summary>
         /// generate block
         /// </summary>
@@ -283,9 +263,11 @@ namespace AElf.Miner.Miner
                 }
             };
 
+            // side chain info
+            await CollectSideChainIndexedInfo(block);
             // add tx hash
             block.AddTransactions(results.Select(r => r.TransactionId));
-            
+
             // set ws merkle tree root
             await _stateDictator.SetWorldStateAsync();
             var ws = await _stateDictator.GetLatestWorldStateAsync();
@@ -295,13 +277,15 @@ namespace AElf.Miner.Miner
             {
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
             }
+
             // calculate and set tx merkle tree root 
             block.Complete();
-            
+
+            block.Sign(_keyPair);
             return block;
         }
-        
-        
+
+
         /// <summary>
         /// generate block header
         /// </summary>
@@ -312,7 +296,7 @@ namespace AElf.Miner.Miner
         {
             // get ws merkle tree root
             var blockChain = _chainService.GetBlockChain(chainId);
-            
+
             var lastBlockHash = await blockChain.GetCurrentBlockHashAsync();
             // TODO: Generic IBlockHeader
             var lastHeader = (BlockHeader) await blockChain.GetHeaderByHashAsync(lastBlockHash);
@@ -320,11 +304,11 @@ namespace AElf.Miner.Miner
             var block = new Block(lastBlockHash);
             block.Header.Index = index + 1;
             block.Header.ChainId = chainId;
-            
-            
+
+
             var ws = await _stateDictator.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
-            
+
             var header = new BlockHeader
             {
                 Version = 0,
@@ -336,36 +320,47 @@ namespace AElf.Miner.Miner
             return header;
         }
 
+
         /// <summary>
-        /// start mining  
+        /// side chains header info    
         /// </summary>
-        public void Start(ECKeyPair nodeKeyPair)
+        /// <returns></returns>
+        private async Task CollectSideChainIndexedInfo(IBlock block)
         {
-//            Cts = new CancellationTokenSource();
+            if (!GrpcLocalConfig.Instance.Client)
+                return;
+            // interval waiting for each side chain
+            var sideChainInfo = await _clientManager.CollectSideChainIndexedInfo();
+            block.Header.IndexedInfo.Add(sideChainInfo);
+        }
+
+        /// <summary>
+        /// start mining
+        /// init clients to side chain node 
+        /// </summary>
+        public void Init(ECKeyPair nodeKeyPair)
+        {
+            _timeoutMilliseconds = Globals.AElfMiningInterval;
             _keyPair = nodeKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
+            if (GrpcLocalConfig.Instance.Client)
+            {
+                _clientManager.CreateClientsToSideChain().Wait();
+            }
+
+            if (GrpcLocalConfig.Instance.Server)
+            {
+                _minerServer.StartUp();
+            }
         }
 
         /// <summary>
         /// stop mining
         /// </summary>
-        public void Stop()
+        public void Close()
         {
-            Lock.WriteLock(() =>
-            {
-//                Cts.Cancel();
-//                Cts.Dispose();
-                _keyPair = null;
-                //MiningResetEvent.Dispose();
-            });
+            if (GrpcLocalConfig.Instance.Client)
+                _clientManager.Close();
         }
-    }
-
-    /// <inheritdoc />
-    /// <summary>
-    /// A lock for managing asynchronous access to memory pool.
-    /// </summary>
-    public class MinerLock : ReaderWriterLock
-    {
     }
 }

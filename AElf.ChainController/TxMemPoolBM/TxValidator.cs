@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Akka.Cluster;
 
-namespace AElf.ChainController.TxMemPool
+namespace AElf.ChainController.TxMemPoolBM
 {
     public class TxValidator : ITxValidator
     {

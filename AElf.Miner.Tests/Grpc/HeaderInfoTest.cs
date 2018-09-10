@@ -20,8 +20,8 @@ namespace AElf.Miner.Tests.Grpc
         private readonly ILogger _logger;
 
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
-        private List<RequestIndexedInfoMessage> _requestIndexedInfoList = new List<RequestIndexedInfoMessage>();
-        private List<ResponseIndexedInfoMessage> _responseIndexedInfoMessages = new List<ResponseIndexedInfoMessage>();
+        private List<RequestSideChainIndexedInfo> _requestIndexedInfoList = new List<RequestSideChainIndexedInfo>();
+        private List<ResponseSideChainIndexedInfo> _responseIndexedInfoMessages = new List<ResponseSideChainIndexedInfo>();
 
         public HeaderInfoTest(ILogger logger)
         {
@@ -53,10 +53,10 @@ namespace AElf.Miner.Tests.Grpc
             return mock;
         }
 
-        /*public Mock<IAsyncEnumerator<RequestIndexedInfoMessage>> MockEnumerator(int count)
+        /*public Mock<IAsyncEnumerator<RequestSideChainIndexedInfo>> MockEnumerator(int count)
         {
-            Mock<IAsyncEnumerator<RequestIndexedInfoMessage>> mock =
-                new Mock<IAsyncEnumerator<RequestIndexedInfoMessage>>();
+            Mock<IAsyncEnumerator<RequestSideChainIndexedInfo>> mock =
+                new Mock<IAsyncEnumerator<RequestSideChainIndexedInfo>>();
             int i = 0;
             int j = 0;
             mock.Setup(rs => rs.MoveNext()).Returns(() => Task.FromResult(i++ < count));
@@ -64,10 +64,10 @@ namespace AElf.Miner.Tests.Grpc
             return mock;
         }*/
 
-        public Mock<IAsyncStreamReader<RequestIndexedInfoMessage>> MockRequestStream(int count)
+        public Mock<IAsyncStreamReader<RequestSideChainIndexedInfo>> MockRequestStream(int count)
         {
-            Mock<IAsyncStreamReader<RequestIndexedInfoMessage>> mock =
-                new Mock<IAsyncStreamReader<RequestIndexedInfoMessage>>();
+            Mock<IAsyncStreamReader<RequestSideChainIndexedInfo>> mock =
+                new Mock<IAsyncStreamReader<RequestSideChainIndexedInfo>>();
             int i = 0;
             int j = 0;
             mock.Setup(rs => rs.MoveNext(It.IsAny<CancellationToken>())).Returns(() => Task.FromResult(i++ < count));
@@ -76,12 +76,12 @@ namespace AElf.Miner.Tests.Grpc
             return mock;
         }
 
-        public Mock<IServerStreamWriter<ResponseIndexedInfoMessage>> MockResponseStream()
+        public Mock<IServerStreamWriter<ResponseSideChainIndexedInfo>> MockResponseStream()
         {
-            Mock<IServerStreamWriter<ResponseIndexedInfoMessage>> mock =
-                new Mock<IServerStreamWriter<ResponseIndexedInfoMessage>>();
-            mock.Setup(rs => rs.WriteAsync(It.IsAny<ResponseIndexedInfoMessage>()))
-                .Returns<ResponseIndexedInfoMessage>(res =>
+            Mock<IServerStreamWriter<ResponseSideChainIndexedInfo>> mock =
+                new Mock<IServerStreamWriter<ResponseSideChainIndexedInfo>>();
+            mock.Setup(rs => rs.WriteAsync(It.IsAny<ResponseSideChainIndexedInfo>()))
+                .Returns<ResponseSideChainIndexedInfo>(res =>
                 {
                     _responseIndexedInfoMessages.Add(res);
                     return Task.CompletedTask;
@@ -100,17 +100,17 @@ namespace AElf.Miner.Tests.Grpc
                 MockBlockHeader().Object
             };
             
-            _requestIndexedInfoList = new List<RequestIndexedInfoMessage>
+            _requestIndexedInfoList = new List<RequestSideChainIndexedInfo>
             {
-                new RequestIndexedInfoMessage
+                new RequestSideChainIndexedInfo
                 {
                     NextHeight = 0
                 },
-                new RequestIndexedInfoMessage
+                new RequestSideChainIndexedInfo
                 {
                     NextHeight = 1
                 },
-                new RequestIndexedInfoMessage
+                new RequestSideChainIndexedInfo
                 {
                     NextHeight = 2
                 }

@@ -4,29 +4,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using Akka.Dispatch;
-using Easy.MessageHub;
 using NLog;
 
-namespace AElf.ChainController.TxMemPool
+namespace AElf.ChainController.TxMemPoolBM
 {
     public class TxPoolServiceBM : ITxPoolService
     {
         private readonly ILogger _logger;
-        private readonly IChainService _chainService;
         private readonly ITxValidator _txValidator;
         private readonly ITransactionManager _transactionManager;
         private ulong Least { get; set; }
         private ulong Limit { get; set; }
 
-        public TxPoolServiceBM(ILogger logger, IChainService chainService, ITxValidator txValidator,
+        public TxPoolServiceBM(ILogger logger, ITxValidator txValidator,
             ITransactionManager transactionManager)
         {
             _logger = logger;
-            _chainService = chainService;
             _txValidator = txValidator;
             _transactionManager = transactionManager;
         }
@@ -130,7 +126,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task RollBack(List<Transaction> txsOut)
+        public async Task Revert(List<Transaction> txsOut)
         {
             foreach (var tx in txsOut)
             {
@@ -142,7 +138,6 @@ namespace AElf.ChainController.TxMemPool
                 {
                     AddContractTransaction(tx);
                 }
-
                 tx.Unclaim();
             }
 
@@ -224,8 +219,9 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAccountContext(HashSet<Hash> addrs)
+        public Task UpdateAccountContext(HashSet<Hash> addrs)
         {
+            throw new NotImplementedException();
         }
 
         public void SetBlockVolume(ulong minimal, ulong maximal)

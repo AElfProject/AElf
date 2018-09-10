@@ -30,15 +30,15 @@ namespace AElf.SideChain.Creation
         private IChainCreationService ChainCreationService { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
-        private ISideChainManager _sideChainManager;
+        private IChainManagerBasic _chainManagerBasic;
 
         public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager, 
-            IChainCreationService chainCreationService, ISideChainManager sideChainManager)
+            IChainCreationService chainCreationService, IChainManagerBasic chainManagerBasic)
         {
             _logger = logger;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
-            _sideChainManager = sideChainManager;
+            _chainManagerBasic = chainManagerBasic;
             _interestedLogEvent = new LogEvent()
             {
                 Address = GetGenesisContractHash(),
@@ -121,7 +121,7 @@ namespace AElf.SideChain.Creation
                         );
                         
                         // insert 
-                        await _sideChainManager.AddSideChain(info.ChainId);
+                        await _chainManagerBasic.AddSideChainId(info.ChainId);
                     }
                 }
                 catch (Exception e)

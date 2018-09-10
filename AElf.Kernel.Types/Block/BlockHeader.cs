@@ -51,6 +51,8 @@ namespace AElf.Kernel
                 MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone(),
                 Bloom = Bloom
             };
+            // indexed info
+            rawBlock.IndexedInfo.Add(IndexedInfo);
 
             if (Index != 0)
                 rawBlock.Time = Time.Clone();
