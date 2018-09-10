@@ -58,6 +58,8 @@ namespace AElf.SmartContract
                 throw new NotSupportedException($"Runner for category {reg.Category} is not registered.");
             }
 
+            _stateDictator.ChainId = chainId;
+
             // get account dataprovider
             var dataProvider = _stateDictator.GetAccountDataProvider(contractAddress).GetDataProvider();
 
