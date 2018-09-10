@@ -26,6 +26,7 @@ namespace AElf.Benchmark
         private readonly ILogger _logger;
         private readonly BenchmarkOptions _options;
         private readonly IExecutingService _executingService;
+        private readonly IStateDictator _stateDictator;
 
         private readonly ServicePack _servicePack;
 
@@ -55,8 +56,8 @@ namespace AElf.Benchmark
         {
             ChainId = Hash.Generate();
             
-            var stateDictator1 = stateDictator;
-            stateDictator1.ChainId = ChainId;
+            _stateDictator = stateDictator;
+            _stateDictator.ChainId = ChainId;
                 
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;
@@ -70,7 +71,7 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                StateDictator = stateDictator1,
+                StateDictator = _stateDictator,
                 AccountContextService = accountContextService,
             };
 
@@ -214,7 +215,7 @@ namespace AElf.Benchmark
                 var executive = await _smartContractService.GetExecutiveAsync(tokenContractAddr, ChainId);
                 try
                 {
-                    await executive.SetTransactionContext(txnCtxt).Apply(true);
+                    await executive.SetTransactionContext(txnCtxt).Apply();
                 }
                 finally
                 {
@@ -268,7 +269,9 @@ namespace AElf.Benchmark
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             try
             {
-                await executive.SetTransactionContext(txnCtxt).Apply(true);
+                await executive.SetTransactionContext(txnCtxt).Apply();
+                var changesDict = await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
+                await _stateDictator.ApplyCachedDataAction(changesDict);
             }
             finally
             {
@@ -304,7 +307,9 @@ namespace AElf.Benchmark
             var executiveUser = await _smartContractService.GetExecutiveAsync(contractAddr, ChainId);
             try
             {
-                await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
+                await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
+                var changesDict = await txnInitCtxt.Trace.CommitChangesAsync(_stateDictator);
+                await _stateDictator.ApplyCachedDataAction(changesDict);
             }
             finally
             {

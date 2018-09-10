@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Timers;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Kernel;
 using AElf.Network.Connection;
 
 namespace AElf.Network.Peers
@@ -29,6 +32,19 @@ namespace AElf.Network.Peers
         {
             get { return RequestMessage?.Id; }
         }
+
+        public bool IsBlockRequest
+        {
+            get { return TransactionHashes == null; }
+        }
+        
+        public bool IsTxRequest
+        {
+            get { return TransactionHashes != null; }
+        }
+        
+        public List<byte[]> TransactionHashes { get; private set; }
+        public int BlockIndex { get; private set; }
         
         public readonly List<IPeer> TriedPeers = new List<IPeer>();
 
@@ -41,9 +57,8 @@ namespace AElf.Network.Peers
         }
         
         public double Timeout { get; }
-        
 
-        public TimeoutRequest(Message msg, double timeout)
+        private TimeoutRequest(Message msg, double timeout)
         {
             RequestMessage = msg;
             
@@ -53,6 +68,18 @@ namespace AElf.Network.Peers
             _timeoutTimer.AutoReset = false;
 
             Timeout = timeout;
+        }
+        
+        public TimeoutRequest(List<byte[]> transactionHashes, Message msg, double timeout)
+            : this(msg, timeout)
+        {
+            TransactionHashes = transactionHashes;
+        }
+        
+        public TimeoutRequest(int index, Message msg, double timeout)
+            : this(msg, timeout)
+        {
+            BlockIndex = index;
         }
 
         public void TryPeer(IPeer peer)
@@ -100,5 +127,14 @@ namespace AElf.Network.Peers
         {
             _timeoutTimer.Stop();
         }
+
+        #region Transaction request
+
+        public byte[] ContainsTransaction(byte[] txHash)
+        {
+            return TransactionHashes.FirstOrDefault(t => t.BytesEqual(txHash));
+        }
+
+        #endregion
     }
 }

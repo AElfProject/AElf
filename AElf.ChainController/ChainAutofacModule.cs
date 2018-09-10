@@ -12,7 +12,7 @@ namespace AElf.ChainController
             var assembly = typeof(BlockVaildationService).Assembly;
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
             builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
-            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
+            builder.RegisterType<TxPoolServiceBM>().As<ITxPoolService>().SingleInstance();
             builder.RegisterType<ChainCreationService>().As<IChainCreationService>();
             builder.RegisterType<ChainContextService>().As<IChainContextService>();
             builder.RegisterType<TransactionResultService>().As<ITransactionResultService>();

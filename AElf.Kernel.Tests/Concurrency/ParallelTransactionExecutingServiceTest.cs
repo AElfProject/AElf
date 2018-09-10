@@ -11,9 +11,14 @@ using Akka.TestKit.Xunit;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Tests.Concurrency.Execution;
+using AElf.SmartContract;
+using AElf.Types.CSharp;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Type = System.Type;
 
 namespace AElf.Kernel.Tests.Concurrency
-{/*
+{
     [UseAutofacTestFramework]
     public class ParallelTransactionExecutingServiceTest : TestKitBase
     {
@@ -22,6 +27,7 @@ namespace AElf.Kernel.Tests.Concurrency
         public ParallelTransactionExecutingServiceTest(MockSetup mock) : base(new XunitAssertions())
         {
             _mock = mock;
+            _mock.StateDictator.ChainId = _mock.ChainId1;
         }
 
         [Fact]
@@ -78,7 +84,7 @@ namespace AElf.Kernel.Tests.Concurrency
              *  Job 1: (0-1, 10), (1-2, 9)
              *  Job 2: (3-4, 8)
              *  Job 3: (5-6, 10)
-             #1#
+             */
 
             var balances = new List<ulong>()
             {
@@ -135,5 +141,43 @@ namespace AElf.Kernel.Tests.Concurrency
                 string.Join(" ", addresses.Select(a => _mock.GetBalance1(a)))
             );
         }
-    }*/
+
+        [Fact]
+        public async Task InlineTransactionTest()
+        {
+            int rep1 = 4;
+            int rep2 = 5;
+            var txs = new List<Transaction>()
+            {
+                new Transaction()
+                {
+                    From = Hash.Zero,
+                    To = _mock.SampleContractAddress1,
+                    MethodName = "InlineTxnBackToSelf",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(rep1))
+                },
+                new Transaction()
+                {
+                    From = Hash.Zero,
+                    To = _mock.SampleContractAddress1,
+                    MethodName = "InlineTxnBackToSelf",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(rep2))
+                }
+            };
+            Func<TransactionTrace, TransactionTrace> getInnerMostTrace = null;
+            getInnerMostTrace = (tr) =>
+            {
+                if (tr.InlineTraces.Count == 0)
+                {
+                    return tr;
+                }
+                return getInnerMostTrace(tr.InlineTraces.First());
+            };
+            var service = new ParallelTransactionExecutingService(_mock.ActorEnvironment,
+                new Grouper(_mock.ServicePack.ResourceDetectionService));
+            var traces = await service.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None);
+            Assert.NotEqual(ExecutionStatus.ExceededMaxCallDepth, getInnerMostTrace(traces[0]).ExecutionStatus);
+            Assert.Equal(ExecutionStatus.ExceededMaxCallDepth, getInnerMostTrace(traces[1]).ExecutionStatus);
+        }
+    }
 }

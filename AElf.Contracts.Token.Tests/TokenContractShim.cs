@@ -1,7 +1,12 @@
-﻿using AElf.SmartContract;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using AElf.SmartContract;
 using AElf.Kernel;
-using Google.Protobuf;
 using AElf.Types.CSharp;
+using Akka.IO;
+using Xunit;
+using ByteString = Google.Protobuf.ByteString;
 
 namespace AElf.Contracts.Token.Tests
 {
@@ -21,18 +26,66 @@ namespace AElf.Contracts.Token.Tests
         public Hash TokenContractAddress { get; set; }
 
         
-        public TokenContractShim(MockSetup mock, Hash tokenContractAddress)
+        public TokenContractShim(MockSetup mock)
         {
             _mock = mock;
-            TokenContractAddress = tokenContractAddress;
             Init();
         }
 
         private void Init()
         {
+            DeployTokenContractAsync().Wait();
             var task = _mock.GetExecutiveAsync(TokenContractAddress);
             task.Wait();
             Executive = task.Result;
+        }
+
+        private async Task<TransactionContext> PrepareTransactionContextAsync(Transaction tx)
+        {
+            var chainContext = await _mock.ChainContextService.GetChainContextAsync(_mock.ChainId1);
+            var tc = new TransactionContext()
+            {
+                PreviousBlockHash = chainContext.BlockHash,
+                BlockHeight = chainContext.BlockHeight,
+                Transaction = tx,
+                Trace = new TransactionTrace()
+            };
+            return tc;
+        }
+
+        private TransactionContext PrepareTransactionContext(Transaction tx)
+        {
+            var task = PrepareTransactionContextAsync(tx);
+            task.Wait();
+            return task.Result;
+        }
+
+        private async Task CommitChangesAsync(TransactionTrace trace)
+        {
+            var changes = await trace.CommitChangesAsync(_mock.StateDictator);
+            await _mock.StateDictator.ApplyCachedDataAction(changes);
+        }
+
+        private async Task DeployTokenContractAsync()
+        {
+            
+            var address0 = new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.BasicContractZero.ToString()))
+                .ToAccount();
+            var executive0 = await _mock.GetExecutiveAsync(address0);
+
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = address0,
+                IncrementId = 0,
+                MethodName = "DeploySmartContract",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(1, _mock.TokenCode))
+            };
+
+            var tc = await PrepareTransactionContextAsync(tx);
+            await executive0.SetTransactionContext(tc).Apply();
+            await CommitChangesAsync(tc.Trace);
+            TokenContractAddress = tc.Trace.RetVal.ToFriendlyBytes();
         }
 
         #region ABI (Public) Methods
@@ -54,7 +107,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
@@ -73,7 +127,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
@@ -92,7 +147,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
@@ -111,7 +167,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32()??0;
         }
 
@@ -130,7 +187,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
@@ -149,7 +207,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
@@ -169,11 +228,9 @@ namespace AElf.Contracts.Token.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(symbol, tokenName, totalSupply, decimals))
             };
 
-            TransactionContext = new TransactionContext()
-            {
-                Transaction = tx
-            };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
         public void Transfer(Hash to, ulong amount)
@@ -187,11 +244,9 @@ namespace AElf.Contracts.Token.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(to, amount))
             };
 
-            TransactionContext = new TransactionContext()
-            {
-                Transaction = tx
-            };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
         public void TransferFrom(Hash from, Hash to, ulong amount)
@@ -205,11 +260,9 @@ namespace AElf.Contracts.Token.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, amount))
             };
 
-            TransactionContext = new TransactionContext()
-            {
-                Transaction = tx
-            };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
         public void Approve(Hash spender, ulong amount)
@@ -223,11 +276,9 @@ namespace AElf.Contracts.Token.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
 
-            TransactionContext = new TransactionContext()
-            {
-                Transaction = tx
-            };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
         public void UnApprove(Hash spender, ulong amount)
@@ -241,11 +292,9 @@ namespace AElf.Contracts.Token.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
 
-            TransactionContext = new TransactionContext()
-            {
-                Transaction = tx
-            };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
         public Hash GetContractOwner(Hash scZeroAddress)
@@ -261,11 +310,9 @@ namespace AElf.Contracts.Token.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(TokenContractAddress))
             };
 
-            TransactionContext = new TransactionContext
-            {
-                Transaction = tx
-            };
-            executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            TransactionContext = PrepareTransactionContext(tx);
+            executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
         }
         

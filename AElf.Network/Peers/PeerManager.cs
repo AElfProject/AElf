@@ -6,6 +6,9 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
+using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -46,12 +49,47 @@ namespace AElf.Network.Peers
         private Object _peerListLock = new Object(); 
         
         private BlockingCollection<PeerManagerJob> _jobQueue;
+        
+        private readonly List<byte[]> _bpKeys;
+        
+        private byte[] _nodeKey;
+        private string _nodeName;
+        private bool _isBp;
 
         public PeerManager(IConnectionListener connectionListener, ILogger logger)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
+            _bpKeys = new List<byte[]>();
+            
             _connectionListener = connectionListener;
             _logger = logger;
+            
+            _nodeName = NodeConfig.Instance.NodeName;
+
+            SetBpConfig();
+        }
+        
+        private void SetBpConfig()
+        {
+            var producers = MinersConfig.Instance.Producers;
+            
+            // Set the list of block producers
+            try
+            {
+                foreach (var bp in producers.Values)
+                {
+                    byte[] key = ByteArrayHelpers.FromHexString(bp["address"]);
+                    _bpKeys.Add(key);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Warn(e, "Error while reading mining info.");
+            }
+            
+            // This nodes key
+            _nodeKey = ByteArrayHelpers.FromHexString(NodeConfig.Instance.NodeAccount);
+            _isBp = _bpKeys.Any(k => k.BytesEqual(_nodeKey));
         }
 
         public void Start()
@@ -61,7 +99,8 @@ namespace AElf.Network.Peers
             _connectionListener.IncomingConnection += OnIncomingConnection;
             _connectionListener.ListeningStopped += OnListeningStopped;
 
-            _maintenanceTimer = new System.Threading.Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
+            if (!_isBp)
+                _maintenanceTimer = new System.Threading.Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
 
             // Add the provided bootnodes
             if (NetworkConfig.Instance.Bootnodes != null && NetworkConfig.Instance.Bootnodes.Any())
@@ -76,11 +115,8 @@ namespace AElf.Network.Peers
             }
             else
             {
-                _logger?.Trace("Warning : bootnode list is empty.");
+                _logger?.Warn("Bootnode list is empty.");
             }
-
-            // todo consider removing the Peers option
-            // todo exceptions
 
             Task.Run(() => StartProcessing()).ConfigureAwait(false);
         }
@@ -115,11 +151,9 @@ namespace AElf.Network.Peers
                     }
                     catch (Exception e)
                     {
-                        _logger?.Trace("Error while dequeuing peer manager job: stopping the dequeing loop.");
+                        _logger?.Warn(e, "Error while dequeuing peer manager job: stopping the dequeing loop.");
                         break;
                     }
-                
-                    // todo dispatch message
 
                     if (job.Type == PeerManagerJobType.ProcessMessage)
                     {
@@ -132,7 +166,7 @@ namespace AElf.Network.Peers
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace(e, "Exception while dequeuing job.");
+                    _logger?.Warn(e, "Exception while dequeuing job.");
                 }
             }
         }
@@ -163,16 +197,16 @@ namespace AElf.Network.Peers
         {
             if (nodeData == null)
             {
-                _logger?.Trace("Data is null, cannot add peer.");
-                return; // todo exception
+                _logger?.Warn("Data is null, cannot add peer.");
+                return;
             }
             
             NodeDialer dialer = new NodeDialer(nodeData.IpAddress, nodeData.Port);
-            TcpClient client = dialer.DialAsync().GetAwaiter().GetResult(); // todo async 
+            TcpClient client = dialer.DialAsync().GetAwaiter().GetResult();
 
             if (client == null)
             {
-                _logger?.Trace($"Could not connect to {nodeData.IpAddress}:{nodeData.Port}, operation timed out.");
+                _logger?.Warn($"Could not connect to {nodeData.IpAddress}:{nodeData.Port}, operation timed out.");
                 return;
             }
 
@@ -184,7 +218,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Creation of peer object failed");
+                _logger?.Warn(e, "Creation of peer object failed");
                 return;
             }
             
@@ -209,7 +243,7 @@ namespace AElf.Network.Peers
             MessageReader reader = new MessageReader(nsStream);
             MessageWriter writer = new MessageWriter(nsStream);
             
-            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort);
+            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort, _nodeKey);
             
             return peer;
         }
@@ -231,10 +265,7 @@ namespace AElf.Network.Peers
         {
             if (sender is Peer peer)
             {
-                // todo verify authentified
-                // todo peer.MessageReceived += HandleNewMessage;
-                // todo failed authentification
-
+                peer.IsBp = peer.DistantNodeAddress != null && _bpKeys.Any(k => k.BytesEqual(peer.DistantNodeAddress)); 
                 AddAuthentifiedPeer(peer);
             }
         }
@@ -254,13 +285,13 @@ namespace AElf.Network.Peers
         {
             if (peer == null)
             {
-                _logger?.Trace("Peer is null, cannot add.");
+                _logger?.Warn("Peer is null, cannot add.");
                 return;
             }
             
             if (!peer.IsAuthentified)
             {
-                _logger?.Trace($"Peer not authentified, cannot add {peer}");
+                _logger?.Warn($"Peer not authentified, cannot add {peer}");
                 return;
             }
             
@@ -277,7 +308,7 @@ namespace AElf.Network.Peers
                 _peers.Add(peer);
             }
                 
-            _logger?.Trace($"Peer authentified and added : {peer}");
+            _logger?.Debug($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress.ToHex() }, bp: {peer.IsBp} }}");
             
             peer.MessageReceived += OnPeerMessageReceived;
                 
@@ -296,16 +327,16 @@ namespace AElf.Network.Peers
                     }
                     catch (Exception ex)
                     {
-                        _logger?.Trace(ex, "Error while enqueuing job.");
+                        _logger?.Warn(ex, "Error while enqueuing job.");
                     }
                 }
             }
             else
             {
                 if (sender is IPeer peer)
-                    _logger?.Trace($"Received an invalid message from {peer.DistantNodeData}.");
+                    _logger?.Warn($"Received an invalid message from {peer.DistantNodeData}.");
                 else
-                    _logger?.Trace("Received an invalid message.");
+                    _logger?.Warn("Received an invalid message.");
             }
         }
 
@@ -337,7 +368,7 @@ namespace AElf.Network.Peers
                 }
                 else
                 {
-                    _logger?.Trace($"Tried to remove peer, but not in list {args.Peer}");
+                    _logger?.Warn($"Tried to remove peer, but not in list {args.Peer}");
                 }
             }
         }
@@ -350,12 +381,20 @@ namespace AElf.Network.Peers
         {
             try
             {
+                _logger?.Debug($"Received peer request from {args.Peer}.");
+                
                 ReqPeerListData req = ReqPeerListData.Parser.ParseFrom(args.Message.Payload);
                 ushort numPeers = (ushort) req.NumPeers;
                     
                 PeerListData pListData = new PeerListData();
 
-                foreach (var peer in _peers.Where(p => p.DistantNodeData != null && !p.DistantNodeData.Equals(args.Peer.DistantNodeData)))
+                // Filter the requestor out
+                // Filter out BPs
+                var peersToSend = _peers
+                    .Where(p => p.DistantNodeData != null && !p.DistantNodeData.Equals(args.Peer.DistantNodeData))
+                    .Where(p => !p.IsBp);
+                
+                foreach (var peer in peersToSend)
                 {
                     pListData.NodeData.Add(peer.DistantNodeData);
                             
@@ -364,24 +403,26 @@ namespace AElf.Network.Peers
                 }
 
                 if (!pListData.NodeData.Any())
+                {
+                    _logger?.Debug("No peers to return.");
                     return;
+                }
 
                 byte[] payload = pListData.ToByteArray();
                 var resp = new Message
                 {
                     Type = (int)MessageType.Peers,
                     Length = payload.Length,
-                    Payload = payload,
-                    OutboundTrace = Guid.NewGuid().ToString()
+                    Payload = payload
                 };
                         
-                _logger?.Trace($"Sending peers : {pListData} to {args.Peer}");
+                _logger?.Debug($"Sending peers : {pListData} to {args.Peer}");
 
                 Task.Run(() => args.Peer.EnqueueOutgoing(resp));
             }
             catch (Exception exception)
             {
-                _logger?.Trace(exception, "Error while answering a peer request.");
+                _logger?.Warn(exception, "Error while answering a peer request.");
             }
         }
         
@@ -395,7 +436,6 @@ namespace AElf.Network.Peers
         {
             try
             {
-                // todo should add ?
                 var str = $"Receiving peers from {pr} - current node list: \n";
                 
                 var peerStr = _peers.Select(c => c.ToString()).Aggregate((a, b) => a.ToString() + ", " + b);
@@ -420,7 +460,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
+                _logger?.Warn(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
             }
         }
 
@@ -445,7 +485,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error while doing peer maintenance.");
+                _logger?.Warn(e, "Error while doing peer maintenance.");
             }
         }
         
@@ -455,7 +495,7 @@ namespace AElf.Network.Peers
 
         private void OnListeningStopped(object sender, EventArgs eventArgs)
         {
-            _logger.Trace("Listening stopped"); // todo
+            _logger.Warn("Listening stopped");
         }
         
         private void OnIncomingConnection(object sender, EventArgs eventArgs)
@@ -470,7 +510,7 @@ namespace AElf.Network.Peers
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace(e, "Creation of peer object failed");
+                    _logger?.Warn(e, "Creation of peer object failed");
                     return;
                 }
                 
@@ -490,9 +530,6 @@ namespace AElf.Network.Peers
         }
         
         #endregion Closing and disposing
-        
-        
-        // todo remove duplicate
 
         public int BroadcastMessage(Message message)
         {
@@ -505,17 +542,13 @@ namespace AElf.Network.Peers
             {
                 foreach (var peer in _peers)
                 {
-                    try
-                    {
-                        peer.EnqueueOutgoing(message); //todo
-                        count++;
-                    }
-                    catch (Exception e) { }
+                    peer.EnqueueOutgoing(message);
+                    count++;
                 }
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while sending a message to the peers.");
+                _logger?.Warn(e, "Error while sending a message to the peers.");
             }
 
             return count;

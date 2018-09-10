@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using ServiceStack;
 
@@ -26,40 +28,43 @@ namespace AElf.Contracts.Token.Tests
 
         public Hash ChainId1 { get; } = Hash.Generate();
         public ISmartContractManager SmartContractManager;
-        public ISmartContractService SmartContractService;
+        public ISmartContractService SmartContractService { get; }
         private IFunctionMetadataService _functionMetadataService;
 
+        public Hash TokenContractAddress { get; private set; }
+        
         public IChainContextService ChainContextService;
 
         public IAccountDataProvider DataProvider1;
 
         public ServicePack ServicePack;
 
-        private IStateDictator _stateDictator;
+        public IStateDictator StateDictator { get; }
         private IChainCreationService _chainCreationService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IStateDictator stateDictator, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IStateDictator stateDictator, ISmartContractService smartContractService,
+            IChainCreationService chainCreationService, IChainContextService chainContextService,
+            IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _stateDictator = stateDictator;
+            StateDictator = stateDictator;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
+            SmartContractService = smartContractService;
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                StateDictator = _stateDictator
+                StateDictator = StateDictator
             };
         }
 
@@ -108,9 +113,9 @@ namespace AElf.Contracts.Token.Tests
 
             var chain1 =
                 await _chainCreationService.CreateNewChainAsync(ChainId1,
-                    new List<SmartContractRegistration> {reg0, reg1});
-            _stateDictator.ChainId = ChainId1;
-            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
+                    new List<SmartContractRegistration> {reg0});
+            StateDictator.ChainId = ChainId1;
+            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Hash address)

@@ -34,14 +34,14 @@ namespace AElf.Sdk.CSharp.Tests
 
         public ServicePack ServicePack;
 
-        private IStateDictator _stateDictator;
+        public IStateDictator StateDictator { get; set; }
         private IChainCreationService _chainCreationService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         public MockSetup(IStateDictator stateDictator, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _stateDictator = stateDictator;
+            StateDictator = stateDictator;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
@@ -51,14 +51,14 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                StateDictator = _stateDictator
+                StateDictator = StateDictator
             };
         }
 
@@ -80,8 +80,8 @@ namespace AElf.Sdk.CSharp.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
 
-            _stateDictator.ChainId = ChainId1;
-            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
+            StateDictator.ChainId = ChainId1;
+            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
         }
 
         public async Task DeployContractAsync(byte[] code, Hash address)

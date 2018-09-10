@@ -1,15 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Common.Application;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Enums;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using CommandLine;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using NLog;
 
 namespace AElf.Configuration
 {
@@ -17,14 +13,13 @@ namespace AElf.Configuration
     {
         public void Parse(string[] args)
         {
-            Parser.Default.ParseArguments<CommandLineOptions>(args)
-                .WithParsed(MapOptions);
+            Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(MapOptions);
         }
-        
+
         private void MapOptions(CommandLineOptions opts)
         {
             // Rpc
-            RpcConfig.Instance.UseRpc=!opts.NoRpc;
+            RpcConfig.Instance.UseRpc = !opts.NoRpc;
             RpcConfig.Instance.Port = opts.RpcPort;
             RpcConfig.Instance.Host = opts.RpcHost;
 
@@ -59,7 +54,7 @@ namespace AElf.Configuration
             DatabaseConfig.Instance.Number = opts.DBNumber;
 
             ConsensusConfig.Instance.ConsensusType = ConsensusTypeHelper.GetType(opts.ConsensusType);
- 
+
             // tx pool config
             TransactionPoolConfig.Instance.FeeThreshold = opts.MinimalFee;
             TransactionPoolConfig.Instance.PoolLimitSize = opts.PoolCapacity;
@@ -71,6 +66,7 @@ namespace AElf.Configuration
             NodeConfig.Instance.ExecutorType = opts.ExecutorType;
             NodeConfig.Instance.ChainId = opts.ChainId;
             NodeConfig.Instance.IsChainCreator = opts.NewChain;
+            NodeConfig.Instance.NodeName = opts.NodeName;
             NodeConfig.Instance.NodeAccount = opts.NodeAccount;
             NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
             NodeConfig.Instance.ConsensusInfoGenerater = opts.IsConsensusInfoGenerator;
@@ -106,12 +102,16 @@ namespace AElf.Configuration
             {
                 ManagementConfig.Instance.Url = opts.ManagementUrl;
             }
+
             if (!string.IsNullOrWhiteSpace(opts.ManagementSideChainServicePath))
             {
                 ManagementConfig.Instance.SideChainServicePath = opts.ManagementSideChainServicePath;
             }
-            ManagementConfig.Instance.NodeAccount=opts.NodeAccount;
-            ManagementConfig.Instance.NodeAccount=opts.NodeAccountPassword;
+
+            ManagementConfig.Instance.NodeAccount = opts.NodeAccount;
+            ManagementConfig.Instance.NodeAccount = opts.NodeAccountPassword;
+
+            LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }
     }
 }

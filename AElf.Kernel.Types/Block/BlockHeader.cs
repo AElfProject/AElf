@@ -26,6 +26,14 @@ namespace AElf.Kernel
 
             return _blockHash;
         }
+
+        public byte[] GetHashBytes()
+        {
+            if (_blockHash == null)
+                _blockHash = SHA256.Create().ComputeHash(GetSignatureData());
+
+            return _blockHash.GetHashBytes();
+        }
         
         public ECSignature GetSignature()
         {
@@ -40,7 +48,8 @@ namespace AElf.Kernel
                 Index = Index,
                 PreviousBlockHash = PreviousBlockHash.Clone(),
                 MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions.Clone(),
-                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone()
+                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone(),
+                Bloom = Bloom
             };
 
             if (Index != 0)

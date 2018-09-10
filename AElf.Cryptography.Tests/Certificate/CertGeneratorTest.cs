@@ -3,7 +3,6 @@ using System.IO;
 using AElf.Common.Application;
 using AElf.Cryptography.Certificate;
 using AElf.Cryptography.ECDSA;
-using AElf.Cryptography.SSL;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;

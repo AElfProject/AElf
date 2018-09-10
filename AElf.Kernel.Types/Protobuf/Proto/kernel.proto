@@ -9,14 +9,20 @@ import "hash.proto";
 message Transaction {
     Hash From = 1;
     Hash To = 2;
-    uint64 IncrementId = 3;
-    string MethodName = 4;
-    bytes Params = 5;
-    uint64 Fee = 6;
-    bytes R = 7;
-    bytes S = 8;
-    bytes P = 9;
-    TransactionType type = 10;
+    uint64 RefBlockNumber = 3;
+    bytes RefBlockPrefix = 4;
+    uint64 IncrementId = 5;
+    string MethodName = 6;
+    bytes Params = 7;
+    uint64 Fee = 8;
+    bytes R = 9;
+    bytes S = 10;
+    bytes P = 11;
+    TransactionType type = 12;
+}
+
+message TransactionList {
+    repeated Transaction Transactions = 1;
 }
 
 enum TransactionType {
@@ -181,12 +187,8 @@ message Key {
     uint32 HashType = 3;
 }
 
-message SideChain {
-    Hash ChainId = 1;
-    Hash LockedAddress = 2;
-    uint64 LockedToken = 3;
-    uint64 CreationHeight = 4;
-    bool Indexed = 5;
+message SideChainIdList {
+    repeated Hash chainIds =1;
 }
 
 message DataPath {

@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using AElf.ChainController;
-using AElf.Common.Extensions;
+using AElf.Kernel;
+using AElf.Kernel.Node;
 using AElf.Network;
-using AElf.Network.Peers;
-using AElf.Network.Data;
 using AElf.Network.Connection;
+using AElf.Network.Data;
+using AElf.Network.Peers;
+using AElf.Node.Protocol.Events;
 using Google.Protobuf;
 using NLog;
 
-namespace AElf.Kernel.Node
+namespace AElf.Node
 {
     public class P2P : IP2P
     {
         private readonly ILogger _logger;
         private readonly INetworkManager _netManager;
 
-        private BlockingCollection<NetMessageReceivedArgs> _messageQueue =
-            new BlockingCollection<NetMessageReceivedArgs>();
+        private BlockingCollection<NetMessageReceivedEventArgs> _messageQueue =
+            new BlockingCollection<NetMessageReceivedEventArgs>();
 
         private P2PHandler _handler;
 
@@ -39,15 +40,13 @@ namespace AElf.Kernel.Node
                     var args = _messageQueue.Take();
 
                     var message = args.Message;
-                    var msgType = (AElfProtocolType) message.Type;
+                    var msgType = (AElfProtocolMsgType) message.Type;
 
-                    _logger?.Trace($"Handling message {message}");
-
-                    if (msgType == AElfProtocolType.RequestBlock)
+                    if (msgType == AElfProtocolMsgType.RequestBlock)
                     {
                         await HandleBlockRequest(message, args.PeerMessage);
                     }
-                    else if (msgType == AElfProtocolType.TxRequest)
+                    else if (msgType == AElfProtocolMsgType.TxRequest)
                     {
                         await HandleTxRequest(message, args.PeerMessage);
                     }
@@ -65,7 +64,7 @@ namespace AElf.Kernel.Node
             {
                 var breq = BlockRequest.Parser.ParseFrom(message.Payload);
                 var block = await _handler.GetBlockAtHeight(breq.Height);
-                Message req = NetRequestFactory.CreateMessage(AElfProtocolType.Block, block.ToByteArray());
+                Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Block, block.ToByteArray());
                 if (message.HasId)
                     req.Id = message.Id;
 
@@ -81,39 +80,43 @@ namespace AElf.Kernel.Node
 
         private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
         {
-            string hash = null;
-
             try
             {
-                var breq = TxRequest.Parser.ParseFrom(message.Payload);
-                hash = breq.TxHash.ToByteArray().ToHex();
-                var tx = await _handler.GetTransaction(breq.TxHash);
-                if (!(tx is Transaction t))
+                TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
+
+                TransactionList txList = new TransactionList();
+                foreach (var txHash in breq.TxHashes)
                 {
-                    _logger?.Trace("Could not find transaction: ", hash);
-                    return;
+                    var hash = txHash.ToByteArray();
+                    var tx = await _handler.GetTransaction(hash);
+                
+                    if(tx != null)
+                        txList.Transactions.Add(tx);
                 }
 
-                Message req = NetRequestFactory.CreateMessage(AElfProtocolType.Tx, t.ToByteArray());
+                byte[] serializedTxList = txList.ToByteArray();
+                Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Transactions, serializedTxList);
+                
                 if (message.HasId)
                 {
                     req.HasId = true;
                     req.Id = message.Id;
                 }
+                
                 args.Peer.EnqueueOutgoing(req);
 
-                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length +
-                               " bytes)");
+//todo                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + serializedTxList.Length +
+//                               " bytes)");
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
+                //_logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
             }
         }
 
         private void ProcessPeerMessage(object sender, EventArgs e)
         {
-            if (sender != null && e is NetMessageReceivedArgs args && args.Message != null)
+            if (sender != null && e is NetMessageReceivedEventArgs args && args.Message != null)
             {
                 _messageQueue.Add(args);
             }
@@ -127,7 +130,7 @@ namespace AElf.Kernel.Node
             }
 
             var serializedBlock = b.ToByteArray();
-            await _netManager.BroadcastBock(block.GetHash().Value.ToByteArray(), serializedBlock);
+            await _netManager.BroadcastBlock(block.GetHash().Value.ToByteArray(), serializedBlock);
 
             var bh = block.GetHash().ToHex();
             _logger?.Trace(

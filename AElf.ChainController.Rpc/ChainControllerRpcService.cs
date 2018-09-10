@@ -16,6 +16,7 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
+using NLog;
 
 namespace AElf.ChainController.Rpc
 {
@@ -35,7 +36,12 @@ namespace AElf.ChainController.Rpc
 
         #endregion Properties
 
+        private readonly ILogger _logger;
 
+        public ChainControllerRpcService(ILogger logger)
+        {
+            _logger = logger;
+        }
         #region Methods
 
         [JsonRpcMethod("get_commands")]
@@ -187,10 +193,24 @@ namespace AElf.ChainController.Rpc
             var hexString = ByteArrayHelpers.FromHexString(raw64);
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
-            // TODO: Wrap Transaction into a message
-            MessageHub.Instance.Publish(new IncomingTransaction(transaction));
-
             var res = new JObject {["hash"] = transaction.GetHash().ToHex()};
+            try
+            {
+                var valRes = await TxPoolService.AddTxAsync(transaction);
+                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
+                {
+                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
+                }
+                else
+                {
+                    res["error"] = valRes.ToString();
+                }
+            }
+            catch (Exception e)
+            {
+                res["error"] = e.ToString();
+            }
+
             return await Task.FromResult(res);
         }
 
@@ -361,7 +381,7 @@ namespace AElf.ChainController.Rpc
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Error("ProcSetBlockVolume failed: " + e);
                 return await Task.FromResult(new JObject
                 {
                     ["error"] = "Failed"
