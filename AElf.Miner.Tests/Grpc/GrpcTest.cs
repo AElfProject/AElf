@@ -54,24 +54,29 @@ namespace AElf.Miner.Tests.Grpc
                 client.Index(cancellationTokenSource.Token, 0);
                 Thread.Sleep(t/2);
                 // remove the first one
-                Assert.Equal(1, client.IndexedInfoQueueCount);
+                int count = client.IndexedInfoQueueCount;
+                Assert.Equal(1, count);
                 Assert.True(client.TryTake(10, out var responseSideChainIndexedInfo));
                 Assert.Equal((ulong)0, responseSideChainIndexedInfo.Height);
                 
                 Thread.Sleep(t);
-                Assert.Equal(1, client.IndexedInfoQueueCount);
+                count = client.IndexedInfoQueueCount;
+                Assert.Equal(1, count);
                 
                 Thread.Sleep(t);
-                Assert.Equal(2, client.IndexedInfoQueueCount);
+                count = client.IndexedInfoQueueCount;
+                Assert.Equal(2, count);
                 
                 // remove 2nd item
                 Assert.True(client.TryTake(10, out responseSideChainIndexedInfo));
-                Assert.Equal(1, client.IndexedInfoQueueCount);
+                count = client.IndexedInfoQueueCount;
+                Assert.Equal(1, count);
                 Assert.Equal((ulong)1, responseSideChainIndexedInfo.Height);
 
                 // remove 3rd item
                 Assert.True(client.TryTake(10, out responseSideChainIndexedInfo));
-                Assert.Equal(0, client.IndexedInfoQueueCount);
+                count = client.IndexedInfoQueueCount;
+                Assert.Equal(0, count);
                 Assert.Equal((ulong)2, responseSideChainIndexedInfo.Height);
                 
                 Assert.False(client.TryTake(10, out _));
@@ -102,29 +107,36 @@ namespace AElf.Miner.Tests.Grpc
                 // create client, main chian is client-side
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
-                manager.Init(dir);
+                manager.Init(dir, t);
                 
                 await manager.CreateClientsToSideChain();
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
                 Thread.Sleep(t/2);
                 var result = await manager.CollectSideChainIndexedInfo();
-                Assert.Equal(1, result.Count);
+                int count = result.Count;
+                Assert.Equal(1, count);
                 Assert.Equal((ulong)0, result[0].Height);
                 
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainIndexedInfo();
-                Assert.Equal(1, result.Count);
+                count = result.Count;
+                Assert.Equal(1, count);
                 Assert.Equal((ulong)1, result[0].Height);
                 
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainIndexedInfo();
-                Assert.Equal(1, result.Count);
+                count = result.Count;
+                Assert.Equal(1, count);
                 Assert.Equal((ulong)2, result[0].Height);
-                
+                manager.Close();
+
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainIndexedInfo();
-                Assert.Equal(0, result.Count);
+                count = result.Count;
+                Assert.Equal(0, count);
+                
+
             }
             catch (Exception e)
             {
@@ -162,7 +174,8 @@ namespace AElf.Miner.Tests.Grpc
                 var block = await miner.Mine();
                 Assert.NotNull(block);
                 Assert.NotNull(block.Header.IndexedInfo);
-                Assert.Equal(1, block.Header.IndexedInfo.Count);
+                int count = block.Header.IndexedInfo.Count;
+                Assert.Equal(1, count);
                 Assert.Equal((ulong)0, block.Header.IndexedInfo[0].Height);
                 Assert.Equal((ulong)1, block.Header.Index);
             
@@ -170,7 +183,8 @@ namespace AElf.Miner.Tests.Grpc
                 block = await miner.Mine();
                 Assert.NotNull(block);
                 Assert.NotNull(block.Header.IndexedInfo);
-                Assert.Equal(1, block.Header.IndexedInfo.Count);
+                count = block.Header.IndexedInfo.Count;
+                Assert.Equal(1, count);
                 Assert.Equal((ulong)1, block.Header.IndexedInfo[0].Height);
                 Assert.Equal((ulong)2, block.Header.Index);
             
@@ -178,9 +192,12 @@ namespace AElf.Miner.Tests.Grpc
                 block = await miner.Mine();
                 Assert.NotNull(block);
                 Assert.NotNull(block.Header.IndexedInfo);
-                Assert.Equal(1, block.Header.IndexedInfo.Count);
+                count = block.Header.IndexedInfo.Count;
+                Assert.Equal(1, count);
                 Assert.Equal((ulong)2, block.Header.IndexedInfo[0].Height);
                 Assert.Equal((ulong)3, block.Header.Index);
+                
+                manager.Close();
             }
             catch (Exception e)
             {

@@ -55,7 +55,7 @@ namespace AElf.Miner.Rpc.Client
          {
              _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
              _tokenSource = new CancellationTokenSource();
-             _interval = interval == 0 ? _interval : interval;
+             _interval = interval == 0 ? Globals.AElfMiningInterval : interval;
          }
 
          /// <summary>

@@ -30,7 +30,7 @@ namespace AElf.Miner
                 {
                     if (GrpcLocalConfig.Instance.Client)
                     {
-                        mc.Instance.Init(dir: ApplicationHelpers.GetDefaultDataDir(),interval: Globals.AElfDPoSMiningInterval);
+                        mc.Instance.Init(dir: ApplicationHelpers.GetDefaultDataDir());
                     }
                 }
             );

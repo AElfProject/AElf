@@ -158,9 +158,8 @@ namespace AElf.Miner.Tests.Grpc
             mock.Setup(bh => bh.MerkleTreeRootOfTransactions).Returns(Hash.Generate());
             return mock;
         }
-
         
-
+        
         public MinerServer MinerServer()
         {
             GrpcLocalConfig.Instance.Server = false;

@@ -1,5 +1,5 @@
 {
-  "IsCluster" : true,
+  "IsCluster" : false,
   "LocalServerIP" : "127.0.0.1",
   "Port" : "50052"
 }
