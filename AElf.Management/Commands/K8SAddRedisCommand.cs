@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -9,15 +10,17 @@ namespace AElf.Management.Commands
 {
     public class K8SAddRedisCommand : IDeployCommand
     {
-        private const string ConfigName = "config-redis";
-        private const string ServiceName = "service-redis";
-        private const string StatefulSetName = "set-redis";
+        private const int Replicas = 1;
 
         public void Action(string chainId, DeployArg arg)
         {
             AddConfig(chainId,arg);
             AddService(chainId,arg);
-            AddStatefulSet(chainId,arg);
+            var addSetResult = AddStatefulSet(chainId, arg);
+            if (!addSetResult)
+            {
+                throw new Exception("failed to deploy redis");
+            }
         }
 
         private void AddConfig(string chainId, DeployArg arg)
@@ -28,13 +31,13 @@ namespace AElf.Management.Commands
                 Kind = V1ConfigMap.KubeKind,
                 Metadata = new V1ObjectMeta
                 {
-                    Name = ConfigName,
+                    Name = GlobalSetting.RedisConfigName,
                     NamespaceProperty = chainId
                 },
                 Data = new Dictionary<string, string>
                 {
                     {
-                        ConfigName,
+                        GlobalSetting.RedisConfigName,
                         string.Concat("port ", arg.DBArg.Port, Environment.NewLine, "bind 0.0.0.0", Environment.NewLine, "appendonly no", Environment.NewLine)
                     }
                 }
@@ -49,10 +52,10 @@ namespace AElf.Management.Commands
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = ServiceName,
+                    Name = GlobalSetting.RedisServiceName,
                     Labels = new Dictionary<string, string>
                     {
-                        {"name", ServiceName}
+                        {"name", GlobalSetting.RedisServiceName}
                     }
                 },
                 Spec = new V1ServiceSpec
@@ -63,7 +66,7 @@ namespace AElf.Management.Commands
                     },
                     Selector = new Dictionary<string, string>
                     {
-                        {"name", StatefulSetName}
+                        {"name", GlobalSetting.RedisName}
                     },
                     ClusterIP = "None"
                 }
@@ -72,31 +75,31 @@ namespace AElf.Management.Commands
             K8SRequestHelper.GetClient().CreateNamespacedService(body, chainId);
         }
 
-        private void AddStatefulSet(string chainId, DeployArg arg)
+        private bool AddStatefulSet(string chainId, DeployArg arg)
         {
-            var body = new V1beta1StatefulSet
+            var body = new V1StatefulSet
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = StatefulSetName,
-                    Labels = new Dictionary<string, string> {{"name", StatefulSetName}}
+                    Name = GlobalSetting.RedisName,
+                    Labels = new Dictionary<string, string> {{"name", GlobalSetting.RedisName}}
                 },
-                Spec = new V1beta1StatefulSetSpec
+                Spec = new V1StatefulSetSpec
                 {
                     Selector = new V1LabelSelector
                     {
                         MatchExpressions = new List<V1LabelSelectorRequirement>
                         {
-                            new V1LabelSelectorRequirement("name", "In", new List<string> {StatefulSetName})
+                            new V1LabelSelectorRequirement("name", "In", new List<string> {GlobalSetting.RedisName})
                         }
                     },
-                    ServiceName = ServiceName,
-                    Replicas = 1,
+                    ServiceName = GlobalSetting.RedisServiceName,
+                    Replicas = Replicas,
                     Template = new V1PodTemplateSpec
                     {
                         Metadata = new V1ObjectMeta
                         {
-                            Labels = new Dictionary<string, string> {{"name", StatefulSetName}}
+                            Labels = new Dictionary<string, string> {{"name", GlobalSetting.RedisName}}
                         },
                         Spec = new V1PodSpec
                         {
@@ -104,18 +107,11 @@ namespace AElf.Management.Commands
                             {
                                 new V1Container
                                 {
-                                    Name = StatefulSetName,
+                                    Name = GlobalSetting.RedisName,
                                     Image = "redis",
                                     Ports = new List<V1ContainerPort> {new V1ContainerPort(arg.DBArg.Port)},
                                     Command = new List<string> {"redis-server"},
                                     Args = new List<string> {"/redis/redis.conf"},
-                                    Resources = new V1ResourceRequirements
-                                    {
-                                        Limits = new Dictionary<string, ResourceQuantity>()
-                                        {
-                                            {"cpu", new ResourceQuantity("0.1")}
-                                        }
-                                    },
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
                                         new V1VolumeMount("/redisdata", "data"),
@@ -135,7 +131,7 @@ namespace AElf.Management.Commands
                                     Name = "config",
                                     ConfigMap = new V1ConfigMapVolumeSource
                                     {
-                                        Name = ConfigName,
+                                        Name = GlobalSetting.RedisConfigName,
                                         Items = new List<V1KeyToPath>
                                         {
                                             new V1KeyToPath
@@ -152,7 +148,40 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedStatefulSet1(body, chainId);
+            var result = K8SRequestHelper.GetClient().CreateNamespacedStatefulSet(body, chainId);
+
+            var set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, chainId);
+            var retryGetCount = 0;
+            var retryDeleteCount = 0;
+            while (true)
+            {
+                if (set.Status.ReadyReplicas.HasValue && set.Status.ReadyReplicas.Value == Replicas)
+                {
+                    break;
+                }
+                if (retryGetCount > GlobalSetting.DeployRetryTime)
+                {
+                    DeletePod(chainId, arg);
+                    retryDeleteCount++;
+                    retryGetCount = 0;
+                }
+                
+                if (retryDeleteCount > GlobalSetting.DeployRetryTime)
+                {
+                    return false;
+                }
+
+                retryGetCount++;
+                Thread.Sleep(3000);
+                set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, chainId);
+            }
+
+            return true;
+        }
+        
+        private void DeletePod(string chainId, DeployArg arg)
+        {
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.RedisName);
         }
     }
 }

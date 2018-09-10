@@ -27,7 +27,10 @@
     <None Update="Config\Executor\worker.hocon" Link="config\worker.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Executor\manager.hocon" Link="config\manager.hocon">
+    <None Update="Config\Executor\lighthouse.hocon" Link="config\lighthouse.hocon">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Executor\monitor.hocon" Link="config\monitor.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Config\Database\database.json" Link="config\database.json">

@@ -12,8 +12,6 @@ namespace AElf.Management.Commands
 {
     public class K8SAddConfigCommand : IDeployCommand
     {
-        private const string ConfigName = "config-common";
-
         public void Action(string chainId, DeployArg arg)
         {
             var body = new V1ConfigMap
@@ -22,7 +20,7 @@ namespace AElf.Management.Commands
                 Kind = V1ConfigMap.KubeKind,
                 Metadata = new V1ObjectMeta
                 {
-                    Name = ConfigName,
+                    Name = GlobalSetting.CommonConfigName,
                     NamespaceProperty = chainId
                 },
                 Data = new Dictionary<string, string>
@@ -42,17 +40,18 @@ namespace AElf.Management.Commands
         {
             var config = new ActorConfig
             {
-                IsCluster = arg.ManagerArg.IsCluster,
+                IsCluster = arg.LighthouseArg.IsCluster,
                 HostName = "127.0.0.1",
                 Port = 0,
                 ActorCount = arg.WorkArg.ActorCount,
                 Benchmark = false,
                 ConcurrencyLevel = arg.WorkArg.ConcurrencyLevel,
-                Seeds = new List<SeedNode> {new SeedNode {HostName = "set-manager-0.service-manager", Port = 4053}},
+                Seeds = new List<SeedNode> {new SeedNode {HostName = "set-lighthouse-0.service-lighthouse", Port = 4053}},
                 SingleHoconFile = "single.hocon",
                 MasterHoconFile = "master.hocon",
                 WorkerHoconFile = "worker.hocon",
-                ManagerHoconFile = "manager.hocon"
+                LighthouseHoconFile = "lighthouse.hocon",
+                MonitorHoconFile = "monitor.hocon"
             };
 
             var result = JsonSerializer.Instance.Serialize(config);

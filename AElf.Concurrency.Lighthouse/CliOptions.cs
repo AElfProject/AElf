@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using CommandLine;
+﻿using CommandLine;
 
-namespace AElf.Concurrency.Manager
+namespace AElf.Concurrency.Lighthouse
 {
     public class CliOptions
     {

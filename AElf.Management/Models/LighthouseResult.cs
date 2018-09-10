@@ -2,7 +2,7 @@
 
 namespace AElf.Management.Models
 {
-    public class ManagerResult
+    public class LighthouseResult
     {
         public string NameSpace { get; set; }
 
