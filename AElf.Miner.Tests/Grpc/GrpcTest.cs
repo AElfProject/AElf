@@ -102,7 +102,7 @@ namespace AElf.Miner.Tests.Grpc
             _mock.CreateDirectory(dir);
             try
             {
-                var sideChainId = _mock.MockServer(50052, "127.0.0.1", dir);
+                var sideChainId = _mock.MockServer(50053, "127.0.0.1", dir);
                 
                 // create client, main chian is client-side
                 var manager = _mock.MinerClientManager();
