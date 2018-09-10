@@ -163,7 +163,7 @@ namespace AElf.Miner.Miner
                     results.Add(res);
                 }
 
-                var addrs = await InsertTxs(readyTxs, results);
+                var addrs = await InsertTxs(readyTxs, results, block);
                 await _txPoolService.UpdateAccountContext(addrs);
 
                 await _stateDictator.SetBlockHashAsync(block?.GetHash());
@@ -207,8 +207,10 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
+        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
         {
+            var bn = block.Header.Index;
+            var bh = block.Header.GetHash();
             var addrs = new HashSet<Hash>();
             foreach (var t in executedTxs)
             {
@@ -219,6 +221,8 @@ namespace AElf.Miner.Miner
             
             txResults.ForEach(async r =>
             {
+                r.BlockNumber = bn;
+                r.BlockHash = bh;
                 await _transactionResultManager.AddTransactionResultAsync(r);
             });
             return addrs;
