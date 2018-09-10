@@ -150,22 +150,14 @@ namespace AElf.Node.Protocol
                     // Every received transaction, provided that it's valid, should be in the pool.
                     var result = await _poolService.AddTxAsync(tx);
                     
-                    byte[] transactionBytes = tx.GetHashBytes();
-                    
                     if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
                     {
-                        receivedTxs.Add(transactionBytes);
+                        receivedTxs.Add(tx.GetHashBytes());
                     }
                     else
                     {
                         _logger?.Warn($"Failed to add the following transaction to the pool (reason: {result}): "
                                        + $"{tx.GetTransactionInfo()}");
-
-                        var pTx = PendingBlocks
-                            .Select(pb => pb.MissingTxs.First(mstx => mstx.Hash.BytesEqual(transactionBytes)))
-                            .First();
-
-                        pTx.IsRequestInProgress = false;
                     }
                 }
                 catch (Exception e)
@@ -520,7 +512,7 @@ namespace AElf.Node.Protocol
                 }
             }
 
-            if (ShouldDoInitialSync && CurrentExecHeight > SyncTargetHeight)
+            if (ShouldDoInitialSync && CurrentExecHeight >= SyncTargetHeight)
             {
                 ShouldDoInitialSync = false;
                 IsInitialSyncInProgress = false;
@@ -534,7 +526,7 @@ namespace AElf.Node.Protocol
         }
 
         /// <summary>
-        /// This adds a transaction to one of the blocks. Typically this happens when
+        /// This adds a transaction to one off the blocks. Typically this happens when
         /// a transaction has been received throught the network (requested by this
         /// synchronizer).
         /// It removes the transaction from the corresponding missing block.
