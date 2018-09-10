@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using AElf.Common.Extensions;
+using Newtonsoft.Json.Linq;
 using AElf.Kernel;
 
 namespace AElf.ChainController.Rpc
@@ -14,6 +15,8 @@ namespace AElf.ChainController.Rpc
                     {"TxId", tx.GetHash().ToHex()},
                     {"From", tx.From.ToHex()},
                     {"To", tx.To.ToHex()},
+                    {"RefBlockNumber", tx.RefBlockNumber},
+                    {"RefBlockPrefix", tx.RefBlockPrefix.ToByteArray().ToHex()},
                     {"Method", tx.MethodName},
                     {"IncrementId", tx.IncrementId}
                 }

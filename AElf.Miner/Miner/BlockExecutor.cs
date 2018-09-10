@@ -63,6 +63,8 @@ namespace AElf.Miner.Miner
                 if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
                     _logger?.Trace($"ExecuteBlock - Null block or no transactions.");
 
+                _logger?.Trace($"Executing block {block?.GetHash()}");
+                
                 var uncompressedPrivKey = block?.Header.P.ToByteArray();
                 var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
                 var blockProducerAddress = recipientKeyPair.GetAddress();
@@ -77,8 +79,16 @@ namespace AElf.Miner.Miner
                     {
                         if (!_txPoolService.TryGetTx(id, out var tx))
                         {
-                            throw new Exception($"Cannot find transaction {id}");
-                            return false;
+                            tx = await _transactionManager.GetTransaction(id);
+                            if (tx != null)
+                            {
+                                var tres = await _transactionResultManager.GetTransactionResultAsync(id);
+                                _logger?.Debug($"Transaction {id} already executed.\n{tres}");
+                            }
+                            else
+                            {
+                                throw new Exception($"Cannot find transaction {id}");    
+                            }
                         }
 
                         readyTxs.Add(tx);
@@ -163,7 +173,7 @@ namespace AElf.Miner.Miner
                     results.Add(res);
                 }
 
-                var addrs = await InsertTxs(readyTxs, results);
+                var addrs = await InsertTxs(readyTxs, results, block);
                 await _txPoolService.UpdateAccountContext(addrs);
 
                 await _stateDictator.SetBlockHashAsync(block?.GetHash());
@@ -207,8 +217,10 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
+        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
         {
+            var bn = block.Header.Index;
+            var bh = block.Header.GetHash();
             var addrs = new HashSet<Hash>();
             foreach (var t in executedTxs)
             {
@@ -219,6 +231,8 @@ namespace AElf.Miner.Miner
             
             txResults.ForEach(async r =>
             {
+                r.BlockNumber = bn;
+                r.BlockHash = bh;
                 await _transactionResultManager.AddTransactionResultAsync(r);
             });
             return addrs;

@@ -274,6 +274,8 @@ namespace AElf.ChainController.Rpc
 
                 if (txResult.Status == Status.Mined)
                 {
+                    response["block_number"] = txResult.BlockNumber;
+                    response["block_hash"] = txResult.BlockHash.ToHex();
                     response["return"] = txResult.RetVal.ToByteArray().ToHex();
                 }
                 // Todo: it should be deserialized to obj ion cli, 
