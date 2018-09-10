@@ -348,7 +348,6 @@ namespace AElf.Miner.Miner
             {
                 _minerServer.StartUp();
             }
-            
         }
 
         /// <summary>

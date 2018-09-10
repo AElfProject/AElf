@@ -1,5 +1,7 @@
 {
-  "IsCluster" : false,
   "LocalServerIP" : "127.0.0.1",
-  "Port" : "50052"
+  "LocalServerPort" : "50052",
+  "Client" : false,
+  "WaitingIntervalInMillisecond" : 10,
+  "Server" : false
 }
