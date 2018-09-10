@@ -1,7 +1,7 @@
 ﻿using System;
 using NLog;
 
-namespace AElf.Concurrency.Manager
+namespace AElf.Concurrency.Lighthouse
 {
     class Program
     {
@@ -25,6 +25,7 @@ namespace AElf.Concurrency.Manager
                 return;
             var managementService = new ManagementService();
             managementService.StartSeedNodes();
+           
             Console.WriteLine("Press Control + C to terminate.");
             Console.CancelKeyPress += async (sender, eventArgs) => { await managementService.StopAsync(); };
             managementService.TerminationHandle.Wait();

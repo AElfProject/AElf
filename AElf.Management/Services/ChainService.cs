@@ -46,9 +46,10 @@ namespace AElf.Management.Services
                 new K8SAddRedisCommand(), 
                 new K8SAddConfigCommand(), 
                 new K8SAddAccountKeyCommand(), 
-                new K8SAddManagerCommand(), 
+                new K8SAddLighthouseCommand(), 
                 new K8SAddWorkerCommand(), 
-                new K8SAddLauncherCommand()
+                new K8SAddLauncherCommand(),
+                new K8SAddMonitorCommand()
             };
 
             commands.ForEach(c => c.Action(chainId, arg));
@@ -74,9 +75,10 @@ namespace AElf.Management.Services
             arg1.MainChainAccount = accounts[0];
             arg1.AccountPassword = password;
             arg1.DBArg = new DeployDBArg();
-            arg1.ManagerArg=new DeployManagerArg();
-            arg1.ManagerArg.IsCluster = false;
+            arg1.LighthouseArg=new DeployLighthouseArg();
+            arg1.LighthouseArg.IsCluster = true;
             arg1.WorkArg = new DeployWorkArg();
+            arg1.WorkArg.WorkerCount = 2;
             arg1.WorkArg.ActorCount = 4;
             arg1.LauncherArg=new DeployLauncherArg();
             arg1.LauncherArg.IsConsensusInfoGenerator = true;
@@ -85,12 +87,13 @@ namespace AElf.Management.Services
             var namespace1 = chainId + "-1";
 
             DeployMainChain(namespace1, arg1);
+            return null;
             
             string host1 = null;
             while (true)
             {
                 Thread.Sleep(3000);
-                var service1 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", namespace1);
+                var service1 = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, namespace1);
                 var ingress = service1.Status.LoadBalancer.Ingress;
                 if (ingress == null)
                 {
@@ -102,7 +105,7 @@ namespace AElf.Management.Services
                     continue;
                 }
 
-                var pod1 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace1, labelSelector: "name=deploy-launcher");
+                var pod1 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace1, labelSelector: "name=" + GlobalSetting.LauncherName);
                 if (pod1 == null || pod1.Items.First().Status.Phase != "Running")
                 {
                     continue;
@@ -116,9 +119,10 @@ namespace AElf.Management.Services
             arg2.MainChainAccount = accounts[1];
             arg2.AccountPassword = password;
             arg2.DBArg = new DeployDBArg();
-            arg2.ManagerArg=new DeployManagerArg();
-            arg2.ManagerArg.IsCluster = false;
+            arg2.LighthouseArg=new DeployLighthouseArg();
+            arg2.LighthouseArg.IsCluster = true;
             arg2.WorkArg = new DeployWorkArg();
+            arg2.WorkArg.WorkerCount = 2;
             arg2.WorkArg.ActorCount = 4;
             arg2.LauncherArg=new DeployLauncherArg();
             arg2.LauncherArg.IsConsensusInfoGenerator = false;
@@ -133,7 +137,7 @@ namespace AElf.Management.Services
             while (true)
             {
                 Thread.Sleep(3000);
-                var service2 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", namespace2);
+                var service2 = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, namespace2);
                 var ingress = service2.Status.LoadBalancer.Ingress;
                 if (ingress == null)
                 {
@@ -145,7 +149,7 @@ namespace AElf.Management.Services
                     continue;
                 }
 
-                var pod2 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace2, labelSelector: "name=deploy-launcher");
+                var pod2 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace2, labelSelector: "name=" + GlobalSetting.LauncherName);
                 if (pod2 == null || pod2.Items.First().Status.Phase != "Running")
                 {
                     continue;
@@ -159,9 +163,10 @@ namespace AElf.Management.Services
             arg3.MainChainAccount = accounts[2];
             arg3.AccountPassword = password;
             arg3.DBArg = new DeployDBArg();
-            arg3.ManagerArg=new DeployManagerArg();
-            arg3.ManagerArg.IsCluster = false;
+            arg3.LighthouseArg=new DeployLighthouseArg();
+            arg3.LighthouseArg.IsCluster = true;
             arg3.WorkArg = new DeployWorkArg();
+            arg3.WorkArg.WorkerCount = 2;
             arg3.WorkArg.ActorCount = 4;
             arg3.LauncherArg=new DeployLauncherArg();
             arg3.LauncherArg.IsConsensusInfoGenerator = false;
@@ -180,7 +185,7 @@ namespace AElf.Management.Services
             while (true)
             {
                 Thread.Sleep(3000);
-                var service3 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", namespace3);
+                var service3 = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, namespace3);
                 var ingress = service3.Status.LoadBalancer.Ingress;
                 if (ingress == null)
                 {

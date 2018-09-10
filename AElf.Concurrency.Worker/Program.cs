@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using AElf.ChainController;
 using AElf.Common;
+using AElf.Configuration.Config.Contract;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Kernel;
@@ -34,6 +36,7 @@ namespace AElf.Concurrency.Worker
             if (!parsed)
                 return;
 
+            RunnerConfig.Instance.SdkDir = Path.GetDirectoryName(typeof(RunnerAElfModule).Assembly.Location);
             var runner = new SmartContractRunner();
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);

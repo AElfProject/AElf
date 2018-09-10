@@ -3,8 +3,8 @@ using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
-    public interface IManagerService
+    public interface ILighthouseService
     {
-        List<ManagerResult> GetAllManagers(string chainId);
+        List<LighthouseResult> GetAllLighthouses(string chainId);
     }
 }

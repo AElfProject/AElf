@@ -3,18 +3,17 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Akka.Cluster" Version="1.3.8" />
-    <PackageReference Include="Akka.Serialization.Hyperion" Version="1.3.8-beta66" />
+    <PackageReference Include="Akka.Cluster" Version="1.3.9" />
+    <PackageReference Include="Akka.Serialization.Hyperion" Version="1.3.9-beta68" />
     <PackageReference Include="LiteDB" Version="4.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.0-rc1-final" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
     <PackageReference Include="SharpRepository.Repository" Version="2.0.2" />
     <PackageReference Include="System.Reactive" Version="4.1.0-preview.84" />
-    <PackageReference Include="Akka" Version="1.3.8" />
+    <PackageReference Include="Akka" Version="1.3.9" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />

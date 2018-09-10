@@ -19,7 +19,7 @@ namespace AElf.Management.Tests
             arg.AccountPassword = "123";
             arg.DBArg = new DeployDBArg();
             arg.WorkArg = new DeployWorkArg();
-            arg.WorkArg.ActorCount = 1;
+            arg.WorkArg.ActorCount = 2;
 
             var service = new SideChainService();
             service.Deploy(_chainId, arg);

@@ -2,7 +2,7 @@
 using AElf.Configuration;
 using CommandLine;
 
-namespace AElf.Concurrency.Manager
+namespace AElf.Concurrency.Lighthouse
 {
     public class ConfigParser
     {

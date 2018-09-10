@@ -3,20 +3,19 @@ using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using k8s;
-using k8s.Models;
 
 namespace AElf.Management.Services
 {
-    public class LauncherService:ILauncherService
+    public class LighthouseService:ILighthouseService
     {
-        public List<LauncherResult> GetAllLaunchers(string chainId)
+        public List<LighthouseResult> GetAllLighthouses(string chainId)
         {
-            var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LauncherName);
-            
-            var result = new List<LauncherResult>();
+            var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LighthouseName);
+
+            var result = new List<LighthouseResult>();
             foreach (var pod in pods.Items)
             {
-                result.Add(new LauncherResult
+                result.Add(new LighthouseResult
                 {
                     NameSpace = pod.Metadata.NamespaceProperty,
                     Name = pod.Metadata.Name,
