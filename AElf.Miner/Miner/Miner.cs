@@ -142,7 +142,7 @@ namespace AElf.Miner.Miner
                     // No await so that it won't affect Consensus
                     _txPoolService.RollBack(rollback);
                     // insert txs to db
-                    InsertTxs(executed, results);
+                    InsertTxs(executed, results, block);
                     
                     return block;
                 }
@@ -240,14 +240,21 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
+        private async Task InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
         {
+            var bn = block.Header.Index;
+            var bh = block.Header.GetHash();
             executedTxs.AsParallel().ForEach(async tx =>
                 {
                     await _transactionManager.AddTransactionAsync(tx);
                     _txPoolService.RemoveAsync(tx.GetHash());
                 });
-            txResults.ForEach(async r => { await _transactionResultManager.AddTransactionResultAsync(r); });
+            txResults.ForEach(async r =>
+            {
+                r.BlockNumber = bn;
+                r.BlockHash = bh;
+                await _transactionResultManager.AddTransactionResultAsync(r);
+            });
         }
         
         /// <summary>

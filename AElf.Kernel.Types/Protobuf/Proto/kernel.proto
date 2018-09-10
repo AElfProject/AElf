@@ -43,6 +43,8 @@ message TransactionResult {
     repeated LogEvent Logs = 3;
     bytes Bloom = 4;
     bytes RetVal = 5;
+    uint64 BlockNumber = 6;
+    Hash BlockHash = 7;
 }
 
 message StateValueChange{
