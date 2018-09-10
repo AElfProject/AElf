@@ -63,6 +63,8 @@ namespace AElf.Miner.Miner
                 if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
                     _logger?.Trace($"ExecuteBlock - Null block or no transactions.");
 
+                _logger?.Trace($"Executing block {block?.GetHash()}");
+                
                 var uncompressedPrivKey = block?.Header.P.ToByteArray();
                 var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
                 var blockProducerAddress = recipientKeyPair.GetAddress();
@@ -77,8 +79,16 @@ namespace AElf.Miner.Miner
                     {
                         if (!_txPoolService.TryGetTx(id, out var tx))
                         {
-                            throw new Exception($"Cannot find transaction {id}");
-                            return false;
+                            tx = await _transactionManager.GetTransaction(id);
+                            if (tx != null)
+                            {
+                                var tres = await _transactionResultManager.GetTransactionResultAsync(id);
+                                _logger?.Debug($"Transaction {id} already executed.\n{tres}");
+                            }
+                            else
+                            {
+                                throw new Exception($"Cannot find transaction {id}");    
+                            }
                         }
 
                         readyTxs.Add(tx);
