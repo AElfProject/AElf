@@ -12,7 +12,7 @@ namespace AElf.Management.Commands
 {
     public class K8SAddConfigCommand : IDeployCommand
     {
-        public void Action(string chainId, DeployArg arg)
+        public void Action(DeployArg arg)
         {
             var body = new V1ConfigMap
             {
@@ -21,22 +21,22 @@ namespace AElf.Management.Commands
                 Metadata = new V1ObjectMeta
                 {
                     Name = GlobalSetting.CommonConfigName,
-                    NamespaceProperty = chainId
+                    NamespaceProperty = arg.SideChainId
                 },
                 Data = new Dictionary<string, string>
                 {
-                    {"actor.json", GetActorConfigJson(chainId, arg)}, 
-                    {"database.json", GetDatabaseConfigJson(chainId, arg)}, 
-                    {"miners.json", GetMinersConfigJson(chainId, arg)}, 
-                    {"parallel.json", GetParallelConfigJson(chainId, arg)}, 
-                    {"network.json", GetNetworkConfigJson(chainId, arg)}
+                    {"actor.json", GetActorConfigJson(arg)}, 
+                    {"database.json", GetDatabaseConfigJson(arg)}, 
+                    {"miners.json", GetMinersConfigJson(arg)}, 
+                    {"parallel.json", GetParallelConfigJson(arg)}, 
+                    {"network.json", GetNetworkConfigJson(arg)}
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, chainId);
+            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, arg.SideChainId);
         }
 
-        private string GetActorConfigJson(string chainId, DeployArg arg)
+        private string GetActorConfigJson(DeployArg arg)
         {
             var config = new ActorConfig
             {
@@ -58,7 +58,7 @@ namespace AElf.Management.Commands
             return result;
         }
 
-        private string GetDatabaseConfigJson(string chainId, DeployArg arg)
+        private string GetDatabaseConfigJson(DeployArg arg)
         {
             var config = new DatabaseConfig
             {
@@ -72,7 +72,7 @@ namespace AElf.Management.Commands
             return result;
         }
 
-        private string GetMinersConfigJson(string chainId, DeployArg arg)
+        private string GetMinersConfigJson(DeployArg arg)
         {
             var config = new MinersConfig();
             var i = 1;
@@ -89,7 +89,7 @@ namespace AElf.Management.Commands
             return result;
         }
 
-        private string GetParallelConfigJson(string chainId, DeployArg arg)
+        private string GetParallelConfigJson(DeployArg arg)
         {
             var config = new ParallelConfig
             {
@@ -101,7 +101,7 @@ namespace AElf.Management.Commands
             return result;
         }
 
-        private string GetNetworkConfigJson(string chainId, DeployArg arg)
+        private string GetNetworkConfigJson(DeployArg arg)
         {
             var config = new NetworkConfig();
             config.Bootnodes=new List<string>();

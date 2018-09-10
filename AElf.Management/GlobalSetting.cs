@@ -27,5 +27,9 @@
         public const string MonitorServiceName = "service-monitor";
         
         public const string MonitorName = "deploy-monitor";
+
+        public const int NodePort = 30800;
+        public const int RpcPort = 30600;
+        public const int GrpcPort = 40001;
     }
 }

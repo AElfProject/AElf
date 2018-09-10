@@ -12,7 +12,7 @@ namespace AElf.Management.Commands
 {
     public class K8SAddAccountKeyCommand : IDeployCommand
     {
-        public void Action(string chainId, DeployArg arg)
+        public void Action(DeployArg arg)
         {
             var body = new V1ConfigMap
             {
@@ -21,24 +21,24 @@ namespace AElf.Management.Commands
                 Metadata = new V1ObjectMeta
                 {
                     Name = GlobalSetting.KeysConfigName,
-                    NamespaceProperty = chainId
+                    NamespaceProperty = arg.SideChainId
                 },
-                Data = GetAndCreateAccountKey(chainId,arg)
+                Data = GetAndCreateAccountKey(arg)
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, chainId);
+            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, arg.SideChainId);
         }
 
-        private Dictionary<string, string> GetAndCreateAccountKey(string chainId, DeployArg arg)
+        private Dictionary<string, string> GetAndCreateAccountKey(DeployArg arg)
         {
-            if (string.IsNullOrWhiteSpace(arg.MainChainAccount))
+            if (string.IsNullOrWhiteSpace(arg.ChainAccount))
             {
                 var keyStore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
                 var key = keyStore.Create(arg.AccountPassword);
-                arg.MainChainAccount = key.GetAddressHex();
+                arg.ChainAccount = key.GetAddressHex();
             }
 
-            var fileName = arg.MainChainAccount + ".ak";
+            var fileName = arg.ChainAccount + ".ak";
             var filePath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "keys", fileName);
             var keyContent = File.ReadAllText(filePath);
 

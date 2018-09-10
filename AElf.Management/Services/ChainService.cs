@@ -37,7 +37,9 @@ namespace AElf.Management.Services
         {
             if (string.IsNullOrWhiteSpace(chainId))
             {
+                // todo 
                 chainId = GenerateChainId();
+                arg.IsDeployMainChain = true;
             }
 
             var commands = new List<IDeployCommand>
@@ -48,11 +50,13 @@ namespace AElf.Management.Services
                 new K8SAddAccountKeyCommand(), 
                 new K8SAddLighthouseCommand(), 
                 new K8SAddWorkerCommand(), 
+                new K8SAddLauncherServiceCommand(),
+                new K8SGrpcKeyCommand(),
                 new K8SAddLauncherCommand(),
                 new K8SAddMonitorCommand()
             };
 
-            commands.ForEach(c => c.Action(chainId, arg));
+            commands.ForEach(c => c.Action(arg));
         }
 
         public void RemoveMainChain(string chainId)
@@ -62,7 +66,7 @@ namespace AElf.Management.Services
                 new K8SDeleteNamespaceCommand()
             };
 
-            commands.ForEach(c => c.Action(chainId, null));
+            commands.ForEach(c => c.Action(new DeployArg {SideChainId = chainId}));
         }
 
         public DeployTestChainResult DeployTestChain()
@@ -72,7 +76,7 @@ namespace AElf.Management.Services
             var accounts = CreateAccount(3, password);
             
             var arg1 = new DeployArg();
-            arg1.MainChainAccount = accounts[0];
+            arg1.ChainAccount = accounts[0];
             arg1.AccountPassword = password;
             arg1.DBArg = new DeployDBArg();
             arg1.LighthouseArg=new DeployLighthouseArg();
@@ -116,7 +120,7 @@ namespace AElf.Management.Services
             }
 
             var arg2 = new DeployArg();
-            arg2.MainChainAccount = accounts[1];
+            arg2.ChainAccount = accounts[1];
             arg2.AccountPassword = password;
             arg2.DBArg = new DeployDBArg();
             arg2.LighthouseArg=new DeployLighthouseArg();
@@ -160,7 +164,7 @@ namespace AElf.Management.Services
             }
             
             var arg3 = new DeployArg();
-            arg3.MainChainAccount = accounts[2];
+            arg3.ChainAccount = accounts[2];
             arg3.AccountPassword = password;
             arg3.DBArg = new DeployDBArg();
             arg3.LighthouseArg=new DeployLighthouseArg();

@@ -15,7 +15,7 @@ namespace AElf.Management.Tests
         public void DeployTest()
         {
             var arg = new DeployArg();
-            arg.MainChainAccount = "0x04b8b111fdbc2f5409a006339fa1758e1ed1";
+            arg.ChainAccount = "0x04b8b111fdbc2f5409a006339fa1758e1ed1";
             arg.AccountPassword = "123";
             arg.DBArg = new DeployDBArg();
             arg.WorkArg = new DeployWorkArg();
