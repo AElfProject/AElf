@@ -3,7 +3,6 @@
     "HostName": "127.0.0.1",
     "Port": 0,
     "ActorCount": 8,
-    "Benchmark":false,
     "ConcurrencyLevel": 16,
     "Seeds": [
         {
