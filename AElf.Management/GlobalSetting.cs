@@ -8,6 +8,8 @@
 
         public const string KeysConfigName = "config-keys";
         
+        public const string CertsConfigName = "config-certs";
+        
         public const string RedisConfigName = "config-redis";
         
         public const string RedisServiceName = "service-redis";

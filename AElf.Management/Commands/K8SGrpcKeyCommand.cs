@@ -6,6 +6,7 @@ using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
 using k8s.Models;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace AElf.Management.Commands
 {
@@ -13,16 +14,22 @@ namespace AElf.Management.Commands
     {
         public void Action(DeployArg arg)
         {
+            CreateGrpcKey(arg);
+            var certFileName = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "certs", arg.SideChainId + ".cert.pem");
+            var cert = File.ReadAllText(certFileName);
+            var keyFileName = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "keys", arg.SideChainId + ".key.pem");
+            var key = File.ReadAllText(keyFileName);
+
             var body = new V1ConfigMap
             {
                 ApiVersion = V1ConfigMap.KubeApiVersion,
                 Kind = V1ConfigMap.KubeKind,
                 Metadata = new V1ObjectMeta
                 {
-                    Name = GlobalSetting.KeysConfigName,
+                    Name = GlobalSetting.CertsConfigName,
                     NamespaceProperty = arg.SideChainId
                 },
-                Data = GetAndCreateGrpcKey(arg)
+                Data = new Dictionary<string, string> {{certFileName, cert}, {keyFileName, key}}
             };
 
             K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, arg.SideChainId);
@@ -30,28 +37,17 @@ namespace AElf.Management.Commands
             if (!arg.IsDeployMainChain)
             {
                 // update main chain config
-                
-            }
+                var patch = new JsonPatchDocument<V1ConfigMap>();
+                patch.Add(e => e.Data, new Dictionary<string, string>{{certFileName, cert}});
 
-            throw new System.NotImplementedException();
+                K8SRequestHelper.GetClient().PatchNamespacedConfigMap(new V1Patch(patch), GlobalSetting.CertsConfigName, arg.MainChainId);
+            }
         }
 
-        private Dictionary<string, string> GetAndCreateGrpcKey(DeployArg arg)
+        private void CreateGrpcKey(DeployArg arg)
         {
-            var result = new Dictionary<string, string>();
-            
             var certificateStore = new CertificateStore(ApplicationHelpers.GetDefaultDataDir());
             certificateStore.WriteKeyAndCertificate(arg.SideChainId, arg.LauncherArg.ClusterIp);
-
-            var certFileName = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "certs", arg.SideChainId + ".cert.pem");
-            var cert = File.ReadAllText(certFileName);
-            var keyFileName = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "keys", arg.SideChainId + ".key.pem");
-            var key = File.ReadAllText(keyFileName);
-            
-            result.Add(certFileName,cert);
-            result.Add(keyFileName, key);
-
-            return result;
         }
     }
 }

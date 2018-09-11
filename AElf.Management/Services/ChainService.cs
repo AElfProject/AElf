@@ -33,25 +33,25 @@ namespace AElf.Management.Services
                 }).ToList();
         }
 
-        public void DeployMainChain(string chainId, DeployArg arg)
+        public void DeployMainChain(DeployArg arg)
         {
-            if (string.IsNullOrWhiteSpace(chainId))
+            if (string.IsNullOrWhiteSpace(arg.MainChainId))
             {
-                // todo 
-                chainId = GenerateChainId();
+                arg.MainChainId = GenerateChainId();
                 arg.IsDeployMainChain = true;
+                arg.SideChainId = arg.MainChainId;
             }
 
             var commands = new List<IDeployCommand>
             {
                 new K8SAddNamespaceCommand(), 
-                new K8SAddRedisCommand(), 
+                new K8SAddRedisCommand(),
+                new K8SAddLauncherServiceCommand(),
                 new K8SAddConfigCommand(), 
                 new K8SAddAccountKeyCommand(), 
+                new K8SGrpcKeyCommand(),
                 new K8SAddLighthouseCommand(), 
                 new K8SAddWorkerCommand(), 
-                new K8SAddLauncherServiceCommand(),
-                new K8SGrpcKeyCommand(),
                 new K8SAddLauncherCommand(),
                 new K8SAddMonitorCommand()
             };
@@ -90,7 +90,7 @@ namespace AElf.Management.Services
 
             var namespace1 = chainId + "-1";
 
-            DeployMainChain(namespace1, arg1);
+            DeployMainChain(arg1);
             return null;
             
             string host1 = null;
@@ -135,7 +135,7 @@ namespace AElf.Management.Services
             
             var namespace2 = chainId + "-2";
 
-            DeployMainChain(namespace2, arg2);
+            DeployMainChain(arg2);
             
             string host2 = null;
             while (true)
@@ -183,7 +183,7 @@ namespace AElf.Management.Services
             
             var namespace3 = chainId + "-3";
 
-            DeployMainChain(namespace3, arg3);
+            DeployMainChain(arg3);
             
             string host3 = null;
             while (true)
