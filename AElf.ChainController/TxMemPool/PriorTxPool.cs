@@ -9,8 +9,8 @@ using NLog;
 
 namespace AElf.ChainController.TxMemPool
 {
-    [LoggerName("DPoSTxPool")]
-    public class DPoSTxPool : IDPoSTxPool
+    [LoggerName("PriorTxPool")]
+    public class PriorTxPool : IPriorTxPool
     {
         private readonly Dictionary<Hash, List<Transaction>> _executable =
             new Dictionary<Hash, List<Transaction>>();
@@ -24,7 +24,7 @@ namespace AElf.ChainController.TxMemPool
         private readonly ITxPoolConfig _config;
 
 
-        public DPoSTxPool(ITxPoolConfig config, ILogger logger)
+        public PriorTxPool(ITxPoolConfig config, ILogger logger)
         {
             _config = config;
             _logger = logger;

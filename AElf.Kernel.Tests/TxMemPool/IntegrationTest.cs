@@ -36,10 +36,10 @@ namespace AElf.Kernel.Tests.TxMemPool
             return new ContractTxPool(config, _logger);
         }
         
-        private DPoSTxPool GetDPoSTxPool(ITxPoolConfig config)
+        private PriorTxPool GetDPoSTxPool(ITxPoolConfig config)
         {
             _stateDictator.ChainId = config.ChainId;
-            return new DPoSTxPool(config, _logger);
+            return new PriorTxPool(config, _logger);
         }
 
         public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null, TransactionType type = TransactionType.ContractTransaction)

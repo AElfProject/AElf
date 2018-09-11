@@ -37,21 +37,6 @@ namespace AElf.SmartContract
             _transactionManager = transactionManager;
         }
 
-        public async Task<ulong> GetChainCurrentHeightAsync(Hash chainId)
-        {
-            var key = chainId.OfType(HashType.ChainHeight);
-            var height = await _dataStore.GetAsync<UInt64Value>(key);
-            return height.Value;
-        }
-
-        public async Task SetChainCurrentHeightAsync(Hash chainId, ulong height)
-        {
-            var key = chainId.OfType(HashType.ChainHeight);
-            await _dataStore.InsertAsync(key, new UInt64Value
-            {
-                Value = height
-            });
-        }
         
         /// <summary>
         /// Get an AccountDataProvider instance

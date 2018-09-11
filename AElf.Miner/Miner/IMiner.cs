@@ -6,7 +6,8 @@ namespace AElf.Miner.Miner
 {
     public interface IMiner
     {
-        void Start(ECKeyPair nodeKeyPair);
+        void Init(ECKeyPair nodeKeyPair);
+        void Close();
 
         Hash Coinbase { get; }
         
@@ -14,6 +15,6 @@ namespace AElf.Miner.Miner
         /// mining functionality
         /// </summary>
         /// <returns></returns>
-        Task<IBlock> Mine(int timeoutMilliseconds, bool initial);
+        Task<IBlock> Mine();
     }
 }

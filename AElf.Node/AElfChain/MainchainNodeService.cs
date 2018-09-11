@@ -192,7 +192,7 @@ namespace AElf.Node.AElfChain
             
             if (NodeConfig.Instance.IsMiner)
             {
-                _miner.Start(_nodeKeyPair);
+                _miner.Init(_nodeKeyPair);
 
                 _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.ToHex());
             }
@@ -358,7 +358,7 @@ namespace AElf.Node.AElfChain
                         {
                             _logger?.Trace("Ready to rollback");
                             var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
-                            await _txPoolService.RollBack(txs);
+                            await _txPoolService.Revert(txs);
                             await _stateDictator.RollbackToPreviousBlock();
                             error = ValidationError.Success;
                         }

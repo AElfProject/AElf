@@ -18,20 +18,20 @@ using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 namespace AElf.ChainController.TxMemPool
 {
     [LoggerName("Txpool")]
-    public class TxPoolService : ChainController.TxMemPool.ITxPoolService
+    public class TxPoolService : ITxPoolService
     {
         private readonly IContractTxPool _contractTxPool;
-        private readonly IDPoSTxPool _dpoSTxPool;
+        private readonly IPriorTxPool _priorTxPool;
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
 
         public TxPoolService(IContractTxPool contractTxPool, IAccountContextService accountContextService, 
-            ILogger logger, IDPoSTxPool dpoSTxPool)
+            ILogger logger, IPriorTxPool priorTxPool)
         {
             _contractTxPool = contractTxPool;
             _accountContextService = accountContextService;
             _logger = logger;
-            _dpoSTxPool = dpoSTxPool;
+            _priorTxPool = priorTxPool;
         }
 
         /// <summary>
@@ -40,12 +40,12 @@ namespace AElf.ChainController.TxMemPool
         private CancellationTokenSource Cts { get; set; }
 
         private TxPoolSchedulerLock ContractTxLock { get; } = new TxPoolSchedulerLock();
-        private TxPoolSchedulerLock DPoSTxLock { get; } = new TxPoolSchedulerLock();
+        private TxPoolSchedulerLock PriorTxLock { get; } = new TxPoolSchedulerLock();
 
 
         private readonly ConcurrentDictionary<Hash, Transaction> _contractTxs = new ConcurrentDictionary<Hash, Transaction>();
-        private readonly ConcurrentDictionary<Hash, Transaction> _dPoSTxs = new ConcurrentDictionary<Hash, Transaction>();
-        private readonly ConcurrentBag<Hash> _bpAddrs = new ConcurrentBag<Hash>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _priorTxs = new ConcurrentDictionary<Hash, Transaction>();
+        private readonly ConcurrentBag<Hash> _priorAddresses = new ConcurrentBag<Hash>();
 
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
@@ -66,7 +66,7 @@ namespace AElf.ChainController.TxMemPool
             if (tx.Type == TransactionType.DposTransaction)
             {
                 await TrySetNonce(tx.From, TransactionType.DposTransaction);
-                return await DPoSTxLock.WriteLock(() => AddDPoSTransaction(tx));
+                return await PriorTxLock.WriteLock(() => AddPriorTransaction(tx));
             }
 
             await TrySetNonce(tx.From, TransactionType.ContractTransaction);
@@ -74,22 +74,22 @@ namespace AElf.ChainController.TxMemPool
         }
         
         /// <summary>
-        /// enqueue dpos tx
+        /// enqueue prior tx
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private TxValidation.TxInsertionAndBroadcastingError AddDPoSTransaction(Transaction tx)
+        private TxValidation.TxInsertionAndBroadcastingError AddPriorTransaction(Transaction tx)
         {
             if (tx.Type != TransactionType.DposTransaction) return TxValidation.TxInsertionAndBroadcastingError.Failed;
-            if (_dPoSTxs.ContainsKey(tx.GetHash()))
+            if (_priorTxs.ContainsKey(tx.GetHash()))
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
             
-            var res = _dpoSTxPool.EnQueueTx(tx);
+            var res = _priorTxPool.EnQueueTx(tx);
             if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
             {
                 // add tx
-                _dPoSTxs.GetOrAdd(tx.GetHash(), tx);
-                _bpAddrs.Add(tx.From);
+                _priorTxs.GetOrAdd(tx.GetHash(), tx);
+                _priorAddresses.Add(tx.From);
             }
             return res;
         }
@@ -126,7 +126,7 @@ namespace AElf.ChainController.TxMemPool
             if(type == TransactionType.ContractTransaction)
                 pool =  _contractTxPool;
             else
-                pool = _dpoSTxPool;
+                pool = _priorTxPool;
             // tx from account state
             if (!pool.GetNonce(addr).HasValue)
             {
@@ -139,7 +139,7 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public void RemoveAsync(Hash txHash)
         {
-            if (_dPoSTxs.TryRemove(txHash, out _))
+            if (_priorTxs.TryRemove(txHash, out _))
                 return;
             _contractTxs.TryRemove(txHash, out _);
         }
@@ -167,15 +167,15 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public async Task<List<Transaction>> GetReadyTxsAsync(double intervals = 150)
         {
-            // get dpos transanction
-            var dpos = await DPoSTxLock.WriteLock(() =>
+            // get prior transanction
+            var prior = await PriorTxLock.WriteLock(() =>
             {
-                var readyTxs = _dpoSTxPool.ReadyTxs();
+                var readyTxs = _priorTxPool.ReadyTxs();
                 foreach (var tx in readyTxs)
                 {
-                    _dPoSTxs.TryRemove(tx.GetHash(), out _);
+                    _priorTxs.TryRemove(tx.GetHash(), out _);
                 }
-                _logger.Log(LogLevel.Debug, $"Got {readyTxs.Count} DPoS tx");
+                _logger.Log(LogLevel.Debug, $"Got {readyTxs.Count} prior tx(s)");
                 return readyTxs;
             });
             
@@ -218,7 +218,6 @@ namespace AElf.ChainController.TxMemPool
                     bool res = t.Wait(TimeSpan.FromMilliseconds(intervals));
                     if(!res)
                         tokenSource.Cancel();
-
                     // NOTE: be careful, some txs maybe lost here without this
                     if (available && !complete)
                     {
@@ -244,7 +243,7 @@ namespace AElf.ChainController.TxMemPool
             {
                 // case 1
                 // get txs successfully
-                dpos.AddRange(contractTxs);
+                prior.AddRange(contractTxs);
             
                 foreach (var tx in contractTxs)
                 {
@@ -274,14 +273,14 @@ namespace AElf.ChainController.TxMemPool
                 _logger.Log(LogLevel.Debug, "TIMEOUT! - Enough txs but no time left to get txs.");
             }
                 
-            return dpos;
+            return prior;
         }
 
         /// <inheritdoc/>
         public Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
         {
-            return _bpAddrs.Contains(addr)
-                ? DPoSTxLock.WriteLock(() => { return _dpoSTxPool.ReadyTxs(addr, start, ids); })
+            return _priorAddresses.Contains(addr)
+                ? PriorTxLock.WriteLock(() => { return _priorTxPool.ReadyTxs(addr, start, ids); })
                 : ContractTxLock.WriteLock(() => { return _contractTxPool.ReadyTxs(addr, start, ids); });
         }
 
@@ -294,13 +293,13 @@ namespace AElf.ChainController.TxMemPool
             }*/
 
             return await ContractTxLock.ReadLock(() => _contractTxPool.Size) +
-                   await DPoSTxLock.ReadLock(() => _dpoSTxPool.Size);
+                   await PriorTxLock.ReadLock(() => _priorTxPool.Size);
         }
 
         /// <inheritdoc/>
         public bool TryGetTx(Hash txHash, out Transaction tx)
         {
-            return _contractTxs.TryGetValue(txHash, out tx) || _dPoSTxs.TryGetValue(txHash, out tx);
+            return _contractTxs.TryGetValue(txHash, out tx) || _priorTxs.TryGetValue(txHash, out tx);
         }
         
         public List<Hash> GetMissingTransactions(IBlock block)
@@ -330,14 +329,14 @@ namespace AElf.ChainController.TxMemPool
         public async Task<ulong> GetWaitingSizeAsync()
         {
             return await ContractTxLock.ReadLock(() => _contractTxPool.GetWaitingSize()) +
-                   await DPoSTxLock.ReadLock(() => _dpoSTxPool.GetWaitingSize());
+                   await PriorTxLock.ReadLock(() => _priorTxPool.GetWaitingSize());
         }
 
         /// <inheritdoc/>
         public async Task<ulong> GetExecutableSizeAsync()
         {
             return await ContractTxLock.ReadLock(() => _contractTxPool.GetExecutableSize()) +
-                   await DPoSTxLock.ReadLock(() => _dpoSTxPool.GetExecutableSize());
+                   await PriorTxLock.ReadLock(() => _priorTxPool.GetExecutableSize());
         }
 
         /// <inheritdoc/>
@@ -346,11 +345,11 @@ namespace AElf.ChainController.TxMemPool
             foreach (var addr in addrs)
             {
                 IPool pool;
-                if (!_bpAddrs.Contains(addr))
+                if (!_priorAddresses.Contains(addr))
                     pool = _contractTxPool;
                 else
                 {
-                    pool = _dpoSTxPool;
+                    pool = _priorTxPool;
                 }
                 var id = pool.GetNonce(addr);
                 if(!id.HasValue)
@@ -402,15 +401,18 @@ namespace AElf.ChainController.TxMemPool
             }
             else
             {
-                pool = _dpoSTxPool;
+                pool = _priorTxPool;
             }
             return pool.GetPendingIncrementId(addr);
         }
 
         /// <inheritdoc/>
-        public async Task RollBack(List<Transaction> txsOut)
+        /// <remarks>
+        /// only contract txs would be reverted
+        /// </remarks>
+        public async Task Revert(List<Transaction> txsOut)
         {
-            _logger?.Log(LogLevel.Debug, "Rollback {0} txs ...", txsOut.Count);
+            _logger?.Log(LogLevel.Debug, "Revert {0} txs ...", txsOut.Count);
 
             try
             {
@@ -425,7 +427,6 @@ namespace AElf.ChainController.TxMemPool
                     }
 
                     current[p.From].Add(p);
-                
                     return current;
                 });
                 
@@ -434,22 +435,22 @@ namespace AElf.ChainController.TxMemPool
                     
                     ILock @lock;
                     IPool pool;
-                    if (!_bpAddrs.Contains(kv.Key))
+                    if (!_priorAddresses.Contains(kv.Key))
                     {
                         @lock = ContractTxLock;
                         pool = _contractTxPool;
                     }
                     else
                     {
-                        @lock = DPoSTxLock;
-                        pool = _dpoSTxPool;
+                        @lock = PriorTxLock;
+                        pool = _priorTxPool;
                     }
                     var nonce = pool.GetNonce(kv.Key);
                     var min = kv.Value.Min(t => t.IncrementId);
                     var n = nonce ?? (await _accountContextService.GetAccountDataContext(kv.Key, pool.ChainId))
                             .IncrementId;
                     
-                    // cannot be rollbacked
+                    // cannot be reverted
                     if(min >= n)
                         continue;
                     
@@ -459,22 +460,26 @@ namespace AElf.ChainController.TxMemPool
                         Address = kv.Key,
                         ChainId = pool.ChainId
                     });
-                    
-                    await @lock.WriteLock(() =>
+
+                    if (!_priorAddresses.Contains(kv.Key))
                     {
-                        pool.Withdraw(kv.Key, min);
-                        foreach (var tx in kv.Value)
+                        // only contract txs could be revert
+                        await @lock.WriteLock(() =>
                         {
-                            if (@lock == DPoSTxLock)
+                            pool.Withdraw(kv.Key, min);
+                            foreach (var tx in kv.Value)
                             {
-                                AddDPoSTransaction(tx);
+                                if (@lock == PriorTxLock)
+                                {
+                                    AddPriorTransaction(tx);
+                                }
+                                else
+                                {
+                                    AddContractTransaction(tx);
+                                }
                             }
-                            else
-                            {
-                                AddContractTransaction(tx);
-                            }
-                        }
-                    });
+                        });
+                    }
                 }
             }
             catch (Exception e)
@@ -483,7 +488,7 @@ namespace AElf.ChainController.TxMemPool
                 throw;
             }
             
-            _logger?.Log(LogLevel.Debug, "Rollbacked {0} txs.", txsOut.Count);
+            _logger?.Log(LogLevel.Debug, "Reverted {0} txs.", txsOut.Count);
         }
 
         public void SetBlockVolume(ulong minimal, ulong maximal)

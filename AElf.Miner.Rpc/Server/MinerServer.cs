@@ -26,10 +26,9 @@ namespace AElf.Miner.Rpc.Server
             _headerInfoServerImpl = headerInfoServerImpl;
         }
 
-        public void Init(Hash chainId, string dir)
+        public void Init(Hash chainId, string dir = "")
         {
-            _certificateStore =
-                new CertificateStore(dir);
+            _certificateStore = new CertificateStore(dir == "" ? ApplicationHelpers.GetDefaultDataDir() : dir);
             string ch = chainId.ToHex();
             string certificate = _certificateStore.GetCertificate(ch);
             if(certificate == null)
@@ -44,6 +43,8 @@ namespace AElf.Miner.Rpc.Server
             
             // init server impl
             _headerInfoServerImpl.Init(chainId);
+            
+            _logger?.Debug("Init miner server.");
         }
         
         
@@ -54,12 +55,14 @@ namespace AElf.Miner.Rpc.Server
                 Services = {HeaderInfoRpc.BindService(_headerInfoServerImpl)},
                 Ports =
                 {
-                    new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, GrpcLocalConfig.Instance.LocalServerPort, 
-                        _sslServerCredentials)
+                    new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, GrpcLocalConfig.Instance.LocalServerPort, _sslServerCredentials)
+                    //new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, GrpcLocalConfig.Instance.LocalServerPort, ServerCredentials.Insecure)
                 }
             };
             _server.Start();
-            _logger.Log(LogLevel.Debug, "Miner server listening on port " + GrpcLocalConfig.Instance.LocalServerPort);          
+            _logger.Log(LogLevel.Debug,
+                "Miner server listening on " + GrpcLocalConfig.Instance.LocalServerIP + ":" +
+                GrpcLocalConfig.Instance.LocalServerPort);
         }
 
         public void Stop()
@@ -67,7 +70,5 @@ namespace AElf.Miner.Rpc.Server
             _server.ShutdownAsync().Wait();
             _logger.Log(LogLevel.Debug, "Shutdowning miner server..");
         }
-        
-        
     }
 }

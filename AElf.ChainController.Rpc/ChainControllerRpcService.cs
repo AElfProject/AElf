@@ -274,6 +274,8 @@ namespace AElf.ChainController.Rpc
 
                 if (txResult.Status == Status.Mined)
                 {
+                    response["block_number"] = txResult.BlockNumber;
+                    response["block_hash"] = txResult.BlockHash.ToHex();
                     response["return"] = txResult.RetVal.ToByteArray().ToHex();
                 }
                 // Todo: it should be deserialized to obj ion cli, 
@@ -335,7 +337,8 @@ namespace AElf.ChainController.Rpc
                         ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
-                        ["ChainId"] = blockinfo.Header.ChainId.ToHex()
+                        ["ChainId"] = blockinfo.Header.ChainId.ToHex(),
+                        ["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                     },
                     ["Body"] = new JObject
                     {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace AElf.Configuration.Config.GRPC
@@ -7,6 +8,16 @@ namespace AElf.Configuration.Config.GRPC
     {
         public Dictionary<string, Uri> ParentChain { get; set; }
         public Dictionary<string, Uri> ChildChains { get; set; }
+
+        public GrpcRemoteConfig()
+        {
+            ConfigChanged+= OnGrpcRemoteConfigChanged;
+        }
+
+        private void OnGrpcRemoteConfigChanged(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
     }
     
     public class Uri
