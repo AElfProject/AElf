@@ -55,10 +55,9 @@ namespace AElf.Management.Commands
             var retryGetCount = 0;
             while (true)
             {
-                var ingress = service.Status.LoadBalancer.Ingress;
-                if (ingress != null && !string.IsNullOrWhiteSpace(ingress.FirstOrDefault().Ip))
+                arg.LauncherArg.ClusterIp = service.Spec.ClusterIP;
+                if (!string.IsNullOrWhiteSpace(arg.LauncherArg.ClusterIp))
                 {
-                    arg.LauncherArg.ClusterIp = ingress.FirstOrDefault().Ip;
                     break;
                 }
 

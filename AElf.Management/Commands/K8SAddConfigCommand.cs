@@ -160,7 +160,7 @@ namespace AElf.Management.Commands
             if (!arg.IsDeployMainChain)
             {
                 var service = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, arg.MainChainId);
-                config.ParentChain.Add(arg.MainChainId, new Uri {Port = GlobalSetting.GrpcPort, Address = service.Status.LoadBalancer.Ingress.FirstOrDefault().Ip});
+                config.ParentChain.Add(arg.MainChainId, new Uri {Port = GlobalSetting.GrpcPort, Address = service.Spec.ClusterIP});
             }
 
             var result = JsonSerializer.Instance.Serialize(config);

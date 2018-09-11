@@ -15,10 +15,10 @@ namespace AElf.Management.Commands
         public void Action(DeployArg arg)
         {
             CreateGrpcKey(arg);
-            var certFileName = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "certs", arg.SideChainId + ".cert.pem");
-            var cert = File.ReadAllText(certFileName);
-            var keyFileName = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "keys", arg.SideChainId + ".key.pem");
-            var key = File.ReadAllText(keyFileName);
+            var certFileName = arg.SideChainId + ".cert.pem";
+            var cert = File.ReadAllText(Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "certs", certFileName));
+            var keyFileName = arg.SideChainId + ".key.pem";
+            var key = File.ReadAllText(Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "certs", keyFileName));
 
             var body = new V1ConfigMap
             {

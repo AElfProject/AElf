@@ -91,7 +91,7 @@ namespace AElf.Management.Commands
                                         "--chain.new",
                                         "true",
                                         "--chain.id",
-                                        arg.SideChainId.Split('-').First(),
+                                        arg.SideChainId,
                                         "--node.executor",
                                         arg.LighthouseArg.IsCluster?"akka":"simple"
                                     },
@@ -120,14 +120,14 @@ namespace AElf.Management.Commands
                                 new V1Volume
                                 {
                                     Name = "config",
-                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "config-common"}
+                                    ConfigMap = new V1ConfigMapVolumeSource {Name = GlobalSetting.CommonConfigName}
                                 },
                                 new V1Volume
                                 {
                                     Name = "key",
                                     ConfigMap = new V1ConfigMapVolumeSource
                                     {
-                                        Name = "config-keys",
+                                        Name = GlobalSetting.KeysConfigName,
                                         Items = new List<V1KeyToPath>
                                         {
                                             new V1KeyToPath{Key = arg.ChainAccount+".ak",Path = arg.ChainAccount+".ak"}
@@ -137,7 +137,7 @@ namespace AElf.Management.Commands
                                 new V1Volume
                                 {
                                     Name = "cert",
-                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "config-cert"}
+                                    ConfigMap = new V1ConfigMapVolumeSource {Name = GlobalSetting.CertsConfigName}
                                 }
                             }
                         }

@@ -73,14 +73,14 @@ namespace AElf.Management.Services
         {
             var chainId = GenerateChainId();
             var password = "123";
-            var accounts = CreateAccount(3, password);
+            var accounts = CreateAccount(1, password);
             
             var arg1 = new DeployArg();
             arg1.ChainAccount = accounts[0];
             arg1.AccountPassword = password;
             arg1.DBArg = new DeployDBArg();
             arg1.LighthouseArg=new DeployLighthouseArg();
-            arg1.LighthouseArg.IsCluster = true;
+            arg1.LighthouseArg.IsCluster = false;
             arg1.WorkArg = new DeployWorkArg();
             arg1.WorkArg.WorkerCount = 2;
             arg1.WorkArg.ActorCount = 4;
