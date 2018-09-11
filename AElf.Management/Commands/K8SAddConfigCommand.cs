@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.Enums;
 using AElf.Configuration;
@@ -9,6 +10,7 @@ using AElf.Management.Models;
 using k8s;
 using k8s.Models;
 using Microsoft.AspNetCore.JsonPatch;
+using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Management.Commands
 {
@@ -41,13 +43,14 @@ namespace AElf.Management.Commands
 
             if (!arg.IsDeployMainChain)
             {
-                var config = K8SRequestHelper.GetClient().ReadNamespacedConfigMap(GlobalSetting.CommonConfigName, arg.MainChainId);
+                var config = K8SRequestHelper.GetClient().ReadNamespacedConfigMap(GlobalSetting.CommonConfigName, arg.MainChainId).Data;
 
-                var grpcRemoteConfig = JsonSerializer.Instance.Deserialize<GrpcRemoteConfig>(config.Data["grpcremote.json"]);
+                var grpcRemoteConfig = JsonSerializer.Instance.Deserialize<GrpcRemoteConfig>(config["grpcremote.json"]);
                 grpcRemoteConfig.ChildChains.Add(arg.SideChainId, new Uri {Port = GlobalSetting.GrpcPort, Address = arg.LauncherArg.ClusterIp});
-
+                config["grpcremote.json"] = JsonSerializer.Instance.Serialize(grpcRemoteConfig);
+                
                 var patch = new JsonPatchDocument<V1ConfigMap>();
-                patch.Add(e => e.Data, new Dictionary<string, string> {{"grpcremote.json", JsonSerializer.Instance.Serialize(grpcRemoteConfig)}});
+                patch.Replace(e => e.Data, config);
 
                 K8SRequestHelper.GetClient().PatchNamespacedConfigMap(new V1Patch(patch), GlobalSetting.CommonConfigName, arg.MainChainId);
             }
@@ -92,6 +95,11 @@ namespace AElf.Management.Commands
         private string GetMinersConfigJson(DeployArg arg)
         {
             var config = new MinersConfig();
+            if (arg.IsDeployMainChain && !arg.Miners.Contains(arg.ChainAccount))
+            {
+                arg.Miners.Add(arg.ChainAccount);
+            }
+
             var i = 1;
             config.Producers=new Dictionary<string, Dictionary<string, string>>();
             foreach (var miner in arg.Miners)

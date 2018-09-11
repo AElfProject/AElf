@@ -20,6 +20,22 @@ namespace AElf.Management.Commands
             var keyFileName = arg.SideChainId + ".key.pem";
             var key = File.ReadAllText(Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "certs", keyFileName));
 
+            var configMapData = new Dictionary<string, string> {{certFileName, cert}, {keyFileName, key}};
+
+            if (!arg.IsDeployMainChain)
+            {
+                var certMainChain = K8SRequestHelper.GetClient().ReadNamespacedConfigMap(GlobalSetting.CertsConfigName, arg.MainChainId).Data;
+                var certName = arg.MainChainId + ".cert.pem";
+                configMapData.Add(certName, certMainChain[certName]);
+
+                certMainChain.Add(certFileName, cert);
+                var patch = new JsonPatchDocument<V1ConfigMap>();
+                patch.Replace(e => e.Data, certMainChain);
+
+                K8SRequestHelper.GetClient().PatchNamespacedConfigMap(new V1Patch(patch), GlobalSetting.CertsConfigName, arg.MainChainId);
+            }
+
+
             var body = new V1ConfigMap
             {
                 ApiVersion = V1ConfigMap.KubeApiVersion,
@@ -29,19 +45,10 @@ namespace AElf.Management.Commands
                     Name = GlobalSetting.CertsConfigName,
                     NamespaceProperty = arg.SideChainId
                 },
-                Data = new Dictionary<string, string> {{certFileName, cert}, {keyFileName, key}}
+                Data = configMapData
             };
 
             K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, arg.SideChainId);
-            
-            if (!arg.IsDeployMainChain)
-            {
-                // update main chain config
-                var patch = new JsonPatchDocument<V1ConfigMap>();
-                patch.Add(e => e.Data, new Dictionary<string, string>{{certFileName, cert}});
-
-                K8SRequestHelper.GetClient().PatchNamespacedConfigMap(new V1Patch(patch), GlobalSetting.CertsConfigName, arg.MainChainId);
-            }
         }
 
         private void CreateGrpcKey(DeployArg arg)
