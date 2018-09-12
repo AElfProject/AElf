@@ -37,6 +37,7 @@ namespace AElf.Miner.Rpc.Client
 
          private void GrpcRemoteConfigOnConfigChanged(object sender, EventArgs e)
          {
+             _logger.Error("Grpc Config File Changed");
              _tokenSource?.Cancel();
              _tokenSource?.Dispose();
              
