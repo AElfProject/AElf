@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Timers;
 using AElf.Common.Extensions;
+using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -87,7 +88,7 @@ namespace AElf.Network.Peers
         /// <summary>
         /// This nodes public key.
         /// </summary>
-        private byte[] _nodeAddress;
+        private byte[] _nodeKey;
         
         /// <summary>
         /// The underlying network client.
@@ -109,14 +110,24 @@ namespace AElf.Network.Peers
         public double AuthTimeout { get; set; } = DefaultAuthTimeout;
         
         /// <summary>
-        /// The data received after the authentification.
+        /// The data received in the handshake message.
         /// </summary>
         [JsonProperty(PropertyName = "action")]
         public NodeData DistantNodeData { get; set; }
-
+        
+        public ECKeyPair KeyPair { get; private set; }
+        
         public byte[] DistantNodeAddress
         {
-            get { return DistantNodeData?.Address.ToByteArray(); }
+            get
+            {
+                return KeyPair?.GetAddress();
+            }
+        }
+
+        public byte[] DistantPublicKey
+        {
+            get { return DistantNodeData?.PublicKey.ToByteArray(); }
         }
         
         public bool IsBp { get; internal set; } 
@@ -137,7 +148,7 @@ namespace AElf.Network.Peers
             }
         }
         
-        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, byte[] nodeAddress)
+        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, byte[] nodeKey)
         {
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
@@ -145,7 +156,7 @@ namespace AElf.Network.Peers
             SetupHeartbeat();
             
             _port = port;
-            _nodeAddress = nodeAddress;
+            _nodeKey = nodeKey;
             _logger = LogManager.GetLogger(LoggerName);
             
             _client = client;
@@ -351,10 +362,10 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         private void StartAuthentification()
         {
-            var nd = new NodeData { Port = _port, Address = ByteString.CopyFrom(_nodeAddress) };
+            var nd = new NodeData { Port = _port, PublicKey = ByteString.CopyFrom(_nodeKey) };
             byte[] packet = nd.ToByteArray();
             
-            _logger?.Trace($"Sending authentification : {{ port: {nd.Port}, addr: {nd.Address.ToByteArray().ToHex()} }}");
+            _logger?.Trace($"Sending authentification : {{ port: {nd.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
             
             _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
             
@@ -421,6 +432,8 @@ namespace AElf.Network.Peers
         {
             DistantNodeData = nodeData;
             IsAuthentified = true;
+            
+            KeyPair = ECKeyPair.FromPublicKey(nodeData.PublicKey.ToByteArray());
         }
 
         #endregion Authentification
