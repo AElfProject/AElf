@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Configuration;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Website.Models;
@@ -20,6 +21,7 @@ namespace AElf.Management.Website.Controllers
         [HttpPost]
         public ApiEmptyResult Post([FromBody] DeployArg arg)
         {
+            Console.WriteLine(JsonSerializer.Instance.Serialize(arg));
             _sideChainService.Deploy(arg);
             return ApiEmptyResult.Default;
         }
