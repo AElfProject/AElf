@@ -145,7 +145,7 @@ namespace AElf.Management.Commands
         {
             var config = new GrpcLocalConfig
             {
-                LocalServerIP = arg.LauncherArg.ClusterIp,
+                LocalServerIP = "0.0.0.0",//arg.LauncherArg.ClusterIp,
                 LocalServerPort = GlobalSetting.GrpcPort,
                 Client = true,
                 WaitingIntervalInMillisecond = 10,
@@ -164,7 +164,7 @@ namespace AElf.Management.Commands
                 ParentChain = new Dictionary<string, Uri>(),
                 ChildChains = new Dictionary<string, Uri>()
             };
-
+            
             if (!arg.IsDeployMainChain)
             {
                 var service = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, arg.MainChainId);

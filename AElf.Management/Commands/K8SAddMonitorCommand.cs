@@ -17,13 +17,16 @@ namespace AElf.Management.Commands
 
         public void Action(DeployArg arg)
         {
-            AddService(arg);
-
-            var addDeployResult = AddDeployment(arg);
-
-            if (!addDeployResult)
+            if (arg.LighthouseArg.IsCluster)
             {
-                throw new Exception("failed to deploy monitor");
+                AddService(arg);
+
+                var addDeployResult = AddDeployment(arg);
+
+                if (!addDeployResult)
+                {
+                    throw new Exception("failed to deploy monitor");
+                }
             }
         }
 

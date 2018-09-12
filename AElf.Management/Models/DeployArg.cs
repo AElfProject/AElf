@@ -30,6 +30,11 @@ namespace AElf.Management.Models
 
         public DeployArg()
         {
+            Miners=new List<string>();
+            DBArg=new DeployDBArg();
+            LighthouseArg=new DeployLighthouseArg();
+            WorkArg=new DeployWorkArg();
+            LauncherArg=new DeployLauncherArg();
         }
     }
 
