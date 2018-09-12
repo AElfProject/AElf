@@ -49,6 +49,9 @@ namespace AElf.Network.Peers
         private Object _peerListLock = new Object(); 
         
         private BlockingCollection<PeerManagerJob> _jobQueue;
+
+        private AllowedConnection _allowedConnections = AllowedConnection.All;
+        public List<string> _
         
         private readonly List<byte[]> _bpKeys;
         
@@ -65,6 +68,23 @@ namespace AElf.Network.Peers
             _logger = logger;
             
             _nodeName = NodeConfig.Instance.NodeName;
+
+            if (!string.IsNullOrWhiteSpace(NetworkConfig.Instance.NetAllowed))
+            {
+                if (Enum.TryParse(NetworkConfig.Instance.NetAllowed, out AllowedConnection myName))
+                {
+                    _allowedConnections = myName;
+                }
+            }
+
+            //  todo bunch of pubkeys
+            //            if (NetworkConfig.Instance.NetWhitelist != null)
+            //            {
+            //                foreach (var peer in NetworkConfig.Instance.NetWhitelist)
+            //                {
+            //                    if (peer.Length != "04fdf7d50f69be44a55a01f22d5910a96ddf")
+            //                }
+            //            }
 
             SetBpConfig();
         }

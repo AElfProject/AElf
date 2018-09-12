@@ -25,9 +25,7 @@ namespace AElf.Configuration
 
             // Network
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
-            {
                 NetworkConfig.Instance.Bootnodes = opts.Bootnodes.ToList();
-            }
 
             if (opts.PeersDbPath != null)
                 NetworkConfig.Instance.PeersDbPath = opts.PeersDbPath;
@@ -37,6 +35,9 @@ namespace AElf.Configuration
 
             if (opts.Port.HasValue)
                 NetworkConfig.Instance.ListeningPort = opts.Port.Value;
+
+            NetworkConfig.Instance.NetAllowed = opts.NetAllowed;
+            NetworkConfig.Instance.NetWhitelist = opts.NetWhitelist.ToList();
 
             // Database
             DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);

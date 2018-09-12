@@ -5,6 +5,7 @@ using System.Security;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
+using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -23,15 +24,18 @@ namespace AElf.Node
                 try
                 {
                     var ks = new AElfKeyStore(NodeConfig.Instance.DataDir);
+                    
                     var pass = string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccountPassword)
                         ? AskInvisible(NodeConfig.Instance.NodeAccount)
                         : NodeConfig.Instance.NodeAccountPassword;
+                    
                     ks.OpenAsync(NodeConfig.Instance.NodeAccount, pass, false);
 
                     ManagementConfig.Instance.NodeAccountPassword = pass;
                     NodeConfig.Instance.NodeAccountPassword = pass;
                     
                     nodeKey = ks.GetAccountKeyPair(NodeConfig.Instance.NodeAccount);
+                    
                     if (nodeKey == null)
                     {
                         Console.WriteLine("Load keystore failed");
@@ -44,6 +48,7 @@ namespace AElf.Node
             }
 
             TransactionPoolConfig.Instance.EcKeyPair = nodeKey;
+            NetworkConfig.Instance.EcKeyPair = nodeKey;
             
             builder.RegisterModule(new NodeAutofacModule());
         }
