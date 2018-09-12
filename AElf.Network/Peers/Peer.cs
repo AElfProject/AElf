@@ -24,10 +24,33 @@ namespace AElf.Network.Peers
 
     public class AuthFinishedArgs : EventArgs
     {
-        public bool HasTimedOut { get; set; } = false;
+        public bool IsAuthentified { get; private set; }
+        public RejectReason Reason { get; private set; }
+
+        public AuthFinishedArgs(RejectReason reason)
+        {
+            IsAuthentified = false;
+            Reason = reason;
+        }
+        
+        public AuthFinishedArgs()
+        {
+            IsAuthentified = true;
+        }
     }
 
-    public enum DisconnectReason { Timeout, Auth, StreamClosed }
+    public enum RejectReason
+    {
+        Auth_Timeout,
+        Auth_Invalid_handshake_msg,
+        Auth_Invalid_Key,
+        Auth_Invalid_Sig
+    }
+
+    public enum DisconnectReason
+    {
+        StreamClosed
+    }
     
     public class PeerMessageReceivedArgs : EventArgs
     {
@@ -88,7 +111,7 @@ namespace AElf.Network.Peers
         /// <summary>
         /// This nodes public key.
         /// </summary>
-        private byte[] _nodeKey;
+        private ECKeyPair _nodeKey;
         
         /// <summary>
         /// The underlying network client.
@@ -108,26 +131,31 @@ namespace AElf.Network.Peers
         private int _droppedPings = 0;
 
         public double AuthTimeout { get; set; } = DefaultAuthTimeout;
-        
+
         /// <summary>
         /// The data received in the handshake message.
         /// </summary>
         [JsonProperty(PropertyName = "action")]
-        public NodeData DistantNodeData { get; set; }
+        public NodeData DistantNodeData
+        {
+            get { return _lastReceivedHandshake.NodeInfo; }
+        }
+
+        private Handshake _lastReceivedHandshake;
         
-        public ECKeyPair KeyPair { get; private set; }
+        public ECKeyPair DistantNodeKeyPair { get; private set; }
         
         public byte[] DistantNodeAddress
         {
             get
             {
-                return KeyPair?.GetAddress();
+                return DistantNodeKeyPair?.GetAddress();
             }
         }
 
         public byte[] DistantPublicKey
         {
-            get { return DistantNodeData?.PublicKey.ToByteArray(); }
+            get { return _lastReceivedHandshake?.PublicKey.ToByteArray(); }
         }
         
         public bool IsBp { get; internal set; } 
@@ -148,7 +176,7 @@ namespace AElf.Network.Peers
             }
         }
         
-        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, byte[] nodeKey)
+        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey)
         {
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
@@ -362,10 +390,23 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         private void StartAuthentification()
         {
-            var nd = new NodeData { Port = _port, PublicKey = ByteString.CopyFrom(_nodeKey) };
+
+            var nodeInfo = new NodeData {Port = _port};
+            
+            ECSigner signer = new ECSigner();
+            ECSignature sig = signer.Sign(_nodeKey, nodeInfo.ToByteArray());
+                
+            var nd = new Handshake
+            {
+                NodeInfo = nodeInfo,
+                PublicKey = ByteString.CopyFrom(_nodeKey.GetEncodedPublicKey()),
+                R = ByteString.CopyFrom(sig.R),
+                S = ByteString.CopyFrom(sig.S),
+            };
+            
             byte[] packet = nd.ToByteArray();
             
-            _logger?.Trace($"Sending authentification : {{ port: {nd.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
+            _logger?.Trace($"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
             
             _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
             
@@ -391,7 +432,7 @@ namespace AElf.Network.Peers
             
             Dispose();
             
-            AuthFinished?.Invoke(this, new AuthFinishedArgs { HasTimedOut = true });
+            AuthFinished?.Invoke(this, new AuthFinishedArgs(RejectReason.Auth_Timeout));
         }
 
         /// <summary>
@@ -404,13 +445,13 @@ namespace AElf.Network.Peers
             {
                 _authTimer.Stop();
                 
-                NodeData n = NodeData.Parser.ParseFrom(aMessage.Payload);
-            
+                Handshake handshk = Handshake.Parser.ParseFrom(aMessage.Payload);
+                
+                AuthentifyWith(handshk);
+                
                 // Update with the real IP address
                 IPEndPoint remoteEndPoint = (IPEndPoint)_client.Client.RemoteEndPoint;
-                n.IpAddress = remoteEndPoint.Address.ToString();
-                
-                AuthentifyWith(n);
+                handshk.NodeInfo.IpAddress = remoteEndPoint.Address.ToString();
                 
                 _pingPongTimer.Start();
             }
@@ -427,13 +468,52 @@ namespace AElf.Network.Peers
         /// Mainly for testing purposes, it's used for authentifying a node. Note that
         /// is doesn't launch the correponding event.
         /// </summary>
-        /// <param name="nodeData"></param>
-        internal void AuthentifyWith(NodeData nodeData)
+        /// <param name="handshakeMsg"></param>
+        internal void AuthentifyWith(Handshake handshakeMsg)
         {
-            DistantNodeData = nodeData;
-            IsAuthentified = true;
+            if (handshakeMsg == null)
+            {
+                FireInvalidAuth(RejectReason.Auth_Invalid_handshake_msg);
+                return;
+            }
             
-            KeyPair = ECKeyPair.FromPublicKey(nodeData.PublicKey.ToByteArray());
+            _lastReceivedHandshake = handshakeMsg;
+            
+            try
+            {
+                DistantNodeKeyPair = ECKeyPair.FromPublicKey(handshakeMsg.PublicKey.ToByteArray());
+                
+                if (DistantNodeKeyPair == null)
+                {
+                    FireInvalidAuth(RejectReason.Auth_Invalid_Key);
+                    return;
+                }
+                
+                // verify sig
+                ECVerifier verifier = new ECVerifier(DistantNodeKeyPair);
+                bool sigValid = verifier.Verify(
+                    new ECSignature(handshakeMsg.R.ToByteArray(), handshakeMsg.S.ToByteArray()),
+                    handshakeMsg.NodeInfo.ToByteArray());
+
+                if (!sigValid)
+                {
+                    FireInvalidAuth(RejectReason.Auth_Invalid_Sig);
+                    return;
+                }
+
+            }
+            catch (Exception)
+            {
+                FireInvalidAuth(RejectReason.Auth_Invalid_Key);
+                return;
+            }
+            
+            IsAuthentified = true;
+        }
+
+        private void FireInvalidAuth(RejectReason reason)
+        {
+            AuthFinished?.Invoke(this, new AuthFinishedArgs(reason));
         }
 
         #endregion Authentification

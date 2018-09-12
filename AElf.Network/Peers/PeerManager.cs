@@ -245,7 +245,7 @@ namespace AElf.Network.Peers
             MessageReader reader = new MessageReader(nsStream);
             MessageWriter writer = new MessageWriter(nsStream);
             
-            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort, _nodeKey.GetEncodedPublicKey());
+            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort, _nodeKey);
             
             return peer;
         }
@@ -265,10 +265,18 @@ namespace AElf.Network.Peers
         
         private void PeerOnPeerAuthentified(object sender, EventArgs eventArgs)
         {
-            if (sender is Peer peer)
+            if (sender is Peer peer && eventArgs is AuthFinishedArgs authArgs)
             {
-                peer.IsBp = peer.DistantNodeAddress != null && _bpAddresses.Any(k => k.BytesEqual(peer.DistantNodeAddress)); 
-                AddAuthentifiedPeer(peer);
+                if (authArgs.IsAuthentified)
+                {
+                    peer.IsBp = peer.DistantNodeAddress != null && _bpAddresses.Any(k => k.BytesEqual(peer.DistantNodeAddress)); 
+                    AddAuthentifiedPeer(peer);
+                }
+                else
+                {
+                    _logger?.Trace($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
+                }
+
             }
         }
         
