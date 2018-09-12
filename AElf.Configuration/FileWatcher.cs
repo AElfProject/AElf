@@ -33,7 +33,7 @@ namespace AElf.Configuration
                 Directory.CreateDirectory(configPath);
             }
             InitWatcher(configPath);
-            Console.WriteLine("Init FileWatcher");
+            Console.WriteLine("Init FileWatcher:" + configPath);
         }
 
         private static void InitWatcher(string directory)
