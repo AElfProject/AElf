@@ -66,6 +66,7 @@ namespace AElf.Miner.Rpc.Client
          /// <returns></returns>
          public async Task CreateClientsToSideChain()
          {
+             _logger.Error("Grpc CreateClientsToSideChain");
              _clients.Clear();
              foreach (var sideChainId in ChildChains.Keys)
              {
