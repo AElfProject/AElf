@@ -37,7 +37,6 @@ namespace AElf.Miner.Rpc.Client
 
          private void GrpcRemoteConfigOnConfigChanged(object sender, EventArgs e)
          {
-             _logger.Error("Grpc Config File Changed");
              _tokenSource?.Cancel();
              _tokenSource?.Dispose();
              
@@ -66,7 +65,6 @@ namespace AElf.Miner.Rpc.Client
          /// <returns></returns>
          public async Task CreateClientsToSideChain()
          {
-             _logger.Error("Grpc CreateClientsToSideChain");
              _clients.Clear();
              foreach (var sideChainId in ChildChains.Keys)
              {

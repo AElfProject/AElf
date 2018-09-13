@@ -11,10 +11,10 @@ namespace AElf.Management.Tests
 {
     public class SideChainServiceTests
     {
-        private string _chainId = "0xc207586331c22f924c34e1020a46a7c0cff3";//Guid.NewGuid().ToString("N");
+        private string _chainId = "0x7ed483df3bff56e4305fbe7eb25b1bb43054";//Guid.NewGuid().ToString("N");
         
-        //[Fact(Skip = "require aws account")]
-        [Fact]
+        [Fact(Skip = "require aws account")]
+        //[Fact]
         public void DeployTest()
         {
             var password = "123";
@@ -40,20 +40,6 @@ namespace AElf.Management.Tests
             var service = new SideChainService();
 
             service.Remove(_chainId);
-        }
-        
-        private List<string> CreateAccount(int num,string password)
-        {
-            var result =new List<string>();
-            for (var i = 0; i < num; i++)
-            {
-                var keyStore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
-                var key = keyStore.Create(password);
-                var account = key.GetAddressHex();
-                result.Add(account);
-            }
-
-            return result;
         }
     }
 }

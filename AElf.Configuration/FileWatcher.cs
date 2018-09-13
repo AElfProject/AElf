@@ -34,7 +34,6 @@ namespace AElf.Configuration
             }
 
             InitWatcher(configPath);
-            Console.WriteLine("Init FileWatcher:" + configPath);
         }
 
         private static void InitWatcher(string directory)
@@ -54,7 +53,6 @@ namespace AElf.Configuration
         private static void WatchFileChanged(object sender, FileSystemEventArgs e)
         {
             var fileName = Path.GetFileName(e.Name.ToLower());
-            Console.WriteLine("File Changed:" + fileName);
             if (ContainFileName(fileName))
             {
                 lock (_pendingFileLock)
