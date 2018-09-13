@@ -7,9 +7,9 @@ namespace AElf.Management.Commands
 {
     public class K8SDeleteNamespaceCommand:IDeployCommand
     {
-        public void Action(string chainId, DeployArg arg)
+        public void Action(DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteNamespace(new V1DeleteOptions(), chainId);
+            K8SRequestHelper.GetClient().DeleteNamespace(new V1DeleteOptions(), arg.SideChainId);
         }
     }
 }

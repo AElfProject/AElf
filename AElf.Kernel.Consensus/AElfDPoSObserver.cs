@@ -174,7 +174,7 @@ namespace AElf.Kernel.Consensus
             else
             {
                 var after = distanceToPublishInValue + Globals.AElfDPoSMiningInterval / 1000 +
-                            Globals.AElfDPoSMiningInterval * infoOfMe.Order / 1000 + Globals.AElfDPoSMiningInterval / 2000;
+                            Globals.AElfDPoSMiningInterval * infoOfMe.Order / 1000 + Globals.AElfDPoSMiningInterval / 750;
                 produceExtraBlock = Observable
                     .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval +
                                                      Globals.AElfDPoSMiningInterval * infoOfMe.Order +

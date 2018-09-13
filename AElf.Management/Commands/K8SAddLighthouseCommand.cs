@@ -13,12 +13,12 @@ namespace AElf.Management.Commands
         private const int Port = 4053;
         private const int Replicas = 1;
         
-        public void Action(string chainId, DeployArg arg)
+        public void Action(DeployArg arg)
         {
             if (arg.LighthouseArg.IsCluster)
             {
-                AddService(chainId, arg);
-                var addSetResult = AddStatefulSet(chainId, arg);
+                AddService(arg);
+                var addSetResult = AddStatefulSet(arg);
                 if (!addSetResult)
                 {
                     throw new Exception("failed to deploy lighthouse");
@@ -26,7 +26,7 @@ namespace AElf.Management.Commands
             }
         }
 
-        private void AddService(string chainId, DeployArg arg)
+        private void AddService(DeployArg arg)
         {
             var body = new V1Service
             {
@@ -52,10 +52,10 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedService(body, chainId);
+            K8SRequestHelper.GetClient().CreateNamespacedService(body, arg.SideChainId);
         }
 
-        private bool AddStatefulSet(string chainId, DeployArg arg)
+        private bool AddStatefulSet(DeployArg arg)
         {
             var body = new V1StatefulSet
             {
@@ -122,9 +122,9 @@ namespace AElf.Management.Commands
                 }
             };
 
-            var result = K8SRequestHelper.GetClient().CreateNamespacedStatefulSet(body, chainId);
+            var result = K8SRequestHelper.GetClient().CreateNamespacedStatefulSet(body, arg.SideChainId);
             
-            var set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, chainId);
+            var set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, arg.SideChainId);
             var retryGetCount = 0;
             var retryDeleteCount = 0;
             while (true)
@@ -135,7 +135,7 @@ namespace AElf.Management.Commands
                 }
                 if (retryGetCount > GlobalSetting.DeployRetryTime)
                 {
-                    DeletePod(chainId, arg);
+                    DeletePod(arg);
                     retryDeleteCount++;
                     retryGetCount = 0;
                 }
@@ -147,15 +147,15 @@ namespace AElf.Management.Commands
 
                 retryGetCount++;
                 Thread.Sleep(3000);
-                set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, chainId);
+                set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, arg.SideChainId);
             }
 
             return true;
         }
         
-        private void DeletePod(string chainId, DeployArg arg)
+        private void DeletePod(DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LighthouseName);
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(arg.SideChainId, labelSelector: "name=" + GlobalSetting.LighthouseName);
         }
     }
 }

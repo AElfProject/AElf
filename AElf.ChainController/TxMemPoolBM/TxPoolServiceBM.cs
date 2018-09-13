@@ -216,7 +216,8 @@ namespace AElf.ChainController.TxMemPoolBM
         /// <inheritdoc/>
         public Task UpdateAccountContext(HashSet<Hash> addrs)
         {
-            throw new NotImplementedException();
+            // todo remove
+            return Task.CompletedTask;
         }
 
         public void SetBlockVolume(ulong minimal, ulong maximal)

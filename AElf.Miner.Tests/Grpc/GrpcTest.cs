@@ -103,7 +103,7 @@ namespace AElf.Miner.Tests.Grpc
                 int t = 1000;
                 manager.Init(dir, t);
                 
-                await manager.CreateClientsToSideChain();
+                //await manager.CreateClientsToSideChain();
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
                 Thread.Sleep(t/2);

@@ -45,16 +45,15 @@ namespace AElf.Kernel
         /// <returns></returns>
         private Hash CalculateSideChainRoot(bool isHeaderRoot)
         {
-            if (IndexedInfo.Count == 0)
-                return Hash.Default;
-            var roots = IndexedInfo
-                .Select(info => isHeaderRoot ? info.BlockHeaderHash : info.TransactionMKRoot).ToList();
-            Hash res = new BinaryMerkleTree().AddNodes(roots).ComputeRootHash();
-
-            if (isHeaderRoot)
-                SideChainBlockHeadersRoot = res;
-            else
-                SideChainTransactionsRoot = res;
+            Hash res;
+            if (IndexedInfo.Count != 0)
+            {
+                var roots = IndexedInfo
+                    .Select(info => isHeaderRoot ? info.BlockHeaderHash : info.TransactionMKRoot).ToList();
+                res = new BinaryMerkleTree().AddNodes(roots).ComputeRootHash();
+            }
+            else 
+                res = Hash.Default;
             return res;
         }
         

@@ -16,6 +16,7 @@ namespace AElf.Configuration.Tests
             Assert.Equal(config1, config2);
         }
 
+        [Fact]
         public void FileChangeTest()
         {
             var fileName = "test.json";
@@ -24,7 +25,7 @@ namespace AElf.Configuration.Tests
             Assert.Equal(TestConfig.Instance.StringValue, "str-a");
 
             ChangeFile(fileName);
-            Thread.Sleep(8000);
+            Thread.Sleep(6000);
             
             Assert.Equal(TestConfig.Instance.StringValue, "str-b");
             

@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace AElf.Management.Models
+namespace AElf.SideChain.Creation
 {
     public class DeployArg
     {
         public string MainChainId { get; set; }
-
-        public bool IsDeployMainChain { get; set; }
 
         public string SideChainId { get; set; }
 
@@ -73,10 +71,13 @@ namespace AElf.Management.Models
 
     public class DeployLauncherArg
     {
-        public string ClusterIp { get; set; }
-
         public bool IsConsensusInfoGenerator { get; set; }
 
         public List<string> Bootnodes { get; set; }
+
+        public DeployLauncherArg()
+        {
+            Bootnodes=new List<string>();
+        }
     }
 }

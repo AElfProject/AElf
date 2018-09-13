@@ -12,11 +12,11 @@ namespace AElf.Management.Commands
     {
         private const int Port = 32551;
 
-        public void Action(string chainId, DeployArg arg)
+        public void Action(DeployArg arg)
         {
             if (arg.LighthouseArg.IsCluster)
             {
-                var addDeployResult = AddDeployment(chainId, arg);
+                var addDeployResult = AddDeployment(arg);
                 if (!addDeployResult)
                 {
                     throw new Exception("failed to deploy worker");
@@ -24,7 +24,7 @@ namespace AElf.Management.Commands
             }
         }
 
-        private bool AddDeployment(string chainId, DeployArg arg)
+        private bool AddDeployment(DeployArg arg)
         {
             var body = new V1Deployment
             {
@@ -89,9 +89,9 @@ namespace AElf.Management.Commands
 
             };
 
-            var result = K8SRequestHelper.GetClient().CreateNamespacedDeployment(body, chainId);
+            var result = K8SRequestHelper.GetClient().CreateNamespacedDeployment(body, arg.SideChainId);
 
-            var deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, chainId);
+            var deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, arg.SideChainId);
             var retryGetCount = 0;
             var retryDeleteCount = 0;
             while (true)
@@ -103,7 +103,7 @@ namespace AElf.Management.Commands
 
                 if (retryGetCount > GlobalSetting.DeployRetryTime)
                 {
-                    DeletePod(chainId, arg);
+                    DeletePod(arg);
                     retryDeleteCount++;
                     retryGetCount = 0;
                 }
@@ -115,15 +115,15 @@ namespace AElf.Management.Commands
 
                 retryGetCount++;
                 Thread.Sleep(3000);
-                deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, chainId);
+                deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, arg.SideChainId);
             }
 
             return true;
         }
         
-        private void DeletePod(string chainId, DeployArg arg)
+        private void DeletePod(DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.WorkerName);
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(arg.SideChainId, labelSelector: "name=" + GlobalSetting.WorkerName);
         }
     }
 }

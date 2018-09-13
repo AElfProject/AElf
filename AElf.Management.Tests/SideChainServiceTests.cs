@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
+using AElf.Common.Application;
+using AElf.Cryptography;
 using AElf.Management.Models;
 using AElf.Management.Services;
 using Xunit;
@@ -8,21 +11,26 @@ namespace AElf.Management.Tests
 {
     public class SideChainServiceTests
     {
-        private string _chainId = "ed7d50f2a4b94d9b9e7ec6ec6935e14e";//Guid.NewGuid().ToString("N");
+        private string _chainId = "0x7ed483df3bff56e4305fbe7eb25b1bb43054";//Guid.NewGuid().ToString("N");
         
         [Fact(Skip = "require aws account")]
         //[Fact]
         public void DeployTest()
         {
+            var password = "123";
+            
             var arg = new DeployArg();
-            arg.MainChainAccount = "0x04b8b111fdbc2f5409a006339fa1758e1ed1";
-            arg.AccountPassword = "123";
+            arg.MainChainId = _chainId;
+            arg.AccountPassword = password;
             arg.DBArg = new DeployDBArg();
+            arg.LighthouseArg=new DeployLighthouseArg();
+            arg.LighthouseArg.IsCluster = false;
             arg.WorkArg = new DeployWorkArg();
-            arg.WorkArg.ActorCount = 2;
+            arg.LauncherArg=new DeployLauncherArg();
+            arg.LauncherArg.IsConsensusInfoGenerator = true;
 
             var service = new SideChainService();
-            service.Deploy(_chainId, arg);
+            service.Deploy(arg);
         }
         
         [Fact(Skip = "require aws account")]

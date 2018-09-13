@@ -269,7 +269,7 @@ namespace AElf.Kernel.Node
             {
                 Miners.ToByteArray(),
                 _dposHelpers.GenerateInfoForFirstTwoRounds().ToByteArray(),
-                new Int32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray(),
+                new SInt32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray(),
                 logLevel.ToByteArray()
             };
             _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");

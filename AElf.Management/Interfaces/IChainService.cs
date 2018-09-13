@@ -7,7 +7,7 @@ namespace AElf.Management.Interfaces
     {
         List<ChainResult> GetAllChains();
 
-        void DeployMainChain(string chainId, DeployArg arg);
+        void DeployMainChain(DeployArg arg);
 
         void RemoveMainChain(string chainId);
 

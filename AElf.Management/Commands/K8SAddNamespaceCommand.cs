@@ -9,10 +9,10 @@ namespace AElf.Management.Commands
 {
     public class K8SAddNamespaceCommand:IDeployCommand
     {        
-        public void Action(string chainId, DeployArg arg)
+        public void Action(DeployArg arg)
         {
             var retryCount = 0;
-            var deployResult = DeployNamespace(chainId, arg);
+            var deployResult = DeployNamespace(arg);
             while (!deployResult)
             {
                 if (retryCount > GlobalSetting.DeployRetryTime)
@@ -21,26 +21,26 @@ namespace AElf.Management.Commands
                 }
                 retryCount++;
                 Thread.Sleep(3000);
-                deployResult = DeployNamespace(chainId, arg);
+                deployResult = DeployNamespace(arg);
             }
             
             Thread.Sleep(30000);
         }
 
-        private bool DeployNamespace(string chainId, DeployArg arg)
+        private bool DeployNamespace(DeployArg arg)
         {
             
             var body = new V1Namespace
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = chainId
+                    Name = arg.SideChainId
                 }
             };
             
             K8SRequestHelper.GetClient().CreateNamespace(body);
 
-            var ns = K8SRequestHelper.GetClient().ReadNamespace(chainId);
+            var ns = K8SRequestHelper.GetClient().ReadNamespace(arg.SideChainId);
             var retryCount = 0;
             while (true)
             {
@@ -56,12 +56,12 @@ namespace AElf.Management.Commands
 
                 retryCount++;
                 Thread.Sleep(3000);
-                ns = K8SRequestHelper.GetClient().ReadNamespace(chainId);
+                ns = K8SRequestHelper.GetClient().ReadNamespace(arg.SideChainId);
             }
 
             if (retryCount > GlobalSetting.DeployRetryTime)
             {
-                K8SRequestHelper.GetClient().DeleteNamespace(new V1DeleteOptions(), chainId);
+                K8SRequestHelper.GetClient().DeleteNamespace(new V1DeleteOptions(), arg.SideChainId);
                 return false;
             }
 

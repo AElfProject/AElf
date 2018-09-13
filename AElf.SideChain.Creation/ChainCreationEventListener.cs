@@ -141,13 +141,14 @@ namespace AElf.SideChain.Creation
     
         private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash sideChainId, Hash parentChainId)
         {
-            var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + sideChainId.ToHex();
+            var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/');
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-            var content = new JObject()
-            {
-                ["MainChainAccount"] = ManagementConfig.Instance.NodeAccount,
-                ["AccountPassword"] = ManagementConfig.Instance.NodeAccountPassword
-            }.ToString();
+            var deployArg = new DeployArg();
+            deployArg.SideChainId = sideChainId.ToHex();
+            deployArg.AccountPassword = "123";
+            deployArg.LauncherArg.IsConsensusInfoGenerator = true;
+            deployArg.LighthouseArg.IsCluster = false;
+            var content = JsonSerializer.Instance.Serialize(deployArg);
             var c = new StringContent(content);
             c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             request.Content = c;

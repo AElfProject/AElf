@@ -48,8 +48,6 @@ namespace AElf.Miner.Rpc.Client
              // Todo: only clear clients which is needed
              _clientsToSideChains.Clear();
              Init();
-             if(GrpcLocalConfig.Instance.Client)
-                CreateClientsToSideChain();
          }
 
          /// <summary>
@@ -63,6 +61,7 @@ namespace AElf.Miner.Rpc.Client
              _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
              _tokenSource = new CancellationTokenSource();
              _interval = interval == 0 ? Globals.AElfMiningInterval : interval;
+             CreateClientsToSideChain();
          }
 
          /// <summary>
@@ -169,7 +168,6 @@ namespace AElf.Miner.Rpc.Client
          /// <returns></returns>
          public async Task<List<SideChainIndexedInfo>> CollectSideChainIndexedInfo()
          {
-             
              int interval = GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
 
              List<SideChainIndexedInfo> res = new List<SideChainIndexedInfo>();

@@ -81,7 +81,7 @@ namespace AElf.Kernel
         {
             Header.MerkleTreeRootOfTransactions = Body.CalculateTransactionMerkleTreeRoot();
             Header.SideChainBlockHeadersRoot = Body.SideChainBlockHeadersRoot;
-            Header.SideChainBlockHeadersRoot = Body.SideChainTransactionsRoot;
+            Header.SideChainTransactionsRoot = Body.SideChainTransactionsRoot;
             Body.Complete(Header.GetHash());
             return this;
         }

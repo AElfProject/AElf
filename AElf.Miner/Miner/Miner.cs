@@ -63,24 +63,6 @@ namespace AElf.Miner.Miner
             _stateDictator.ChainId = chainId;
         }
 
-        private static Miners Miners
-        {
-            get
-            {
-                var dict = MinersConfig.Instance.Producers;
-                var miners = new Miners();
-
-                foreach (var bp in dict.Values)
-                {
-                    var b = bp["address"].RemoveHexPrefix();
-                    miners.Nodes.Add(b);
-                }
-
-                Globals.BlockProducerNumber = miners.Nodes.Count;
-                return miners;
-            }
-        }
-
         public async Task<IBlock> Mine()
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
@@ -218,6 +200,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
+        /// <param name="block"></param>
         private async Task InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Index;
@@ -283,7 +266,6 @@ namespace AElf.Miner.Miner
             return block;
         }
 
-
         /// <summary>
         /// generate block header
         /// </summary>
@@ -317,15 +299,12 @@ namespace AElf.Miner.Miner
             return header;
         }
 
-
         /// <summary>
         /// side chains header info    
         /// </summary>
         /// <returns></returns>
         private async Task CollectSideChainIndexedInfo(IBlock block)
         {
-            if (!GrpcLocalConfig.Instance.Client)
-                return;
             // interval waiting for each side chain
             var sideChainInfo = await _clientManager.CollectSideChainIndexedInfo();
             block.Body.IndexedInfo.Add(sideChainInfo);
@@ -342,7 +321,7 @@ namespace AElf.Miner.Miner
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
             
             // start clients and server
-            _clientManager.CreateClientsToSideChain().Wait();
+            //_clientManager.CreateClientsToSideChain().Wait();
             //_sideChainServer.StartUp();
         }
 
@@ -351,8 +330,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Close()
         {
-            if (GrpcLocalConfig.Instance.Client)
-                _clientManager.Close();
+            _clientManager.Close();
         }
     }
 }
