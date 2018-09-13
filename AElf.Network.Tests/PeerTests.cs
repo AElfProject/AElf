@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Peers;
+using Google.Protobuf;
 using Moq;
 using Xunit;
 
@@ -34,12 +33,36 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_Disposed_ThrowsInvalidOperationException()
         {
-            Peer p = new Peer(new TcpClient(), null, null, 1234, null);
+            int port = 1234;
             
-            p.AuthentifyWith(new NodeData { Port = 1234 });
+            Peer p = new Peer(new TcpClient(), null, null, port, null);
+            
+            var (_, handshake) = CreateKeyPairAndHandshake(port);
+            
+            p.AuthentifyWith(handshake);
 
             var ex = Assert.Throws<InvalidOperationException>(() => p.Start());
             Assert.Equal("Cannot start an already authentified peer.", ex.Message);
+        }
+
+        private (ECKeyPair, Handshake) CreateKeyPairAndHandshake(int port)
+        {
+            ECKeyPair key = new KeyPairGenerator().Generate();
+            
+            var nodeInfo = new NodeData { Port = port };
+            
+            ECSigner signer = new ECSigner();
+            ECSignature sig = signer.Sign(key, nodeInfo.ToByteArray());
+            
+            var handshakeMsg = new Handshake
+            {
+                NodeInfo = nodeInfo,
+                PublicKey = ByteString.CopyFrom(key.GetEncodedPublicKey()),
+                R = ByteString.CopyFrom(sig.R),
+                S = ByteString.CopyFrom(sig.S),
+            };
+
+            return (key, handshakeMsg);
         }
         
         [Fact]
@@ -49,8 +72,9 @@ namespace AElf.Network.Tests
             
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
-            
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, peerPort, ByteArrayHelpers.RandomFill(10));
+
+            ECKeyPair kp = new KeyPairGenerator().Generate();
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, peerPort, kp);
 
             Message authMessage = null;
             messageWritter.Setup(w => w.EnqueueMessage(It.IsAny<Message>())).Callback<Message>(m => authMessage = m);
@@ -60,9 +84,9 @@ namespace AElf.Network.Tests
             Assert.NotNull(authMessage);
             Assert.Equal(0, authMessage.Type);
 
-            NodeData nd = NodeData.Parser.ParseFrom(authMessage.Payload);
+            Handshake handshake = Handshake.Parser.ParseFrom(authMessage.Payload);
             
-            Assert.Equal(peerPort, nd.Port);
+            Assert.Equal(peerPort, handshake.NodeInfo.Port);
         }
 
         [Fact]
@@ -71,7 +95,8 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, ByteArrayHelpers.RandomFill(1));
+            ECKeyPair key = new KeyPairGenerator().Generate();
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, key);
             p.AuthTimeout = 100;
 
             AuthFinishedArgs authFinishedArgs = null;
@@ -82,31 +107,39 @@ namespace AElf.Network.Tests
             };
             
             p.Start();
+            
             Task.Delay(200).Wait();
             
             Assert.NotNull(authFinishedArgs);
-            Assert.True(authFinishedArgs.HasTimedOut);
+            Assert.False(authFinishedArgs.IsAuthentified);
+            Assert.True(authFinishedArgs.Reason == RejectReason.Auth_Timeout);
             Assert.False(p.IsAuthentified);
         }
         
         [Fact]
         public void Start_AuthentificationNoTimout_ShouldThrowEvent()
         {
+            int localPort = 1234;
+            int remotePort = 1235;
+            
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, ByteArrayHelpers.RandomFill(1));
+            ECKeyPair key = new KeyPairGenerator().Generate();
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, localPort, key);
             p.AuthTimeout = 100;
             
             AuthFinishedArgs authFinishedArgs = null;
             
-            p.AuthFinished += (sender, args) =>
-            {
+            p.AuthFinished += (sender, args) => {
                 authFinishedArgs = args as AuthFinishedArgs;
             };
             
             p.Start();
-            p.AuthentifyWith(new NodeData { Port = 1235});
+            
+            var (_, handshake) = CreateKeyPairAndHandshake(remotePort);
+            p.AuthentifyWith(handshake);
+            
             Task.Delay(200).Wait();
             
             Assert.Null(authFinishedArgs);
