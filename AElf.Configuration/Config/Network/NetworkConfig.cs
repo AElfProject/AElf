@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AElf.Cryptography.ECDSA;
 
 namespace AElf.Configuration.Config.Network
 {
@@ -15,5 +16,7 @@ namespace AElf.Configuration.Config.Network
         /// Server listening Port
         /// </summary>
         public int ListeningPort { get; set; }
+        
+        public ECKeyPair EcKeyPair { get; set; }
     }
 }
