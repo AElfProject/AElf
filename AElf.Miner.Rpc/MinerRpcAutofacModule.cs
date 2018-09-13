@@ -10,18 +10,9 @@ namespace AElf.Miner.Rpc
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<MinerClientManager>().As<MinerClientManager>().SingleInstance();
-            builder.RegisterType<HeaderInfoServerImpl>().As<HeaderInfoServerImpl>().SingleInstance();
-            builder.RegisterType<MinerServer>().As<MinerServer>().SingleInstance();
-        }
-
-        public void Run(ILifetimeScope scope)
-        {
-            /*var evListener = scope.Resolve<MinerClientManager>();
-            MessageHub.Instance.Subscribe<IBlock>(async (t) =>
-            {
-                await evListener.(t);
-            });*/
+            builder.RegisterType<ClientManager>().As<ClientManager>().SingleInstance();
+            builder.RegisterType<SideChainHeaderInfoRpcServerImpl>().As<SideChainHeaderInfoRpcServerImpl>().SingleInstance();
+            builder.RegisterType<SideChainServer>().As<SideChainServer>().SingleInstance();
         }
     }
 }

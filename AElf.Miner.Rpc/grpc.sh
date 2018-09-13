@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 b="64"
 if [ "$(uname -m | grep ${b})" != "" ]; then
   osb="x64"
