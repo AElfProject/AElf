@@ -29,7 +29,7 @@ namespace AElf.Node.Protocol
         #region Settings
 
         public const int DefaultMaxBlockHistory = 15;
-        public const int DefaultMaxTransactionHistory = 15;
+        public const int DefaultMaxTransactionHistory = 20;
         
         public const int DefaultRequestTimeout = 2000;
         public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
@@ -74,9 +74,20 @@ namespace AElf.Node.Protocol
 
             MessageHub.Instance.Subscribe<TransactionAddedToPool>(async inTx =>
                 {
+                    if (inTx?.Transaction == null)
+                    {
+                        _logger?.Warn("[event] Transaction null.");
+                        return;
+                    }
+
+                    var txHash = inTx.Transaction.GetHashBytes();
+                    
+                    if (txHash != null)
+                        _lastTxReceived.Enqueue(txHash);
+                    
                     await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
                     
-                    _logger?.Trace($"[event] tx added to the pool {inTx?.Transaction?.GetHashBytes()?.ToHex()}.");
+                    _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
             MessageHub.Instance.Subscribe<BlockMinedMessage>(async b => 
