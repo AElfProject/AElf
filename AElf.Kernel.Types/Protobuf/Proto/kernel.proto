@@ -87,12 +87,14 @@ message BlockHeader {
     bytes P = 9;
     google.protobuf.Timestamp Time = 10;
     Hash ChainId = 11;
-    repeated SideChainIndexedInfo IndexedInfo = 12;
+    Hash SideChainBlockHeadersRoot = 12;
+    Hash SideChainTransactionsRoot =13;
 }
 
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
+    repeated SideChainIndexedInfo IndexedInfo = 3;
 }
 
 message Block {
