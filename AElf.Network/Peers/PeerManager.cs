@@ -10,6 +10,7 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
+using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
@@ -50,16 +51,16 @@ namespace AElf.Network.Peers
         
         private BlockingCollection<PeerManagerJob> _jobQueue;
         
-        private readonly List<byte[]> _bpKeys;
-        
-        private byte[] _nodeKey;
+        internal readonly List<byte[]> _bpAddresses;
+        internal bool _isBp;
+
+        private ECKeyPair _nodeKey;
         private string _nodeName;
-        private bool _isBp;
 
         public PeerManager(IConnectionListener connectionListener, ILogger logger)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
-            _bpKeys = new List<byte[]>();
+            _bpAddresses = new List<byte[]>();
             
             _connectionListener = connectionListener;
             _logger = logger;
@@ -79,17 +80,18 @@ namespace AElf.Network.Peers
                 foreach (var bp in producers.Values)
                 {
                     byte[] key = ByteArrayHelpers.FromHexString(bp["address"]);
-                    _bpKeys.Add(key);
+                    _bpAddresses.Add(key);
                 }
             }
             catch (Exception e)
             {
                 _logger?.Warn(e, "Error while reading mining info.");
             }
+
+            _nodeKey = NetworkConfig.Instance.EcKeyPair;
             
             // This nodes key
-            _nodeKey = ByteArrayHelpers.FromHexString(NodeConfig.Instance.NodeAccount);
-            _isBp = _bpKeys.Any(k => k.BytesEqual(_nodeKey));
+            _isBp = _bpAddresses.Any(k => k.BytesEqual(_nodeKey.GetAddress()));
         }
 
         public void Start()
@@ -263,10 +265,18 @@ namespace AElf.Network.Peers
         
         private void PeerOnPeerAuthentified(object sender, EventArgs eventArgs)
         {
-            if (sender is Peer peer)
+            if (sender is Peer peer && eventArgs is AuthFinishedArgs authArgs)
             {
-                peer.IsBp = peer.DistantNodeAddress != null && _bpKeys.Any(k => k.BytesEqual(peer.DistantNodeAddress)); 
-                AddAuthentifiedPeer(peer);
+                if (authArgs.IsAuthentified)
+                {
+                    peer.IsBp = peer.DistantNodeAddress != null && _bpAddresses.Any(k => k.BytesEqual(peer.DistantNodeAddress)); 
+                    AddAuthentifiedPeer(peer);
+                }
+                else
+                {
+                    _logger?.Trace($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
+                }
+
             }
         }
         

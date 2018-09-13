@@ -5,6 +5,7 @@ using System.Security;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
+using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -44,6 +45,7 @@ namespace AElf.Node
             }
 
             TransactionPoolConfig.Instance.EcKeyPair = nodeKey;
+            NetworkConfig.Instance.EcKeyPair = nodeKey;
             
             builder.RegisterModule(new NodeAutofacModule());
         }
