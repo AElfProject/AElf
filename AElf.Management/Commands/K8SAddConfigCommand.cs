@@ -95,7 +95,8 @@ namespace AElf.Management.Commands
         private string GetMinersConfigJson(DeployArg arg)
         {
             var config = new MinersConfig();
-            if (arg.IsDeployMainChain && !arg.Miners.Contains(arg.ChainAccount))
+            //Todo
+            if (!arg.Miners.Contains(arg.ChainAccount))
             {
                 arg.Miners.Add(arg.ChainAccount);
             }
