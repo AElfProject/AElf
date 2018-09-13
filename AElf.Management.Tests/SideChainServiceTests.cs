@@ -11,7 +11,7 @@ namespace AElf.Management.Tests
 {
     public class SideChainServiceTests
     {
-        private string _chainId = "0x0607291ce69a80bd5dc7dbd41501b994841a";//Guid.NewGuid().ToString("N");
+        private string _chainId = "0x462fef4710a75e132e0c8bacfd5ee70213c0";//Guid.NewGuid().ToString("N");
         
         //[Fact(Skip = "require aws account")]
         [Fact]

@@ -27,14 +27,14 @@ namespace AElf.Configuration
         {
             _fileNames = new HashSet<string>();
             _pendingFiles = new HashSet<string>();
-            var configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config", "..data");
+            var configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");//, "..data");
             if (!Directory.Exists(configPath))
             {
-                configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");
-                if (!Directory.Exists(configPath))
-                {
+//                configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");
+//                if (!Directory.Exists(configPath))
+//                {
                     Directory.CreateDirectory(configPath);
-                }
+                //}
             }
             InitWatcher(configPath);
             Console.WriteLine("Init FileWatcher:" + configPath);
@@ -45,7 +45,8 @@ namespace AElf.Configuration
             _watcher = new FileSystemWatcher
             {
                 Path = directory,
-                IncludeSubdirectories = false
+                IncludeSubdirectories = true,
+                Filter = "*.json"
             };
 
             _watcher.Changed += WatchFileChanged;
