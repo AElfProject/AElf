@@ -95,11 +95,11 @@ namespace AElf.Miner.Tests.Grpc
             return chain;
         }
         
-        internal IMiner GetMiner(IMinerConfig config, TxPoolService poolService, MinerClientManager minerClientManager = null)
+        internal IMiner GetMiner(IMinerConfig config, TxPoolService poolService, ClientManager clientManager = null)
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
-                minerClientManager, MinerServer());
+                clientManager, MinerServer());
 
             return miner;
         }
@@ -160,10 +160,10 @@ namespace AElf.Miner.Tests.Grpc
         }
         
         
-        public MinerServer MinerServer()
+        public SideChainServer MinerServer()
         {
-            GrpcLocalConfig.Instance.Server = false;
-            return new MinerServer(_logger, new HeaderInfoServerImpl(MockChainService().Object, _logger));
+            GrpcLocalConfig.Instance.SideChainServer = false;
+            return new SideChainServer(_logger, new SideChainHeaderInfoRpcServerImpl(MockChainService().Object, _logger));
         }
 
         public Mock<IChainManagerBasic> MockChainManager()
@@ -183,9 +183,9 @@ namespace AElf.Miner.Tests.Grpc
             return mock;
         }
 
-        public MinerClientManager MinerClientManager()
+        public ClientManager MinerClientManager()
         {
-            return new MinerClientManager(_logger, MockChainManager().Object);
+            return new ClientManager(_logger, MockChainManager().Object);
         }
 
         public void MockKeyPair(Hash chainId, string dir)
@@ -209,7 +209,7 @@ namespace AElf.Miner.Tests.Grpc
             var sideChainId = Hash.Generate();
             MockKeyPair(sideChainId, dir);
             //start server, sidechain is server-side
-            GrpcLocalConfig.Instance.LocalServerPort = port;
+            GrpcLocalConfig.Instance.LocalSideChainServerPort = port;
             GrpcLocalConfig.Instance.LocalServerIP = address;
             server.Init(sideChainId, dir);
             server.StartUp();
@@ -219,7 +219,7 @@ namespace AElf.Miner.Tests.Grpc
                 {
                     sideChainId.ToHex(), new Uri{
                         Address = GrpcLocalConfig.Instance.LocalServerIP,
-                        Port = GrpcLocalConfig.Instance.LocalServerPort
+                        Port = GrpcLocalConfig.Instance.LocalSideChainServerPort
                     }
                 }
             };

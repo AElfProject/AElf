@@ -172,8 +172,8 @@ namespace AElf.Kernel.Node
                     //In case just config one node to produce blocks.
                     await RecoverMining();
                 }
-                if(!block.Header.IndexedInfo.IsEmpty())
-                    _logger?.Debug($"Indexed side chain info in main block {block.Header.Index}:\n{block.Header.GetIndexedSideChainBlcokInfo()}");
+                /*if(!block.Header.IndexedInfo.IsEmpty())
+                    _logger?.Debug($"Indexed side chain info in main block {block.Header.Index}:\n{block.Header.GetIndexedSideChainBlcokInfo()}");*/
                 return block;
             }
             catch (Exception e)

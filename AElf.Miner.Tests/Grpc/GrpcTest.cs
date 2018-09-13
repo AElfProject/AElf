@@ -47,11 +47,11 @@ namespace AElf.Miner.Tests.Grpc
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
                 manager.Init(dir, t);
-                var client = manager.StartNewClientToSideChain(sideChainId.ToHex());
+                var client = manager.CreateClientToSideChain(sideChainId.ToHex());
 
                 CancellationTokenSource cancellationTokenSource =
                     new CancellationTokenSource(TimeSpan.FromMilliseconds(3000));
-                client.Index(cancellationTokenSource.Token, 0);
+                client.Start(cancellationTokenSource.Token, 0);
                 Thread.Sleep(t/2);
                 // remove the first one
                 int count = client.IndexedInfoQueueCount;
@@ -80,12 +80,6 @@ namespace AElf.Miner.Tests.Grpc
                 Assert.Equal((ulong)2, responseSideChainIndexedInfo.Height);
                 
                 Assert.False(client.TryTake(10, out _));
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
             }
             finally
             {
@@ -135,13 +129,6 @@ namespace AElf.Miner.Tests.Grpc
                 result = await manager.CollectSideChainIndexedInfo();
                 count = result.Count;
                 Assert.Equal(0, count);
-                
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
             }
             finally
             {
@@ -173,36 +160,31 @@ namespace AElf.Miner.Tests.Grpc
                 Thread.Sleep(t/2);
                 var block = await miner.Mine();
                 Assert.NotNull(block);
-                Assert.NotNull(block.Header.IndexedInfo);
-                int count = block.Header.IndexedInfo.Count;
+                Assert.NotNull(block.Body.IndexedInfo);
+                int count = block.Body.IndexedInfo.Count;
                 Assert.Equal(1, count);
-                Assert.Equal((ulong)0, block.Header.IndexedInfo[0].Height);
+                Assert.Equal((ulong)0, block.Body.IndexedInfo[0].Height);
                 Assert.Equal((ulong)1, block.Header.Index);
             
                 Thread.Sleep(t);
                 block = await miner.Mine();
                 Assert.NotNull(block);
-                Assert.NotNull(block.Header.IndexedInfo);
-                count = block.Header.IndexedInfo.Count;
+                Assert.NotNull(block.Body.IndexedInfo);
+                count = block.Body.IndexedInfo.Count;
                 Assert.Equal(1, count);
-                Assert.Equal((ulong)1, block.Header.IndexedInfo[0].Height);
+                Assert.Equal((ulong)1, block.Body.IndexedInfo[0].Height);
                 Assert.Equal((ulong)2, block.Header.Index);
             
                 Thread.Sleep(t);
                 block = await miner.Mine();
                 Assert.NotNull(block);
-                Assert.NotNull(block.Header.IndexedInfo);
-                count = block.Header.IndexedInfo.Count;
+                Assert.NotNull(block.Body.IndexedInfo);
+                count = block.Body.IndexedInfo.Count;
                 Assert.Equal(1, count);
-                Assert.Equal((ulong)2, block.Header.IndexedInfo[0].Height);
+                Assert.Equal((ulong)2, block.Body.IndexedInfo[0].Height);
                 Assert.Equal((ulong)3, block.Header.Index);
                 
                 manager.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
             }
             finally
             {
