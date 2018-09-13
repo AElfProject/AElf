@@ -11,6 +11,7 @@ using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types.Merkle;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -35,8 +36,8 @@ namespace AElf.Miner.Miner
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly MinerClientManager _clientManager;
-        private readonly MinerServer _minerServer;
+        private readonly ClientManager _clientManager;
+        private readonly SideChainServer _sideChainServer;
         private int _timeoutMilliseconds;
 
         private readonly ILogger _logger;
@@ -48,8 +49,8 @@ namespace AElf.Miner.Miner
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
-            ITransactionResultManager transactionResultManager, ILogger logger, MinerClientManager clientManager, 
-            MinerServer minerServer)
+            ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, 
+            SideChainServer sideChainServer)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -60,7 +61,7 @@ namespace AElf.Miner.Miner
             _transactionResultManager = transactionResultManager;
             _logger = logger;
             _clientManager = clientManager;
-            _minerServer = minerServer;
+            _sideChainServer = sideChainServer;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
@@ -305,7 +306,6 @@ namespace AElf.Miner.Miner
             block.Header.Index = index + 1;
             block.Header.ChainId = chainId;
 
-
             var ws = await _stateDictator.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
 
@@ -331,7 +331,7 @@ namespace AElf.Miner.Miner
                 return;
             // interval waiting for each side chain
             var sideChainInfo = await _clientManager.CollectSideChainIndexedInfo();
-            block.Header.IndexedInfo.Add(sideChainInfo);
+            block.Body.IndexedInfo.Add(sideChainInfo);
         }
 
         /// <summary>
@@ -343,15 +343,10 @@ namespace AElf.Miner.Miner
             _timeoutMilliseconds = Globals.AElfMiningInterval;
             _keyPair = nodeKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
-            if (GrpcLocalConfig.Instance.Client)
-            {
-                _clientManager.CreateClientsToSideChain().Wait();
-            }
-
-            if (GrpcLocalConfig.Instance.Server)
-            {
-                _minerServer.StartUp();
-            }
+            
+            // start clients and server
+            _clientManager.CreateClientsToSideChain().Wait();
+            _sideChainServer.StartUp();
         }
 
         /// <summary>

@@ -130,14 +130,9 @@ namespace AElf.ChainController.TxMemPoolBM
         {
             foreach (var tx in txsOut)
             {
-                if (tx.Type == TransactionType.DposTransaction)
-                {
-                    AddDPoSTransaction(tx);
-                }
-                else
-                {
-                    AddContractTransaction(tx);
-                }
+                if (tx.Type != TransactionType.ContractTransaction) continue;
+                // only revert contract transaction
+                AddContractTransaction(tx);
                 tx.Unclaim();
             }
 

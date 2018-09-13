@@ -12,9 +12,13 @@ namespace AElf.ChainController
     {
         public Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
-            return Task.FromResult(block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions
-                ? ValidationError.IncorrectTxMerkleTreeRoot
-                : ValidationError.Success);
+            ValidationError res = ValidationError.Success;
+            if(block.Body.CalculateTransactionMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
+                res = ValidationError.IncorrectTxMerkleTreeRoot;
+            else if (block.Body.SideChainTransactionsRoot != block.Header.SideChainTransactionsRoot
+                     || block.Body.SideChainBlockHeadersRoot != block.Header.SideChainBlockHeadersRoot)
+                res = ValidationError.IncorrectSideChainInfo;
+            return Task.FromResult(res);
         }
     }
 }

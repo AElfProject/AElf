@@ -26,19 +26,15 @@ namespace AElf.Miner
             }
             minerConfig.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
             builder.RegisterModule(new MinerAutofacModule(minerConfig));
-            builder.RegisterType<MinerClientManager>().SingleInstance().OnActivated(mc =>
+            builder.RegisterType<ClientManager>().SingleInstance().OnActivated(mc =>
                 {
-                    if (GrpcLocalConfig.Instance.Client)
-                    {
-                        mc.Instance.Init(dir: ApplicationHelpers.GetDefaultDataDir());
-                    }
+                    mc.Instance.Init(dir: ApplicationHelpers.GetDefaultDataDir());
                 }
             );
-            builder.RegisterType<HeaderInfoServerImpl>().As<HeaderInfoServerImpl>();
-            builder.RegisterType<MinerServer>().SingleInstance().OnActivated(mc =>
+            builder.RegisterType<SideChainHeaderInfoRpcServerImpl>().As<SideChainHeaderInfoRpcServerImpl>();
+            builder.RegisterType<ServerManager>().SingleInstance().OnActivated(mc =>
                 {
-                    if (GrpcLocalConfig.Instance.Server)
-                        mc.Instance.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+                    mc.Instance.Init(ApplicationHelpers.GetDefaultDataDir());
                 }
             );
         }

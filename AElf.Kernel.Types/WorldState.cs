@@ -10,8 +10,9 @@ namespace AElf.Kernel
     {
         public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
-            return await Task.FromResult(new BinaryMerkleTree().AddNodes(Data.Select(p => p.StateMerkleTreeLeaf))
-                .ComputeRootHash());
+            var nodes = Data.Select(p => p.StateMerkleTreeLeaf).ToList();
+            nodes.Sort(BinaryMerkleTree.CompareHash);
+            return await Task.FromResult(new BinaryMerkleTree().AddNodes(nodes).ComputeRootHash());
         }
 
         public Hash GetPointerHash(Hash pathHash)
