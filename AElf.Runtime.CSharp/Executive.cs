@@ -203,14 +203,20 @@ namespace AElf.Runtime.CSharp
                         _currentTransactionContext.Trace.RetVal = retVal;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
                     }
+                    catch (TargetInvocationException ex) when (ex.InnerException.GetType().Namespace == "AElf.Sdk.CSharp")
+                    {
+                        _currentTransactionContext.Trace.StdErr += ex.InnerException.Message;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                    }
                     catch (Exception ex)
                     {
-                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                         _currentTransactionContext.Trace.StdErr += "\n" + ex;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                     }
                 }
 
-                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() && _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
+                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() &&
+                    _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
                     var changes = _currentSmartContractContext.DataProvider.GetValueChanges();
                     var stateValueChanges = changes as StateValueChange[] ?? changes.ToArray();
