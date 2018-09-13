@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
+using AElf.Common.Application;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Module;
 using AElf.Configuration;
@@ -14,7 +15,8 @@ namespace AElf.ChainController
 {
     public class ChainAElfModule:IAElfModule
     {
-        private const string FilePath = @"ChainInfo.json";
+        private static readonly string FilePath =
+            Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "chain", @"ChainInfo.json");
         
         public void Init(ContainerBuilder builder)
         {
