@@ -27,15 +27,12 @@ namespace AElf.Configuration
         {
             _fileNames = new HashSet<string>();
             _pendingFiles = new HashSet<string>();
-            var configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");//, "..data");
+            var configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");
             if (!Directory.Exists(configPath))
             {
-//                configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");
-//                if (!Directory.Exists(configPath))
-//                {
-                    Directory.CreateDirectory(configPath);
-                //}
+                Directory.CreateDirectory(configPath);
             }
+
             InitWatcher(configPath);
             Console.WriteLine("Init FileWatcher:" + configPath);
         }
@@ -56,7 +53,7 @@ namespace AElf.Configuration
         
         private static void WatchFileChanged(object sender, FileSystemEventArgs e)
         {
-            var fileName = e.Name.ToLower();
+            var fileName = Path.GetFileName(e.Name.ToLower());
             Console.WriteLine("File Changed:" + fileName);
             if (ContainFileName(fileName))
             {
