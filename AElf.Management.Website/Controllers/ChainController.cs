@@ -29,7 +29,7 @@ namespace AElf.Management.Website.Controllers
         [HttpPost]
         public ApiEmptyResult Deploy([FromBody] DeployArg arg)
         {
-            _chainService.DeployMainChain(arg.MainChainId, arg);
+            _chainService.DeployMainChain(arg);
             return ApiEmptyResult.Default;
         }
         

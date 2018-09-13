@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Configuration;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Website.Models;
@@ -17,10 +18,11 @@ namespace AElf.Management.Website.Controllers
             _sideChainService = sideChainService;
         }
 
-        [HttpPost("{chainId}")]
-        public ApiEmptyResult Post(string chainId, [FromBody] DeployArg arg)
+        [HttpPost]
+        public ApiEmptyResult Post([FromBody] DeployArg arg)
         {
-            _sideChainService.Deploy(chainId, arg);
+            Console.WriteLine(JsonSerializer.Instance.Serialize(arg));
+            _sideChainService.Deploy(arg);
             return ApiEmptyResult.Default;
         }
 

@@ -38,13 +38,13 @@ namespace AElf.Management.Handlers
                 case DeployType.Deploy:
                     foreach (var cmd in _deployCommands)
                     {
-                        cmd.Action(chainId, arg);
+                        cmd.Action(arg);
                     }
                     break;
                 case DeployType.Remove:
                     foreach (var cmd in _removeCommands)
                     {
-                        cmd.Action(chainId, arg);
+                        cmd.Action(arg);
                     }
                     break;
                 default:

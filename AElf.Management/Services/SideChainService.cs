@@ -1,4 +1,11 @@
-﻿using AElf.Management.Handlers;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using AElf.Common.Extensions;
+using AElf.Cryptography.ECDSA;
+using AElf.Management.Commands;
+using AElf.Management.Handlers;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 
@@ -6,9 +13,33 @@ namespace AElf.Management.Services
 {
     public class SideChainService : ISideChainService
     {
-        public void Deploy(string chainId, DeployArg arg)
+        public void Deploy(DeployArg arg)
         {
-            GetHandler().Execute(DeployType.Deploy, chainId, arg);
+            if (string.IsNullOrWhiteSpace(arg.MainChainId))
+            {
+                throw new ArgumentException("main chain id is empty!");
+            }
+            if (string.IsNullOrWhiteSpace(arg.SideChainId))
+            {
+                arg.SideChainId = GenerateChainId();
+            }
+            arg.IsDeployMainChain = false;
+
+            var commands = new List<IDeployCommand>
+            {
+                new K8SAddNamespaceCommand(), 
+                new K8SAddRedisCommand(),
+                new K8SAddLauncherServiceCommand(),
+                new K8SAddAccountKeyCommand(), 
+                new K8SAddConfigCommand(), 
+                new K8SGrpcKeyCommand(),
+                new K8SAddLighthouseCommand(), 
+                new K8SAddWorkerCommand(), 
+                new K8SAddLauncherCommand(),
+                new K8SAddMonitorCommand()
+            };
+
+            commands.ForEach(c => c.Action(arg));
         }
 
         public void Remove(string chainId)
@@ -19,6 +50,11 @@ namespace AElf.Management.Services
         private IDeployHandler GetHandler()
         {
             return DeployHandlerFactory.GetHandler();
+        }
+        
+        private string GenerateChainId()
+        {
+            return SHA256.Create().ComputeHash(Guid.NewGuid().ToByteArray()).Take(ECKeyPair.AddressLength).ToArray().ToHex();
         }
     }
 }
