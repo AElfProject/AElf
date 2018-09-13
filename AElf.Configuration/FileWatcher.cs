@@ -27,10 +27,14 @@ namespace AElf.Configuration
         {
             _fileNames = new HashSet<string>();
             _pendingFiles = new HashSet<string>();
-            var configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");
+            var configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "..data", "config");
             if (!Directory.Exists(configPath))
             {
-                Directory.CreateDirectory(configPath);
+                configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");
+                if (!Directory.Exists(configPath))
+                {
+                    Directory.CreateDirectory(configPath);
+                }
             }
             InitWatcher(configPath);
             Console.WriteLine("Init FileWatcher:" + configPath);
