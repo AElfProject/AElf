@@ -37,7 +37,6 @@ namespace AElf.Miner.Miner
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ClientManager _clientManager;
-        private readonly SideChainServer _sideChainServer;
         private int _timeoutMilliseconds;
 
         private readonly ILogger _logger;
@@ -49,8 +48,7 @@ namespace AElf.Miner.Miner
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
-            ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, 
-            SideChainServer sideChainServer)
+            ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -61,7 +59,6 @@ namespace AElf.Miner.Miner
             _transactionResultManager = transactionResultManager;
             _logger = logger;
             _clientManager = clientManager;
-            _sideChainServer = sideChainServer;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
@@ -346,7 +343,7 @@ namespace AElf.Miner.Miner
             
             // start clients and server
             _clientManager.CreateClientsToSideChain().Wait();
-            _sideChainServer.StartUp();
+            //_sideChainServer.StartUp();
         }
 
         /// <summary>

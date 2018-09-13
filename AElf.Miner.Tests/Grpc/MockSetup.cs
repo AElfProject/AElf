@@ -99,7 +99,7 @@ namespace AElf.Miner.Tests.Grpc
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
-                clientManager, MinerServer());
+                clientManager);
 
             return miner;
         }
