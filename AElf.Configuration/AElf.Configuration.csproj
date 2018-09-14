@@ -42,6 +42,9 @@
     <None Update="Config\Management\deploy.json" Link="config\deploy.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Config\Management\apikey.json" Link="config\apikey.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Config\Network\network.json" Link="config\network.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

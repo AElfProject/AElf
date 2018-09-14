@@ -18,10 +18,11 @@ namespace AElf.Management.Website.Controllers
             _sideChainService = sideChainService;
         }
 
-        [HttpPost]
-        public ApiEmptyResult Post([FromBody] DeployArg arg)
+        [HttpPost("{chainId}")]
+        public ApiEmptyResult Post(string chainId, [FromBody] DeployArg arg)
         {
             Console.WriteLine(JsonSerializer.Instance.Serialize(arg));
+            arg.MainChainId = chainId;
             _sideChainService.Deploy(arg);
             return ApiEmptyResult.Default;
         }
