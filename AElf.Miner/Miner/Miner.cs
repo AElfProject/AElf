@@ -170,6 +170,7 @@ namespace AElf.Miner.Miner
                         var txResF = new TransactionResult()
                         {
                             TransactionId = trace.TransactionId,
+                            RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
                             Status = Status.Failed
                         };
                         results.Add(txResF);
