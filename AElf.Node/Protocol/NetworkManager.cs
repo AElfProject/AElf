@@ -90,13 +90,23 @@ namespace AElf.Node.Protocol
                     _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
-            MessageHub.Instance.Subscribe<BlockMinedMessage>(async b => 
+            MessageHub.Instance.Subscribe<BlockMinedMessage>(async inBlock => 
                 {
-                    var serializedBlock = b.Block.Serialize();
-                    await BroadcastBlock(b.Block.GetHash().GetHashBytes(), serializedBlock);
+                    if (inBlock?.Block == null)
+                    {
+                        _logger?.Warn("[event] Block null.");
+                        return;
+                    }
+
+                    byte[] blockHash = inBlock.Block.GetHash().GetHashBytes();
+
+                    if (blockHash != null)
+                        _lastBlocksReceived.Enqueue(blockHash);
                     
-                    _logger?.Trace($"Broadcasted block \"{b.Block.GetHash().GetHashBytes().ToHex()}\" to peers " +
-                                   $"with {b.Block.Body.TransactionsCount} tx(s). Block height: [{b.Block.Header.Index}].");
+                    await BroadcastBlock(blockHash, inBlock.Block.Serialize());
+                    
+                    _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
+                                   $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
                 });
         }
 
