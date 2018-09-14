@@ -20,6 +20,8 @@ namespace AElf.Management.Models
         
         public float MemoryResource { get; set; }
 
+        public string ApiKey { get; set; }
+
         public DeployDBArg DBArg { get; set; }
 
         public DeployLighthouseArg LighthouseArg { get; set; }

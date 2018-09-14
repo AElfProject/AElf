@@ -36,7 +36,8 @@ namespace AElf.Management.Services
                 new K8SAddLighthouseCommand(), 
                 new K8SAddWorkerCommand(), 
                 new K8SAddLauncherCommand(),
-                new K8SAddMonitorCommand()
+                new K8SAddMonitorCommand(),
+                new SaveApiKeyCommand()
             };
 
             commands.ForEach(c => c.Action(arg));
