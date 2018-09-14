@@ -1,3 +1,5 @@
+using AElf.Kernel;
+
 namespace AElf.Miner.Rpc
 {
     public interface IRequestIndexingMessage
@@ -7,26 +9,24 @@ namespace AElf.Miner.Rpc
     
     public interface IResponseIndexingMessage
     {
-        bool Success { get; set; }
-        ulong Height { get; set; }
+        bool Success { get; }
+        ulong Height { get;}
+        IBlockInfo BlockInfoResult { get; }
     }
-    public partial class RequestSideChainIndexingInfo : IRequestIndexingMessage
+    public partial class RequestBlockInfo : IRequestIndexingMessage
     {
         
     }
     
-    public partial class ResponseSideChainIndexingInfo : IResponseIndexingMessage
+    public partial class ResponseSideChainBlockInfo : IResponseIndexingMessage
     {
-        
+        public ulong Height => BlockInfo.Height;
+        public IBlockInfo BlockInfoResult => BlockInfo;
     }
     
-    public partial class RequestParentChainIndexingInfo : IRequestIndexingMessage
+    public partial class ResponseParentChainBlockInfo : IResponseIndexingMessage
     {
-        
-    }
-    
-    public partial class ResponseParentChainIndexingInfo : IResponseIndexingMessage
-    {
-        
+        public ulong Height => BlockInfo.Height;
+        public IBlockInfo BlockInfoResult => BlockInfo;
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.Common.Application;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
@@ -21,14 +22,21 @@ namespace AElf.Miner.Rpc.Client
      public class ClientManager
      {
          private readonly Dictionary<string, ClientToSideChain> _clientsToSideChains = new Dictionary<string, ClientToSideChain>();
-         private readonly Dictionary<string, ClientToSideChain> _clientsToParentChains = new Dictionary<string, ClientToSideChain>();
+         private ClientToParentChain _clientToParentChain;
 
          private CertificateStore _certificateStore;
-         private ILogger _logger;
-         private IChainManagerBasic _chainManagerBasic;
+         private readonly ILogger _logger;
+         private readonly IChainManagerBasic _chainManagerBasic;
          private Dictionary<string , Uri> ChildChains => GrpcRemoteConfig.Instance.ChildChains;
-         private CancellationTokenSource _tokenSource;
+         private CancellationTokenSource _tokenSourceToSideChain;
+         private CancellationTokenSource _tokenSourceToParentChain;
          private int _interval;
+         
+         /// <summary>
+         /// waiting interval for taking element
+         /// </summary>
+         private int Interval => GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
+         
          public ClientManager(ILogger logger, IChainManagerBasic chainManagerBasic)
          {
              _logger = logger;
@@ -38,15 +46,19 @@ namespace AElf.Miner.Rpc.Client
 
          private void GrpcRemoteConfigOnConfigChanged(object sender, EventArgs e)
          {
-             _tokenSource?.Cancel();
-             _tokenSource?.Dispose();
+             _tokenSourceToSideChain?.Cancel();
+             _tokenSourceToSideChain?.Dispose();
+             _tokenSourceToParentChain?.Cancel();
+             _tokenSourceToParentChain?.Dispose();
              
              // reset
-             _tokenSource = new CancellationTokenSource();
+             _tokenSourceToSideChain = new CancellationTokenSource();
+             _tokenSourceToParentChain = new CancellationTokenSource();
              
              // client cache would be cleared since configuration has been changed
              // Todo: only clear clients which is needed
              _clientsToSideChains.Clear();
+             _clientToParentChain = null;
              Init();
          }
 
@@ -59,9 +71,10 @@ namespace AElf.Miner.Rpc.Client
          {
              if (!GrpcLocalConfig.Instance.Client) return;
              _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
-             _tokenSource = new CancellationTokenSource();
+             _tokenSourceToSideChain = new CancellationTokenSource();
              _interval = interval == 0 ? Globals.AElfMiningInterval : interval;
              CreateClientsToSideChain();
+             CreateClientToParentChain();
          }
 
          /// <summary>
@@ -69,7 +82,7 @@ namespace AElf.Miner.Rpc.Client
          /// this would be invoked when miner starts or configuration reloaded 
          /// </summary>
          /// <returns></returns>
-         public async Task CreateClientsToSideChain()
+         private async Task CreateClientsToSideChain()
          {
              if (!GrpcLocalConfig.Instance.Client)
                  return;
@@ -82,7 +95,7 @@ namespace AElf.Miner.Rpc.Client
                      await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(sideChainId));
                 
                  // keep-alive
-                 client.Start(_tokenSource.Token, height);
+                 client.Start(_tokenSourceToSideChain.Token, height);
              }
          }
          
@@ -98,7 +111,7 @@ namespace AElf.Miner.Rpc.Client
              //if (_clientsToSideChains.TryGetValue(targetChainId, out var clientToSideChain)) return clientToSideChain;
              if(!ChildChains.TryGetValue(targetChainId, out var chainUri))
                  throw new ChainInfoNotFoundException($"Unable to get chain Info of {targetChainId}.");
-             ClientToSideChain clientToSideChain = CreateClientToSideChain(chainUri, targetChainId);
+             ClientToSideChain clientToSideChain = (ClientToSideChain) CreateClient(chainUri, targetChainId, true);
              _clientsToSideChains.Add(targetChainId, clientToSideChain);
              return clientToSideChain;
          }
@@ -108,13 +121,18 @@ namespace AElf.Miner.Rpc.Client
          /// </summary>
          /// <returns></returns>
          /// <exception cref="ChainInfoNotFoundException"></exception>
-         public ClientToParentChain CreateClientToParentChain()
+         private async Task CreateClientToParentChain()
          {
+             if (!GrpcLocalConfig.Instance.Client)
+                 return;
              // do not use cache since configuration is managed by cluster
              var parent = GrpcRemoteConfig.Instance.ParentChain?.ElementAt(0);
              if(parent == null)
                  throw new ChainInfoNotFoundException("Unable to get parent chain info.");
-             return CreateClientToParentChain(parent.Value.Value, parent.Value.Key);
+             _clientToParentChain = (ClientToParentChain) CreateClient(parent.Value.Value, parent.Value.Key, false);
+             var height =
+                 await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(parent.Value.Key));
+             _clientToParentChain.Start(_tokenSourceToParentChain.Token, height);
          }
 
          /// <summary>
@@ -122,26 +140,20 @@ namespace AElf.Miner.Rpc.Client
          /// </summary>
          /// <param name="uri"></param>
          /// <param name="targetChainId"></param>
-         /// <returns></returns>
-         /// <exception cref="NotImplementedException"></exception>
-         private ClientToParentChain CreateClientToParentChain(Uri uri, string targetChainId)
+         /// <param name="toSideChain">the client is connected to side chain or parent chain</param>
+         /// <returns>
+         /// return <see cref="ClientToParentChain"/>> if the client is to parent chain
+         /// return <see cref="ClientToSideChain"/>> if the client is to side chain 
+         /// </returns>
+         private ClientBase CreateClient(Uri uri, string targetChainId, bool toSideChain)
          {
-             var uriStr = uri.Address + ":" + uri.Port;
+             var uriStr = uri.ToString();
              var channel = CreateChannel(uriStr, targetChainId);
-             return new ClientToParentChain(channel, _logger, targetChainId, _interval);
-         }
-
-         /// <summary>
-         /// create a new client to one side chain
-         /// </summary>
-         /// <param name="uri"></param>
-         /// <param name="targetChainId"></param>
-         /// <returns></returns>
-         private ClientToSideChain CreateClientToSideChain(Uri uri, string targetChainId)
-         {
-             var uriStr = uri.Address + ":" + uri.Port;
-             var channel = CreateChannel(uriStr, targetChainId);
-             return new ClientToSideChain(channel, _logger, targetChainId, _interval);
+             if (toSideChain)
+                 return new ClientToSideChain(channel, _logger,
+                     ByteArrayHelpers.FromHexString(targetChainId), _interval);
+             return new ClientToParentChain(channel, _logger,
+                 ByteArrayHelpers.FromHexString(targetChainId), _interval);
          }
 
          /// <summary>
@@ -165,42 +177,64 @@ namespace AElf.Miner.Rpc.Client
          /// <summary>
          /// take each side chain's header info 
          /// </summary>
-         /// <returns></returns>
-         public async Task<List<SideChainIndexedInfo>> CollectSideChainIndexedInfo()
+         /// <returns>
+         /// get the first one cached by every client
+         /// </returns>
+         public async Task<List<SideChainBlockInfo>> CollectSideChainBlockInfo()
          {
-             int interval = GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
-
-             List<SideChainIndexedInfo> res = new List<SideChainIndexedInfo>();
+             List<SideChainBlockInfo> res = new List<SideChainBlockInfo>();
              foreach (var _ in _clientsToSideChains)
              {
                  // take side chain info
-                 var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(_.Key));
-                 if (!_.Value.TryTake(interval, out var responseSideChainIndexedInfo) || responseSideChainIndexedInfo.Height != targetHeight) 
+                 var targetHeight =
+                     await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(_.Key));
+                 if (!_.Value.TryTake(Interval, out var blockInfo) || blockInfo.Height != targetHeight) 
                      continue;
-                 System.Diagnostics.Debug.WriteLine("Got header info!");
-                 res.Add(new SideChainIndexedInfo
-                 {
-                     BlockHeaderHash = responseSideChainIndexedInfo.BlockHeaderHash,
-                     ChainId = responseSideChainIndexedInfo.ChainId,
-                     Height = responseSideChainIndexedInfo.Height,
-                     TransactionMKRoot = responseSideChainIndexedInfo.TransactionMKRoot
-                 });
-                 await _chainManagerBasic.UpdateCurrentBlockHeightAsync(responseSideChainIndexedInfo.ChainId,
-                     responseSideChainIndexedInfo.Height + 1);
+                 
+                 res.Add((SideChainBlockInfo) blockInfo);
+                 await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height + 1);
              }
              return res;
          }
 
          /// <summary>
-         /// close and clear all clients
+         /// try to take first one in cached queue
          /// </summary>
-         public void Close()
+         /// <returns></returns>
+         public async Task<ParentChainBlockInfo> CollectParentChainBlockInfo()
          {
-             _tokenSource?.Cancel();
-             _tokenSource?.Dispose();
+             Hash parentChainId = ByteArrayHelpers.FromHexString(GrpcRemoteConfig.Instance.ParentChain?.ElementAt(0).Key);
+             var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightsync(parentChainId);
+             if (_clientToParentChain.First().Height != targetHeight ||
+                 !_clientToParentChain.TryTake(Interval, out var blockInfo)) 
+                 return null;
+             await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height + 1);
+             return (ParentChainBlockInfo) blockInfo;
+         }
+         
+         
+         /// <summary>
+         /// close and clear clients to side chain
+         /// </summary>
+         public void CloseClientsToSideChain()
+         {
+             _tokenSourceToSideChain?.Cancel();
+             _tokenSourceToSideChain?.Dispose();
              
              //Todo: probably not needed
              _clientsToSideChains.Clear();
+         }
+         
+         /// <summary>
+         /// close and clear clients to parent chain
+         /// </summary>
+         public void CloseClientToParentChain()
+         {
+             _tokenSourceToParentChain?.Cancel();
+             _tokenSourceToParentChain?.Dispose();
+             
+             //Todo: probably not needed
+             _clientToParentChain = null;
          }
      }
  }

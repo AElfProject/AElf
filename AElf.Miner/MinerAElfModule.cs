@@ -31,7 +31,7 @@ namespace AElf.Miner
                     mc.Instance.Init(dir: ApplicationHelpers.GetDefaultDataDir());
                 }
             );
-            builder.RegisterType<SideChainHeaderInfoRpcServerImpl>().As<SideChainHeaderInfoRpcServerImpl>();
+            builder.RegisterType<SideChainBlockInfoRpcServerImpl>().As<SideChainBlockInfoRpcServerImpl>();
             builder.RegisterType<ServerManager>().SingleInstance().OnActivated(mc =>
                 {
                     mc.Instance.Init(ApplicationHelpers.GetDefaultDataDir());

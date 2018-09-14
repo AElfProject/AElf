@@ -4,22 +4,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
+using AElf.Kernel;
 using Grpc.Core;
 using NLog;
 
 namespace AElf.Miner.Rpc.Client
 {
-    public abstract class ClientBase<TRequest, TResponse> where TRequest : IRequestIndexingMessage, new()
-        where TResponse : IResponseIndexingMessage
+    public abstract class ClientBase<TResponse> : ClientBase where TResponse : IResponseIndexingMessage
     {
         private readonly ILogger _logger;
         private ulong _next;
-        private readonly string _targetChainId;
+        private readonly Hash _targetChainId;
         private readonly int _interval;
 
-        private BlockingCollection<TResponse> IndexedInfoQueue { get; } = new BlockingCollection<TResponse>(new ConcurrentQueue<TResponse>());
+        private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } = new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
 
-        protected ClientBase(ILogger logger, string targetChainId, int interval)
+        protected ClientBase(ILogger logger, Hash targetChainId, int interval)
         {
             _logger = logger;
             _targetChainId = targetChainId;
@@ -31,18 +33,18 @@ namespace AElf.Miner.Rpc.Client
         /// </summary>
         /// <param name="call"></param>
         /// <returns></returns>
-        private Task ReadResponse(AsyncDuplexStreamingCall<TRequest, TResponse> call)
+        private Task ReadResponse(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call)
         {
             var responseReaderTask = Task.Run(async () =>
             {
                 while (await call.ResponseStream.MoveNext())
                 {
-                    var indexedInfo = call.ResponseStream.Current;
+                    var responseStreamCurrent = call.ResponseStream.Current;
 
                     // request failed or useless response
-                    if (!indexedInfo.Success || indexedInfo.Height != _next)
+                    if (!responseStreamCurrent.Success || responseStreamCurrent.Height != _next)
                         continue;
-                    if (IndexedInfoQueue.TryAdd(indexedInfo))
+                    if (IndexedInfoQueue.TryAdd(responseStreamCurrent.BlockInfoResult))
                     {
                         _next++;
                     }
@@ -58,17 +60,17 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="call"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        private async Task RequestLoop(AsyncDuplexStreamingCall<TRequest, TResponse> call, CancellationToken cancellationToken)
+        private async Task RequestLoop(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, CancellationToken cancellationToken)
         {
             // send request every second until cancellation
             while (!cancellationToken.IsCancellationRequested)
             {
-                var request = new TRequest
+                var request = new RequestBlockInfo
                 {
+                    ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
                     NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                 };
-                _logger.Log(LogLevel.Trace,
-                    $"Request IndexedInfo message of height {request.NextHeight} from chain \"{_targetChainId}\"");
+                _logger.Debug($"New {typeof(TResponse).Name} for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_interval);
             }
@@ -107,18 +109,31 @@ namespace AElf.Miner.Rpc.Client
         /// take element from cached queue
         /// </summary>
         /// <param name="interval"></param>
-        /// <param name="responseIndexingInfo"></param>
+        /// <param name="blockInfo"></param>
         /// <returns></returns>
-        public bool TryTake(int interval, out TResponse responseIndexingInfo)
+        public bool TryTake(int interval, out IBlockInfo blockInfo)
         {
-            return IndexedInfoQueue.TryTake(out responseIndexingInfo, interval);
+            return IndexedInfoQueue.TryTake(out blockInfo, interval);
         }
 
+        /// <summary>
+        /// return first element in cached queue
+        /// </summary>
+        /// <returns></returns>
+        public IBlockInfo First()
+        {
+            return IndexedInfoQueue.First();
+        }
+            
         /// <summary>
         /// cached count
         /// </summary>
         public int IndexedInfoQueueCount => IndexedInfoQueue.Count;
 
-        protected abstract AsyncDuplexStreamingCall<TRequest, TResponse> Call();
+        protected abstract AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> Call();
+    }
+
+    public abstract class ClientBase
+    {
     }
 }

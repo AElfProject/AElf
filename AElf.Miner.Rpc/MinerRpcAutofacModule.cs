@@ -11,8 +11,7 @@ namespace AElf.Miner.Rpc
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<ClientManager>().As<ClientManager>().SingleInstance();
-            builder.RegisterType<SideChainHeaderInfoRpcServerImpl>().As<SideChainHeaderInfoRpcServerImpl>().SingleInstance();
-            builder.RegisterType<SideChainServer>().As<SideChainServer>().SingleInstance();
+            builder.RegisterType<SideChainBlockInfoRpcServerImpl>().As<SideChainBlockInfoRpcServerImpl>().SingleInstance();
         }
     }
 }
