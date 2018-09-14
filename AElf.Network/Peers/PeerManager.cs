@@ -52,7 +52,9 @@ namespace AElf.Network.Peers
         private BlockingCollection<PeerManagerJob> _jobQueue;
 
         private AllowedConnection _allowedConnections = AllowedConnection.All;
+        private List<byte[]> _whiteList;
         
+        // Temp solution until the BP voting gets implemented
         internal readonly List<byte[]> _bpAddresses;
         internal bool _isBp;
 
@@ -63,6 +65,7 @@ namespace AElf.Network.Peers
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
             _bpAddresses = new List<byte[]>();
+            _whiteList = new List<byte[]>();
             
             _connectionListener = connectionListener;
             _logger = logger;
@@ -76,15 +79,14 @@ namespace AElf.Network.Peers
                     _allowedConnections = myName;
                 }
             }
-
-            //  todo bunch of pubkeys
-            //            if (NetworkConfig.Instance.NetWhitelist != null)
-            //            {
-            //                foreach (var peer in NetworkConfig.Instance.NetWhitelist)
-            //                {
-            //                    if (peer.Length != "04fdf7d50f69be44a55a01f22d5910a96ddf")
-            //                }
-            //            }
+            
+            if (NetworkConfig.Instance.NetWhitelist != null)
+            {
+                foreach (var peer in NetworkConfig.Instance.NetWhitelist)
+                {
+                    _whiteList.Add(ByteArrayHelpers.FromHexString(peer));
+                }
+            }
 
             SetBpConfig();
         }
@@ -284,19 +286,52 @@ namespace AElf.Network.Peers
         
         private void PeerOnPeerAuthentified(object sender, EventArgs eventArgs)
         {
-            if (sender is Peer peer && eventArgs is AuthFinishedArgs authArgs)
-            {
-                if (authArgs.IsAuthentified)
-                {
-                    peer.IsBp = peer.DistantNodeAddress != null && _bpAddresses.Any(k => k.BytesEqual(peer.DistantNodeAddress)); 
-                    AddAuthentifiedPeer(peer);
-                }
-                else
-                {
-                    _logger?.Trace($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
-                }
+            if (!(sender is Peer peer) || !(eventArgs is AuthFinishedArgs authArgs))
+                return;
 
+            if (!authArgs.IsAuthentified)
+            {
+                _logger?.Warn($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
+                peer.Dispose();
+                return;
             }
+            
+            peer.IsBp = peer.DistantNodeAddress != null && _bpAddresses.Any(k => k.BytesEqual(peer.DistantNodeAddress));
+
+            switch (_allowedConnections)
+            {
+                case AllowedConnection.BPs when !peer.IsBp:
+                {
+                    _logger?.Trace($"Only producers are allowed to connect. Rejecting {peer}.");
+                    RemovePeer(peer);
+                    return;
+                }
+                case AllowedConnection.Listed:
+                case AllowedConnection.BPsAndListed:
+                {
+                    byte[] pub = peer.DistantNodeKeyPair.GetEncodedPublicKey();
+                    bool inWhiteList = _whiteList.Any(p => p.BytesEqual(pub));
+
+                    if (_allowedConnections == AllowedConnection.Listed && !inWhiteList)
+                    {
+                        _logger?.Trace($"Only listed peers are allowed to connect. Rejecting {peer}.");
+                        RemovePeer(peer);
+                        return;
+                    }
+                    
+                    if (_allowedConnections == AllowedConnection.BPsAndListed  && !inWhiteList && !peer.IsBp)
+                    {
+                        _logger?.Trace($"Only listed peers or bps are allowed to connect. Rejecting {peer}.");
+                        RemovePeer(peer);
+                        return;
+                    }
+
+                    break;
+                }
+            }
+
+            AddAuthentifiedPeer(peer);
+            
         }
         
         /// <summary>
@@ -382,23 +417,27 @@ namespace AElf.Network.Peers
         private void ProcessClientDisconnection(object sender, EventArgs e)
         {
             if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
+                RemovePeer(args.Peer);
+        }
+
+        public void RemovePeer(IPeer peer)
+        {
+            // Will do nothing if already disposed
+            peer.Dispose();
+            
+            peer.MessageReceived -= OnPeerMessageReceived;
+            peer.PeerDisconnected -= ProcessClientDisconnection;
+            peer.AuthFinished -= PeerOnPeerAuthentified;
+
+            _authentifyingPeer.Remove(peer);
+
+            if (_peers.Remove(peer))
             {
-                IPeer peer = args.Peer;
-                
-                peer.MessageReceived -= OnPeerMessageReceived;
-                peer.PeerDisconnected -= ProcessClientDisconnection;
-                peer.AuthFinished -= PeerOnPeerAuthentified;
-
-                _authentifyingPeer.Remove(args.Peer);
-
-                if (_peers.Remove(args.Peer))
-                {
-                    PeerEvent?.Invoke(this, new PeerEventArgs(peer, PeerEventType.Removed));
-                }
-                else
-                {
-                    _logger?.Warn($"Tried to remove peer, but not in list {args.Peer}");
-                }
+                PeerEvent?.Invoke(this, new PeerEventArgs(peer, PeerEventType.Removed));
+            }
+            else
+            {
+                _logger?.Warn($"Tried to remove peer, but not in list {peer}");
             }
         }
         
