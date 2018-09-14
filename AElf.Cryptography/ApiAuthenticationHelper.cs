@@ -38,13 +38,13 @@ namespace AElf.Cryptography
             return true;
         }
 
-        public static string GetTimestamp()
+        public static string GetTimestamp(DateTime time)
         {
             var startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, 0));
-            var t = (DateTime.Now.Ticks - startTime.Ticks) / 10000000;
+            var t = (time.Ticks - startTime.Ticks) / 10000000;
             return t.ToString();
         }
-        
+
         public static DateTime GetTime(string timeStamp)
         {
             var dtStart = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1));

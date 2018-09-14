@@ -155,7 +155,7 @@ namespace AElf.SideChain.Creation
             var c = new StringContent(content);
             c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             c.Headers.Add("auth-type", "apikey");
-            var timestamp = ApiAuthenticationHelper.GetTimestamp();
+            var timestamp = ApiAuthenticationHelper.GetTimestamp(DateTime.Now);
             c.Headers.Add("sign",ApiAuthenticationHelper.GetSign(ApiKeyConfig.Instance.ChainKeys[chainId],chainId,"post",timestamp));
             c.Headers.Add("timestamp", timestamp);
             request.Content = c;
