@@ -6,7 +6,8 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using Akka.Cluster;
+using AElf.Kernel.Managers;
+using Easy.MessageHub;
 
 namespace AElf.ChainController.TxMemPoolBM
 {
@@ -15,6 +16,7 @@ namespace AElf.ChainController.TxMemPoolBM
         private readonly ITxPoolConfig _config;
         private readonly IChainService _chainService;
         private IBlockChain _blockChain;
+        private CanonicalBlockHashCache _canonicalBlockHashCache;
 
         private IBlockChain BlockChain
         {
@@ -22,7 +24,8 @@ namespace AElf.ChainController.TxMemPoolBM
             {
                 if (_blockChain == null)
                 {
-                    _blockChain = _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+                    _blockChain =
+                        _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
                 }
 
                 return _blockChain;
@@ -33,6 +36,7 @@ namespace AElf.ChainController.TxMemPoolBM
         {
             _config = config;
             _chainService = chainService;
+            _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain);
         }
 
         /// <summary>
@@ -80,35 +84,41 @@ namespace AElf.ChainController.TxMemPoolBM
         }
 
         public async Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(Transaction tx)
-        {            
+        {
             if (tx.RefBlockNumber == 0 && Hash.Genesis.CheckPrefix(tx.RefBlockPrefix))
             {
                 return TxValidation.TxInsertionAndBroadcastingError.Valid;
             }
 
-            var bc = BlockChain;
-            var curHeight = await bc.GetCurrentBlockHeightAsync();
+            var curHeight = _canonicalBlockHashCache.CurrentHeight;
             if (tx.RefBlockNumber > curHeight)
             {
                 return TxValidation.TxInsertionAndBroadcastingError.InvalidReferenceBlock;
             }
 
-            if (curHeight > Globals.ReferenceBlockValidPeriod && tx.RefBlockNumber < curHeight - Globals.ReferenceBlockValidPeriod)
+            if (curHeight > Globals.ReferenceBlockValidPeriod &&
+                tx.RefBlockNumber < curHeight - Globals.ReferenceBlockValidPeriod)
             {
                 return TxValidation.TxInsertionAndBroadcastingError.ExpiredReferenceBlock;
             }
 
-            var canonicalHash = curHeight == 0
-                ? await bc.GetCurrentBlockHashAsync()
-                : await bc.GetCanonicalHashAsync(tx.RefBlockNumber);
+            Hash canonicalHash;
+            if (curHeight == 0)
+            {
+                canonicalHash = await BlockChain.GetCurrentBlockHashAsync();
+            }
+            else
+            {
+                canonicalHash = _canonicalBlockHashCache.GetHashByHeight(tx.RefBlockNumber);
+            }
             if (canonicalHash == null)
             {
                 throw new Exception($"Unable to get canonical hash for height {tx.RefBlockNumber}");
             }
-            
-            return canonicalHash.CheckPrefix(tx.RefBlockPrefix)
+            var res = canonicalHash.CheckPrefix(tx.RefBlockPrefix)
                 ? TxValidation.TxInsertionAndBroadcastingError.Valid
                 : TxValidation.TxInsertionAndBroadcastingError.InvalidReferenceBlock;
+            return res;
         }
     }
 }
