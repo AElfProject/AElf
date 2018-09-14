@@ -158,9 +158,6 @@ namespace AElf.Configuration
         [Option("EnableParallel", Hidden = true, HelpText = "Parallel feature is disabled by default due to lack of support of calling other contracts in one contract")]
         public bool? IsParallelEnable { get; set; }
 
-        [Option("actor.benchmark", Hidden = true, HelpText = "")]
-        public bool? Benchmark { get; set; }
-
         #endregion
 
         #region Debug

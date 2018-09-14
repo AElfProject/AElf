@@ -11,16 +11,12 @@ namespace AElf.Management.Commands
 {
     public class K8SAddLauncherCommand : IDeployCommand
     {
-        private const int NodePort = 30800;
-        private const int RpcPort = 30600;
         private const int ActorPort = 32550;
         private const int Replicas = 1;
 
-        public void Action(string chainId, DeployArg arg)
+        public void Action(DeployArg arg)
         {
-            AddService(chainId, arg);
-
-            var addDeployResult = AddDeployment(chainId, arg);
+            var addDeployResult = AddDeployment(arg);
 
             if (!addDeployResult)
             {
@@ -28,37 +24,7 @@ namespace AElf.Management.Commands
             }
         }
 
-        private void AddService(string chainId, DeployArg arg)
-        {
-            var body = new V1Service
-            {
-                Metadata = new V1ObjectMeta
-                {
-                    Name = GlobalSetting.LauncherServiceName,
-                    Labels = new Dictionary<string, string>
-                    {
-                        {"name", GlobalSetting.LauncherServiceName}
-                    }
-                },
-                Spec = new V1ServiceSpec
-                {
-                    Type = "LoadBalancer",
-                    Ports = new List<V1ServicePort>
-                    {
-                        new V1ServicePort(NodePort, "node-port", null, "TCP", NodePort),
-                        new V1ServicePort(RpcPort, "rpc-port", null, "TCP", RpcPort)
-                    },
-                    Selector = new Dictionary<string, string>
-                    {
-                        {"name", GlobalSetting.LauncherName}
-                    }
-                }
-            };
-
-            K8SRequestHelper.GetClient().CreateNamespacedService(body, chainId);
-        }
-
-        private bool AddDeployment(string chainId, DeployArg arg)
+        private bool AddDeployment(DeployArg arg)
         {
             var body = new V1Deployment
             {
@@ -87,9 +53,10 @@ namespace AElf.Management.Commands
                                     Image = "aelf/node:test",
                                     Ports = new List<V1ContainerPort>
                                     {
-                                        new V1ContainerPort(NodePort),
-                                        new V1ContainerPort(RpcPort),
-                                        new V1ContainerPort(ActorPort)
+                                        new V1ContainerPort(GlobalSetting.NodePort),
+                                        new V1ContainerPort(GlobalSetting.RpcPort),
+                                        new V1ContainerPort(ActorPort),
+                                        new V1ContainerPort(GlobalSetting.GrpcPort)
                                     },
                                     ImagePullPolicy = "Always",
                                     Env = new List<V1EnvVar>
@@ -108,11 +75,11 @@ namespace AElf.Management.Commands
                                         "--rpc.host",
                                         "0.0.0.0",
                                         "--rpc.port",
-                                        RpcPort.ToString(),
+                                        GlobalSetting.RpcPort.ToString(),
                                         "--node.account",
-                                        arg.MainChainAccount,
+                                        arg.ChainAccount,
                                         "--node.port",
-                                        NodePort.ToString(),
+                                        GlobalSetting.NodePort.ToString(),
                                         "--actor.host",
                                         "$(POD_IP)",
                                         "--actor.port",
@@ -124,7 +91,7 @@ namespace AElf.Management.Commands
                                         "--chain.new",
                                         "true",
                                         "--chain.id",
-                                        chainId.Split('-').First(),
+                                        arg.SideChainId,
                                         "--node.executor",
                                         arg.LighthouseArg.IsCluster?"akka":"simple"
                                     },
@@ -139,6 +106,11 @@ namespace AElf.Management.Commands
                                         {
                                             MountPath = "/app/aelf/keys",
                                             Name = "key"
+                                        },
+                                        new V1VolumeMount
+                                        {
+                                            MountPath = "/app/aelf/certs",
+                                            Name = "cert"
                                         }
                                     }
                                 }
@@ -148,19 +120,24 @@ namespace AElf.Management.Commands
                                 new V1Volume
                                 {
                                     Name = "config",
-                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "config-common"}
+                                    ConfigMap = new V1ConfigMapVolumeSource {Name = GlobalSetting.CommonConfigName}
                                 },
                                 new V1Volume
                                 {
                                     Name = "key",
                                     ConfigMap = new V1ConfigMapVolumeSource
                                     {
-                                        Name = "config-keys",
+                                        Name = GlobalSetting.KeysConfigName,
                                         Items = new List<V1KeyToPath>
                                         {
-                                            new V1KeyToPath{Key = arg.MainChainAccount+".ak",Path = arg.MainChainAccount+".ak"}
+                                            new V1KeyToPath{Key = arg.ChainAccount+".ak",Path = arg.ChainAccount+".ak"}
                                         }
                                     }
+                                },
+                                new V1Volume
+                                {
+                                    Name = "cert",
+                                    ConfigMap = new V1ConfigMapVolumeSource {Name = GlobalSetting.CertsConfigName}
                                 }
                             }
                         }
@@ -169,9 +146,9 @@ namespace AElf.Management.Commands
 
             };
 
-            var result = K8SRequestHelper.GetClient().CreateNamespacedDeployment(body, chainId);
+            var result = K8SRequestHelper.GetClient().CreateNamespacedDeployment(body, arg.SideChainId);
             
-            var deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, chainId);
+            var deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, arg.SideChainId);
             var retryGetCount = 0;
             var retryDeleteCount = 0;
             while (true)
@@ -183,7 +160,7 @@ namespace AElf.Management.Commands
 
                 if (retryGetCount > GlobalSetting.DeployRetryTime)
                 {
-                    DeletePod(chainId, arg);
+                    DeletePod(arg);
                     retryDeleteCount++;
                     retryGetCount = 0;
                 }
@@ -195,15 +172,15 @@ namespace AElf.Management.Commands
 
                 retryGetCount++;
                 Thread.Sleep(3000);
-                deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, chainId);
+                deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, arg.SideChainId);
             }
 
             return true;
         }
 
-        private void DeletePod(string chainId, DeployArg arg)
+        private void DeletePod(DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LauncherName);
+            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(arg.SideChainId, labelSelector: "name=" + GlobalSetting.LauncherName);
         }
     }
 }

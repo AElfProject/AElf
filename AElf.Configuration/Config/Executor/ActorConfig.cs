@@ -11,7 +11,6 @@ namespace AElf.Configuration
         public string HostName { get; set; }
         public int Port { get; set; }
         public int ActorCount { get; set; }
-        public bool Benchmark { get; set; }
         public List<SeedNode> Seeds { get; set; }
 
         public string SingleHoconFile { get; set; } = "";

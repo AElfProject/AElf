@@ -44,11 +44,6 @@ namespace AElf.Concurrency.Lighthouse
                 ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
             }
 
-            if (opts.Benchmark.HasValue)
-            {
-                ActorConfig.Instance.Benchmark = opts.Benchmark.Value;
-            }
-
             NodeConfig.Instance.DataDir = string.IsNullOrEmpty(opts.DataDir)
                 ? ApplicationHelpers.GetDefaultDataDir()
                 : opts.DataDir;

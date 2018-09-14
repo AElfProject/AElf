@@ -15,19 +15,22 @@ namespace AElf.Management.Commands
         private const int ActorPort = 31550;
         private const int Replicas = 1;
 
-        public void Action(string chainId, DeployArg arg)
+        public void Action(DeployArg arg)
         {
-            AddService(chainId, arg);
-
-            var addDeployResult = AddDeployment(chainId, arg);
-
-            if (!addDeployResult)
+            if (arg.LighthouseArg.IsCluster)
             {
-                throw new Exception("failed to deploy monitor");
+                AddService(arg);
+
+                var addDeployResult = AddDeployment(arg);
+
+                if (!addDeployResult)
+                {
+                    throw new Exception("failed to deploy monitor");
+                }
             }
         }
 
-        private void AddService(string chainId, DeployArg arg)
+        private void AddService(DeployArg arg)
         {
             var body = new V1Service
             {
@@ -53,10 +56,10 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedService(body, chainId);
+            K8SRequestHelper.GetClient().CreateNamespacedService(body, arg.SideChainId);
         }
 
-        private bool AddDeployment(string chainId, DeployArg arg)
+        private bool AddDeployment(DeployArg arg)
         {
             var body = new V1Deployment
             {
@@ -129,9 +132,9 @@ namespace AElf.Management.Commands
 
             };
 
-            var result = K8SRequestHelper.GetClient().CreateNamespacedDeployment(body, chainId);
+            var result = K8SRequestHelper.GetClient().CreateNamespacedDeployment(body, arg.SideChainId);
             
-            var deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, chainId);
+            var deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, arg.SideChainId);
             var retryGetCount = 0;
             var retryDeleteCount = 0;
             while (true)
@@ -143,7 +146,7 @@ namespace AElf.Management.Commands
 
                 if (retryGetCount > GlobalSetting.DeployRetryTime)
                 {
-                    DeletePod(chainId, arg);
+                    DeletePod(arg.SideChainId, arg);
                     retryDeleteCount++;
                     retryGetCount = 0;
                 }
@@ -155,7 +158,7 @@ namespace AElf.Management.Commands
 
                 retryGetCount++;
                 Thread.Sleep(3000);
-                deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, chainId);
+                deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, arg.SideChainId);
             }
 
             return true;
