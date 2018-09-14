@@ -107,26 +107,26 @@ namespace AElf.Miner.Tests.Grpc
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
                 Thread.Sleep(t/2);
-                var result = await manager.CollectSideChainIndexedInfo();
+                var result = await manager.CollectSideChainBlockInfo();
                 int count = result.Count;
                 Assert.Equal(1, count);
                 Assert.Equal((ulong)0, result[0].Height);
                 
                 Thread.Sleep(t);
-                result = await manager.CollectSideChainIndexedInfo();
+                result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(1, count);
                 Assert.Equal((ulong)1, result[0].Height);
                 
                 Thread.Sleep(t);
-                result = await manager.CollectSideChainIndexedInfo();
+                result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(1, count);
                 Assert.Equal((ulong)2, result[0].Height);
-                manager.Close();
+                manager.CloseClientsToSideChain();
 
                 Thread.Sleep(t);
-                result = await manager.CollectSideChainIndexedInfo();
+                result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(0, count);
             }
@@ -184,7 +184,7 @@ namespace AElf.Miner.Tests.Grpc
                 Assert.Equal((ulong)2, block.Body.IndexedInfo[0].Height);
                 Assert.Equal((ulong)3, block.Header.Index);
                 
-                manager.Close();
+                manager.CloseClientsToSideChain();
             }
             finally
             {

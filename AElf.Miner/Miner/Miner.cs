@@ -306,7 +306,7 @@ namespace AElf.Miner.Miner
         private async Task CollectSideChainIndexedInfo(IBlock block)
         {
             // interval waiting for each side chain
-            var sideChainInfo = await _clientManager.CollectSideChainIndexedInfo();
+            var sideChainInfo = await _clientManager.CollectSideChainBlockInfo();
             block.Body.IndexedInfo.Add(sideChainInfo);
         }
 
@@ -330,7 +330,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Close()
         {
-            _clientManager.Close();
+            _clientManager.CloseClientsToSideChain();
         }
     }
 }

@@ -23,6 +23,7 @@ namespace AElf.Miner.Tests.Grpc
     public class MockSetup
     {
         public List<IBlockHeader> _headers = new List<IBlockHeader>();
+        public List<IBlock> _blocks = new List<IBlock>();
         public readonly ILogger _logger;
         public ulong _i;
         private readonly IChainCreationService _chainCreationService;
@@ -133,8 +134,8 @@ namespace AElf.Miner.Tests.Grpc
                 CoinBase = getAddress
             };
         }
-        
-        public Mock<ILightChain> MockLightChain()
+
+        private Mock<ILightChain> MockLightChain()
         {
             Mock<ILightChain> mock = new Mock<ILightChain>();
             mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1));
@@ -144,28 +145,48 @@ namespace AElf.Miner.Tests.Grpc
             return mock;
         }
 
-        public Mock<IChainService> MockChainService()
+        private Mock<IBlockChain> MockBlockChain()
+        {
+            Mock<IBlockChain> mock = new Mock<IBlockChain>();
+            mock.Setup(bc => bc.GetBlockByHeightAsync(It.IsAny<ulong>()))
+                .Returns<ulong>(p => Task.FromResult(_blocks[(int) p]));
+            return mock;
+        }
+
+        private Mock<IChainService> MockChainService()
         {
             Mock<IChainService> mock = new Mock<IChainService>();
             mock.Setup(cs => cs.GetLightChain(It.IsAny<Hash>())).Returns(MockLightChain().Object);
+            mock.Setup(cs => cs.GetBlockChain(It.IsAny<Hash>())).Returns(MockBlockChain().Object);
             return mock;
         }
 
-        public Mock<IBlockHeader> MockBlockHeader()
+        private Mock<BlockHeader> MockBlockHeader()
         {
-            Mock<IBlockHeader> mock = new Mock<IBlockHeader>();
+            Mock<BlockHeader> mock = new Mock<BlockHeader>();
             mock.Setup(bh => bh.GetHash()).Returns(Hash.Generate());
             mock.Setup(bh => bh.MerkleTreeRootOfTransactions).Returns(Hash.Generate());
+            mock.Setup(bh => bh.SideChainTransactionsRoot).Returns(Hash.Generate);
+            mock.Setup((bh => bh.SideChainBlockHeadersRoot)).Returns(Hash.Generate);
             return mock;
         }
-        
-        
-        public SideChainServer MinerServer()
-        {
-            GrpcLocalConfig.Instance.SideChainServer = false;
-            return new SideChainServer(_logger, new SideChainHeaderInfoRpcServerImpl(MockChainService().Object, _logger));
-        }
 
+        private Mock 
+        
+        private Mock<IBlock> MockBlock(IBlockHeader header)
+        {
+            Mock<IBlock> mock = new Mock<IBlock>();
+            mock.Setup(b => b.Header).Returns((BlockHeader) header);
+            mock.Setup(b => b.Body).Returns();
+        }
+        
+        
+        public ServerManager ServerManager()
+        {
+            return new ServerManager(new ParentChainBlockInfoRpcServerImpl(MockChainService().Object, _logger), 
+                new SideChainBlockInfoRpcServerImpl(MockChainService().Object, _logger));
+        }
+        
         public Mock<IChainManagerBasic> MockChainManager()
         {
             var mock = new Mock<IChainManagerBasic>();
@@ -203,6 +224,10 @@ namespace AElf.Miner.Tests.Grpc
                 MockBlockHeader().Object,
                 MockBlockHeader().Object,
                 MockBlockHeader().Object
+            };
+            _blocks = new List<IBlock>
+            {
+                
             };
 
             var server = MinerServer();
