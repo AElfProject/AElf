@@ -15,15 +15,15 @@ namespace AElf.Miner.Rpc.Server
         private Grpc.Core.Server _parentChainServer;
         private CertificateStore _certificateStore;
         private SslServerCredentials _sslServerCredentials;
-        private readonly ParentChainHeaderInfoRpcServerImpl _parentChainHeaderInfoRpcServerImpl;
-        private readonly SideChainHeaderInfoRpcServerImpl _sideChainHeaderInfoRpcServerImpl;
+        private readonly ParentChainBlockInfoRpcServerImpl _parentChainBlockInfoRpcServerImpl;
+        private readonly SideChainBlockInfoRpcServerImpl _sideChainBlockInfoRpcServerImpl;
 
-        public ServerManager(ParentChainHeaderInfoRpcServerImpl parentChainHeaderInfoRpcServerImpl, 
-            SideChainHeaderInfoRpcServerImpl sideChainHeaderInfoRpcServerImpl)
+        public ServerManager(ParentChainBlockInfoRpcServerImpl parentChainBlockInfoRpcServerImpl, 
+            SideChainBlockInfoRpcServerImpl sideChainBlockInfoRpcServerImpl)
         {
-            _parentChainHeaderInfoRpcServerImpl = parentChainHeaderInfoRpcServerImpl;
-            _sideChainHeaderInfoRpcServerImpl = sideChainHeaderInfoRpcServerImpl;
-            GrpcLocalConfig.ConfigChanged+= GrpcLocalConfigOnConfigChanged;
+            _parentChainBlockInfoRpcServerImpl = parentChainBlockInfoRpcServerImpl;
+            _sideChainBlockInfoRpcServerImpl = sideChainBlockInfoRpcServerImpl;
+            GrpcLocalConfig.ConfigChanged += GrpcLocalConfigOnConfigChanged;
         }
 
         private void GrpcLocalConfigOnConfigChanged(object sender, EventArgs e)
@@ -57,7 +57,7 @@ namespace AElf.Miner.Rpc.Server
         {
             var server = new Grpc.Core.Server
             {
-                Services = {SideChainHeaderInfoRpc.BindService(_sideChainHeaderInfoRpcServerImpl)},
+                Services = {SideChainBlockInfoRpc.BindService(_sideChainBlockInfoRpcServerImpl)},
                 Ports =
                 {
                     new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 
@@ -76,7 +76,7 @@ namespace AElf.Miner.Rpc.Server
         {
             var server = new Grpc.Core.Server
             {
-                Services = {ParentChainHeaderInfoRpc.BindService(_parentChainHeaderInfoRpcServerImpl)},
+                Services = {ParentChainBlockInfoRpc.BindService(_parentChainBlockInfoRpcServerImpl)},
                 Ports =
                 {
                     new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 

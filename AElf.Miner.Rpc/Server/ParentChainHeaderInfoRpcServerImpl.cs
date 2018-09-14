@@ -11,12 +11,12 @@ using NLog;
 namespace AElf.Miner.Rpc.Server
 {
     [LoggerName("ParentChainRpcServer")]
-    public class ParentChainHeaderInfoRpcServerImpl : ParentChainHeaderInfoRpc.ParentChainHeaderInfoRpcBase, IServerImpl
+    public class ParentChainBlockInfoRpcServerImpl : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private IBlockChain BlockChain { get; set; }
-        public ParentChainHeaderInfoRpcServerImpl(IChainService chainService, ILogger logger)
+        public ParentChainBlockInfoRpcServerImpl(IChainService chainService, ILogger logger)
         {
             _chainService = chainService;
             _logger = logger;
@@ -34,8 +34,8 @@ namespace AElf.Miner.Rpc.Server
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override async Task Record(IAsyncStreamReader<RequestParentChainIndexingInfo> requestStream, 
-            IServerStreamWriter<ResponseParentChainIndexingInfo> responseStream, ServerCallContext context)
+        public override async Task Record(IAsyncStreamReader<RequestBlockInfo> requestStream, 
+            IServerStreamWriter<ResponseParentChainBlockInfo> responseStream, ServerCallContext context)
         {
             _logger?.Log(LogLevel.Debug, "Parent Chain Server received IndexedInfo message.");
 
@@ -50,22 +50,28 @@ namespace AElf.Miner.Rpc.Server
                     BlockHeader header = block?.Header;
                     BlockBody body = block?.Body;
                     
-                    var res = new ResponseParentChainIndexingInfo
+                    var res = new ResponseParentChainBlockInfo
                     {
-                        Success = block != null,
-                        Height = requestedHeight,
-                        SideChainBlockHeadersRoot = header?.SideChainBlockHeadersRoot,
-                        SideChainTransactionsRoot = header?.SideChainTransactionsRoot
+                        Success = block != null
                     };
-                    
+
                     if (res.Success)
+                    {
+                        res.BlockInfo = new ParentChainBlockInfo
+                        {
+                            Height = requestedHeight,
+                            SideChainBlockHeadersRoot = header?.SideChainBlockHeadersRoot,
+                            SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
+                            ChainId = header?.ChainId
+                        };
                         //Todo: this is to tell side chain the height of side chain block in this main chain block, which could be removed with subsequent improvement.
-                        res.IndexedBlockHeight.Add(body?.IndexedInfo.Aggregate(new List<ulong>(), (h, i) =>
+                        res.BlockInfo.IndexedBlockHeight.Add(body?.IndexedInfo.Aggregate(new List<ulong>(), (h, i) =>
                         {
                             if (i.ChainId.Equals(sideChainId))
                                 h.Add(i.Height);
                             return h;
                         }));
+                    }
                     
                     _logger?.Log(LogLevel.Debug, $"Parent Chain Server responsed IndexedInfo message of height {requestedHeight}");
                     await responseStream.WriteAsync(res);

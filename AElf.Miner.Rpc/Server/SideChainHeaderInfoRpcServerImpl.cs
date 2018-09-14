@@ -10,13 +10,13 @@ using NLog;
 namespace AElf.Miner.Rpc.Server
 {
     [LoggerName("SideChainRpcServer")]
-    public class SideChainHeaderInfoRpcServerImpl : SideChainHeaderInfoRpc.SideChainHeaderInfoRpcBase, IServerImpl
+    public class SideChainBlockInfoRpcServerImpl : SideChainBlockInfoRpc.SideChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private ILightChain LightChain { get; set; }
 
-        public SideChainHeaderInfoRpcServerImpl(IChainService chainService, ILogger logger)
+        public SideChainBlockInfoRpcServerImpl(IChainService chainService, ILogger logger)
         {
             _chainService = chainService;
             _logger = logger;
@@ -34,8 +34,8 @@ namespace AElf.Miner.Rpc.Server
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override async Task Index(IAsyncStreamReader<RequestSideChainIndexingInfo> requestStream, 
-            IServerStreamWriter<ResponseSideChainIndexingInfo> responseStream, ServerCallContext context)
+        public override async Task Index(IAsyncStreamReader<RequestBlockInfo> requestStream, 
+            IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
             _logger?.Log(LogLevel.Debug, "Side Chain Server received IndexedInfo message.");
@@ -47,13 +47,16 @@ namespace AElf.Miner.Rpc.Server
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
                     var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);
-                    var res = new ResponseSideChainIndexingInfo
+                    var res = new ResponseSideChainBlockInfo
                     {
-                        Height = requestedHeight,
-                        BlockHeaderHash = blockHeader?.GetHash(),
-                        TransactionMKRoot = blockHeader?.MerkleTreeRootOfTransactions,
                         Success = blockHeader != null,
-                        ChainId = blockHeader?.ChainId
+                        BlockInfo = blockHeader == null? null : new SideChainBlockInfo
+                        {
+                            Height = requestedHeight,
+                            BlockHeaderHash = blockHeader.GetHash(),
+                            TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
+                            ChainId = blockHeader.ChainId
+                        }
                     };
                     _logger?.Log(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {requestedHeight}");
                     await responseStream.WriteAsync(res);
