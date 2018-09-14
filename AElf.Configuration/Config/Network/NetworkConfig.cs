@@ -6,6 +6,9 @@ namespace AElf.Configuration.Config.Network
     [ConfigFile(FileName = "network.json")]
     public class NetworkConfig : ConfigBase<NetworkConfig>
     {
+        /// <summary>
+        /// This nodes key pair.
+        /// </summary>
         public ECKeyPair EcKeyPair { get; set; }
             
         public List<string> Bootnodes { get; set; }
@@ -20,10 +23,13 @@ namespace AElf.Configuration.Config.Network
         public int ListeningPort { get; set; }
         
         /// <summary>
-        /// Value that determines which peers can connect to the node.
+        /// Value that determines which type of peers can connect to the node.
         /// </summary>
         public string NetAllowed { get; set; }
         
+        /// <summary>
+        /// The white-listed public keys when NetAllowed = Listed.
+        /// </summary>
         public List<string> NetWhitelist { get; set; }
     }
 }

@@ -4,10 +4,19 @@ option csharp_namespace = "AElf.Network.Data";
 
 import "google/protobuf/timestamp.proto";
 
+message Handshake {
+    
+    NodeData NodeInfo = 1;
+    bytes PublicKey = 2;
+    
+    // sig NodeData
+    bytes R = 9;
+    bytes S = 10;
+}
+
 message NodeData {
     string IpAddress = 1;
     int32 Port = 2;
-    bytes Address  = 3;
 }
 
 message PeerListData {
