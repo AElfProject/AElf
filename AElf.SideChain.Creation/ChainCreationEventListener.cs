@@ -9,6 +9,8 @@ using AElf.Common.Application;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
+using AElf.Configuration.Config.Management;
+using AElf.Cryptography;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
 using AElf.SmartContract;
@@ -141,7 +143,8 @@ namespace AElf.SideChain.Creation
     
         private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash sideChainId, Hash parentChainId)
         {
-            var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/');
+            var chainId = parentChainId.ToHex();
+            var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + chainId;
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var deployArg = new DeployArg();
             deployArg.SideChainId = sideChainId.ToHex();
@@ -151,7 +154,12 @@ namespace AElf.SideChain.Creation
             var content = JsonSerializer.Instance.Serialize(deployArg);
             var c = new StringContent(content);
             c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            c.Headers.Add("auth-type", "apikey");
+            var timestamp = ApiAuthenticationHelper.GetTimestamp();
+            c.Headers.Add("sign",ApiAuthenticationHelper.GetSign(ApiKeyConfig.Instance.ChainKeys[chainId],chainId,"post",timestamp));
+            c.Headers.Add("timestamp", timestamp);
             request.Content = c;
+            
             return await _client.SendAsync(request);
         }
 
