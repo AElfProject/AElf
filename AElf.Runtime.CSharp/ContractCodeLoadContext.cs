@@ -13,14 +13,14 @@ namespace AElf.Runtime.CSharp
     /// </summary>
     public class ContractCodeLoadContext : AssemblyLoadContext
     {
-        private readonly ConcurrentDictionary<AssemblyName, MemoryStream> _cachedSdkStreams;
+        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams;
         private readonly string _sdkDir;
         public Assembly Sdk { get; private set; }
 
-        public ContractCodeLoadContext(string sdkDir, ConcurrentDictionary<AssemblyName, MemoryStream> cachedSdkStreams)
+        public ContractCodeLoadContext(string sdkDir, ConcurrentDictionary<string, MemoryStream> cachedSdkStreams)
         {
             _sdkDir = sdkDir;
-            _cachedSdkStreams = cachedSdkStreams ?? new ConcurrentDictionary<AssemblyName, MemoryStream>();
+            _cachedSdkStreams = cachedSdkStreams ?? new ConcurrentDictionary<string, MemoryStream>();
         }
 
         protected override Assembly Load(AssemblyName assemblyName)
@@ -40,14 +40,14 @@ namespace AElf.Runtime.CSharp
 
         private Assembly LoadSdkFromStream(AssemblyName assemblyName)
         {
-            if (!_cachedSdkStreams.TryGetValue(assemblyName, out var ms))
+            if (!_cachedSdkStreams.TryGetValue(assemblyName.FullName, out var ms))
             {
                 // TODO: Handle version
                 var path = Path.Combine(_sdkDir, assemblyName.Name);
                 var fs = new FileStream(path + ".dll", FileMode.Open, FileAccess.Read);
                 ms = new MemoryStream();
                 fs.CopyTo(ms);
-                _cachedSdkStreams.TryAdd(assemblyName, ms);
+                _cachedSdkStreams.TryAdd(assemblyName.FullName, ms);
             }
 
             ms.Position = 0;
