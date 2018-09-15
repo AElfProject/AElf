@@ -13,6 +13,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Easy.MessageHub;
 using NLog;
+using NServiceKit.Common.Extensions;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.ChainController.TxMemPool
@@ -274,6 +275,11 @@ namespace AElf.ChainController.TxMemPool
             }
                 
             return prior;
+        }
+
+        public List<Transaction> GetDPoSTxs()
+        {
+            return _priorTxs.Values.ToList();
         }
 
         /// <inheritdoc/>

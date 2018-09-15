@@ -95,6 +95,8 @@ namespace AElf.Miner.Miner
                         return null;
 
                     var readyTxs = await _txPoolService.GetReadyTxsAsync();
+                    
+                    RemoveDirtyDPoSTxs(readyTxs);
 
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
@@ -131,6 +133,40 @@ namespace AElf.Miner.Miner
                     _logger?.Error(e, "Mining failed with exception.");
                     return null;
                 }
+            }
+        }
+        
+        private void RemoveDirtyDPoSTxs(List<Transaction> readyTxs)
+        {
+            const string inValueTxName = "PublishInValue";
+            var dPoSTxs = _txPoolService.GetDPoSTxs();
+            var toRemove = new List<Transaction>();
+            foreach (var transaction in dPoSTxs)
+            {
+                if (transaction.From == _stateDictator.BlockProducerAccountAddress)
+                    continue;
+                        
+                if (transaction.MethodName != inValueTxName)
+                {
+                    toRemove.Add(transaction);
+                }
+            }
+
+            // No one will publish in value if I won't do this in current block.
+            if (!dPoSTxs.Any(tx => tx.MethodName == inValueTxName && tx.From == _stateDictator.BlockProducerAccountAddress))
+            {
+                toRemove.AddRange(dPoSTxs.FindAll(tx => tx.MethodName == inValueTxName));
+            }
+            else
+            {
+                // One BP can only publish in value once in one block.
+                toRemove.AddRange(dPoSTxs.FindAll(tx => tx.MethodName == inValueTxName).GroupBy(tx => tx.From)
+                    .Where(g => g.Count() > 1).SelectMany(g => g));
+            }
+            
+            foreach (var transaction in toRemove)
+            {
+                readyTxs.Remove(transaction);
             }
         }
 

@@ -217,6 +217,11 @@ namespace AElf.ChainController.TxMemPoolBM
             _logger.Debug($"Got {txs.Count} total tx");
             return txs;
         }
+        
+        public List<Transaction> GetDPoSTxs()
+        {
+            return _dPoSTxs.Values.ToList();
+        }
 
         /// <inheritdoc/>
         public Task UpdateAccountContext(HashSet<Hash> addrs)

@@ -128,6 +128,7 @@ namespace AElf.Kernel.Node
 
             if (NodeConfig.Instance.ConsensusInfoGenerater && !await _dposHelpers.HasGenerated())
             {
+                PendingBlockExtensions.IsConsensusGenerator = true;
                 AElfDPoSObserver.Initialization();
                 return;
             }
