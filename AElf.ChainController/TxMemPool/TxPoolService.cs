@@ -166,7 +166,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Hash blockProducerAddress = null, double intervals = 150)
         {
             // get prior transanction
             var prior = await PriorTxLock.WriteLock(() =>

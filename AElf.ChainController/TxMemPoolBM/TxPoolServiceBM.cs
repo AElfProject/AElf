@@ -174,10 +174,13 @@ namespace AElf.ChainController.TxMemPoolBM
         }
 
         /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Hash blockProducerAddress, double intervals = 150)
         {
             // TODO: Improve performance
             var txs = _dPoSTxs.Values.ToList();
+
+            RemoveDirtyDPoSTxs(txs, blockProducerAddress);
+            
             _logger.Debug($"Got {txs.Count} DPoS tx");
             if ((ulong) _contractTxs.Count < Least)
             {
@@ -216,6 +219,40 @@ namespace AElf.ChainController.TxMemPoolBM
 
             _logger.Debug($"Got {txs.Count} total tx");
             return txs;
+        }
+        
+        private void RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Hash blockProducerAddress)
+        {
+            const string inValueTxName = "PublishInValue";
+            var dPoSTxs = GetDPoSTxs();
+            var toRemove = new List<Transaction>();
+            foreach (var transaction in dPoSTxs)
+            {
+                if (transaction.From == blockProducerAddress)
+                    continue;
+                        
+                if (transaction.MethodName != inValueTxName)
+                {
+                    toRemove.Add(transaction);
+                }
+            }
+
+            // No one will publish in value if I won't do this in current block.
+            if (!dPoSTxs.Any(tx => tx.MethodName == inValueTxName && tx.From == blockProducerAddress))
+            {
+                toRemove.AddRange(dPoSTxs.FindAll(tx => tx.MethodName == inValueTxName));
+            }
+            else
+            {
+                // One BP can only publish in value once in one block.
+                toRemove.AddRange(dPoSTxs.FindAll(tx => tx.MethodName == inValueTxName).GroupBy(tx => tx.From)
+                    .Where(g => g.Count() > 1).SelectMany(g => g));
+            }
+            
+            foreach (var transaction in toRemove)
+            {
+                readyTxs.Remove(transaction);
+            }
         }
         
         public List<Transaction> GetDPoSTxs()
