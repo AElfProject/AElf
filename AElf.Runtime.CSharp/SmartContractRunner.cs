@@ -22,10 +22,9 @@ namespace AElf.Runtime.CSharp
 {
     public class SmartContractRunner : ISmartContractRunner
     {
-        private readonly ConcurrentDictionary<AssemblyName, MemoryStream> _cachedSdkStreams = new ConcurrentDictionary<AssemblyName, MemoryStream>();
+        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams = new ConcurrentDictionary<string, MemoryStream>();
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
-        private readonly ContractCodeLoadContext _contractCodeLoadContext;
 
         public SmartContractRunner() : this(RunnerConfig.Instance.SdkDir, RunnerConfig.Instance.BlackList, RunnerConfig.Instance.WhiteList)
         {
@@ -35,7 +34,16 @@ namespace AElf.Runtime.CSharp
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _assemblyChecker = new AssemblyChecker(blackList, whiteList);
-            _contractCodeLoadContext = new ContractCodeLoadContext(_sdkDir, _cachedSdkStreams);
+        }
+
+        /// <summary>
+        /// Creates an isolated context for the smart contract residing with an Api singleton.
+        /// </summary>
+        /// <returns></returns>
+        private ContractCodeLoadContext GetLoadContext()
+        {
+            // To make sure each smart contract resides in an isolated context with an Api singleton
+            return new ContractCodeLoadContext(_sdkDir, _cachedSdkStreams);
         }
 
         public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
@@ -44,10 +52,12 @@ namespace AElf.Runtime.CSharp
 
             var code = reg.ContractBytes.ToByteArray();
 
+            var loadContext = GetLoadContext();
+
             Assembly assembly = null;
             using (Stream stream = new MemoryStream(code))
             {
-                assembly = _contractCodeLoadContext.LoadFromStream(stream);
+                assembly = loadContext.LoadFromStream(stream);
             }
 
             if (assembly == null)
@@ -70,7 +80,7 @@ namespace AElf.Runtime.CSharp
 
             var instance = (ISmartContract) Activator.CreateInstance(type);
 
-            var ApiSingleton = _contractCodeLoadContext.Sdk.GetTypes().FirstOrDefault(x => x.Name.EndsWith("Api"));
+            var ApiSingleton = loadContext.Sdk.GetTypes().FirstOrDefault(x => x.Name.EndsWith("Api"));
 
             if (ApiSingleton == null)
             {
@@ -105,10 +115,12 @@ namespace AElf.Runtime.CSharp
 
             var code = reg.ContractBytes.ToByteArray();
 
+            var loadContext = GetLoadContext();
+
             Assembly assembly = null;
             using (Stream stream = new MemoryStream(code))
             {
-                assembly = _contractCodeLoadContext.LoadFromStream(stream);
+                assembly = loadContext.LoadFromStream(stream);
             }
 
             if (assembly == null)
