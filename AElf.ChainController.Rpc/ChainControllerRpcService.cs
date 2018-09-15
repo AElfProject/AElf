@@ -372,7 +372,7 @@ namespace AElf.ChainController.Rpc
                 ["CurrentTransactionPoolSize"] = transactionPoolSize
             };
 
-            return response;
+            return JObject.FromObject(response);
         }
 
         #region Admin

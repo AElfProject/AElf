@@ -10,6 +10,11 @@ namespace AElf.Management.Website.Controllers
     {
         private readonly ITransactionService _transactionService;
         
+        public TransactionController(ITransactionService transactionService)
+        {
+            _transactionService = transactionService;
+        }
+        
         [HttpGet]
         [Route("poolsize/{chainId}")]
         public ApiResult<ulong> PoolSize(string chainId)

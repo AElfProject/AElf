@@ -5,6 +5,8 @@
         public const int DeployRetryTime = 3;
 
         public const string CommonConfigName = "config-common";
+        
+        public const string ChainInfoConfigName = "config-chaininfo";
 
         public const string KeysConfigName = "config-keys";
         
