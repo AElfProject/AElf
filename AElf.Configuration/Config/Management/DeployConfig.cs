@@ -7,5 +7,9 @@ namespace AElf.Configuration.Config.Management
     public class DeployConfig : ConfigBase<DeployConfig>
     {
         public string Type { get; set; }
+
+        public bool Authentication { get; set; }
+
+        public int SignTimeout { get; set; }
     }
 }

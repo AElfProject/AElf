@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Internal;
-
-namespace AElf.Management.Website.Models
+﻿namespace AElf.Management.Website.Models
 {
     public interface IApiResult
     {

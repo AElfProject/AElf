@@ -18,10 +18,10 @@ namespace AElf.Management.Website.Controllers
         }
 
         [HttpGet]
-        [Route("list/{chianId}")]
-        public ApiResult<List<LighthouseResult>> List(string chianId)
+        [Route("list/{chainId}")]
+        public ApiResult<List<LighthouseResult>> List(string chainId)
         {
-            var result = _lighthouseService.GetAllLighthouses(chianId);
+            var result = _lighthouseService.GetAllLighthouses(chainId);
             return new ApiResult<List<LighthouseResult>>(result);
         }
     }

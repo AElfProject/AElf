@@ -17,7 +17,7 @@ namespace AElf.ChainController
     {
         private static readonly string FilePath =
             Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "chain", @"ChainInfo.json");
-
+        
         public void Init(ContainerBuilder builder)
         {
             Hash chainIdHash;

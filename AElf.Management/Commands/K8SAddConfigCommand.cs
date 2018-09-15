@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
+using AElf.Configuration.Config.Management;
 using AElf.Configuration.Config.Network;
 using AElf.Management.Helper;
 using AElf.Management.Models;
@@ -35,7 +36,8 @@ namespace AElf.Management.Commands
                     {"parallel.json", GetParallelConfigJson(arg)}, 
                     {"network.json", GetNetworkConfigJson(arg)},
                     {"grpclocal.json",GetGrpcConfigJson(arg)},
-                    {"grpcremote.json",GetGrpcRemoteConfigJson(arg)}
+                    {"grpcremote.json",GetGrpcRemoteConfigJson(arg)},
+                    {"apikey.json",GetApiKeyConfig(arg)}
                 }
             };
 
@@ -172,6 +174,19 @@ namespace AElf.Management.Commands
                 config.ParentChain.Add(arg.MainChainId, new Uri {Port = GlobalSetting.GrpcPort, Address = service.Spec.ClusterIP});
             }
 
+            var result = JsonSerializer.Instance.Serialize(config);
+
+            return result;
+        }
+
+        private string GetApiKeyConfig(DeployArg arg)
+        {
+            arg.ApiKey = Guid.NewGuid().ToString("N");
+            var config = new ApiKeyConfig()
+            {
+                ChainKeys = new Dictionary<string, string> {{arg.SideChainId, arg.ApiKey}}
+            };
+            
             var result = JsonSerializer.Instance.Serialize(config);
 
             return result;
