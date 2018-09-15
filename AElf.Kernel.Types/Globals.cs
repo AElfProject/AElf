@@ -1,7 +1,4 @@
-﻿using AElf.Common.Enums;
-using AElf.Kernel.Types;
-
-// ReSharper disable InconsistentNaming
+﻿// ReSharper disable InconsistentNaming
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
@@ -17,20 +14,21 @@ namespace AElf.Kernel
         
         public static readonly string ConsensusContract = SmartContractType.AElfDPoS.ToString();
         
-        public static int BlockProducerNumber = 0;
+        public static int BlockProducerNumber = 17;
+        public static readonly int BlockNumberOfEachRound = BlockProducerNumber + 1;
         public const int AElfLogInterval = 900;
 
         #region AElf DPoS
 
-        public const int AElfDPoSLogRoundCount = 0;
+        public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 4000;
-        public static int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
+        public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
         public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
         public const string AElfDPoSInformationString = "AElfDPoSInformation";
         public const string AElfDPoSExtraBlockProducerString = "AElfExtraBlockProducer";
-        public const string AElfDPoSExtraBlockTimeslotString = "AElfExtraBlockTimeslot";
+        public const string AElfDPoSExtraBlockTimeSlotString = "AElfExtraBlockTimeSlot";
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
         public const string AElfDPoSMiningIntervalString = "AElfDPoSMiningInterval";
 
@@ -38,7 +36,7 @@ namespace AElf.Kernel
 
         #region PoTC
 
-        public static ulong ExpectedTransanctionCount = 8000;
+        public static ulong ExpectedTransactionCount = 8000;
 
         #endregion
 

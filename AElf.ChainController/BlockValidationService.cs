@@ -7,11 +7,11 @@ using AElf.Kernel;
 
 namespace AElf.ChainController
 {
-    public class BlockVaildationService: IBlockVaildationService
+    public class BlockValidationService: IBlockValidationService
     {
         private readonly IEnumerable<IBlockValidationFilter> _filters;
 
-        public BlockVaildationService(IEnumerable<IBlockValidationFilter> filters)
+        public BlockValidationService(IEnumerable<IBlockValidationFilter> filters)
         {
             _filters = filters;
         }

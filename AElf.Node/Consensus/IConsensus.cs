@@ -8,5 +8,6 @@ namespace AElf.Kernel.Node
         Task Start();
         Task Update();
         Task RecoverMining();
+        bool IsAlive();
     }
 }
