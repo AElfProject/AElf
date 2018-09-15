@@ -44,6 +44,7 @@ namespace AElf.Management.Website
             builder.RegisterType<LighthouseService>().As<ILighthouseService>().SingleInstance();
             builder.RegisterType<LauncherService>().As<ILauncherService>().SingleInstance();
             builder.RegisterType<AkkaService>().As<IAkkaService>().SingleInstance();
+            builder.RegisterType<TransactionService>().As<ITransactionService>().SingleInstance();
 
             builder.Populate(services);
             var ApplicationContainer = builder.Build();

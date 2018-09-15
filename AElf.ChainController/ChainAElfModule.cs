@@ -35,6 +35,11 @@ namespace AElf.ChainController
                 var obj = new JObject(new JProperty("id", chainIdHash.ToHex()));
 
                 // write JSON directly to a file
+                if (!Directory.Exists(FilePath))
+                {
+                    Directory.CreateDirectory(FilePath);
+                }
+
                 using (var file = File.CreateText(FilePath))
                 using (var writer = new JsonTextWriter(file))
                 {

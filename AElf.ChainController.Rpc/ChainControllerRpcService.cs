@@ -363,6 +363,18 @@ namespace AElf.ChainController.Rpc
             return JObject.FromObject(response);
         }
 
+        [JsonRpcMethod("get_txpool_size")]
+        public async Task<JObject> ProGetTxPoolSize()
+        {
+            var transactionPoolSize = await this.GetTransactionPoolSize();
+            var response = new JObject
+            {
+                ["CurrentTransactionPoolSize"] = transactionPoolSize
+            };
+
+            return response;
+        }
+
         #region Admin
 
         [JsonRpcMethod("set_block_volume", "minimal", "maximal")]

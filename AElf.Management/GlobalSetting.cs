@@ -33,5 +33,6 @@
         public const int NodePort = 30800;
         public const int RpcPort = 30600;
         public const int GrpcPort = 40001;
+        public const int MonitorPort = 9099;
     }
 }
