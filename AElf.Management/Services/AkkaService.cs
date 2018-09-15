@@ -9,12 +9,12 @@ namespace AElf.Management.Services
 {
     public class AkkaService:IAkkaService
     {
-        public List<MemberInfo> GetState(string chainId)
+        public List<ActorStateResult> GetState(string chainId)
         {
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "akkastate";
 
-            var state = HttpRequestHelper.Request<ActorStateResult>(ServiceUrlHelper.GetMonitorRpcAddress(chainId), jsonRpcArg);
+            var state = HttpRequestHelper.Request<JsonRpcResult<List<ActorStateResult>>>(ServiceUrlHelper.GetMonitorRpcAddress(chainId), jsonRpcArg);
 
             return state.Result;
         }

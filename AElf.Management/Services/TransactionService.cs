@@ -12,9 +12,9 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_txpool_size";
 
-            var state = HttpRequestHelper.Request<TxPoolSizeResult>(ServiceUrlHelper.GetRpcAddress(chainId), jsonRpcArg);
+            var state = HttpRequestHelper.Request<JsonRpcResult<TxPoolSizeResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/chain", jsonRpcArg);
 
-            return state.Result;
+            return state.Result.CurrentTransactionPoolSize;
         }
     }
 }

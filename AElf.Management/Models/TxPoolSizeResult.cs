@@ -2,9 +2,8 @@
 
 namespace AElf.Management.Models
 {
-    public class TxPoolSizeResult:JsonRpcResult
+    public class TxPoolSizeResult
     {
-        public ulong Result { get; set; }
-
+        public ulong CurrentTransactionPoolSize { get; set; }
     }
 }
