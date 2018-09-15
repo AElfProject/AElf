@@ -37,5 +37,10 @@ namespace AElf.Node
         {
             return _blockCollection.GetPendingBlocksFromBranchedChains();
         }
+
+        public bool IsForked()
+        {
+            return _blockCollection.BranchedChainsCount > 0;
+        }
     }
 }

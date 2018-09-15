@@ -28,7 +28,7 @@ namespace AElf.Contracts.SideChain.Tests
             builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
             var assembly3 = typeof(StateDictator).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
-            var assembly4 = typeof(BlockVaildationService).Assembly;
+            var assembly4 = typeof(BlockValidationService).Assembly;
             builder.RegisterAssemblyTypes(assembly4).AsImplementedInterfaces();
             var assembly5 = typeof(Execution.ParallelTransactionExecutingService).Assembly;
             builder.RegisterAssemblyTypes(assembly5).AsImplementedInterfaces();

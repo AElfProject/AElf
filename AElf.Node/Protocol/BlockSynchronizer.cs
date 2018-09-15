@@ -185,6 +185,11 @@ namespace AElf.Node.Protocol
             _logger?.Debug("Height has been incremented, new value: " + CurrentExecHeight);
         }
 
+        public bool IsForked()
+        {
+           return _syncService.IsForked();
+        }
+
         public void EnqueueJob(Job job)
         {
             try

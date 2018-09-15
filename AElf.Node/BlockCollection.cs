@@ -28,7 +28,7 @@ namespace AElf.Node
         /// </summary>
         public ulong PendingBlockHeight { get; set; }
 
-        public ulong SyncedHeight { get; set; }
+        private ulong SyncedHeight { get; set; }
 
         public List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
         

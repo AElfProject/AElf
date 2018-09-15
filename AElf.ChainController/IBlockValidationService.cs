@@ -4,7 +4,7 @@ using AElf.Kernel;
 
 namespace AElf.ChainController
 {
-    public interface IBlockVaildationService
+    public interface IBlockValidationService
     {
         Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair);
     }

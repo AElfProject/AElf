@@ -9,5 +9,6 @@ namespace AElf.Node
         void AddPendingBlock(PendingBlock pendingBlock);
         void RemovePendingBlock(PendingBlock pendingBlock);
         List<PendingBlock> GetPendingBlocksFromBranchedChains();
+        bool IsForked();
     }
 }

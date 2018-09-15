@@ -58,14 +58,14 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public Timestamp ExtraBlockTimeslot
+        public Timestamp ExtraBlockTimeSlot
         {
             get
             {
                 try
                 {
                     return Timestamp.Parser.ParseFrom(
-                        GetBytes<Timestamp>(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
+                        GetBytes<Timestamp>(Globals.AElfDPoSExtraBlockTimeSlotString.CalculateHash()));
                 }
                 catch (Exception e)
                 {
@@ -168,7 +168,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e, "Failed to get BPInfo of current round.");
+                    _logger.Error(e, "Failed to get Block Producer information of current round.");
                     return default(BlockProducer);
                 }
             }
@@ -186,7 +186,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e, "Failed to get RoundInfo of provided round number.\n");
+                    _logger.Error(e, $"Failed to get Round information of provided round number. - {roundNumber.Value}\n");
                     return default(Round);
                 }
             }
@@ -269,6 +269,9 @@ namespace AElf.Kernel.Consensus
                 infosOfRound2.BlockProducers.Add(enumerable[i], bpInfo);
             }
 
+            infosOfRound1.RoundNumber = 1;
+            infosOfRound2.RoundNumber = 2;
+
             var dPoSInfo = new AElfDPoSInformation
             {
                 Rounds = { infosOfRound1, infosOfRound2}
@@ -302,6 +305,8 @@ namespace AElf.Kernel.Consensus
 
                     roundInfo.BlockProducers[info.Key] = info.Value;
                 }
+
+                roundInfo.RoundNumber = CurrentRoundNumber.Value;
 
                 return roundInfo;
             }
@@ -374,25 +379,28 @@ namespace AElf.Kernel.Consensus
                     orderDict.Add(order, signatureDict[sig]);
                 }
 
-                var baseTimeslot = ExtraBlockTimeslot;
+                var blockTimeSlot = ExtraBlockTimeSlot;
 
-                //Maybe because something happened with setting extra block timeslot.
-                if (baseTimeslot.ToDateTime().AddMilliseconds(Globals.AElfDPoSMiningInterval * 1.5) < GetTimestampOfUtcNow().ToDateTime())
+                //Maybe because something happened with setting extra block time slot.
+                if (blockTimeSlot.ToDateTime().AddMilliseconds(Globals.AElfDPoSMiningInterval * 1.5) <
+                    GetTimestampOfUtcNow().ToDateTime())
                 {
-                    baseTimeslot = GetTimestampOfUtcNow();
+                    blockTimeSlot = GetTimestampOfUtcNow();
                 }
 
                 for (var i = 0; i < orderDict.Count; i++)
                 {
                     var bpInfoNew = new BlockProducer
                     {
-                        TimeSlot = GetTimestampWithOffset(baseTimeslot,
+                        TimeSlot = GetTimestampWithOffset(blockTimeSlot,
                             i * Globals.AElfDPoSMiningInterval + Globals.AElfDPoSMiningInterval * 2),
                         Order = i + 1
                     };
 
                     infosOfNextRound.BlockProducers[orderDict[i]] = bpInfoNew;
                 }
+                
+                infosOfNextRound.RoundNumber = CurrentRoundNumber.Value + 1;
 
                 return infosOfNextRound;
             }
@@ -453,7 +461,7 @@ namespace AElf.Kernel.Consensus
             var res = new StringValue
             {
                 Value
-                    = infoOfOneRound + $"EBP Timeslot of current round: {ExtraBlockTimeslot.ToDateTime().ToLocalTime():u}\n"
+                    = infoOfOneRound + $"EBP Time Slot of current round: {ExtraBlockTimeSlot.ToDateTime().ToLocalTime():u}\n"
                              + "Current Round : " + CurrentRoundNumber?.Value
             };
             
@@ -467,6 +475,11 @@ namespace AElf.Kernel.Consensus
                 if (CurrentRoundNumber.Value == 0)
                 {
                     return "Somehow current round number is 0";
+                }
+
+                if (countOfRounds == 0)
+                {
+                    return "";
                 }
             
                 var currentRoundNumber = CurrentRoundNumber.Value;
@@ -494,7 +507,7 @@ namespace AElf.Kernel.Consensus
                     i++;
                 }
 
-                return infoOfOneRound + $"EBP Timeslot of current round: {ExtraBlockTimeslot.ToDateTime().ToLocalTime():u}\n"
+                return infoOfOneRound + $"EBP TimeSlot of current round: {ExtraBlockTimeSlot.ToDateTime().ToLocalTime():u}\n"
                                       + $"Current Round : {CurrentRoundNumber.Value}";
             }
             catch (Exception e)
@@ -514,7 +527,7 @@ namespace AElf.Kernel.Consensus
         }
         
         /// <summary>
-        /// This method should return true if all the BPs restarted (and missed their timeslots).
+        /// This method should return true if all the BPs restarted (and missed their time slots).
         /// </summary>
         /// <returns></returns>
         public bool CanRecoverDPoSInformation()
@@ -522,15 +535,15 @@ namespace AElf.Kernel.Consensus
             try
             {
                 //If DPoS information is already generated, return false;
-                //Because this method doesn't resposible to initialize DPoS information.
+                //Because this method doesn't responsible to initialize DPoS information.
                 if (CurrentRoundNumber.Value == 0)
                 {
                     return false;
                 }
 
-                var extraBlockTimeslot = ExtraBlockTimeslot.ToDateTime();
+                var extraBlockTimeSlot = ExtraBlockTimeSlot.ToDateTime();
                 var now = DateTime.UtcNow;
-                if (now < extraBlockTimeslot)
+                if (now < extraBlockTimeSlot)
                 {
                     return false;
                 }
@@ -556,6 +569,11 @@ namespace AElf.Kernel.Consensus
             _logger?.Trace("Log dpos information - End");
         }
 
+        public Round GetCurrentRoundInfo()
+        {
+            return this[CurrentRoundNumber];
+        }
+
         private string GetRoundInfoToString(UInt64Value roundNumber)
         {
             try
@@ -567,7 +585,7 @@ namespace AElf.Kernel.Consensus
                     result += bpInfo.Key + ":\n";
                     result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                     result += "Order:\t\t" + bpInfo.Value.Order + "\n";
-                    result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
+                    result += "Time Slot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
                     result += "Signature:\t" + bpInfo.Value.Signature?.Value.ToByteArray().ToHex().RemoveHexPrefix() + "\n";
                     result += "Out Value:\t" + bpInfo.Value.OutValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() + "\n";
                     result += "In Value:\t" + bpInfo.Value.InValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() + "\n";
@@ -607,7 +625,7 @@ namespace AElf.Kernel.Consensus
         }
         
         /// <summary>
-        /// In case of forgetting to check negtive value.
+        /// In case of forgetting to check negativee value.
         /// For now this method only used for generating order,
         /// so integer should be enough.
         /// </summary>
