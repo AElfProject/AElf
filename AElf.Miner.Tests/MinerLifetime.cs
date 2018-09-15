@@ -50,15 +50,6 @@ namespace AElf.Kernel.Tests.Miner
             _logger = logger;
         }
 
-
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
-
         public byte[] ExampleContractCode
         {
             get
@@ -186,7 +177,8 @@ namespace AElf.Kernel.Tests.Miner
             // create miner
             var keypair = new KeyPairGenerator().Generate();
             var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
-            var miner = _mock.GetMiner(minerconfig, poolService);
+            var manager = _mock.MinerClientManager();
+            var miner = _mock.GetMiner(minerconfig, poolService, manager);
 
             GrpcLocalConfig.Instance.Client = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
@@ -216,7 +208,8 @@ namespace AElf.Kernel.Tests.Miner
             // create miner
             var keypair = new KeyPairGenerator().Generate();
             var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
-            var miner = _mock.GetMiner(minerconfig, poolService);
+            var manager = _mock.MinerClientManager();
+            var miner = _mock.GetMiner(minerconfig, poolService, manager);
             GrpcLocalConfig.Instance.Client = false;
             miner.Init(keypair);
 

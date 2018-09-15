@@ -70,7 +70,7 @@ namespace AElf.Miner.Rpc.Client
                     ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
                     NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                 };
-                _logger.Debug($"New {typeof(TResponse).Name} for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
+                _logger.Debug($"New request for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_interval);
             }
@@ -123,6 +123,11 @@ namespace AElf.Miner.Rpc.Client
         public IBlockInfo First()
         {
             return IndexedInfoQueue.First();
+        }
+
+        public bool Empty()
+        {
+            return IndexedInfoQueueCount == 0;
         }
             
         /// <summary>

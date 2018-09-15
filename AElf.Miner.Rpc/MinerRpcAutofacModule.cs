@@ -12,6 +12,7 @@ namespace AElf.Miner.Rpc
         {
             builder.RegisterType<ClientManager>().As<ClientManager>().SingleInstance();
             builder.RegisterType<SideChainBlockInfoRpcServerImpl>().As<SideChainBlockInfoRpcServerImpl>().SingleInstance();
+            builder.RegisterType<ParentChainBlockInfoRpcServerImpl>().As<ParentChainBlockInfoRpcServerImpl>().SingleInstance();
         }
     }
 }

@@ -11,5 +11,7 @@ namespace AElf.Kernel
         Hash MerkleTreeRootOfTransactions { get; set; }
         ECSignature GetSignature();
         Hash ChainId { get; set; }
+        Hash SideChainTransactionsRoot { get; set; }
+        Hash SideChainBlockHeadersRoot { get; set; }
     }
 }

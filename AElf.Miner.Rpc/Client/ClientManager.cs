@@ -72,6 +72,7 @@ namespace AElf.Miner.Rpc.Client
              if (!GrpcLocalConfig.Instance.Client) return;
              _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
              _tokenSourceToSideChain = new CancellationTokenSource();
+             _tokenSourceToParentChain = new CancellationTokenSource();
              _interval = interval == 0 ? Globals.AElfMiningInterval : interval;
              CreateClientsToSideChain();
              CreateClientToParentChain();
@@ -140,11 +141,11 @@ namespace AElf.Miner.Rpc.Client
          /// </summary>
          /// <param name="uri"></param>
          /// <param name="targetChainId"></param>
-         /// <param name="toSideChain">the client is connected to side chain or parent chain</param>
+         /// <param name="toSideChain"> the client is connected to side chain or parent chain </param>
          /// <returns>
          /// return <see cref="ClientToParentChain"/>> if the client is to parent chain
          /// return <see cref="ClientToSideChain"/>> if the client is to side chain 
-         /// </returns>
+         /// </returns>    
          private ClientBase CreateClient(Uri uri, string targetChainId, bool toSideChain)
          {
              var uriStr = uri.ToString();
@@ -178,7 +179,7 @@ namespace AElf.Miner.Rpc.Client
          /// take each side chain's header info 
          /// </summary>
          /// <returns>
-         /// get the first one cached by every client
+         /// return the first one cached by every <see cref="ClientToSideChain"/> client
          /// </returns>
          public async Task<List<SideChainBlockInfo>> CollectSideChainBlockInfo()
          {
@@ -200,12 +201,14 @@ namespace AElf.Miner.Rpc.Client
          /// <summary>
          /// try to take first one in cached queue
          /// </summary>
-         /// <returns></returns>
+         /// <returns>
+         /// return the first one cached by <see cref="ClientToParentChain"/>
+         /// </returns>
          public async Task<ParentChainBlockInfo> CollectParentChainBlockInfo()
          {
              Hash parentChainId = ByteArrayHelpers.FromHexString(GrpcRemoteConfig.Instance.ParentChain?.ElementAt(0).Key);
              var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightsync(parentChainId);
-             if (_clientToParentChain.First().Height != targetHeight ||
+             if (_clientToParentChain.Empty() || _clientToParentChain.First().Height != targetHeight ||
                  !_clientToParentChain.TryTake(Interval, out var blockInfo)) 
                  return null;
              await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height + 1);
@@ -223,6 +226,7 @@ namespace AElf.Miner.Rpc.Client
              
              //Todo: probably not needed
              _clientsToSideChains.Clear();
+             
          }
          
          /// <summary>
