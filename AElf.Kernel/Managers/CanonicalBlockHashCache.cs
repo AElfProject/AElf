@@ -2,23 +2,14 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
-using System.Linq;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Kernel;
 using Easy.MessageHub;
-using ServiceStack;
 
 namespace AElf.Kernel.Managers
 {
     public class CanonicalBlockHashCache
     {
         private ILightChain _lightChain;
-        private int _switching;
-
-        public bool SwitchingFork
-        {
-            get => _switching > 0;
-        }
+        private int _filling;
 
         public ulong CurrentHeight { get; private set; }
 
@@ -33,19 +24,28 @@ namespace AElf.Kernel.Managers
 
         public Hash GetHashByHeight(ulong height)
         {
-            _blocks.TryGetValue(height, out var hash);
+            if (_blocks.TryGetValue(height, out var hash)) return hash;
+
+            if (_blocks.Count == 0)
+            {
+                RecoverCurrent().Wait();
+            }
+
+            _blocks.TryGetValue(height, out hash);
             return hash;
         }
 
         public async Task OnNewBlockHeader(BlockHeader header)
         {
             var height = header.Index;
-            if (height == 0)
+            if (_blocks.Count == 0)
             {
-                _blocks.TryAdd(0, header.GetHash());
+                // If empty, just add
+                _blocks.TryAdd(height, header.GetHash());
             }
             else if (_blocks.TryGetValue(height - 1, out var prevHash) && prevHash == header.PreviousBlockHash)
             {
+                // Current fork
                 var added = _blocks.TryAdd(height, header.GetHash());
                 if (added && height > Globals.ReferenceBlockValidPeriod)
                 {
@@ -55,32 +55,42 @@ namespace AElf.Kernel.Managers
             }
             else
             {
-                if (Interlocked.CompareExchange(ref _switching, 1, 0) == 0)
-                {
-                    _blocks.Clear();
-                    await RefillBlocks(header.Index);
-                    Interlocked.CompareExchange(ref _switching, 0, 1);
-                }
+                // Switch fork
+                _blocks.Clear();
+                _blocks.TryAdd(height, header.GetHash());
             }
 
             CurrentHeight = height;
-
+            await MaybeFillBlocks();
         }
 
-        private async Task RefillBlocks(ulong lastBlockHeight)
+        private async Task MaybeFillBlocks()
         {
-            if (Interlocked.CompareExchange(ref _switching, 1, 0) == 0)
+            var height = CurrentHeight;
+            if (Interlocked.CompareExchange(ref _filling, 1, 0) == 0)
             {
-                for (var i = (ulong) 0; i <= Globals.ReferenceBlockValidPeriod; i++)
+                for (var i = (ulong) 1; i <= Math.Max(Globals.ReferenceBlockValidPeriod, height); i++)
                 {
-                    if (lastBlockHeight < i)
+                    if (height < i)
                     {
                         break;
                     }
 
-                    await _lightChain.GetCanonicalHashAsync(lastBlockHeight - i);
+                    if (_blocks.ContainsKey(height))
+                    {
+                        break;
+                    }
+                    
+                    await _lightChain.GetCanonicalHashAsync(height - i);
                 }
             }
+        }
+
+        private async Task RecoverCurrent()
+        {
+            var curHeight = await _lightChain.GetCurrentBlockHeightAsync();
+            var curHeader = await _lightChain.GetHeaderByHeightAsync(curHeight);
+            await OnNewBlockHeader((BlockHeader)curHeader);
         }
     }
 }
