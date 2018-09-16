@@ -4,7 +4,7 @@ namespace AElf.Management.Interfaces
 {
     public interface ISideChainService
     {
-        void Deploy(string chainId, DeployArg arg);
+        void Deploy(DeployArg arg);
 
         void Remove(string chainId);
     }

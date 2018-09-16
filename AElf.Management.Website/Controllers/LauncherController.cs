@@ -18,10 +18,10 @@ namespace AElf.Management.Website.Controllers
         }
 
         [HttpGet]
-        [Route("list/{chianId}")]
-        public ApiResult<List<LauncherResult>> List(string chianId)
+        [Route("list/{chainId}")]
+        public ApiResult<List<LauncherResult>> List(string chainId)
         {
-            var result = _launcherService.GetAllLaunchers(chianId);
+            var result = _launcherService.GetAllLaunchers(chainId);
             return new ApiResult<List<LauncherResult>>(result);
         }
     }

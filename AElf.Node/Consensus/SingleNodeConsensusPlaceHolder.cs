@@ -34,6 +34,11 @@ namespace AElf.Kernel.Node
             await Task.CompletedTask;
         }
 
+        public bool IsAlive()
+        {
+            return true;
+        }
+
         private async Task SingleNodeMining()
         {
             _logger.Trace("Single node mining start.");

@@ -12,6 +12,8 @@ namespace AElf.Configuration
     {
         private static readonly HashSet<string> _fileNames;
         private static readonly HashSet<string> _pendingFiles;
+
+        private static FileSystemWatcher _watcher;
         
         private static readonly ReaderWriterLockSlim _fileNameLock = new ReaderWriterLockSlim();
         private static readonly object _pendingFileLock = new object();
@@ -30,25 +32,27 @@ namespace AElf.Configuration
             {
                 Directory.CreateDirectory(configPath);
             }
+
             InitWatcher(configPath);
         }
 
         private static void InitWatcher(string directory)
         {
-            var watcher = new FileSystemWatcher
+            _watcher = new FileSystemWatcher
             {
                 Path = directory,
-                IncludeSubdirectories = false
+                IncludeSubdirectories = true,
+                Filter = "*.json"
             };
 
-            watcher.Changed += WatchFileChanged;
-            watcher.Renamed += WatchFileChanged;
-            watcher.EnableRaisingEvents = true;
+            _watcher.Changed += WatchFileChanged;
+            _watcher.Renamed += WatchFileChanged;
+            _watcher.EnableRaisingEvents = true;
         }
         
         private static void WatchFileChanged(object sender, FileSystemEventArgs e)
         {
-            var fileName = e.Name.ToLower();
+            var fileName = Path.GetFileName(e.Name.ToLower());
             if (ContainFileName(fileName))
             {
                 lock (_pendingFileLock)

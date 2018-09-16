@@ -94,8 +94,8 @@ namespace AElf.Miner.Miner
                     if (cancellationTokenSource.IsCancellationRequested)
                         return null;
 
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync();
-
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync(_stateDictator.BlockProducerAccountAddress);
+                    
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
@@ -170,6 +170,7 @@ namespace AElf.Miner.Miner
                         var txResF = new TransactionResult()
                         {
                             TransactionId = trace.TransactionId,
+                            RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
                             Status = Status.Failed
                         };
                         results.Add(txResF);

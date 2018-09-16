@@ -6,7 +6,11 @@ namespace AElf.Management.Models
     {
         public string MainChainId { get; set; }
 
-        public string MainChainAccount { get; set; }
+        public bool IsDeployMainChain { get; set; }
+
+        public string SideChainId { get; set; }
+
+        public string ChainAccount { get; set; }
 
         public string AccountPassword { get; set; }
 
@@ -15,6 +19,8 @@ namespace AElf.Management.Models
         public float CpuResource { get; set; }
         
         public float MemoryResource { get; set; }
+
+        public string ApiKey { get; set; }
 
         public DeployDBArg DBArg { get; set; }
 
@@ -26,6 +32,11 @@ namespace AElf.Management.Models
 
         public DeployArg()
         {
+            Miners=new List<string>();
+            DBArg=new DeployDBArg();
+            LighthouseArg=new DeployLighthouseArg();
+            WorkArg=new DeployWorkArg();
+            LauncherArg=new DeployLauncherArg();
         }
     }
 
@@ -64,6 +75,8 @@ namespace AElf.Management.Models
 
     public class DeployLauncherArg
     {
+        public string ClusterIp { get; set; }
+
         public bool IsConsensusInfoGenerator { get; set; }
 
         public List<string> Bootnodes { get; set; }

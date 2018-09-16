@@ -8,6 +8,8 @@
 
         public const string KeysConfigName = "config-keys";
         
+        public const string CertsConfigName = "config-certs";
+        
         public const string RedisConfigName = "config-redis";
         
         public const string RedisServiceName = "service-redis";
@@ -27,5 +29,9 @@
         public const string MonitorServiceName = "service-monitor";
         
         public const string MonitorName = "deploy-monitor";
+
+        public const int NodePort = 30800;
+        public const int RpcPort = 30600;
+        public const int GrpcPort = 40001;
     }
 }
