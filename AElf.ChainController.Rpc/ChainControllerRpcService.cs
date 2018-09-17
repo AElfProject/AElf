@@ -9,6 +9,7 @@ using AElf.Common.Extensions;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Node.AElfChain;
 using AElf.RPC;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
@@ -33,6 +34,7 @@ namespace AElf.ChainController.Rpc
         public ITransactionResultService TransactionResultService { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public IAccountContextService AccountContextService { get; set; }
+        public INodeService MainchainNodeService { get; set; }
 
         #endregion Properties
 
@@ -370,6 +372,30 @@ namespace AElf.ChainController.Rpc
             var response = new JObject
             {
                 ["CurrentTransactionPoolSize"] = transactionPoolSize
+            };
+
+            return JObject.FromObject(response);
+        }
+        
+        [JsonRpcMethod("dpos_isalive")]
+        public async Task<JObject> ProIsDPoSAlive()
+        {
+            var isAlive = MainchainNodeService.IsDPoSAlive();
+            var response = new JObject
+            {
+                ["IsAlive"] = isAlive
+            };
+
+            return JObject.FromObject(response);
+        }
+        
+        [JsonRpcMethod("node_isforked")]
+        public async Task<JObject> ProNodeIsForked()
+        {
+            var isForked = MainchainNodeService.IsForked();
+            var response = new JObject
+            {
+                ["IsForked"] = isForked
             };
 
             return JObject.FromObject(response);
