@@ -46,6 +46,7 @@ namespace AElf.Management.Website
             builder.RegisterType<AkkaService>().As<IAkkaService>().SingleInstance();
             builder.RegisterType<TransactionService>().As<ITransactionService>().SingleInstance();
             builder.RegisterType<NodeService>().As<INodeService>().SingleInstance();
+            builder.RegisterType<NetworkService>().As<INetworkService>().SingleInstance();
 
             builder.Populate(services);
             var ApplicationContainer = builder.Build();

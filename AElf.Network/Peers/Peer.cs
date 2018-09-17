@@ -135,7 +135,7 @@ namespace AElf.Network.Peers
         /// <summary>
         /// The data received in the handshake message.
         /// </summary>
-        [JsonProperty(PropertyName = "action")]
+        [JsonProperty(PropertyName = "address")]
         public NodeData DistantNodeData
         {
             get { return _lastReceivedHandshake.NodeInfo; }
