@@ -24,15 +24,18 @@ namespace AElf.Node
                 try
                 {
                     var ks = new AElfKeyStore(NodeConfig.Instance.DataDir);
+                    
                     var pass = string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccountPassword)
                         ? AskInvisible(NodeConfig.Instance.NodeAccount)
                         : NodeConfig.Instance.NodeAccountPassword;
+                    
                     ks.OpenAsync(NodeConfig.Instance.NodeAccount, pass, false);
 
                     ManagementConfig.Instance.NodeAccountPassword = pass;
                     NodeConfig.Instance.NodeAccountPassword = pass;
                     
                     nodeKey = ks.GetAccountKeyPair(NodeConfig.Instance.NodeAccount);
+                    
                     if (nodeKey == null)
                     {
                         Console.WriteLine("Load keystore failed");
