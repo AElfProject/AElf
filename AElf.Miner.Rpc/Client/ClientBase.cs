@@ -29,7 +29,7 @@ namespace AElf.Miner.Rpc.Client
         }
 
         /// <summary>
-        /// task to read response in loop 
+        /// Task to read response in loop.
         /// </summary>
         /// <param name="call"></param>
         /// <returns></returns>
@@ -39,12 +39,12 @@ namespace AElf.Miner.Rpc.Client
             {
                 while (await call.ResponseStream.MoveNext())
                 {
-                    var responseStreamCurrent = call.ResponseStream.Current;
+                    var response = call.ResponseStream.Current;
 
                     // request failed or useless response
-                    if (!responseStreamCurrent.Success || responseStreamCurrent.Height != _next)
+                    if (!response.Success || response.Height != _next)
                         continue;
-                    if (IndexedInfoQueue.TryAdd(responseStreamCurrent.BlockInfoResult))
+                    if (IndexedInfoQueue.TryAdd(response.BlockInfoResult))
                     {
                         _next++;
                     }
@@ -55,7 +55,7 @@ namespace AElf.Miner.Rpc.Client
         }
 
         /// <summary>
-        /// task to create request in loop
+        /// Task to create request in loop.
         /// </summary>
         /// <param name="call"></param>
         /// <param name="cancellationToken"></param>
@@ -77,14 +77,14 @@ namespace AElf.Miner.Rpc.Client
         }
 
         /// <summary>
-        /// start to request
+        /// Start to request one by one and also response one bye one.
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <param name="next"></param>
         /// <returns></returns>
-        public async Task Start(CancellationToken cancellationToken, ulong next)
+        public async Task StartDuplexStreamingCall(CancellationToken cancellationToken, ulong next)
         {
-            _next = next;
+            _next = Math.Max(next, IndexedInfoQueue.Last()?.Height?? -1 + 1);
             try
             {
                 using (var call = Call())
@@ -106,7 +106,47 @@ namespace AElf.Miner.Rpc.Client
         }
 
         /// <summary>
-        /// take element from cached queue
+        /// Start to request only once but response many (one by one)
+        /// </summary>
+        /// <param name="next"></param>
+        /// <returns></returns>
+        public async Task StartServerStreamingCall(ulong next)
+        {
+            _next = Math.Max(next, IndexedInfoQueue.Last()?.Height?? -1 + 1);
+            try
+            {
+                var request = new RequestBlockInfo
+                {
+                    ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
+                    NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
+                };
+                
+                using (var call = Call(request))
+                {
+                    while (await call.ResponseStream.MoveNext())
+                    {
+                        var response = call.ResponseStream.Current;
+
+                        // request failed or useless response
+                        if (!response.Success || response.Height != _next)
+                            continue;
+                        if (IndexedInfoQueue.TryAdd(response.BlockInfoResult))
+                        {
+                            _next++;
+                        }
+                    }
+                }
+
+            }
+            catch (RpcException e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Try Take element from cached queue.
         /// </summary>
         /// <param name="interval"></param>
         /// <param name="blockInfo"></param>
@@ -115,14 +155,23 @@ namespace AElf.Miner.Rpc.Client
         {
             return IndexedInfoQueue.TryTake(out blockInfo, interval);
         }
+        
+        /// <summary>
+        /// Take element from cached queue.
+        /// </summary>
+        /// <returns></returns>
+        public IBlockInfo Take()
+        {
+            return IndexedInfoQueue.Take();
+        }
 
         /// <summary>
-        /// return first element in cached queue
+        /// Return first element in cached queue.
         /// </summary>
         /// <returns></returns>
         public IBlockInfo First()
         {
-            return IndexedInfoQueue.First();
+            return IndexedInfoQueue.FirstOrDefault();
         }
 
         public bool Empty()
@@ -131,11 +180,12 @@ namespace AElf.Miner.Rpc.Client
         }
             
         /// <summary>
-        /// cached count
+        /// Get cached count.
         /// </summary>
         public int IndexedInfoQueueCount => IndexedInfoQueue.Count;
 
         protected abstract AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> Call();
+        protected abstract AsyncServerStreamingCall<TResponse> Call(RequestBlockInfo requestBlockInfo);
     }
 
     public abstract class ClientBase

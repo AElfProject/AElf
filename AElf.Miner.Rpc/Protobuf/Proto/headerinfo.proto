@@ -19,11 +19,15 @@ message ResponseParentChainBlockInfo {
 }
 
 service SideChainBlockInfoRpc {
-    rpc Index (stream RequestBlockInfo) returns (stream ResponseSideChainBlockInfo) {}
+    rpc IndexDuplexStreaming (stream RequestBlockInfo) returns (stream ResponseSideChainBlockInfo) {}
+    rpc IndexServerStreaming (RequestBlockInfo) returns (stream ResponseSideChainBlockInfo) {}
+
 }
 
 service ParentChainBlockInfoRpc{
-    rpc Record (stream RequestBlockInfo) returns (stream ResponseParentChainBlockInfo) {}
+    rpc RecordDuplexStreaming (stream RequestBlockInfo) returns (stream ResponseParentChainBlockInfo) {}
+    rpc RecordServerStreaming (RequestBlockInfo) returns (stream ResponseParentChainBlockInfo) {}
+
 }
 
 message MerkleProofMessage {

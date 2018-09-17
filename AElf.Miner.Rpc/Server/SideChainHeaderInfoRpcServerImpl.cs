@@ -28,13 +28,14 @@ namespace AElf.Miner.Rpc.Server
         }
 
         /// <summary>
-        /// response to indexing request from main chain node
+        /// Response to indexing request from main chain node.
+        /// Many requests to many responses.
         /// </summary>
         /// <param name="requestStream"></param>
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override async Task Index(IAsyncStreamReader<RequestBlockInfo> requestStream, 
+        public override async Task IndexDuplexStreaming(IAsyncStreamReader<RequestBlockInfo> requestStream, 
             IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
@@ -50,7 +51,7 @@ namespace AElf.Miner.Rpc.Server
                     var res = new ResponseSideChainBlockInfo
                     {
                         Success = blockHeader != null,
-                        BlockInfo = blockHeader == null? null : new SideChainBlockInfo
+                        BlockInfo = blockHeader == null ? null : new SideChainBlockInfo
                         {
                             Height = requestedHeight,
                             BlockHeaderHash = blockHeader.GetHash(),
@@ -58,16 +59,57 @@ namespace AElf.Miner.Rpc.Server
                             ChainId = blockHeader.ChainId
                         }
                     };
-                    _logger?.Log(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {requestedHeight}");
+                    _logger?.Log(LogLevel.Debug,
+                        $"Side Chain Server responsed IndexedInfo message of height {requestedHeight}");
                     await responseStream.WriteAsync(res);
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                _logger?.Error(e.ToString());
             }
-            
+        }
+
+        /// <summary>
+        /// Response to indexing request from main chain node.
+        /// One request to many responses. 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="responseStream"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public override async Task IndexServerStreaming(RequestBlockInfo request, 
+            IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
+        {
+            // TODO: verify the from address and the chain 
+            _logger?.Log(LogLevel.Debug, "Side Chain Server received IndexedInfo message.");
+
+            try
+            {
+                var height = request.NextHeight;
+                while (height <= await LightChain.GetCurrentBlockHeightAsync())
+                {
+                    var blockHeader = await LightChain.GetHeaderByHeightAsync(height);
+                    var res = new ResponseSideChainBlockInfo
+                    {
+                        Success = blockHeader != null,
+                        BlockInfo = blockHeader == null ? null : new SideChainBlockInfo
+                        {
+                            Height = height,
+                            BlockHeaderHash = blockHeader.GetHash(),
+                            TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
+                            ChainId = blockHeader.ChainId
+                        }
+                    };
+                    _logger?.Log(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {height}");
+                    await responseStream.WriteAsync(res);
+                    height++;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e.ToString());
+            }
         }
     }
 }
