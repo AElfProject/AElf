@@ -31,7 +31,7 @@ namespace AElf.Node.AElfChain
         private readonly IMiner _miner;
         private readonly IP2P _p2p;
         private readonly IAccountContextService _accountContextService;
-        private readonly IBlockVaildationService _blockVaildationService;
+        private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
@@ -49,7 +49,7 @@ namespace AElf.Node.AElfChain
 
         public MainchainNodeService(ITxPoolService poolService, 
             IAccountContextService accountContextService,
-            IBlockVaildationService blockVaildationService,
+            IBlockValidationService blockValidationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService, 
             IStateDictator stateDictator,
@@ -68,7 +68,7 @@ namespace AElf.Node.AElfChain
             _miner = miner;
             _p2p = p2p;
             _accountContextService = accountContextService;
-            _blockVaildationService = blockVaildationService;
+            _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
             _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
@@ -220,7 +220,17 @@ namespace AElf.Node.AElfChain
         {
          //todo   
         }
-        
+
+        public bool IsDPoSAlive()
+        {
+            return _consensus.IsAlive();
+        }
+
+        public bool IsForked()
+        {
+            return _synchronizer.IsForked();
+        }
+
         #region private methods
 
         private Hash GetGenesisContractHash(SmartContractType contractType)
@@ -286,8 +296,7 @@ namespace AElf.Node.AElfChain
                 {
                     var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
                     
-                    var dpos = new DPoS(_stateDictator, _accountContextService, _txPoolService, _p2p, _miner,
-                        _blockChain, _synchronizer, _logger);
+                    var dpos = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer, _logger);
                     var genesisContractHash = _chainCreationService.GenesisContractHash(chainId, SmartContractType.AElfDPoS);
                     dpos.Initialize(genesisContractHash, _nodeKeyPair);
                     _consensus = dpos;
@@ -345,22 +354,21 @@ namespace AElf.Node.AElfChain
             {
                 var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
                 var context = await _chainContextService.GetChainContextAsync(chainId);
-                var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
+                var error = await _blockValidationService.ValidateBlockAsync(block, context, _nodeKeyPair);
 
                 if (error != ValidationError.Success)
                 {
-                    var blockchain = _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+                    var blockchain =
+                        _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
                     var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
                     if (error == ValidationError.OrphanBlock)
                     {
-                        //TODO: limit the count of blocks to rollback
-                        if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
+                        if (block.Header.Index > localCorrespondingBlock.Header.Index)
                         {
-                            _logger?.Trace("Ready to rollback");
                             var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
                             await _txPoolService.Revert(txs);
                             await _stateDictator.RollbackToPreviousBlock();
-                            error = ValidationError.Success;
+                            error = ValidationError.AnotherBranch;
                         }
                         else
                         {

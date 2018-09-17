@@ -18,10 +18,10 @@ namespace AElf.Management.Website.Controllers
         }
 
         [HttpGet]
-        [Route("list/{chianId}")]
-        public ApiResult<List<WorkerResult>> List(string chianId)
+        [Route("list/{chainId}")]
+        public ApiResult<List<WorkerResult>> List(string chainId)
         {
-            var result = _workerService.GetAllWorkers(chianId);
+            var result = _workerService.GetAllWorkers(chainId);
             return new ApiResult<List<WorkerResult>>(result);
         }
     }

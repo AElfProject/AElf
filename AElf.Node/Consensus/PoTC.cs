@@ -41,15 +41,14 @@ namespace AElf.Kernel.Node
                 var count = await _txPoolService.GetPoolSize();
                 if (ConsensusMemory != count)
                 {
-                    _logger?.Trace($"Current tx pool size: {count} / {Globals.ExpectedTransanctionCount}");
+                    _logger?.Trace($"Current tx pool size: {count} / {Globals.ExpectedTransactionCount}");
                     ConsensusMemory = count;
                 }
 
-                if (count >= Globals.ExpectedTransanctionCount)
+                if (count >= Globals.ExpectedTransactionCount)
                 {
                     _logger?.Trace("Will produce one block.");
-                    var block = await _miner.Mine();
-                    //await _p2p.BroadcastBlock(block);
+                    await _miner.Mine();
                 }
             }
         }
@@ -57,6 +56,11 @@ namespace AElf.Kernel.Node
         public async Task RecoverMining()
         {
             await Task.CompletedTask;
+        }
+
+        public bool IsAlive()
+        {
+            return true;
         }
     }
 }

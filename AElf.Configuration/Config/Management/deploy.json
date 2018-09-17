@@ -1,3 +1,5 @@
 ﻿{
-  "Type": "k8s"
+  "Type": "k8s",
+  "Authentication": true,
+  "SignTimeout": 5
 }

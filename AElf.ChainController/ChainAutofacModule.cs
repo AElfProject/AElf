@@ -8,7 +8,7 @@ namespace AElf.ChainController
     {
         protected override void Load(ContainerBuilder builder)
         {
-            var assembly = typeof(BlockVaildationService).Assembly;
+            var assembly = typeof(BlockValidationService).Assembly;
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
             builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
             builder.RegisterType<TxPoolServiceBM>().As<ITxPoolService>().SingleInstance();
