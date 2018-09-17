@@ -41,13 +41,11 @@ namespace AElf.Kernel.Tests.Miner
             return (ulong) res;
         }
 
-        public readonly ILogger _logger;
         private MockSetup _mock;
 
         public MinerLifetime(MockSetup mock, ILogger logger)
         {
             _mock = mock;
-            _logger = logger;
         }
 
         public byte[] ExampleContractCode
