@@ -286,7 +286,6 @@ namespace AElf.Miner.Miner
             return block;
         }
 
-
         /// <summary>
         /// generate block header
         /// </summary>

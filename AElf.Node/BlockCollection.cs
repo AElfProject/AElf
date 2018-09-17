@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using AElf.ChainController;
-using AElf.Common.Extensions;
 using AElf.Kernel;
 using AElf.Network;
 using AElf.Node.Protocol;
-using Microsoft.AspNetCore.Hosting;
 using NLog;
 using NServiceKit.Common;
 using NServiceKit.Text;
@@ -31,7 +28,7 @@ namespace AElf.Node
         /// </summary>
         public ulong PendingBlockHeight { get; set; }
 
-        private ulong SyncedHeight { get; set; }
+        public ulong SyncedHeight => _chainService.GetBlockChain(Globals.CurrentChainId).GetCurrentBlockHeightAsync().Result;
 
         public List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
 
@@ -39,9 +36,11 @@ namespace AElf.Node
         public int BranchedChainsCount => _branchedChains.Count;
 
         private readonly ILogger _logger;
+        private readonly IChainService _chainService;
 
-        public BlockCollection(ILogger logger = null)
+        public BlockCollection(IChainService chainService, ILogger logger = null)
         {
+            _chainService = chainService;
             _logger = logger;
         }
 
@@ -65,6 +64,11 @@ namespace AElf.Node
                 return null;
             }
 
+            if (Globals.IsConsensusGenerator)
+            {
+                _isInitialSync = false;
+            }
+
             if (_isInitialSync)
             {
                 switch (pendingBlock.MsgType)
@@ -80,6 +84,7 @@ namespace AElf.Node
                         }
                         else
                         {
+                            _logger?.Trace("Receive a new block while do initial sync.");
                             return AddBlockToBranchedChains(pendingBlock);
                         }
 
@@ -98,6 +103,7 @@ namespace AElf.Node
                         }
                         else
                         {
+                            _logger?.Trace("Receive a forked block while do initial sync.");
                             return AddBlockToBranchedChains(pendingBlock);
                         }
                 }
@@ -106,8 +112,10 @@ namespace AElf.Node
             }
 
             if (!AbleToAdd(pendingBlock))
+            {
+                _logger?.Trace("Receive an orphan block.");
                 return AddBlockToBranchedChains(pendingBlock);
-
+            }
             AddToPendingBlocks(pendingBlock);
             PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
             return null;
@@ -146,8 +154,6 @@ namespace AElf.Node
         public void RemovePendingBlock(PendingBlock pendingBlock)
         {
             PendingBlocks.Remove(pendingBlock);
-
-            SyncedHeight = Math.Max(SyncedHeight, pendingBlock.Block.Header.Index);
 
             if (PendingBlocks.IsEmpty() && BranchedChainsCount > 0)
             {

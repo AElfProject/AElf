@@ -46,7 +46,7 @@ namespace AElf.Node.Protocol
         private readonly ISyncService _syncService;
 
         /// <summary>
-        /// The list of blocks that are currently being synched.
+        /// The list of blocks that are currently being synced.
         /// </summary>
         private List<PendingBlock> PendingBlocks => _syncService.PendingBlocks;
 
@@ -55,7 +55,7 @@ namespace AElf.Node.Protocol
 
         public int CurrentExecHeight = 1;
 
-        public int SyncTargetHeight = 0;
+        public int SyncTargetHeight;
         private int MaxOngoingBlockRequests = 10;
         private readonly List<int> _currentBlockRequests;
 

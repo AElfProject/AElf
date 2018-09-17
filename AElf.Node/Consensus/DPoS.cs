@@ -115,7 +115,7 @@ namespace AElf.Kernel.Node
 
             if (NodeConfig.Instance.ConsensusInfoGenerater && !await _helper.HasGenerated())
             {
-                PendingBlockExtensions.IsConsensusGenerator = true;
+                Globals.IsConsensusGenerator = true;
                 AElfDPoSObserver.Initialization();
                 return;
             }

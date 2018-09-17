@@ -12,6 +12,7 @@ namespace AElf.Node
         int Count { get; }
         int BranchedChainsCount { get; }
         ulong PendingBlockHeight { get; set; }
+        ulong SyncedHeight { get; }
         List<PendingBlock> GetPendingBlocksFromBranchedChains();
     }
-} 
+}
