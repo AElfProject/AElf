@@ -6,17 +6,12 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common.Attributes;
-using AElf.Configuration;
-using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Merkle;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Miner.Rpc.Client;
-using AElf.Miner.Rpc.Server;
 using Easy.MessageHub;
 using NLog;
 using NServiceKit.Common.Extensions;
@@ -36,11 +31,10 @@ namespace AElf.Miner.Miner
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly ClientManager _clientManager;
         private int _timeoutMilliseconds;
-
         private readonly ILogger _logger;
         private IBlockChain _blockChain;
+        private readonly ClientManager _clientManager;
 
         public IMinerConfig Config { get; }
 

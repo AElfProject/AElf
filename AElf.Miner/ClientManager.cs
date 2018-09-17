@@ -1,24 +1,24 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common.Application;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
-using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using Grpc.Core;
 using NLog;
+using ClientBase = AElf.Miner.Rpc.Client.ClientBase;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
-namespace AElf.Miner.Rpc.Client
- {
-     [LoggerName("MinerClient")]
+namespace AElf.Miner
+{
+    [LoggerName("MinerClient")]
      public class ClientManager
      {
          private readonly Dictionary<string, ClientToSideChain> _clientsToSideChains = new Dictionary<string, ClientToSideChain>();
@@ -33,7 +33,7 @@ namespace AElf.Miner.Rpc.Client
          private int _interval;
          
          /// <summary>
-         /// waiting interval for taking element
+         /// Waiting interval for taking element.
          /// </summary>
          private int Interval => GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
          
@@ -63,7 +63,7 @@ namespace AElf.Miner.Rpc.Client
          }
 
          /// <summary>
-         /// initialize 
+         /// Initialize client manager.
          /// </summary>
          /// <param name="dir"></param>
          /// <param name="interval"></param>
@@ -79,7 +79,7 @@ namespace AElf.Miner.Rpc.Client
          }
 
          /// <summary>
-         /// create multi clients for different side chains
+         /// Create multi clients for different side chains
          /// this would be invoked when miner starts or configuration reloaded 
          /// </summary>
          /// <returns></returns>
@@ -96,12 +96,12 @@ namespace AElf.Miner.Rpc.Client
                      await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(sideChainId));
                 
                  // keep-alive
-                 client.Start(_tokenSourceToSideChain.Token, height);
+                 client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height);
              }
          }
          
          /// <summary>
-         /// start a new client to the side chain
+         /// Start a new client to the side chain
          /// </summary>
          /// <param name="targetChainId"></param>
          /// <returns></returns>
@@ -118,7 +118,7 @@ namespace AElf.Miner.Rpc.Client
          }
          
          /// <summary>
-         /// start a new client to the parent chain
+         /// Start a new client to the parent chain
          /// </summary>
          /// <returns></returns>
          /// <exception cref="ChainInfoNotFoundException"></exception>
@@ -133,11 +133,11 @@ namespace AElf.Miner.Rpc.Client
              _clientToParentChain = (ClientToParentChain) CreateClient(parent.Value.Value, parent.Value.Key, false);
              var height =
                  await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(parent.Value.Key));
-             _clientToParentChain.Start(_tokenSourceToParentChain.Token, height);
+             _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, height);
          }
 
          /// <summary>
-         /// create a new client to parent chain 
+         /// Create a new client to parent chain 
          /// </summary>
          /// <param name="uri"></param>
          /// <param name="targetChainId"></param>
@@ -158,7 +158,7 @@ namespace AElf.Miner.Rpc.Client
          }
 
          /// <summary>
-         /// create a new channel
+         /// Create a new channel
          /// </summary>
          /// <param name="uriStr"></param>
          /// <param name="targetChainId"></param>
@@ -176,7 +176,7 @@ namespace AElf.Miner.Rpc.Client
          }
 
          /// <summary>
-         /// take each side chain's header info 
+         /// Take each side chain's header info 
          /// </summary>
          /// <returns>
          /// return the first one cached by every <see cref="ClientToSideChain"/> client
@@ -194,12 +194,35 @@ namespace AElf.Miner.Rpc.Client
                  
                  res.Add((SideChainBlockInfo) blockInfo);
                  await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height + 1);
+                 await _chainManagerBasic.UpdateCurrentBlockHashAsync(blockInfo.ChainId,
+                     ((SideChainBlockInfo) blockInfo).BlockHeaderHash);
              }
              return res;
          }
 
          /// <summary>
-         /// try to take first one in cached queue
+         /// Check the first cached one with <param name="blockInfo"></param> and remove it.
+         /// </summary>
+         /// <param name="blockInfo"></param>
+         /// <returns>
+         /// Return true and remove the first cached one as <param name="blockInfo"></param>.
+         /// Return true if client for that chain is not existed which means the side chain is not available.
+         /// Return false if it is not same or client for that chain is not existed.
+         /// </returns>
+         public bool TryRemoveSideChainBlockInfo(SideChainBlockInfo blockInfo)
+         {
+             if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId.ToHex(), out var client))
+                 // TODO: this could be changed.
+                 return true;
+             if (!client.First().Equals(blockInfo))
+                 return false;
+             client.Take();
+             return true;
+         }
+
+        
+         /// <summary>
+         /// Try to take first one in cached queue
          /// </summary>
          /// <returns>
          /// return the first one cached by <see cref="ClientToParentChain"/>
@@ -217,7 +240,7 @@ namespace AElf.Miner.Rpc.Client
          
          
          /// <summary>
-         /// close and clear clients to side chain
+         /// Close and clear clients to side chain
          /// </summary>
          public void CloseClientsToSideChain()
          {
@@ -226,7 +249,6 @@ namespace AElf.Miner.Rpc.Client
              
              //Todo: probably not needed
              _clientsToSideChains.Clear();
-             
          }
          
          /// <summary>
@@ -241,4 +263,4 @@ namespace AElf.Miner.Rpc.Client
              _clientToParentChain = null;
          }
      }
- }
+}

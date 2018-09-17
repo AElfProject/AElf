@@ -94,7 +94,20 @@ namespace AElf.Miner.Tests.Grpc
 
             return miner;
         }
+        
+        internal IBlockExecutor GetBlockExecutor(TxPoolService poolService, ClientManager clientManager = null)
+        {
+            var blockExecutor = new BlockExecutor(poolService, _chainService, _stateDictator,
+                _concurrencyExecutingService, _logger, _transactionManager, _transactionResultManager,
+                clientManager);
 
+            return blockExecutor;
+        }
+
+        internal IBlockChain GetBlockChain(Hash chainId)
+        {
+            return _chainService.GetBlockChain(chainId);
+        }
         internal ContractTxPool CreateContractTxPool()
         {
             var poolconfig = TxPoolConfig.Default;

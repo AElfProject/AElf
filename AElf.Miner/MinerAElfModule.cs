@@ -2,11 +2,8 @@
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Module;
 using AElf.Configuration;
-using AElf.Configuration.Config.GRPC;
-using AElf.Kernel;
 using AElf.Miner.Miner;
-using AElf.Miner.Rpc.Client;
-using AElf.Miner.Rpc.Server;
+using AElf.Miner.Rpc;
 using Autofac;
 using Google.Protobuf;
 
@@ -31,12 +28,7 @@ namespace AElf.Miner
                     mc.Instance.Init(dir: ApplicationHelpers.GetDefaultDataDir());
                 }
             );
-            
-            builder.RegisterType<ServerManager>().SingleInstance().OnActivated(mc =>
-                {
-                    mc.Instance.Init(ApplicationHelpers.GetDefaultDataDir());
-                }
-            );
+            builder.RegisterModule(new MinerRpcAutofacModule());
         }
 
         public void Run(ILifetimeScope scope)

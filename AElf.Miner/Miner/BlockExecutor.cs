@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
-using AElf.Execution;
-using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.SmartContract;
@@ -27,11 +25,12 @@ namespace AElf.Miner.Miner
         private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
         private ILogger _logger;
+        private ClientManager _clientManager;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
-            IStateDictator stateDictator,
-            IExecutingService executingService, 
-            ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+            IStateDictator stateDictator, IExecutingService executingService, 
+            ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
+            ClientManager clientManager)
         {
             _txPoolService = txPoolService;
             _chainService = chainService;
@@ -40,12 +39,13 @@ namespace AElf.Miner.Miner
             _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
+            _clientManager = clientManager;
         }
 
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
-        public CancellationTokenSource Cts { get; private set; }
+        private CancellationTokenSource Cts { get; set; }
 
         /// <inheritdoc/>
         public async Task<bool> ExecuteBlock(IBlock block)
@@ -60,20 +60,28 @@ namespace AElf.Miner.Miner
                 }
                 var map = new Dictionary<Hash, HashSet<ulong>>();
 
-                if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
-                    _logger?.Trace($"ExecuteBlock - Null block or no transactions.");
+                if (block?.Header == null || block.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
+                    _logger?.Trace("ExecuteBlock - Null block or no transactions.");
 
-                _logger?.Trace($"Executing block {block?.GetHash()}");
+                _logger?.Trace($"Executing block {block.GetHash()}");
                 
-                var uncompressedPrivKey = block?.Header.P.ToByteArray();
+                var uncompressedPrivKey = block.Header.P.ToByteArray();
                 var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
                 var blockProducerAddress = recipientKeyPair.GetAddress();
+
+                // side chain info verification 
+                if (!ValidateSideChainBlockInfo(block))
+                {
+                    // side chain info in block cannot fit together with local side chain info.
+                    _logger?.Debug("Wrong side chain info");
+                    return false;
+                }
                 
-                _stateDictator.ChainId = block?.Header.ChainId;
-                _stateDictator.BlockHeight = block?.Header.Index - 1 ?? 0;
+                _stateDictator.ChainId = block.Header.ChainId;
+                _stateDictator.BlockHeight = block.Header.Index - 1;
                 _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
                 
-                var txs = block?.Body?.Transactions;
+                var txs = block.Body?.Transactions;
                 if (txs != null)
                     foreach (var id in txs)
                     {
@@ -82,8 +90,8 @@ namespace AElf.Miner.Miner
                             tx = await _transactionManager.GetTransaction(id);
                             if (tx != null)
                             {
-                                var tres = await _transactionResultManager.GetTransactionResultAsync(id);
-                                _logger?.Debug($"Transaction {id} already executed.\n{tres}");
+                                var txRes = await _transactionResultManager.GetTransactionResultAsync(id);
+                                _logger?.Debug($"Transaction {id} already executed.\n{txRes}");
                             }
                             else
                             {
@@ -94,54 +102,6 @@ namespace AElf.Miner.Miner
                         readyTxs.Add(tx);
                     }
 
-//                foreach (var id in txs)
-//                {
-//                    if (!_txPoolService.TryGetTx(id, out var tx))
-//                    {
-//                        _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.ToHex()}.");
-//                        await Rollback(readyTxs);
-//                        return false;
-//                    }
-//                    readyTxs.Add(tx);
-//                    
-//                    // remove from tx collection
-//                    _txPoolService.RemoveAsync(tx.GetHash());
-//                    var from = tx.From;
-//                    if (!map.ContainsKey(from))
-//                        map[from] = new HashSet<ulong>();
-//
-//                    map[from].Add(tx.IncrementId);
-//                }
-//
-//                // promote txs from these address
-//                //await _txPoolService.PromoteAsync(map.Keys.ToList());
-//                foreach (var fromTxs in map)
-//                {
-//                    var addr = fromTxs.Key;
-//                    var ids = fromTxs.Value; 
-//
-//                    // return false if not continuousa
-//                    if (ids.Count != 1)
-//                    {
-//                        foreach (var id in ids)
-//                        {
-//                            if (!ids.Contains(id - 1) && !ids.Contains(id + 1))
-//                            {
-//                                _logger?.Trace($"ExecuteBlock - Non continuous ids, id {id}.");
-//                                await Rollback(readyTxs);
-//                                return false;
-//                            }
-//                        }
-//                    }
-//
-//                    // get ready txs from pool
-//                    var ready = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong) ids.Count);
-//
-//                    if (ready) continue;
-//                    _logger?.Trace($"ExecuteBlock - No transactions are ready.");
-//                    await Rollback(readyTxs);
-//                    return false;
-//                }
                 
                 var traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
@@ -184,16 +144,16 @@ namespace AElf.Miner.Miner
 
                 if (ws == null)
                 {
-                    _logger?.Trace($"ExecuteBlock - Could not get world state.");
+                    _logger?.Debug($"ExecuteBlock - Could not get world state.");
                     await Rollback(readyTxs);
                     return false;
                 }
 
                 if (await ws.GetWorldStateMerkleTreeRootAsync() != block?.Header.MerkleTreeRootOfWorldState)
                 {
-                    _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
-                    _logger?.Trace($"Merkle tree root hash of execution: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
-                    _logger?.Trace($"Merkle tree root hash of received block: {block?.Header.MerkleTreeRootOfWorldState.ToHex()}");
+                    _logger?.Debug($"ExecuteBlock - Incorrect merkle trees.");
+                    _logger?.Debug($"Merkle tree root hash of execution: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+                    _logger?.Debug($"Merkle tree root hash of received block: {block?.Header.MerkleTreeRootOfWorldState.ToHex()}");
 
                     await Rollback(readyTxs);
                     return false;
@@ -213,7 +173,38 @@ namespace AElf.Miner.Miner
         }
 
         /// <summary>
-        /// update database
+        /// Check side chain info.
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns>
+        /// Return true if side chain info is consistent with local node, else return false;
+        /// </returns>
+        private bool ValidateSideChainBlockInfo(IBlock block)
+        {
+            var sideChainBlockIndexedInfo = block.Body.IndexedInfo.Aggregate(
+                new Dictionary<Hash, SortedList<ulong, SideChainBlockInfo>>(),
+                (m, cur) =>
+                {
+                    if (!m.TryGetValue(cur.ChainId, out var sortedList))
+                    {
+                        sortedList = m[cur.ChainId] = new SortedList<ulong, SideChainBlockInfo>();
+                    }
+                    sortedList.Add(cur.Height, cur);
+                    return m;
+                });
+            foreach (var _ in sideChainBlockIndexedInfo)
+            {
+                foreach (var blockInfo in _.Value)
+                {
+                    if (_clientManager.TryRemoveSideChainBlockInfo(blockInfo.Value))
+                        return false;
+                }
+            }
+            return true;
+        }
+        
+        /// <summary>
+        /// Update database
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
@@ -239,7 +230,7 @@ namespace AElf.Miner.Miner
         }
 
         /// <summary>
-        /// withdraw txs in tx pool
+        /// Withdraw txs in tx pool
         /// </summary>
         /// <param name="readyTxs"></param>
         /// <returns></returns>
