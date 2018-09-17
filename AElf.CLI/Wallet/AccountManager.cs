@@ -119,9 +119,6 @@ namespace AElf.CLI.Wallet
                 _screenManager.PrintError("account already unlocked!");
             else if (tryOpen == AElfKeyStore.Errors.None)
                 _screenManager.PrintLine("account successfully unlocked!");
-
-            var kp = _keyStore.GetAccountKeyPair(address);
-            _screenManager.PrintLine($"Pub : {kp.GetEncodedPublicKey().ToHex()}");
         }
 
         private void CreateNewAccount()
