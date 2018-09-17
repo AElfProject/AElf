@@ -158,6 +158,7 @@ namespace AElf.Network.Peers
             get { return _lastReceivedHandshake?.PublicKey.ToByteArray(); }
         }
         
+        [JsonProperty(PropertyName = "isBp")]
         public bool IsBp { get; internal set; } 
 
         public string IpAddress

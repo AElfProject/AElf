@@ -14,5 +14,7 @@ namespace AElf.Node.Protocol
         void IncrementChainHeight();
 
         bool IsForked();
+
+        int GetJobQueueCount();
     }
 }
