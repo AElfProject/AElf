@@ -114,7 +114,7 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             var mock = new Mock<ITxPoolService>();
-            mock.Setup((s) => s.GetReadyTxsAsync(3000)).Returns(Task.FromResult(txs));
+            mock.Setup((s) => s.GetReadyTxsAsync(Hash.Generate(), 3000)).Returns(Task.FromResult(txs));
             return mock;
         }
         

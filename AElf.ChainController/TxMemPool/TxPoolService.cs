@@ -13,6 +13,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Easy.MessageHub;
 using NLog;
+using NServiceKit.Common.Extensions;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.ChainController.TxMemPool
@@ -165,7 +166,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Hash blockProducerAddress = null, double intervals = 150)
         {
             // get prior transanction
             var prior = await PriorTxLock.WriteLock(() =>
@@ -274,6 +275,11 @@ namespace AElf.ChainController.TxMemPool
             }
                 
             return prior;
+        }
+
+        public List<Transaction> GetDPoSTxs()
+        {
+            return _priorTxs.Values.ToList();
         }
 
         /// <inheritdoc/>

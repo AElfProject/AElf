@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.ChainController;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
 using AElf.Kernel;
@@ -13,6 +14,8 @@ namespace AElf.Node.Protocol
         
         public Block Block { get; }
         public IPeer Peer { get; set; }
+
+        public ValidationError ValidationError { get; set; }
 
         public List<PendingTx> MissingTxs { get; private set; }
 

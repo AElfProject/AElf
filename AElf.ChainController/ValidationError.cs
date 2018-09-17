@@ -17,6 +17,7 @@
         IncorrectTxMerkleTreeRoot = 12,
         IncorrectPreBlockHash = 13,
         LowerRound = 14,
-        HeigherRound = 15
+        HeigherRound = 15,
+        AnotherBranch = 16
     }
 }

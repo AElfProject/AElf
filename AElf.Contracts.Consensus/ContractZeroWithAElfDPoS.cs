@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus
             BlockProducerField = new PbField<Miners>(Globals.AElfDPoSBlockProducerString),
             DPoSInfoMap = new Map<UInt64Value, Round>(Globals.AElfDPoSInformationString),
             EBPMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSExtraBlockProducerString),
-            TimeForProducingExtraBlockField = new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeslotString),
+            TimeForProducingExtraBlockField = new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeSlotString),
             FirstPlaceMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString),
             MiningIntervalField = new Int32Field(Globals.AElfDPoSMiningIntervalString)
         });
