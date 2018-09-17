@@ -6,7 +6,7 @@ namespace AElf.Node
     public interface ISyncService
     {
         List<PendingBlock> PendingBlocks { get; set; }
-        void AddPendingBlock(PendingBlock pendingBlock);
+        List<PendingBlock> AddPendingBlock(PendingBlock pendingBlock);
         void RemovePendingBlock(PendingBlock pendingBlock);
         List<PendingBlock> GetPendingBlocksFromBranchedChains();
         bool IsForked();

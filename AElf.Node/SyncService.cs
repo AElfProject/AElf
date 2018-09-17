@@ -23,9 +23,9 @@ namespace AElf.Node
             set => _blockCollection.PendingBlocks = value;
         }
         
-        public void AddPendingBlock(PendingBlock pendingBlock)
+        public List<PendingBlock> AddPendingBlock(PendingBlock pendingBlock)
         {
-            _blockCollection.AddPendingBlock(pendingBlock);
+            return _blockCollection.AddPendingBlock(pendingBlock);
         }
         
         public void RemovePendingBlock(PendingBlock pendingBlock)

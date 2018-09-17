@@ -26,7 +26,7 @@ namespace AElf.Miner.Miner
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator,
@@ -45,7 +45,7 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
-        public CancellationTokenSource Cts { get; private set; }
+        private CancellationTokenSource Cts { get; set; }
 
         /// <inheritdoc/>
         public async Task<bool> ExecuteBlock(IBlock block)
@@ -58,8 +58,7 @@ namespace AElf.Miner.Miner
                     _logger?.Trace("ExecuteBlock - Execution cancelled.");
                     return false;
                 }
-                var map = new Dictionary<Hash, HashSet<ulong>>();
-
+                
                 if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
                     _logger?.Trace($"ExecuteBlock - Null block or no transactions.");
 
@@ -93,55 +92,6 @@ namespace AElf.Miner.Miner
 
                         readyTxs.Add(tx);
                     }
-
-//                foreach (var id in txs)
-//                {
-//                    if (!_txPoolService.TryGetTx(id, out var tx))
-//                    {
-//                        _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.ToHex()}.");
-//                        await Rollback(readyTxs);
-//                        return false;
-//                    }
-//                    readyTxs.Add(tx);
-//                    
-//                    // remove from tx collection
-//                    _txPoolService.RemoveAsync(tx.GetHash());
-//                    var from = tx.From;
-//                    if (!map.ContainsKey(from))
-//                        map[from] = new HashSet<ulong>();
-//
-//                    map[from].Add(tx.IncrementId);
-//                }
-//
-//                // promote txs from these address
-//                //await _txPoolService.PromoteAsync(map.Keys.ToList());
-//                foreach (var fromTxs in map)
-//                {
-//                    var addr = fromTxs.Key;
-//                    var ids = fromTxs.Value; 
-//
-//                    // return false if not continuousa
-//                    if (ids.Count != 1)
-//                    {
-//                        foreach (var id in ids)
-//                        {
-//                            if (!ids.Contains(id - 1) && !ids.Contains(id + 1))
-//                            {
-//                                _logger?.Trace($"ExecuteBlock - Non continuous ids, id {id}.");
-//                                await Rollback(readyTxs);
-//                                return false;
-//                            }
-//                        }
-//                    }
-//
-//                    // get ready txs from pool
-//                    var ready = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong) ids.Count);
-//
-//                    if (ready) continue;
-//                    _logger?.Trace($"ExecuteBlock - No transactions are ready.");
-//                    await Rollback(readyTxs);
-//                    return false;
-//                }
                 
                 var traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
@@ -192,7 +142,7 @@ namespace AElf.Miner.Miner
                 if (await ws.GetWorldStateMerkleTreeRootAsync() != block?.Header.MerkleTreeRootOfWorldState)
                 {
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
-                    _logger?.Trace($"Merkle tree root hash of execution: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+                    _logger?.Trace($"Merkle tree root hash of executing: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
                     _logger?.Trace($"Merkle tree root hash of received block: {block?.Header.MerkleTreeRootOfWorldState.ToHex()}");
 
                     await Rollback(readyTxs);

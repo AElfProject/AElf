@@ -17,8 +17,10 @@ namespace AElf.Node
             {
                 PendingBlocks.Add(pendingBlock);
             }
-            
-            EndHeight = list.Last().Block.Header.Index;
+
+            PendingBlocks.SortByBlockIndex();
+            StartHeight = PendingBlocks.First().Block.Header.Index;
+            EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
 
         public BranchedChain(IEnumerable<PendingBlock> list, PendingBlock last)
@@ -30,7 +32,9 @@ namespace AElf.Node
 
             PendingBlocks.Add(last);
 
-            EndHeight = last.Block.Header.Index;
+            PendingBlocks.SortByBlockIndex();
+            StartHeight = PendingBlocks.First().Block.Header.Index;
+            EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
 
         public BranchedChain(IEnumerable<PendingBlock> list1, IReadOnlyCollection<PendingBlock> list2)
@@ -44,14 +48,28 @@ namespace AElf.Node
             {
                 PendingBlocks.Add(pendingBlock);
             }
-            
-            EndHeight = list2.Last().Block.Header.Index;
+
+            PendingBlocks.SortByBlockIndex();
+            StartHeight = PendingBlocks.First().Block.Header.Index;
+            EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
 
         public BranchedChain(PendingBlock first)
         {
             PendingBlocks.Add(first);
-            EndHeight = first.Block.Header.Index;
+
+            PendingBlocks.SortByBlockIndex();
+            StartHeight = PendingBlocks.First().Block.Header.Index;
+            EndHeight = PendingBlocks.Last().Block.Header.Index;
+        }
+
+        public BranchedChain(List<PendingBlock> list)
+        {
+            PendingBlocks = list;
+
+            PendingBlocks.SortByBlockIndex();
+            StartHeight = PendingBlocks.First().Block.Header.Index;
+            EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
 
         public List<PendingBlock> GetPendingBlocks()
@@ -61,7 +79,7 @@ namespace AElf.Node
 
         public bool CanCheckout(ulong localHeight, Hash blockHash)
         {
-            return IsContinuous && EndHeight > localHeight && blockHash != PendingBlocks.First()?.BlockHash;
+            return IsContinuous && EndHeight > localHeight; //&& blockHash != PendingBlocks.First()?.Block.GetHash();
         }
 
         public bool IsContinuous
@@ -73,7 +91,7 @@ namespace AElf.Node
                     return false;
                 }
 
-                Hash preBlockHash = PendingBlocks[0].BlockHash;
+                var preBlockHash = PendingBlocks[0].Block.GetHash();
                 for (var i = 1; i < PendingBlocks.Count; i++)
                 {
                     if (PendingBlocks[i].Block.Header.PreviousBlockHash != preBlockHash)
@@ -81,7 +99,7 @@ namespace AElf.Node
                         return false;
                     }
 
-                    preBlockHash = PendingBlocks[i].BlockHash;
+                    preBlockHash = PendingBlocks[i].Block.GetHash();
                 }
 
                 return true;
@@ -90,11 +108,13 @@ namespace AElf.Node
 
         public ulong EndHeight { get; set; }
 
+        public ulong StartHeight { get; set; }
+
         private List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
 
         public Hash PreBlockHash =>
             PendingBlocks.Count <= 0 ? null : PendingBlocks.First().Block.Header.PreviousBlockHash;
 
-        public Hash LastBlockHash => PendingBlocks.Count <= 0 ? null : PendingBlocks.Last().BlockHash;
+        public Hash LastBlockHash => PendingBlocks.Count <= 0 ? null : PendingBlocks.Last().Block.GetHash();
     }
 }

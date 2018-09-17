@@ -291,7 +291,7 @@ namespace AElf.Node.Protocol
                 foreach (var p in _peers.Where(p => !p.Equals(peer)))
                     p.EnqueueOutgoing(msg);
                 
-                BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer));
+                BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer, msgType));
             }
             catch (Exception e)
             {

@@ -7,7 +7,7 @@ namespace AElf.Node
     public interface IBlockCollection
     {
         List<PendingBlock> PendingBlocks { get; set; }
-        void AddPendingBlock(PendingBlock pendingBlock);
+        List<PendingBlock> AddPendingBlock(PendingBlock pendingBlock);
         void RemovePendingBlock(PendingBlock pendingBlock);
         int Count { get; }
         int BranchedChainsCount { get; }
