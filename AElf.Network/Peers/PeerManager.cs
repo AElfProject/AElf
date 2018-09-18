@@ -15,6 +15,7 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
 using Google.Protobuf;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 
@@ -146,16 +147,14 @@ namespace AElf.Network.Peers
 
         public async Task<JObject> GetPeers()
         {
-            List<NodeData> pl = _peers.Select(p => p.DistantNodeData).ToList();
-            
-            PeerListData pldata = new PeerListData();
-            foreach (var peer in pl)
+            var peers = new JObject
             {
-                pldata.NodeData.Add(peer);
+                ["auth"] = _authentifyingPeer.Count
+            };
+            if (_peers.Count>0)
+            {
+                peers["peers"] = JArray.Parse(JsonConvert.SerializeObject(_peers));
             }
-
-             JObject peers = JObject.Parse(JsonFormatter.Default.Format(pldata));
-            peers["auth"] = _authentifyingPeer.Count;
             
             return peers;
         }
