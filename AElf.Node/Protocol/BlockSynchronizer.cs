@@ -588,5 +588,10 @@ namespace AElf.Node.Protocol
 
             return null;
         }
+
+        public int GetJobQueueCount()
+        {
+            return _jobQueue.Count;
+        }
     }
 }

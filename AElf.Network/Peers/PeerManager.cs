@@ -15,6 +15,7 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
 using Google.Protobuf;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 
@@ -146,16 +147,14 @@ namespace AElf.Network.Peers
 
         public async Task<JObject> GetPeers()
         {
-            List<NodeData> pl = _peers.Select(p => p.DistantNodeData).ToList();
-            
-            PeerListData pldata = new PeerListData();
-            foreach (var peer in pl)
+            var peers = new JObject
             {
-                pldata.NodeData.Add(peer);
+                ["auth"] = _authentifyingPeer.Count
+            };
+            if (_peers.Count>0)
+            {
+                peers["peers"] = JArray.Parse(JsonConvert.SerializeObject(_peers));
             }
-
-             JObject peers = JObject.Parse(JsonFormatter.Default.Format(pldata));
-            peers["auth"] = _authentifyingPeer.Count;
             
             return peers;
         }
@@ -291,8 +290,9 @@ namespace AElf.Network.Peers
 
             if (!authArgs.IsAuthentified)
             {
-                _logger?.Warn($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
-                peer.Dispose();
+                //_logger?.Warn($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
+                _logger?.Warn($"Peernot authentified, reason.");
+                RemovePeer(peer);
                 return;
             }
             
@@ -420,8 +420,20 @@ namespace AElf.Network.Peers
                 RemovePeer(args.Peer);
         }
 
+        public void RemovePeer(NodeData nodeData)
+        {
+            IPeer peer = _peers.FirstOrDefault(p => p.IpAddress == nodeData.IpAddress && p.Port == nodeData.Port);
+            RemovePeer(peer);
+        }
+
         public void RemovePeer(IPeer peer)
         {
+            if (peer == null)
+            {
+                _logger?.Warn("removing peer but peer is null.");
+                return;
+            }
+            
             // Will do nothing if already disposed
             peer.Dispose();
             
