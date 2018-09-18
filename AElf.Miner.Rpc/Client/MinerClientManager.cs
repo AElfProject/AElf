@@ -70,7 +70,7 @@ namespace AElf.Miner.Rpc.Client
              {
                  var client = StartNewClientToSideChain(sideChainId);
                  var height =
-                     await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(sideChainId));
+                     await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(sideChainId));
                 
                  // keep-alive
                  client.Index(_tokenSource.Token, height);
@@ -152,7 +152,7 @@ namespace AElf.Miner.Rpc.Client
              foreach (var _ in _clients)
              {
                  // take side chain info
-                 var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(_.Key));
+                 var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(_.Key));
                  if (!_.Value.TryTake(interval, out var responseSideChainIndexedInfo) || responseSideChainIndexedInfo.Height != targetHeight) 
                      continue;
                  System.Diagnostics.Debug.WriteLine("Got header info!");

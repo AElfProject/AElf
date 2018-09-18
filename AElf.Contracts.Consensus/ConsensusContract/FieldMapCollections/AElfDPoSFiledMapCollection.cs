@@ -41,5 +41,11 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         /// DPoS mining interval.
         /// </summary>
         public Int32Field MiningIntervalField;
+
+        /// <summary>
+        /// Using a hash value to identify one round.
+        /// Basically the hash value is calculated from signatures of all the BPs.
+        /// </summary>
+        public Map<UInt64Value, Hash> RoundHashMap;
     }
 }

@@ -33,6 +33,7 @@ namespace AElf.Kernel
         public const string AElfDPoSExtraBlockTimeSlotString = "AElfExtraBlockTimeSlot";
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
         public const string AElfDPoSMiningIntervalString = "AElfDPoSMiningInterval";
+        public const string AElfDPoSMiningRoundHashMapString = "AElfDPoSMiningRoundHashMap";
 
         #endregion
 

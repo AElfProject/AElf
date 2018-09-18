@@ -23,7 +23,8 @@ namespace AElf.Contracts.Consensus
             EBPMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSExtraBlockProducerString),
             TimeForProducingExtraBlockField = new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeSlotString),
             FirstPlaceMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString),
-            MiningIntervalField = new Int32Field(Globals.AElfDPoSMiningIntervalString)
+            MiningIntervalField = new Int32Field(Globals.AElfDPoSMiningIntervalString),
+            RoundHashMap = new Map<UInt64Value, Hash>(Globals.AElfDPoSMiningRoundHashMapString)
         });
         
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval, byte[] logLevel)

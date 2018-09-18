@@ -155,7 +155,15 @@ namespace AElf.Node
         /// <param name="pendingBlock"></param>
         public void RemovePendingBlock(PendingBlock pendingBlock)
         {
-            PendingBlocks.Remove(pendingBlock);
+            if (pendingBlock.ValidationError == ValidationError.Success)
+            {
+                PendingBlocks.Remove(pendingBlock);
+            }
+            else
+            {
+                _logger?.Trace("ValidationError:" + pendingBlock.ValidationError);
+                AddBlockToBranchedChains(pendingBlock);
+            }
 
             if (PendingBlocks.IsEmpty() && BranchedChainsCount > 0)
             {
@@ -219,6 +227,7 @@ namespace AElf.Node
                 _branchedChains.Add(branchedChain);
             }
 
+            _logger?.Trace("Branched chains count: " + BranchedChainsCount);
             var result = AdjustBranchedChains();
             if (result == null)
                 return null;
@@ -254,8 +263,9 @@ namespace AElf.Node
             _branchedChains.Remove(result);
 
             // State rollback.
+            _logger?.Trace("Rollback to height: " + result.StartHeight);
             var blockchain = _chainService.GetBlockChain(Globals.CurrentChainId);
-            var txs = blockchain.RollbackToHeight(result.StartHeight - 1).Result;
+            var txs = blockchain.RollbackToHeight(result.StartHeight).Result;
 
             return txs;
         }

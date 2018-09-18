@@ -471,6 +471,7 @@ namespace AElf.Node.Protocol
                 var block = pendingBlock.Block;
 
                 var res = await _mainChainNode.ExecuteAndAddBlock(block);
+                pendingBlock.ValidationError = res.ValidationError;
 
                 var blockHexHash = block.GetHash().Value.ToByteArray().ToHex();
                 int blockIndex = (int) block.Header.Index;
@@ -479,7 +480,6 @@ namespace AElf.Node.Protocol
                 {
                     if (res.Executed)
                     {
-                        pendingBlock.ValidationError = ValidationError.Success;
                         // The block was executed and validation was a success: remove the pending block.
                         toRemove.Add(pendingBlock);
                         executed.Add(pendingBlock);
@@ -506,7 +506,6 @@ namespace AElf.Node.Protocol
                     if (res.ValidationError == ValidationError.AlreadyExecuted
                         || res.ValidationError == ValidationError.OrphanBlock)
                     {
-                        pendingBlock.ValidationError = ValidationError.OrphanBlock;
                         // The block is an earlier block and one with the same
                         // height as already been executed so it can safely be
                         // removed from the pending blocks.
