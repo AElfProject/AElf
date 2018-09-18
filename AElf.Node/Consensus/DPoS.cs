@@ -345,6 +345,11 @@ namespace AElf.Kernel.Node
 
             // Update observer.
             var address = _nodeKeyPair.Address.ToHex().RemoveHexPrefix();
+            var miners = _helper.Miners;
+            if (!miners.Nodes.Contains(address))
+            {
+                return;
+            }
             var blockProducerInfoOfCurrentRound = _helper[address];
             ConsensusDisposable = AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
                 _helper.ExtraBlockTimeSlot);

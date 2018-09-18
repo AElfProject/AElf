@@ -9,11 +9,9 @@ namespace AElf.Node
     public class SyncService : ISyncService
     {
         private readonly IBlockCollection _blockCollection;
-        private readonly IChainService _chainService;
 
         public SyncService(IChainService chainService, ILogger logger)
         {
-            _chainService = chainService;
             _blockCollection = new BlockCollection(chainService, logger);
         }
         
