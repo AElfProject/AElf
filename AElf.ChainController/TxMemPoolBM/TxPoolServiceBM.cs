@@ -11,6 +11,7 @@ using NLog;
 
 namespace AElf.ChainController.TxMemPoolBM
 {
+    // ReSharper disable InconsistentNaming
     public class TxPoolServiceBM : ITxPoolService
     {
         private readonly ILogger _logger;
