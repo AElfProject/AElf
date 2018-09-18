@@ -11,7 +11,6 @@ namespace AElf.Management.Commands
 {
     public class K8SAddMonitorCommand: IDeployCommand
     {
-        private const int MonitorPort = 9099;
         private const int ActorPort = 31550;
         private const int Replicas = 1;
 
@@ -47,7 +46,7 @@ namespace AElf.Management.Commands
                     Type = "LoadBalancer",
                     Ports = new List<V1ServicePort>
                     {
-                        new V1ServicePort(MonitorPort, "monitor-port", null, "TCP", MonitorPort)
+                        new V1ServicePort(GlobalSetting.MonitorPort, "monitor-port", null, "TCP", GlobalSetting.MonitorPort)
                     },
                     Selector = new Dictionary<string, string>
                     {
@@ -88,7 +87,7 @@ namespace AElf.Management.Commands
                                     Image = "aelf/node:test",
                                     Ports = new List<V1ContainerPort>
                                     {
-                                        new V1ContainerPort(MonitorPort),
+                                        new V1ContainerPort(GlobalSetting.MonitorPort),
                                         new V1ContainerPort(ActorPort)
                                     },
                                     ImagePullPolicy = "Always",

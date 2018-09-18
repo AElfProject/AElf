@@ -5,6 +5,8 @@
         public const int DeployRetryTime = 3;
 
         public const string CommonConfigName = "config-common";
+        
+        public const string ChainInfoConfigName = "config-chaininfo";
 
         public const string KeysConfigName = "config-keys";
         
@@ -33,5 +35,6 @@
         public const int NodePort = 30800;
         public const int RpcPort = 30600;
         public const int GrpcPort = 40001;
+        public const int MonitorPort = 9099;
     }
 }
