@@ -157,9 +157,9 @@ namespace AElf.Node
 
             if (PendingBlocks.IsEmpty() && BranchedChainsCount > 0)
             {
-                PendingBlocks = _branchedChains.First(c => c.CanCheckout(PendingBlockHeight, Hash.Default))
+                PendingBlocks = _branchedChains.FirstOrDefault(c => c.CanCheckout(PendingBlockHeight, Hash.Default))
                                     ?.GetPendingBlocks() ??
-                                _branchedChains.First().GetPendingBlocks();
+                                _branchedChains.FirstOrDefault()?.GetPendingBlocks();
             }
         }
 
