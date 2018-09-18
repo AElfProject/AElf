@@ -11,6 +11,7 @@ using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Protocol.Exceptions;
 using AElf.Network;
 using AElf.Network.Connection;
@@ -446,7 +447,7 @@ namespace AElf.Node.Protocol
             {
                 await _poolService.Revert(txsNeedToRevert);
             }
-
+            
             _logger?.Debug(
                 $"Added block to sync {{ id : {blockHash.ToHex()}, index : {block.Header.Index}, tx-count : {block.Body.Transactions.Count} }} ");
 

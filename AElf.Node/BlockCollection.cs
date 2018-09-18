@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.ChainController;
 using AElf.Kernel;
+using AElf.Kernel.Node;
 using AElf.Network;
 using AElf.Node.Protocol;
 using NLog;
@@ -17,6 +18,8 @@ namespace AElf.Node
     public class BlockCollection : IBlockCollection
     {
         private bool _isInitialSync = true;
+
+        public IBlockChain BlockChain => _chainService.GetBlockChain(Globals.CurrentChainId);
 
         /// <summary>
         /// To store branched chains.
@@ -119,7 +122,6 @@ namespace AElf.Node
             }
 
             AddToPendingBlocks(pendingBlock);
-            PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
             return null;
         }
 
@@ -132,7 +134,9 @@ namespace AElf.Node
                 case AElfProtocolMsgType.NewBlock:
                     if (PendingBlocks.IsEmpty())
                     {
-                        return SyncedHeight + 1 == pendingBlock.Block.Header.Index;
+                        return SyncedHeight + 1 == pendingBlock.Block.Header.Index &&
+                               pendingBlock.Block.Header.PreviousBlockHash ==
+                               BlockChain.GetCurrentBlockHashAsync().Result;
                     }
 
                     var lastPendingBlock = PendingBlocks.Last().Block;
@@ -147,6 +151,7 @@ namespace AElf.Node
         {
             PendingBlocks.Add(pendingBlock);
             PendingBlocks.SortByBlockIndex();
+            PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
         }
 
         /// <summary>
@@ -161,13 +166,14 @@ namespace AElf.Node
             }
             else
             {
-                _logger?.Trace("ValidationError:" + pendingBlock.ValidationError);
+                _logger?.Trace("ValidationError: " + pendingBlock.ValidationError);
+                PendingBlocks.Remove(pendingBlock);
                 AddBlockToBranchedChains(pendingBlock);
             }
 
             if (PendingBlocks.IsEmpty() && BranchedChainsCount > 0)
             {
-                PendingBlocks = _branchedChains.FirstOrDefault(c => c.CanCheckout(PendingBlockHeight, Hash.Default))
+                PendingBlocks = _branchedChains.FirstOrDefault(c => c.CanCheckout(PendingBlockHeight))
                                     ?.GetPendingBlocks() ??
                                 _branchedChains.FirstOrDefault()?.GetPendingBlocks();
             }
@@ -208,7 +214,9 @@ namespace AElf.Node
                 }
                 else
                 {
-                    if (toAdd.Any(c => c.GetPendingBlocks().Any(pd => pd.Block.GetHash() == blockHash)))
+                    if (toAdd.Any(c => c.GetPendingBlocks().Any(pd => pd.Block.GetHash() == blockHash)) ||
+                        _branchedChains.Any(bc => bc.LastBlockHash == blockHash) ||
+                        _branchedChains.Any(bc => bc.GetPendingBlocks().Any(pb => pb.Block.GetHash() == blockHash)))
                     {
                         continue;
                     }
@@ -228,10 +236,19 @@ namespace AElf.Node
             }
 
             _logger?.Trace("Branched chains count: " + BranchedChainsCount);
+
+            var flag = 1;
+            foreach (var branchedChain in _branchedChains)
+            {
+                Console.WriteLine(flag++ + ":");
+                branchedChain.GetPendingBlocks().Print();
+            }
+
             var result = AdjustBranchedChains();
             if (result == null)
                 return null;
 
+            DPoS.ConsensusDisposable.Dispose();
             if (SyncedHeight < result.StartHeight)
             {
                 var oldBlocks = new List<PendingBlock>();
@@ -251,7 +268,8 @@ namespace AElf.Node
 
                 if (!oldBlocks.IsEmpty())
                 {
-                    _branchedChains.Add(new BranchedChain(oldBlocks));
+                    //TODO: Move back.
+                    //_branchedChains.Add(new BranchedChain(oldBlocks));
                 }
             }
             else
@@ -263,15 +281,17 @@ namespace AElf.Node
             _branchedChains.Remove(result);
 
             // State rollback.
-            _logger?.Trace("Rollback to height: " + result.StartHeight);
-            var blockchain = _chainService.GetBlockChain(Globals.CurrentChainId);
-            var txs = blockchain.RollbackToHeight(result.StartHeight).Result;
+            _logger?.Trace("Rollback to height: " + (result.StartHeight - 1));
+            var txs = BlockChain.RollbackToHeight(result.StartHeight - 1).Result;
 
             return txs;
         }
 
         private BranchedChain AdjustBranchedChains()
         {
+            _branchedChains.RemoveWhere(bc =>
+                bc.StartHeight + (ulong) Globals.BlockNumberOfEachRound < PendingBlockHeight);
+
             var preBlockHashes = new List<Hash>();
             var lastBlockHashes = new List<Hash>();
             foreach (var branchedChain in _branchedChains)
@@ -301,14 +321,9 @@ namespace AElf.Node
                 _branchedChains.Add(new BranchedChain(chain1.GetPendingBlocks(), chain2.GetPendingBlocks()));
             }
 
-            if (PendingBlocks.IsEmpty())
-            {
-                return null;
-            }
-
             foreach (var branchedChain in _branchedChains)
             {
-                if (branchedChain.CanCheckout(PendingBlockHeight, PendingBlocks.Last().Block.GetHash()))
+                if (branchedChain.CanCheckout(PendingBlockHeight))
                 {
                     _logger?.Trace("Switching chain.");
                     return branchedChain;

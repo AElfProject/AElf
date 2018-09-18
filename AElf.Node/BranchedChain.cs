@@ -67,7 +67,7 @@ namespace AElf.Node
         {
             PendingBlocks = list;
 
-            PendingBlocks.SortByBlockIndex();
+            PendingBlocks.SortByBlockIndex(); 
             StartHeight = PendingBlocks.First().Block.Header.Index;
             EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
@@ -77,9 +77,9 @@ namespace AElf.Node
             return PendingBlocks.OrderBy(pb => pb.Block.Header.Index).ToList();
         }
 
-        public bool CanCheckout(ulong localHeight, Hash blockHash)
+        public bool CanCheckout(ulong localHeight)
         {
-            return IsContinuous && EndHeight > localHeight; //&& blockHash != PendingBlocks.First()?.Block.GetHash();
+            return IsContinuous && EndHeight > localHeight;
         }
 
         public bool IsContinuous

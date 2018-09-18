@@ -83,7 +83,7 @@ namespace AElf.Miner.Miner
             }
         }
 
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> Mine(Round currentRoundInfo = null)
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
             using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
@@ -94,7 +94,7 @@ namespace AElf.Miner.Miner
                     if (cancellationTokenSource.IsCancellationRequested)
                         return null;
 
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync(_stateDictator.BlockProducerAccountAddress);
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
                     
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
@@ -319,7 +319,6 @@ namespace AElf.Miner.Miner
 
             return header;
         }
-
 
         /// <summary>
         /// side chains header info    

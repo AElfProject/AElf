@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 using AElf.ChainController.TxMemPool;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.ChainController.TxMemPoolBM
 {
+    // ReSharper disable InconsistentNaming
     public class TxPoolServiceBM : ITxPoolService
     {
         private readonly ILogger _logger;
@@ -132,16 +135,15 @@ namespace AElf.ChainController.TxMemPoolBM
             {
                 if (tx.Type == TransactionType.DposTransaction)
                 {
-                    AddDPoSTransaction(tx);
+                    //AddDPoSTransaction(tx);
                 }
                 else
                 {
                     AddContractTransaction(tx);
                 }
                 tx.Unclaim();
+                //await _transactionManager.RemoveTransaction(tx.GetHash());
             }
-
-            await Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -174,12 +176,12 @@ namespace AElf.ChainController.TxMemPoolBM
         }
 
         /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(Hash blockProducerAddress, double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo,Hash blockProducerAddress,  double intervals = 150)
         {
             // TODO: Improve performance
             var txs = _dPoSTxs.Values.ToList();
 
-            RemoveDirtyDPoSTxs(txs, blockProducerAddress);
+            RemoveDirtyDPoSTxs(txs, blockProducerAddress, currentRoundInfo);
             
             _logger.Debug($"Got {txs.Count} DPoS tx");
             if ((ulong) _contractTxs.Count < Least)
@@ -220,8 +222,8 @@ namespace AElf.ChainController.TxMemPoolBM
             _logger.Debug($"Got {txs.Count} total tx");
             return txs;
         }
-        
-        private void RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Hash blockProducerAddress)
+
+        private void RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Hash blockProducerAddress, Round currentRoundInfo)
         {
             const string inValueTxName = "PublishInValue";
             var dPoSTxs = GetDPoSTxs();
@@ -230,10 +232,20 @@ namespace AElf.ChainController.TxMemPoolBM
             {
                 if (transaction.From == blockProducerAddress)
                     continue;
-                        
+
                 if (transaction.MethodName != inValueTxName)
                 {
                     toRemove.Add(transaction);
+                }
+                else
+                {
+                    var inValue = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
+                        new[] {typeof(UInt64Value), typeof(StringValue), typeof(Hash)})[2] as Hash;
+                    var outValue = currentRoundInfo.BlockProducers[transaction.From.ToHex().RemoveHexPrefix()].OutValue;
+                    if (outValue == inValue.CalculateHash())
+                    {
+                        toRemove.Add(transaction);
+                    }
                 }
             }
 
@@ -248,13 +260,13 @@ namespace AElf.ChainController.TxMemPoolBM
                 toRemove.AddRange(dPoSTxs.FindAll(tx => tx.MethodName == inValueTxName).GroupBy(tx => tx.From)
                     .Where(g => g.Count() > 1).SelectMany(g => g));
             }
-            
+
             foreach (var transaction in toRemove)
             {
                 readyTxs.Remove(transaction);
             }
         }
-        
+
         public List<Transaction> GetDPoSTxs()
         {
             return _dPoSTxs.Values.ToList();

@@ -61,13 +61,14 @@ namespace AElf.Contracts.Consensus
             });
         }
         
-        public async Task PublishInValue(byte[] roundNumber, byte[] accountAddress, byte[] inValue)
+        public async Task PublishInValue(byte[] roundNumber, byte[] accountAddress, byte[] inValue, byte[] roundId)
         {
             await _consensus.Publish(new List<byte[]>
             {
                 roundNumber,
                 accountAddress,
-                inValue
+                inValue,
+                roundId
             });
         }
     }

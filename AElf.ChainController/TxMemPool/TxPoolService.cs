@@ -151,6 +151,12 @@ namespace AElf.ChainController.TxMemPool
             throw new NotImplementedException();
         }
 
+        public Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash blockProducerAddress,
+            double intervals = 150)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// persist txs with storage
         /// </summary>
@@ -168,7 +174,7 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public async Task<List<Transaction>> GetReadyTxsAsync(Hash blockProducerAddress = null, double intervals = 150)
         {
-            // get prior transanction
+            // get prior tx
             var prior = await PriorTxLock.WriteLock(() =>
             {
                 var readyTxs = _priorTxPool.ReadyTxs();
