@@ -48,7 +48,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private readonly Int32Field _miningIntervalField;
 
-        private readonly Map<UInt64Value, Hash> _roundHashMap;
+        private readonly Map<UInt64Value, Int64Value> _roundHashMap;
 
         #endregion
 
@@ -299,7 +299,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// <summary>
         /// Checking steps:
         /// 1. Contained by BlockProducer.Nodes;
-        /// 2. Timestamp sitting in correct timeslot of current round, or later than extra block timeslot
+        /// 2. Timestamp sitting in correct time slot of current round, or later than extra block timeslot
         ///     if Extra Block Producer failed to produce extra block.
         /// </summary>
         /// <param name="args">
@@ -329,7 +329,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 return false;
             }
 
-            // 2. Timestamp sitting in correct timeslot of current round;
+            // 2. Timestamp sitting in correct time slot of current round;
             var timeSlotOfBlockProducer = (await GetBPInfoOfCurrentRound(accountAddress)).TimeSlot;
             var endOfTimeSlotOfBlockProducer = GetTimestampWithOffset(timeSlotOfBlockProducer, Interval);
             var timeSlotOfEBP = await _timeForProducingExtraBlockField.GetAsync();
@@ -376,7 +376,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         private async Task SetDPoSInfoToMap(UInt64Value roundNumber, Round roundInfo)
         {
             await _dPoSInfoMap.SetValueToDatabaseAsync(roundNumber, roundInfo);
-            await _roundHashMap.SetValueToDatabaseAsync(roundNumber, roundInfo.RoundId);
+            await _roundHashMap.SetValueToDatabaseAsync(roundNumber, new Int64Value {Value = roundInfo.RoundId});
         }
 
         private async Task SetExtraBlockProducerOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)

@@ -46,6 +46,6 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         /// Using a hash value to identify one round.
         /// Basically the hash value is calculated from signatures of all the BPs.
         /// </summary>
-        public Map<UInt64Value, Hash> RoundHashMap;
+        public Map<UInt64Value, Int64Value> RoundHashMap;
     }
 }
