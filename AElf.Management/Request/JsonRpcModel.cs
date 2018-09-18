@@ -20,12 +20,15 @@ namespace AElf.Management.Request
         }
     }
 
-    public class JsonRpcResult
+    public class JsonRpcResult<T>
     {
         [JsonProperty("jsonrpc")]
         public string JsonRpc { get; set; }
         
         [JsonProperty("id")]
         public int Id { get; set; }
+        
+        [JsonProperty("result")]
+        public T Result { get; set; }
     }
 }

@@ -43,10 +43,12 @@ namespace AElf.Node.Protocol
         private readonly INetworkManager _networkManager;
         private readonly ILogger _logger;
 
+        private readonly ISyncService _syncService;
+
         /// <summary>
         /// The list of blocks that are currently being synched.
         /// </summary>
-        public List<PendingBlock> PendingBlocks { get; }
+        private List<PendingBlock> PendingBlocks => _syncService.PendingBlocks;
         
         public bool ShouldDoInitialSync { get; private set; } = false;
         public bool IsInitialSyncInProgress { get; private set; } = false;
@@ -66,13 +68,13 @@ namespace AElf.Node.Protocol
 
         private BlockingCollection<Job> _jobQueue;
 
-        public BlockSynchronizer(INetworkManager networkManager, ITxPoolService poolService)
+        public BlockSynchronizer(INetworkManager networkManager, ITxPoolService poolService, ISyncService syncService)
         {
-            PendingBlocks = new List<PendingBlock>();
             _jobQueue = new BlockingCollection<Job>();
             _currentBlockRequests = new List<int>();
 
             _poolService = poolService;
+            _syncService = syncService;
             _networkManager = networkManager;
 
             _logger = LogManager.GetLogger("BlockSync");
@@ -181,6 +183,11 @@ namespace AElf.Node.Protocol
         {
             Interlocked.Increment(ref CurrentExecHeight);
             _logger?.Debug("Height has been incremented, new value: " + CurrentExecHeight);
+        }
+
+        public bool IsForked()
+        {
+           return _syncService.IsForked();
         }
 
         public void EnqueueJob(Job job)
@@ -421,7 +428,7 @@ namespace AElf.Node.Protocol
             // todo check that the returned txs are actually in the block
             var newPendingBlock = new PendingBlock(blockHash, block, missingTxs) { Peer = peer };
 
-            PendingBlocks.Add(newPendingBlock);
+            _syncService.AddPendingBlock(newPendingBlock);
 
             _logger?.Debug($"Added block to sync {{ id : {blockHash.ToHex()}, index : {block.Header.Index}, tx-count : {block.Body.Transactions.Count} }} ");
 
@@ -454,8 +461,8 @@ namespace AElf.Node.Protocol
                 {
                     if (res.Executed)
                     {
+                        pendingBlock.ValidationError = ValidationError.Success;
                         // The block was executed and validation was a success: remove the pending block.
-                    
                         toRemove.Add(pendingBlock);
                         executed.Add(pendingBlock);
                     
@@ -480,6 +487,7 @@ namespace AElf.Node.Protocol
                     if (res.ValidationError == ValidationError.AlreadyExecuted 
                             || res.ValidationError == ValidationError.OrphanBlock)
                     {
+                        pendingBlock.ValidationError = ValidationError.OrphanBlock;
                         // The block is an earlier block and one with the same
                         // height as already been executed so it can safely be
                         // removed from the pending blocks.
@@ -516,7 +524,7 @@ namespace AElf.Node.Protocol
             {
                 lock (objLock)
                 {
-                    PendingBlocks.Remove(pdBlock);
+                    _syncService.RemovePendingBlock(pdBlock);
                 }
             }
 
@@ -579,6 +587,11 @@ namespace AElf.Node.Protocol
             }
 
             return null;
+        }
+
+        public int GetJobQueueCount()
+        {
+            return _jobQueue.Count;
         }
     }
 }

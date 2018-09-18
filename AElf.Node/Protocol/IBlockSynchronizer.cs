@@ -12,5 +12,9 @@ namespace AElf.Node.Protocol
         Task Start(MainchainNodeService node, bool doInitialSync);
 
         void IncrementChainHeight();
+
+        bool IsForked();
+
+        int GetJobQueueCount();
     }
 }
