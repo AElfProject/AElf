@@ -25,7 +25,7 @@ namespace AElf.Kernel
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.PoTC)
             {
                 Globals.BlockProducerNumber = 1;
-                Globals.ExpectedTransanctionCount = ConsensusConfig.Instance.ExpectedTransanctionCount;
+                Globals.ExpectedTransactionCount = ConsensusConfig.Instance.ExpectedTransanctionCount;
             }
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.SingleNode)

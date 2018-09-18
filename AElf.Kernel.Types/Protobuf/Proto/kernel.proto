@@ -191,7 +191,8 @@ message BlockProducer {
 }
 
 message Round {
-    map<string, BlockProducer> BlockProducers = 1;
+    uint64 RoundNumber = 1;
+    map<string, BlockProducer> BlockProducers = 2;
 }
 
 message AElfDPoSInformation {

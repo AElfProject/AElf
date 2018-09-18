@@ -18,6 +18,7 @@
         IncorrectPreBlockHash = 13,
         LowerRound = 14,
         HeigherRound = 15,
-        IncorrectSideChainInfo
+        IncorrectSideChainInfo =16,
+        AnotherBranch = 17
     }
 }

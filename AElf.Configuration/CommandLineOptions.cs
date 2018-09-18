@@ -19,15 +19,6 @@ namespace AElf.Configuration
         #endregion
 
         #region Node
-
-        [Option("bootnodes", HelpText = "Replaces the bootnode list.")]
-        public IEnumerable<string> Bootnodes { get; set; }
-
-        [Option("node.peers", HelpText = "Sets an initial list of peers. Format: IP:Port")]
-        public IEnumerable<string> Peers { get; set; }
-
-        [Option("node.port", HelpText = "The port this node is listening on.")]
-        public int? Port { get; set; }
         
         [Option("node.name", HelpText = "The name used to describe the node.")]
         public string NodeName { get; set; }
@@ -44,6 +35,25 @@ namespace AElf.Configuration
         [Option('e', "node.executor", Default = "simple", HelpText = "The type of txn executor. Must be in [simple, akka].")]
         public string ExecutorType { get; set; }
 
+        #endregion
+
+        #region Network
+        
+        [Option("node.peers", HelpText = "Sets an initial list of peers. Format: IP:Port")]
+        public IEnumerable<string> Peers { get; set; }
+        
+        [Option("bootnodes", HelpText = "Replaces the bootnode list.")]
+        public IEnumerable<string> Bootnodes { get; set; }
+        
+        [Option("node.port", HelpText = "The port this node is listening on.")]
+        public int? Port { get; set; }
+
+        [Option("net.allowed", HelpText = "The type of peers that are allowed to connect. One of [All, BPs, Listed, BPsAndListed].")]
+        public string NetAllowed { get; set; }
+        
+        [Option("net.whitelist", HelpText = @"When net.allowed='Listed' use this option to specify the whitelisted nodes.")]
+        public IEnumerable<string> NetWhitelist { get; set; } 
+        
         #endregion
 
         #region Block
