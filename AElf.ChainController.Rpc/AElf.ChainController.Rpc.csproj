@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
+    <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
     <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
   </ItemGroup>
 </Project>

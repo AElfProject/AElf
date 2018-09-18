@@ -5,6 +5,6 @@ namespace AElf.Management.Interfaces
 {
     public interface IAkkaService
     {
-        List<MemberInfo> GetState(string chainId);
+        List<ActorStateResult> GetState(string chainId);
     }
 }

@@ -3,8 +3,6 @@ namespace AElf.Network.Data
 {
     public partial class NodeData
     {
-     //   public bool IsBootnode { get; set; } = false;
-
         public static NodeData FromString(string nodeDataStr)
         {
             if (string.IsNullOrEmpty(nodeDataStr))
