@@ -22,5 +22,7 @@ namespace AElf.Network
 
         Task<int> BroadcastBlock(byte[] hash, byte[] payload);
         Task<int> BroadcastMessage(AElfProtocolMsgType messageMsgType, byte[] payload);
+
+        int GetPendingRequestCount();
     }
 }

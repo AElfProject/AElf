@@ -32,6 +32,7 @@ namespace AElf.Management.Services
                 new K8SAddLauncherServiceCommand(),
                 new K8SAddAccountKeyCommand(), 
                 new K8SAddConfigCommand(), 
+                new K8SAddChainInfoCommand(),
                 new K8SGrpcKeyCommand(),
                 new K8SAddLighthouseCommand(), 
                 new K8SAddWorkerCommand(), 
