@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Network.Data;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.Network.Peers
@@ -10,6 +11,9 @@ namespace AElf.Network.Peers
         
         void Start();
         
+        // RPC methods
         Task<JObject> GetPeers();
+        void AddPeer(NodeData address);
+        void RemovePeer(NodeData address);
     }
 }
