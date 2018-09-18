@@ -28,7 +28,8 @@ namespace AElf.Node
         /// </summary>
         public ulong PendingBlockHeight { get; set; }
 
-        public ulong SyncedHeight => _chainService.GetBlockChain(Globals.CurrentChainId).GetCurrentBlockHeightAsync().Result;
+        public ulong SyncedHeight =>
+            _chainService.GetBlockChain(Globals.CurrentChainId).GetCurrentBlockHeightAsync().Result;
 
         public List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
 
@@ -55,7 +56,7 @@ namespace AElf.Node
         /// Otherwise add the pending block to branched chains.
         /// </summary>
         /// <param name="pendingBlock"></param>
-        public List<PendingBlock> AddPendingBlock(PendingBlock pendingBlock)
+        public List<Transaction> AddPendingBlock(PendingBlock pendingBlock)
         {
             // No need to handle an already exists pending block again.
             if (!PendingBlocks.IsNullOrEmpty() &&
@@ -116,6 +117,7 @@ namespace AElf.Node
                 _logger?.Trace("Receive an orphan block.");
                 return AddBlockToBranchedChains(pendingBlock);
             }
+
             AddToPendingBlocks(pendingBlock);
             PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
             return null;
@@ -163,7 +165,7 @@ namespace AElf.Node
             }
         }
 
-        private List<PendingBlock> AddBlockToBranchedChains(PendingBlock pendingBlock)
+        private List<Transaction> AddBlockToBranchedChains(PendingBlock pendingBlock)
         {
             PendingBlocks.Print();
 
@@ -238,12 +240,24 @@ namespace AElf.Node
                     PendingBlocks.Add(branchedBlock);
                 }
 
-                _branchedChains.Add(new BranchedChain(oldBlocks));
+                if (!oldBlocks.IsEmpty())
+                {
+                    _branchedChains.Add(new BranchedChain(oldBlocks));
+                }
+            }
+            else
+            {
+                PendingBlocks = result.GetPendingBlocks();
             }
 
             PendingBlockHeight = result.EndHeight;
             _branchedChains.Remove(result);
-            return result.GetPendingBlocks();
+
+            // State rollback.
+            var blockchain = _chainService.GetBlockChain(Globals.CurrentChainId);
+            var txs = blockchain.RollbackToHeight(result.StartHeight - 1).Result;
+
+            return txs;
         }
 
         private BranchedChain AdjustBranchedChains()

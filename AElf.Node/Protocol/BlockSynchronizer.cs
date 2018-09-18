@@ -97,7 +97,11 @@ namespace AElf.Node.Protocol
             {
                 try
                 {
-                    EnqueueJob(new Job {Block = blockReceivedArgs.Block, Peer = blockReceivedArgs.Peer, MsgType = blockReceivedArgs.MsgType});
+                    EnqueueJob(new Job
+                    {
+                        Block = blockReceivedArgs.Block, Peer = blockReceivedArgs.Peer,
+                        MsgType = blockReceivedArgs.MsgType
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -436,9 +440,13 @@ namespace AElf.Node.Protocol
             // todo check that the returned txs are actually in the block
             var newPendingBlock = new PendingBlock(blockHash, block, missingTxs, msgType) {Peer = peer};
 
-            var blocksNeedToRollback = _syncService.AddPendingBlock(newPendingBlock);
+            var txsNeedToRevert = _syncService.AddPendingBlock(newPendingBlock);
 
-            
+            if (!txsNeedToRevert.IsNullOrEmpty())
+            {
+                await _poolService.Revert(txsNeedToRevert);
+            }
+
             _logger?.Debug(
                 $"Added block to sync {{ id : {blockHash.ToHex()}, index : {block.Header.Index}, tx-count : {block.Body.Transactions.Count} }} ");
 

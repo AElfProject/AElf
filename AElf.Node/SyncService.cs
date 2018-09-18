@@ -23,7 +23,7 @@ namespace AElf.Node
             set => _blockCollection.PendingBlocks = value;
         }
         
-        public List<PendingBlock> AddPendingBlock(PendingBlock pendingBlock)
+        public List<Transaction> AddPendingBlock(PendingBlock pendingBlock)
         {
             return _blockCollection.AddPendingBlock(pendingBlock);
         }
