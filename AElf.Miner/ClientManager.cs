@@ -251,7 +251,7 @@ namespace AElf.Miner
         /// </returns>
         public async Task<ParentChainBlockInfo> CollectParentChainBlockInfo()
         {
-            var chainId = GrpcRemoteConfig.Instance.ParentChain?.ElementAt(0).Key;
+            var chainId = GrpcRemoteConfig.Instance.ParentChain?.ElementAtOrDefault(0).Key;
             if (chainId == null)
                 return null;
             Hash parentChainId =

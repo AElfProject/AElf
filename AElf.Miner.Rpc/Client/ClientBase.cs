@@ -84,7 +84,7 @@ namespace AElf.Miner.Rpc.Client
         /// <returns></returns>
         public async Task StartDuplexStreamingCall(CancellationToken cancellationToken, ulong next)
         {
-            _next = Math.Max(next, IndexedInfoQueue.Last()?.Height?? -1 + 1);
+            _next = Math.Max(next, IndexedInfoQueue.LastOrDefault()?.Height?? -1 + 1);
             try
             {
                 using (var call = Call())
