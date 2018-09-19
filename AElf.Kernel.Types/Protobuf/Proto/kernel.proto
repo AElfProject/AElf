@@ -28,6 +28,7 @@ message TransactionList {
 enum TransactionType {
     ContractTransaction = 0;
     DposTransaction = 1;
+    CrossChainBlockInfoTransaction = 2;
 }
 
 enum Status {

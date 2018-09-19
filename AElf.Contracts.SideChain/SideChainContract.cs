@@ -173,7 +173,7 @@ namespace AElf.Contracts.SideChain
             }.Fire();
         }
 
-        public void WriteParentChain(ParentChainBlockInfo parentChainBlockInfo)
+        public void WriteParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
         {
             var indexedBlockHeight = parentChainBlockInfo.IndexedBlockHeight;
             foreach (var height in indexedBlockHeight)

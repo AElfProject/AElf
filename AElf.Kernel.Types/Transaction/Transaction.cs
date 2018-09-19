@@ -50,7 +50,7 @@ namespace AElf.Kernel
             return CalculateSize();
         }
 
-        public byte[] GetSignatureData()
+        private byte[] GetSignatureData()
         {
             Transaction txData = new Transaction
             {
