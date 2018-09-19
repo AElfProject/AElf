@@ -2,6 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Net.Http.Headers;
+using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
 
 namespace AElf.Kernel.Managers
@@ -20,6 +22,8 @@ namespace AElf.Kernel.Managers
             _lightChain = lightChain;
             MessageHub.Instance.Subscribe<BlockHeader>(
                 async h => await OnNewBlockHeader(h));
+            MessageHub.Instance.Subscribe<RevertedToBlockHeader>(
+                async r => await OnNewBlockHeader(r.BlockHeader));
         }
 
         public Hash GetHashByHeight(ulong height)
