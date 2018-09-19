@@ -5,11 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.SmartContract;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Easy.MessageHub;
@@ -57,6 +59,10 @@ namespace AElf.Miner.Miner
             _stateDictator.ChainId = chainId;
         }
 
+        /// <summary>
+        /// mine process
+        /// </summary>
+        /// <returns></returns>
         public async Task<IBlock> Mine()
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
@@ -68,6 +74,7 @@ namespace AElf.Miner.Miner
                     if (cancellationTokenSource.IsCancellationRequested)
                         return null;
 
+                    await GenerateTransactionWithParentChainBlockInfo();
                     var readyTxs = await _txPoolService.GetReadyTxsAsync(_stateDictator.BlockProducerAccountAddress);
                     
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
@@ -109,7 +116,58 @@ namespace AElf.Miner.Miner
         }
 
         /// <summary>
-        /// extract tx results from traces
+        /// Generate a system tx for parent chain block info and broadcast it.
+        /// </summary>
+        /// <returns></returns>
+        private async Task<bool> GenerateTransactionWithParentChainBlockInfo()
+        {
+            try
+            {
+                var parentChainBlockInfo = await GetParentChainBlockInfo();
+                if (parentChainBlockInfo == null)
+                    return false; 
+                
+                var bn = await _blockChain.GetCurrentBlockHeightAsync();
+                bn = bn > 4 ? bn - 4 : 0;
+                var bh = bn == 0 ? Hash.Genesis : (await _blockChain.GetHeaderByHeightAsync(bn)).GetHash();
+                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                var tx = new Transaction
+                {
+                    From = _keyPair.GetAddress(),
+                    To = new Hash(Config.ChainId.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount(),
+                    RefBlockNumber = bn,
+                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
+                    MethodName = "WriteParentChainBlockInfo",
+                    P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey()),
+                    Type = TransactionType.CrossChainBlockInfoTransaction,
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo))
+                };
+                
+                // sign tx
+                var signature = new ECSigner().Sign(_keyPair, tx.GetHash().GetHashBytes());
+                tx.R = ByteString.CopyFrom(signature.R);
+                tx.S = ByteString.CopyFrom(signature.S);
+                // insert to tx pool and broadcast
+                if (await _txPoolService.AddTxAsync(tx) == TxValidation.TxInsertionAndBroadcastingError.Success)
+                    MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
+                else
+                {
+                    _logger?.Debug("Transaction for parent chain block info insertion failed.");
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e);
+                return false;
+            }
+
+            return true;
+        }
+        
+        
+        /// <summary>
+        /// Extract tx results from traces
         /// </summary>
         /// <param name="readyTxs"></param>
         /// <param name="traces"></param>
@@ -205,7 +263,7 @@ namespace AElf.Miner.Miner
                     await _transactionManager.AddTransactionAsync(tx);
                     _txPoolService.RemoveAsync(tx.GetHash());
                 });
-            txResults.ForEach(async r =>
+            txResults.AsParallel().ForEach(async r =>
             {
                 r.BlockNumber = bn;
                 r.BlockHash = bh;
@@ -295,7 +353,7 @@ namespace AElf.Miner.Miner
         }
 
         /// <summary>
-        /// side chains header info    
+        /// Side chains header info    
         /// </summary>
         /// <returns></returns>
         private async Task CollectSideChainIndexedInfo(IBlock block)
@@ -305,6 +363,16 @@ namespace AElf.Miner.Miner
             block.Body.IndexedInfo.Add(sideChainInfo);
         }
 
+        /// <summary>
+        /// Get parent chain block info.
+        /// </summary>
+        /// <returns></returns>
+        private async Task<ParentChainBlockInfo> GetParentChainBlockInfo()
+        {
+            var blocInfo = await _clientManager.CollectParentChainBlockInfo();
+            return blocInfo;
+        }
+        
         /// <summary>
         /// start mining
         /// init clients to side chain node 
