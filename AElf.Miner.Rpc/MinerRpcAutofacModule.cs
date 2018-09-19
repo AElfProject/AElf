@@ -1,8 +1,6 @@
-using AElf.Kernel;
-using AElf.Miner.Rpc.Client;
+using AElf.Common.Application;
 using AElf.Miner.Rpc.Server;
 using Autofac;
-using Easy.MessageHub;
 
 namespace AElf.Miner.Rpc
 {
@@ -10,18 +8,15 @@ namespace AElf.Miner.Rpc
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<MinerClientManager>().As<MinerClientManager>().SingleInstance();
-            builder.RegisterType<HeaderInfoServerImpl>().As<HeaderInfoServerImpl>().SingleInstance();
-            builder.RegisterType<MinerServer>().As<MinerServer>().SingleInstance();
-        }
-
-        public void Run(ILifetimeScope scope)
-        {
-            /*var evListener = scope.Resolve<MinerClientManager>();
-            MessageHub.Instance.Subscribe<IBlock>(async (t) =>
-            {
-                await evListener.(t);
-            });*/
+            builder.RegisterType<SideChainBlockInfoRpcServerImpl>().As<SideChainBlockInfoRpcServerImpl>()
+                .SingleInstance();
+            builder.RegisterType<ParentChainBlockInfoRpcServerImpl>().As<ParentChainBlockInfoRpcServerImpl>()
+                .SingleInstance();
+            builder.RegisterType<ServerManager>().SingleInstance().OnActivated(mc =>
+                {
+                    mc.Instance.Init(ApplicationHelpers.GetDefaultDataDir());
+                }
+            );
         }
     }
 }

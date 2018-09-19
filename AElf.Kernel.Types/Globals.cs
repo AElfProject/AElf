@@ -7,6 +7,7 @@ namespace AElf.Kernel
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
         public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
+        public static readonly string GenesisSideChainContractAssemblyName = "AElf.Contracts.SideChain";
 
         public static Hash CurrentChainId = Hash.Default;
         public static readonly ulong ReferenceBlockValidPeriod = 64;

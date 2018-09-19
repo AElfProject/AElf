@@ -18,7 +18,7 @@ namespace AElf.Configuration.Config.Network
         public string PeersDbPath { get; set; }
         
         /// <summary>
-        /// Server listening Port
+        /// SideChainServer listening Port
         /// </summary>
         public int ListeningPort { get; set; }
         

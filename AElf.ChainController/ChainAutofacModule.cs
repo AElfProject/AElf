@@ -1,5 +1,6 @@
 ﻿using AElf.ChainController.TxMemPool;
 using AElf.ChainController.TxMemPoolBM;
+using AElf.Common.Application;
 using Autofac;
 
 namespace AElf.ChainController

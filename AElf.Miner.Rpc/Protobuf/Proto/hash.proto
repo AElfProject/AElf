@@ -4,3 +4,22 @@ option csharp_namespace = "AElf.Kernel";
 message Hash{
     bytes Value = 1;
 }
+
+message SideChainBlockInfo{
+    uint64 Height = 1;
+    Hash BlockHeaderHash = 2;
+    Hash TransactionMKRoot = 3;
+    Hash ChainId = 4;
+}
+
+message ParentChainBlockInfo{
+    uint64 Height = 1;
+
+    // calculation result in parent chain
+    Hash SideChainBlockHeadersRoot = 2;
+    Hash SideChainTransactionsRoot = 3;
+
+    // indexed block height from side chain 
+    repeated uint64 IndexedBlockHeight = 4;
+    Hash ChainId = 5;
+}

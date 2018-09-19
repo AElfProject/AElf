@@ -20,6 +20,12 @@ namespace AElf.Cryptography.Certificate
             _dataDirectory = dataDirectory;
         }
 
+        /// <summary>
+        /// write certificate and private key
+        /// </summary>
+        /// <param name="name"> prefix of file </param>
+        /// <param name="ipAddress">ip address to be authenticated</param>
+        /// <returns></returns>
         public RSAKeyPair WriteKeyAndCertificate(string name, string ipAddress)
         {
             // generate key pair
@@ -37,6 +43,12 @@ namespace AElf.Cryptography.Certificate
             return keyPair;
         }
 
+        /// <summary>
+        /// write certificate
+        /// </summary>
+        /// <param name="name"> prefix of file </param>
+        /// <param name="certificate"> cert content </param>
+        /// <returns></returns>
         public bool AddCertificate(string name, string certificate)
         {
             Directory.CreateDirectory(Path.Combine(_dataDirectory, FolderName));
@@ -54,13 +66,49 @@ namespace AElf.Cryptography.Certificate
                 }
             }
         }
+        
+        /// <summary>
+        /// get certificate with file name prefix
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public string GetCertificate(string name)
+        {
+            try
+            {
+                string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + CertExtension));
+                return crt;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
+        
+        /// <summary>
+        /// get private with file name prefix
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public string GetPrivateKey(string name)
+        {
+            try
+            {
+                string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + KeyExtension));
+                return crt;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
 
         private CertGenerator GetCertificateGenerator(RSAKeyPair keyPair)
         {
             return  new CertGenerator().SetPublicKey(keyPair.PublicKey);
         }
 
-        public bool WriteKeyAndCertificate(object obj, string dir, string fileName, string extension)
+        private bool WriteKeyAndCertificate(object obj, string dir, string fileName, string extension)
         {
             // create directory if not exists
             Directory.CreateDirectory(dir);
@@ -87,31 +135,6 @@ namespace AElf.Cryptography.Certificate
                 }
             }
         }
-
-        public string GetCertificate(string name)
-        {
-            try
-            {
-                string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + CertExtension));
-                return crt;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-        }
-        
-        public string GetPrivateKey(string name)
-        {
-            try
-            {
-                string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + KeyExtension));
-                return crt;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-        }
+       
     }
 }

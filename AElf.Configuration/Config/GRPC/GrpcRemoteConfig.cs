@@ -14,5 +14,10 @@ namespace AElf.Configuration.Config.GRPC
     {
         public string Address { get; set; }
         public int Port { get; set; }
+
+        public override string ToString()
+        {
+            return Address + ":" + Port;
+        }
     }
 }    

@@ -24,7 +24,7 @@ namespace AElf.Node.AElfChain
             };
         }
         
-        internal static JObject GetIndexedSideChainBlcokInfo(this IBlockHeader blockHeader)
+        /*internal static JObject GetIndexedSideChainBlcokInfo(this IBlockHeader blockHeader)
         {
             var res = new JObject();
             foreach (var sideChainIndexedInfo in blockHeader.IndexedInfo)
@@ -38,6 +38,6 @@ namespace AElf.Node.AElfChain
             }
 
             return res;
-        }
+        }*/
     }
 }

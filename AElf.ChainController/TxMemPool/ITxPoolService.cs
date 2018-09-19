@@ -31,7 +31,7 @@ namespace AElf.ChainController.TxMemPool
         Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash blockProducerAddress = null,
             double intervals = 150);
 
-        List<Transaction> GetDPoSTxs();
+        List<Transaction> GetSystemTxs();
 
         /// <summary>
         /// return pool size

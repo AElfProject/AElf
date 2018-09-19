@@ -128,6 +128,23 @@ namespace AElf.Node.AElfChain
             }
         }
 
+        private byte[] SideChainGenesisContractZero
+        {
+            get
+            {
+                var contractZeroDllPath =
+                    Path.Combine(_assemblyDir, $"{Globals.GenesisSideChainContractAssemblyName}.dll");
+
+                byte[] code;
+                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
+                {
+                    code = file.ReadFully();
+                }
+
+                return code;
+            }
+        }
+
         #endregion
         
         public void Initialize(NodeConfiguration conf)
@@ -164,7 +181,7 @@ namespace AElf.Node.AElfChain
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
-                    CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
+                    CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero, SideChainGenesisContractZero);
                 }
                 else
                 {
@@ -250,9 +267,13 @@ namespace AElf.Node.AElfChain
 
             var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
             _logger?.Log(LogLevel.Debug, "DPoS contract address = \"{0}\"", consensusAddress.ToHex());
+            
+            var sidechainContractAddress = GetGenesisContractHash(SmartContractType.SideChainContract);
+            _logger?.Log(LogLevel.Debug, "SideChain contract address = \"{0}\"", sidechainContractAddress.ToHex());
         }
 
-        private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero)
+        private void CreateNewChain(byte[] tokenContractCode,  byte[] consensusContractCode, byte[] basicContractZero, 
+            byte[] sideChainGenesisContractCode)
         {
             var tokenCReg = new SmartContractRegistration
             {
@@ -278,8 +299,15 @@ namespace AElf.Node.AElfChain
                 Type = (int) SmartContractType.BasicContractZero
             };
             
+            var sideChainCReg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(sideChainGenesisContractCode),
+                ContractHash = sideChainGenesisContractCode.CalculateHash(),
+                Type = (int) SmartContractType.SideChainContract
+            };
             var res = _chainCreationService.CreateNewChainAsync(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
-                new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg}).Result;
+                new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg}).Result;
 
             _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
         }

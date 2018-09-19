@@ -39,8 +39,8 @@ namespace AElf.Kernel
         {
             return new ECSignature(R.ToByteArray(), S.ToByteArray());
         }
-        
-        public byte[] GetSignatureData()
+
+        private byte[] GetSignatureData()
         {
             var rawBlock = new BlockHeader
             {
@@ -49,11 +49,10 @@ namespace AElf.Kernel
                 PreviousBlockHash = PreviousBlockHash.Clone(),
                 MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions.Clone(),
                 MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone(),
-                Bloom = Bloom
+                Bloom = Bloom, 
+                SideChainBlockHeadersRoot = SideChainBlockHeadersRoot?.Clone(),
+                SideChainTransactionsRoot = MerkleTreeRootOfTransactions?.Clone()
             };
-            // indexed info
-            rawBlock.IndexedInfo.Add(IndexedInfo);
-
             if (Index != 0)
                 rawBlock.Time = Time.Clone();
             
