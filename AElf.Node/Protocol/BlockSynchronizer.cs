@@ -168,11 +168,17 @@ namespace AElf.Node.Protocol
                         _logger?.Warn($"Failed to add the following transaction to the pool (reason: {result}): "
                                       + $"{tx.GetTransactionInfo()}");
 
-                        var pTx = PendingBlocks
-                            .Select(pb => pb.MissingTxs.First(mstx => mstx.Hash.BytesEqual(transactionBytes)))
-                            .First();
+                        foreach (var pendingBlock in PendingBlocks)
+                        {
+                            var pendingTx =
+                                pendingBlock.MissingTxs.FirstOrDefault(mstx => mstx.Hash.BytesEqual(transactionBytes));
 
-                        pTx.IsRequestInProgress = false;
+                            if (pendingTx != null)
+                            {
+                                pendingTx.IsRequestInProgress = false;
+                                break;
+                            }
+                        }
                     }
                 }
                 catch (Exception e)
