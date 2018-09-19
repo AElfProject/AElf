@@ -93,6 +93,6 @@ namespace AElf.ChainController.TxMemPool
         /// <returns></returns>
         Task Revert(List<Transaction> txsOut);
 
-        void SetBlockVolume(ulong minimal, ulong maximal);
+        void SetBlockVolume(int minimal, int maximal);
     }
 }

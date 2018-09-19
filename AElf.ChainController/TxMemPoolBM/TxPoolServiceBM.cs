@@ -16,14 +16,15 @@ namespace AElf.ChainController.TxMemPoolBM
         private readonly ILogger _logger;
         private readonly ITxValidator _txValidator;
         private readonly ITransactionManager _transactionManager;
-        private ulong Least { get; set; }
-        private ulong Limit { get; set; }
+        private int Least { get; set; }
+        private int Limit { get; set; }
 
-        public TxPoolServiceBM(ILogger logger, ITxValidator txValidator,
+        public TxPoolServiceBM(ILogger logger, ITxValidator txValidator, TxHub txHub,
             ITransactionManager transactionManager)
         {
             _logger = logger;
             _txValidator = txValidator;
+            _txHub = txHub;
             _transactionManager = transactionManager;
         }
 
@@ -36,8 +37,10 @@ namespace AElf.ChainController.TxMemPoolBM
             return Task.CompletedTask;
         }
 
-        private readonly ConcurrentDictionary<Hash, Transaction> _contractTxs =
-            new ConcurrentDictionary<Hash, Transaction>();
+//        private readonly ConcurrentDictionary<Hash, Transaction> _contractTxs =
+//            new ConcurrentDictionary<Hash, Transaction>();
+
+        private TxHub _txHub;
 
         private readonly ConcurrentDictionary<Hash, Transaction> _dPoSTxs =
             new ConcurrentDictionary<Hash, Transaction>();
@@ -47,11 +50,16 @@ namespace AElf.ChainController.TxMemPoolBM
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
         {
-            var txExecuted = await _transactionManager.GetTransaction(tx.GetHash());
-            if (txExecuted != null)
+            var txv = _txHub.GetTxHolderView(tx.GetHash());
+            if (txv != null)
             {
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+                return TxValidation.TxInsertionAndBroadcastingError.KnownTx;
             }
+//            var txExecuted = await _transactionManager.GetTransaction(tx.GetHash());
+//            if (txExecuted != null)
+//            {
+//                return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+//            }
 
             var res = await AddTransaction(tx);
 
@@ -65,18 +73,27 @@ namespace AElf.ChainController.TxMemPoolBM
         /// <returns></returns>
         private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx)
         {
+            var txid = tx.GetHash();
+            
+            _txHub.AddNewTransaction(tx);
+
+            _txHub.ValidatingTx(txid);
             var res = _txValidator.ValidateTx(tx);
             if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
             {
+                _txHub.InvalidatedTx(txid);
                 return res;
             }
 
             res = await _txValidator.ValidateReferenceBlockAsync(tx);
             if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
             {
+                _txHub.InvalidatedTx(txid);
                 return res;
             }
 
+            _txHub.ValidatedTx(txid);
+            
             if (tx.Type == TransactionType.DposTransaction)
             {
                 return await Task.FromResult(AddDPoSTransaction(tx));
@@ -114,13 +131,23 @@ namespace AElf.ChainController.TxMemPoolBM
         {
             if (tx.Type != TransactionType.ContractTransaction)
                 return TxValidation.TxInsertionAndBroadcastingError.Failed;
-            if (_contractTxs.ContainsKey(tx.GetHash()))
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
 
-            if (_contractTxs.TryAdd(tx.GetHash(), tx))
+            try
             {
-                return TxValidation.TxInsertionAndBroadcastingError.Success;
+                _txHub.AddNewTransaction(tx);
             }
+            catch (Exception)
+            {
+                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
+            }
+//            
+//            if (_contractTxs.ContainsKey(tx.GetHash()))
+//                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
+//
+//            if (_contractTxs.TryAdd(tx.GetHash(), tx))
+//            {
+                return TxValidation.TxInsertionAndBroadcastingError.Success;
+//            }
 
             return TxValidation.TxInsertionAndBroadcastingError.Failed;
         }
@@ -136,7 +163,8 @@ namespace AElf.ChainController.TxMemPoolBM
                 }
                 else
                 {
-                    AddContractTransaction(tx);
+                    _txHub.RevertExecutingTx(tx.GetHash());
+//                    AddContractTransaction(tx);
                 }
                 tx.Unclaim();
             }
@@ -147,7 +175,8 @@ namespace AElf.ChainController.TxMemPoolBM
         /// <inheritdoc/>
         public bool TryGetTx(Hash txHash, out Transaction tx)
         {
-            return _contractTxs.TryGetValue(txHash, out tx) || _dPoSTxs.TryGetValue(txHash, out tx);
+            tx = _txHub.GetTxHolderView(txHash)?.Transaction;
+            return tx != null;
         }
 
         public List<Hash> GetMissingTransactions(IBlock block)
@@ -170,7 +199,8 @@ namespace AElf.ChainController.TxMemPoolBM
         {
             if (_dPoSTxs.TryRemove(txHash, out _))
                 return;
-            _contractTxs.TryRemove(txHash, out _);
+            _txHub.ExecutedTx(txHash);
+//            _contractTxs.TryRemove(txHash, out _);
         }
 
         /// <inheritdoc/>
@@ -182,40 +212,43 @@ namespace AElf.ChainController.TxMemPoolBM
             RemoveDirtyDPoSTxs(txs, blockProducerAddress);
             
             _logger.Debug($"Got {txs.Count} DPoS tx");
-            if ((ulong) _contractTxs.Count < Least)
+            var count = _txHub.ValidatedCount;
+            if (count < Least)
             {
-                _logger.Debug($"Regular txs {Least} required, but we only have {_contractTxs.Count}");
+                _logger.Debug($"Regular txs {Least} required, but we only have {count}");
                 return txs;
             }
 
-            var invalid = new List<Hash>();
-            foreach (var kv in _contractTxs)
-            {
-                if (Limit != 0 && (ulong) txs.Count > Limit)
-                {
-                    continue;
-                }
-
-                if (!kv.Value.Claim())
-                {
-                    continue;
-                }
-
-                var res = await _txValidator.ValidateReferenceBlockAsync(kv.Value);
-                if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
-                {
-                    invalid.Add(kv.Key);
-                }
-                else
-                {
-                    txs.Add(kv.Value);
-                }
-            }
-
-            foreach (var hash in invalid)
-            {
-                _contractTxs.TryRemove(hash, out _);
-            }
+            txs.AddRange(_txHub.GetTxsForExecution(Limit));
+            
+//            var invalid = new List<Hash>();
+//            foreach (var kv in _contractTxs)
+//            {
+//                if (Limit != 0 && (ulong) txs.Count > Limit)
+//                {
+//                    continue;
+//                }
+//
+//                if (!kv.Value.Claim())
+//                {
+//                    continue;
+//                }
+//
+//                var res = await _txValidator.ValidateReferenceBlockAsync(kv.Value);
+//                if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
+//                {
+//                    invalid.Add(kv.Key);
+//                }
+//                else
+//                {
+//                    txs.Add(kv.Value);
+//                }
+//            }
+//
+//            foreach (var hash in invalid)
+//            {
+//                _contractTxs.TryRemove(hash, out _);
+//            }
 
             _logger.Debug($"Got {txs.Count} total tx");
             return txs;
@@ -267,7 +300,7 @@ namespace AElf.ChainController.TxMemPoolBM
             return Task.CompletedTask;
         }
 
-        public void SetBlockVolume(ulong minimal, ulong maximal)
+        public void SetBlockVolume(int minimal, int maximal)
         {
             Least = minimal;
             Limit = maximal;
@@ -281,7 +314,7 @@ namespace AElf.ChainController.TxMemPoolBM
 
         public Task<ulong> GetPoolSize()
         {
-            return Task.FromResult((ulong) _contractTxs.Count);
+            return Task.FromResult((ulong) _txHub.ValidatedCount);
         }
     }
 }

@@ -497,7 +497,7 @@ namespace AElf.ChainController.TxMemPool
             _logger?.Log(LogLevel.Debug, "Reverted {0} txs.", txsOut.Count);
         }
 
-        public void SetBlockVolume(ulong minimal, ulong maximal)
+        public void SetBlockVolume(int minimal, int maximal)
         {
             _contractTxPool.SetBlockVolume(minimal, maximal);
         }

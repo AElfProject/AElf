@@ -28,7 +28,7 @@ namespace AElf.ChainController.TxMemPool
          
          public ECKeyPair EcKeyPair { get; set; }
          
-         public ulong Minimal { get; set; }
-         public ulong Maximal { get; set; }
+         public int Minimal { get; set; }
+         public int Maximal { get; set; }
      }
  }

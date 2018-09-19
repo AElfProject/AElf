@@ -39,11 +39,11 @@ namespace AElf.ChainController.TxMemPool
         /// <summary>
         /// the minimal number of tx in one block
         /// </summary>
-        ulong Minimal { get; set; }
+        int Minimal { get; set; }
         
         /// <summary>
         /// the Maximal number of tx in one block
         /// </summary>
-        ulong Maximal { get; set; }
+        int Maximal { get; set; }
     }
 }

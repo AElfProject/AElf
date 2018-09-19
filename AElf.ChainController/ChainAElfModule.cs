@@ -57,7 +57,7 @@ namespace AElf.ChainController
             builder.RegisterModule(new ChainAutofacModule());
 
             var txPoolConfig = TxPoolConfig.Default;
-            txPoolConfig.FeeThreshold = TransactionPoolConfig.Instance.Minimal;
+            txPoolConfig.FeeThreshold = 0;
             txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;
             txPoolConfig.Maximal = TransactionPoolConfig.Instance.Maximal;
             txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;

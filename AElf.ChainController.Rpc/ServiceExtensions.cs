@@ -167,6 +167,11 @@ namespace AElf.ChainController.Rpc
             return await s.TransactionManager.GetTransaction(txId);
         }
 
+        internal static ITransactionHolderView GetTransactionHolder(this Svc s, Hash txId)
+        {
+            return s.TxHub.GetTxHolderView(txId);
+        }
+
         internal static async Task<TransactionResult> GetTransactionResult(this Svc s, Hash txHash)
         {
             var res = await s.TransactionResultService.GetResultAsync(txHash);
@@ -200,7 +205,7 @@ namespace AElf.ChainController.Rpc
             return await s.TxPoolService.GetPoolSize();
         }
 
-        internal static void SetBlockVolume(this Svc s, ulong minimal, ulong maximal)
+        internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
         {
             s.TxPoolService.SetBlockVolume(minimal, maximal);
         }
