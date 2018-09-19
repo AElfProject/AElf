@@ -15,8 +15,8 @@ namespace AElf.ChainController
 {
     public class ChainAElfModule:IAElfModule
     {
-        private static readonly string FilePath =
-            Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "chain", @"ChainInfo.json");
+        private static readonly string FileFolder = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "chain");
+        private static readonly string FilePath = Path.Combine(FileFolder, @"ChainInfo.json");
         
         public void Init(ContainerBuilder builder)
         {
@@ -35,6 +35,11 @@ namespace AElf.ChainController
                 var obj = new JObject(new JProperty("id", chainIdHash.ToHex()));
 
                 // write JSON directly to a file
+                if (!Directory.Exists(FileFolder))
+                {
+                    Directory.CreateDirectory(FileFolder);
+                }
+
                 using (var file = File.CreateText(FilePath))
                 using (var writer = new JsonTextWriter(file))
                 {

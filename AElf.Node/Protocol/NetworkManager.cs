@@ -288,8 +288,11 @@ namespace AElf.Node.Protocol
                 _lastBlocksReceived.Enqueue(blockHash);
                     
                 // Rebroadcast to peers - note that the block has not been validated
-                foreach (var p in _peers.Where(p => !p.Equals(peer)))
-                    p.EnqueueOutgoing(msg);
+                if (msgType != AElfProtocolMsgType.Block)
+                {
+                    foreach (var p in _peers.Where(p => !p.Equals(peer)))
+                        p.EnqueueOutgoing(msg);
+                }
                 
                 BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer));
             }
@@ -529,6 +532,11 @@ namespace AElf.Node.Protocol
             }
 
             return count;
+        }
+
+        public int GetPendingRequestCount()
+        {
+            return _pendingRequests.Count;
         }
     }
 }
