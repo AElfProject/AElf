@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using AElf.ChainController;
-using AElf.Common.Extensions;
 using AElf.Kernel;
+using AElf.Kernel.Node;
+using AElf.Network;
 using AElf.Node.Protocol;
 using NLog;
 using NServiceKit.Common;
@@ -18,59 +18,142 @@ namespace AElf.Node
     public class BlockCollection : IBlockCollection
     {
         private bool _isInitialSync = true;
+
+        public IBlockChain BlockChain => _chainService.GetBlockChain(Globals.CurrentChainId);
+
         /// <summary>
         /// To store branched chains.
         /// </summary>
-        private readonly List<BranchedChain> _branchedChains = new List<BranchedChain>();
+        private readonly HashSet<BranchedChain> _branchedChains = new HashSet<BranchedChain>();
 
         /// <summary>
         /// To track the latest block height of local chain.
         /// </summary>
         public ulong PendingBlockHeight { get; set; }
 
-        private ulong SyncedHeight { get; set; }
+        public ulong SyncedHeight =>
+            _chainService.GetBlockChain(Globals.CurrentChainId).GetCurrentBlockHeightAsync().Result;
 
         public List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
-        
+
         public int Count => PendingBlocks.Count;
         public int BranchedChainsCount => _branchedChains.Count;
 
         private readonly ILogger _logger;
+        private readonly IChainService _chainService;
 
-        public BlockCollection(ILogger logger)
+        public BlockCollection(IChainService chainService, ILogger logger = null)
         {
+            _chainService = chainService;
             _logger = logger;
         }
 
+        private readonly HashSet<ulong> _initialSyncBlocksIndexes = new HashSet<ulong>();
+
+        public bool ReceivedAllTheBlocksBeforeTargetBlock => (ulong) _initialSyncBlocksIndexes.Count == _targetHeight;
+
+        private ulong _targetHeight = ulong.MaxValue;
+
         /// <summary>
         /// Basically add the pending block if the block is supposed to be on local chain.
-        /// Otherwise add the pending block to pending fork block or branched chain.
+        /// Otherwise add the pending block to branched chains.
         /// </summary>
         /// <param name="pendingBlock"></param>
-        public void AddPendingBlock(PendingBlock pendingBlock)
+        public List<Transaction> AddPendingBlock(PendingBlock pendingBlock)
         {
-            // If this node isn't DPoS initial node, will add target pending block at the very beginning.
-            if (PendingBlocks.IsNullOrEmpty())
-            {
-                PendingBlocks.AddPendingBlock(pendingBlock);
-                return;
-            }
-            
             // No need to handle an already exists pending block again.
-            if (PendingBlocks.Any(b => new Hash(b.BlockHash) == new Hash(pendingBlock.BlockHash)))
+            if (!PendingBlocks.IsNullOrEmpty() &&
+                PendingBlocks.Any(b => new Hash(b.Block.GetHash()) == new Hash(pendingBlock.Block.GetHash())))
             {
-                return;
+                return null;
             }
 
-            // Normally add the pending block to list.
-            if (PendingBlocks.AddPendingBlock(pendingBlock))
+            if (Globals.IsConsensusGenerator)
             {
-                PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
+                _isInitialSync = false;
             }
-            else
+
+            if (_isInitialSync)
             {
-                AddBlockToBranchedChains(pendingBlock);
+                switch (pendingBlock.MsgType)
+                {
+                    case AElfProtocolMsgType.NewBlock:
+                        if (_targetHeight == ulong.MaxValue)
+                        {
+                            _targetHeight = pendingBlock.Block.Header.Index;
+                            AddToPendingBlocks(pendingBlock);
+                            PendingBlocks.SortByBlockIndex();
+                            _initialSyncBlocksIndexes.Add(_targetHeight);
+                            return null;
+                        }
+                        else
+                        {
+                            _logger?.Trace("Receive a new block while do initial sync.");
+                            return AddBlockToBranchedChains(pendingBlock);
+                        }
+
+                    case AElfProtocolMsgType.Block:
+                        if (!_initialSyncBlocksIndexes.Contains(pendingBlock.Block.Header.Index) &&
+                            !ReceivedAllTheBlocksBeforeTargetBlock)
+                        {
+                            AddToPendingBlocks(pendingBlock);
+                            _initialSyncBlocksIndexes.Add(pendingBlock.Block.Header.Index);
+                            if (ReceivedAllTheBlocksBeforeTargetBlock)
+                            {
+                                _isInitialSync = false;
+                            }
+
+                            return null;
+                        }
+                        else
+                        {
+                            _logger?.Trace("Receive a forked block while do initial sync.");
+                            return AddBlockToBranchedChains(pendingBlock);
+                        }
+                }
+
+                return null;
             }
+
+            if (!AbleToAdd(pendingBlock))
+            {
+                _logger?.Trace("Receive an orphan block.");
+                return AddBlockToBranchedChains(pendingBlock);
+            }
+
+            AddToPendingBlocks(pendingBlock);
+            return null;
+        }
+
+        private bool AbleToAdd(PendingBlock pendingBlock)
+        {
+            switch (pendingBlock.MsgType)
+            {
+                case AElfProtocolMsgType.Block:
+                    return false;
+                case AElfProtocolMsgType.NewBlock:
+                    if (PendingBlocks.IsEmpty())
+                    {
+                        return SyncedHeight + 1 == pendingBlock.Block.Header.Index &&
+                               pendingBlock.Block.Header.PreviousBlockHash ==
+                               BlockChain.GetCurrentBlockHashAsync().Result;
+                    }
+
+                    var lastPendingBlock = PendingBlocks.Last().Block;
+                    return pendingBlock.Block.Header.Index == lastPendingBlock.Header.Index + 1
+                           && pendingBlock.Block.Header.PreviousBlockHash == lastPendingBlock.Header.GetHash();
+                default:
+                    return false;
+            }
+        }
+
+        private void AddToPendingBlocks(PendingBlock pendingBlock)
+        {
+            _logger?.Trace("Adding to pending blocks: " + pendingBlock.Block.GetHash().ToHex());
+            PendingBlocks.Print();
+            PendingBlocks.Add(pendingBlock);
+            PendingBlocks.SortByBlockIndex();
+            PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
         }
 
         /// <summary>
@@ -79,53 +162,44 @@ namespace AElf.Node
         /// <param name="pendingBlock"></param>
         public void RemovePendingBlock(PendingBlock pendingBlock)
         {
-            _logger?.Trace("Entering removing pending block");
             if (pendingBlock.ValidationError == ValidationError.Success)
             {
-                SyncedHeight = pendingBlock.Block.Header.Index;
+                PendingBlocks.Remove(pendingBlock);
             }
-
-            if (SyncedHeight == PendingBlockHeight || PendingBlockExtensions.IsConsensusGenerator)
+            else
             {
-                _isInitialSync = false;
-            }
-            
-            PendingBlocks.Remove(pendingBlock);
-            _logger?.Trace($"Removing pending block: {pendingBlock.BlockHash.ToHex()} - {pendingBlock.Block.Header.Index}");
-            PendingBlocks.Print();
-
-            if (_isInitialSync && pendingBlock.Block.Header.Index > PendingBlockHeight)
-            {
+                _logger?.Trace("ValidationError: " + pendingBlock.ValidationError);
+                PendingBlocks.Remove(pendingBlock);
                 AddBlockToBranchedChains(pendingBlock);
             }
-            
-            if (!_isInitialSync && PendingBlocks.Count <= 0 && BranchedChainsCount > 0)
+
+            if (PendingBlocks.IsEmpty() && BranchedChainsCount > 0)
             {
-                PendingBlocks = _branchedChains.First(c => c.CanCheckout(PendingBlockHeight, Hash.Default))?.GetPendingBlocks() ??
-                                _branchedChains.First().GetPendingBlocks();
+                PendingBlocks = _branchedChains.FirstOrDefault(c => c.CanCheckout(PendingBlockHeight))
+                                    ?.GetPendingBlocks() ??
+                                _branchedChains.FirstOrDefault()?.GetPendingBlocks();
             }
-            _logger?.Trace("Leaving removing pending block");
         }
 
-        //TODO: to optimize
-        private void AddBlockToBranchedChains(PendingBlock pendingBlock)
+        private List<Transaction> AddBlockToBranchedChains(PendingBlock pendingBlock)
         {
             PendingBlocks.Print();
-            
-            Console.WriteLine($"Adding to branched chain: {pendingBlock.Block.GetHash().ToHex()} : {pendingBlock.Block.Header.Index}");
-            
+
+            _logger?.Trace(
+                $"Adding to branched chain: {pendingBlock.Block.GetHash().ToHex()} : {pendingBlock.Block.Header.Index}");
+
             if (_branchedChains.Count == 0)
             {
                 _branchedChains.Add(new BranchedChain(pendingBlock));
-                return;
+                return null;
             }
-            
+
             var preBlockHash = pendingBlock.Block.Header.PreviousBlockHash;
-            Hash blockHash = pendingBlock.BlockHash;
-            
+            var blockHash = pendingBlock.Block.Header.GetHash();
+
             var toRemove = new List<BranchedChain>();
             var toAdd = new List<BranchedChain>();
-            
+
             foreach (var branchedChain in _branchedChains)
             {
                 if (branchedChain.GetPendingBlocks().First().Block.Header.PreviousBlockHash == blockHash)
@@ -134,7 +208,7 @@ namespace AElf.Node
                     toAdd.Add(newBranchedChain);
                     toRemove.Add(branchedChain);
                 }
-                else if (branchedChain.GetPendingBlocks().Last().BlockHash == preBlockHash)
+                else if (branchedChain.GetPendingBlocks().Last().Block.GetHash() == preBlockHash)
                 {
                     var newBranchedChain = new BranchedChain(branchedChain.GetPendingBlocks(), pendingBlock);
                     toAdd.Add(newBranchedChain);
@@ -142,6 +216,13 @@ namespace AElf.Node
                 }
                 else
                 {
+                    if (toAdd.Any(c => c.GetPendingBlocks().Any(pd => pd.Block.GetHash() == blockHash)) ||
+                        _branchedChains.Any(bc => bc.LastBlockHash == blockHash) ||
+                        _branchedChains.Any(bc => bc.GetPendingBlocks().Any(pb => pb.Block.GetHash() == blockHash)))
+                    {
+                        continue;
+                    }
+
                     toAdd.Add(new BranchedChain(pendingBlock));
                 }
             }
@@ -156,16 +237,63 @@ namespace AElf.Node
                 _branchedChains.Add(branchedChain);
             }
 
+            _logger?.Trace("Branched chains count: " + BranchedChainsCount);
+
+            var flag = 1;
+            foreach (var branchedChain in _branchedChains)
+            {
+                Console.WriteLine(flag++ + ":");
+                branchedChain.GetPendingBlocks().Print();
+            }
+
             var result = AdjustBranchedChains();
             if (result == null)
-                return;
+                return null;
 
-            PendingBlockHeight = PendingBlocks.Last().Block.Header.Index;
+            DPoS.ConsensusDisposable.Dispose();
+            if (SyncedHeight < result.StartHeight)
+            {
+                var oldBlocks = new List<PendingBlock>();
+                // Replace the pending blocks with the result
+                foreach (var branchedBlock in result.GetPendingBlocks())
+                {
+                    if (PendingBlockHeight >= branchedBlock.Block.Header.Index)
+                    {
+                        var corresponding =
+                            PendingBlocks.First(pb => pb.Block.Header.Index == branchedBlock.Block.Header.Index);
+                        PendingBlocks.Remove(corresponding);
+                        oldBlocks.Add(corresponding);
+                    }
+
+                    PendingBlocks.Add(branchedBlock);
+                }
+
+                if (!oldBlocks.IsEmpty())
+                {
+                    //TODO: Move back.
+                    //_branchedChains.Add(new BranchedChain(oldBlocks));
+                }
+            }
+            else
+            {
+                PendingBlocks = result.GetPendingBlocks();
+            }
+
+            PendingBlockHeight = result.EndHeight;
             _branchedChains.Remove(result);
+
+            // State rollback.
+            _logger?.Trace("Rollback to height: " + (result.StartHeight - 1));
+            var txs = BlockChain.RollbackToHeight(result.StartHeight - 1).Result;
+
+            return txs;
         }
 
         private BranchedChain AdjustBranchedChains()
         {
+            _branchedChains.RemoveWhere(bc =>
+                bc.StartHeight + (ulong) Globals.BlockNumberOfEachRound < PendingBlockHeight);
+
             var preBlockHashes = new List<Hash>();
             var lastBlockHashes = new List<Hash>();
             foreach (var branchedChain in _branchedChains)
@@ -195,16 +323,11 @@ namespace AElf.Node
                 _branchedChains.Add(new BranchedChain(chain1.GetPendingBlocks(), chain2.GetPendingBlocks()));
             }
 
-            if (PendingBlocks.IsEmpty())
-            {
-                return null;
-            }
-            
             foreach (var branchedChain in _branchedChains)
             {
-                if (branchedChain.CanCheckout(PendingBlockHeight, PendingBlocks.Last().BlockHash))
+                if (branchedChain.CanCheckout(PendingBlockHeight))
                 {
-                    Console.WriteLine("Switched chain.");
+                    _logger?.Trace("Switching chain.");
                     return branchedChain;
                 }
             }

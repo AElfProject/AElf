@@ -16,6 +16,7 @@ namespace AElf.Node
             builder.RegisterType<P2PHandler>().PropertiesAutowired();
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
+            builder.RegisterType<BlockSynchronizer>().As<IBlockSynchronizer>().SingleInstance();
         }
     }
 }

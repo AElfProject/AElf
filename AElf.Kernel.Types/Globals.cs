@@ -9,6 +9,7 @@ namespace AElf.Kernel
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
         public static readonly string GenesisSideChainContractAssemblyName = "AElf.Contracts.SideChain";
 
+        public static Hash CurrentChainId = Hash.Default;
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
         public static readonly string GenesisBasicContract = SmartContractType.BasicContractZero.ToString();
@@ -21,6 +22,7 @@ namespace AElf.Kernel
 
         #region AElf DPoS
 
+        public static bool IsConsensusGenerator;
         public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 4000;
         public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
@@ -32,6 +34,7 @@ namespace AElf.Kernel
         public const string AElfDPoSExtraBlockTimeSlotString = "AElfExtraBlockTimeSlot";
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
         public const string AElfDPoSMiningIntervalString = "AElfDPoSMiningInterval";
+        public const string AElfDPoSMiningRoundHashMapString = "AElfDPoSMiningRoundHashMap";
 
         #endregion
 

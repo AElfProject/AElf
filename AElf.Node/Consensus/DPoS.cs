@@ -32,7 +32,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         private ulong ConsensusMemory { get; set; }
 
-        private IDisposable ConsensusDisposable { get; set; }
+        public static IDisposable ConsensusDisposable { get; set; }
 
         private bool isMining;
 
@@ -43,7 +43,7 @@ namespace AElf.Kernel.Node
         private readonly IBlockSynchronizer _synchronizer;
         private readonly ILogger _logger;
 
-        private AElfDPoSHelper _helper;
+        public static AElfDPoSHelper Helper;
 
         /// <summary>
         /// In Value and Out Value.
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Node
         
         public void Initialize(Hash contractAccountHash, ECKeyPair nodeKeyPair)
         {
-            _helper = new AElfDPoSHelper(_stateDictator,
+            Helper = new AElfDPoSHelper(_stateDictator,
                 ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
             _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
             _contractAccountAddressHash = contractAccountHash;
@@ -113,18 +113,18 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            if (NodeConfig.Instance.ConsensusInfoGenerater && !await _helper.HasGenerated())
+            if (NodeConfig.Instance.ConsensusInfoGenerater && !await Helper.HasGenerated())
             {
-                PendingBlockExtensions.IsConsensusGenerator = true;
+                Globals.IsConsensusGenerator = true;
                 AElfDPoSObserver.Initialization();
                 return;
             }
 
-            _helper.SyncMiningInterval();
+            Helper.SyncMiningInterval();
             _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms.");
 
 
-            if (_helper.CanRecoverDPoSInformation())
+            if (Helper.CanRecoverDPoSInformation())
             {
                 AElfDPoSObserver.RecoverMining();
             }
@@ -142,7 +142,7 @@ namespace AElf.Kernel.Node
                 _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
                 _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
 
-                var block = await _miner.Mine();
+                var block = await _miner.Mine(Helper.GetCurrentRoundInfo());
 
                 await _stateDictator.SetBlockHashAsync(block.GetHash());
                 await _stateDictator.SetStateHashAsync(block.GetHash());
@@ -232,7 +232,7 @@ namespace AElf.Kernel.Node
             var parameters = new List<byte[]>
             {
                 Miners.ToByteArray(),
-                _helper.GenerateInfoForFirstTwoRounds().ToByteArray(),
+                Helper.GenerateInfoForFirstTwoRounds().ToByteArray(),
                 new SInt32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray(),
                 logLevel.ToByteArray()
             };
@@ -259,16 +259,16 @@ namespace AElf.Kernel.Node
                 _consensusData.Push(inValue.CalculateHash());
             }
 
-            var currentRoundNumber = _helper.CurrentRoundNumber;
+            var currentRoundNumber = Helper.CurrentRoundNumber;
             var signature = Hash.Default;
             if (currentRoundNumber.Value > 1)
             {
-                signature = _helper.CalculateSignature(inValue);
+                signature = Helper.CalculateSignature(inValue);
             }
 
             var parameters = new List<byte[]>
             {
-                _helper.CurrentRoundNumber.ToByteArray(),
+                Helper.CurrentRoundNumber.ToByteArray(),
                 new StringValue {Value = _nodeKeyPair.Address.ToHex().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray(),
                 signature.ToByteArray()
@@ -291,13 +291,14 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task PublishInValue()
         {
-            var currentRoundNumber = _helper.CurrentRoundNumber;
+            var currentRoundNumber = Helper.CurrentRoundNumber;
 
             var parameters = new List<byte[]>
             {
                 currentRoundNumber.ToByteArray(),
                 new StringValue {Value = _nodeKeyPair.Address.ToHex().RemoveHexPrefix()}.ToByteArray(),
-                _consensusData.Pop().ToByteArray()
+                _consensusData.Pop().ToByteArray(),
+                new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
             };
 
             var txToPublishInValue = await GenerateTransactionAsync("PublishInValue", parameters);
@@ -313,7 +314,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithUpdatingAElfDPoSInformation()
         {
-            var extraBlockResult = _helper.ExecuteTxsForExtraBlock();
+            var extraBlockResult = Helper.ExecuteTxsForExtraBlock();
 
             var parameters = new List<byte[]>
             {
@@ -331,9 +332,9 @@ namespace AElf.Kernel.Node
 
         public async Task Update()
         {
-            _helper.LogDPoSInformation(await _blockchain.GetCurrentBlockHeightAsync());
+            Helper.LogDPoSInformation(await _blockchain.GetCurrentBlockHeightAsync());
 
-            if (ConsensusMemory == _helper.CurrentRoundNumber.Value)
+            if (ConsensusMemory == Helper.CurrentRoundNumber.Value)
                 return;
 
             // Dispose previous observer.
@@ -345,17 +346,17 @@ namespace AElf.Kernel.Node
 
             // Update observer.
             var address = _nodeKeyPair.Address.ToHex().RemoveHexPrefix();
-            var miners = _helper.Miners;
+            var miners = Helper.Miners;
             if (!miners.Nodes.Contains(address))
             {
                 return;
             }
-            var blockProducerInfoOfCurrentRound = _helper[address];
+            var blockProducerInfoOfCurrentRound = Helper[address];
             ConsensusDisposable = AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
-                _helper.ExtraBlockTimeSlot);
+                Helper.ExtraBlockTimeSlot);
 
             // Update current round number.
-            ConsensusMemory = _helper.CurrentRoundNumber.Value;
+            ConsensusMemory = Helper.CurrentRoundNumber.Value;
         }
 
         public async Task RecoverMining()
@@ -368,7 +369,7 @@ namespace AElf.Kernel.Node
         public bool IsAlive()
         {
             var currentTime = DateTime.UtcNow;
-            var currentRound = _helper.GetCurrentRoundInfo();
+            var currentRound = Helper.GetCurrentRoundInfo();
             var startTimeSlot = currentRound.BlockProducers.First(bp => bp.Value.Order == 1).Value.TimeSlot.ToDateTime();
 
             var endTimeSlot =

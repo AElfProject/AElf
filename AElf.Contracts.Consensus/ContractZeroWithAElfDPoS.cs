@@ -23,7 +23,8 @@ namespace AElf.Contracts.Consensus
             EBPMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSExtraBlockProducerString),
             TimeForProducingExtraBlockField = new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeSlotString),
             FirstPlaceMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString),
-            MiningIntervalField = new Int32Field(Globals.AElfDPoSMiningIntervalString)
+            MiningIntervalField = new Int32Field(Globals.AElfDPoSMiningIntervalString),
+            RoundHashMap = new Map<UInt64Value, Int64Value>(Globals.AElfDPoSMiningRoundHashMapString)
         });
         
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval, byte[] logLevel)
@@ -60,13 +61,14 @@ namespace AElf.Contracts.Consensus
             });
         }
         
-        public async Task PublishInValue(byte[] roundNumber, byte[] accountAddress, byte[] inValue)
+        public async Task PublishInValue(byte[] roundNumber, byte[] accountAddress, byte[] inValue, byte[] roundId)
         {
             await _consensus.Publish(new List<byte[]>
             {
                 roundNumber,
                 accountAddress,
-                inValue
+                inValue,
+                roundId
             });
         }
     }
