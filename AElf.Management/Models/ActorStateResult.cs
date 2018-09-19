@@ -4,13 +4,7 @@ using Newtonsoft.Json;
 
 namespace AElf.Management.Models
 {
-    public class ActorStateResult:JsonRpcResult
-    {
-        [JsonProperty("result")]
-        public List<MemberInfo> Result { get; set; }
-    }
-
-    public class MemberInfo
+    public class ActorStateResult
     {
         public string Roles { get; set; }
         

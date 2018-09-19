@@ -88,8 +88,6 @@ namespace AElf.Management.Commands
                                         arg.AccountPassword,
                                         "--dpos.generator",
                                         arg.LauncherArg.IsConsensusInfoGenerator.ToString(),
-                                        "--chain.new",
-                                        "true",
                                         "--chain.id",
                                         arg.SideChainId,
                                         "--node.executor",
@@ -111,6 +109,11 @@ namespace AElf.Management.Commands
                                         {
                                             MountPath = "/app/aelf/certs",
                                             Name = "cert"
+                                        },
+                                        new V1VolumeMount
+                                        {
+                                            MountPath = "/app/aelf/chain",
+                                            Name = "chain"
                                         }
                                     }
                                 }
@@ -138,6 +141,11 @@ namespace AElf.Management.Commands
                                 {
                                     Name = "cert",
                                     ConfigMap = new V1ConfigMapVolumeSource {Name = GlobalSetting.CertsConfigName}
+                                },
+                                new V1Volume
+                                {
+                                    Name = "chain",
+                                    ConfigMap = new V1ConfigMapVolumeSource {Name = GlobalSetting.ChainInfoConfigName}
                                 }
                             }
                         }

@@ -19,10 +19,10 @@ namespace AElf.Management.Website.Controllers
         
         [HttpGet]
         [Route("state/{chainId}")]
-        public ApiResult<List<MemberInfo>> State(string chainId)
+        public ApiResult<List<ActorStateResult>> State(string chainId)
         {
             var result = _akkaService.GetState(chainId);
-            return new ApiResult<List<MemberInfo>>(result);
+            return new ApiResult<List<ActorStateResult>>(result);
         }
     }
 }

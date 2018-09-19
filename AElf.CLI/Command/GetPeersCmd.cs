@@ -58,11 +58,11 @@ namespace AElf.CLI.Command
                 int authCount = resp["auth"].ToObject<int>();
                 strBuilder.AppendLine($"Nodes connected ({authCount} authentifying) :");
                 
-                JArray peersList = JArray.Parse(resp["nodeData"].ToString());
+                JArray peersList = JArray.Parse(resp["peers"].ToString());
 
                 foreach (var p in peersList.Children())
                 {
-                    strBuilder.AppendLine(p["IpAddress"] + ":" + p["Port"]);
+                    strBuilder.AppendLine(p["address"]["IpAddress"] + ":" + p["address"]["Port"] + " (is bp: " + p["isBp"] + ")");
                 }
             }
             catch (Exception e)

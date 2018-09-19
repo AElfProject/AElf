@@ -7,6 +7,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Akka.Dispatch;
 using Akka.Util;
+using Easy.MessageHub;
 
 namespace AElf.Kernel
 {
@@ -91,6 +92,7 @@ namespace AElf.Kernel
             await CheckHeaderAppendable(header);
             await _blockManager.AddBlockHeaderAsync((BlockHeader) header);
             await MaybeSwitchBranch(header);
+            MessageHub.Instance.Publish((BlockHeader) header);
         }
 
         protected Hash GetHeightHash(ulong height)
