@@ -55,8 +55,6 @@ namespace AElf.Node
                 pendingBlocks.Add(pendingBlock);
                 return true;
             }
-            
-            pendingBlocks.Sort(ComparePendingBlockIndex);
 
             if (pendingBlocks.Last().BlockHash != pendingBlock.Block.Header.PreviousBlockHash)
             {
@@ -65,6 +63,9 @@ namespace AElf.Node
             
             pendingBlocks.Add(pendingBlock);
             Console.WriteLine($"Added pending block: {pendingBlock.BlockHash.ToHex()} - {pendingBlock.Block.Header.Index}");
+            
+            pendingBlocks.Sort(ComparePendingBlockIndex);
+
             pendingBlocks.Print();
             return true;
         }

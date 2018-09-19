@@ -533,5 +533,10 @@ namespace AElf.Node.Protocol
 
             return count;
         }
+
+        public int GetPendingRequestCount()
+        {
+            return _pendingRequests.Count;
+        }
     }
 }
