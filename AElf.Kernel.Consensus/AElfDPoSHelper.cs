@@ -29,10 +29,7 @@ namespace AElf.Kernel.Consensus
                 {
                     var miners = Miners.Parser.ParseFrom(_dataProvider
                         .GetAsync<Miners>(Globals.AElfDPoSBlockProducerString.CalculateHash()).Result);
-                    foreach (var node in miners.Nodes)
-                    {
-                        _logger?.Info($"Miner: {node}");
-                    }
+                    
                     return miners;
                 }
                 catch (Exception)
@@ -52,7 +49,6 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception)
                 {
-                    _logger?.Info("Failed to get current round number.\n");
                     return new UInt64Value {Value = 0};
                 }
             }
@@ -571,7 +567,7 @@ namespace AElf.Kernel.Consensus
 
         public Round GetCurrentRoundInfo()
         {
-            return this[CurrentRoundNumber];
+            return CurrentRoundNumber.Value != 0 ? this[CurrentRoundNumber] : null;
         }
 
         private string GetRoundInfoToString(UInt64Value roundNumber)

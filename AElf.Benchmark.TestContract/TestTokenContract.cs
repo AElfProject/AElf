@@ -20,7 +20,7 @@ namespace AElf.Benchmark.TestContract
         public bool InitBalance(Hash addr)
         {
             //Console.WriteLine("InitBalance " + addr);
-            ulong initBalance = 10000;
+            ulong initBalance = ulong.MaxValue - 1;
             Balances.SetValue(addr, initBalance);
             var fromBal = Balances.GetValue(addr);
             //Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);

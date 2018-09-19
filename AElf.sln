@@ -123,6 +123,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Monitor", "AElf.Monito
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Concurrency.Lighthouse", "AElf.Concurrency.Lighthouse\AElf.Concurrency.Lighthouse.csproj", "{55F6997E-DB59-476B-B1D1-65FE4B6D0437}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sync.Tests", "AElf.Sync.Tests\AElf.Sync.Tests.csproj", "{887CBA61-117F-404B-BC5A-93C250908417}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -365,6 +367,10 @@ Global
 		{55F6997E-DB59-476B-B1D1-65FE4B6D0437}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55F6997E-DB59-476B-B1D1-65FE4B6D0437}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55F6997E-DB59-476B-B1D1-65FE4B6D0437}.Release|Any CPU.Build.0 = Release|Any CPU
+		{887CBA61-117F-404B-BC5A-93C250908417}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{887CBA61-117F-404B-BC5A-93C250908417}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{887CBA61-117F-404B-BC5A-93C250908417}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{887CBA61-117F-404B-BC5A-93C250908417}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

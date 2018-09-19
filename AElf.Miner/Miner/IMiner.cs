@@ -15,6 +15,6 @@ namespace AElf.Miner.Miner
         /// mining functionality
         /// </summary>
         /// <returns></returns>
-        Task<IBlock> Mine();
+        Task<IBlock> Mine(Round currentRoundInfo = null);
     }
 }

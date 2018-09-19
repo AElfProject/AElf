@@ -95,7 +95,7 @@ namespace AElf.Miner
             {
                 var client = CreateClientToSideChain(sideChainId);
                 var height =
-                    await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(sideChainId));
+                    await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(sideChainId));
 
                 // keep-alive
                 client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height);
@@ -134,7 +134,7 @@ namespace AElf.Miner
                 throw new ChainInfoNotFoundException("Unable to get parent chain info.");
             _clientToParentChain = (ClientToParentChain) CreateClient(parent.Value.Value, parent.Value.Key, false);
             var height =
-                await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(parent.Value.Key));
+                await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(parent.Value.Key));
             _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, height);
         }
 
@@ -190,7 +190,7 @@ namespace AElf.Miner
             {
                 // take side chain info
                 var targetHeight =
-                    await _chainManagerBasic.GetCurrentBlockHeightsync(ByteArrayHelpers.FromHexString(_.Key));
+                    await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(_.Key));
                 if (!_.Value.TryTake(Interval, out var blockInfo) || blockInfo.Height != targetHeight)
                     continue;
 
@@ -256,7 +256,7 @@ namespace AElf.Miner
                 return null;
             Hash parentChainId =
                 ByteArrayHelpers.FromHexString(chainId);
-            var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightsync(parentChainId);
+            var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightAsync(parentChainId);
             if (_clientToParentChain.Empty() || _clientToParentChain.First().Height != targetHeight ||
                 !_clientToParentChain.TryTake(Interval, out var blockInfo))
                 return null;

@@ -294,7 +294,7 @@ namespace AElf.Node.Protocol
                         p.EnqueueOutgoing(msg);
                 }
                 
-                BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer));
+                BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer, msgType));
             }
             catch (Exception e)
             {
