@@ -149,10 +149,10 @@ namespace AElf.Management.Commands
             var config = new GrpcLocalConfig
             {
                 LocalServerIP = "0.0.0.0",//arg.LauncherArg.ClusterIp,
-                LocalServerPort = GlobalSetting.GrpcPort,
+                LocalSideChainServerPort = GlobalSetting.GrpcPort,
                 Client = true,
                 WaitingIntervalInMillisecond = 10,
-                Server = true
+                SideChainServer = true
             };
             
             var result = JsonSerializer.Instance.Serialize(config);

@@ -28,6 +28,7 @@ message TransactionList {
 enum TransactionType {
     ContractTransaction = 0;
     DposTransaction = 1;
+    CrossChainBlockInfoTransaction = 2;
 }
 
 enum Status {
@@ -87,12 +88,14 @@ message BlockHeader {
     bytes P = 9;
     google.protobuf.Timestamp Time = 10;
     Hash ChainId = 11;
-    repeated SideChainIndexedInfo IndexedInfo = 12;
+    Hash SideChainBlockHeadersRoot = 12;
+    Hash SideChainTransactionsRoot =13;
 }
 
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
+    repeated SideChainBlockInfo IndexedInfo = 3;
 }
 
 message Block {
@@ -100,11 +103,23 @@ message Block {
     BlockBody Body = 2;
 }
 
-message SideChainIndexedInfo{
+message SideChainBlockInfo{
     uint64 Height = 1;
     Hash BlockHeaderHash = 2;
     Hash TransactionMKRoot = 3;
     Hash ChainId = 4;
+}
+
+message ParentChainBlockInfo{
+    uint64 Height = 1;
+
+    // calculation result in parent chain
+    Hash SideChainBlockHeadersRoot = 2;
+    Hash SideChainTransactionsRoot = 3;
+
+    // indexed block height from side chain 
+    repeated uint64 IndexedBlockHeight = 4;
+    Hash ChainId = 5;
 }
 
 message SmartContractRegistration {

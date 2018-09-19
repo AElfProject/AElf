@@ -20,8 +20,8 @@ namespace AElf.Miner.Tests.Grpc
         private readonly ILogger _logger;
 
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
-        private List<RequestSideChainIndexedInfo> _requestIndexedInfoList = new List<RequestSideChainIndexedInfo>();
-        private List<ResponseSideChainIndexedInfo> _responseIndexedInfoMessages = new List<ResponseSideChainIndexedInfo>();
+        private List<RequestBlockInfo> _requestIndexedInfoList = new List<RequestBlockInfo>();
+        private List<ResponseSideChainBlockInfo> _responseIndexedInfoMessages = new List<ResponseSideChainBlockInfo>();
 
         public HeaderInfoTest(ILogger logger)
         {
@@ -53,10 +53,10 @@ namespace AElf.Miner.Tests.Grpc
             return mock;
         }
 
-        /*public Mock<IAsyncEnumerator<RequestSideChainIndexedInfo>> MockEnumerator(int count)
+        /*public Mock<IAsyncEnumerator<RequestBlockInfo>> MockEnumerator(int count)
         {
-            Mock<IAsyncEnumerator<RequestSideChainIndexedInfo>> mock =
-                new Mock<IAsyncEnumerator<RequestSideChainIndexedInfo>>();
+            Mock<IAsyncEnumerator<RequestBlockInfo>> mock =
+                new Mock<IAsyncEnumerator<RequestBlockInfo>>();
             int i = 0;
             int j = 0;
             mock.Setup(rs => rs.MoveNext()).Returns(() => Task.FromResult(i++ < count));
@@ -64,10 +64,10 @@ namespace AElf.Miner.Tests.Grpc
             return mock;
         }*/
 
-        public Mock<IAsyncStreamReader<RequestSideChainIndexedInfo>> MockRequestStream(int count)
+        public Mock<IAsyncStreamReader<RequestBlockInfo>> MockRequestStream(int count)
         {
-            Mock<IAsyncStreamReader<RequestSideChainIndexedInfo>> mock =
-                new Mock<IAsyncStreamReader<RequestSideChainIndexedInfo>>();
+            Mock<IAsyncStreamReader<RequestBlockInfo>> mock =
+                new Mock<IAsyncStreamReader<RequestBlockInfo>>();
             int i = 0;
             int j = 0;
             mock.Setup(rs => rs.MoveNext(It.IsAny<CancellationToken>())).Returns(() => Task.FromResult(i++ < count));
@@ -76,12 +76,12 @@ namespace AElf.Miner.Tests.Grpc
             return mock;
         }
 
-        public Mock<IServerStreamWriter<ResponseSideChainIndexedInfo>> MockResponseStream()
+        public Mock<IServerStreamWriter<ResponseSideChainBlockInfo>> MockResponseStream()
         {
-            Mock<IServerStreamWriter<ResponseSideChainIndexedInfo>> mock =
-                new Mock<IServerStreamWriter<ResponseSideChainIndexedInfo>>();
-            mock.Setup(rs => rs.WriteAsync(It.IsAny<ResponseSideChainIndexedInfo>()))
-                .Returns<ResponseSideChainIndexedInfo>(res =>
+            Mock<IServerStreamWriter<ResponseSideChainBlockInfo>> mock =
+                new Mock<IServerStreamWriter<ResponseSideChainBlockInfo>>();
+            mock.Setup(rs => rs.WriteAsync(It.IsAny<ResponseSideChainBlockInfo>()))
+                .Returns<ResponseSideChainBlockInfo>(res =>
                 {
                     _responseIndexedInfoMessages.Add(res);
                     return Task.CompletedTask;
@@ -100,27 +100,27 @@ namespace AElf.Miner.Tests.Grpc
                 MockBlockHeader().Object
             };
             
-            _requestIndexedInfoList = new List<RequestSideChainIndexedInfo>
+            _requestIndexedInfoList = new List<RequestBlockInfo>
             {
-                new RequestSideChainIndexedInfo
+                new RequestBlockInfo
                 {
                     NextHeight = 0
                 },
-                new RequestSideChainIndexedInfo
+                new RequestBlockInfo
                 {
                     NextHeight = 1
                 },
-                new RequestSideChainIndexedInfo
+                new RequestBlockInfo
                 {
                     NextHeight = 2
                 }
             };
             
             
-            var headerInfoServer = new HeaderInfoServerImpl(MockChainService().Object, _logger);
+            var headerInfoServer = new SideChainBlockInfoRpcServerImpl(MockChainService().Object, _logger);
             var chainId = Hash.Generate();
             headerInfoServer.Init(chainId);
-            await headerInfoServer.Index(MockRequestStream(_requestIndexedInfoList.Count).Object,
+            await headerInfoServer.IndexDuplexStreaming(MockRequestStream(_requestIndexedInfoList.Count).Object,
                 MockResponseStream().Object, null);
             Assert.Equal(_requestIndexedInfoList.Count, _requestIndexedInfoList.Count);
 

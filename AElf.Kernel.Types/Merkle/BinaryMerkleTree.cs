@@ -33,7 +33,10 @@ namespace AElf.Kernel.Types.Merkle
         {
             var enumerable = hashes as Hash[] ?? hashes.ToArray();
             var hashesList = enumerable.ToList();
-            hashesList.Sort(CompareHash);
+            
+            // remove sort here
+            //hashesList.Sort(CompareHash);
+            
             foreach (var hash in hashesList)
             {
                 Nodes.Add(hash);
@@ -54,9 +57,8 @@ namespace AElf.Kernel.Types.Merkle
                 }
                 if (hashes.Count == 1) //Finally
                 {
-                    return new Hash(hashes[0].Value);
+                    return new Hash(hashes[0].GetHashBytes());
                 }
-
                 //Every time goes to a higher level.
                 var parents = new List<Hash>();
 
@@ -151,7 +153,7 @@ namespace AElf.Kernel.Types.Merkle
             return _cache[keyHash] = valueHash;
         }
         
-        private int CompareHash(Hash hash1, Hash hash2)
+        public static int CompareHash(Hash hash1, Hash hash2)
         {
             if (hash1 != null)
             {
@@ -171,7 +173,7 @@ namespace AElf.Kernel.Types.Merkle
             return -1;
         }
         
-        private int Compare(Hash x, Hash y)
+        private static int Compare(Hash x, Hash y)
         {
             var xValue = x.Value;
             var yValue = y.Value;
