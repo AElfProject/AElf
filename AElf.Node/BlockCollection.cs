@@ -19,7 +19,22 @@ namespace AElf.Node
     {
         private bool _isInitialSync = true;
 
-        public IBlockChain BlockChain => _chainService.GetBlockChain(Globals.CurrentChainId);
+        private Hash _chainId;
+        private Hash ChainId
+        {
+            get
+            {
+                if (_chainId == null)
+                {
+                    _chainId = Globals.CurrentChainId.Clone();
+                }
+
+                return _chainId;
+            }
+        }
+
+        private IBlockChain _blockChain;
+        private IBlockChain BlockChain => _blockChain ?? (_blockChain = _chainService.GetBlockChain(ChainId));
 
         /// <summary>
         /// To store branched chains.
@@ -32,7 +47,7 @@ namespace AElf.Node
         public ulong PendingBlockHeight { get; set; }
 
         public ulong SyncedHeight =>
-            _chainService.GetBlockChain(Globals.CurrentChainId).GetCurrentBlockHeightAsync().Result;
+            _chainService.GetBlockChain(ChainId).GetCurrentBlockHeightAsync().Result;
 
         public List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
 

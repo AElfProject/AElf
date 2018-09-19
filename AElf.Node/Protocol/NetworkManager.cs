@@ -490,13 +490,11 @@ namespace AElf.Node.Protocol
         /// </summary>
         /// <param name="messageMsgType"></param>
         /// <param name="payload"></param>
-        /// <param name="messageId"></param>
         /// <returns></returns>
         public async Task<int> BroadcastMessage(AElfProtocolMsgType messageMsgType, byte[] payload)
         {
             try
             {
-                
                 Message packet = NetRequestFactory.CreateMessage(messageMsgType, payload);
                 return BroadcastMessage(packet);
             }
