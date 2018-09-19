@@ -5,6 +5,8 @@ using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
+using Google.Protobuf.WellKnownTypes;
+using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.SideChain
 {
@@ -14,7 +16,9 @@ namespace AElf.Contracts.SideChain
     public static class FieldNames
     {
         public static readonly string SideChainSerialNumber = "__SideChainSerialNumber__";
-        public static readonly string SideChainInfos = "__sideChainInfos__";
+        public static readonly string SideChainInfos = "__SideChainInfos__";
+        public static readonly string ParentChainBlockInfo = "__ParentBlockInfo__";
+        public static readonly string HeightToParentChainHeight = "__HeightToParentChainHeight__";
     }
 
     #endregion Field Names
@@ -88,6 +92,13 @@ namespace AElf.Contracts.SideChain
         private readonly Map<Hash, SideChainInfo> _sideChainInfos =
             new Map<Hash, SideChainInfo>(FieldNames.SideChainInfos);
 
+        private readonly Map<UInt64Value, ParentChainBlockRootInfo> _parentChainBlockInfo =
+            new Map<UInt64Value, ParentChainBlockRootInfo>(FieldNames.ParentChainBlockInfo);
+        
+        // record self height 
+        private readonly Map<UInt64Value, UInt64Value> _heightToParentChainHeight =
+            new Map<UInt64Value, UInt64Value>(FieldNames.HeightToParentChainHeight);
+        
         #endregion Fields
         
         [View]
@@ -156,12 +167,41 @@ namespace AElf.Contracts.SideChain
             var info = _sideChainInfos[chainId];
             info.Status = SideChainStatus.Terminated;
             _sideChainInfos[chainId] = info;
-            new SideChainDisposal()
+            new SideChainDisposal
             {
                 chainId = chainId
             }.Fire();
         }
-        
+
+        public void WriteParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
+        {
+            var indexedBlockHeight = parentChainBlockInfo.IndexedBlockHeight;
+            foreach (var height in indexedBlockHeight)
+            {
+                // the parent height in which this side chain block was indexed
+                var indexedHeight = _heightToParentChainHeight.GetValue(new UInt64Value {Value = height});
+                Api.Assert(indexedHeight == null,
+                    $"Height {height} has already been indexed by parent chain at height {indexedHeight.Value}");
+            }
+            
+            ulong parentChainHeight = parentChainBlockInfo.Height;
+            var key = new UInt64Value {Value = parentChainHeight};
+            Api.Assert(_parentChainBlockInfo.GetValue(key) == null,
+                $"Already written parent chain block info at height {parentChainHeight}");
+
+            _parentChainBlockInfo[key] = new ParentChainBlockRootInfo
+            {
+                ChainId = parentChainBlockInfo.ChainId,
+                Height = parentChainHeight,
+                SideChainTransactionsRoot = parentChainBlockInfo.SideChainTransactionsRoot,
+                SideChainBlockHeadersRoot = parentChainBlockInfo.SideChainBlockHeadersRoot
+            };
+
+            foreach (var height in indexedBlockHeight)
+            {
+                _heightToParentChainHeight[new UInt64Value {Value = height}] = key;
+            }
+        }
 
         #endregion
         
@@ -172,7 +212,5 @@ namespace AElf.Contracts.SideChain
             var info = _sideChainInfos[chainId];
             return (int) info.Status;
         } 
-
     }
-    
 }

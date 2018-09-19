@@ -344,7 +344,7 @@ namespace AElf.ChainController.Rpc
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.ToHex(),
-                        ["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
+                        //["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                     },
                     ["Body"] = new JObject
                     {

@@ -290,8 +290,9 @@ namespace AElf.Network.Peers
 
             if (!authArgs.IsAuthentified)
             {
-                _logger?.Warn($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
-                peer.Dispose();
+                //_logger?.Warn($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
+                _logger?.Warn($"Peernot authentified, reason.");
+                RemovePeer(peer);
                 return;
             }
             
@@ -419,8 +420,20 @@ namespace AElf.Network.Peers
                 RemovePeer(args.Peer);
         }
 
+        public void RemovePeer(NodeData nodeData)
+        {
+            IPeer peer = _peers.FirstOrDefault(p => p.IpAddress == nodeData.IpAddress && p.Port == nodeData.Port);
+            RemovePeer(peer);
+        }
+
         public void RemovePeer(IPeer peer)
         {
+            if (peer == null)
+            {
+                _logger?.Warn("removing peer but peer is null.");
+                return;
+            }
+            
             // Will do nothing if already disposed
             peer.Dispose();
             

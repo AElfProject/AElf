@@ -277,7 +277,7 @@ namespace AElf.ChainController.TxMemPool
             return prior;
         }
 
-        public List<Transaction> GetDPoSTxs()
+        public List<Transaction> GetSystemTxs()
         {
             return _priorTxs.Values.ToList();
         }

@@ -63,6 +63,8 @@ namespace AElf.CLI
         private static void RegisterNetworkCommands(AElfCliProgram program)
         {
             program.RegisterCommand(new GetPeersCmd());
+            program.RegisterCommand(new AddPeerCommand());
+            program.RegisterCommand(new RemovePeerCommand());
             program.RegisterCommand(new GetCommandsCmd());
         }
 

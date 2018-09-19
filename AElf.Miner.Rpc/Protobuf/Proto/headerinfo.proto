@@ -3,20 +3,48 @@ syntax = "proto3";
 option csharp_namespace = "AElf.Miner.Rpc";
 import "hash.proto";
 
-message RequestSideChainIndexedInfo {
-    uint64 NextHeight = 1;
+message RequestBlockInfo {
+    Hash ChainId = 1; // parent(own) chain id
+    uint64 NextHeight = 2;
 }
 
-message ResponseSideChainIndexedInfo {
-    uint64 Height = 1;
-    Hash BlockHeaderHash = 2;
-    Hash TransactionMKRoot = 3;
-    bool Success = 4;
-    Hash ChainId = 5;
+message ResponseSideChainBlockInfo {
+    SideChainBlockInfo BlockInfo = 1;
+    bool Success = 2;
 }
 
-service HeaderInfoRpc {
-    rpc Index (stream RequestSideChainIndexedInfo) returns (stream ResponseSideChainIndexedInfo) {}
+message ResponseParentChainBlockInfo {
+    ParentChainBlockInfo BlockInfo = 1;
+    bool Success = 2;
 }
+
+service SideChainBlockInfoRpc {
+    rpc IndexDuplexStreaming (stream RequestBlockInfo) returns (stream ResponseSideChainBlockInfo) {}
+    rpc IndexServerStreaming (RequestBlockInfo) returns (stream ResponseSideChainBlockInfo) {}
+
+}
+
+service ParentChainBlockInfoRpc{
+    rpc RecordDuplexStreaming (stream RequestBlockInfo) returns (stream ResponseParentChainBlockInfo) {}
+    rpc RecordServerStreaming (RequestBlockInfo) returns (stream ResponseParentChainBlockInfo) {}
+
+}
+
+message MerkleProofMessage {
+    repeated Hash BlockMerkleProof = 1;
+    repeated Hash TransactionMerkleProof = 2;
+}
+
+message VerificationNeededMessage {
+    Hash ChainId = 1;
+    uint64 BlockHeight = 2; 
+}
+
+service MerkleProofInfoRpc {
+    rpc MerkleProofInfo (VerificationNeededMessage) returns (MerkleProofMessage) {}
+}
+
+
+
 
 
