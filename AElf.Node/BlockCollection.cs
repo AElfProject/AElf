@@ -149,6 +149,8 @@ namespace AElf.Node
 
         private void AddToPendingBlocks(PendingBlock pendingBlock)
         {
+            _logger?.Trace("Adding to pending blocks: " + pendingBlock.Block.GetHash().ToHex());
+            PendingBlocks.Print();
             PendingBlocks.Add(pendingBlock);
             PendingBlocks.SortByBlockIndex();
             PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);

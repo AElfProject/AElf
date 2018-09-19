@@ -176,7 +176,7 @@ namespace AElf.ChainController.TxMemPoolBM
         }
 
         /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo,Hash blockProducerAddress,  double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash blockProducerAddress, double intervals = 150)
         {
             // TODO: Improve performance
             var txs = _dPoSTxs.Values.ToList();
@@ -239,6 +239,10 @@ namespace AElf.ChainController.TxMemPoolBM
                 }
                 else
                 {
+                    if (currentRoundInfo == null)
+                    {
+                        continue;
+                    }
                     var inValue = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
                         new[] {typeof(UInt64Value), typeof(StringValue), typeof(Hash)})[2] as Hash;
                     var outValue = currentRoundInfo.BlockProducers[transaction.From.ToHex().RemoveHexPrefix()].OutValue;

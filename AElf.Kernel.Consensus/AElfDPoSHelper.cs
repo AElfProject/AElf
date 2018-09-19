@@ -49,7 +49,6 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception)
                 {
-                    _logger?.Info("Failed to get current round number.\n");
                     return new UInt64Value {Value = 0};
                 }
             }
@@ -568,7 +567,7 @@ namespace AElf.Kernel.Consensus
 
         public Round GetCurrentRoundInfo()
         {
-            return this[CurrentRoundNumber];
+            return CurrentRoundNumber.Value != 0 ? this[CurrentRoundNumber] : null;
         }
 
         private string GetRoundInfoToString(UInt64Value roundNumber)
