@@ -163,6 +163,10 @@ namespace AElf.Node.Protocol
                     {
                         receivedTxs.Add(transactionBytes);
                     }
+                    else if (result == TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted)
+                    {
+                        SetTransactions(receivedTxs);
+                    }
                     else
                     {
                         _logger?.Warn($"Failed to add the following transaction to the pool (reason: {result}): "
