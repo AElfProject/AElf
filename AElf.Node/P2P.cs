@@ -60,11 +60,26 @@ namespace AElf.Node
 
         internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
         {
+            if (message?.Payload == null)
+            {
+                _logger?.Warn($"Block request from [{args.Peer}], message/payload is null.");
+                return;
+            }
+                
             try
             {
                 var breq = BlockRequest.Parser.ParseFrom(message.Payload);
+
+                if (breq.Height <= 0)
+                {
+                    _logger?.Warn($"Cannot handle request for block because height {breq.Height} is not valid.");
+                    return;
+                }
+                
                 var block = await _handler.GetBlockAtHeight(breq.Height);
+                
                 Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Block, block.ToByteArray());
+                
                 if (message.HasId)
                     req.Id = message.Id;
 
@@ -116,7 +131,7 @@ namespace AElf.Node
 
         private void ProcessPeerMessage(object sender, EventArgs e)
         {
-            if (sender != null && e is NetMessageReceivedEventArgs args && args.Message != null)
+            if (sender != null && e is NetMessageReceivedEventArgs args && args?.PeerMessage?.Peer != null && args.Message != null)
             {
                 _messageQueue.Add(args);
             }
