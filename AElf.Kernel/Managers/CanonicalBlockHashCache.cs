@@ -80,7 +80,7 @@ namespace AElf.Kernel.Managers
                     {
                         break;
                     }
-                    
+
                     await _lightChain.GetCanonicalHashAsync(height - i);
                 }
             }
@@ -90,7 +90,7 @@ namespace AElf.Kernel.Managers
         {
             var curHeight = await _lightChain.GetCurrentBlockHeightAsync();
             var curHeader = await _lightChain.GetHeaderByHeightAsync(curHeight);
-            await OnNewBlockHeader((BlockHeader)curHeader);
+            await OnNewBlockHeader((BlockHeader) curHeader);
         }
     }
 }

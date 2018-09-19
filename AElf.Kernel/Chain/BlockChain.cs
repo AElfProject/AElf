@@ -95,7 +95,7 @@ namespace AElf.Kernel
 
             for (var i = currentHeight - 1; i > height; i--)
             {
-                await _dataStore.RemoveAsync<Hash>(GetHeightHash(currentHeight).OfType(HashType.CanonicalHash));
+                await _dataStore.RemoveAsync<Hash>(GetHeightHash(i).OfType(HashType.CanonicalHash));
             }
 
             var hash = await GetCanonicalHashAsync(height);
