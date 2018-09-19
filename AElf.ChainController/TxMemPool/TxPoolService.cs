@@ -151,28 +151,8 @@ namespace AElf.ChainController.TxMemPool
             throw new NotImplementedException();
         }
 
-        public Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash blockProducerAddress,
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash blockProducerAddress,
             double intervals = 150)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// persist txs with storage
-        /// </summary>
-        /// <param name="txs"></param>
-        /// <returns></returns>
-        private void PersistTxs(IEnumerable<Transaction> txs)
-        {
-            foreach (var t in txs)
-            {
-                // TODO: persist tx
-                //await _transactionManager.AddTransactionAsync(tx);
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(Hash blockProducerAddress = null, double intervals = 150)
         {
             // get prior tx
             var prior = await PriorTxLock.WriteLock(() =>
@@ -281,6 +261,20 @@ namespace AElf.ChainController.TxMemPool
             }
                 
             return prior;
+        }
+
+        /// <summary>
+        /// persist txs with storage
+        /// </summary>
+        /// <param name="txs"></param>
+        /// <returns></returns>
+        private void PersistTxs(IEnumerable<Transaction> txs)
+        {
+            foreach (var t in txs)
+            {
+                // TODO: persist tx
+                //await _transactionManager.AddTransactionAsync(tx);
+            }
         }
 
         public List<Transaction> GetSystemTxs()

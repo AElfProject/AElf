@@ -175,7 +175,10 @@ namespace AElf.ChainController.TxMemPoolBM
             // TODO: Improve performance
             var txs = _systemTxs.Values.ToList();
 
-            RemoveDirtySystemTxs(txs, blockProducerAddress, currentRoundInfo);
+            if (currentRoundInfo != null)
+            {
+                RemoveDirtySystemTxs(txs, blockProducerAddress, currentRoundInfo);
+            }
             
             _logger.Debug($"Got {txs.Count} System tx");
             if ((ulong) _contractTxs.Count < Least)
