@@ -227,7 +227,9 @@ namespace AElf.ChainController.TxMemPoolBM
             foreach (var transaction in readyTxs)
             {
                 if (transaction.From == blockProducerAddress)
+                {
                     continue;
+                }
                 
                 if (transaction.Type == TransactionType.CrossChainBlockInfoTransaction || 
                     transaction.Type == TransactionType.DposTransaction && transaction.MethodName != inValueTxName)
@@ -260,6 +262,12 @@ namespace AElf.ChainController.TxMemPoolBM
                 // One BP can only publish in value once in one block.
                 toRemove.AddRange(readyTxs.FindAll(tx => tx.MethodName == inValueTxName).GroupBy(tx => tx.From)
                     .Where(g => g.Count() > 1).SelectMany(g => g));
+            }
+
+            var count = readyTxs.Count(tx => tx.MethodName.Contains("UpdateAElfDPoS"));
+            if (count > 1)
+            {
+                toRemove.AddRange(readyTxs.Where(tx => tx.MethodName.Contains("UpdateAElfDPoS")).Take(count - 1));
             }
 
             foreach (var transaction in toRemove)
