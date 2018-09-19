@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Easy.MessageHub;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -101,7 +103,7 @@ namespace AElf.Kernel
             var hash = await GetCanonicalHashAsync(height);
             
             await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
-            
+            MessageHub.Instance.Publish(new RevertedToBlockHeader(((BlockHeader) await GetHeaderByHashAsync(currentHash))));
             return txs;
         }
     }
