@@ -8,15 +8,15 @@ namespace AElf.Kernel
     public partial class BlockBody : IBlockBody
     {
         public int TransactionsCount => Transactions.Count;
-        private Hash _txMtRoot;
         public Hash SideChainBlockHeadersRoot { get; private set; }
         public Hash SideChainTransactionsRoot{ get; private set; }
         private Hash _blockBodyHash;
+        public BinaryMerkleTree BinaryMerkleTree { get; } = new BinaryMerkleTree();
 
         private Hash CalculateBodyHash()
         {
             _blockBodyHash = BlockHeader.CalculateHashWith(
-                HashExtensions.CalculateHashOfHashList(_txMtRoot, SideChainBlockHeadersRoot ?? CalculateSideChainBlockHeadersRoot(),
+                HashExtensions.CalculateHashOfHashList(BinaryMerkleTree.Root, SideChainBlockHeadersRoot ?? CalculateSideChainBlockHeadersRoot(),
                     SideChainTransactionsRoot?? CalculateSideChainTransactionsRoot()));
             return _blockBodyHash;
         }
@@ -71,19 +71,19 @@ namespace AElf.Kernel
         /// calculate 
         /// </summary>
         /// <returns></returns>
-        public Hash CalculateTransactionMerkleTreeRoot()
+        public Hash CalculateMerkleTreeRoots()
         {
             if (TransactionsCount == 0)
                 return Hash.Default;
-            if (_txMtRoot != null)
-                return _txMtRoot;
-            var merkleTree = new BinaryMerkleTree();
-            merkleTree.AddNodes(Transactions);
+            if (BinaryMerkleTree.Root != null)
+                return BinaryMerkleTree.Root;
+            BinaryMerkleTree.AddNodes(Transactions);
+            BinaryMerkleTree.ComputeRootHash();
             
-            _txMtRoot = merkleTree.ComputeRootHash();
+            // side chain info
             CalculateSideChainBlockHeadersRoot();
             CalculateSideChainTransactionsRoot();
-            return _txMtRoot;
+            return BinaryMerkleTree.Root;
         }
 
         /// <inheritdoc/>

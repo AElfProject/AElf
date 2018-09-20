@@ -37,6 +37,7 @@ namespace AElf.Miner.Miner
         private readonly ILogger _logger;
         private IBlockChain _blockChain;
         private readonly ClientManager _clientManager;
+        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
 
         private IMinerConfig Config { get; }
 
@@ -44,7 +45,7 @@ namespace AElf.Miner.Miner
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
-            ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager)
+            ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -55,6 +56,7 @@ namespace AElf.Miner.Miner
             _transactionResultManager = transactionResultManager;
             _logger = logger;
             _clientManager = clientManager;
+            _binaryMerkleTreeManager = binaryMerkleTreeManager;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
@@ -106,6 +108,9 @@ namespace AElf.Miner.Miner
                     _txPoolService.Revert(rollback);
                     // insert txs to db
                     InsertTxs(executed, results, block);
+                    // update merkle tree
+                    _binaryMerkleTreeManager.AddBinaryMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
+                        block.Header.Index);
                     return block;
                 }
                 catch (Exception e)
@@ -258,7 +263,7 @@ namespace AElf.Miner.Miner
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
         /// <param name="block"></param>
-        private async Task InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
+        private void InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();

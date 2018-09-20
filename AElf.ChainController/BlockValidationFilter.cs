@@ -18,7 +18,7 @@ namespace AElf.ChainController
                 return Task.FromResult(ValidationError.InvalidBlock);
             
             ValidationError res = ValidationError.Success;
-            if(block.Body.CalculateTransactionMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
+            if(block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
                 res = ValidationError.IncorrectTxMerkleTreeRoot;
             else if (block.Body.SideChainTransactionsRoot != block.Header.SideChainTransactionsRoot
                      || block.Body.SideChainBlockHeadersRoot != block.Header.SideChainBlockHeadersRoot)

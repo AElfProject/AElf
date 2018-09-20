@@ -122,6 +122,18 @@ namespace AElf.Kernel
                 new UInt64Value {Value = height}.CalculateHash());
         }
         
+        /// <summary>
+        /// Calculate pointer hash for <see cref="BinaryMerkleTree"/> using chainId and chain height.
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForGettingMerkleTreeByHeight(Hash chainId, ulong height)
+        {
+            return HashExtensions.CalculateHashOfHashList(chainId, "MerkleTree".CalculateHash(),
+                new UInt64Value {Value = height}.CalculateHash());
+        }
+        
         #endregion
 
         #region Calculate pointer for account

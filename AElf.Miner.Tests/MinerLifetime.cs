@@ -45,7 +45,7 @@ namespace AElf.Kernel.Tests.Miner
 
         private MockSetup _mock;
 
-        public MinerLifetime(MockSetup mock, ILogger logger)
+        public MinerLifetime(MockSetup mock)
         {
             _mock = mock;
         }
