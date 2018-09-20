@@ -250,7 +250,12 @@ namespace AElf.Node
             if (result == null)
                 return null;
 
-            DPoS.ConsensusDisposable.Dispose();
+            if (DPoS.ConsensusDisposable != null)
+            {
+                DPoS.ConsensusDisposable.Dispose();
+                _logger?.Trace("Disposed previous consensus observables list.");
+            }
+            
             if (SyncedHeight < result.StartHeight)
             {
                 var oldBlocks = new List<PendingBlock>();
