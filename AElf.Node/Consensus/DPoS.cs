@@ -82,7 +82,9 @@ namespace AElf.Kernel.Node
             _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
             _contractAccountAddressHash = contractAccountHash;
 
-            Globals.BlockProducerNumber = MinersConfig.Instance.Producers.Count;
+            var count = MinersConfig.Instance.Producers.Count;
+            Globals.BlockProducerNumber = count;
+            _logger?.Trace("Block Producer nodes count:" + count);
             if (Globals.BlockProducerNumber == 1)
             {
                 if (Helper.CanRecoverDPoSInformation())
