@@ -113,7 +113,7 @@ namespace AElf.ChainController.TxMemPoolBM
             }
             if (canonicalHash == null)
             {
-                throw new Exception($"Unable to get canonical hash for height {tx.RefBlockNumber}");
+                throw new Exception($"Unable to get canonical hash for height {tx.RefBlockNumber} - current height: {curHeight}");
             }
             var res = canonicalHash.CheckPrefix(tx.RefBlockPrefix)
                 ? TxValidation.TxInsertionAndBroadcastingError.Valid

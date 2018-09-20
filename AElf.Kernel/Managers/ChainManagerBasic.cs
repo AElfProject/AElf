@@ -2,17 +2,20 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
+using NLog;
 
 namespace AElf.Kernel.Managers
 {
     public class ChainManagerBasic : IChainManagerBasic
     {
         private readonly IDataStore _dataStore;
+        private readonly ILogger _logger;
         private readonly Hash _sideChainIdListKey = "SideChainIdList".CalculateHash();
 
-        public ChainManagerBasic(IDataStore dataStore)
+        public ChainManagerBasic(IDataStore dataStore, ILogger logger = null)
         {
             _dataStore = dataStore;
+            _logger = logger;
         }
 
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)

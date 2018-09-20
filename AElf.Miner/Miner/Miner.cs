@@ -23,6 +23,7 @@ using Status = AElf.Kernel.Status;
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
 {
+    // ReSharper disable IdentifierTypo
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
@@ -72,6 +73,13 @@ namespace AElf.Miner.Miner
 
                     await GenerateTransactionWithParentChainBlockInfo();
                     var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
+
+                    var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
+                    _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
+                    foreach (var transaction in dposTxs)
+                    {
+                        _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName} from {transaction.From.ToHex()}");
+                    }
                     
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0

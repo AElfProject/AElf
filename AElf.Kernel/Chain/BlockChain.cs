@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Easy.MessageHub;
+using NLog;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -11,13 +14,14 @@ namespace AElf.Kernel
     {
         private readonly ITransactionManager _transactionManager;
 
-        private readonly List<BackupChain> _backupChains = new List<BackupChain>();
-        
+        private readonly ILogger _logger;
+
         public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
-            ITransactionManager transactionManager, IDataStore dataStore) : base(
+            ITransactionManager transactionManager, IDataStore dataStore, ILogger logger = null) : base(
             chainId, chainManager, blockManager, dataStore)
         {
             _transactionManager = transactionManager;
+            _logger = logger;
         }
 
         public IBlock CurrentBlock
@@ -95,13 +99,15 @@ namespace AElf.Kernel
 
             for (var i = currentHeight - 1; i > height; i--)
             {
-                await _dataStore.RemoveAsync<Hash>(GetHeightHash(currentHeight).OfType(HashType.CanonicalHash));
+                var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
+                h.Height = i;
+                await _dataStore.RemoveAsync<Hash>(h);
             }
 
             var hash = await GetCanonicalHashAsync(height);
             
             await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
-            
+            MessageHub.Instance.Publish(new RevertedToBlockHeader(((BlockHeader) await GetHeaderByHashAsync(currentHash))));
             return txs;
         }
     }
