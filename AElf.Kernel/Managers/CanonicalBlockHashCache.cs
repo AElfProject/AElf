@@ -60,7 +60,7 @@ namespace AElf.Kernel.Managers
             else
             {
                 // Switch fork
-                //_blocks.Clear();
+                _blocks.Clear();
                 AddToBlocks(height, header.GetHash());
             }
 

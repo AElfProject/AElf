@@ -167,7 +167,7 @@ namespace AElf.Node
         {
             PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
             _logger?.Trace("Adding to pending blocks: " + pendingBlock.Block.GetHash().ToHex());
-            PendingBlocks.Print();
+            PrintPendingBlocks(PendingBlocks);
             PendingBlocks.Add(pendingBlock);
             PendingBlocks.SortByBlockIndex();
         }
@@ -199,7 +199,7 @@ namespace AElf.Node
 
         private List<Transaction> AddBlockToBranchedChains(PendingBlock pendingBlock)
         {
-            PendingBlocks.Print();
+            PrintPendingBlocks(PendingBlocks);
 
             _logger?.Trace(
                 $"Ready to add pending block height: {pendingBlock.Block.Header.Index}\nBlock number of each round: {Globals.BlockNumberOfEachRound}\nPending block height or Synced height: {(PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight)}");
@@ -266,7 +266,7 @@ namespace AElf.Node
             foreach (var branchedChain in _branchedChains)
             {
                 _logger?.Trace(flag++ + ":");
-                branchedChain.GetPendingBlocks().Print();
+                PrintPendingBlocks(branchedChain.GetPendingBlocks());
             }
 
             var result = AdjustBranchedChains();
@@ -373,6 +373,22 @@ namespace AElf.Node
             }
 
             return pendingBlocks;
+        }
+
+        private void PrintPendingBlocks(List<PendingBlock> pendingBlocks)
+        {
+            if (pendingBlocks.IsNullOrEmpty())
+            {
+                _logger?.Trace("Current PendingBlocks list is empty.");
+            }
+            else
+            {
+                _logger?.Trace("Current PendingBlocks:");
+                foreach (var pendingBlock in pendingBlocks)
+                {
+                    _logger?.Trace($"{pendingBlock.Block.GetHash().ToHex()} - {pendingBlock.Block.Header.Index}");
+                }
+            }
         }
     }
 }
