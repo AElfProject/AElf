@@ -265,7 +265,7 @@ namespace AElf.Node
             var flag = 1;
             foreach (var branchedChain in _branchedChains)
             {
-                Console.WriteLine(flag++ + ":");
+                _logger?.Trace(flag++ + ":");
                 branchedChain.GetPendingBlocks().Print();
             }
 
