@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 using AElf.ChainController.TxMemPool;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.ChainController.TxMemPoolBM
 {
+    // ReSharper disable InconsistentNaming
     public class TxPoolServiceBM : ITxPoolService
     {
         private readonly ILogger _logger;
@@ -125,12 +128,12 @@ namespace AElf.ChainController.TxMemPoolBM
                 if (tx.Type == TransactionType.ContractTransaction)
                 {
                     AddContractTransaction(tx);
-                    
                 }
-                else
+                else if (tx.Type != TransactionType.DposTransaction)
                 {
                     AddSystemTransaction(tx);
                 }
+
                 tx.Unclaim();
             }
 
@@ -167,12 +170,15 @@ namespace AElf.ChainController.TxMemPoolBM
         }
 
         /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(Hash blockProducerAddress, double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash blockProducerAddress, double intervals = 150)
         {
             // TODO: Improve performance
             var txs = _systemTxs.Values.ToList();
 
-            RemoveDirtySystemTxs(txs, blockProducerAddress);
+            if (currentRoundInfo != null)
+            {
+                RemoveDirtySystemTxs(txs, blockProducerAddress, currentRoundInfo);
+            }
             
             _logger.Debug($"Got {txs.Count} System tx");
             if ((ulong) _contractTxs.Count < Least)
@@ -214,19 +220,35 @@ namespace AElf.ChainController.TxMemPoolBM
             return txs;
         }
         
-        private void RemoveDirtySystemTxs(List<Transaction> readyTxs, Hash blockProducerAddress)
+        private void RemoveDirtySystemTxs(List<Transaction> readyTxs, Hash blockProducerAddress, Round currentRoundInfo)
         {
             const string inValueTxName = "PublishInValue";
             var toRemove = new List<Transaction>();
             foreach (var transaction in readyTxs)
             {
                 if (transaction.From == blockProducerAddress)
+                {
                     continue;
+                }
                 
                 if (transaction.Type == TransactionType.CrossChainBlockInfoTransaction || 
                     transaction.Type == TransactionType.DposTransaction && transaction.MethodName != inValueTxName)
                 {
                     toRemove.Add(transaction);
+                }
+                else
+                {
+                    if (currentRoundInfo == null)
+                    {
+                        continue;
+                    }
+                    var inValue = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
+                        new[] {typeof(UInt64Value), typeof(StringValue), typeof(Hash)})[2] as Hash;
+                    var outValue = currentRoundInfo.BlockProducers[transaction.From.ToHex().RemoveHexPrefix()].OutValue;
+                    if (outValue == inValue.CalculateHash())
+                    {
+                        toRemove.Add(transaction);
+                    }
                 }
             }
 
@@ -241,16 +263,22 @@ namespace AElf.ChainController.TxMemPoolBM
                 toRemove.AddRange(readyTxs.FindAll(tx => tx.MethodName == inValueTxName).GroupBy(tx => tx.From)
                     .Where(g => g.Count() > 1).SelectMany(g => g));
             }
-            
+
+            var count = readyTxs.Count(tx => tx.MethodName.Contains("UpdateAElfDPoS"));
+            if (count > 1)
+            {
+                toRemove.AddRange(readyTxs.Where(tx => tx.MethodName.Contains("UpdateAElfDPoS")).Take(count - 1));
+            }
+
             foreach (var transaction in toRemove)
             {
                 readyTxs.Remove(transaction);
             }
         }
-        
+
         public List<Transaction> GetSystemTxs()
         {
-            return _systemTxs.Values.ToList();
+            return _systemTxs.Values.Where(tx => tx.Type == TransactionType.DposTransaction).ToList();
         }
 
         /// <inheritdoc/>

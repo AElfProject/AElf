@@ -42,8 +42,8 @@ namespace AElf.SmartContract
         }
 
         /// <summary>
-        /// To dictinct DataProviders of same account and same level.
-        /// Using a string value is just a choise, actually we can use any type of value, even integer.
+        /// To distinct DataProviders of same account and same level.
+        /// Using a string value is just a choice, actually we can use any type of value, even integer.
         /// </summary>
         private readonly string _dataProviderKey;
 
@@ -90,14 +90,14 @@ namespace AElf.SmartContract
             {
                 throw new InvalidOperationException("DataPath: I'm not OK.");
             }
-            
+
             dataPath.Type = typeof(T).Name;
-            
+
             await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
 
             StateCache[dataPath] = new StateCache(obj);
         }
-        
+
         private StateCache GetStateAsync(Hash keyHash)
         {
             var dataPath = _dataPath.Clone();
@@ -111,8 +111,9 @@ namespace AElf.SmartContract
             {
                 return state;
             }
-            
-            return null;;
+
+            return null;
+            ;
         }
 
         /// <inheritdoc />
@@ -132,13 +133,13 @@ namespace AElf.SmartContract
             {
                 throw new InvalidOperationException("DataPath: I'm not OK.");
             }
-            
+
             //Directly set to database.
             await _stateDictator.SetDataAsync(dataPath.ResourcePointerHash, obj);
             //Set path hash - pointer hash.
             await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
         }
-        
+
         /// <summary>
         /// Get data from database.
         /// </summary>
@@ -152,14 +153,14 @@ namespace AElf.SmartContract
             {
                 throw new InvalidOperationException("DataPath: I'm not OK.");
             }
-            
+
             //Get resource pointer.
             var pointerHash = await _stateDictator.GetHashAsync(dataPath.ResourcePathHash);
             if (pointerHash == null)
             {
                 return default(T);
             }
-            
+
             return await _stateDictator.GetDataAsync<T>(pointerHash);
         }
     }

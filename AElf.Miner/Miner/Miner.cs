@@ -60,10 +60,11 @@ namespace AElf.Miner.Miner
         }
 
         /// <summary>
-        /// mine process
+        /// Mine process.
         /// </summary>
+        /// <param name="currentRoundInfo"></param>
         /// <returns></returns>
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> Mine(Round currentRoundInfo = null)
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
             using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
@@ -75,7 +76,7 @@ namespace AElf.Miner.Miner
                         return null;
 
                     await GenerateTransactionWithParentChainBlockInfo();
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync(_stateDictator.BlockProducerAccountAddress);
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
                     
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
@@ -252,7 +253,7 @@ namespace AElf.Miner.Miner
         }
 
         /// <summary>
-        /// update database
+        /// Update database
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
@@ -275,7 +276,7 @@ namespace AElf.Miner.Miner
         }
 
         /// <summary>
-        /// generate block
+        /// Generate block
         /// </summary>
         /// <param name="chainId"></param>
         /// <param name="results"></param>
@@ -323,7 +324,7 @@ namespace AElf.Miner.Miner
         }
 
         /// <summary>
-        /// generate block header
+        /// Generate block header
         /// </summary>
         /// <param name="chainId"></param>
         /// <param name="merkleTreeRootForTransaction"></param>
@@ -377,7 +378,7 @@ namespace AElf.Miner.Miner
         }
         
         /// <summary>
-        /// start mining
+        /// Start mining
         /// init clients to side chain node 
         /// </summary>
         public void Init(ECKeyPair nodeKeyPair)
@@ -392,7 +393,7 @@ namespace AElf.Miner.Miner
         }
 
         /// <summary>
-        /// stop mining
+        /// Stop mining
         /// </summary>
         public void Close()
         {

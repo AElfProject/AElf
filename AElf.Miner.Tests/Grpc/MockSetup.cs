@@ -225,7 +225,7 @@ namespace AElf.Miner.Tests.Grpc
         public Mock<IChainManagerBasic> MockChainManager()
         {
             var mock = new Mock<IChainManagerBasic>();
-            mock.Setup(cm => cm.GetCurrentBlockHeightsync(It.IsAny<Hash>())).Returns(() =>
+            mock.Setup(cm => cm.GetCurrentBlockHeightAsync(It.IsAny<Hash>())).Returns(() =>
             {
                 var k = _i;
                 return Task.FromResult(k);

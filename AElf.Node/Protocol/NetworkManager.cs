@@ -294,7 +294,7 @@ namespace AElf.Node.Protocol
                         p.EnqueueOutgoing(msg);
                 }
                 
-                BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer));
+                BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer, msgType));
             }
             catch (Exception e)
             {
@@ -342,9 +342,15 @@ namespace AElf.Node.Protocol
         
         public void QueueBlockRequestByIndex(int index)
         {
+            if (index <= 0)
+            {
+                _logger?.Warn($"Cannot request block because height {index} is not valid.");
+                return;
+            }
+            
             try
             {
-                Peer selectedPeer = (Peer)_peers.FirstOrDefault();
+                IPeer selectedPeer = _peers.FirstOrDefault();
             
                 if(selectedPeer == null)
                     return;
@@ -352,6 +358,12 @@ namespace AElf.Node.Protocol
                 // Create the request object
                 BlockRequest br = new BlockRequest { Height = index };
                 Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
+
+                if (message.Payload == null)
+                {
+                    _logger?.Warn($"Request for block at height {index} failed because payload is null.");
+                    return;   
+                }
                 
                 // Select peer for request
                 TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);

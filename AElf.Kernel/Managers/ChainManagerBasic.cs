@@ -60,7 +60,7 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        public async Task<ulong> GetCurrentBlockHeightsync(Hash chainId)
+        public async Task<ulong> GetCurrentBlockHeightAsync(Hash chainId)
         {
             var key = chainId.OfType(HashType.ChainHeight);
             var height = await _dataStore.GetAsync<UInt64Value>(key);

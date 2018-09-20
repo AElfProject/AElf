@@ -148,7 +148,7 @@ namespace AElf.Kernel
         {
             if (hashes[0] == null)
             {
-                throw new InvalidOperationException("Cannot calculate hash value with null.");
+                return Hash.Zero;
             }
             
             if (hashes.Length == 1)

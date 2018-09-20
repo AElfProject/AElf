@@ -40,7 +40,6 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private readonly Map<UInt64Value, Round> _dPoSInfoMap;
 
-        // ReSharper disable once InconsistentNaming
         private readonly Map<UInt64Value, StringValue> _eBPMap;
 
         private readonly PbField<Timestamp> _timeForProducingExtraBlockField;
@@ -48,6 +47,8 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap;
 
         private readonly Int32Field _miningIntervalField;
+
+        private readonly Map<UInt64Value, Int64Value> _roundHashMap;
 
         #endregion
 
@@ -60,6 +61,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             _timeForProducingExtraBlockField = collection.TimeForProducingExtraBlockField;
             _firstPlaceMap = collection.FirstPlaceMap;
             _miningIntervalField = collection.MiningIntervalField;
+            _roundHashMap = collection.RoundHashMap;
         }
 
         /// <inheritdoc />
@@ -70,7 +72,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// 4. Set first place of round 1 and 2 using AElfDPoSInformation;
         /// 5. Set DPoS information of first round to map;
         /// 6. Set EBP of round 1 and 2;
-        /// 7. Set Extra Block mining timeslot of current round (actually round 1).
+        /// 7. Set Extra Block mining time slot of current round (actually round 1).
         /// </summary>
         /// <param name="args">
         /// 3 args:
@@ -148,8 +150,8 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             // 5. Set DPoS information of first round to map;
             try
             {
-                await SetDPoSInfoToMap(round1, dPoSInfo);
-                await SetDPoSInfoToMap(round2, dPoSInfo);
+                await SetDPoSInfoToMap(round1, dPoSInfo.Rounds[0]);
+                await SetDPoSInfoToMap(round2, dPoSInfo.Rounds[1]);
             }
             catch (Exception e)
             {
@@ -167,10 +169,10 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 ConsoleWriteLine(nameof(Initialize), "Failed to set Extra Block Producer.", e);
             }
 
-            // 7. Set Extra Block mining timeslot of current round (actually round 1);
+            // 7. Set Extra Block mining time slot of current round (actually round 1);
             try
             {
-                await SetExtraBlockMiningTimeslotOfSpecificRound(round1, dPoSInfo);
+                await SetExtraBlockMiningTimeSlotOfSpecificRound(round1, dPoSInfo);
             }
             catch (Exception e)
             {
@@ -297,7 +299,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// <summary>
         /// Checking steps:
         /// 1. Contained by BlockProducer.Nodes;
-        /// 2. Timestamp sitting in correct timeslot of current round, or later than extra block timeslot
+        /// 2. Timestamp sitting in correct time slot of current round, or later than extra block timeslot
         ///     if Extra Block Producer failed to produce extra block.
         /// </summary>
         /// <param name="args">
@@ -327,12 +329,13 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 return false;
             }
 
-            // 2. Timestamp sitting in correct timeslot of current round;
-            var timeslotOfBlockProducer = (await GetBPInfoOfCurrentRound(accountAddress)).TimeSlot;
-            var endOfTimeslotOfBlockProducer = GetTimestampWithOffset(timeslotOfBlockProducer, Interval);
-            var timeslotOfEBP = await _timeForProducingExtraBlockField.GetAsync();
-            return CompareTimestamp(timestamp, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, timestamp) ||
-                   CompareTimestamp(timestamp, timeslotOfEBP);
+            // 2. Timestamp sitting in correct time slot of current round;
+            var timeSlotOfBlockProducer = (await GetBPInfoOfCurrentRound(accountAddress)).TimeSlot;
+            var endOfTimeSlotOfBlockProducer = GetTimestampWithOffset(timeSlotOfBlockProducer, Interval);
+            var timeSlotOfEBP = await _timeForProducingExtraBlockField.GetAsync();
+            return CompareTimestamp(timestamp, timeSlotOfBlockProducer) &&
+                   CompareTimestamp(endOfTimeSlotOfBlockProducer, timestamp) ||
+                   CompareTimestamp(timestamp, timeSlotOfEBP);
         }
 
         #region Private Methods
@@ -370,19 +373,16 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await _firstPlaceMap.SetValueToDatabaseAsync(roundNumber, accountAddress);
         }
 
-        private async Task SetDPoSInfoToMap(UInt64Value roundNumber, AElfDPoSInformation info)
-        {
-            await _dPoSInfoMap.SetValueToDatabaseAsync(roundNumber, info.GetRoundInfo(roundNumber.Value));
-        }
-
         private async Task SetDPoSInfoToMap(UInt64Value roundNumber, Round roundInfo)
         {
             await _dPoSInfoMap.SetValueToDatabaseAsync(roundNumber, roundInfo);
+            await _roundHashMap.SetValueToDatabaseAsync(roundNumber, new Int64Value {Value = roundInfo.RoundId});
         }
 
         private async Task SetExtraBlockProducerOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)
         {
-            await _eBPMap.SetValueToDatabaseAsync(roundNumber, info.GetExtraBlockProducerOfSpecificRound(roundNumber.Value));
+            await _eBPMap.SetValueToDatabaseAsync(roundNumber,
+                info.GetExtraBlockProducerOfSpecificRound(roundNumber.Value));
         }
 
         private async Task SetExtraBlockProducerOfSpecificRound(UInt64Value roundNumber, StringValue extraBlockProducer)
@@ -390,22 +390,20 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await _eBPMap.SetValueToDatabaseAsync(roundNumber, extraBlockProducer);
         }
 
-        private async Task SetExtraBlockMiningTimeslotOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)
+        private async Task SetExtraBlockMiningTimeSlotOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)
         {
-            var lastMinerTimeslot = info.GetLastBlockProducerTimeslotOfSpecificRound(roundNumber.Value);
-            var timeslot = GetTimestampWithOffset(lastMinerTimeslot, Interval);
-            await _timeForProducingExtraBlockField.SetAsync(timeslot);
+            var lastMinerTimeSlot = info.GetLastBlockProducerTimeslotOfSpecificRound(roundNumber.Value);
+            var timeSlot = GetTimestampWithOffset(lastMinerTimeSlot, Interval);
+            await _timeForProducingExtraBlockField.SetAsync(timeSlot);
         }
 
-        private async Task SetExtraBlockMiningTimeslotOfSpecificRound(Timestamp timestamp)
+        private async Task SetExtraBlockMiningTimeSlotOfSpecificRound(Timestamp timestamp)
         {
             await _timeForProducingExtraBlockField.SetAsync(timestamp);
         }
 
-        // ReSharper disable once InconsistentNaming
         private async Task SupplyDPoSInformationOfCurrentRound(Round currentRoundInfo)
         {
-            // ReSharper disable once InconsistentNaming
             var currentRoundInfoFromDPoSMap = new Round();
 
             try
@@ -421,7 +419,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             {
                 foreach (var infoPair in currentRoundInfoFromDPoSMap.BlockProducers)
                 {
-                    //If one Block Producer failed to pulish his in value (with a tx),
+                    //If one Block Producer failed to publish his in value (with a tx),
                     //it means maybe something wrong happened to him.
                     if (infoPair.Value.InValue != null && infoPair.Value.OutValue != null)
                         continue;
@@ -450,7 +448,6 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await SetCurrentRoundInfo(currentRoundInfoFromDPoSMap);
         }
 
-        // ReSharper disable once InconsistentNaming
         private async Task SetDPoSInformationOfNextRound(Round nextRoundInfo, StringValue nextExtraBlockProducer)
         {
             //Update Current Round Number.
@@ -468,10 +465,11 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await SetDPoSInfoToMap(newRoundNumber, nextRoundInfo);
 
             //Update First Place.
-            await SetFirstPlaceOfSpecificRound(newRoundNumber, new StringValue {Value = nextRoundInfo.BlockProducers.First().Key});
+            await SetFirstPlaceOfSpecificRound(newRoundNumber,
+                new StringValue {Value = nextRoundInfo.BlockProducers.First().Key});
 
-            //Update Extra Block Timeslot.
-            await SetExtraBlockMiningTimeslotOfSpecificRound(GetTimestampWithOffset(
+            //Update Extra Block Time Slot.
+            await SetExtraBlockMiningTimeSlotOfSpecificRound(GetTimestampWithOffset(
                 nextRoundInfo.BlockProducers.Last().Value.TimeSlot, Interval));
 
             ConsoleWriteLine(nameof(Update), $"Sync dpos info of round {CurrentRoundNumber} succeed");
@@ -493,7 +491,8 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         }
 
         // ReSharper disable once UnusedMember.Global
-        private async Task PublishOutValueAndSignature(UInt64Value roundNumber, StringValue accountAddress, Hash outValue, Hash signature)
+        private async Task PublishOutValueAndSignature(UInt64Value roundNumber, StringValue accountAddress,
+            Hash outValue, Hash signature)
         {
             var info = await GetBPInfoOfSpecificRound(accountAddress, roundNumber);
             info.OutValue = outValue;
@@ -526,7 +525,8 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         // ReSharper disable once InconsistentNaming
         private async Task<BlockProducer> GetBPInfoOfCurrentRound(StringValue accountAddress)
         {
-            return (await _dPoSInfoMap.GetValueAsync(new UInt64Value {Value = CurrentRoundNumber})).BlockProducers[accountAddress.Value];
+            return (await _dPoSInfoMap.GetValueAsync(new UInt64Value {Value = CurrentRoundNumber})).BlockProducers[
+                accountAddress.Value];
         }
 
         private bool IsBlockProducer(StringValue accountAddress)
