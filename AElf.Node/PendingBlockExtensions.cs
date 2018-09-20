@@ -19,22 +19,6 @@ namespace AElf.Node
             pendingBlocks.Sort(ComparePendingBlockIndex);
         }
 
-        public static void Print(this List<PendingBlock> pendingBlocks)
-        {
-            if (pendingBlocks.IsNullOrEmpty())
-            {
-                ConsoleWriteLine(nameof(Print), "Current PendingBlocks list is empty.");
-            }
-            else
-            {
-                ConsoleWriteLine(nameof(Print), "Current PendingBlocks:");
-                foreach (var pendingBlock in pendingBlocks)
-                {
-                    Console.WriteLine($"{pendingBlock.Block.GetHash().ToHex()} - {pendingBlock.Block.Header.Index}");
-                }
-            }
-        }
-
         private static int ComparePendingBlockIndex(PendingBlock block1, PendingBlock block2)
         {
             if (block1 != null)

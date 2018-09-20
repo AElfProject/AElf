@@ -93,7 +93,8 @@ namespace AElf.Miner.Tests
                 ContractHash = SmartContractZeroCode.CalculateHash()
             };
 
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId,
+                new List<SmartContractRegistration> {reg});
             _stateDictator.ChainId = chainId;
             return chain;
         }

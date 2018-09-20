@@ -8,6 +8,7 @@ using AElf.Kernel.Storages;
 using Akka.Dispatch;
 using Akka.Util;
 using Easy.MessageHub;
+using NLog;
 
 namespace AElf.Kernel
 {
@@ -18,14 +19,17 @@ namespace AElf.Kernel
         protected readonly IBlockManagerBasic _blockManager;
         protected readonly IDataStore _dataStore;
 
+        private readonly ILogger _logger;
+        
         public LightChain(Hash chainId,
             IChainManagerBasic chainManager,
-            IBlockManagerBasic blockManager, IDataStore dataStore)
+            IBlockManagerBasic blockManager, IDataStore dataStore, ILogger logger = null)
         {
             _chainId = chainId;
             _chainManager = chainManager;
             _blockManager = blockManager;
             _dataStore = dataStore;
+            _logger = logger;
         }
 
         public async Task<ulong> GetCurrentBlockHeightAsync()
@@ -185,8 +189,9 @@ namespace AElf.Kernel
             var blockHeader = (BlockHeader) header;
             if (blockHeader.Index == 0)
             {
-                await _dataStore.InsertAsync(GetHeightHash(blockHeader.Index).OfType(HashType.CanonicalHash),
-                    header.GetHash());
+                var hash = GetHeightHash(blockHeader.Index).OfType(HashType.CanonicalHash);
+                hash.Height = blockHeader.Index;
+                await _dataStore.InsertAsync(hash, header.GetHash());
                 return;
             }
             
@@ -195,8 +200,9 @@ namespace AElf.Kernel
             if (currentHeader.GetHash().Equals(((BlockHeader) header).PreviousBlockHash) ||
                 ((BlockHeader) header).PreviousBlockHash.Equals(Hash.Genesis))
             {
-                await _dataStore.InsertAsync(GetHeightHash(((BlockHeader) header).Index).OfType(HashType.CanonicalHash),
-                    header.GetHash());
+                var hash = GetHeightHash(((BlockHeader) header).Index).OfType(HashType.CanonicalHash);
+                hash.Height = ((BlockHeader) header).Index;
+                await _dataStore.InsertAsync(hash, header.GetHash());
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 return;
             }
@@ -213,8 +219,10 @@ namespace AElf.Kernel
                         {
                             break;
                         }
-                        await _dataStore.InsertAsync(
-                            GetHeightHash(((BlockHeader) newBranchHeader).Index).OfType(HashType.CanonicalHash), newBranchHeader.GetHash());
+
+                        var hash = GetHeightHash(((BlockHeader) newBranchHeader).Index).OfType(HashType.CanonicalHash);
+                        hash.Height = ((BlockHeader) newBranchHeader).Index;
+                        await _dataStore.InsertAsync(hash, newBranchHeader.GetHash());
                     }
                 }
             }

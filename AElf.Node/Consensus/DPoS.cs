@@ -382,6 +382,11 @@ namespace AElf.Kernel.Node
 
         private async Task BroadcastTransaction(Transaction tx)
         {
+            if (tx.Type == TransactionType.DposTransaction)
+            {
+                _logger?.Trace($"A DPoS tx has been generated: {tx.GetHash().ToHex()} - {tx.MethodName} from {tx.From.ToHex()}");
+            }
+            
             if (tx.From.Equals(_nodeKeyPair.Address))
                 _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
                                Thread.CurrentThread.ManagedThreadId);
