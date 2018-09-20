@@ -97,6 +97,10 @@ namespace AElf.Node
                         if (_targetHeight == ulong.MaxValue)
                         {
                             _targetHeight = pendingBlock.Block.Header.Index;
+                            if (_targetHeight == 1)
+                            {
+                                _isInitialSync = false;
+                            }
                             AddToPendingBlocks(pendingBlock);
                             PendingBlocks.SortByBlockIndex();
                             _initialSyncBlocksIndexes.Add(_targetHeight);
