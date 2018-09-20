@@ -347,7 +347,7 @@ namespace AElf.Kernel.Consensus
                 foreach (var node in _miners.Nodes)
                 {
                     var s = this[node].Signature;
-                    if (s == null || s.Value.Length < 34)
+                    if (s == null || s.GetHashBytes().Length < 30)
                     {
                         s = Hash.Generate();
                     }
@@ -414,7 +414,7 @@ namespace AElf.Kernel.Consensus
                 var firstPlace = FirstPlaceBlockProducerOfCurrentRound;
                 var firstPlaceInfo = this[firstPlace.Value];
                 var sig = firstPlaceInfo.Signature;
-                if (sig == null || sig.Value.Length < 34)
+                if (sig == null || sig.GetHashBytes().Length < 30)
                 {
                     sig = Hash.Generate();
                 }
