@@ -20,6 +20,7 @@ namespace AElf.Node
         private bool _isInitialSync = true;
 
         private Hash _chainId;
+
         private Hash ChainId
         {
             get
@@ -164,11 +165,11 @@ namespace AElf.Node
 
         private void AddToPendingBlocks(PendingBlock pendingBlock)
         {
+            PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
             _logger?.Trace("Adding to pending blocks: " + pendingBlock.Block.GetHash().ToHex());
             PendingBlocks.Print();
             PendingBlocks.Add(pendingBlock);
             PendingBlocks.SortByBlockIndex();
-            PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
         }
 
         /// <summary>
@@ -199,6 +200,13 @@ namespace AElf.Node
         private List<Transaction> AddBlockToBranchedChains(PendingBlock pendingBlock)
         {
             PendingBlocks.Print();
+
+            _logger?.Trace(
+                $"Ready to add pending block height: {pendingBlock.Block.Header.Index}\nBlock number of each round: {Globals.BlockNumberOfEachRound}\nPending block height or Synced height: {(PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight)}");
+            if (pendingBlock.Block.Header.Index + (ulong) Globals.BlockNumberOfEachRound < (PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight))
+            {
+                return null;
+            }
 
             _logger?.Trace(
                 $"Adding to branched chain: {pendingBlock.Block.GetHash().ToHex()} : {pendingBlock.Block.Header.Index}");
@@ -307,7 +315,7 @@ namespace AElf.Node
         private BranchedChain AdjustBranchedChains()
         {
             _branchedChains.RemoveWhere(bc =>
-                bc.StartHeight + (ulong) Globals.BlockNumberOfEachRound < PendingBlockHeight);
+                bc.StartHeight + (ulong) Globals.BlockNumberOfEachRound < (PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight));
 
             var preBlockHashes = new List<Hash>();
             var lastBlockHashes = new List<Hash>();

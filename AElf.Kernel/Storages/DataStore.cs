@@ -45,6 +45,10 @@ namespace AElf.Kernel.Storages
 
         public async Task InsertBytesAsync<T>(Hash pointerHash, byte[] obj) where T : IMessage
         {
+            if (pointerHash != null && pointerHash.HashType == HashType.CanonicalHash)
+            {
+                Console.WriteLine($"Insert CanonicalHash of height {pointerHash.Height}: {Hash.Parser.ParseFrom(obj).ToHex()}");
+            }
             try
             {
                 if (pointerHash == null)
@@ -122,6 +126,10 @@ namespace AElf.Kernel.Storages
 
         public async Task RemoveAsync<T>(Hash pointerHash) where T : IMessage
         {
+            if (pointerHash != null && pointerHash.HashType == HashType.CanonicalHash)
+            {
+                Console.WriteLine($"Remove CanonicalHash of height {pointerHash.Height}");
+            }
             try
             {
                 if (pointerHash == null)

@@ -44,28 +44,43 @@ namespace AElf.Kernel.Managers
             var height = header.Index;
             if (_blocks.Count == 0)
             {
+                Console.WriteLine($"Add canonical block to cache: {header.GetHash().ToHex()} of height {height}");
                 // If empty, just add
-                _blocks.TryAdd(height, header.GetHash());
+                AddToBlocks(height, header.GetHash());
             }
             else if (_blocks.TryGetValue(height - 1, out var prevHash) && prevHash == header.PreviousBlockHash)
             {
+                Console.WriteLine($"Add canonical block to cache: {header.GetHash().ToHex()} of height {height}");
                 // Current fork
-                var added = _blocks.TryAdd(height, header.GetHash());
-                if (added && height > Globals.ReferenceBlockValidPeriod)
+                AddToBlocks(height, header.GetHash());
+                if (height > Globals.ReferenceBlockValidPeriod)
                 {
                     var toRemove = height - Globals.ReferenceBlockValidPeriod - 1;
-                    _blocks.TryRemove(toRemove, out var rmd);
+                    Console.WriteLine($"Remove canonical block to cache: {header.GetHash().ToHex()} of height {height}");
+                    _blocks.TryRemove(toRemove, out _);
                 }
             }
             else
             {
+                Console.WriteLine($"Add canonical block to cache: {header.GetHash().ToHex()} of height {height}");
                 // Switch fork
-                _blocks.Clear();
-                _blocks.TryAdd(height, header.GetHash());
+                //_blocks.Clear();
+                AddToBlocks(height, header.GetHash());
             }
 
             CurrentHeight = height;
             await MaybeFillBlocks();
+        }
+
+        private void AddToBlocks(ulong height, Hash blockHash)
+        {
+            if (!_blocks.ContainsKey(height))
+            {
+                _blocks.TryAdd(height, blockHash);
+                return;
+            }
+
+            _blocks[height] = blockHash;
         }
 
         private async Task MaybeFillBlocks()
