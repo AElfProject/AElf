@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Kernel.Types;
-using AElf.Kernel.Types.Merkle;
-using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel

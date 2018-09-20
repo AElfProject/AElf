@@ -114,6 +114,51 @@ namespace AElf.Kernel
         {
             return !(h1 == h2);
         }
+
+        public static bool operator <(Hash h1, Hash h2)
+        {
+            return CompareHash(h1, h2) < 0;
+        }
+
+        public static bool operator >(Hash h1, Hash h2)
+        {
+            return CompareHash(h1, h2) > 0;
+        }
+
+        public static int CompareHash(Hash hash1, Hash hash2)
+        {
+            if (hash1 != null)
+            {
+                return hash2 == null ? 1 : Compare(hash1, hash2);
+            }
+            
+            if (hash2 == null)
+            {
+                return 0;
+            }
+            
+            return -1;
+        }
+        
+        private static int Compare(Hash x, Hash y)
+        {
+            var xValue = x.Value;
+            var yValue = y.Value;
+            for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
+            {
+                if (xValue[i] > yValue[i])
+                {
+                    return 1;
+                }
+
+                if (xValue[i] < yValue[i])
+                {
+                    return -1;
+                }
+            }
+
+            return 0;
+        }
         
         public static implicit operator Hash(byte[] value)
         {
