@@ -38,7 +38,7 @@ namespace AElf.Miner.Miner
         private IBlockChain _blockChain;
         private readonly ClientManager _clientManager;
 
-        public IMinerConfig Config { get; }
+        private IMinerConfig Config { get; }
 
         public Hash Coinbase => Config.CoinBase;
 
@@ -179,6 +179,7 @@ namespace AElf.Miner.Miner
         {
             var canceledTxIds = new List<Hash>();
             results = new List<TransactionResult>();
+            ulong index = 0;
             foreach (var trace in traces)
             {
                 switch (trace.ExecutionStatus)
@@ -193,7 +194,8 @@ namespace AElf.Miner.Miner
                         {
                             TransactionId = trace.TransactionId,
                             Status = Status.Mined,
-                            RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes())
+                            RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                            Index = index++
                         };
                         txRes.UpdateBloom();
                         results.Add(txRes);
@@ -203,7 +205,8 @@ namespace AElf.Miner.Miner
                         {
                             TransactionId = trace.TransactionId,
                             RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
-                            Status = Status.Failed
+                            Status = Status.Failed,
+                            Index = index++
                         };
                         results.Add(txResF);
                         break;

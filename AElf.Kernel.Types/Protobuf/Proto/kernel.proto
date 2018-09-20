@@ -46,6 +46,7 @@ message TransactionResult {
     bytes RetVal = 5;
     uint64 BlockNumber = 6;
     Hash BlockHash = 7;
+    uint64 Index = 8;
 }
 
 message StateValueChange{
@@ -223,4 +224,14 @@ message DataPath {
     Hash ContractAddress = 4;
     Hash DataProviderHash = 5;
     Hash KeyHash = 6;
+}
+
+message BinaryMerkleTree{
+    repeated Hash Nodes = 1;
+    Hash Root = 2;
+    int32 LeafCount = 3;
+}
+
+message MerklePath{
+    repeated Hash Path = 1;
 }

@@ -24,8 +24,8 @@ namespace AElf.Miner.Miner
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
-        private ILogger _logger;
-        private ClientManager _clientManager;
+        private readonly ILogger _logger;
+        private readonly ClientManager _clientManager;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, 
@@ -86,8 +86,8 @@ namespace AElf.Miner.Miner
             }
             catch (Exception e)
             {
-                string errlog = "ExecuteBlock - Execution failed.";
-                await Interrupt(errlog, readyTxs);
+                string errlog = $"ExecuteBlock - Execution failed with exception {e}";
+                await Interrupt(errlog, readyTxs, e);
                 return false;
             }
 
@@ -165,7 +165,7 @@ namespace AElf.Miner.Miner
             }
             catch (Exception e)
             {
-                await Interrupt(e.ToString(), readyTxs);
+                await Interrupt(e.ToString(), readyTxs, e);
                 return null;
             }
         }
@@ -304,11 +304,15 @@ namespace AElf.Miner.Miner
             await _txPoolService.Revert(readyTxs);
         }
 
-        private async Task Interrupt(string log, List<Transaction> readyTxs = null)
+        private async Task Interrupt(string log, List<Transaction> readyTxs = null, Exception e = null)
         {
-            _logger.Debug(log);
+            if(e == null)
+                _logger.Debug(log);
+            else 
+                _logger.Error(e, log);
             await Rollback(readyTxs);
         }
+        
         /// <summary>
         /// Validate parent chain block info.
         /// </summary>
@@ -325,7 +329,7 @@ namespace AElf.Miner.Miner
             }
             catch (Exception e)
             {
-                _logger.Debug(e);
+                _logger.Error(e, "Parent chain block info validation failed.");
                 return false;
             }
         }

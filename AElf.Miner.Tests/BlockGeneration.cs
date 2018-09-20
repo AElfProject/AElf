@@ -5,11 +5,6 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Merkle;
-using Akka.IO;
-using Google.Protobuf;
-using Moq;
 using Xunit.Frameworks.Autofac;
 
 namespace AElf.Miner.Tests
