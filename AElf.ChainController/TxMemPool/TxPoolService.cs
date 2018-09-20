@@ -49,7 +49,7 @@ namespace AElf.ChainController.TxMemPool
         private readonly ConcurrentBag<Hash> _priorAddresses = new ConcurrentBag<Hash>();
 
         /// <inheritdoc/>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true)
         {
             if (Cts.IsCancellationRequested) 
                 return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;

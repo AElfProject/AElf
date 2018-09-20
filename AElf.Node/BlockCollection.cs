@@ -62,11 +62,15 @@ namespace AElf.Node
         {
             _chainService = chainService;
             _logger = logger;
+
+            _heightBefore = BlockChain.GetCurrentBlockHeightAsync().Result;
         }
 
         private readonly HashSet<ulong> _initialSyncBlocksIndexes = new HashSet<ulong>();
 
-        public bool ReceivedAllTheBlocksBeforeTargetBlock => (ulong) _initialSyncBlocksIndexes.Count == _targetHeight;
+        private readonly ulong _heightBefore;
+
+        public bool ReceivedAllTheBlocksBeforeTargetBlock => (ulong) _initialSyncBlocksIndexes.Count + _heightBefore == _targetHeight;
 
         private ulong _targetHeight = ulong.MaxValue;
 
@@ -97,7 +101,7 @@ namespace AElf.Node
                         if (_targetHeight == ulong.MaxValue)
                         {
                             _targetHeight = pendingBlock.Block.Header.Index;
-                            if (_targetHeight == 1)
+                            if (_targetHeight == _heightBefore + 1)
                             {
                                 _isInitialSync = false;
                             }

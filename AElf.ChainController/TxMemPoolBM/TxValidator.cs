@@ -8,6 +8,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Easy.MessageHub;
+using NLog;
 
 namespace AElf.ChainController.TxMemPoolBM
 {
@@ -16,6 +17,8 @@ namespace AElf.ChainController.TxMemPoolBM
         private readonly ITxPoolConfig _config;
         private readonly IChainService _chainService;
         private IBlockChain _blockChain;
+        private readonly ILogger _logger;
+        
         private CanonicalBlockHashCache _canonicalBlockHashCache;
 
         private IBlockChain BlockChain
@@ -32,11 +35,12 @@ namespace AElf.ChainController.TxMemPoolBM
             }
         }
 
-        public TxValidator(ITxPoolConfig config, IChainService chainService)
+        public TxValidator(ITxPoolConfig config, IChainService chainService, ILogger logger)
         {
             _config = config;
             _chainService = chainService;
-            _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain);
+            _logger = logger;
+            _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain, logger);
         }
 
         /// <summary>
@@ -111,6 +115,12 @@ namespace AElf.ChainController.TxMemPoolBM
             {
                 canonicalHash = _canonicalBlockHashCache.GetHashByHeight(tx.RefBlockNumber);
             }
+
+            if (canonicalHash == null)
+            {
+                canonicalHash = (await BlockChain.GetBlockByHeightAsync(tx.RefBlockNumber)).GetHash();
+            }
+            
             if (canonicalHash == null)
             {
                 throw new Exception($"Unable to get canonical hash for height {tx.RefBlockNumber} - current height: {curHeight}");

@@ -46,15 +46,20 @@ namespace AElf.ChainController.TxMemPoolBM
             new ConcurrentDictionary<Hash, Transaction>();
 
         /// <inheritdoc/>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true)
         {
-            var txExecuted = await _transactionManager.GetTransaction(tx.GetHash());
-            if (txExecuted != null)
+            if (tx == null)
             {
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+                _logger?.Warn("Transaction is null - cannot add.");
+                return TxValidation.TxInsertionAndBroadcastingError.Failed;
             }
+            
+            var txExecuted = await _transactionManager.GetTransaction(tx.GetHash());
 
-            var res = await AddTransaction(tx);
+            if (txExecuted != null)
+                return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+
+            var res = await AddTransaction(tx, validateReference);
 
             return res;
         }
@@ -63,25 +68,24 @@ namespace AElf.ChainController.TxMemPoolBM
         /// enqueue tx in pool
         /// </summary>
         /// <param name="tx"></param>
+        /// <param name="validateReference"></param>
         /// <returns></returns>
-        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx)
+        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx, bool validateReference)
         {
             var res = _txValidator.ValidateTx(tx);
+            
             if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
-            {
                 return res;
-            }
 
-            res = await _txValidator.ValidateReferenceBlockAsync(tx);
-            if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
+            if (validateReference)
             {
-                return res;
+                res = await _txValidator.ValidateReferenceBlockAsync(tx);
+                if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
+                    return res;
             }
 
             if (tx.Type != TransactionType.ContractTransaction)
-            {
                 return await Task.FromResult(AddSystemTransaction(tx));
-            }
 
             return await Task.FromResult(AddContractTransaction(tx));
         }
