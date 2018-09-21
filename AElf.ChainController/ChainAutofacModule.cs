@@ -18,7 +18,7 @@ namespace AElf.ChainController
             builder.RegisterType<ChainContextService>().As<IChainContextService>();
             builder.RegisterType<TransactionResultService>().As<ITransactionResultService>();
             builder.RegisterType<AccountContextService>().As<IAccountContextService>().SingleInstance();
-            builder.RegisterType<ChainService>().As<IChainService>();
+            builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
         }
     }
 }

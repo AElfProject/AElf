@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.ChainController;
 using AElf.Kernel;
 using AElf.Node.Protocol;
 using NLog;
@@ -9,12 +10,9 @@ namespace AElf.Node
     {
         private readonly IBlockCollection _blockCollection;
 
-        private readonly ILogger _logger;
-
-        public SyncService(ILogger logger)
+        public SyncService(IChainService chainService, ILogger logger)
         {
-            _logger = logger;
-            _blockCollection = new BlockCollection(_logger);
+            _blockCollection = new BlockCollection(chainService, logger);
         }
         
         public List<PendingBlock> PendingBlocks
@@ -23,9 +21,9 @@ namespace AElf.Node
             set => _blockCollection.PendingBlocks = value;
         }
         
-        public void AddPendingBlock(PendingBlock pendingBlock)
+        public List<Transaction> AddPendingBlock(PendingBlock pendingBlock)
         {
-            _blockCollection.AddPendingBlock(pendingBlock);
+            return _blockCollection.AddPendingBlock(pendingBlock);
         }
         
         public void RemovePendingBlock(PendingBlock pendingBlock)

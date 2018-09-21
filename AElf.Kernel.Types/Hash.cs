@@ -10,6 +10,8 @@ namespace AElf.Kernel
 {
     public partial class Hash : IHash, ICustomDiagnosticMessage
     {
+        public ulong Height { get; set; }
+        
         public string ToDiagnosticString()
         {
             return $@"""{ToHex()}""";

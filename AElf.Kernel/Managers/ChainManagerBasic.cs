@@ -2,17 +2,20 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
+using NLog;
 
 namespace AElf.Kernel.Managers
 {
     public class ChainManagerBasic : IChainManagerBasic
     {
         private readonly IDataStore _dataStore;
+        private readonly ILogger _logger;
         private readonly Hash _sideChainIdListKey = "SideChainIdList".CalculateHash();
 
-        public ChainManagerBasic(IDataStore dataStore)
+        public ChainManagerBasic(IDataStore dataStore, ILogger logger = null)
         {
             _dataStore = dataStore;
+            _logger = logger;
         }
 
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
@@ -60,7 +63,7 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        public async Task<ulong> GetCurrentBlockHeightsync(Hash chainId)
+        public async Task<ulong> GetCurrentBlockHeightAsync(Hash chainId)
         {
             var key = chainId.OfType(HashType.ChainHeight);
             var height = await _dataStore.GetAsync<UInt64Value>(key);

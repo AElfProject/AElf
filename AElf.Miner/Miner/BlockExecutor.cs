@@ -24,7 +24,7 @@ namespace AElf.Miner.Miner
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
-        private ILogger _logger;
+        private readonly ILogger _logger;
         private ClientManager _clientManager;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
@@ -143,7 +143,7 @@ namespace AElf.Miner.Miner
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
                 {
-                    var res = new TransactionResult
+                    var res = new TransactionResult()
                     {
                         TransactionId = trace.TransactionId,
                     };

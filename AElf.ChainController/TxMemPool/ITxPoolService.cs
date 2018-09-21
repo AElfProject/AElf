@@ -11,7 +11,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx);
+        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true);
 
         /// <summary>
         /// remove a tx from collection not pool
@@ -28,7 +28,8 @@ namespace AElf.ChainController.TxMemPool
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<Transaction>> GetReadyTxsAsync(Hash blockProducerAddress = null, double intervals = 150);
+        Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo = null, Hash blockProducerAddress = null,
+            double intervals = 150);
 
         List<Transaction> GetSystemTxs();
 

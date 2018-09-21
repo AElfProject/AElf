@@ -23,6 +23,7 @@ using Status = AElf.Kernel.Status;
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
 {
+    // ReSharper disable IdentifierTypo
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
@@ -59,11 +60,7 @@ namespace AElf.Miner.Miner
             _stateDictator.ChainId = chainId;
         }
 
-        /// <summary>
-        /// mine process
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> Mine(Round currentRoundInfo = null)
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
             using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
@@ -75,7 +72,14 @@ namespace AElf.Miner.Miner
                         return null;
 
                     await GenerateTransactionWithParentChainBlockInfo();
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync(_stateDictator.BlockProducerAccountAddress);
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
+
+                    var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
+                    _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
+                    foreach (var transaction in dposTxs)
+                    {
+                        _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName} from {transaction.From.ToHex()}");
+                    }
                     
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -14,6 +16,8 @@ namespace AElf.ChainController
         private readonly ITransactionManager _transactionManager;
         private readonly IDataStore _dataStore;
 
+        private readonly Dictionary<Hash, BlockChain> _blockChains = new Dictionary<Hash, BlockChain>();
+
         public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
             ITransactionManager transactionManager, IDataStore dataStore)
         {
@@ -25,7 +29,20 @@ namespace AElf.ChainController
 
         public IBlockChain GetBlockChain(Hash chainId)
         {
-            return new BlockChain(chainId, _chainManager, _blockManager, _transactionManager, _dataStore);
+            // To prevent some weird situations.
+            if (chainId == Hash.Default && _blockChains.Any())
+            {
+                return _blockChains.First().Value;
+            }
+            
+            if (_blockChains.TryGetValue(chainId, out var blockChain))
+            {
+                return blockChain;
+            }
+            
+            blockChain = new BlockChain(chainId, _chainManager, _blockManager, _transactionManager, _dataStore);
+            _blockChains.Add(chainId, blockChain);
+            return blockChain;
         }
 
         public ILightChain GetLightChain(Hash chainId)

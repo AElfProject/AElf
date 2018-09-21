@@ -138,7 +138,7 @@ namespace AElf.Network.Peers
         [JsonProperty(PropertyName = "address")]
         public NodeData DistantNodeData
         {
-            get { return _lastReceivedHandshake.NodeInfo; }
+            get { return _lastReceivedHandshake?.NodeInfo; }
         }
 
         private Handshake _lastReceivedHandshake;

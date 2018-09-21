@@ -131,7 +131,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
                 if (j1 % txCount == 0)
                 {
-                    var txs = await poolService.GetReadyTxsAsync();
+                    var txs = await poolService.GetReadyTxsAsync(null, null);
 
                     var resLists =new List<TransactionResult>();
                     foreach (var t in txs)
@@ -245,7 +245,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                     
                         if (j1 == Num-1)
                         {
-                            var txs = await poolService.GetReadyTxsAsync();
+                            var txs = await poolService.GetReadyTxsAsync(null, null);
 
                             var resLists =new List<TransactionResult>();
                             foreach (var t in txs)
@@ -268,7 +268,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var sortedCount = sortedSet.Values.Aggregate(0, (current, p) => current + p.Count);
             Assert.True(sortedCount >= (int)contractTxPool.Size);
 
-            var list = await poolService.GetReadyTxsAsync();
+            var list = await poolService.GetReadyTxsAsync(null, null);
 
             var txReuslts = list.Select(t => new TransactionResult
             {
