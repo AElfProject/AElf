@@ -58,8 +58,8 @@ namespace AElf.Configuration
 
         #region Block
 
-        [Option("block.transactions", Default = (ulong) 1024, HelpText = "Transaction count limit in one block")]
-        public ulong TxCountLimit { get; set; }
+        [Option("block.transactions", Default = 1024, HelpText = "Transaction count limit in one block")]
+        public int TxCountLimit { get; set; }
 
         #endregion
 
