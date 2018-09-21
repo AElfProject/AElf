@@ -105,6 +105,11 @@ namespace AElf.Node
                             {
                                 _isInitialSync = false;
                             }
+                            if (DPoS.ConsensusDisposable != null)
+                            {
+                                DPoS.ConsensusDisposable.Dispose();
+                                _logger?.Trace("Disposed previous consensus observables list.");
+                            }
                             AddToPendingBlocks(pendingBlock);
                             PendingBlocks.SortByBlockIndex();
                             _initialSyncBlocksIndexes.Add(_targetHeight);
