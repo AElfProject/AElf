@@ -77,7 +77,6 @@ namespace AElf.ChainController.TxMemPoolBM
             }
 
             var res = _txValidator.ValidateTx(tx);
-
             if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
             {
                 if (nonSys)
@@ -90,12 +89,16 @@ namespace AElf.ChainController.TxMemPoolBM
 
             if (validateReference)
             {
-                if (nonSys)
+                res = await _txValidator.ValidateReferenceBlockAsync(tx);
+                if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
                 {
-                    _txHub.InvalidatedTx(txid);
-                }
+                    if (nonSys)
+                    {
+                        _txHub.InvalidatedTx(txid);
+                    }
 
-                return res;
+                    return res;
+                }
             }
 
             if (nonSys)
