@@ -81,6 +81,18 @@ namespace AElf.Kernel.Node
                 ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
             _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
             _contractAccountAddressHash = contractAccountHash;
+
+            var count = MinersConfig.Instance.Producers.Count;
+            Globals.BlockProducerNumber = count;
+            _logger?.Trace("Block Producer nodes count:" + count);
+            if (Globals.BlockProducerNumber == 1)
+            {
+                if (Helper.CanRecoverDPoSInformation())
+                {
+                    _logger?.Trace("This node can recover DPoS mining itself.");
+                    AElfDPoSObserver.RecoverMining();
+                }
+            }
         }
 
         private static Miners Miners
@@ -96,7 +108,6 @@ namespace AElf.Kernel.Node
                     miners.Nodes.Add(b);
                 }
 
-                Globals.BlockProducerNumber = miners.Nodes.Count;
                 return miners;
             }
         }

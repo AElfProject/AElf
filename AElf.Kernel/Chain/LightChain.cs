@@ -25,7 +25,7 @@ namespace AElf.Kernel
             IChainManagerBasic chainManager,
             IBlockManagerBasic blockManager, IDataStore dataStore, ILogger logger = null)
         {
-            _chainId = chainId;
+            _chainId = chainId.Clone();
             _chainManager = chainManager;
             _blockManager = blockManager;
             _dataStore = dataStore;
