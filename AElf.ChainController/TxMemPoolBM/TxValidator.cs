@@ -242,11 +242,6 @@ namespace AElf.ChainController.TxMemPoolBM
             
             PrintTxList(readyTxs);
 
-            if (readyTxs.Count != 1 && readyTxs.Count != Globals.BlockProducerNumber + 1)
-            {
-                throw new Exception("Incorrect number of DPoS txs of new block: " + readyTxs.Count);
-            }
-
             return toRemove;
         }
         
