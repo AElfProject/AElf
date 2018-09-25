@@ -36,9 +36,10 @@ namespace AElf.Management.Database
             await _client.WriteAsync(database, point);
         }
 
-        public static async Task Get(string database, string query)
+        public static List<Serie> Get(string database, string query)
         {
-            var result = await _client.QueryAsync(database, query);
+            var result = _client.QueryAsync(database, query);
+            return result.Result;
         }
 
         public static async void Ping()
@@ -51,6 +52,11 @@ namespace AElf.Management.Database
             var version = _client.GetClientVersion();
 
             return version.ToString();
+        }
+
+        public static void AddDatabase(string database)
+        {
+            _client.CreateDatabaseAsync(database);
         }
     }
 }

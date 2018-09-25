@@ -12,6 +12,7 @@ namespace AElf.Management.Helper
         
         public static string GetRpcAddress(string chainId)
         {
+            return "http://localhost:1231";
             if (RpcAddresses.ContainsKey(chainId))
             {
                 return RpcAddresses[chainId];

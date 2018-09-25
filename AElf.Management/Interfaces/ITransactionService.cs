@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
@@ -7,5 +9,7 @@ namespace AElf.Management.Interfaces
         ulong GetPoolSize(string chainId);
 
         void RecordPoolSize(string chainId, DateTime time, ulong poolSize);
+
+        List<PoolSizeHistory> GetPoolSizeHistory(string chainId);
     }
 }

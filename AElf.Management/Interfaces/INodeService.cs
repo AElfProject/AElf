@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
@@ -9,5 +11,7 @@ namespace AElf.Management.Interfaces
         bool IsForked(string chainId);
 
         void RecordPoolState(string chainId, DateTime time, bool isAlive, bool isForked);
+
+        List<NodeStateHistory> GetHistoryState(string chainId);
     }
 }

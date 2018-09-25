@@ -55,7 +55,8 @@ namespace AElf.Management.Services
                 new K8SAddWorkerCommand(), 
                 new K8SAddLauncherCommand(),
                 new K8SAddMonitorCommand(),
-                new SaveApiKeyCommand()
+                new SaveApiKeyCommand(),
+                new AddMonitorDBCommand()
             };
 
             commands.ForEach(c => c.Action(arg));
@@ -70,7 +71,7 @@ namespace AElf.Management.Services
 
             commands.ForEach(c => c.Action(new DeployArg {SideChainId = chainId}));
         }
-
+        
         public DeployTestChainResult DeployTestChain()
         {
             var password = "123";

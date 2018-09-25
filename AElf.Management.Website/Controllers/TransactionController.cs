@@ -1,4 +1,6 @@
-﻿using AElf.Management.Interfaces;
+﻿using System.Collections.Generic;
+using AElf.Management.Interfaces;
+using AElf.Management.Models;
 using AElf.Management.Website.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +23,15 @@ namespace AElf.Management.Website.Controllers
         {
             var result = _transactionService.GetPoolSize(chainId);
             return new ApiResult<ulong>(result);
+        }
+        
+        [HttpGet]
+        [Route("poolsizehistory/{chainId}")]
+        public ApiResult<List<PoolSizeHistory>> StateHistory(string chainId)
+        {
+            var result = _transactionService.GetPoolSizeHistory(chainId);
+            
+            return new ApiResult<List<PoolSizeHistory>>(result);
         }
     }
 }

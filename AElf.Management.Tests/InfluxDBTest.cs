@@ -18,7 +18,7 @@ namespace AElf.Management.Tests
         [Fact]
         public void TestGet()
         {
-            InfluxDBHelper.Get("","");
+            var result = InfluxDBHelper.Get("0x2491b3fb14d2ddac790fc18c161166226f04","select * from node_state");
         }
         
         [Fact]

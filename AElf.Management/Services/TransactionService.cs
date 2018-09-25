@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Management.Database;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
@@ -24,6 +25,22 @@ namespace AElf.Management.Services
         {
             var fields = new Dictionary<string, object> {{"size", poolSize}};
             InfluxDBHelper.Set(chainId, "transaction_pool_size", fields, null, time);
+        }
+
+        public List<PoolSizeHistory> GetPoolSizeHistory(string chainId)
+        {
+            var result = new List<PoolSizeHistory>();
+            var record = InfluxDBHelper.Get(chainId, "select * from transaction_pool_size");
+            foreach (var item in record.First().Values)
+            {
+                result.Add(new PoolSizeHistory
+                {
+                    Time = Convert.ToDateTime(item[0]),
+                    Size = Convert.ToUInt64(item[1])                    
+                });
+            }
+
+            return result;
         }
     }
 }
