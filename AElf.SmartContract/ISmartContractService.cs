@@ -19,7 +19,6 @@ namespace AElf.SmartContract
         /// <param name="isPrivileged">Whether the contract is a privileged (system) one.</param>
         /// <returns></returns>
         Task DeployContractAsync(Hash chainId, Hash contractAddress, SmartContractRegistration registration, bool isPrivileged);
-        Type GetContractType(SmartContractRegistration registration);
         Task<IMessage> GetAbiAsync(Hash account, string name = null);
         
         /// <summary>
