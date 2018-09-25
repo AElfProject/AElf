@@ -23,7 +23,7 @@ namespace AElf.Management.Services
         public void RecordPoolSize(string chainId, DateTime time, ulong poolSize)
         {
             var fields = new Dictionary<string, object> {{"size", poolSize}};
-            InfluxDBHelper.Set(chainId, "txpool_size", fields, null, time);
+            InfluxDBHelper.Set(chainId, "transaction_pool_size", fields, null, time);
         }
     }
 }

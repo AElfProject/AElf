@@ -1,9 +1,10 @@
-﻿using AElf.Management.Helper;
+﻿using System;
+using System.Collections.Generic;
+using AElf.Management.Database;
+using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Request;
-using Newtonsoft.Json.Linq;
-using NLog;
 
 namespace AElf.Management.Services
 {
@@ -27,6 +28,12 @@ namespace AElf.Management.Services
             var peers = HttpRequestHelper.Request<JsonRpcResult<PeerResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/net", jsonRpcArg);
             
             return peers.Result;
+        }
+
+        public void RecordPoolState(string chainId, DateTime time, int requestPoolSize, int receivePoolSize)
+        {
+            var fields = new Dictionary<string, object> {{"request", requestPoolSize}, {"receive", receivePoolSize}};
+            InfluxDBHelper.Set(chainId, "network_pool_state", fields, null, time);
         }
     }
 }

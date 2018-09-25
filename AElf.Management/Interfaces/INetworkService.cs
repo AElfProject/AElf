@@ -1,4 +1,5 @@
-﻿using AElf.Management.Models;
+﻿using System;
+using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
@@ -7,5 +8,7 @@ namespace AElf.Management.Interfaces
         PoolStateResult GetPoolState(string chainId);
 
         PeerResult GetPeers(string chainId);
+
+        void RecordPoolState(string chainId, DateTime time, int requestPoolSize, int receivePoolSize);
     }
 }
