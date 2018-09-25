@@ -87,11 +87,7 @@ namespace AElf.Kernel.Node
             _logger?.Trace("Block Producer nodes count:" + count);
             if (Globals.BlockProducerNumber == 1)
             {
-                if (Helper.CanRecoverDPoSInformation())
-                {
-                    _logger?.Trace("This node can recover DPoS mining itself.");
-                    AElfDPoSObserver.RecoverMining();
-                }
+                AElfDPoSObserver.RecoverMining();
             }
         }
 
@@ -274,6 +270,7 @@ namespace AElf.Kernel.Node
             var signature = Hash.Default;
             if (currentRoundNumber.Value > 1)
             {
+                _logger?.Trace("In value used for generating signature: " + inValue.ToHex());
                 signature = Helper.CalculateSignature(inValue);
             }
 
@@ -403,8 +400,13 @@ namespace AElf.Kernel.Node
                                Thread.CurrentThread.ManagedThreadId);
             try
             {
-                if (await _txPoolService.AddTxAsync(tx) == TxValidation.TxInsertionAndBroadcastingError.Success)
+                var result = await _txPoolService.AddTxAsync(tx);
+                if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
                     MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
+                else
+                {
+                    _logger?.Trace("Failed to insert tx: " + result);
+                }
             }
             catch (Exception e)
             {

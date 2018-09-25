@@ -166,8 +166,6 @@ namespace AElf.Node.AElfChain
             
             _logger?.Log(LogLevel.Debug, $"Chain Id = {NodeConfig.Instance.ChainId}");
 
-            Globals.CurrentChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
-            
             #region setup
 
             try
