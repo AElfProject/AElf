@@ -287,7 +287,7 @@ namespace AElf.Node
                 _logger?.Trace("Disposed previous consensus observables list.");
             }
 
-            if (SyncedHeight < result.StartHeight)
+            /*if (SyncedHeight < result.StartHeight)
             {
                 var oldBlocks = new List<PendingBlock>();
                 // Replace the pending blocks with the result
@@ -313,8 +313,10 @@ namespace AElf.Node
             else
             {
                 PendingBlocks = result.GetPendingBlocks();
-            }
+            }*/
 
+            _isInitialSync = true;
+            _targetHeight = result.EndHeight;
             PendingBlockHeight = result.EndHeight;
             _branchedChains.Remove(result);
 

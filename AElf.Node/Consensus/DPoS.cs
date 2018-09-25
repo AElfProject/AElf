@@ -213,6 +213,10 @@ namespace AElf.Kernel.Node
                     tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
                         parameters[3]));
                     break;
+                case 5:
+                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
+                        parameters[3], parameters[4]));
+                    break;
             }
 
             var signer = new ECSigner();
@@ -250,11 +254,12 @@ namespace AElf.Kernel.Node
         }
 
         /// <summary>
-        /// Related tx has 4 params:
+        /// Related tx has 5 params:
         /// 1. Current round number
         /// 2. BP Address
         /// 3. Out value
         /// 4. Signature
+        /// 5. Round Id
         /// </summary>
         /// <returns></returns>
         private async Task MiningWithPublishingOutValueAndSignature()
@@ -279,7 +284,8 @@ namespace AElf.Kernel.Node
                 Helper.CurrentRoundNumber.ToByteArray(),
                 new StringValue {Value = _nodeKeyPair.Address.ToHex().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray(),
-                signature.ToByteArray()
+                signature.ToByteArray(),
+                new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
             };
 
             var txToPublishOutValueAndSignature =
@@ -295,6 +301,7 @@ namespace AElf.Kernel.Node
         /// 1. Current round number
         /// 2. BP Address
         /// 3. In value
+        /// 4. Round Id
         /// </summary>
         /// <returns></returns>
         private async Task PublishInValue()
@@ -328,7 +335,8 @@ namespace AElf.Kernel.Node
             {
                 extraBlockResult.Item1.ToByteArray(),
                 extraBlockResult.Item2.ToByteArray(),
-                extraBlockResult.Item3.ToByteArray()
+                extraBlockResult.Item3.ToByteArray(),
+                new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
             };
 
             var txForExtraBlock = await GenerateTransactionAsync("UpdateAElfDPoS", parameters);

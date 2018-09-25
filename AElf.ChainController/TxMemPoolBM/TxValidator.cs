@@ -153,8 +153,39 @@ namespace AElf.ChainController.TxMemPoolBM
             
             var toRemove = new List<Transaction>();
             
+            var roundId = currentRoundInfo?.RoundId;
+            
             foreach (var transaction in readyTxs)
             {
+                if (currentRoundInfo != null)
+                {
+                    if (transaction.MethodName == "PublishOutValueAndSignature")
+                    {
+                        var txRoundId = ((Int64Value) ParamsPacker.Unpack(transaction.Params.ToByteArray(),
+                            new[]
+                            {
+                                typeof(UInt64Value), typeof(StringValue), typeof(Hash), typeof(Hash), typeof(Int64Value)
+                            })[4]).Value;
+                        if (txRoundId != roundId)
+                        {
+                            toRemove.Add(transaction);
+                        }
+                    }
+
+                    if (transaction.MethodName == "PublishInValue")
+                    {
+                        var txRoundId = ((Int64Value) ParamsPacker.Unpack(transaction.Params.ToByteArray(),
+                            new[]
+                            {
+                                typeof(UInt64Value), typeof(StringValue), typeof(Hash), typeof(Int64Value)
+                            })[3]).Value;
+                        if (txRoundId != roundId)
+                        {
+                            toRemove.Add(transaction);
+                        }
+                    }
+                }
+                
                 if (transaction.From == blockProducerAddress)
                 {
                     continue;
