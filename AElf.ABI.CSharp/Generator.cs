@@ -13,22 +13,23 @@ namespace AElf.ABI.CSharp
         public static Module GetABIModule(byte[] code, string name = null)
         {
             var module = new Module();
-            var monoModule = ModuleDefinition.ReadModule(new MemoryStream(code));
-
-            Container container = new Container("AElf.Sdk.CSharp.CSharpSmartContract", "AElf.Sdk.CSharp.Event",
-                typeof(UserType).FullName);
-            foreach (var t in monoModule.GetTypes())
+            using (var monoModule = ModuleDefinition.ReadModule(new MemoryStream(code)))
             {
-                container.AddType(t);
-            }
+                Container container = new Container("AElf.Sdk.CSharp.CSharpSmartContract", "AElf.Sdk.CSharp.Event",
+                    typeof(UserType).FullName);
+                foreach (var t in monoModule.GetTypes())
+                {
+                    container.AddType(t);
+                }
             
-            var contractTypePath = container.GetSmartContractTypePath(name);
-            module.Name = name ?? contractTypePath.Last().FullName;
-            module.Methods.AddRange(GetMethods(contractTypePath));
-            module.Events.AddRange(GetEvents(container));
-            module.Types_.AddRange(GetTypes(container));
+                var contractTypePath = container.GetSmartContractTypePath(name);
+                module.Name = name ?? contractTypePath.Last().FullName;
+                module.Methods.AddRange(GetMethods(contractTypePath));
+                module.Events.AddRange(GetEvents(container));
+                module.Types_.AddRange(GetTypes(container));
 
-            return module;
+                return module;                
+            }
         }
 
         private static IEnumerable<Method> GetMethods(IEnumerable<TypeDefinition> contractTypePath)
