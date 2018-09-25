@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using AElf.Management.Database;
+using AElf.Management.Helper;
 using AElf.Management.Models;
 using AElf.Management.Services;
 using Xunit;

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Configuration;
 using InfluxDB.Net;
-using InfluxDB.Net.Infrastructure.Influx;
 using InfluxDB.Net.Models;
 
-namespace AElf.Management.Database
+namespace AElf.Management.Helper
 {
     public class InfluxDBHelper
     {
@@ -14,7 +14,7 @@ namespace AElf.Management.Database
 
         static InfluxDBHelper()
         {
-            _client=new InfluxDb("http://localhost:8086","root", "root");
+            _client = new InfluxDb(MonitorDatabaseConfig.Instance.Url, MonitorDatabaseConfig.Instance.Username, MonitorDatabaseConfig.Instance.Password);
         }
 
         public static async Task Set(string database, string measurement, Dictionary<string, object> fields, Dictionary<string, object> tags, DateTime timestamp)
@@ -40,11 +40,6 @@ namespace AElf.Management.Database
         {
             var result = _client.QueryAsync(database, query);
             return result.Result;
-        }
-
-        public static async void Ping()
-        {
-            Pong pong =await _client.PingAsync();
         }
         
         public static string Version()

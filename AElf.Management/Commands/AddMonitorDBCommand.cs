@@ -1,4 +1,4 @@
-﻿using AElf.Management.Database;
+﻿using AElf.Management.Helper;
 using AElf.Management.Models;
 
 namespace AElf.Management.Commands
