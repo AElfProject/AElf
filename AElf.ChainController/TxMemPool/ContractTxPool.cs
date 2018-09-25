@@ -107,7 +107,7 @@ namespace AElf.ChainController.TxMemPool
                     if (tx.IncrementId < nonce) continue;
                     r++;
                     res.Add(tx);
-                    if ((ulong) res.Count >= Limit)
+                    if (res.Count >= Limit)
                         break;
                 }
                 // update incrementId in account data context
@@ -120,7 +120,7 @@ namespace AElf.ChainController.TxMemPool
             // get txs from other address
             foreach (var kv in _executable)
             {
-                if ((ulong) res.Count >= Limit)
+                if (res.Count >= Limit)
                     break;
                 var nonce = GetNonce(kv.Key);
                 var r = 0;
@@ -129,7 +129,7 @@ namespace AElf.ChainController.TxMemPool
                     if (tx.IncrementId < nonce) continue;
                     r++;
                     res.Add(tx);
-                    if ((ulong) res.Count >= Limit)
+                    if (res.Count >= Limit)
                         break;
                 }
 
@@ -538,12 +538,12 @@ namespace AElf.ChainController.TxMemPool
         public TransactionType Type => TransactionType.ContractTransaction;
 
         /// <inheritdoc/>
-        public ulong Least => _config.Minimal;
+        public int Least => _config.Minimal;
         
         /// <inheritdoc/>
-        public ulong Limit => _config.Maximal;
+        public int Limit => _config.Maximal;
 
-        public void SetBlockVolume(ulong minimal, ulong maximal)
+        public void SetBlockVolume(int minimal, int maximal)
         {
             _config.Maximal = maximal;
             _config.Minimal = minimal;
