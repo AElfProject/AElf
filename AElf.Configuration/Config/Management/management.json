@@ -2,5 +2,9 @@
   "Url":"http://127.0.0.1:9090",
   "SideChainServicePath":"",
   "NodeAccount":"",
-  "NodeAccountPassword":""
+  "NodeAccountPassword":"",
+  "DeployType":"k8s",
+  "Authentication":false,
+  "SignTimeout":5,
+  ,"MonitoringInterval":15000
 }

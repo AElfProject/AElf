@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Configuration;
 using AElf.Configuration.Config.Management;
 using AElf.Cryptography;
 using AElf.Management.Website.Models;
@@ -11,7 +12,7 @@ namespace AElf.Management.Website
     {
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            if (!DeployConfig.Instance.Authentication)
+            if (!ManagementConfig.Instance.Authentication)
             {
                 return;
             }
@@ -25,7 +26,7 @@ namespace AElf.Management.Website
                 var method = context.HttpContext.Request.Method;
                 var timestamp = context.HttpContext.Request.Headers["timestamp"];
 
-                if (ApiAuthenticationHelper.Check(ApiKeyConfig.Instance.ChainKeys[chainId], chainId, method, timestamp, sign, DeployConfig.Instance.SignTimeout))
+                if (ApiAuthenticationHelper.Check(ApiKeyConfig.Instance.ChainKeys[chainId], chainId, method, timestamp, sign, ManagementConfig.Instance.SignTimeout))
                 {
                     return;
                 }

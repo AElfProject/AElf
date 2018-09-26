@@ -1,5 +1,0 @@
-﻿{
-  "Type": "k8s",
-  "Authentication": true,
-  "SignTimeout": 5
-}

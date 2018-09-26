@@ -42,9 +42,6 @@
     <None Update="Config\Node\miners.json" Link="config\miners.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Management\deploy.json" Link="config\deploy.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Config\Management\apikey.json" Link="config\apikey.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
