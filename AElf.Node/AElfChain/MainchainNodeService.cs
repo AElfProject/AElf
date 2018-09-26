@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
@@ -14,6 +15,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Miner.Miner;
+using AElf.Node.CrossChain;
 using AElf.Node.Protocol;
 using AElf.SmartContract;
 using Google.Protobuf;
@@ -342,7 +344,6 @@ namespace AElf.Node.AElfChain
                     break;
             }
         }
-
         private void StartMining()
         {
             if (NodeConfig.Instance.IsMiner)
@@ -351,6 +352,7 @@ namespace AElf.Node.AElfChain
                 _consensus?.Start();
             }
         }
+        #endregion private methods
 
         public int GetCurrentHeight()
         {
@@ -367,9 +369,6 @@ namespace AElf.Node.AElfChain
 
             return height;
         }
-
-        #endregion private methods
-
         #region Legacy Methods
         
         /// <summary>

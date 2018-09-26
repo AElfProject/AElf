@@ -46,7 +46,10 @@ message TransactionResult {
     bytes RetVal = 5;
     uint64 BlockNumber = 6;
     Hash BlockHash = 7;
-    uint64 Index = 8;
+    int32 Index = 8;
+    
+    // Merkle proof path for this transaction
+    MerklePath MerklePath = 9;
 }
 
 message StateValueChange{
@@ -112,15 +115,21 @@ message SideChainBlockInfo{
 }
 
 message ParentChainBlockInfo{
+    ParentChainBlockRootInfo Root = 1;
+    
+    // Indexed block height from side chain and merkle path for this side chain block
+    map<uint64, MerklePath> IndexedBlockInfo = 2;
+}
+
+message ParentChainBlockRootInfo
+{
     uint64 Height = 1;
-
-    // calculation result in parent chain
+    // Merkle tree root of side chain block headers
     Hash SideChainBlockHeadersRoot = 2;
-    Hash SideChainTransactionsRoot = 3;
 
-    // indexed block height from side chain 
-    repeated uint64 IndexedBlockHeight = 4;
-    Hash ChainId = 5;
+    // Merkle tree root of side chain block transaction roots
+    Hash SideChainTransactionsRoot = 3;
+    Hash ChainId = 4;
 }
 
 message SmartContractRegistration {
