@@ -11,7 +11,7 @@ namespace AElf.Kernel
     public partial class Hash : IHash, ICustomDiagnosticMessage
     {
         public ulong Height { get; set; }
-        
+
         public string ToDiagnosticString()
         {
             return $@"""{ToHex()}""";
@@ -22,18 +22,19 @@ namespace AElf.Kernel
             return new Hash(
                 Guid.NewGuid().ToByteArray().CalculateHash());
         }
-        
+
         public Hash ToAccount()
         {
             return GetHashBytes().Take(ECKeyPair.AddressLength).ToArray();
         }
-        
+
         public Hash ToChainId()
         {
             return GetHashBytes().Take(ECKeyPair.AddressLength).ToArray();
         }
-        
-        public bool CheckPrefix(ByteString prefix ){
+
+        public bool CheckPrefix(ByteString prefix)
+        {
             if (prefix.Length > Value.Length)
             {
                 return false;
@@ -43,11 +44,11 @@ namespace AElf.Kernel
         }
 
         public static readonly Hash Zero = new Hash("AElf".CalculateHash()).ToAccount();
-        
-        public static readonly Hash Default = new Hash(new byte[]{});
-        
+
+        public static readonly Hash Default = new Hash(new byte[] { });
+
         public static readonly Hash Genesis = new Hash("Genesis".CalculateHash());
-            
+
         public Hash(byte[] buffer)
         {
             Value = ByteString.CopyFrom(buffer);
@@ -88,7 +89,7 @@ namespace AElf.Kernel
             {
                 throw new InvalidOperationException("Cannot compare hash when hash is null");
             }
-            
+
             var xValue = x.Value;
             var yValue = y.Value;
             for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
@@ -116,12 +117,12 @@ namespace AElf.Kernel
         {
             return !(h1 == h2);
         }
-        
+
         public static implicit operator Hash(byte[] value)
         {
             return value == null ? Default : new Hash(value);
         }
-        
+
         public static implicit operator Hash(ByteString value)
         {
             return value == null ? Default : new Hash(value);
