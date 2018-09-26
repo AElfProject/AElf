@@ -234,5 +234,13 @@ namespace AElf.ChainController.Rpc
 
             return trace.RetVal.ToFriendlyBytes();
         }
+
+        internal static MerklePath GetTxRootMerklePathinParentChain(this Svc s, ulong height)
+        {
+            return s.CrossChainInfo.GetTxRootMerklePathInParentChain(
+                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+        }
+
     }
+    
 }

@@ -18,7 +18,8 @@ namespace AElf.Contracts.SideChain
         public static readonly string SideChainSerialNumber = "__SideChainSerialNumber__";
         public static readonly string SideChainInfos = "__SideChainInfos__";
         public static readonly string ParentChainBlockInfo = "__ParentBlockInfo__";
-        public static readonly string HeightToParentChainHeight = "__HeightToParentChainHeight__";
+        public static readonly string HeightToParentChainHeight = "__ChildHeightToParentChainHeight__";
+        //public static readonly string TxRootMerklePathInParentChain = "__TxRootMerklePathInParentChain__";
     }
 
     #endregion Field Names
@@ -92,12 +93,15 @@ namespace AElf.Contracts.SideChain
         private readonly Map<Hash, SideChainInfo> _sideChainInfos =
             new Map<Hash, SideChainInfo>(FieldNames.SideChainInfos);
 
-        private readonly Map<UInt64Value, ParentChainBlockRootInfo> _parentChainBlockInfo =
-            new Map<UInt64Value, ParentChainBlockRootInfo>(FieldNames.ParentChainBlockInfo);
+        private readonly Map<UInt64Value, ParentChainBlockInfo> _parentChainBlockInfo =
+            new Map<UInt64Value, ParentChainBlockInfo>(FieldNames.ParentChainBlockInfo);
         
         // record self height 
-        private readonly Map<UInt64Value, UInt64Value> _heightToParentChainHeight =
+        private readonly Map<UInt64Value, UInt64Value> _childHeightToParentChainHeight =
             new Map<UInt64Value, UInt64Value>(FieldNames.HeightToParentChainHeight);
+
+        private readonly Map<UInt64Value, MerklePath> _txRootMerklePathInParentChain =
+            new Map<UInt64Value, MerklePath>(Globals.AElfTxRootMerklePathInParentChain);
         
         #endregion Fields
         
@@ -127,7 +131,7 @@ namespace AElf.Contracts.SideChain
         public byte[] CreateSideChain(Hash chainId, Hash lockedAddress, ulong lockedToken)
         {
             ulong serialNumber = _sideChainSerialNumber.Increment().Value;
-            var info = new SideChainInfo()
+            var info = new SideChainInfo
             {
                 Owner = Api.GetTransaction().From,
                 ChainId = chainId,
@@ -175,34 +179,45 @@ namespace AElf.Contracts.SideChain
 
         public void WriteParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
         {
-            var indexedBlockHeight = parentChainBlockInfo.IndexedBlockHeight;
-            foreach (var height in indexedBlockHeight)
-            {
-                // the parent height in which this side chain block was indexed
-                var indexedHeight = _heightToParentChainHeight.GetValue(new UInt64Value {Value = height});
-                Api.Assert(indexedHeight == null,
-                    $"Height {height} has already been indexed by parent chain at height {indexedHeight.Value}");
-            }
-            
             ulong parentChainHeight = parentChainBlockInfo.Height;
             var key = new UInt64Value {Value = parentChainHeight};
             Api.Assert(_parentChainBlockInfo.GetValue(key) == null,
                 $"Already written parent chain block info at height {parentChainHeight}");
-
-            _parentChainBlockInfo[key] = new ParentChainBlockRootInfo
+            foreach (var _ in parentChainBlockInfo.IndexedBlockInfo)
             {
-                ChainId = parentChainBlockInfo.ChainId,
-                Height = parentChainHeight,
-                SideChainTransactionsRoot = parentChainBlockInfo.SideChainTransactionsRoot,
-                SideChainBlockHeadersRoot = parentChainBlockInfo.SideChainBlockHeadersRoot
-            };
-
-            foreach (var height in indexedBlockHeight)
-            {
-                _heightToParentChainHeight[new UInt64Value {Value = height}] = key;
+                BindParentChainHeight(_.Key, parentChainHeight);
+                AddIndexedTxRootMerklePathInParentChain(_.Key, _.Value);
             }
+            _parentChainBlockInfo[key] = parentChainBlockInfo;           
         }
 
+        public bool VerifyTransaction(Transaction tx, MerklePath path, ulong parentChainHeight)
+        {
+            var key = new UInt64Value {Value = parentChainHeight};
+            Api.Assert(_parentChainBlockInfo.GetValue(key) != null,
+                $"Parent chain block at height {parentChainHeight} is not recorded.");
+            var txHash = tx.GetHash();
+            var rootCalculated = path.ComputeRootWith(txHash);
+            var parentRoot = _parentChainBlockInfo[key].Root.SideChainTransactionsRoot;
+            Api.Assert(parentRoot.Equals(rootCalculated), "Transaction verification Failed");
+            return true;
+        }
+        
+        private void BindParentChainHeight(ulong childHeight, ulong parentHeight)
+        {
+            var key = new UInt64Value {Value = childHeight};
+            Api.Assert(_childHeightToParentChainHeight.GetValue(key) == null,
+                $"Already bound at height {childHeight} with parent chain");
+            _childHeightToParentChainHeight.SetValue(key, new UInt64Value{Value = parentHeight});
+        }
+
+        private void AddIndexedTxRootMerklePathInParentChain(ulong height, MerklePath path)
+        {
+            var key = new UInt64Value {Value = height};
+            Api.Assert(_txRootMerklePathInParentChain.GetValue(key) == null,
+                $"Merkle path already bound at height {height}.");
+            _txRootMerklePathInParentChain.SetValue(key, path);
+        }
         #endregion
         
 

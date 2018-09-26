@@ -10,6 +10,7 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Node.AElfChain;
+using AElf.Node.CrossChain;
 using AElf.RPC;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
@@ -35,6 +36,7 @@ namespace AElf.ChainController.Rpc
         public ISmartContractService SmartContractService { get; set; }
         public IAccountContextService AccountContextService { get; set; }
         public INodeService MainchainNodeService { get; set; }
+        public ICrossChainInfo CrossChainInfo { get; set; }
 
         #endregion Properties
 
@@ -235,6 +237,43 @@ namespace AElf.ChainController.Rpc
             };
         }
 
+        [JsonRpcMethod("get_tx_merklepath", "txid")]
+        public async Task<JObject> ProcGetTxMerklePath(string txid)
+        {
+            try
+            {
+                Hash txHash;
+                try
+                {
+                    txHash = ByteArrayHelpers.FromHexString(txid);
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Invalid Address Format");
+                }
+                var txResult = await this.GetTransactionResult(txHash);
+                if(txResult.Status != Status.Mined)
+                   throw new Exception("Transaction is not mined.");
+                
+                var merklePath = txResult.MerklePath?.Clone();
+                if(merklePath == null)
+                    throw new Exception("Not found merkle path for this transaction.");
+                var merklePathInParentChain = this.GetTxRootMerklePathinParentChain(txResult.BlockNumber);
+                /*if(merklePathInParentChain == null)
+                    throw new Exception("Not found merkle path in parent chain");*/
+                if(merklePathInParentChain != null)
+                    merklePath.Path.AddRange(merklePathInParentChain.Path);
+                return new JObject{["merkle_path"] = merklePath.ToByteArray().ToHex()};
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = e.Message
+                };
+            }
+        }
+        
         [JsonRpcMethod("get_tx_result", "txhash")]
         public async Task<JObject> ProcGetTxResult(string txhash)
         {
