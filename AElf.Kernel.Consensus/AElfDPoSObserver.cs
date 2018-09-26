@@ -79,7 +79,6 @@ namespace AElf.Kernel.Consensus
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * Globals.BlockProducerNumber))
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
             
-            _logger?.Trace("Block producer number:" + Globals.BlockProducerNumber);
             if (Globals.BlockProducerNumber != 1)
             {
                 Observable.Return(ConsensusBehavior.DoNothing)
