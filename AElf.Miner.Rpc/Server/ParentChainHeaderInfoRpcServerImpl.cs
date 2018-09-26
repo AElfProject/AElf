@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using Grpc.Core;
 using NLog;
+using NServiceKit.Common.Extensions;
 
 namespace AElf.Miner.Rpc.Server
 {
@@ -16,10 +18,13 @@ namespace AElf.Miner.Rpc.Server
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private IBlockChain BlockChain { get; set; }
-        public ParentChainBlockInfoRpcServerImpl(IChainService chainService, ILogger logger)
+        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        public ParentChainBlockInfoRpcServerImpl(IChainService chainService, ILogger logger, 
+            IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             _chainService = chainService;
             _logger = logger;
+            _binaryMerkleTreeManager = binaryMerkleTreeManager;
         }
 
         public void Init(Hash chainId)
@@ -60,28 +65,31 @@ namespace AElf.Miner.Rpc.Server
                     {
                         res.BlockInfo = new ParentChainBlockInfo
                         {
-                            Height = requestedHeight,
-                            SideChainBlockHeadersRoot = header?.SideChainBlockHeadersRoot,
-                            SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
-                            ChainId = header?.ChainId
+                            Root = new ParentChainBlockRootInfo
+                            {
+                                Height = requestedHeight,
+                                SideChainBlockHeadersRoot = header?.SideChainBlockHeadersRoot,
+                                SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
+                                ChainId = header?.ChainId
+                            }
                         };
-                        //Todo: this is to tell side chain the height of side chain block in this main chain block, which could be removed with subsequent improvement.
-                        res.BlockInfo.IndexedBlockHeight.Add(body?.IndexedInfo.Aggregate(new List<ulong>(), (h, i) =>
-                        {
-                            if (i.ChainId.Equals(sideChainId))
-                                h.Add(i.Height);
-                            return h;
-                        }));
+                        var tree = await _binaryMerkleTreeManager
+                            .GetSideChainTransactionRootsMerkleTreeByHeightAsync(header?.ChainId, requestedHeight);
+                        //Todo: this is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
+                        body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
+                            .Select((info, index) =>
+                                new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
+                            .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
                     }
-                    
-                    _logger?.Log(LogLevel.Debug, $"Parent Chain Server responsed IndexedInfo message of height {requestedHeight}");
+
+                    _logger?.Log(LogLevel.Debug,
+                        $"Parent Chain Server responsed IndexedInfo message of height {requestedHeight}");
                     await responseStream.WriteAsync(res);
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                _logger?.Error(e, "Miner server RecordDuplexStreaming failed.");
             }
         }
 
@@ -116,18 +124,22 @@ namespace AElf.Miner.Rpc.Server
                     {
                         res.BlockInfo = new ParentChainBlockInfo
                         {
-                            Height = height,
-                            SideChainBlockHeadersRoot = header?.SideChainBlockHeadersRoot,
-                            SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
-                            ChainId = header?.ChainId
+                            Root = new ParentChainBlockRootInfo
+                            {
+                                Height = height,
+                                SideChainBlockHeadersRoot = header?.SideChainBlockHeadersRoot,
+                                SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
+                                ChainId = header?.ChainId
+                            }
                         };
+                        
+                        var tree = await _binaryMerkleTreeManager
+                            .GetSideChainTransactionRootsMerkleTreeByHeightAsync(header?.ChainId, height);
                         //Todo: this is to tell side chain the height of side chain block in this main chain block, which could be removed with subsequent improvement.
-                        res.BlockInfo.IndexedBlockHeight.Add(body?.IndexedInfo.Aggregate(new List<ulong>(), (h, i) =>
-                        {
-                            if (i.ChainId.Equals(sideChainId))
-                                h.Add(i.Height);
-                            return h;
-                        }));
+                        body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
+                            .Select((info, index) =>
+                                new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
+                            .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
                     }
                 
                     _logger?.Log(LogLevel.Debug, $"Parent Chain Server responsed IndexedInfo message of height {height}");
@@ -136,9 +148,9 @@ namespace AElf.Miner.Rpc.Server
                     height++;
                 }
             }
-            catch
+            catch(Exception e)
             {
-                
+                _logger?.Error(e, "Miner server RecordDuplexStreaming failed.");
             }
         }
     }

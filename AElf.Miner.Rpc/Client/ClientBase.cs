@@ -19,7 +19,8 @@ namespace AElf.Miner.Rpc.Client
         private readonly Hash _targetChainId;
         private readonly int _interval;
 
-        private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } = new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
+        private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } =
+            new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
 
         protected ClientBase(ILogger logger, Hash targetChainId, int interval)
         {
@@ -60,7 +61,8 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="call"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        private async Task RequestLoop(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, CancellationToken cancellationToken)
+        private async Task RequestLoop(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, 
+            CancellationToken cancellationToken)
         {
             // send request every second until cancellation
             while (!cancellationToken.IsCancellationRequested)
