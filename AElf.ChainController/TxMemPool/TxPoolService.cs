@@ -49,7 +49,7 @@ namespace AElf.ChainController.TxMemPool
         private readonly ConcurrentBag<Hash> _priorAddresses = new ConcurrentBag<Hash>();
 
         /// <inheritdoc/>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true)
         {
             if (Cts.IsCancellationRequested) 
                 return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
@@ -497,7 +497,7 @@ namespace AElf.ChainController.TxMemPool
             _logger?.Log(LogLevel.Debug, "Reverted {0} txs.", txsOut.Count);
         }
 
-        public void SetBlockVolume(ulong minimal, ulong maximal)
+        public void SetBlockVolume(int minimal, int maximal)
         {
             _contractTxPool.SetBlockVolume(minimal, maximal);
         }

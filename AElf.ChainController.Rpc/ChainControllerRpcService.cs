@@ -18,6 +18,7 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
+using Mono.Cecil;
 using NLog;
 
 namespace AElf.ChainController.Rpc
@@ -35,6 +36,7 @@ namespace AElf.ChainController.Rpc
         public ITransactionResultService TransactionResultService { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public IAccountContextService AccountContextService { get; set; }
+        public TxHub TxHub { get; set; }
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfo CrossChainInfo { get; set; }
 
@@ -293,6 +295,7 @@ namespace AElf.ChainController.Rpc
             try
             {
                 var transaction = await this.GetTransaction(txHash);
+                var txnStatus = this.GetTransactionHolder(txHash)?.Status;
 
                 var txInfo = transaction == null
                     ? new JObject {["tx"] = "Not Found"}
@@ -304,6 +307,7 @@ namespace AElf.ChainController.Rpc
                 var txResult = await this.GetTransactionResult(txHash);
                 var response = new JObject
                 {
+                    ["tx_s"] = txnStatus?.ToString(),
                     ["tx_status"] = txResult.Status.ToString(),
                     ["tx_info"] = txInfo["tx"]
                 };
@@ -451,8 +455,8 @@ namespace AElf.ChainController.Rpc
              */
             try
             {
-                var min = ulong.Parse(minimal);
-                var max = ulong.Parse(maximal);
+                var min = int.Parse(minimal);
+                var max = int.Parse(maximal);
                 this.SetBlockVolume(min, max);
                 return await Task.FromResult(new JObject
                 {

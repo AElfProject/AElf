@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel;
 
+// ReSharper once InconsistentNaming
 namespace AElf.ChainController.TxMemPool
 {
 //    public enum TxInsertionAndBroadcastingError
@@ -24,5 +26,6 @@ namespace AElf.ChainController.TxMemPool
     {
         TxValidation.TxInsertionAndBroadcastingError ValidateTx(Transaction tx);
         Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(Transaction tx);
+        List<Transaction> RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Hash blockProducerAddress, Round currentRoundInfo);
     }
 }

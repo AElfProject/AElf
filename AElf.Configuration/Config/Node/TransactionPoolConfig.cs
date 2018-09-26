@@ -11,9 +11,9 @@ namespace AElf.Configuration
  
         public ulong FeeThreshold { get; set; }
         
-        public ulong Minimal { get; set; }
+        public int Minimal { get; set; }
         
-        public ulong Maximal { get; set; }
+        public int Maximal { get; set; }
         
         public ECKeyPair EcKeyPair { get; set; }
          

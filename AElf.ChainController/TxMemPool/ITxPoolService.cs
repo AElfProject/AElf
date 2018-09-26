@@ -11,7 +11,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx);
+        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true);
 
         /// <summary>
         /// remove a tx from collection not pool
@@ -94,6 +94,6 @@ namespace AElf.ChainController.TxMemPool
         /// <returns></returns>
         Task Revert(List<Transaction> txsOut);
 
-        void SetBlockVolume(ulong minimal, ulong maximal);
+        void SetBlockVolume(int minimal, int maximal);
     }
 }

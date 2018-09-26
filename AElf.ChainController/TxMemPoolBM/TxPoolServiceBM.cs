@@ -2,11 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController.TxMemPool;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -18,16 +16,14 @@ namespace AElf.ChainController.TxMemPoolBM
     {
         private readonly ILogger _logger;
         private readonly ITxValidator _txValidator;
-        private readonly ITransactionManager _transactionManager;
-        private ulong Least { get; set; }
-        private ulong Limit { get; set; }
+        private int Least { get; set; }
+        private int Limit { get; set; }
 
-        public TxPoolServiceBM(ILogger logger, ITxValidator txValidator,
-            ITransactionManager transactionManager)
+        public TxPoolServiceBM(ILogger logger, ITxValidator txValidator, TxHub txHub)
         {
             _logger = logger;
             _txValidator = txValidator;
-            _transactionManager = transactionManager;
+            _txHub = txHub;
         }
 
         public void Start()
@@ -39,23 +35,21 @@ namespace AElf.ChainController.TxMemPoolBM
             return Task.CompletedTask;
         }
 
-        private readonly ConcurrentDictionary<Hash, Transaction> _contractTxs =
-            new ConcurrentDictionary<Hash, Transaction>();
+        private TxHub _txHub;
 
         private readonly ConcurrentDictionary<Hash, Transaction> _systemTxs =
             new ConcurrentDictionary<Hash, Transaction>();
 
         /// <inheritdoc/>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true)
         {
-            var txExecuted = await _transactionManager.GetTransaction(tx.GetHash());
-            if (txExecuted != null)
+            var txv = _txHub.GetTxHolderView(tx.GetHash());
+            if (txv != null)
             {
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+                return TxValidation.TxInsertionAndBroadcastingError.KnownTx;
             }
 
-            var res = await AddTransaction(tx);
-
+            var res = await AddTransaction(tx, validateReference);
             return res;
         }
 
@@ -63,27 +57,60 @@ namespace AElf.ChainController.TxMemPoolBM
         /// enqueue tx in pool
         /// </summary>
         /// <param name="tx"></param>
+        /// <param name="validateReference"></param>
         /// <returns></returns>
-        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx)
+        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx, bool validateReference)
         {
+            var txid = tx.GetHash();
+            var nonSys = tx.Type == TransactionType.ContractTransaction;
+            if (nonSys)
+            {
+                try
+                {
+                    _txHub.AddNewTransaction(tx);
+                }
+                catch (Exception)
+                {
+                    return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
+                }
+                _txHub.ValidatingTx(txid);
+            }
+
             var res = _txValidator.ValidateTx(tx);
             if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
             {
+                if (nonSys)
+                {
+                    _txHub.InvalidatedTx(txid);
+                }
+
                 return res;
             }
 
-            res = await _txValidator.ValidateReferenceBlockAsync(tx);
-            if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
+            if (validateReference)
             {
-                return res;
+                res = await _txValidator.ValidateReferenceBlockAsync(tx);
+                if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
+                {
+                    if (nonSys)
+                    {
+                        _txHub.InvalidatedTx(txid);
+                    }
+
+                    return res;
+                }
             }
 
-            if (tx.Type != TransactionType.ContractTransaction)
+            if (nonSys)
+            {
+                _txHub.ValidatedTx(txid);
+            }
+            
+            if (!nonSys)
             {
                 return await Task.FromResult(AddSystemTransaction(tx));
             }
-
-            return await Task.FromResult(AddContractTransaction(tx));
+            return TxValidation.TxInsertionAndBroadcastingError.Success;
         }
 
         /// <summary>
@@ -93,7 +120,7 @@ namespace AElf.ChainController.TxMemPoolBM
         /// <returns></returns>
         private TxValidation.TxInsertionAndBroadcastingError AddSystemTransaction(Transaction tx)
         {
-            if (tx.Type == TransactionType.ContractTransaction) 
+            if (tx.Type == TransactionType.ContractTransaction)
                 return TxValidation.TxInsertionAndBroadcastingError.Failed;
             if (_systemTxs.ContainsKey(tx.GetHash()))
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
@@ -112,12 +139,25 @@ namespace AElf.ChainController.TxMemPoolBM
         {
             if (tx.Type != TransactionType.ContractTransaction)
                 return TxValidation.TxInsertionAndBroadcastingError.Failed;
-            if (_contractTxs.ContainsKey(tx.GetHash()))
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
 
-            return _contractTxs.TryAdd(tx.GetHash(), tx)
-                ? TxValidation.TxInsertionAndBroadcastingError.Success
-                : TxValidation.TxInsertionAndBroadcastingError.Failed;
+            try
+            {
+                _txHub.AddNewTransaction(tx);
+            }
+            catch (Exception)
+            {
+                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
+            }
+//            
+//            if (_contractTxs.ContainsKey(tx.GetHash()))
+//                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
+//
+//            if (_contractTxs.TryAdd(tx.GetHash(), tx))
+//            {
+                return TxValidation.TxInsertionAndBroadcastingError.Success;
+//            }
+
+            return TxValidation.TxInsertionAndBroadcastingError.Failed;
         }
 
         /// <inheritdoc/>
@@ -127,7 +167,8 @@ namespace AElf.ChainController.TxMemPoolBM
             {
                 if (tx.Type == TransactionType.ContractTransaction)
                 {
-                    AddContractTransaction(tx);
+//                    AddContractTransaction(tx);
+                    _txHub.RevertExecutingTx(tx.GetHash());   
                 }
                 else if (tx.Type != TransactionType.DposTransaction)
                 {
@@ -143,7 +184,12 @@ namespace AElf.ChainController.TxMemPoolBM
         /// <inheritdoc/>
         public bool TryGetTx(Hash txHash, out Transaction tx)
         {
-            return _contractTxs.TryGetValue(txHash, out tx) || _systemTxs.TryGetValue(txHash, out tx);
+            tx = _txHub.GetTxHolderView(txHash)?.Transaction;
+            if (tx == null)
+            {
+                _systemTxs.TryGetValue(txHash, out tx);
+            }
+            return tx != null;
         }
 
         public List<Hash> GetMissingTransactions(IBlock block)
@@ -166,7 +212,8 @@ namespace AElf.ChainController.TxMemPoolBM
         {
             if (_systemTxs.TryRemove(txHash, out _))
                 return;
-            _contractTxs.TryRemove(txHash, out _);
+            _txHub.ExecutedTx(txHash);
+//            _contractTxs.TryRemove(txHash, out _);
         }
 
         /// <inheritdoc/>
@@ -177,103 +224,28 @@ namespace AElf.ChainController.TxMemPoolBM
 
             if (currentRoundInfo != null)
             {
-                RemoveDirtySystemTxs(txs, blockProducerAddress, currentRoundInfo);
+                var toRemove = _txValidator.RemoveDirtyDPoSTxs(txs, blockProducerAddress, currentRoundInfo);
+                if (toRemove != null)
+                {
+                    foreach (var tx in toRemove)
+                    {
+                        RemoveAsync(tx.GetHash());
+                    }
+                }
             }
             
             _logger.Debug($"Got {txs.Count} System tx");
-            if ((ulong) _contractTxs.Count < Least)
+            var count = _txHub.ValidatedCount;
+            if (count < Least)
             {
-                _logger.Debug($"Regular txs {Least} required, but we only have {_contractTxs.Count}");
+                _logger.Debug($"Regular txs {Least} required, but we only have {count}");
                 return txs;
             }
 
-            var invalid = new List<Hash>();
-            foreach (var kv in _contractTxs)
-            {
-                if (Limit != 0 && (ulong) txs.Count > Limit)
-                {
-                    continue;
-                }
-
-                if (!kv.Value.Claim())
-                {
-                    continue;
-                }
-
-                var res = await _txValidator.ValidateReferenceBlockAsync(kv.Value);
-                if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
-                {
-                    invalid.Add(kv.Key);
-                }
-                else
-                {
-                    txs.Add(kv.Value);
-                }
-            }
-
-            foreach (var hash in invalid)
-            {
-                _contractTxs.TryRemove(hash, out _);
-            }
+            txs.AddRange(_txHub.GetTxsForExecution(Limit));
 
             _logger.Debug($"Got {txs.Count} total tx");
             return txs;
-        }
-        
-        private void RemoveDirtySystemTxs(List<Transaction> readyTxs, Hash blockProducerAddress, Round currentRoundInfo)
-        {
-            const string inValueTxName = "PublishInValue";
-            var toRemove = new List<Transaction>();
-            foreach (var transaction in readyTxs)
-            {
-                if (transaction.From == blockProducerAddress)
-                {
-                    continue;
-                }
-                
-                if (transaction.Type == TransactionType.CrossChainBlockInfoTransaction || 
-                    transaction.Type == TransactionType.DposTransaction && transaction.MethodName != inValueTxName)
-                {
-                    toRemove.Add(transaction);
-                }
-                else
-                {
-                    if (currentRoundInfo == null)
-                    {
-                        continue;
-                    }
-                    var inValue = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
-                        new[] {typeof(UInt64Value), typeof(StringValue), typeof(Hash)})[2] as Hash;
-                    var outValue = currentRoundInfo.BlockProducers[transaction.From.ToHex().RemoveHexPrefix()].OutValue;
-                    if (outValue == inValue.CalculateHash())
-                    {
-                        toRemove.Add(transaction);
-                    }
-                }
-            }
-
-            // No one will publish in value if I won't do this in current block.
-            if (!readyTxs.Any(tx => tx.MethodName == inValueTxName && tx.From == blockProducerAddress))
-            {
-                toRemove.AddRange(readyTxs.FindAll(tx => tx.MethodName == inValueTxName));
-            }
-            else
-            {
-                // One BP can only publish in value once in one block.
-                toRemove.AddRange(readyTxs.FindAll(tx => tx.MethodName == inValueTxName).GroupBy(tx => tx.From)
-                    .Where(g => g.Count() > 1).SelectMany(g => g));
-            }
-
-            var count = readyTxs.Count(tx => tx.MethodName.Contains("UpdateAElfDPoS"));
-            if (count > 1)
-            {
-                toRemove.AddRange(readyTxs.Where(tx => tx.MethodName.Contains("UpdateAElfDPoS")).Take(count - 1));
-            }
-
-            foreach (var transaction in toRemove)
-            {
-                readyTxs.Remove(transaction);
-            }
         }
 
         public List<Transaction> GetSystemTxs()
@@ -288,7 +260,7 @@ namespace AElf.ChainController.TxMemPoolBM
             return Task.CompletedTask;
         }
 
-        public void SetBlockVolume(ulong minimal, ulong maximal)
+        public void SetBlockVolume(int minimal, int maximal)
         {
             Least = minimal;
             Limit = maximal;
@@ -302,7 +274,7 @@ namespace AElf.ChainController.TxMemPoolBM
 
         public Task<ulong> GetPoolSize()
         {
-            return Task.FromResult((ulong) _contractTxs.Count);
+            return Task.FromResult((ulong) _txHub.ValidatedCount);
         }
     }
 }

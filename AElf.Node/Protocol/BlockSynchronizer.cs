@@ -155,7 +155,7 @@ namespace AElf.Node.Protocol
                 try
                 {
                     // Every received transaction, provided that it's valid, should be in the pool.
-                    var result = await _poolService.AddTxAsync(tx);
+                    var result = await _poolService.AddTxAsync(tx, !IsInitialSyncInProgress);
 
                     byte[] transactionBytes = tx.GetHashBytes();
 
