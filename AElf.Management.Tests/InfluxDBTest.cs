@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using AElf.Management.Helper;
 using AElf.Management.Models;
@@ -10,44 +11,27 @@ namespace AElf.Management.Tests
     public class InfluxDBTest
     {
         [Fact]
-        public void TestSet()
+        public void TestSetAndGet()
         {
-            //InfluxDBHelper.Set("");
-        }
-        
-        [Fact]
-        public void TestGet()
-        {
-            var result = InfluxDBHelper.Get("0x2491b3fb14d2ddac790fc18c161166226f04","select * from node_state");
+            var database = "unittest";
+            InfluxDBHelper.CreateDatabase(database);
+
+            var used = 50;
+            var time = DateTime.Now;
+            InfluxDBHelper.Set(database, "cpu", new Dictionary<string, object> {{"used", used}}, null, time);
+            Thread.Sleep(1000);
+            var result = InfluxDBHelper.Get(database, "select * from cpu");
+            
+            Assert.True(Convert.ToInt32(result[0].Values[0][1]) == used);
+            
+            InfluxDBHelper.DropDatabase(database);
         }
         
         [Fact]
         public void TestVerison()
         {
-            InfluxDBHelper.Version();
-        }
-
-        [Fact]
-        public void Test()
-        {
-            try
-            {
-                var service = new TransactionService();
-
-                service.RecordPoolSize("test", DateTime.Now, 234);
-
-                while (true)
-                {
-                    Thread.Sleep(3000);
-
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-
+            var version = InfluxDBHelper.Version();
+            Assert.NotNull(version);
         }
     }
 }

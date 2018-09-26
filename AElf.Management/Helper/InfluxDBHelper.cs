@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Configuration;
 using InfluxDB.Net;
+using InfluxDB.Net.Enums;
 using InfluxDB.Net.Models;
 
 namespace AElf.Management.Helper
@@ -17,7 +18,7 @@ namespace AElf.Management.Helper
             _client = new InfluxDb(MonitorDatabaseConfig.Instance.Url, MonitorDatabaseConfig.Instance.Username, MonitorDatabaseConfig.Instance.Password);
         }
 
-        public static async Task Set(string database, string measurement, Dictionary<string, object> fields, Dictionary<string, object> tags, DateTime timestamp)
+        public static void Set(string database, string measurement, Dictionary<string, object> fields, Dictionary<string, object> tags, DateTime timestamp)
         {
             var point = new Point
             {
@@ -29,25 +30,30 @@ namespace AElf.Management.Helper
             {
                 point.Tags = tags;
             }
-            await _client.WriteAsync(database, point);
+            _client.WriteAsync(database, point);
         }
 
         public static List<Serie> Get(string database, string query)
         {
-            var result = _client.QueryAsync(database, query);
-            return result.Result;
+            var series = _client.QueryAsync(database, query).Result;
+
+            return series;
         }
         
         public static string Version()
         {
             var version = _client.GetClientVersion();
-
             return version.ToString();
         }
 
-        public static void AddDatabase(string database)
+        public static void CreateDatabase(string database)
         {
             _client.CreateDatabaseAsync(database);
+        }
+
+        public static void DropDatabase(string database)
+        {
+            _client.DropDatabaseAsync(database);
         }
     }
 }

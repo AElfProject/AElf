@@ -7,7 +7,7 @@ namespace AElf.Management.Commands
     {
         public void Action(DeployArg arg)
         {
-            InfluxDBHelper.AddDatabase(arg.SideChainId);
+            InfluxDBHelper.CreateDatabase(arg.SideChainId);
         }
     }
 }
