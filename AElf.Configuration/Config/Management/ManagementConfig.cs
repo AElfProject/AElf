@@ -7,5 +7,13 @@
         public string SideChainServicePath { get; set; }
         public string NodeAccount { get; set; }
         public string NodeAccountPassword { get; set; }
+        
+        public string DeployType { get; set; }
+
+        public bool Authentication { get; set; }
+
+        public int SignTimeout { get; set; }
+
+        public int MonitoringInterval { get; set; }
     }
 }

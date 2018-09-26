@@ -13,9 +13,17 @@ namespace AElf.Management.Tests
         //[Fact]
         public void DeployTestChain()
         {
+            var arg = new DeployArg();
+            arg.AccountPassword = "123";
+            arg.DBArg = new DeployDBArg();
+            arg.LighthouseArg=new DeployLighthouseArg();
+            arg.LighthouseArg.IsCluster = false;
+            arg.WorkArg = new DeployWorkArg();
+            arg.LauncherArg=new DeployLauncherArg();
+            arg.LauncherArg.IsConsensusInfoGenerator = true;
+            
             var service = new ChainService();
-
-            service.DeployTestChain();
+            service.DeployMainChain(arg);
         }
 
         [Fact(Skip = "require aws account")]
@@ -23,7 +31,7 @@ namespace AElf.Management.Tests
         public void RemoveTestChain()
         {
             var service = new ChainService();
-            service.RemoveTestChain(chainId);
+            service.RemoveMainChain(chainId);
         }
     }
 }

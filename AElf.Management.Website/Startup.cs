@@ -21,7 +21,7 @@ namespace AElf.Management.Website
 
         public IConfiguration Configuration { get; }
                 
-        //public IContainer ApplicationContainer { get; private set; }
+        public IContainer ApplicationContainer { get; private set; }
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
@@ -47,9 +47,12 @@ namespace AElf.Management.Website
             builder.RegisterType<TransactionService>().As<ITransactionService>().SingleInstance();
             builder.RegisterType<NodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkService>().As<INetworkService>().SingleInstance();
+            builder.RegisterType<RecrodService>().As<IRecrodService>().SingleInstance();
 
             builder.Populate(services);
             var ApplicationContainer = builder.Build();
+            
+            ApplicationContainer.Resolve<IRecrodService>().Start();
 
             return new AutofacServiceProvider(ApplicationContainer);
         }

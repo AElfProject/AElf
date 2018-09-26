@@ -10,9 +10,5 @@ namespace AElf.Management.Interfaces
         void DeployMainChain(DeployArg arg);
 
         void RemoveMainChain(string chainId);
-
-        DeployTestChainResult DeployTestChain();
-
-        void RemoveTestChain(string chainId);
     }
 }

@@ -36,10 +36,10 @@
     <None Update="Config\Database\database.json" Link="config\database.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Node\miners.json" Link="config\miners.json">
+    <None Update="Config\Database\monitordatabase.json" Link="config\monitordatabase.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Management\deploy.json" Link="config\deploy.json">
+    <None Update="Config\Node\miners.json" Link="config\miners.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Config\Management\apikey.json" Link="config\apikey.json">
