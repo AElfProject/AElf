@@ -12,6 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.ConsensusContract
 {
+    // ReSharper disable UnusedMember.Global
     // ReSharper disable InconsistentNaming
     public class DPoS : IConsensus
     {
@@ -224,22 +225,24 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// </summary>
         /// <param name="args">
         /// (I) Publish out value and signature
-        /// 4 args:
+        /// 5 args:
         /// [0] UInt64Value
         /// [1] StringValue
         /// [2] Hash
         /// [3] Hash
+        /// [4] Int64Value (not useful here)
         /// 
         /// (II) Publish in value
-        /// 3 args:
+        /// 4 args:
         /// [0] UInt64Value
         /// [1] StringValue
         /// [2] Hash
+        /// [3] Int64Value (not useful here)
         /// </param>
         /// <returns></returns>
         public async Task Publish(List<byte[]> args)
         {
-            if (args.Count < 3)
+            if (args.Count < 4)
             {
                 return;
             }
@@ -258,7 +261,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             }
 
             // ReSharper disable once ConvertIfStatementToSwitchStatement
-            if (args.Count == 4)
+            if (args.Count == 5)
             {
                 Hash outValue;
                 Hash signature;
@@ -277,7 +280,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 await PublishOutValueAndSignature(roundNumber, accountAddress, outValue, signature);
             }
 
-            if (args.Count == 3)
+            if (args.Count == 4)
             {
                 Hash inValue;
 
@@ -490,7 +493,6 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await _currentRoundNumberField.SetAsync(CurrentRoundNumber + 1);
         }
 
-        // ReSharper disable once UnusedMember.Global
         private async Task PublishOutValueAndSignature(UInt64Value roundNumber, StringValue accountAddress,
             Hash outValue, Hash signature)
         {
@@ -504,7 +506,6 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await _dPoSInfoMap.SetValueToDatabaseAsync(roundNumber, roundInfo);
         }
 
-        // ReSharper disable once UnusedMember.Global
         private async Task PublishInValue(UInt64Value roundNumber, StringValue accountAddress, Hash inValue)
         {
             var info = await GetBPInfoOfSpecificRound(accountAddress, roundNumber);
@@ -516,13 +517,11 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await _dPoSInfoMap.SetValueToDatabaseAsync(roundNumber, roundInfo);
         }
 
-        // ReSharper disable once InconsistentNaming
         private async Task<BlockProducer> GetBPInfoOfSpecificRound(StringValue accountAddress, UInt64Value roundNumber)
         {
             return (await _dPoSInfoMap.GetValueAsync(roundNumber)).BlockProducers[accountAddress.Value];
         }
 
-        // ReSharper disable once InconsistentNaming
         private async Task<BlockProducer> GetBPInfoOfCurrentRound(StringValue accountAddress)
         {
             return (await _dPoSInfoMap.GetValueAsync(new UInt64Value {Value = CurrentRoundNumber})).BlockProducers[

@@ -224,7 +224,14 @@ namespace AElf.ChainController.TxMemPoolBM
 
             if (currentRoundInfo != null)
             {
-                RemoveDirtySystemTxs(txs, blockProducerAddress, currentRoundInfo);
+                var toRemove = _txValidator.RemoveDirtyDPoSTxs(txs, blockProducerAddress, currentRoundInfo);
+                if (toRemove != null)
+                {
+                    foreach (var tx in toRemove)
+                    {
+                        RemoveAsync(tx.GetHash());
+                    }
+                }
             }
             
             _logger.Debug($"Got {txs.Count} System tx");
@@ -239,62 +246,6 @@ namespace AElf.ChainController.TxMemPoolBM
 
             _logger.Debug($"Got {txs.Count} total tx");
             return txs;
-        }
-        
-        private void RemoveDirtySystemTxs(List<Transaction> readyTxs, Hash blockProducerAddress, Round currentRoundInfo)
-        {
-            const string inValueTxName = "PublishInValue";
-            var toRemove = new List<Transaction>();
-            foreach (var transaction in readyTxs)
-            {
-                if (transaction.From == blockProducerAddress)
-                {
-                    continue;
-                }
-                
-                if (transaction.Type == TransactionType.CrossChainBlockInfoTransaction || 
-                    transaction.Type == TransactionType.DposTransaction && transaction.MethodName != inValueTxName)
-                {
-                    toRemove.Add(transaction);
-                }
-                else
-                {
-                    if (currentRoundInfo == null)
-                    {
-                        continue;
-                    }
-                    var inValue = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
-                        new[] {typeof(UInt64Value), typeof(StringValue), typeof(Hash)})[2] as Hash;
-                    var outValue = currentRoundInfo.BlockProducers[transaction.From.ToHex().RemoveHexPrefix()].OutValue;
-                    if (outValue == inValue.CalculateHash())
-                    {
-                        toRemove.Add(transaction);
-                    }
-                }
-            }
-
-            // No one will publish in value if I won't do this in current block.
-            if (!readyTxs.Any(tx => tx.MethodName == inValueTxName && tx.From == blockProducerAddress))
-            {
-                toRemove.AddRange(readyTxs.FindAll(tx => tx.MethodName == inValueTxName));
-            }
-            else
-            {
-                // One BP can only publish in value once in one block.
-                toRemove.AddRange(readyTxs.FindAll(tx => tx.MethodName == inValueTxName).GroupBy(tx => tx.From)
-                    .Where(g => g.Count() > 1).SelectMany(g => g));
-            }
-
-            var count = readyTxs.Count(tx => tx.MethodName.Contains("UpdateAElfDPoS"));
-            if (count > 1)
-            {
-                toRemove.AddRange(readyTxs.Where(tx => tx.MethodName.Contains("UpdateAElfDPoS")).Take(count - 1));
-            }
-
-            foreach (var transaction in toRemove)
-            {
-                readyTxs.Remove(transaction);
-            }
         }
 
         public List<Transaction> GetSystemTxs()

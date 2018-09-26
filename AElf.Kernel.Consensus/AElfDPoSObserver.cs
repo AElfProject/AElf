@@ -78,17 +78,32 @@ namespace AElf.Kernel.Consensus
             var recoverMining = Observable
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * Globals.BlockProducerNumber))
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
-            
+
+            Observable.Return(ConsensusBehavior.DoNothing)
+                .Concat(recoverMining)
+                .Subscribe(this);
+            /*
+
             if (Globals.BlockProducerNumber != 1)
             {
                 Observable.Return(ConsensusBehavior.DoNothing)
                     .Concat(recoverMining)
                     .Subscribe(this);
+                return;
             }
 
-            _logger?.Trace($"Will produce normal block after {Globals.AElfDPoSMiningInterval / 1000}s\n");
-            _logger?.Trace($"Will publish in value after {Globals.AElfDPoSMiningInterval * 2 / 1000}s\n");
-            _logger?.Trace($"Will produce extra block after {Globals.AElfDPoSMiningInterval * 3.5 / 1000}s");
+            _logger?.Trace(
+                $"Will produce extra block after" +
+                $" {Globals.AElfDPoSMiningInterval * Globals.BlockProducerNumber / 1000}s\n");
+            _logger?.Trace(
+                $"Will produce normal block after" +
+                $" {(Globals.AElfDPoSMiningInterval * Globals.BlockProducerNumber + Globals.AElfDPoSMiningInterval) / 1000}s\n");
+            _logger?.Trace(
+                $"Will publish in value after" +
+                $" {Globals.AElfDPoSMiningInterval * Globals.BlockProducerNumber / 1000 + Globals.AElfDPoSMiningInterval * 2 / 1000}s\n");
+            _logger?.Trace(
+                $"Will produce extra block after" +
+                $" {Globals.AElfDPoSMiningInterval * Globals.BlockProducerNumber / 1000.0 + Globals.AElfDPoSMiningInterval * 3.5 / 1000}s");
 
             var produceNormalBlock = Observable
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
@@ -99,26 +114,26 @@ namespace AElf.Kernel.Consensus
             var produceExtraBlock = Observable
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * 1.5))
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
-            
+
             Observable.Return(ConsensusBehavior.DoNothing)
                 .Concat(recoverMining)
                 .Concat(produceNormalBlock)
                 .Concat(publicInValue)
                 .Concat(produceExtraBlock)
                 .SubscribeOn(NewThreadScheduler.Default)
-                .Subscribe(this);
+                .Subscribe(this);*/
         }
-        
+
         // ReSharper disable once InconsistentNaming
-        public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeslot)
+        public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeSlot)
         {
             var doNothingObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
                 .Select(_ => ConsensusBehavior.DoNothing);
 
-            var timeslot = infoOfMe.TimeSlot;
+            var timeSlot = infoOfMe.TimeSlot;
             var now = DateTime.UtcNow.ToTimestamp();
-            var distanceToProduceNormalBlock = (timeslot - now).Seconds;
+            var distanceToProduceNormalBlock = (timeSlot - now).Seconds;
             
             IObservable<ConsensusBehavior> produceNormalBlock;
             if (distanceToProduceNormalBlock >= 0)
@@ -127,7 +142,10 @@ namespace AElf.Kernel.Consensus
                         .Timer(TimeSpan.FromSeconds(distanceToProduceNormalBlock))
                         .Select(_ => ConsensusBehavior.PublishOutValueAndSignature);
 
-                _logger?.Trace($"Will produce normal block after {distanceToProduceNormalBlock} seconds");
+                if (distanceToProduceNormalBlock >= 0)
+                {
+                    _logger?.Trace($"Will produce normal block after {distanceToProduceNormalBlock} seconds");
+                }
             }
             else
             {
@@ -135,7 +153,7 @@ namespace AElf.Kernel.Consensus
                 produceNormalBlock = doNothingObservable;
             }
 
-            var distanceToPublishInValue = (extraBlockTimeslot - now).Seconds;
+            var distanceToPublishInValue = (extraBlockTimeSlot - now).Seconds;
             
             IObservable<ConsensusBehavior> publishInValue;
             if (distanceToPublishInValue >= 0)
@@ -145,7 +163,10 @@ namespace AElf.Kernel.Consensus
                         .Timer(TimeSpan.FromSeconds(after))
                         .Select(_ => ConsensusBehavior.PublishInValue);
 
-                _logger?.Trace($"Will publish in value after {distanceToPublishInValue} seconds");
+                if (distanceToPublishInValue >= 0)
+                {
+                    _logger?.Trace($"Will publish in value after {distanceToPublishInValue} seconds");
+                }
             }
             else
             {
@@ -168,7 +189,10 @@ namespace AElf.Kernel.Consensus
                     .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
                     .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
-                _logger?.Trace($"Will produce extra block after {after} seconds"); 
+                if (after >= 0)
+                {
+                    _logger?.Trace($"Will produce extra block after {after} seconds"); 
+                }
             }
             else
             {
@@ -180,7 +204,10 @@ namespace AElf.Kernel.Consensus
                                                      Globals.AElfDPoSMiningInterval / 2))
                     .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
-                _logger?.Trace($"Will help to produce extra block after {after} seconds");
+                if (after >= 0)
+                {
+                    _logger?.Trace($"Will help to produce extra block after {after} seconds");
+                }
             }
 
             return Observable.Return(ConsensusBehavior.DoNothing)

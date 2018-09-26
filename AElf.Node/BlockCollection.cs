@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.ChainController;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Network;
@@ -19,23 +21,11 @@ namespace AElf.Node
     {
         private bool _isInitialSync = true;
 
-        private Hash _chainId;
-
-        private Hash ChainId
-        {
-            get
-            {
-                if (_chainId == null)
-                {
-                    _chainId = Globals.CurrentChainId.Clone();
-                }
-
-                return _chainId;
-            }
-        }
-
         private IBlockChain _blockChain;
-        private IBlockChain BlockChain => _blockChain ?? (_blockChain = _chainService.GetBlockChain(ChainId));
+
+        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
+                                              _chainService.GetBlockChain(
+                                                  ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)));
 
         /// <summary>
         /// To store branched chains.
@@ -48,7 +38,8 @@ namespace AElf.Node
         public ulong PendingBlockHeight { get; set; }
 
         public ulong SyncedHeight =>
-            _chainService.GetBlockChain(ChainId).GetCurrentBlockHeightAsync().Result;
+            _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId))
+                .GetCurrentBlockHeightAsync().Result;
 
         public List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
 
@@ -70,7 +61,8 @@ namespace AElf.Node
 
         private readonly ulong _heightBefore;
 
-        public bool ReceivedAllTheBlocksBeforeTargetBlock => (ulong) _initialSyncBlocksIndexes.Count + _heightBefore == _targetHeight;
+        public bool ReceivedAllTheBlocksBeforeTargetBlock =>
+            (ulong) _initialSyncBlocksIndexes.Count + _heightBefore == _targetHeight;
 
         private ulong _targetHeight = ulong.MaxValue;
 
@@ -105,11 +97,13 @@ namespace AElf.Node
                             {
                                 _isInitialSync = false;
                             }
+
                             if (DPoS.ConsensusDisposable != null)
                             {
                                 DPoS.ConsensusDisposable.Dispose();
                                 _logger?.Trace("Disposed previous consensus observables list.");
                             }
+
                             AddToPendingBlocks(pendingBlock);
                             PendingBlocks.SortByBlockIndex();
                             _initialSyncBlocksIndexes.Add(_targetHeight);
@@ -216,7 +210,8 @@ namespace AElf.Node
 
             _logger?.Trace(
                 $"Ready to add pending block height: {pendingBlock.Block.Header.Index}\nBlock number of each round: {Globals.BlockNumberOfEachRound}\nPending block height or Synced height: {(PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight)}");
-            if (pendingBlock.Block.Header.Index + (ulong) Globals.BlockNumberOfEachRound < (PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight))
+            if (pendingBlock.Block.Header.Index + (ulong) Globals.BlockNumberOfEachRound <
+                (PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight))
             {
                 return null;
             }
@@ -291,7 +286,7 @@ namespace AElf.Node
                 DPoS.ConsensusDisposable.Dispose();
                 _logger?.Trace("Disposed previous consensus observables list.");
             }
-            
+
             if (SyncedHeight < result.StartHeight)
             {
                 var oldBlocks = new List<PendingBlock>();
@@ -320,6 +315,8 @@ namespace AElf.Node
                 PendingBlocks = result.GetPendingBlocks();
             }
 
+            //_isInitialSync = true;
+            //_targetHeight = result.EndHeight;
             PendingBlockHeight = result.EndHeight;
             _branchedChains.Remove(result);
 
@@ -333,7 +330,8 @@ namespace AElf.Node
         private BranchedChain AdjustBranchedChains()
         {
             _branchedChains.RemoveWhere(bc =>
-                bc.StartHeight + (ulong) Globals.BlockNumberOfEachRound < (PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight));
+                bc.StartHeight + (ulong) Globals.BlockNumberOfEachRound <
+                (PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight));
 
             var preBlockHashes = new List<Hash>();
             var lastBlockHashes = new List<Hash>();

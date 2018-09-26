@@ -87,11 +87,7 @@ namespace AElf.Kernel.Node
             _logger?.Trace("Block Producer nodes count:" + count);
             if (Globals.BlockProducerNumber == 1)
             {
-                if (Helper.CanRecoverDPoSInformation())
-                {
-                    _logger?.Trace("This node can recover DPoS mining itself.");
-                    AElfDPoSObserver.RecoverMining();
-                }
+                AElfDPoSObserver.RecoverMining();
             }
         }
 
@@ -217,6 +213,10 @@ namespace AElf.Kernel.Node
                     tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
                         parameters[3]));
                     break;
+                case 5:
+                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
+                        parameters[3], parameters[4]));
+                    break;
             }
 
             var signer = new ECSigner();
@@ -254,11 +254,12 @@ namespace AElf.Kernel.Node
         }
 
         /// <summary>
-        /// Related tx has 4 params:
+        /// Related tx has 5 params:
         /// 1. Current round number
         /// 2. BP Address
         /// 3. Out value
         /// 4. Signature
+        /// 5. Round Id
         /// </summary>
         /// <returns></returns>
         private async Task MiningWithPublishingOutValueAndSignature()
@@ -274,6 +275,7 @@ namespace AElf.Kernel.Node
             var signature = Hash.Default;
             if (currentRoundNumber.Value > 1)
             {
+                _logger?.Trace("In value used for generating signature: " + inValue.ToHex());
                 signature = Helper.CalculateSignature(inValue);
             }
 
@@ -282,7 +284,8 @@ namespace AElf.Kernel.Node
                 Helper.CurrentRoundNumber.ToByteArray(),
                 new StringValue {Value = _nodeKeyPair.Address.ToHex().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray(),
-                signature.ToByteArray()
+                signature.ToByteArray(),
+                new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
             };
 
             var txToPublishOutValueAndSignature =
@@ -298,6 +301,7 @@ namespace AElf.Kernel.Node
         /// 1. Current round number
         /// 2. BP Address
         /// 3. In value
+        /// 4. Round Id
         /// </summary>
         /// <returns></returns>
         private async Task PublishInValue()
@@ -331,7 +335,8 @@ namespace AElf.Kernel.Node
             {
                 extraBlockResult.Item1.ToByteArray(),
                 extraBlockResult.Item2.ToByteArray(),
-                extraBlockResult.Item3.ToByteArray()
+                extraBlockResult.Item3.ToByteArray(),
+                new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
             };
 
             var txForExtraBlock = await GenerateTransactionAsync("UpdateAElfDPoS", parameters);
@@ -403,8 +408,13 @@ namespace AElf.Kernel.Node
                                Thread.CurrentThread.ManagedThreadId);
             try
             {
-                if (await _txPoolService.AddTxAsync(tx) == TxValidation.TxInsertionAndBroadcastingError.Success)
+                var result = await _txPoolService.AddTxAsync(tx);
+                if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
                     MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
+                else
+                {
+                    _logger?.Trace("Failed to insert tx: " + result);
+                }
             }
             catch (Exception e)
             {

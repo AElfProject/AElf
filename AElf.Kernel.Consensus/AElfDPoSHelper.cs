@@ -325,6 +325,7 @@ namespace AElf.Kernel.Consensus
                 }
 
                 Hash sig = inValue.CalculateHashWith(add);
+                _logger?.Trace("Generated signature: " + sig.ToHex());
                 return sig;
             }
             catch (Exception e)
@@ -347,7 +348,7 @@ namespace AElf.Kernel.Consensus
                 foreach (var node in _miners.Nodes)
                 {
                     var s = this[node].Signature;
-                    if (s == null || s.GetHashBytes().Length < 30)
+                    if (s == null)
                     {
                         s = Hash.Generate();
                     }
@@ -414,11 +415,12 @@ namespace AElf.Kernel.Consensus
                 var firstPlace = FirstPlaceBlockProducerOfCurrentRound;
                 var firstPlaceInfo = this[firstPlace.Value];
                 var sig = firstPlaceInfo.Signature;
-                if (sig == null || sig.GetHashBytes().Length < 30)
+                if (sig == null)
                 {
                     sig = Hash.Generate();
                 }
-            
+                _logger?.Trace("Sigature: " + sig.GetHashBytes().Length);
+
                 var sigNum = BitConverter.ToUInt64(
                     BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
                 var blockProducerCount = _miners.Nodes.Count;
