@@ -24,7 +24,9 @@ namespace AElf.Wallet.Rpc
             {
                 if (_ks == null)
                 {
-                    _ks = new AElfKeyStore(NodeConfig.Instance.DataDir + "/rpc-managed-wallet");
+                    _ks = new AElfKeyStore(
+                        Path.Combine(NodeConfig.Instance.DataDir, "rpc-managed-wallet")
+                    );
                 }
 
                 return _ks;
