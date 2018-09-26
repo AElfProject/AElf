@@ -50,7 +50,6 @@ namespace AElf.Miner.Tests
             _logger = logger;
             _dataStore = dataStore;
             Initialize();
-            
         }
         
         private void Initialize()
@@ -67,8 +66,6 @@ namespace AElf.Miner.Tests
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
-            new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator,
-                _functionMetadataService);
             
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator,
@@ -121,18 +118,7 @@ namespace AElf.Miner.Tests
         {
             return _chainService.GetBlockChain(chainId);
         }
-        internal ContractTxPool CreateContractTxPool()
-        {
-            var poolconfig = TxPoolConfig.Default;
-            return new ContractTxPool(poolconfig, _logger);
-        }
-
-        internal PriorTxPool CreatePriorTxPool()
-        {
-            var poolconfig = TxPoolConfig.Default;
-            return new PriorTxPool(poolconfig, _logger);
-        }
-
+        
         internal TxPoolService CreateTxPoolService(Hash chainId)
         {
             var poolconfig = TxPoolConfig.Default;
@@ -203,7 +189,9 @@ namespace AElf.Miner.Tests
             return new SideChainBlockInfo
             {
                 Height = height,
-                ChainId = chainId ?? Hash.Generate()
+                ChainId = chainId ?? Hash.Generate(),
+                TransactionMKRoot = Hash.Generate(),
+                BlockHeaderHash = Hash.Generate()
             };
         }
         
@@ -215,9 +203,21 @@ namespace AElf.Miner.Tests
             return mock;
         }
 
+        private Mock<IBinaryMerkleTreeManager> MockBinaryMerkleTreeManager()
+        {
+            Mock<IBinaryMerkleTreeManager> mock = new Mock<IBinaryMerkleTreeManager>();
+            mock.Setup(b => b.GetSideChainTransactionRootsMerkleTreeByHeightAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
+                .Returns<Hash, ulong>((_, u) =>
+                {
+                    _blocks[(int) u].Body.CalculateMerkleTreeRoots();
+                    return Task.FromResult(_blocks[(int) u].Body.BinaryMerkleTreeForSideChainTransactionRoots);
+                });
+            return mock;
+        }
+        
         public ParentChainBlockInfoRpcServerImpl MockParentChainBlockInfoRpcServerImpl()
         {
-            return new ParentChainBlockInfoRpcServerImpl(MockChainService().Object, _logger);
+            return new ParentChainBlockInfoRpcServerImpl(MockChainService().Object, _logger, MockBinaryMerkleTreeManager().Object);
         }
 
         public SideChainBlockInfoRpcServerImpl MockSideChainBlockInfoRpcServerImpl()
@@ -228,11 +228,6 @@ namespace AElf.Miner.Tests
         public ServerManager ServerManager(ParentChainBlockInfoRpcServerImpl impl1, SideChainBlockInfoRpcServerImpl impl2)
         {
             return new ServerManager(impl1, impl2);
-        }
-        
-        public ServerManager ServerManager()
-        {
-            return new ServerManager(MockParentChainBlockInfoRpcServerImpl(), MockSideChainBlockInfoRpcServerImpl());
         }
         
         public Mock<IChainManagerBasic> MockChainManager()
@@ -286,10 +281,10 @@ namespace AElf.Miner.Tests
             return sideChainId;
         }
 
-        public Hash MockParentChainServer(int port, string address, string dir)
+        public Hash MockParentChainServer(int port, string address, string dir, Hash chainId = null)
         {
             
-            var chainId = Hash.Generate();
+            chainId = chainId??Hash.Generate();
             
             _headers = new List<IBlockHeader>
             {

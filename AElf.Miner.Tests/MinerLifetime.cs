@@ -257,6 +257,7 @@ namespace AElf.Kernel.Tests.Miner
 
             GrpcLocalConfig.Instance.Client = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
+            //GrpcRemoteConfig.Instance.ParentChain = null;
             miner.Init(keypair);
             
             var block = await miner.Mine();
@@ -286,6 +287,7 @@ namespace AElf.Kernel.Tests.Miner
             var manager = _mock.MinerClientManager();
             var miner = _mock.GetMiner(minerconfig, poolService, manager);
             GrpcLocalConfig.Instance.Client = false;
+            //GrpcRemoteConfig.Instance.ParentChain = null;
             miner.Init(keypair);
 
             var block = await miner.Mine();

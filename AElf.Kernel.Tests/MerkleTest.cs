@@ -166,9 +166,16 @@ namespace AElf.Kernel.Tests
             path = tree.GenerateMerklePath(5);
             Assert.Null(path);
         }
+
+        [Fact]
+        public void Convert()
+        {
+            double a = 120.0;
+            var b = a % 1000 % 100 / 10;
+            System.Diagnostics.Debug.WriteLine(b);
+        }
         
-        
-       #region Some useful methods
+        #region Some useful methods
         private List<Hash> CreateLeaves(IEnumerable<string> buffers)
         {
             return buffers.Select(buffer => new Hash(buffer.CalculateHash())).ToList();
