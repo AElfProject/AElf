@@ -10,7 +10,8 @@ namespace AElf.Management.Tests
 {
     public class InfluxDBTest
     {
-        [Fact]
+        [Fact(Skip = "require InfluxDB")]
+        //[Fact]
         public void TestSetAndGet()
         {
             var database = "unittest";
@@ -21,13 +22,14 @@ namespace AElf.Management.Tests
             InfluxDBHelper.Set(database, "cpu", new Dictionary<string, object> {{"used", used}}, null, time);
             Thread.Sleep(1000);
             var result = InfluxDBHelper.Get(database, "select * from cpu");
-            
+
             Assert.True(Convert.ToInt32(result[0].Values[0][1]) == used);
-            
+
             InfluxDBHelper.DropDatabase(database);
         }
-        
-        [Fact]
+
+        [Fact(Skip = "require InfluxDB")]
+        //[Fact]
         public void TestVerison()
         {
             var version = InfluxDBHelper.Version();
