@@ -85,7 +85,6 @@ namespace AElf.Kernel
                 return txs;
             }
 
-            //Just for logging
             for (var i = currentHeight - 1; i > height; i--)
             {
                 var block = await GetBlockByHeightAsync(i);

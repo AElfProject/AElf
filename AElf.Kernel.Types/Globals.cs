@@ -9,14 +9,13 @@ namespace AElf.Kernel
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
         public static readonly string GenesisSideChainContractAssemblyName = "AElf.Contracts.SideChain";
 
-        public static Hash CurrentChainId = Hash.Default;
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
         public static readonly string GenesisBasicContract = SmartContractType.BasicContractZero.ToString();
         
         public static readonly string ConsensusContract = SmartContractType.AElfDPoS.ToString();
         
-        public static int BlockProducerNumber = 3;
+        public static int BlockProducerNumber = 17;
         public static readonly int BlockNumberOfEachRound = BlockProducerNumber + 1;
         public const int AElfLogInterval = 900;
 

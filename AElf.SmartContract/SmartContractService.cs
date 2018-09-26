@@ -88,7 +88,7 @@ namespace AElf.SmartContract
             await Task.CompletedTask;
         }
 
-        public Type GetContractType(SmartContractRegistration registration)
+        private Type GetContractType(SmartContractRegistration registration)
         {
             var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
             if (runner == null)

@@ -325,6 +325,7 @@ namespace AElf.Kernel.Consensus
                 }
 
                 Hash sig = inValue.CalculateHashWith(add);
+                _logger?.Trace("Generated signature: " + sig.ToHex());
                 return sig;
             }
             catch (Exception e)
@@ -418,7 +419,8 @@ namespace AElf.Kernel.Consensus
                 {
                     sig = Hash.Generate();
                 }
-            
+                _logger?.Trace("Sigature: " + sig.GetHashBytes().Length);
+
                 var sigNum = BitConverter.ToUInt64(
                     BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
                 var blockProducerCount = _miners.Nodes.Count;

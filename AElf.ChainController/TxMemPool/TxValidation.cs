@@ -22,7 +22,8 @@ namespace AElf.ChainController.TxMemPool
             Failed,
             AlreadyExecuted,
             InvalidReferenceBlock,
-            ExpiredReferenceBlock
+            ExpiredReferenceBlock,
+            KnownTx
         }
         /// <summary>
         /// validate a tx size, signature, account format

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.ABI.CSharp;
 using AElf.Common.ByteArrayHelpers;
@@ -23,6 +24,7 @@ namespace AElf.Runtime.CSharp
     public class SmartContractRunner : ISmartContractRunner
     {
         private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams = new ConcurrentDictionary<string, MemoryStream>();
+        private readonly ConcurrentDictionary<Hash, Type> _cachedContractTypeByHash = new ConcurrentDictionary<Hash, Type>();
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
@@ -111,10 +113,19 @@ namespace AElf.Runtime.CSharp
 
         public Type GetContractType(SmartContractRegistration reg)
         {
-            // TODO: Maybe input arguments can be simplified
+            // TODO: This method should be removed, now it's used for deserializing parameters and extracting metadata.
+            // TODO (Cont'd): However, these two need to implemented in other ways.
+            // TODO (Cont'd): This implementation is not good as currently AssemblyLoadContext doesn't support unloading.
+            // TODO (Cont'd): So the type cannot be unloaded even if we don't need it. There is a huge memory concern.
 
             var code = reg.ContractBytes.ToByteArray();
 
+            Hash codeHash = SHA256.Create().ComputeHash(code);
+            if (_cachedContractTypeByHash.TryGetValue(codeHash, out var t))
+            {
+                return t;
+            }
+            
             var loadContext = GetLoadContext();
 
             Assembly assembly = null;
@@ -136,6 +147,7 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");
             }
 
+            _cachedContractTypeByHash.TryAdd(codeHash, type);
             return type;
         }
 

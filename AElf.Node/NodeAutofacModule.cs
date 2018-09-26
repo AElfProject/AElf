@@ -1,4 +1,6 @@
-﻿using AElf.Kernel.Node;
+﻿using AElf.Common.Enums;
+using AElf.Configuration.Config.Consensus;
+using AElf.Kernel.Node;
 using AElf.Network;
 using AElf.Node.AElfChain;
 using AElf.Node.Protocol;
@@ -17,6 +19,11 @@ namespace AElf.Node
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
             builder.RegisterType<BlockSynchronizer>().As<IBlockSynchronizer>().SingleInstance();
+
+            if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
+            {
+                builder.RegisterType<DPoS>().As<IConsensus>().SingleInstance();
+            }
         }
     }
 }

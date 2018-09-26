@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.ChainController;
+using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Network;
 using AElf.Node;
@@ -29,6 +30,7 @@ namespace AElf.Sync.Tests
         [Fact]
         public void AddPendingBlock_Initial()
         {
+            NodeConfig.Instance.ChainId = Hash.Generate().ToHex();
             var blockCollection = new BlockCollection(_chainService);
 
             // Initial sync.
@@ -51,6 +53,7 @@ namespace AElf.Sync.Tests
         [Fact]
         public void AddPendingBlock_Initial_Reverse()
         {
+            NodeConfig.Instance.ChainId = Hash.Generate().ToHex();
             var blockCollection = new BlockCollection(_chainService);
 
             // Initial sync.
