@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Configuration;
 
 namespace AElf.Kernel
@@ -84,20 +85,26 @@ namespace AElf.Kernel
         public List<Transaction> GetTxsForExecution(int count)
         {
             int c = 0;
-            var txs = new List<Transaction>();
+            var txhs = new List<TransactionHolder>();
             foreach (var kv in _validated)
             {
                 if (count > 0 && c > count)
                 {
-                    return txs;
+                    break;
                 }
 
                 if (!kv.Value.ToExecuting()) continue;
-                txs.Add(kv.Value.Transaction);
+                txhs.Add(kv.Value);
                 c++;
             }
 
-            return txs;
+            foreach (var holder in txhs)
+            {
+                _executing.TryAdd(holder.TxId, holder);
+                _validated.TryRemove(holder.TxId, out _);
+            }
+            
+            return txhs.Select(x=>x.Transaction).ToList();
         }
 
         public int ValidatedCount
@@ -138,16 +145,16 @@ namespace AElf.Kernel
             }
         }
         
-        public void ExecutingTx(Hash txHash)
-        {
-            var holder = GetTransactionHolder(txHash);
-
-            if (holder.ToExecuting())
-            {
-                _executing.TryAdd(txHash, holder);
-                _validated.TryRemove(txHash, out _);
-            }
-        }
+//        public void ExecutingTx(Hash txHash)
+//        {
+//            var holder = GetTransactionHolder(txHash);
+//
+//            if (holder.ToExecuting())
+//            {
+//                _executing.TryAdd(txHash, holder);
+//                _validated.TryRemove(txHash, out _);
+//            }
+//        }
 
         public void RevertExecutingTx(Hash txHash)
         {
