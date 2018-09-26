@@ -11,6 +11,7 @@ using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;
+using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 
 namespace AElf.Miner.Miner
@@ -26,6 +27,7 @@ namespace AElf.Miner.Miner
         private readonly IExecutingService _executingService;
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
+        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, 
@@ -83,6 +85,10 @@ namespace AElf.Miner.Miner
                 }
                 var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
                 await blockchain.AddBlocksAsync(new List<IBlock> {block});
+                await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, block.Header.ChainId,
+                    block.Header.Index);
+                await _binaryMerkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
+                    block.Body.BinaryMerkleTreeForSideChainTransactionRoots, block.Header.ChainId, block.Header.Index);
             }
             catch (Exception e)
             {
@@ -191,7 +197,8 @@ namespace AElf.Miner.Miner
                     break;
                 }
 
-                if (tx.Type == TransactionType.CrossChainBlockInfoTransaction && !ValidateParentChainBlockInfoTransaction(tx))
+                if (tx.Type == TransactionType.CrossChainBlockInfoTransaction 
+                    && !await ValidateParentChainBlockInfoTransaction(tx))
                 {
                     errlog = "Invalid parent chain block info.";
                     res = false;
@@ -200,6 +207,12 @@ namespace AElf.Miner.Miner
                 readyTxs.Add(tx);
             }
 
+            if (res && readyTxs.Count(t => t.Type == TransactionType.CrossChainBlockInfoTransaction) > 1)
+            {
+                res = false;
+                errlog = "More than one transaction to record parent chain block info.";
+            }
+            
             if (!res)
                 await Interrupt(errlog, readyTxs);
             return res ? readyTxs : null;
@@ -275,18 +288,28 @@ namespace AElf.Miner.Miner
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
             var addrs = new HashSet<Hash>();
+            Transaction pcbTx = null;
             foreach (var t in executedTxs)
             {
                 addrs.Add(t.From);
                 await _transactionManager.AddTransactionAsync(t);
                 _txPoolService.RemoveAsync(t.GetHash());
+                
+                // this could be improved
+                if (t.Type == TransactionType.CrossChainBlockInfoTransaction)
+                    pcbTx = t;
             }
             
-            txResults.ForEach(async r =>
+            txResults.AsParallel().ForEach(async r =>
             {
                 r.BlockNumber = bn;
                 r.BlockHash = bh;
                 await _transactionResultManager.AddTransactionResultAsync(r);
+                if (pcbTx != null && pcbTx.GetHash().Equals(r.TransactionId))
+                {
+                    var parentChainBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(pcbTx.Params.ToByteArray());
+                    await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
+                }
             });
             return addrs;
         }
@@ -318,14 +341,14 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="transaction">System transaction with parent chain block info.</param>
         /// <returns>
-        /// Return false if validation failed with the result that block execution would fail.
+        /// Return false if validation failed and then that block execution would fail.
         /// </returns>
-        private bool ValidateParentChainBlockInfoTransaction(Transaction transaction)
+        private async Task<bool> ValidateParentChainBlockInfoTransaction(Transaction transaction)
         {
             try
             {
                 var parentBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(transaction.Params.ToByteArray());
-                return _clientManager.TryRemoveParentChainBlockInfo(parentBlockInfo);
+                return (await _clientManager.CollectParentChainBlockInfo()).Equals(parentBlockInfo);
             }
             catch (Exception e)
             {
