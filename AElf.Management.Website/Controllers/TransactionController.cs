@@ -27,7 +27,7 @@ namespace AElf.Management.Website.Controllers
         
         [HttpGet]
         [Route("poolsizehistory/{chainId}")]
-        public ApiResult<List<PoolSizeHistory>> StateHistory(string chainId)
+        public ApiResult<List<PoolSizeHistory>> PoolSizeHistory(string chainId)
         {
             var result = _transactionService.GetPoolSizeHistory(chainId);
             
