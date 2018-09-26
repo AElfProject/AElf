@@ -33,27 +33,11 @@ namespace AElf.Management.Website.Controllers
             return ApiEmptyResult.Default;
         }
         
-        [HttpPost]
-        [Route("test")]
-        public ApiResult<DeployTestChainResult> DeployTestChain()
-        {
-            var result = _chainService.DeployTestChain();
-            return new ApiResult<DeployTestChainResult>(result);
-        }
-        
         [HttpDelete]
         [Route("{chain}")]
         public ApiEmptyResult Remove(string chainId)
         {
             _chainService.RemoveMainChain(chainId);
-            return ApiEmptyResult.Default;
-        }
-        
-        [HttpDelete]
-        [Route("test/{chainId}")]
-        public ApiEmptyResult RemoveTestChain(string chainId)
-        {
-            _chainService.RemoveTestChain(chainId);
             return ApiEmptyResult.Default;
         }
     }

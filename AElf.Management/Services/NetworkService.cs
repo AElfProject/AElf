@@ -39,7 +39,7 @@ namespace AElf.Management.Services
         public List<PoolStateHistory> GetPoolStateHistory(string chainId)
         {
             var result = new List<PoolStateHistory>();
-            var record = InfluxDBHelper.Get(chainId, "select * from node_state");
+            var record = InfluxDBHelper.Get(chainId, "select * from network_pool_state");
             foreach (var item in record.First().Values)
             {
                 result.Add(new PoolStateHistory

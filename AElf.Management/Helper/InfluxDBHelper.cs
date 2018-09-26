@@ -19,20 +19,16 @@ namespace AElf.Management.Helper
 
         public static async Task Set(string database, string measurement, Dictionary<string, object> fields, Dictionary<string, object> tags, DateTime timestamp)
         {
-            var point = new Point();
-//            point.Measurement = "disk_free";
-//            point.Fields=new Dictionary<string, object>{{ "value", 345356677f }};
-//            point.Tags=new Dictionary<string, object>{{ "hostname", "testhost2" },{ "port", "8082" }};
-//            point.Timestamp = DateTime.Now;
-//            InfluxDbApiResponse writeResponse = await _client.WriteAsync("test", point);
-
-            point.Measurement = measurement;
-            point.Fields = fields;
+            var point = new Point
+            {
+                Measurement = measurement,
+                Fields = fields,
+                Timestamp = timestamp
+            };
             if (tags != null)
             {
                 point.Tags = tags;
             }
-            point.Timestamp = timestamp;
             await _client.WriteAsync(database, point);
         }
 

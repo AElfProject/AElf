@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Timers;
+using AElf.Configuration;
 using AElf.Configuration.Config.Management;
 using AElf.Management.Interfaces;
 
@@ -23,8 +24,8 @@ namespace AElf.Management.Services
 
         public void Start()
         {
-            // Todo we should move it to monitor,management just receive and record
-            var timer = new Timer(10000);
+            // Todo we should move it to monitor project,management website just receive and record
+            var timer = new Timer(ManagementConfig.Instance.MonitoringInterval);
             timer.Elapsed += TimerOnElapsed;
             timer.Start();
         }
