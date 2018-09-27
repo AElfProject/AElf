@@ -74,7 +74,7 @@ namespace AElf.Miner.Miner
                         return null;
 
                     await GenerateTransactionWithParentChainBlockInfo();
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, ByteArrayHelpers.FromHexString(NodeConfig.Instance.NodeAccount));
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
 
                     var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
                     _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
