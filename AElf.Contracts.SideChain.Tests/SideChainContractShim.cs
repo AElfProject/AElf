@@ -171,10 +171,64 @@ namespace AElf.Contracts.SideChain.Tests
             await Executive.SetTransactionContext(TransactionContext).Apply();
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
         }
+
+        public async Task WriteParentChainBLockInfo(ParentChainBlockInfo parentChainBlockInfo)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = SideChainContractAddress,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "WriteParentChainBlockInfo",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo))
+            };
+            TransactionContext = new TransactionContext()
+            {
+                Transaction = tx
+            };
+            await Executive.SetTransactionContext(TransactionContext).Apply();
+            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+        }
+        
+        public async Task<bool?> VerifyTransaction(Transaction t, MerklePath path, ulong height)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = SideChainContractAddress,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "VerifyTransaction",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(t, path, height))
+            };
+            TransactionContext = new TransactionContext()
+            {
+                Transaction = tx
+            };
+            await Executive.SetTransactionContext(TransactionContext).Apply();
+            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToBool();
+        }
+        
+        public async Task GetMerklePath(ulong height)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = SideChainContractAddress,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "WriteParentChainBlockInfo",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(height))
+            };
+            TransactionContext = new TransactionContext()
+            {
+                Transaction = tx
+            };
+            await Executive.SetTransactionContext(TransactionContext).Apply();
+            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+        }
         #endregion Actions
 
         #endregion ABI (Public) Methods
 
-        
     }
 }

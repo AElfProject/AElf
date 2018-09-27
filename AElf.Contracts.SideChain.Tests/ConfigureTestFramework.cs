@@ -49,6 +49,7 @@ namespace AElf.Contracts.SideChain.Tests
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             smartContractRunnerFactory.AddRunner(0, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
+            builder.RegisterType<MockSetup>().SingleInstance();
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();
         }
