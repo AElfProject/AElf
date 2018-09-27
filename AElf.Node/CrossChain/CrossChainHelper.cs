@@ -37,11 +37,27 @@ namespace AElf.Node.CrossChain
         /// <returns></returns>
         private byte[] GetBytes<T>(Hash keyHash, Hash contractAddressHash, string resourceStr = "") where T : IMessage, new()
         {
+            //Console.WriteLine("resourceStr: {0}", dataPath.ResourcePathHash.ToHex());
+
             return resourceStr != ""
                 ? _stateDictator.GetAccountDataProvider(contractAddressHash).GetDataProvider()
                     .GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
                 : _stateDictator.GetAccountDataProvider(contractAddressHash).GetDataProvider()
                     .GetAsync<T>(keyHash).Result;
+        }
+
+        internal ulong GetBoundParentChainHeight(Hash contractAddressHash, ulong height)
+        {
+            var bytes = GetBytes<UInt64Value>(new UInt64Value {Value = height}.CalculateHash(), contractAddressHash,
+                Globals.AElfBoundParentChainHeight);
+            return UInt64Value.Parser.ParseFrom(bytes).Value;
+        }
+        
+        internal ParentChainBlockInfo GetBoundParentChainBlockInfo(Hash contractAddressHash, ulong height)
+        {
+            var bytes = GetBytes<ParentChainBlockInfo>(new UInt64Value {Value = height}.CalculateHash(), contractAddressHash,
+                Globals.AElfParentChainBlockInfo);
+            return ParentChainBlockInfo.Parser.ParseFrom(bytes);
         }
     }
 }

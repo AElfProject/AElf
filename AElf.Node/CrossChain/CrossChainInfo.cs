@@ -22,5 +22,15 @@ namespace AElf.Node.CrossChain
         {
             return _crossChainHelper.GetMerklePath(contractAddress, blockHeight);
         }
+
+        public ulong GetBoundParentChainHeight(Hash contractAddressHash, ulong height)
+        {
+            return _crossChainHelper.GetBoundParentChainHeight(contractAddressHash, height);
+        }
+
+        public ParentChainBlockInfo GetBoundParentChainBlockInfo(Hash contractAddressHash, ulong height)
+        {
+            return _crossChainHelper.GetBoundParentChainBlockInfo(contractAddressHash, height);
+        }
     }
 }
