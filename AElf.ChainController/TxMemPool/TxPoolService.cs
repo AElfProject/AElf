@@ -151,7 +151,7 @@ namespace AElf.ChainController.TxMemPool
             throw new NotImplementedException();
         }
 
-        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash blockProducerAddress,
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash myAddress,
             double intervals = 150)
         {
             // get prior tx

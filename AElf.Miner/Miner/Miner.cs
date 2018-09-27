@@ -7,6 +7,8 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -72,7 +74,7 @@ namespace AElf.Miner.Miner
                         return null;
 
                     await GenerateTransactionWithParentChainBlockInfo();
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, ByteArrayHelpers.FromHexString(NodeConfig.Instance.NodeAccount));
 
                     var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
                     _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
