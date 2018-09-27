@@ -7,6 +7,8 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
