@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AElf.Management.Website.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class NetworkController: ControllerBase
     {
         private readonly INetworkService _networkService;

@@ -25,7 +25,7 @@ namespace AElf.Management.Services
         public void Start()
         {
             // Todo we should move it to monitor project,management website just receive and record
-            var timer = new Timer(ManagementConfig.Instance.MonitoringInterval);
+            var timer = new Timer(ManagementConfig.Instance.MonitoringInterval * 1000);
             timer.Elapsed += TimerOnElapsed;
             timer.Start();
         }
