@@ -79,9 +79,16 @@ namespace AElf.Miner.Rpc.Client
                     _logger.Debug($"New request for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
                     await call.RequestStream.WriteAsync(request);
                 }
-                catch (Exception e)
+                catch (RpcException e)
                 {
-                    _logger.Error(e, "An exception during request.");
+                    if (e.Status.Detail.Equals("Connect Failed"))
+                    {
+                        _logger.Trace(e, $"Connect Failed exception during request to chain {_targetChainId.ToHex()}.");
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
                 await Task.Delay(_interval);
             }
@@ -111,8 +118,16 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (RpcException e)
             {
-                _logger.Error(e, "Miner client stooped with exception.");
-                throw;
+                if (e.Status.Detail.Equals("Socket closed"))
+                {
+                    _logger.Trace($"Socket Closed exception during request to chain {_targetChainId.ToHex()}.");
+                    StartDuplexStreamingCall(cancellationToken, _next);
+                }
+                else
+                {
+                    _logger.Error(e, "Miner client stooped with exception.");
+                    throw;
+                }
             }
         }
 
