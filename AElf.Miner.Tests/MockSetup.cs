@@ -109,7 +109,7 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _logger, _transactionManager, _transactionResultManager,
-                clientManager);
+                clientManager, _binaryMerkleTreeManager);
 
             return blockExecutor;
         }
