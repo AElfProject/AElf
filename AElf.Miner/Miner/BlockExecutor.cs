@@ -32,7 +32,7 @@ namespace AElf.Miner.Miner
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            ClientManager clientManager)
+            ClientManager clientManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             _txPoolService = txPoolService;
             _chainService = chainService;
@@ -42,6 +42,7 @@ namespace AElf.Miner.Miner
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _clientManager = clientManager;
+            _binaryMerkleTreeManager = binaryMerkleTreeManager;
         }
 
         /// <summary>
