@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Configuration;
 using AElf.Configuration.Config.Management;
 
 namespace AElf.Management.Handlers
@@ -7,7 +8,7 @@ namespace AElf.Management.Handlers
     {
         public static IDeployHandler GetHandler()
         {
-            var type = DeployConfig.Instance.Type.ToLower();
+            var type = ManagementConfig.Instance.DeployType.ToLower();
             switch (type)
             {
                 case "k8s":
