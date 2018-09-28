@@ -19,29 +19,28 @@ namespace AElf.RPC
             try
             {
                 var url = "http://" + rpcHost + ":" + rpcPort;
-                
+
                 _host = new WebHostBuilder()
-                    .UseKestrel()
+                    .UseKestrel(
+                        options => { options.Limits.KeepAliveTimeout = TimeSpan.FromTicks(1); }
+                    )
                     .UseUrls(url)
                     .ConfigureServices(sc =>
                     {
                         sc.AddSingleton(scope.Resolve<INetworkManager>());
                         sc.AddSingleton(scope.Resolve<IPeerManager>());
-                        
+
                         sc.AddSignalRCore();
                         sc.AddSignalR();
-                        
+
                         sc.AddScoped<NetContext>();
-                        
+
                         RpcServerHelpers.ConfigureServices(sc, scope);
                     })
                     .Configure(ab =>
                     {
-                        ab.UseSignalR(routes =>
-                        {
-                            routes.MapHub<NetworkHub>("/events/net");
-                        });
-                        
+                        ab.UseSignalR(routes => { routes.MapHub<NetworkHub>("/events/net"); });
+
                         RpcServerHelpers.Configure(ab, scope);
                     })
                     .Build();
