@@ -69,13 +69,20 @@ namespace AElf.Miner.Rpc.Client
             // send request every second until cancellation
             while (!cancellationToken.IsCancellationRequested)
             {
-                var request = new RequestBlockInfo
+                try
                 {
-                    ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
-                    NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
-                };
-                _logger.Debug($"New request for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
-                await call.RequestStream.WriteAsync(request);
+                    var request = new RequestBlockInfo
+                    {
+                        ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
+                        NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
+                    };
+                    _logger.Debug($"New request for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
+                    await call.RequestStream.WriteAsync(request);
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e, "An exception during request.");
+                }
                 await Task.Delay(_interval);
             }
         }
