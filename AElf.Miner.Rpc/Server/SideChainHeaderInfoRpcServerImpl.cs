@@ -45,7 +45,6 @@ namespace AElf.Miner.Rpc.Server
             {
                 while (await requestStream.MoveNext())
                 {
-                    Console.WriteLine($"requestStream is null: {requestStream.Current == null}");
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
                     var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);

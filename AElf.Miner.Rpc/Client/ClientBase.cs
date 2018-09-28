@@ -69,27 +69,14 @@ namespace AElf.Miner.Rpc.Client
             // send request every second until cancellation
             while (!cancellationToken.IsCancellationRequested)
             {
-                try
+                
+                var request = new RequestBlockInfo
                 {
-                    var request = new RequestBlockInfo
-                    {
-                        ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
-                        NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
-                    };
-                    _logger.Debug($"New request for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
-                    await call.RequestStream.WriteAsync(request);
-                }
-                catch (RpcException e)
-                {
-                    if (e.Status.Detail.Equals("Connect Failed"))
-                    {
-                        _logger.Trace(e, $"Connect Failed exception during request to chain {_targetChainId.ToHex()}.");
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                    ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
+                    NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
+                };
+                _logger.Debug($"New request for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
+                await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_interval);
             }
         }
@@ -118,9 +105,11 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (RpcException e)
             {
-                if (e.Status.Detail.Equals("Socket closed"))
+                var status = e.Status.StatusCode;
+                if (status == StatusCode.Unavailable)
                 {
-                    _logger.Trace($"Socket Closed exception during request to chain {_targetChainId.ToHex()}.");
+                    var detail = e.Status.Detail;
+                    _logger.Error(detail + $" exception during request to chain {_targetChainId.ToHex()}.");
                     StartDuplexStreamingCall(cancellationToken, _next);
                 }
                 else
