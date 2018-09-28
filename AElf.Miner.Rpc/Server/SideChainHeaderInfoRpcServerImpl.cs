@@ -45,6 +45,7 @@ namespace AElf.Miner.Rpc.Server
             {
                 while (await requestStream.MoveNext())
                 {
+                    Console.WriteLine($"requestStream is null: {requestStream == null}");
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
                     var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);
@@ -66,7 +67,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch (Exception e)
             {
-                _logger?.Error(e.ToString());
+                _logger?.Error(e, "Side chain server out of service with exception.");
             }
         }
 
