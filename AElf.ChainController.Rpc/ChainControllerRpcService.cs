@@ -276,6 +276,41 @@ namespace AElf.ChainController.Rpc
             }
         }
         
+        [JsonRpcMethod("get_pcb_info", "height")]
+        public async Task<JObject> ProcGetPCB(string height)
+        {
+            try
+            {
+                ulong h;
+                try
+                {
+                    h = ulong.Parse(height);
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Invalid height");
+                }
+                var merklePathInParentChain = this.GetParentChainBlockInfo(h);
+                if (merklePathInParentChain == null)
+                {
+                    throw new Exception("Unable to get parent chain block at height " + height);
+                }
+                return new JObject
+                {
+                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.ToHex(),
+                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
+                    ["parent_height"] = merklePathInParentChain.Height
+                };
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = e.Message
+                };
+            }
+        }
+        
         [JsonRpcMethod("get_tx_result", "txhash")]
         public async Task<JObject> ProcGetTxResult(string txhash)
         {
@@ -380,6 +415,7 @@ namespace AElf.ChainController.Rpc
                         ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.ToHex(),
                         ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                         ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.ToHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.ToHex(),
