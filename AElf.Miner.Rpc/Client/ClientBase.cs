@@ -48,6 +48,8 @@ namespace AElf.Miner.Rpc.Client
                     if (IndexedInfoQueue.TryAdd(response.BlockInfoResult))
                     {
                         _next++;
+                        _logger.Debug(
+                            $"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
                     }
                 }
             });
@@ -102,7 +104,7 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (RpcException e)
             {
-                Console.WriteLine(e);
+                _logger.Error(e, "Miner client stooped with exception.");
                 throw;
             }
         }

@@ -7,6 +7,7 @@ using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Miner.Rpc.Exceptions;
 using Grpc.Core;
+using NLog;
 
 namespace AElf.Miner.Rpc.Server
 {
@@ -18,12 +19,14 @@ namespace AElf.Miner.Rpc.Server
         private SslServerCredentials _sslServerCredentials;
         private readonly ParentChainBlockInfoRpcServerImpl _parentChainBlockInfoRpcServerImpl;
         private readonly SideChainBlockInfoRpcServerImpl _sideChainBlockInfoRpcServerImpl;
+        private readonly ILogger _logger;
 
         public ServerManager(ParentChainBlockInfoRpcServerImpl parentChainBlockInfoRpcServerImpl, 
-            SideChainBlockInfoRpcServerImpl sideChainBlockInfoRpcServerImpl)
+            SideChainBlockInfoRpcServerImpl sideChainBlockInfoRpcServerImpl, ILogger logger)
         {
             _parentChainBlockInfoRpcServerImpl = parentChainBlockInfoRpcServerImpl;
             _sideChainBlockInfoRpcServerImpl = sideChainBlockInfoRpcServerImpl;
+            _logger = logger;
             GrpcLocalConfig.ConfigChanged += GrpcLocalConfigOnConfigChanged;
         }
 
@@ -106,6 +109,7 @@ namespace AElf.Miner.Rpc.Server
             await StopSideChainServer();
             _sideChainServer = CreateNewSideChainServer();
             _sideChainServer.Start();
+            _logger.Debug("Started Side chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
         }
 
         /// <summary>
@@ -134,6 +138,7 @@ namespace AElf.Miner.Rpc.Server
             await StopParentChainServer();
             _parentChainServer = CreateNewParentChainServer();
             _parentChainServer.Start();
+            _logger.Debug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
         }
 
         /// <summary>
