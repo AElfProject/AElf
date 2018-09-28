@@ -1,9 +1,11 @@
-﻿using AElf.Common.Application;
+﻿using System;
+using AElf.Common.Application;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc;
+using AElf.Miner.Rpc.Server;
 using Autofac;
 using Google.Protobuf;
 
@@ -22,13 +24,19 @@ namespace AElf.Miner
                 };
             }
             minerConfig.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
-            builder.RegisterModule(new MinerAutofacModule(minerConfig));
+            builder.RegisterModule(new MinerRpcAutofacModule());
+
             builder.RegisterType<ClientManager>().SingleInstance().OnActivated(mc =>
                 {
                     mc.Instance.Init(dir: ApplicationHelpers.GetDefaultDataDir());
                 }
             );
-            builder.RegisterModule(new MinerRpcAutofacModule());
+            builder.RegisterType<ServerManager>().SingleInstance().OnActivated(mc =>
+                {
+                    mc.Instance.Init(ApplicationHelpers.GetDefaultDataDir());
+                }
+            );
+            builder.RegisterModule(new MinerAutofacModule(minerConfig));
         }
 
         public void Run(ILifetimeScope scope)

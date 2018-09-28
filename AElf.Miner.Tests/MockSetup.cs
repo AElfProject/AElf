@@ -100,7 +100,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
-                clientManager, _binaryMerkleTreeManager);
+                clientManager, _binaryMerkleTreeManager, null);
 
             return miner;
         }
@@ -227,7 +227,7 @@ namespace AElf.Miner.Tests
         
         public ServerManager ServerManager(ParentChainBlockInfoRpcServerImpl impl1, SideChainBlockInfoRpcServerImpl impl2)
         {
-            return new ServerManager(impl1, impl2);
+            return new ServerManager(impl1, impl2, _logger);
         }
         
         public Mock<IChainManagerBasic> MockChainManager()

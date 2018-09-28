@@ -12,11 +12,6 @@ namespace AElf.Miner.Rpc
                 .SingleInstance();
             builder.RegisterType<ParentChainBlockInfoRpcServerImpl>().As<ParentChainBlockInfoRpcServerImpl>()
                 .SingleInstance();
-            builder.RegisterType<ServerManager>().SingleInstance().OnActivated(mc =>
-                {
-                    mc.Instance.Init(ApplicationHelpers.GetDefaultDataDir());
-                }
-            );
         }
     }
 }
