@@ -89,10 +89,10 @@ namespace AElf.Miner.Miner
                     var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
                     var bn = await _blockChain.GetCurrentBlockHeightAsync();
                     
-                    // remove invalid CrossChainBlockInfoTransaction, only that from local can be executed
-                    readyTxs.RemoveAll(t =>
+                    // remove invalid CrossChainBlockInfoTransaction, only that from local can be executed)
+                    /*readyTxs.RemoveAll(t =>
                         t.Type == TransactionType.CrossChainBlockInfoTransaction &&
-                        !t.GetHash().Equals(genTx.GetHash()));
+                        !t.GetHash().Equals(genTx.GetHash()));*/
                     
                     var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
                     _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
@@ -196,9 +196,10 @@ namespace AElf.Miner.Miner
             if (insertion == TxValidation.TxInsertionAndBroadcastingError.Success)
             {
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
+                _logger.Debug($"Parent chain block info transaction insertion success. {tx.GetHash()}");
                 return true;
             }
-            _logger?.Debug($"Transaction for parent chain block info insertion failed. {insertion}");
+            _logger?.Debug($"Parent chain block info transaction insertion failed. {insertion}");
             return false;
         }
         

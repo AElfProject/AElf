@@ -59,8 +59,6 @@ namespace AElf.Miner.Rpc.Server
         /// <returns></returns>
         private Grpc.Core.Server CreateNewSideChainServer()
         {
-            // init service
-            //_sideChainBlockInfoRpcServerImpl.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
             var server = new Grpc.Core.Server
             {
                 Services = {SideChainBlockInfoRpc.BindService(_sideChainBlockInfoRpcServerImpl)},
@@ -80,9 +78,6 @@ namespace AElf.Miner.Rpc.Server
         /// <returns></returns>
         private Grpc.Core.Server CreateNewParentChainServer()
         {
-            //init service
-            //_parentChainBlockInfoRpcServerImpl.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
-
             var server = new Grpc.Core.Server
             {
                 Services = {ParentChainBlockInfoRpc.BindService(_parentChainBlockInfoRpcServerImpl)},

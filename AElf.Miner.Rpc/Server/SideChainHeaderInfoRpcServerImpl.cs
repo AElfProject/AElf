@@ -68,7 +68,6 @@ namespace AElf.Miner.Rpc.Server
             catch (Exception e)
             {
                 _logger?.Error(e, "Side chain server out of service with exception.");
-                throw;
             }
         }
 

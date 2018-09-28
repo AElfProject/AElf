@@ -387,7 +387,8 @@ namespace AElf.ChainController.Rpc
                     },
                     ["Body"] = new JObject
                     {
-                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount
+                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
+                        ["IndexedSideChainBlcokInfo"] = blockinfo.GetIndexedSideChainBlcokInfo()
                     },
                     ["CurrentTransactionPoolSize"] = transactionPoolSize
                 }

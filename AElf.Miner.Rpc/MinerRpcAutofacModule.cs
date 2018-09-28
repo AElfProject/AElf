@@ -1,4 +1,5 @@
-using AElf.Common.Application;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Miner.Rpc.Server;
 using Autofac;
 
@@ -8,10 +9,14 @@ namespace AElf.Miner.Rpc
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<SideChainBlockInfoRpcServerImpl>().As<SideChainBlockInfoRpcServerImpl>()
-                .SingleInstance();
-            builder.RegisterType<ParentChainBlockInfoRpcServerImpl>().As<ParentChainBlockInfoRpcServerImpl>()
-                .SingleInstance();
+            builder.RegisterType<SideChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
+            {
+                impl.Instance.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            });
+            builder.RegisterType<ParentChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
+            {
+                impl.Instance.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            });
         }
     }
 }
