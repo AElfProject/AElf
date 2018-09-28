@@ -217,19 +217,20 @@ namespace AElf.ChainController.TxMemPoolBM
         }
 
         /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash blockProducerAddress, double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash myAddress, double intervals = 150)
         {
             // TODO: Improve performance
             var txs = _systemTxs.Values.ToList();
 
             if (currentRoundInfo != null)
             {
-                var toRemove = _txValidator.RemoveDirtyDPoSTxs(txs, blockProducerAddress, currentRoundInfo);
+                //var toRemove = new DPoSTxFilter(currentRoundInfo, myAddress).Execute(txs);//_txValidator.RemoveDirtyDPoSTxs(txs, blockProducerAddress, currentRoundInfo);
+                var toRemove = _txValidator.RemoveDirtyDPoSTxs(txs, myAddress, currentRoundInfo);
                 if (toRemove != null)
                 {
                     foreach (var tx in toRemove)
                     {
-                        RemoveAsync(tx.GetHash());
+                        _systemTxs.TryRemove(tx.GetHash(), out _);
                     }
                 }
             }
