@@ -84,14 +84,15 @@ namespace AElf.ChainController.Rpc
             {
                 var chainId = NodeConfig.Instance.ChainId;
                 var basicContractZero = this.GetGenesisContractHash(SmartContractType.BasicContractZero);
-                var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
+                var sideChainContract = this.GetGenesisContractHash(SmartContractType.SideChainContract);
+                //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject()
                 {
                     ["result"] =
                         new JObject
                         {
                             [SmartContractType.BasicContractZero.ToString()] = basicContractZero.ToHex(),
-                            [SmartContractType.TokenContract.ToString()] = tokenContract.ToHex(),
+                            [SmartContractType.SideChainContract.ToString()] = sideChainContract.ToHex(),
                             ["chain_id"] = chainId
                         }
                 };
@@ -239,7 +240,7 @@ namespace AElf.ChainController.Rpc
             };
         }
 
-        [JsonRpcMethod("get_tx_merklepath", "txid")]
+        [JsonRpcMethod("get_merkle_path", "txid")]
         public async Task<JObject> ProcGetTxMerklePath(string txid)
         {
             try
@@ -260,7 +261,15 @@ namespace AElf.ChainController.Rpc
                 var merklePath = txResult.MerklePath?.Clone();
                 if(merklePath == null)
                     throw new Exception("Not found merkle path for this transaction.");
-                var merklePathInParentChain = this.GetTxRootMerklePathinParentChain(txResult.BlockNumber);
+                MerklePath merklePathInParentChain = null;
+                try
+                {
+                    merklePathInParentChain = this.GetTxRootMerklePathinParentChain(txResult.BlockNumber);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Unable to get merkle path from parent chain");
+                }
                 /*if(merklePathInParentChain == null)
                     throw new Exception("Not found merkle path in parent chain");*/
                 if(merklePathInParentChain != null)

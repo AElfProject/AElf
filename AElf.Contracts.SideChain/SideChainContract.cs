@@ -192,13 +192,12 @@ namespace AElf.Contracts.SideChain
             Console.WriteLine("WriteParentChainBlockInfo success.");
         }
 
-        public bool VerifyTransaction(Transaction tx, MerklePath path, ulong parentChainHeight)
+        public bool VerifyTransaction(Hash tx, MerklePath path, ulong parentChainHeight)
         {
             var key = new UInt64Value {Value = parentChainHeight};
             Api.Assert(_parentChainBlockInfo.GetValue(key) != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
-            var txHash = tx.GetHash();
-            var rootCalculated = path.ComputeRootWith(txHash);
+            var rootCalculated = path.ComputeRootWith(tx);
             var parentRoot = _parentChainBlockInfo.GetValue(key).Root.SideChainTransactionsRoot;
             Api.Assert(parentRoot.Equals(rootCalculated), "Transaction verification Failed");
             return true;

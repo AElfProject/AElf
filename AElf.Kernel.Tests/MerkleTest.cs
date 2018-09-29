@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common.ByteArrayHelpers;
 using Xunit;
 
 namespace AElf.Kernel.Tests
@@ -174,7 +175,19 @@ namespace AElf.Kernel.Tests
             var b = a % 1000 % 100 / 10;
             System.Diagnostics.Debug.WriteLine(b);
         }
-        
+
+        [Fact]
+        public void Verify()
+        {
+            string mkpath =
+                "0x0a220a2012b84beb7cd56cd6613ab6834b82d34beddf8cff6304291fb18258fb5f141b720a220a20f88b1a6a687aa1d5766807fbb731d88a45b8b3d4b47cae6ba23bd172c86970210a220a20d85fbb5263119c8637199b8536a6dfaea67abb75adc37b23818c306878634fbd";
+            string txid = "0x3d124f2ee5ae382c5ae33b1e854d714b832beb312b7dd61628784dc40029a79d";
+            var target = "0x99f9b65112248e7d3aada584447b8a873766514ff01930d7cc3d72585b632352";
+            var path = MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(mkpath));
+            Hash txHash = ByteArrayHelpers.FromHexString(txid);
+            var res =path.ComputeRootWith(txHash);
+            Assert.Equal(target, res.ToHex());
+        }
         #region Some useful methods
         private List<Hash> CreateLeaves(IEnumerable<string> buffers)
         {

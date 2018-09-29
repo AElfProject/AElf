@@ -111,12 +111,10 @@ namespace AElf.Miner.Rpc.Client
                     var detail = e.Status.Detail;
                     _logger.Error(detail + $" exception during request to chain {_targetChainId.ToHex()}.");
                     StartDuplexStreamingCall(cancellationToken, _next);
+                    return;
                 }
-                else
-                {
-                    _logger.Error(e, "Miner client stooped with exception.");
-                    throw;
-                }
+                _logger.Error(e, "Miner client stooped with exception.");
+                throw;
             }
         }
 

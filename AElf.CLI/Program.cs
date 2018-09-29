@@ -55,6 +55,7 @@ namespace AElf.CLI
             program.RegisterCommand(new GetBlockHeightCmd());
             program.RegisterCommand(new GetBlockInfoCmd());
             program.RegisterCommand(new CallReadOnlyCmd());
+            program.RegisterCommand(new GetMerklePathCmd());
 
             // Start the CLI
             program.StartRepl();

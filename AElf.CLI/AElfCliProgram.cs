@@ -325,7 +325,7 @@ namespace AElf.CLI
                         byte[] serializedParams = meth.SerializeParams(new List<string> {"1", hex} );
             
                         Transaction t = new Transaction();
-                        t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, parsedCmd.Args.ElementAt(1),
+                        t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, 
                             DeploySmartContract, serializedParams, TransactionType.ContractTransaction);
 
                         t = t.AddBlockReference(_rpcAddress);
@@ -568,7 +568,7 @@ namespace AElf.CLI
             }
         }
 
-        private Transaction CreateTransaction(string elementAt, string genesisAddress, string incrementid,
+        private Transaction CreateTransaction(string elementAt, string genesisAddress,
             string methodName, byte[] serializedParams, TransactionType contracttransaction)
         {
             try
@@ -576,7 +576,6 @@ namespace AElf.CLI
                 Transaction t = new Transaction();
                 t.From = ByteArrayHelpers.FromHexString(elementAt);
                 t.To = ByteArrayHelpers.FromHexString(genesisAddress);
-                t.IncrementId = Convert.ToUInt64(incrementid);
                 t.MethodName = methodName;
                 t.Params = serializedParams;
                 t.type = contracttransaction;
@@ -645,7 +644,6 @@ namespace AElf.CLI
                 Transaction tr = new Transaction();
                 tr.From = ByteArrayHelpers.FromHexString(j["from"].ToString());
                 tr.To = ByteArrayHelpers.FromHexString(j["to"].ToString());
-                tr.IncrementId = j["incr"].ToObject<ulong>();
                 tr.MethodName = j["method"].ToObject<string>();
                 return tr;
             }
