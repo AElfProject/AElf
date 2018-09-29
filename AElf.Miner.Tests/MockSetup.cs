@@ -6,20 +6,15 @@ using AElf.ChainController.TxMemPool;
 using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Miner.Miner;
-using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Server;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using AElf.SmartContract.Metadata;
-using Akka.Actor;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Moq;
 using NLog;
 
@@ -64,9 +59,10 @@ namespace AElf.Miner.Tests
                 new BlockManagerBasic(_dataStore, _logger),
                 _transactionManager, _dataStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
-            var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
+            /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
+            _smartContractRunnerFactory.AddRunner(0, runner);*/
+            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
-            
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator,
                     _functionMetadataService), _stateDictator, new ChainContextService(_chainService));

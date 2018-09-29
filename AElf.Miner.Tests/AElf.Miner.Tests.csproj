@@ -15,9 +15,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
-    <ProjectReference Include="..\AElf.CLI\AElf.CLI.csproj" />
     <ProjectReference Include="..\AElf.Miner.Rpc\AElf.Miner.Rpc.csproj" />
     <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+    <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
   </ItemGroup>
 </Project>
