@@ -393,7 +393,7 @@ namespace AElf.Kernel.Node
 
             return currentTime >
                    startTimeSlot.AddMilliseconds(-Globals.BlockProducerNumber * Globals.AElfDPoSMiningInterval) &&
-                   currentTime < endTimeSlot;
+                   currentTime < endTimeSlot.AddMilliseconds(Globals.AElfDPoSMiningInterval);
         }
 
         private async Task BroadcastTransaction(Transaction tx)
