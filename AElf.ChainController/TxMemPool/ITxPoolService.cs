@@ -53,12 +53,6 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="block"></param>
         /// <returns></returns>
         List<Hash> GetMissingTransactions(IBlock block);
-        
-        /// <summary>
-        /// return tmp pool size
-        /// </summary>
-        /// <returns></returns>
-        //Task<ulong> GetTmpSizeAsync();
 
         /// <summary>
         /// Reset Enqueueable to true 
