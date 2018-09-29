@@ -84,6 +84,7 @@ namespace AElf.Kernel.Node
 
             var count = MinersConfig.Instance.Producers.Count;
             Globals.BlockProducerNumber = count;
+            Globals.BlockNumberOfEachRound = count + 1;
             _logger?.Trace("Block Producer nodes count:" + count);
             if (Globals.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
             {

@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -25,7 +27,7 @@ namespace AElf.Miner.Miner
         private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
         private readonly ILogger _logger;
-        private ClientManager _clientManager;
+        private readonly ClientManager _clientManager;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, 
@@ -56,8 +58,8 @@ namespace AElf.Miner.Miner
             }
             _logger?.Trace($"Executing block {block.GetHash()}");
 
-            var uncompressedPrivKey = block.Header.P.ToByteArray();
-            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+            var uncompressedPrivateKey = block.Header.P.ToByteArray();
+            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
             var blockProducerAddress = recipientKeyPair.GetAddress();
             _stateDictator.ChainId = block.Header.ChainId;
             _stateDictator.BlockHeight = block.Header.Index - 1;
@@ -75,16 +77,17 @@ namespace AElf.Miner.Miner
                     return false;
                 }
                 await InsertTxs(readyTxs, results, block);
-                bool res = await UpdateState(block);
+                var res = await UpdateState(block);
+                var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
                 if (!res)
                 {
+                    await blockchain.RollbackOneBlock();
                     await Rollback(readyTxs);
                     return false;
                 }
-                var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
                 await blockchain.AddBlocksAsync(new List<IBlock> {block});
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 string errlog = "ExecuteBlock - Execution failed.";
                 await Interrupt(errlog, readyTxs);

@@ -12,5 +12,6 @@ namespace AElf.Kernel
         Task<IBlock> GetBlockByHashAsync(Hash blockId);
         Task<IBlock> GetBlockByHeightAsync(ulong height);
         Task<List<Transaction>> RollbackToHeight(ulong height);
+        Task<List<Transaction>> RollbackOneBlock();
     }
 }
