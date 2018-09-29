@@ -77,7 +77,7 @@ namespace AElf.Kernel
         public async Task<List<Transaction>> RollbackOneBlock()
         {
             var currentHeight = await GetCurrentBlockHeightAsync();
-            return await RollbackToHeight(currentHeight - 1);
+            return await RollbackToHeight(currentHeight);
         }
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
