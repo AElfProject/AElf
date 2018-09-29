@@ -364,7 +364,7 @@ namespace AElf.Node
 
             foreach (var branchedChain in _branchedChains)
             {
-                if (branchedChain.CanCheckout(PendingBlockHeight))
+                if (branchedChain.CanCheckout(BlockChain.GetCurrentBlockHeightAsync().Result))
                 {
                     _logger?.Trace("Switching chain.");
                     return branchedChain;
