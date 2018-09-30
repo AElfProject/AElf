@@ -7,6 +7,7 @@ using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Miner.Rpc.Exceptions;
 using Grpc.Core;
+using NLog;
 
 namespace AElf.Miner.Rpc.Server
 {
@@ -18,12 +19,14 @@ namespace AElf.Miner.Rpc.Server
         private SslServerCredentials _sslServerCredentials;
         private readonly ParentChainBlockInfoRpcServerImpl _parentChainBlockInfoRpcServerImpl;
         private readonly SideChainBlockInfoRpcServerImpl _sideChainBlockInfoRpcServerImpl;
+        private readonly ILogger _logger;
 
         public ServerManager(ParentChainBlockInfoRpcServerImpl parentChainBlockInfoRpcServerImpl, 
-            SideChainBlockInfoRpcServerImpl sideChainBlockInfoRpcServerImpl)
+            SideChainBlockInfoRpcServerImpl sideChainBlockInfoRpcServerImpl, ILogger logger)
         {
             _parentChainBlockInfoRpcServerImpl = parentChainBlockInfoRpcServerImpl;
             _sideChainBlockInfoRpcServerImpl = sideChainBlockInfoRpcServerImpl;
+            _logger = logger;
             GrpcLocalConfig.ConfigChanged += GrpcLocalConfigOnConfigChanged;
         }
 
@@ -56,8 +59,6 @@ namespace AElf.Miner.Rpc.Server
         /// <returns></returns>
         private Grpc.Core.Server CreateNewSideChainServer()
         {
-            // init service
-            //_sideChainBlockInfoRpcServerImpl.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
             var server = new Grpc.Core.Server
             {
                 Services = {SideChainBlockInfoRpc.BindService(_sideChainBlockInfoRpcServerImpl)},
@@ -77,9 +78,6 @@ namespace AElf.Miner.Rpc.Server
         /// <returns></returns>
         private Grpc.Core.Server CreateNewParentChainServer()
         {
-            //init service
-            //_parentChainBlockInfoRpcServerImpl.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
-
             var server = new Grpc.Core.Server
             {
                 Services = {ParentChainBlockInfoRpc.BindService(_parentChainBlockInfoRpcServerImpl)},
@@ -106,6 +104,7 @@ namespace AElf.Miner.Rpc.Server
             await StopSideChainServer();
             _sideChainServer = CreateNewSideChainServer();
             _sideChainServer.Start();
+            _logger.Debug("Started Side chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
         }
 
         /// <summary>
@@ -134,6 +133,7 @@ namespace AElf.Miner.Rpc.Server
             await StopParentChainServer();
             _parentChainServer = CreateNewParentChainServer();
             _parentChainServer.Start();
+            _logger.Debug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
         }
 
         /// <summary>
@@ -155,6 +155,8 @@ namespace AElf.Miner.Rpc.Server
         /// <param name="dir"></param>
         public void Init(string dir = "")
         {
+            if (!GrpcLocalConfig.Instance.ParentChainServer && !GrpcLocalConfig.Instance.SideChainServer)
+                return;
             _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
             var keyCertificatePair = GenerateKeyCertificatePair();
             // create credentials 

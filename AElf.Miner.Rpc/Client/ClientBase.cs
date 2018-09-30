@@ -19,7 +19,8 @@ namespace AElf.Miner.Rpc.Client
         private readonly Hash _targetChainId;
         private readonly int _interval;
 
-        private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } = new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
+        private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } =
+            new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
 
         protected ClientBase(ILogger logger, Hash targetChainId, int interval)
         {
@@ -47,6 +48,8 @@ namespace AElf.Miner.Rpc.Client
                     if (IndexedInfoQueue.TryAdd(response.BlockInfoResult))
                     {
                         _next++;
+                        _logger.Debug(
+                            $"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
                     }
                 }
             });
@@ -60,17 +63,19 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="call"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        private async Task RequestLoop(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, CancellationToken cancellationToken)
+        private async Task RequestLoop(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, 
+            CancellationToken cancellationToken)
         {
             // send request every second until cancellation
             while (!cancellationToken.IsCancellationRequested)
             {
+                
                 var request = new RequestBlockInfo
                 {
                     ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
                     NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                 };
-                _logger.Debug($"New request for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
+                _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_interval);
             }
@@ -100,7 +105,15 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (RpcException e)
             {
-                Console.WriteLine(e);
+                var status = e.Status.StatusCode;
+                if (status == StatusCode.Unavailable)
+                {
+                    var detail = e.Status.Detail;
+                    _logger.Error(detail + $" exception during request to chain {_targetChainId.ToHex()}.");
+                    StartDuplexStreamingCall(cancellationToken, _next);
+                    return;
+                }
+                _logger.Error(e, "Miner client stooped with exception.");
                 throw;
             }
         }

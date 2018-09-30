@@ -17,16 +17,15 @@ namespace AElf.ChainController.Rpc
                     {"To", tx.To.ToHex()},
                     {"RefBlockNumber", tx.RefBlockNumber},
                     {"RefBlockPrefix", tx.RefBlockPrefix.ToByteArray().ToHex()},
-                    {"Method", tx.MethodName},
-                    {"IncrementId", tx.IncrementId}
+                    {"Method", tx.MethodName}
                 }
             };
         }
         
-        /*internal static JObject GetIndexedSideChainBlcokInfo(this IBlockHeader blockHeader)
+        internal static JObject GetIndexedSideChainBlcokInfo(this IBlock block)
         {
             var res = new JObject();
-            foreach (var sideChainIndexedInfo in blockHeader.IndexedInfo)
+            foreach (var sideChainIndexedInfo in block.Body.IndexedInfo)
             {
                 res.Add(sideChainIndexedInfo.ChainId.ToHex(), new JObject
                 {
@@ -37,6 +36,6 @@ namespace AElf.ChainController.Rpc
             }
 
             return res;
-        }*/
+        }
     }
 }

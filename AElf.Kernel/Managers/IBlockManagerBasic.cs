@@ -10,5 +10,7 @@ namespace AElf.Kernel
         Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash);
         Task<BlockBody> GetBlockBodyAsync(Hash bodyHash);
         Task<Block> GetBlockAsync(Hash blockHash);
+        Task BindParentChainHeight(Hash chainId, ulong childHeight, ulong parentHeight);
+        Task<ulong> GetBoundParentChainHeight(Hash chainId, ulong childHeight);
     }
 }

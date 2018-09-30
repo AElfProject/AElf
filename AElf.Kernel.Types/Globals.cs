@@ -37,6 +37,12 @@ namespace AElf.Kernel
 
         #endregion
 
+        #region AElf Side Chain
+        public const string AElfTxRootMerklePathInParentChain = "__TxRootMerklePathInParentChain__";
+        public const string AElfParentChainBlockInfo = "__ParentChainBlockInfo__";
+        public const string AElfBoundParentChainHeight = "__BoundParentChainHeight__";
+        #endregion
+
         #region PoTC
 
         public static ulong ExpectedTransactionCount = 8000;

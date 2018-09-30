@@ -1,19 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AElf.Kernel.Types.Merkle
+namespace AElf.Kernel
 {
     /// <summary>
     /// This implementation of binary merkle tree only add hash values as its leaves.
     /// </summary>
-    public class BinaryMerkleTree
+    public partial class BinaryMerkleTree
     {
-        /// <summary>
-        /// Merkle nodes
-        /// </summary>
-        private List<Hash> Nodes { get; set; } = new List<Hash>();
-        
         /// <summary>
         /// Use a cache to speed up the calculation of hash value.
         /// </summary>
@@ -23,10 +17,11 @@ namespace AElf.Kernel.Types.Merkle
         /// Add a leaf node and compute root hash.
         /// </summary>
         /// <param name="hash"></param>
-        public void AddNode(Hash hash)
+        public bool AddNode(Hash hash)
         {
-            Nodes.Add(hash);
-            ComputeRootHash();
+            if(Root ==null)
+                Nodes.Add(hash);
+            return Root == null;
         }
 
         public BinaryMerkleTree AddNodes(IEnumerable<Hash> hashes)
@@ -41,157 +36,91 @@ namespace AElf.Kernel.Types.Merkle
             {
                 Nodes.Add(hash);
             }
-
             return this;
         }
 
-        public Hash ComputeRootHash() => ComputeRootHash(Nodes);
-
-        private Hash ComputeRootHash(IList<Hash> hashes)
+        /// <summary>
+        /// Calculate <see cref="Root"/> from leaf node list and set it.
+        /// </summary>
+        /// <returns>
+        /// <see cref="Root"/>
+        /// </returns>
+        /// <example>
+        /// For leave {0,1,2,3,4}, the tree should be like
+        ///          12
+        ///     10 ------ 11
+        ///   6 -- 7    8 -- 9   
+        ///  0-1  2-3  4-5
+        /// in which {5,9} are copied from {4,8}, and {6,7,8,10,11,12} are calculated.
+        /// [12] is <see cref="Root"/>.
+        /// </example>
+        public Hash ComputeRootHash()
         {
-            while (true)
+            if (Root != null)
+                return Root;
+            if (Nodes.Count == 0)
+                return Hash.Default;
+            LeafCount = Nodes.Count;
+            if(Nodes.Count % 2 == 1)
+                Nodes.Add(Nodes.Last());
+            var nodeToAdd = Nodes.Count / 2;
+            var newAdded = 0;
+            var i = 0;
+            while (i < Nodes.Count-1)
             {
-                if (hashes.Count == 0)
+                var left = Nodes[i++];
+                var right = Nodes[i++];
+                Nodes.Add(left.CalculateWith(right));
+                if (++newAdded != nodeToAdd) 
+                    continue;
+                // complete one row
+                if (Nodes.Count % 2 == 1 && nodeToAdd != 1)
                 {
-                    return Hash.Default;
+                    Nodes.Add(Nodes.Last());
                 }
-                if (hashes.Count == 1) //Finally
-                {
-                    return new Hash(hashes[0].GetHashBytes());
-                }
-                //Every time goes to a higher level.
-                var parents = new List<Hash>();
-
-                for (var i = 0; i < hashes.Count; i += 2)
-                {
-                    var right = i + 1 < hashes.Count ? new Hash(hashes[i + 1].Value) : null;
-                    var parent = FindCache(hashes[i], right);
-
-                    parents.Add(parent);
-                }
-
-                hashes = parents;
+                // start a new row
+                nodeToAdd /= 2;
+                newAdded = 0;
             }
+
+            Root = Nodes.Last();
+            return Root;
         }
 
         /// <summary>
-        /// Find the order of a leaf,
-        /// return -1 if the leaf not exists.
+        /// Get merkle proof path for one node.
         /// </summary>
-        /// <param name="leaf"></param>
-        /// <returns></returns>
-        public int FindLeaf(Hash leaf)
+        /// <param name="index">Should be less than <see cref="LeafCount"/>.</param>
+        /// <returns>
+        /// Return null if <see cref="Root"/> is not calculated or index is not leaf node.
+        /// </returns>
+        /// <example>
+        /// In the tree like
+        ///          12
+        ///     10 ------ 11
+        ///   6 -- 7    8 -- 9   
+        ///  0-1  2-3  4-5
+        /// For leaf [4], the returned <see cref="MerklePath.Path"/> is {5, 9, 10}.
+        /// </example>
+        public MerklePath GenerateMerklePath(int index)
         {
-            if (leaf == null)
+            if (Root == null || index >= LeafCount)
+                return null;
+            List<Hash> path = new List<Hash>();
+            int firstInRow = 0;
+            int rowcount = LeafCount;
+            while (index < Nodes.Count - 1)
             {
-                return -1;
+                path.Add(index % 2 == 0 ? Nodes[index + 1].Clone() : Nodes[index - 1].Clone());
+                rowcount = rowcount % 2 == 0 ? rowcount : rowcount + 1;
+                int shift = (index - firstInRow) / 2;
+                firstInRow += rowcount;
+                index = firstInRow + shift;
+                rowcount /= 2;
             }
-            for (var i = 0; i < Nodes.Count; i++)
-            {
-                if (Nodes[i].Equals(leaf))
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        public bool VerifyProofList(List<Hash> hashlist)
-        {
-            var list = ComputeProofHash(hashlist);
-            return ComputeRootHash().ToString() == list[0].ToString();
-        }
-
-        private List<Hash> ComputeProofHash(List<Hash> hashlist)
-        {
-            while (true)
-            {
-                if (hashlist.Count < 2) return hashlist;
-
-                var list = new List<Hash>
-                {
-                    FindCache(hashlist[0], hashlist[1])
-                };
-
-                if (hashlist.Count > 2) 
-                    hashlist.GetRange(2, hashlist.Count - 2).ForEach(h => list.Add(h));
-
-                hashlist = list;
-            }
-        }
-
-        public void UpdateNode(Hash oldLeaf, Hash newLeaf)
-        {
-            var order = FindLeaf(oldLeaf);
-            if (order == -1)
-            {
-                return;
-            }
-            UpdateNode(order, newLeaf);
-        }
-
-        public void UpdateNode(int oldLeafOrder, Hash newLeaf)
-        {
-            Nodes[oldLeafOrder] = newLeaf;
-            ComputeRootHash();
-        }
-
-        private Hash FindCache(Hash hash1, Hash hash2)
-        {
-            var combineHash = 
-                hash2?.Value != null ? 
-                    hash1.ToHex() + hash2.ToHex() : 
-                    hash1.ToHex();
-
-            return _cache.TryGetValue(combineHash, out var resultHash)
-                ? resultHash
-                : AddCache(combineHash, new Hash(hash1.CalculateHashWith(hash2)));
-        }
-
-        private Hash AddCache(string keyHash, Hash valueHash)
-        {
-            return _cache[keyHash] = valueHash;
-        }
-        
-        public static int CompareHash(Hash hash1, Hash hash2)
-        {
-            if (hash1 != null)
-            {
-                if (hash2 == null)
-                {
-                    return 1;
-                }
-
-                return Compare(hash1, hash2);
-            }
-            
-            if (hash2 == null)
-            {
-                return 0;
-            }
-            
-            return -1;
-        }
-        
-        private static int Compare(Hash x, Hash y)
-        {
-            var xValue = x.Value;
-            var yValue = y.Value;
-            for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
-            {
-                if (xValue[i] > yValue[i])
-                {
-                    return 1;
-                }
-
-                if (xValue[i] < yValue[i])
-                {
-                    return -1;
-                }
-            }
-
-            return 0;
+            var res = new MerklePath();
+            res.Path.AddRange(path);
+            return res;
         }
     }
-    
 }

@@ -122,6 +122,50 @@ namespace AElf.Kernel
                 new UInt64Value {Value = height}.CalculateHash());
         }
         
+        /// <summary>
+        /// Calculate pointer hash of <see cref="BinaryMerkleTree"/> for transactions using chainId and chain height.
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForTransactionsMerkleTreeByHeight(Hash chainId, ulong height)
+        {
+            return HashExtensions.CalculateHashOfHashList(chainId, "TransactionsMerkleTree".CalculateHash(),
+                new UInt64Value {Value = height}.CalculateHash());
+        }
+        
+        /// <summary>
+        /// Calculate pointer hash of <see cref="BinaryMerkleTree"/>
+        /// for side chain transaction roots using chainId and chain height.
+        /// </summary>
+        /// /// <param name="chainId">Parent chainId</param>
+        /// <param name="height">Height of parent chain.</param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForSideChainTxRootsMerkleTreeByHeight(Hash chainId, ulong height)
+        {
+            return HashExtensions.CalculateHashOfHashList(chainId, "SideChainTxRootsMerkleTree".CalculateHash(),
+                new UInt64Value {Value = height}.CalculateHash());
+        }
+        
+        /// <summary>
+        /// Calculate pointer hash of <see cref="MerklePath"/>
+        /// for tx root of a block indexed by parent chain.
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForIndexedTxRootMerklePathByHeight(Hash chainId, ulong height)
+        {
+            return HashExtensions.CalculateHashOfHashList(chainId, "IndexedBlockTxRoot".CalculateHash(),
+                new UInt64Value {Value = height}.CalculateHash());
+        }
+
+        public static Hash CalculatePointerForParentChainHeightByChildChainHeight(Hash chainId, ulong height)
+        {
+            return HashExtensions.CalculateHashOfHashList(chainId, "ParentChainHeight".CalculateHash(),
+                new UInt64Value {Value = height}.CalculateHash());
+        }
+        
         #endregion
 
         #region Calculate pointer for account
@@ -151,6 +195,8 @@ namespace AElf.Kernel
         }
 
         #endregion
+
+        
     }
 
     public class DataPath<T> where T : IMessage, new()

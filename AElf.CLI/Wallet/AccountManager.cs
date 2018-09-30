@@ -112,13 +112,23 @@ namespace AElf.CLI.Wallet
                 
             var password = _screenManager.AskInvisible("password: ");
             var tryOpen = _keyStore.OpenAsync(address, password, timeout);
-            
+
             if (tryOpen == AElfKeyStore.Errors.WrongPassword)
+            {
                 _screenManager.PrintError("incorrect password!");
-            else if (tryOpen == AElfKeyStore.Errors.AccountAlreadyUnlocked)
+                return;
+            }
+            if (tryOpen == AElfKeyStore.Errors.AccountAlreadyUnlocked)
+            {
                 _screenManager.PrintError("account already unlocked!");
-            else if (tryOpen == AElfKeyStore.Errors.None)
+                return;
+            }
+
+            if (tryOpen == AElfKeyStore.Errors.None)
+            {
                 _screenManager.PrintLine("account successfully unlocked!");
+                return;
+            }
 
             var kp = _keyStore.GetAccountKeyPair(address);
             _screenManager.PrintLine($"Pub : {kp.GetEncodedPublicKey().ToHex()}");

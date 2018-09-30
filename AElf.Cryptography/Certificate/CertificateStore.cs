@@ -10,9 +10,9 @@ namespace AElf.Cryptography.Certificate
     public class CertificateStore
     {
         private string _dataDirectory;
-        private const string FolderName = "certs";
-        private const string CertExtension = ".cert.pem";
-        private const string KeyExtension = ".key.pem";
+        public string FolderName { get; } = "certs";
+        public string CertExtension { get; } = ".cert.pem";
+        public string KeyExtension { get; } = ".key.pem";
 
 
         public CertificateStore(string dataDirectory)
