@@ -189,7 +189,7 @@ namespace AElf.Miner.Miner
                 if (!_txPoolService.TryGetTx(id, out var tx))
                 {
                     tx = await _transactionManager.GetTransaction(id);
-                    errlog = tx != null ? "Transaction {id} already executed." : $"Cannot find transaction {id}";
+                    errlog = tx != null ? $"Transaction {id} already executed." : $"Cannot find transaction {id}";
                     res = false;
                     break;
                 }
