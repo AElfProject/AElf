@@ -44,11 +44,11 @@ namespace AElf.CLI.Certificate
             var certPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), _certificateStore.FolderName,
                 chainId + _certificateStore.CertExtension);
             if (File.Exists(certPath))
-                _screenManager.PrintLine("[Certificate file path]: " + certPath);
+                _screenManager.PrintLine("[Certificate] " + certPath);
             var keyPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), _certificateStore.FolderName,
                 chainId + _certificateStore.KeyExtension);
             if (File.Exists(keyPath))
-                _screenManager.PrintLine("[Key file path]: " + keyPath);
+                _screenManager.PrintLine("[Key] " + keyPath);
         }
 
         private string Validate(CmdParseResult parsedCmd)
