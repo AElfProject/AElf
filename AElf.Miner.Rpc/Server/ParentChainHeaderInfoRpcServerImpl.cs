@@ -76,10 +76,17 @@ namespace AElf.Miner.Rpc.Server
                         var tree = await _binaryMerkleTreeManager
                             .GetSideChainTransactionRootsMerkleTreeByHeightAsync(header?.ChainId, requestedHeight);
                         //Todo: this is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
-                        body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
+                        /*body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
                             .Select((info, index) =>
                                 new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
-                            .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
+                            .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));*/
+                        for (int i = 0; i < body?.IndexedInfo.Count; i++)
+                        {
+                            var info = body.IndexedInfo[i];
+                            if (!info.ChainId.Equals(sideChainId))
+                                continue;
+                            res.BlockInfo.IndexedBlockInfo.Add(info.Height, tree.GenerateMerklePath(i));
+                        }
                     }
 
                     _logger?.Log(LogLevel.Debug,

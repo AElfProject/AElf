@@ -190,7 +190,7 @@ namespace AElf.Contracts.SideChain.Tests
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
         }
         
-        public async Task<bool?> VerifyTransaction(Transaction t, MerklePath path, ulong height)
+        public async Task<bool?> VerifyTransaction(Hash txHash, MerklePath path, ulong height)
         {
             var tx = new Transaction
             {
@@ -198,7 +198,7 @@ namespace AElf.Contracts.SideChain.Tests
                 To = SideChainContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "VerifyTransaction",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(t, path, height))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(txHash, path, height))
             };
             TransactionContext = new TransactionContext()
             {

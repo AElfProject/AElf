@@ -132,7 +132,7 @@ namespace AElf.Contracts.SideChain.Tests
             parentChainBlockInfo.IndexedBlockInfo.Add(1, bmt.GenerateMerklePath(0));
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
 
-            var b = await _contract.VerifyTransaction(t, bmt.GenerateMerklePath(0), parentChainBlockRootInfo.Height);
+            var b = await _contract.VerifyTransaction(t.GetHash(), bmt.GenerateMerklePath(0), parentChainBlockRootInfo.Height);
             Assert.True(b);
         }
     }
