@@ -12,7 +12,8 @@ namespace AElf.SmartContract
     {
         private readonly DataPath _dataPath;
         private readonly IStateDictator _stateDictator;
-
+        private readonly List<IDataProvider> _children = new List<IDataProvider>();
+        
         public IEnumerable<StateValueChange> GetValueChanges()
         {
             var changes = new List<StateValueChange>();
@@ -30,12 +31,25 @@ namespace AElf.SmartContract
 
         private int Layer { get; }
 
+        private Dictionary<DataPath, StateCache> _stateCache = new Dictionary<DataPath, StateCache>();
+
         /// <inheritdoc />
         /// <summary>
         /// DataPath - StateCache
         /// </summary>
-        public Dictionary<DataPath, StateCache> StateCache { get; set; } = new Dictionary<DataPath, StateCache>();
-
+        public Dictionary<DataPath, StateCache> StateCache
+        {
+            get => _stateCache;
+            set
+            {
+                _stateCache = value;
+                foreach (var c in _children)
+                {
+                    c.StateCache = value;
+                }
+            }
+        }
+ 
         public void ClearCache()
         {
             StateCache = new Dictionary<DataPath, StateCache>();
@@ -71,10 +85,12 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_dataPath, _stateDictator, 1, dataProviderKey)
+            var c = new DataProvider(_dataPath, _stateDictator, 1, dataProviderKey)
             {
                 StateCache = StateCache
             };
+            _children.Add(c);
+            return c;
         }
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
