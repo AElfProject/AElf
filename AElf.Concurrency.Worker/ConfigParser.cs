@@ -32,7 +32,10 @@ namespace AElf.Concurrency.Worker
         {   
             
             // Database
-            DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
+            if (!string.IsNullOrWhiteSpace(opts.DBType))
+            {
+                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
+            }
 
             if (!string.IsNullOrWhiteSpace(opts.DBHost))
             {
