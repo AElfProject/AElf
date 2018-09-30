@@ -155,6 +155,8 @@ namespace AElf.Miner.Rpc.Server
         /// <param name="dir"></param>
         public void Init(string dir = "")
         {
+            if (!GrpcLocalConfig.Instance.ParentChainServer && !GrpcLocalConfig.Instance.SideChainServer)
+                return;
             _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
             var keyCertificatePair = GenerateKeyCertificatePair();
             // create credentials 
