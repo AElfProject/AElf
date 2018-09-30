@@ -107,6 +107,11 @@ namespace AElf.Node.Protocol
                     
                     _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
                                    $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
+                    _logger?.Trace("Txs of this block:");
+                    foreach (var txId in inBlock.Block.Body.Transactions)
+                    {
+                        _logger?.Trace(txId.ToHex());
+                    }
                 });
         }
 
