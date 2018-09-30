@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using AElf.CLI.Certificate;
 using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
 using AElf.CLI.Parsing;
@@ -28,7 +29,8 @@ namespace AElf.CLI
             CommandParser parser = new CommandParser();
 
             AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
-            AccountManager manager = new AccountManager(kstore, screenManager);
+            AccountManager accountManager = new AccountManager(kstore, screenManager);
+            CertificatManager certificatManager = new CertificatManager(screenManager);
 
             var cmdOptions = new CommandLineOptions();
 
@@ -39,7 +41,8 @@ namespace AElf.CLI
             ).WithParsed(
                 result => { cmdOptions = result; });
 
-            AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager, cmdOptions.ServerAddr);
+            AElfCliProgram program = new AElfCliProgram(screenManager, parser, accountManager, certificatManager,
+                cmdOptions.ServerAddr);
 
             // Register local commands
             RegisterAccountCommands(program);
@@ -56,6 +59,7 @@ namespace AElf.CLI
             program.RegisterCommand(new GetBlockInfoCmd());
             program.RegisterCommand(new CallReadOnlyCmd());
             program.RegisterCommand(new GetMerklePathCmd());
+            program.RegisterCommand(new CertificateCmd());
 
             // Start the CLI
             program.StartRepl();

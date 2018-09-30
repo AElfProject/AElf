@@ -6,7 +6,9 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ABI.CSharp;
+using AElf.CLI.Certificate;
 using AElf.CLI.Command;
+using AElf.CLI.Command.Account;
 using AElf.CLI.Helpers;
 using AElf.CLI.Http;
 using AElf.CLI.Parsing;
@@ -78,10 +80,11 @@ namespace AElf.CLI
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
+        private readonly CertificatManager _certificatManager;
 
         private readonly Dictionary<string, Module> _loadedModules;
         
-        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, string host = "http://localhost:5000")
+        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, CertificatManager certificatManager, string host = "http://localhost:5000")
         {
             _rpcAddress = host;
             _port = int.Parse(host.Split(':')[2]);
@@ -89,6 +92,7 @@ namespace AElf.CLI
             _screenManager = screenManager;
             _cmdParser = cmdParser;
             _accountManager = accountManager;
+            _certificatManager = certificatManager;
             _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
@@ -505,9 +509,13 @@ namespace AElf.CLI
                             string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
                             _screenManager.PrintLine(toPrint);
                     }
-                    else
+                    else if (def is AccountCmd)
                     {
                         _accountManager.ProcessCommand(parsedCmd);
+                    }
+                    else if (def is CertificateCmd)
+                    {
+                        _certificatManager.ProcCmd(parsedCmd);
                     }
                 }
                 else
