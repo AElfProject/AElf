@@ -81,8 +81,8 @@ namespace AElf.Miner.Miner
                 var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
                 if (!res)
                 {
-                    await blockchain.RollbackOneBlock();
-                    await Rollback(readyTxs);
+                    var txToRevert = await blockchain.RollbackOneBlock();
+                    await _txPoolService.Revert(txToRevert);
                     return false;
                 }
                 await blockchain.AddBlocksAsync(new List<IBlock> {block});
