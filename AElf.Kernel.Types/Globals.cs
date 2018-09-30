@@ -48,5 +48,7 @@ namespace AElf.Kernel
         public static int SingleNodeTestMiningInterval = 4000;
 
         #endregion
+
+        public static ulong BasicContractZeroSerialNumber = 0;
     }
 }

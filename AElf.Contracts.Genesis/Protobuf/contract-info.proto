@@ -7,5 +7,5 @@ import "hash.proto";
 message ContractInfo
 {
     Hash Owner = 1;
-    uint64 SerialNumer = 2;
+    uint64 SerialNumber = 2;
 }

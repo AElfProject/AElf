@@ -68,6 +68,10 @@ namespace AElf.Contracts.Genesis
                     _value = GetValue();
                 }
 
+                if (Globals.BasicContractZeroSerialNumber > _value)
+                {
+                    _value = Globals.BasicContractZeroSerialNumber;
+                }
                 return _value;
             }
             private set => _value = value;
@@ -77,6 +81,7 @@ namespace AElf.Contracts.Genesis
         {
             Value = Value + 1;
             SetValue(Value);
+            Globals.BasicContractZeroSerialNumber = Value;
             return this;
         }
     }
@@ -105,12 +110,11 @@ namespace AElf.Contracts.Genesis
             var info = _contractInfos[contractAddress];
             if (info == null)
             {
-                return String.Empty;
+                return string.Empty;
             }
 
             return info.ToString();
         }
-
 
         public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
@@ -121,7 +125,7 @@ namespace AElf.Contracts.Genesis
             var info = new ContractInfo
             {
                 Owner = creator,
-                SerialNumer = serialNumber
+                SerialNumber = serialNumber
             };
 
             var address = info.Address;
@@ -148,7 +152,8 @@ namespace AElf.Contracts.Genesis
             }.Fire();
             */
 
-            Console.WriteLine("Deployment success: " + address.ToHex());
+            Console.WriteLine($"SerialNumber: {info.SerialNumber}");
+            Console.WriteLine("BasicContractZero - Deployment success: " + address.ToHex());
             return address.GetHashBytes();
         }
 

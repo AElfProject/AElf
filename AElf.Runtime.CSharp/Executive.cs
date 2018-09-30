@@ -220,11 +220,6 @@ namespace AElf.Runtime.CSharp
                 {
                     var changes = _currentSmartContractContext.DataProvider.GetValueChanges();
                     var stateValueChanges = changes as StateValueChange[] ?? changes.ToArray();
-                    foreach (var change in stateValueChanges)
-                    {
-                        Console.WriteLine(change.Path.ResourcePointerHash);
-                        Console.WriteLine(change.CurrentValue.Length);
-                    }
                     _currentTransactionContext.Trace.ValueChanges.AddRange(stateValueChanges);
                 }
             }

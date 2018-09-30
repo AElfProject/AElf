@@ -27,7 +27,7 @@ namespace AElf.Contracts.Genesis
                 Api.GetChainId()
                     .CalculateHashWith(new UInt64Value()
                     {
-                        Value = SerialNumer
+                        Value = SerialNumber
                     })
             ).ToAccount();
         }
