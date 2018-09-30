@@ -1,6 +1,7 @@
 ﻿using System;
 using AElf.Common.Module;
 using AElf.Configuration;
+using AElf.Configuration.Config.RPC;
 using Microsoft.AspNetCore.Hosting;
 
 namespace AElf.Monitor
@@ -11,13 +12,13 @@ namespace AElf.Monitor
         {
             var parsed = new CommandLineParser();
             parsed.Parse(args);
-            
+
             var handler = new AElfModuleHandler();
             handler.Register(new AkkaModule());
             handler.Build();
-                        
-            var url = "http://0.0.0.0:9099";
-            
+
+            var url = $"http://{RpcConfig.Instance.Host}:{RpcConfig.Instance.Port}";
+
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseUrls(url)

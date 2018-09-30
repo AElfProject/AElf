@@ -34,7 +34,7 @@ namespace AElf.Management.Website.Controllers
         }
         
         [HttpDelete]
-        [Route("{chain}")]
+        [Route("{chainId}")]
         public ApiEmptyResult Remove(string chainId)
         {
             _chainService.RemoveMainChain(chainId);
