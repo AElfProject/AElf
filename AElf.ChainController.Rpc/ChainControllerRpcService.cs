@@ -262,9 +262,11 @@ namespace AElf.ChainController.Rpc
                 if(merklePath == null)
                     throw new Exception("Not found merkle path for this transaction.");
                 MerklePath merklePathInParentChain = null;
+                ulong boundParentChainHeight = 0;
                 try
                 {
                     merklePathInParentChain = this.GetTxRootMerklePathinParentChain(txResult.BlockNumber);
+                    boundParentChainHeight = this.GetBoundParentChainHeight(txResult.BlockNumber);
                 }
                 catch (Exception e)
                 {
@@ -274,7 +276,11 @@ namespace AElf.ChainController.Rpc
                     throw new Exception("Not found merkle path in parent chain");*/
                 if(merklePathInParentChain != null)
                     merklePath.Path.AddRange(merklePathInParentChain.Path);
-                return new JObject{["merkle_path"] = merklePath.ToByteArray().ToHex()};
+                return new JObject
+                {
+                    ["merkle_path"] = merklePath.ToByteArray().ToHex(),
+                    ["parent_height"] = boundParentChainHeight
+                };
             }
             catch (Exception e)
             {

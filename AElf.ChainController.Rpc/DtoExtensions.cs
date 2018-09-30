@@ -17,8 +17,7 @@ namespace AElf.ChainController.Rpc
                     {"To", tx.To.ToHex()},
                     {"RefBlockNumber", tx.RefBlockNumber},
                     {"RefBlockPrefix", tx.RefBlockPrefix.ToByteArray().ToHex()},
-                    {"Method", tx.MethodName},
-                    {"IncrementId", tx.IncrementId}
+                    {"Method", tx.MethodName}
                 }
             };
         }

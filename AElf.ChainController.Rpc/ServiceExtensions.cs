@@ -252,6 +252,11 @@ namespace AElf.ChainController.Rpc
                 s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
         }
 
+        internal static ulong GetBoundParentChainHeight(this Svc s, ulong height)
+        {
+            return s.CrossChainInfo.GetBoundParentChainHeight(
+                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+        }
     }
     
 }

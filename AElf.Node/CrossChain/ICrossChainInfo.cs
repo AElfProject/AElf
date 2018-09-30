@@ -6,5 +6,6 @@ namespace AElf.Node.CrossChain
     {
         MerklePath GetTxRootMerklePathInParentChain(Hash contractAddress, ulong blockHeight);
         ParentChainBlockInfo GetBoundParentChainBlockInfo(Hash contractAddressHash, ulong height);
+        ulong GetBoundParentChainHeight(Hash contractAddressHash, ulong height);
     }
 }
