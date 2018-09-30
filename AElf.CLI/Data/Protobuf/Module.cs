@@ -88,6 +88,10 @@ namespace AElf.CLI.Data.Protobuf
         
         public byte[] SerializeParams(IEnumerable<string> args)
         {
+            if (Params == null || Params.Count == 0)
+            {
+                return ParamsPacker.Pack();
+            }
             var argsList = args.ToList();
             if (argsList.Count != Params.Count)
             {

@@ -168,7 +168,7 @@ namespace AElf.Sdk.CSharp.Types
         
         public async Task SetAsync(ulong value)
         {
-            await _inner.SetDataAsync(new UInt64Value { Value = value });
+            await _inner.SetAsync(new UInt64Value { Value = value });
         }
         
         public async Task<ulong> GetAsync()

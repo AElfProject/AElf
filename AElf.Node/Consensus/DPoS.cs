@@ -85,7 +85,7 @@ namespace AElf.Kernel.Node
             var count = MinersConfig.Instance.Producers.Count;
             Globals.BlockProducerNumber = count;
             _logger?.Trace("Block Producer nodes count:" + count);
-            if (Globals.BlockProducerNumber == 1)
+            if (Globals.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
             {
                 AElfDPoSObserver.RecoverMining();
             }
@@ -393,7 +393,7 @@ namespace AElf.Kernel.Node
 
             return currentTime >
                    startTimeSlot.AddMilliseconds(-Globals.BlockProducerNumber * Globals.AElfDPoSMiningInterval) &&
-                   currentTime < endTimeSlot;
+                   currentTime < endTimeSlot.AddMilliseconds(Globals.AElfDPoSMiningInterval);
         }
 
         private async Task BroadcastTransaction(Transaction tx)
