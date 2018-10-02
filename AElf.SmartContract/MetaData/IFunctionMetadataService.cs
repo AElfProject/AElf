@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Types;
-using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.SmartContract
 {
     public interface IFunctionMetadataService
     {
-        Task DeployContract(Hash chainId, Hash address, ContractMetadataTemplate contractMetadataTemplate);
+        Task DeployContract(Hash chainId, Address address, ContractMetadataTemplate contractMetadataTemplate);
         Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string addrFunctionName);
     }
 }

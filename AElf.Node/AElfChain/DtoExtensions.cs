@@ -12,9 +12,9 @@ namespace AElf.Node.AElfChain
             {
                 ["tx"] = new JObject
                 {
-                    {"TxId", tx.GetHash().ToHex()},
-                    {"From", tx.From.ToHex()},
-                    {"To", tx.To.ToHex()},
+                    {"TxId", tx.GetHash().Dumps()},
+                    {"From", tx.From.Dumps()},
+                    {"To", tx.To.Dumps()},
                     {"Method", tx.MethodName},
                     {"IncrementId", tx.IncrementId},
                     {"RefBlockNumber", tx.RefBlockNumber},

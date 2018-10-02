@@ -8,6 +8,7 @@ using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 namespace AElf.ABI.CSharp
 {
@@ -114,7 +115,7 @@ namespace AElf.ABI.CSharp
 
             if (typeName == Globals.HASH_TYPE_FULL_NAME)
             {
-                return obj => ((Hash)obj).ToHex();
+                return obj => ((Hash)obj).Dumps();
             }
 
             throw new Exception($"Not Found parser for type {typeName}");

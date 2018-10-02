@@ -31,7 +31,7 @@ namespace AElf.Kernel.Tests
                 ContractHash = Hash.Zero
             };
             var chain = await _service.CreateNewChainAsync("Hello".CalculateHash(), new List<SmartContractRegistration>{reg});
-            Assert.Equal("Hello".CalculateHash().ToHex(), chain.Id.ToHex());
+            Assert.Equal("Hello".CalculateHash().ToHex(), chain.Id.Dumps());
         }
     }
 }

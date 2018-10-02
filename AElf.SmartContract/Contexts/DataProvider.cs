@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -13,7 +14,7 @@ namespace AElf.SmartContract
         private readonly DataPath _dataPath;
         private readonly IStateDictator _stateDictator;
         private readonly List<IDataProvider> _children = new List<IDataProvider>();
-        
+
         public IEnumerable<StateValueChange> GetValueChanges()
         {
             var changes = new List<StateValueChange>();
@@ -49,7 +50,7 @@ namespace AElf.SmartContract
                 }
             }
         }
- 
+
         public void ClearCache()
         {
             StateCache = new Dictionary<DataPath, StateCache>();
@@ -74,7 +75,10 @@ namespace AElf.SmartContract
 
         private Hash GetHash()
         {
-            return new StringValue {Value = _dataProviderKey}.CalculateHashWith(Layer);
+            return HashExtensions.CalculateHashOfHashList(
+                Hash.FromMessage(new StringValue {Value = _dataProviderKey}),
+                Hash.FromMessage(new SInt32Value {Value = Layer})
+            );
         }
 
         /// <inheritdoc />

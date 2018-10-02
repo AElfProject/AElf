@@ -2,6 +2,7 @@
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Types;
 using Google.Protobuf.Collections;
+using AElf.Common;
 
 namespace AElf.Kernel
 {

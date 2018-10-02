@@ -10,6 +10,7 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Mono.Cecil;
 using NLog;
+using AElf.Common;
 
 // ReSharper disable CheckNamespace
 namespace AElf.SmartContract
@@ -25,7 +26,7 @@ namespace AElf.SmartContract
         private WorldState _worldState = new WorldState();
 
         public Hash ChainId { get; set; }
-        public Hash BlockProducerAccountAddress { get; set; } = Hash.Zero;
+        public Address BlockProducerAccountAddress { get; set; } = Address.Zero;
         public ulong BlockHeight { get; set; }
 
         public StateDictator(IHashManager hashManager, ITransactionManager transactionManager, IDataStore dataStore, ILogger logger = null)
@@ -43,7 +44,7 @@ namespace AElf.SmartContract
         /// </summary>
         /// <param name="accountAddress"></param>
         /// <returns></returns>
-        public IAccountDataProvider GetAccountDataProvider(Hash accountAddress)
+        public IAccountDataProvider GetAccountDataProvider(Address accountAddress)
         {
             return new AccountDataProvider(accountAddress, this);
         }
@@ -169,7 +170,10 @@ namespace AElf.SmartContract
             var data = stateValueChange.CurrentValue;
             var length = data.Length / 3;
             var represent = stateValueChange.ToString().Substring(length, data.Length > 150 ? 50 : length);
-            return stateValueChange.Path.ResourcePathHash.CalculateHashWith(represent);
+            return HashExtensions.CalculateHashOfHashList(
+                stateValueChange.Path.ResourcePathHash,
+                Hash.FromString(represent)
+            );
         }
 
         /// <summary>

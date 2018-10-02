@@ -1,5 +1,5 @@
 using AElf.Common.Attributes;
-using AElf.Kernel;
+using AElf.Common;
 using Grpc.Core;
 using NLog;
 

@@ -4,6 +4,7 @@ using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Kernel.Managers
 {

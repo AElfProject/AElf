@@ -5,9 +5,10 @@ using AElf.Common.Application;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Module;
 using AElf.Configuration;
-using AElf.Kernel;
+using AElf.Common;
 using Autofac;
 using Easy.MessageHub;
+using Google.Protobuf;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -25,14 +26,14 @@ namespace AElf.ChainController
             {
                 if (string.IsNullOrWhiteSpace(NodeConfig.Instance.ChainId))
                 {
-                    chainIdHash = Hash.Generate().ToChainId();
+                    chainIdHash = Hash.Generate();
                 }
                 else
                 {
-                    chainIdHash = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+                    chainIdHash = Hash.Loads(NodeConfig.Instance.ChainId);
                 }
 
-                var obj = new JObject(new JProperty("id", chainIdHash.ToHex()));
+                var obj = new JObject(new JProperty("id", chainIdHash.Dumps()));
 
                 // write JSON directly to a file
                 if (!Directory.Exists(FileFolder))
@@ -53,11 +54,11 @@ namespace AElf.ChainController
                 using (var reader = new JsonTextReader(file))
                 {
                     var chain = (JObject) JToken.ReadFrom(reader);
-                    chainIdHash = ByteArrayHelpers.FromHexString(chain.GetValue("id").ToString());
+                    chainIdHash = Hash.Loads(chain.GetValue("id").ToString());
                 }
             }
 
-            NodeConfig.Instance.ChainId = chainIdHash.ToHex();
+            NodeConfig.Instance.ChainId = chainIdHash.Dumps();
 
             builder.RegisterModule(new ChainAutofacModule());
 

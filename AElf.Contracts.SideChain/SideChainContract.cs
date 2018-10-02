@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
+using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Contracts.SideChain
 {
@@ -28,7 +30,7 @@ namespace AElf.Contracts.SideChain
 
     public class SideChainCreationRequested : Event
     {
-        public Hash Creator;
+        public Address Creator;
         public Hash ChainId;
     }
 
@@ -124,11 +126,11 @@ namespace AElf.Contracts.SideChain
             Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain.");
             var info = _sideChainInfos[chainId];
             Api.Assert(info.Status != (SideChainStatus) 3, "Disposed side chain.");
-            return info.LockedAddress.GetHashBytes();
+            return info.LockedAddress.GetValueBytes();
         }
 
         #region Actions
-        public byte[] CreateSideChain(Hash chainId, Hash lockedAddress, ulong lockedToken)
+        public byte[] CreateSideChain(Hash chainId, Address lockedAddress, ulong lockedToken)
         {
             ulong serialNumber = _sideChainSerialNumber.Increment().Value;
             var info = new SideChainInfo
@@ -217,7 +219,7 @@ namespace AElf.Contracts.SideChain
             Api.Assert(_txRootMerklePathInParentChain.GetValue(key) == null,
                 $"Merkle path already bound at height {height}.");
             _txRootMerklePathInParentChain.SetValueToDatabaseAsync(key, path).Wait();
-            Console.WriteLine("Path: {0}", path.Path[0].ToHex());
+            Console.WriteLine("Path: {0}", path.Path[0].Dumps());
 
         }
         #endregion

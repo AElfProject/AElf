@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Common;
+using Globals = AElf.Common.Globals;
 
 namespace AElf.ChainController.TxMemPool
 {
@@ -39,7 +41,7 @@ namespace AElf.ChainController.TxMemPool
                 return TxInsertionAndBroadcastingError.WrongTransactionType;
             }
             
-            if (tx.From == Hash.Zero || tx.MethodName == "" || tx.IncrementId < 0)
+            if (tx.From == Address.Zero || tx.MethodName == "" || tx.IncrementId < 0)
             {
                 return TxInsertionAndBroadcastingError.InvalidTxFormat;
             }
@@ -85,8 +87,11 @@ namespace AElf.ChainController.TxMemPool
             {
                 return false;
             }
+
+            
             byte[] uncompressedPrivKey = tx.P.ToByteArray();
-            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
+            var addr = Address.FromBytes(uncompressedPrivKey);
+//            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
 
             if (!addr.Equals(tx.From))
                 return false;
@@ -105,7 +110,7 @@ namespace AElf.ChainController.TxMemPool
         public static bool CheckAccountAddress(this Transaction tx)
         {
             // TODO: more verifications
-            return tx.From.Value.Length == ECKeyPair.AddressLength && (tx.To == null || tx.To.Value.Length == ECKeyPair.AddressLength);
+            return tx.From.Value.Length == Globals.AddressLength && (tx.To == null || tx.To.Value.Length == Globals.AddressLength);
         }
         
        

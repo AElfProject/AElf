@@ -4,6 +4,7 @@ using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel.Managers;
+using AElf.Common;
 
 namespace AElf.Kernel.Node
 {
@@ -15,7 +16,7 @@ namespace AElf.Kernel.Node
 
         public async Task<Block> GetBlockAtHeight(int height)
         {
-            var blockchain = ChainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            var blockchain = ChainService.GetBlockChain(Hash.Loads(NodeConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
         }
 

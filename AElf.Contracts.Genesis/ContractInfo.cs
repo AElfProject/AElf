@@ -1,4 +1,4 @@
-﻿using AElf.Kernel;
+﻿using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -6,9 +6,9 @@ namespace AElf.Contracts.Genesis
 {
     public partial class ContractInfo
     {
-        private Hash _address = null;
+        private Address _address = null;
 
-        public Hash Address
+        public Address Address
         {
             get
             {
@@ -21,15 +21,15 @@ namespace AElf.Contracts.Genesis
             }
         }
 
-        private Hash GetAddress()
+        private Address GetAddress()
         {
-            return new Hash(
+            return Address.FromBytes(
                 Api.GetChainId()
                     .CalculateHashWith(new UInt64Value()
                     {
                         Value = SerialNumer
                     })
-            ).ToAccount();
+            );
         }
     }
 }

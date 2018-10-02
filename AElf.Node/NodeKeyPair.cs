@@ -1,12 +1,12 @@
 ﻿using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
+using AElf.Common;
 using Org.BouncyCastle.Crypto.Tls;
 
 namespace AElf.Node
 {
     public class NodeKeyPair : ECKeyPair
     {
-        private Hash _address;
+        private Address _address;
         private byte[] _compressedEncodedPublicKey;
         private byte[] _nonCompressedEncodedPublicKey;
         
@@ -14,7 +14,7 @@ namespace AElf.Node
         {
         }
 
-        public Hash Address {
+        public Address Address {
             get
             {
                 if (_address == null)

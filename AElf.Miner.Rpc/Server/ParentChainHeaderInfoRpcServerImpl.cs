@@ -9,6 +9,7 @@ using AElf.Kernel.Managers;
 using Grpc.Core;
 using NLog;
 using NServiceKit.Common.Extensions;
+using AElf.Common;
 
 namespace AElf.Miner.Rpc.Server
 {

@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Configuration;
+using AElf.Common;
 
 namespace AElf.Kernel
 {

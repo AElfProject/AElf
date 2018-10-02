@@ -254,7 +254,7 @@ namespace AElf.Benchmark
             
             var txnDep = new Transaction()
             {
-                From = Hash.Zero.ToAccount(),
+                From = Address.Zero,
                 To = contractAddressZero,
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",

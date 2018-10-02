@@ -6,6 +6,7 @@ using AElf.Common.Extensions;
 using AElf.Kernel;
 using AElf.Network;
 using AElf.Network.Peers;
+using AElf.Common;
 
 namespace AElf.Node.Protocol
 {

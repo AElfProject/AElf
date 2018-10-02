@@ -12,6 +12,7 @@ using AElf.Kernel;
 using AElf.Configuration;
 using AElf.Types.CSharp;
 using Type = System.Type;
+using AElf.Common;
 
 namespace AElf.SmartContract
 {
@@ -19,7 +20,7 @@ namespace AElf.SmartContract
     {
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
-        private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
+        private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
         private readonly IStateDictator _stateDictator;
         private readonly IFunctionMetadataService _functionMetadataService;
 
@@ -31,7 +32,7 @@ namespace AElf.SmartContract
             _functionMetadataService = functionMetadataService;
         }
 
-        private ConcurrentBag<IExecutive> GetPoolFor(Hash account)
+        private ConcurrentBag<IExecutive> GetPoolFor(Address account)
         {
             if (!_executivePools.TryGetValue(account, out var pool))
             {
@@ -41,7 +42,7 @@ namespace AElf.SmartContract
             return pool;
         }
 
-        public async Task<IExecutive> GetExecutiveAsync(Hash contractAddress, Hash chainId)
+        public async Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId)
         {
             var pool = GetPoolFor(contractAddress);
             if (pool.TryTake(out var executive))
@@ -80,7 +81,7 @@ namespace AElf.SmartContract
             return executive;
         }
 
-        public async Task PutExecutiveAsync(Hash account, IExecutive executive)
+        public async Task PutExecutiveAsync(Address account, IExecutive executive)
         {
             executive.SetTransactionContext(new TransactionContext());
             executive.SetDataCache(new Dictionary<DataPath, StateCache>());
@@ -99,7 +100,7 @@ namespace AElf.SmartContract
         }
         
         /// <inheritdoc/>
-        public async Task DeployContractAsync(Hash chainId, Hash contractAddress, SmartContractRegistration registration, bool isPrivileged)
+        public async Task DeployContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
         {
             // get runnner
             var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
@@ -115,7 +116,7 @@ namespace AElf.SmartContract
             await _smartContractManager.InsertAsync(contractAddress, registration);
         }
 
-        public async Task<IMessage> GetAbiAsync(Hash account, string name = null)
+        public async Task<IMessage> GetAbiAsync(Address account, string name = null)
         {
             var reg = await _smartContractManager.GetAsync(account);
             return GetAbiAsync(reg, name);

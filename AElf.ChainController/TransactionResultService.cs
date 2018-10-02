@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 

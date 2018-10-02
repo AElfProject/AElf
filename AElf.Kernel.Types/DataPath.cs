@@ -1,6 +1,7 @@
 ﻿using System;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable InconsistentNaming
@@ -24,27 +25,32 @@ namespace AElf.Kernel
                     throw new InvalidOperationException("Should set chain id and bp address before calculating state hash");
                 }
 
-                return ((Hash) new Hash(ChainId.CalculateHashWith(BlockProducerAddress)).CalculateHashWith(
-                    BlockHeight)).OfType(HashType.StateHash);
+                return HashExtensions.CalculateHashOfHashList(
+                    Hash.FromBytes(ChainId.CalculateHashWith(BlockProducerAddress)),
+                    Hash.FromMessage(new UInt64Value(){Value = BlockHeight})
+                    ).OfType(HashType.StateHash);
             }
             set => _stateHash = value;
         }
 
         public Hash ResourcePathHash => HashExtensions
-            .CalculateHashOfHashList(ContractAddress, DataProviderHash, KeyHash).OfType(HashType.ResourcePath);
+            .CalculateHashOfHashList(
+               Hash.FromMessage(ContractAddress), DataProviderHash, KeyHash).OfType(HashType.ResourcePath
+            );
 
         public Hash ResourcePointerHash =>
-            ((Hash) StateHash.CalculateHashWith(ResourcePathHash)).OfType(HashType.ResourcePointer);
+            HashExtensions.CalculateHashOfHashList(StateHash,ResourcePathHash).OfType(HashType.ResourcePointer);
 
         /// <summary>
         /// For pipeline setting.
         /// </summary>
-        public Hash Key => new Key
+        public Hash Key =>Hash.FromMessage( 
+            new Key
         {
             Type =  Type,
             Value = ByteString.CopyFrom(ResourcePointerHash.GetHashBytes()),
             HashType = (uint) HashType.ResourcePointer
-        }.ToByteArray();
+        });
             
         public string Type { get; set; }
 
@@ -60,13 +66,13 @@ namespace AElf.Kernel
             return this;
         }
         
-        public DataPath SetBlockProducerAddress(Hash blockProducerAddress)
+        public DataPath SetBlockProducerAddress(Address blockProducerAddress)
         {
             BlockProducerAddress = blockProducerAddress;
             return this;
         }
 
-        public DataPath SetAccountAddress(Hash contractAddress)
+        public DataPath SetAccountAddress(Address contractAddress)
         {
             ContractAddress = contractAddress;
             return this;
@@ -107,7 +113,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForMetadata(Hash chainId, string addrFuncSig)
         {
-            return chainId.CalculateHashWith((Hash) ("Metadata" + addrFuncSig).CalculateHash());
+            return Hash.FromBytes(chainId.CalculateHashWith(Hash.FromString("Metadata" + addrFuncSig)));
         }
 
         /// <summary>
@@ -118,8 +124,8 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForGettingBlockHashByHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, "HeightHashMap".CalculateHash(),
-                new UInt64Value {Value = height}.CalculateHash());
+            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("HeightHashMap"),
+                Hash.FromMessage(new UInt64Value {Value = height}));
         }
         
         /// <summary>
@@ -130,8 +136,8 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForTransactionsMerkleTreeByHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, "TransactionsMerkleTree".CalculateHash(),
-                new UInt64Value {Value = height}.CalculateHash());
+            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("TransactionsMerkleTree"),
+                Hash.FromMessage(new UInt64Value {Value = height}));
         }
         
         /// <summary>
@@ -143,8 +149,8 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForSideChainTxRootsMerkleTreeByHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, "SideChainTxRootsMerkleTree".CalculateHash(),
-                new UInt64Value {Value = height}.CalculateHash());
+            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("SideChainTxRootsMerkleTree"),
+                Hash.FromMessage(new UInt64Value {Value = height}));
         }
         
         /// <summary>
@@ -156,14 +162,14 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForIndexedTxRootMerklePathByHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, "IndexedBlockTxRoot".CalculateHash(),
-                new UInt64Value {Value = height}.CalculateHash());
+            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("IndexedBlockTxRoot"),
+                Hash.FromMessage(new UInt64Value {Value = height}));
         }
 
         public static Hash CalculatePointerForParentChainHeightByChildChainHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, "ParentChainHeight".CalculateHash(),
-                new UInt64Value {Value = height}.CalculateHash());
+            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("ParentChainHeight"),
+                Hash.FromMessage(new UInt64Value {Value = height}));
         }
         
         #endregion
@@ -179,10 +185,11 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculateAccountAddress(Hash parentAccount, ulong nonce)
         {
-            return parentAccount.CalculateHashWith(new UInt64Value
+            return HashExtensions.CalculateHashOfHashList(parentAccount,
+                Hash.FromMessage(new UInt64Value
             {
                 Value = nonce
-            });
+            }));
         }
         
         #endregion
@@ -191,7 +198,7 @@ namespace AElf.Kernel
 
         public static Hash CalculatePointerForTxResult(Hash txId)
         {
-            return txId.CalculateHashWith((Hash)"TransactionResult".CalculateHash());
+            return HashExtensions.CalculateHashOfHashList(txId, Hash.FromString("TransactionResult"));
         }
 
         #endregion

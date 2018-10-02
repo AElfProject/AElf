@@ -11,8 +11,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var list = new List<string>()
             {
-                transaction.From.ToHex(),
-                transaction.To.ToHex()
+                transaction.From.Dumps(),
+                transaction.To.Dumps()
             };
             return await Task.FromResult(list.Select(a => a));
         }

@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Kernel.Managers
 {
@@ -75,7 +76,7 @@ namespace AElf.Kernel.Managers
 
         private void AddToBlocks(ulong height, Hash blockHash)
         {
-            _logger?.Trace($"Adding Canonical Hash {blockHash.ToHex()} of height {height}");
+            _logger?.Trace($"Adding Canonical Hash {blockHash.Dumps()} of height {height}");
             if (!_blocks.ContainsKey(height))
             {
                 _blocks.TryAdd(height, blockHash);

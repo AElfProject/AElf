@@ -1,5 +1,5 @@
 ﻿using AElf.ChainController;
-using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.Miner.Miner
 {

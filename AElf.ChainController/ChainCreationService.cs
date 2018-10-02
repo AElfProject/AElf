@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
+using Google.Protobuf;
 using NLog;
 
 namespace AElf.ChainController
@@ -58,9 +60,12 @@ namespace AElf.ChainController
             }
         }
 
-        public Hash GenesisContractHash(Hash chainId, SmartContractType contractType)
+        public Address GenesisContractHash(Hash chainId, SmartContractType contractType)
         {
-            return new Hash(chainId.CalculateHashWith(contractType.ToString())).ToAccount();
+            return Address.FromBytes(
+                HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString(contractType.ToString())).GetHashBytes()
+            );
+//            return new Hash(chainId.CalculateHashWith(contractType.ToString())).ToAccount();
         }
     }
 }

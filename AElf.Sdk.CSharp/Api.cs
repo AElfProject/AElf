@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 using AElf.Sdk.CSharp.ReadOnly;
+using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Sdk.CSharp
 {
@@ -42,7 +44,7 @@ namespace AElf.Sdk.CSharp
 
         #region Privileged API
 
-        public static void DeployContract(Hash address, SmartContractRegistration registration)
+        public static void DeployContract(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
             var task = _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address,
@@ -50,7 +52,7 @@ namespace AElf.Sdk.CSharp
             task.Wait();
         }
 
-        public static async Task DeployContractAsync(Hash address, SmartContractRegistration registration)
+        public static async Task DeployContractAsync(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
             await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration,
@@ -64,9 +66,9 @@ namespace AElf.Sdk.CSharp
             return _smartContractContext.ChainId.ToReadOnly();
         }
 
-        public static Hash GetContractZeroAddress()
+        public static Address GetContractZeroAddress()
         {
-            return new Hash(_smartContractContext.ChainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
+            return Address.FromBytes(_smartContractContext.ChainId.CalculateHashWith(Globals.GenesisBasicContract));
         }
 
         public static Hash GetPreviousBlockHash()
@@ -79,17 +81,17 @@ namespace AElf.Sdk.CSharp
             return _transactionContext.BlockHeight;
         }
 
-        public static Hash GetContractAddress()
+        public static Address GetContractAddress()
         {
             return _smartContractContext.ContractAddress.ToReadOnly();
         }
 
-        public static Hash GetContractOwner()
+        public static Address GetContractOwner()
         {
             if (Call(GetContractZeroAddress(), "GetContractOwner",
                 ParamsPacker.Pack(_smartContractContext.ContractAddress)))
             {
-                return GetCallResult().DeserializeToPbMessage<Hash>();
+                return GetCallResult().DeserializeToPbMessage<Address>();
             }
 
             throw new InternalError("Failed to get owner of contract.\n" + _lastCallContext.Trace.StdErr);
@@ -114,7 +116,7 @@ namespace AElf.Sdk.CSharp
 
         #region Transaction API
 
-        public static void SendInline(Hash contractAddress, string methodName, params object[] args)
+        public static void SendInline(Address contractAddress, string methodName, params object[] args)
         {
             _transactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
@@ -125,7 +127,7 @@ namespace AElf.Sdk.CSharp
             });
         }
 
-        public static bool Call(Hash contractAddress, string methodName, byte[] args)
+        public static bool Call(Address contractAddress, string methodName, byte[] args)
         {
             _lastCallContext = new TransactionContext()
             {

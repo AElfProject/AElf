@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Kernel;
+using AElf.Common;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
@@ -32,13 +32,13 @@ namespace AElf.Sdk.CSharp.Types
         {
             if (value != null)
             {
-                await Api.GetDataProvider("").SetAsync<T>(_name.CalculateHash(), value.ToByteArray());
+                await Api.GetDataProvider("").SetAsync<T>(Hash.FromString(_name), value.ToByteArray());
             }
         }
 
         public async Task<T> GetAsync()
         {
-            var bytes = await Api.GetDataProvider("").GetAsync<T>(_name.CalculateHash());
+            var bytes = await Api.GetDataProvider("").GetAsync<T>(Hash.FromString(_name));
             return bytes == null ? default(T) : Api.Serializer.Deserialize<T>(bytes);
         }
 
@@ -46,7 +46,7 @@ namespace AElf.Sdk.CSharp.Types
         {
             if (value != null)
             {
-                await Api.GetDataProvider("").SetDataAsync(_name.CalculateHash(), value);
+                await Api.GetDataProvider("").SetDataAsync(Hash.FromString(_name), value);
             }
         }
     }

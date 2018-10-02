@@ -19,7 +19,7 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using NServiceKit.Common.Extensions;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Node
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
         private NodeKeyPair _nodeKeyPair;
-        private Hash _contractAccountAddressHash;
+        private Address _contractAccountAddressHash;
 
         private int _flag;
 
@@ -75,10 +75,10 @@ namespace AElf.Kernel.Node
             _logger = logger;
         }
         
-        public void Initialize(Hash contractAccountHash, ECKeyPair nodeKeyPair)
+        public void Initialize(Address contractAccountHash, ECKeyPair nodeKeyPair)
         {
             Helper = new AElfDPoSHelper(_stateDictator,
-                ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
+                Hash.Loads(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
             _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
             _contractAccountAddressHash = contractAccountHash;
 
@@ -115,7 +115,7 @@ namespace AElf.Kernel.Node
 
             isMining = true;
 
-            if (!Miners.Nodes.Contains(_nodeKeyPair.Address.ToHex().RemoveHexPrefix()))
+            if (!Miners.Nodes.Contains(_nodeKeyPair.Address.Dumps().RemoveHexPrefix()))
             {
                 return;
             }
@@ -145,7 +145,7 @@ namespace AElf.Kernel.Node
             try
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
-                _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+                _stateDictator.ChainId = Hash.Loads(NodeConfig.Instance.ChainId);
                 _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
                 _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
 
@@ -268,21 +268,21 @@ namespace AElf.Kernel.Node
             if (_consensusData.Count <= 0)
             {
                 _consensusData.Push(inValue);
-                _consensusData.Push(inValue.CalculateHash());
+                _consensusData.Push(Hash.FromBytes(inValue.CalculateHash()));
             }
 
             var currentRoundNumber = Helper.CurrentRoundNumber;
             var signature = Hash.Default;
             if (currentRoundNumber.Value > 1)
             {
-                _logger?.Trace("In value used for generating signature: " + inValue.ToHex());
+                _logger?.Trace("In value used for generating signature: " + inValue.Dumps());
                 signature = Helper.CalculateSignature(inValue);
             }
 
             var parameters = new List<byte[]>
             {
                 Helper.CurrentRoundNumber.ToByteArray(),
-                new StringValue {Value = _nodeKeyPair.Address.ToHex().RemoveHexPrefix()}.ToByteArray(),
+                new StringValue {Value = _nodeKeyPair.Address.Dumps().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray(),
                 signature.ToByteArray(),
                 new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
@@ -311,7 +311,7 @@ namespace AElf.Kernel.Node
             var parameters = new List<byte[]>
             {
                 currentRoundNumber.ToByteArray(),
-                new StringValue {Value = _nodeKeyPair.Address.ToHex().RemoveHexPrefix()}.ToByteArray(),
+                new StringValue {Value = _nodeKeyPair.Address.Dumps().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray(),
                 new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
             };
@@ -361,7 +361,7 @@ namespace AElf.Kernel.Node
             }
 
             // Update observer.
-            var address = _nodeKeyPair.Address.ToHex().RemoveHexPrefix();
+            var address = _nodeKeyPair.Address.Dumps().RemoveHexPrefix();
             var miners = Helper.Miners;
             if (!miners.Nodes.Contains(address))
             {
@@ -400,11 +400,11 @@ namespace AElf.Kernel.Node
         {
             if (tx.Type == TransactionType.DposTransaction)
             {
-                _logger?.Trace($"A DPoS tx has been generated: {tx.GetHash().ToHex()} - {tx.MethodName} from {tx.From.ToHex()}");
+                _logger?.Trace($"A DPoS tx has been generated: {tx.GetHash().Dumps()} - {tx.MethodName} from {tx.From.Dumps()}");
             }
             
             if (tx.From.Equals(_nodeKeyPair.Address))
-                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
+                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().Dumps() + ", threadId: " +
                                Thread.CurrentThread.ManagedThreadId);
             try
             {

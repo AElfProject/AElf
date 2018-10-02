@@ -7,7 +7,7 @@ namespace AElf.Kernel
     /// <summary>
     /// Account.
     /// </summary>
-    public class Account : IAccount
+/*    public class Account : IAccount
     {
         public Account(Hash address)
         {
@@ -30,5 +30,5 @@ namespace AElf.Kernel
         {
             return Address;
         }
-    }
+    }*/
 }

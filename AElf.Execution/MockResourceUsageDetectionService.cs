@@ -6,6 +6,8 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using AElf.Kernel;
+using AElf.Common;
+using Globals = AElf.Common.Globals;
 
 namespace AElf.Execution
 {
@@ -14,7 +16,7 @@ namespace AElf.Execution
         public async Task<IEnumerable<string>> GetResources(Hash chainId, Transaction transaction)
         {
             //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
-            List<Hash> hashes = new List<Hash>();
+            List<Address> addresses = new List<Address>();
             using (MemoryStream mm = new MemoryStream(transaction.Params.ToByteArray()))
             using (CodedInputStream input = new CodedInputStream(mm))
             {
@@ -28,11 +30,11 @@ namespace AElf.Execution
                             break;
                         case WireFormat.WireType.LengthDelimited:
                             var bytes = input.ReadBytes();
-                            if (bytes.Length == 34)
+                            if (bytes.Length == Globals.AddressLength + 2)
                             {
-                                var h = new Hash();
+                                var h = new Address();
                                 h.MergeFrom(bytes);
-                                hashes.Add(h);
+                                addresses.Add(h);
                             }
 
                             break;
@@ -40,9 +42,9 @@ namespace AElf.Execution
                 }
             }
 
-            hashes.Add(transaction.From);
+            addresses.Add(transaction.From);
 
-            return await Task.FromResult(hashes.Select(a=>a.ToHex()));
+            return await Task.FromResult(addresses.Select(a=>a.Dumps()));
         }
     }
 }

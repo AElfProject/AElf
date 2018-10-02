@@ -348,7 +348,7 @@ namespace AElf.Kernel.Tests.Miner
             var curHash = await blockchain.GetCurrentBlockHashAsync();
             var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
             Assert.Equal((ulong)0, index);
-            Assert.Equal(chain.GenesisBlockHash.ToHex(), curHash.ToHex());
+            Assert.Equal(chain.GenesisBlockHash.Dumps(), curHash.Dumps());
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Common.Extensions;
 using AElf.Common.Attributes;
 using AElf.SmartContract;
@@ -18,7 +19,7 @@ namespace AElf.Kernel.Consensus
         private readonly IDataProvider _dataProvider;
         private readonly Miners _miners;
         private readonly ILogger _logger;
-        private readonly Hash _contractAddressHash;
+        private readonly Address _contractAddressHash;
         private readonly IStateDictator _stateDictator;
 
         public Miners Miners
@@ -28,7 +29,7 @@ namespace AElf.Kernel.Consensus
                 try
                 {
                     var miners = Miners.Parser.ParseFrom(_dataProvider
-                        .GetAsync<Miners>(Globals.AElfDPoSBlockProducerString.CalculateHash()).Result);
+                        .GetAsync<Miners>(Hash.FromString(Globals.AElfDPoSBlockProducerString)).Result);
                     
                     return miners;
                 }
@@ -45,7 +46,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return UInt64Value.Parser.ParseFrom(GetBytes<UInt64Value>(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()));
+                    return UInt64Value.Parser.ParseFrom(GetBytes<UInt64Value>(Hash.FromString(Globals.AElfDPoSCurrentRoundNumber)));
                 }
                 catch (Exception)
                 {
@@ -61,7 +62,7 @@ namespace AElf.Kernel.Consensus
                 try
                 {
                     return Timestamp.Parser.ParseFrom(
-                        GetBytes<Timestamp>(Globals.AElfDPoSExtraBlockTimeSlotString.CalculateHash()));
+                        GetBytes<Timestamp>(Hash.FromString(Globals.AElfDPoSExtraBlockTimeSlotString)));
                 }
                 catch (Exception e)
                 {
@@ -78,7 +79,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return Round.Parser.ParseFrom(GetBytes<Round>(CurrentRoundNumber.CalculateHash(),
+                    return Round.Parser.ParseFrom(GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber),
                         Globals.AElfDPoSInformationString));
                 }
                 catch (Exception e)
@@ -95,7 +96,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return SInt32Value.Parser.ParseFrom(GetBytes<SInt32Value>(Globals.AElfDPoSMiningIntervalString.CalculateHash()));
+                    return SInt32Value.Parser.ParseFrom(GetBytes<SInt32Value>(Hash.FromString(Globals.AElfDPoSMiningIntervalString)));
                 }
                 catch (Exception e)
                 {
@@ -111,7 +112,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return StringValue.Parser.ParseFrom(GetBytes<StringValue>(CurrentRoundNumber.CalculateHash(),
+                    return StringValue.Parser.ParseFrom(GetBytes<StringValue>(Hash.FromMessage(CurrentRoundNumber),
                         Globals.AElfDPoSFirstPlaceOfEachRoundString));
                 }
                 catch (Exception e)
@@ -137,7 +138,7 @@ namespace AElf.Kernel.Consensus
                     .GetAsync<T>(keyHash).Result;
         }
 
-        public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners, Hash contractAddressHash, ILogger logger)
+        public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners, Address contractAddressHash, ILogger logger)
         {
             stateDictator.ChainId = chainId;
             _miners = miners;
@@ -158,7 +159,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = GetBytes<Round>(CurrentRoundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
+                    var bytes = GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber), Globals.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
                     return round.BlockProducers[accountAddress];
                 }
@@ -176,7 +177,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = GetBytes<Round>(roundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
+                    var bytes = GetBytes<Round>(Hash.FromMessage(roundNumber), Globals.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
                     return round;
                 }
@@ -190,7 +191,7 @@ namespace AElf.Kernel.Consensus
 
         public async Task<bool> HasGenerated()
         {
-            var bytes = await _dataProvider.GetAsync<Miners>(Globals.AElfDPoSBlockProducerString.CalculateHash());
+            var bytes = await _dataProvider.GetAsync<Miners>(Hash.FromString(Globals.AElfDPoSBlockProducerString));
             return bytes != null;
         }
 
@@ -287,7 +288,7 @@ namespace AElf.Kernel.Consensus
                     if (info.Value.InValue != null && info.Value.OutValue != null) continue;
 
                     var inValue = Hash.Generate();
-                    var outValue = inValue.CalculateHash();
+                    var outValue = Hash.FromBytes(inValue.CalculateHash());
 
                     info.Value.OutValue = outValue;
                     info.Value.InValue = inValue;
@@ -321,11 +322,11 @@ namespace AElf.Kernel.Consensus
                 foreach (var node in _miners.Nodes)
                 {
                     var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[node].Signature;
-                    add = add.CalculateHashWith(lastSignature);
+                    add = Hash.FromBytes(add.CalculateHashWith(lastSignature));
                 }
 
-                Hash sig = inValue.CalculateHashWith(add);
-                _logger?.Trace("Generated signature: " + sig.ToHex());
+                Hash sig = Hash.FromBytes(inValue.CalculateHashWith(add));
+                _logger?.Trace("Generated signature: " + sig.Dumps());
                 return sig;
             }
             catch (Exception e)

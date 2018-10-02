@@ -9,6 +9,8 @@ using AElf.Configuration;
 using AElf.Kernel;
 using Grpc.Core;
 using NLog;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Miner.Rpc.Client
 {
@@ -72,10 +74,10 @@ namespace AElf.Miner.Rpc.Client
                 
                 var request = new RequestBlockInfo
                 {
-                    ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
+                    ChainId = Hash.Loads(NodeConfig.Instance.ChainId),
                     NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                 };
-                _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.ToHex()}");
+                _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.Dumps()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_interval);
             }
@@ -109,7 +111,7 @@ namespace AElf.Miner.Rpc.Client
                 if (status == StatusCode.Unavailable)
                 {
                     var detail = e.Status.Detail;
-                    _logger.Error(detail + $" exception during request to chain {_targetChainId.ToHex()}.");
+                    _logger.Error(detail + $" exception during request to chain {_targetChainId.Dumps()}.");
                     StartDuplexStreamingCall(cancellationToken, _next);
                     return;
                 }
@@ -130,7 +132,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
+                    ChainId = Hash.Loads(NodeConfig.Instance.ChainId),
                     NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                 };
                 

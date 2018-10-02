@@ -2,6 +2,8 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Miner.Rpc.Server;
 using Autofac;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Miner.Rpc
 {
@@ -11,11 +13,11 @@ namespace AElf.Miner.Rpc
         {
             builder.RegisterType<SideChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
             {
-                impl.Instance.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+                impl.Instance.Init(Hash.Loads(NodeConfig.Instance.ChainId));
             });
             builder.RegisterType<ParentChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
             {
-                impl.Instance.Init(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+                impl.Instance.Init(Hash.Loads(NodeConfig.Instance.ChainId));
             });
         }
     }

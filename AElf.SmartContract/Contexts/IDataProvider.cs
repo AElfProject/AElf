@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract

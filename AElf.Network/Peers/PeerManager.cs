@@ -113,7 +113,7 @@ namespace AElf.Network.Peers
             _nodeKey = NetworkConfig.Instance.EcKeyPair;
             
             // This nodes key
-            _isBp = _bpAddresses.Any(k => k.BytesEqual(_nodeKey.GetAddress()));
+            _isBp = _bpAddresses.Any(k => k.BytesEqual(_nodeKey.GetAddress().GetValueBytes()));
         }
 
         public void Start()

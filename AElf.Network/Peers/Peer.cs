@@ -149,7 +149,7 @@ namespace AElf.Network.Peers
         {
             get
             {
-                return DistantNodeKeyPair?.GetAddress();
+                return DistantNodeKeyPair?.GetAddress().GetValueBytes();
             }
         }
 

@@ -6,12 +6,15 @@ using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using Globals=AElf.Kernel.Globals;
 
 namespace AElf.ChainController.TxMemPoolBM
 {
@@ -31,7 +34,7 @@ namespace AElf.ChainController.TxMemPoolBM
                 if (_blockChain == null)
                 {
                     _blockChain =
-                        _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+                        _chainService.GetBlockChain(Hash.Loads(NodeConfig.Instance.ChainId));
                 }
 
                 return _blockChain;
@@ -55,7 +58,7 @@ namespace AElf.ChainController.TxMemPoolBM
         public TxValidation.TxInsertionAndBroadcastingError ValidateTx(Transaction tx)
         {
             // Basically the same as TxValidation.ValidateTx but without TransactionType
-            if (tx.From == Hash.Zero || tx.MethodName == "")
+            if (tx.From == Address.Zero || tx.MethodName == "")
             {
                 return TxValidation.TxInsertionAndBroadcastingError.InvalidTxFormat;
             }
@@ -142,7 +145,7 @@ namespace AElf.ChainController.TxMemPoolBM
             return res;
         }
 
-        public List<Transaction> RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Hash blockProducerAddress, Round currentRoundInfo)
+        public List<Transaction> RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Address blockProducerAddress, Round currentRoundInfo)
         {
             if (Globals.BlockProducerNumber == 1 && readyTxs.Count == 1 && readyTxs.Any(tx => tx.MethodName == "UpdateAElfDPoS"))
             {
@@ -204,8 +207,8 @@ namespace AElf.ChainController.TxMemPoolBM
                     }
                     var inValue = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
                         new[] {typeof(UInt64Value), typeof(StringValue), typeof(Hash)})[2] as Hash;
-                    var outValue = currentRoundInfo.BlockProducers[transaction.From.ToHex().RemoveHexPrefix()].OutValue;
-                    if (outValue == inValue.CalculateHash())
+                    var outValue = currentRoundInfo.BlockProducers[transaction.From.Dumps().RemoveHexPrefix()].OutValue;
+                    if (outValue == new Hash(){Value = ByteString.CopyFrom(inValue.CalculateHash())})
                     {
                         toRemove.Add(transaction);
                     }
@@ -250,7 +253,7 @@ namespace AElf.ChainController.TxMemPoolBM
             _logger?.Trace("Txs list:");
             foreach (var transaction in txs)
             {
-                _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName}");
+                _logger?.Trace($"{transaction.GetHash().Dumps()} - {transaction.MethodName}");
             }
         }
     }

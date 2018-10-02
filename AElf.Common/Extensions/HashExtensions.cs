@@ -5,7 +5,7 @@ using System.Text;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel
+namespace AElf.Common
 {
     public static class HashExtensions
     {
@@ -96,7 +96,10 @@ namespace AElf.Kernel
                 newHashBytes[i] = (byte) (hash.Value[i] ^ another.Value[i]);
             }
 
-            return newHashBytes;
+            return new Hash()
+            {
+                Value = ByteString.CopyFrom(newHashBytes)
+            };
         }
 
         /// <summary>
@@ -110,7 +113,10 @@ namespace AElf.Kernel
             var reverse = hash.Value.Reverse().ToArray();
             if (another == null || another.Value.Length == 0)
             {
-                return reverse;
+                return new Hash()
+                {
+                    Value = ByteString.CopyFrom(reverse)
+                };
             }
 
             if (hash.Value.Length == 0)
@@ -125,7 +131,10 @@ namespace AElf.Kernel
                 newHashBytes[i] = (byte) (reverse[i] ^ another.Value[i]);
             }
 
-            return newHashBytes;
+            return new Hash()
+            {
+                Value = ByteString.CopyFrom(newHashBytes)
+            };
         }
 
         
@@ -162,7 +171,7 @@ namespace AElf.Kernel
         
         public static bool IsNull(this Hash hash)
         {
-            return hash == null || hash.ToHex().RemoveHexPrefix().Length == 0;
+            return hash == null || hash.Dumps().RemoveHexPrefix().Length == 0;
         }
     }
 }

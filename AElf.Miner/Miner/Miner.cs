@@ -22,6 +22,8 @@ using NLog;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using Status = AElf.Kernel.Status;
+using AElf.Common;
+using Globals =AElf.Kernel.Globals; 
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -98,7 +100,7 @@ namespace AElf.Miner.Miner
                     _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
                     foreach (var transaction in dposTxs)
                     {
-                        _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName} from {transaction.From.ToHex()}");
+                        _logger?.Trace($"{transaction.GetHash().Dumps()} - {transaction.MethodName} from {transaction.From.Dumps()}");
                     }
                     
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
@@ -162,7 +164,9 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
-                    To = new Hash(Config.ChainId.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount(),
+                    To=Address.FromBytes(HashExtensions.CalculateHashOfHashList(Config.ChainId,
+                        Hash.FromString(SmartContractType.SideChainContract.ToString())).ToByteArray()),
+//                    To = new Hash(Config.ChainId.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount(),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
