@@ -16,7 +16,6 @@ namespace AElf.Cryptography.Tests.SSL
             if(Directory.Exists(Path.Combine(dir, "certs")))
                 Directory.Delete(Path.Combine(dir, "certs"), true);
             var certificateStore = new CertificateStore(dir);
-            var name = Hash.Generate().ToHex();
                 var keyPair =
                     certificateStore.WriteKeyAndCertificate("0x32796e95ae7152aa7a554c181d3653c188f1", "192.168.197.11");
             

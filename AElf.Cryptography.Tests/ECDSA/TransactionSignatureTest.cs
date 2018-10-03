@@ -3,6 +3,7 @@ using AElf.Kernel;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.Cryptography.Tests.ECDSA
 {
@@ -25,8 +26,8 @@ namespace AElf.Cryptography.Tests.ECDSA
             ;
             
             Transaction tx = new Transaction();
-            tx.From = new Hash(fromAdress);
-            tx.To = new Hash(toAdress);
+            tx.From = Address.FromBytes(fromAdress);
+            tx.To = Address.FromBytes(toAdress);
             tx.P =  ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             
             // Serialize and hash the transaction
