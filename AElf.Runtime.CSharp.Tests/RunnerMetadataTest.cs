@@ -95,7 +95,7 @@ namespace AElf.Runtime.CSharp.Tests
             
             var refB = new Dictionary<string, Address>(new []
             {
-                new KeyValuePair<string, Address>("ContractC", Address.FromBytes(ByteArrayHelpers.FromHexString("0x4567"))), 
+                new KeyValuePair<string, Address>("ContractC", Address.FromBytes(ByteArrayHelpers.FromHexString("0x456745674567456745674567456745674567"))), 
             });
             
             var groundTruthTemplateB = new ContractMetadataTemplate(typeof(TestContractB).FullName, groundTruthResB,
@@ -164,8 +164,8 @@ namespace AElf.Runtime.CSharp.Tests
             
             var refA = new Dictionary<string, Address>(new []
             {
-                new KeyValuePair<string, Address>("ContractC", Address.FromBytes(ByteArrayHelpers.FromHexString("0x4567"))), 
-                new KeyValuePair<string, Address>("_contractB", Address.FromBytes(ByteArrayHelpers.FromHexString("0x1234"))), 
+                new KeyValuePair<string, Address>("ContractC", Address.FromBytes(ByteArrayHelpers.FromHexString("0x456745674567456745674567456745674567"))), 
+                new KeyValuePair<string, Address>("_contractB", Address.FromBytes(ByteArrayHelpers.FromHexString("0x123412341234123412341234123412341234"))), 
             });
             
             var groundTruthTemplateA = new ContractMetadataTemplate(typeof(TestContractA).FullName, groundTruthResA,
@@ -191,6 +191,7 @@ namespace AElf.Runtime.CSharp.Tests
 
             exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractE))));
+            Assert.Null(exception.Message);
             Assert.True(
                 exception.Message.Contains("Duplicate name of smart contract reference attributes in contract "));
 
@@ -320,7 +321,7 @@ namespace AElf.Runtime.CSharp.Tests
         [SmartContractFieldData("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)]
         private int resource3;
 
-        [SmartContractReference("ContractC", "0x4567")]
+        [SmartContractReference("ContractC", "0x053f751c35f7c681be14bcee03085dc8a309")]
         public TestContractC ContractC;
 
         [SmartContractFunction("${this}.Func0", new[] {"${ContractC}.Func1"}, new[] {"${this}.resource2"})]
@@ -346,10 +347,10 @@ namespace AElf.Runtime.CSharp.Tests
         [SmartContractFieldData("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)]
         protected int resource2;
 
-        [SmartContractReference("_contractB", "0x1234")]
+        [SmartContractReference("_contractB", "0x123412341234123412341234123412341234")]
         private TestContractB _contractB;
 
-        [SmartContractReference("ContractC", "0x4567")]
+        [SmartContractReference("ContractC", "0x456745674567456745674567456745674567")]
         public TestContractC ContractC;
 
 
@@ -421,10 +422,10 @@ namespace AElf.Runtime.CSharp.Tests
         public int resource1;
 
         //duplicate contract reference name
-        [SmartContractReference("_contractB", "0x3211")]
+        [SmartContractReference("_contractB", "0x321132113211321132113211321132113211")]
         private TestContractB _contractB;
 
-        [SmartContractReference("_contractB", "0x3211")]
+        [SmartContractReference("_contractB", "0x321132113211321132113211321132113211")]
         public TestContractC ContractC;
 
         public void Func0()
@@ -506,7 +507,7 @@ namespace AElf.Runtime.CSharp.Tests
 
     internal class TestContractK
     {
-        [SmartContractReference("_contractB", "0x1234")]
+        [SmartContractReference("_contractB", "0x123412341234123412341234123412341234")]
         private TestContractB _contractB;
 
         //want to call foreign function that Not Exist

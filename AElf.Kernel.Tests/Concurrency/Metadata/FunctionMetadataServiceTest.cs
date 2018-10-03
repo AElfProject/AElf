@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Extensions;
@@ -43,6 +44,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             var addrA = Address.FromString("TestContractA");
             var addrB = Address.FromString("TestContractB");
             var addrC = Address.FromString("TestContractC");
+            Console.WriteLine(addrC);
 
             await _functionMetadataService.DeployContract(chainId, addrC, contractCTemplate);
 
@@ -249,13 +251,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             var refNonAttrContractTemplate = runner.ExtractMetadata(refNonAttrContractType);
             
             
-            var contract1Addr = Address.FromString("TestNonAttrContract1");
-            var contract2Addr = Address.FromString("TestNonAttrContract2");
-            var refContractAddr = Address.FromString("TestRefNonAttrContract");
+            var contract1Addr = Address.FromString("TestNonAttrContract1"); // 0x3f77405cbfe1e48e2fa0e4bf6a4e5917f768
+            var contract2Addr = Address.FromString("TestNonAttrContract2"); // 0xb4e0cc36ede5d518fbabd1ed5498093e4b71
+            var refContractAddr = Address.FromString("TestRefNonAttrContract"); // 0x7c7f78ecc9f78be2a502e5bf9f22112c6a47
             
-            var addrA = Address.FromString("TestContractA");
-            var addrB = Address.FromString("TestContractB");
-            var addrC = Address.FromString("TestContractC");
+            var addrA = Address.FromString("TestContractA"); // 0x46c86551bca0e3120ca0f831f53d8cb55ac7
+            var addrB = Address.FromString("TestContractB"); // 0xea0e38633e550dc4b7914010c2d7c95086ee
+            var addrC = Address.FromString("TestContractC"); // 0x053f751c35f7c681be14bcee03085dc8a309
             
             await _functionMetadataService.DeployContract(chainId, addrC, contractCTemplate);
             await _functionMetadataService.DeployContract(chainId, addrB, contractBTemplate);
@@ -659,7 +661,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [SmartContractFieldData("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)]
         private int resource3;
 
-        [SmartContractReference("ContractC", "0x38f3a6b010cadfa690cc1900241c053f751c")]
+        [SmartContractReference("ContractC", "0x053f751c35f7c681be14bcee03085dc8a309")]
         public TestContractC ContractC;
 
         [SmartContractFunction("${this}.Func0", new[] {"${ContractC}.Func1"}, new[] {"${this}.resource2"})]
@@ -685,10 +687,10 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [SmartContractFieldData("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)]
         protected int resource2;
 
-        [SmartContractReference("_contractB", "0x22e7340eb68c9a01804aabeb10c2ea0e3863")]
+        [SmartContractReference("_contractB", "0xea0e38633e550dc4b7914010c2d7c95086ee")]
         private TestContractB _contractB;
 
-        [SmartContractReference("ContractC", "0x38f3a6b010cadfa690cc1900241c053f751c")]
+        [SmartContractReference("ContractC", "0x053f751c35f7c681be14bcee03085dc8a309")]
         public TestContractC ContractC;
 
 
@@ -741,13 +743,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
     public class TestRefNonAttrContract : CSharpSmartContract
     {
-        [SmartContractReference("ref1", "0x2829f1f4f08735a2325dfb7e41023f77405c")]
+        [SmartContractReference("ref1", "0x3f77405cbfe1e48e2fa0e4bf6a4e5917f768")]
         public TestNonAttrContract1 ref1;
         
-        [SmartContractReference("ref2", "0x205bd293801714a67d5eba1e00abb4e0cc36")]
+        [SmartContractReference("ref2", "0xb4e0cc36ede5d518fbabd1ed5498093e4b71")]
         public TestNonAttrContract2 ref2;
 
-        [SmartContractReference("refc", "0x38f3a6b010cadfa690cc1900241c053f751c")]
+        [SmartContractReference("refc", "0x053f751c35f7c681be14bcee03085dc8a309")]
         public TestContractC refc;
 
         [SmartContractFieldData("${this}.localRes", DataAccessMode.AccountSpecific)]
