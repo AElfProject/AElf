@@ -3,14 +3,14 @@ using AElf.Kernel;
 using AElf.Types.CSharp;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
-
+using AElf.Common;
 
 namespace AElf.Sdk.CSharp.Tests
 {
     public class Account : UserType
     {
         public string Name;
-        public Hash Address { get; set; }
+        public Address Address { get; set; }
     }
 
     public class AccountName : Event
@@ -33,7 +33,7 @@ namespace AElf.Sdk.CSharp.Tests
         }
 
         [SmartContractFunction("${this}.SetAccount", new string[]{}, new []{"${this}._account"})]
-        public bool SetAccount(string name, Hash address)
+        public bool SetAccount(string name, Address address)
         {
             var account = new Account()
             {
@@ -59,7 +59,7 @@ namespace AElf.Sdk.CSharp.Tests
 
         public void InlineCallToZero()
         {
-            Api.SendInline(Hash.Zero, "Dummy");
+            Api.SendInline(Address.Zero, "Dummy");
         }
     }
 }

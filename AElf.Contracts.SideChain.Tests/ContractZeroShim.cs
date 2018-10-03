@@ -2,25 +2,26 @@
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using AElf.Common;
 
 namespace AElf.Contracts.SideChain.Tests
 {
     public class ContractZeroShim
     {
         private MockSetup _mock;
-        public Hash ContractAddres = Hash.Generate();
+        public Address ContractAddres = Address.FromBytes(Hash.Generate().ToByteArray());
         public IExecutive Executive { get; set; }
 
         public ITransactionContext TransactionContext { get; private set; }
 
-        public Hash Sender
+        public Address Sender
         {
-            get => Hash.Zero;
+            get => Address.Zero;
         }
         
-        public Hash Address
+        public Address Address
         {
-            get => new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.TokenContract.ToString())).ToAccount();
+            get => Address.FromBytes(_mock.ChainId1.CalculateHashWith(SmartContractType.TokenContract.ToString()));
         }
         
         public ContractZeroShim(MockSetup mock)
@@ -56,7 +57,7 @@ namespace AElf.Contracts.SideChain.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
-        public void ChangeContractOwner(Hash contractAddress, Hash newOwner)
+        public void ChangeContractOwner(Address contractAddress, Address newOwner)
         {
             var tx = new Transaction
             {
@@ -75,7 +76,7 @@ namespace AElf.Contracts.SideChain.Tests
             TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
         }
         
-        public Hash GetContractOwner(Hash contractAddress)
+        public Address GetContractOwner(Address contractAddress)
         {
             var tx = new Transaction
             {
@@ -92,7 +93,7 @@ namespace AElf.Contracts.SideChain.Tests
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
         }
     }
 }

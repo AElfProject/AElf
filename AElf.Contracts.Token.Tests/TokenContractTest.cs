@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using AElf.SmartContract;
@@ -32,11 +33,9 @@ namespace AElf.Contracts.Token.Tests
         [Fact]
         public void Test()
         {
-            _contract.GetContractOwner(
-                new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.BasicContractZero.ToString()))
-                    .ToAccount());
+            _contract.GetContractOwner(Address.FromBytes(_mock.ChainId1.CalculateHashWith(SmartContractType.BasicContractZero.ToString())));
             Assert.True(_contract.TransactionContext.Trace.StdErr.IsNullOrEmpty());
-            var owner = _contract.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
+            var owner = _contract.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
 
             Assert.Equal(_contract.Sender, owner);
             // Initialize

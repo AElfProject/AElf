@@ -4,22 +4,23 @@ using AElf.Kernel;
 using Google.Protobuf;
 using AElf.Types.CSharp;
 using Org.BouncyCastle.Asn1.Mozilla;
+using AElf.Common;
 
 namespace AElf.Contracts.SideChain.Tests
 {
     public class SideChainContractShim
     {
         private MockSetup _mock;
-        public Hash ContractAddres = Hash.Generate();
+        public Address ContractAddres = Address.FromBytes(Hash.Generate().ToByteArray());
         public IExecutive Executive { get; set; }
 
         public ITransactionContext TransactionContext { get; private set; }
 
-        public Hash Sender { get; } = Hash.Generate().ToAccount();
-        
-        public Hash SideChainContractAddress { get; set; }
-        
-        public SideChainContractShim(MockSetup mock, Hash sideChainContractAddress)
+        public Address Sender { get; } = Address.FromBytes(Hash.Generate().ToByteArray());
+
+        public Address SideChainContractAddress { get; set; }
+
+        public SideChainContractShim(MockSetup mock, Address sideChainContractAddress)
         {
             _mock = mock;
             SideChainContractAddress = sideChainContractAddress;
@@ -55,7 +56,7 @@ namespace AElf.Contracts.SideChain.Tests
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToInt32();
         }
-        
+
         public async Task<ulong?> GetLockedToken(Hash chainId)
         {
             var tx = new Transaction
@@ -74,7 +75,7 @@ namespace AElf.Contracts.SideChain.Tests
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
         }
-        
+
         public async Task<byte[]> GetLockedAddress(Hash chainId)
         {
             var tx = new Transaction
@@ -93,7 +94,7 @@ namespace AElf.Contracts.SideChain.Tests
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
-        
+
         public async Task<ulong?> GetCurrentSideChainSerialNumber()
         {
             var tx = new Transaction
@@ -111,12 +112,13 @@ namespace AElf.Contracts.SideChain.Tests
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
         }
+
         #endregion View Only Methods
 
 
         #region Actions
 
-        public async Task<byte[]> CreateSideChain(Hash chainId, Hash lockedAddress, ulong lockedToken)
+        public async Task<byte[]> CreateSideChain(Hash chainId, Address lockedAddress, ulong lockedToken)
         {
             var tx = new Transaction
             {
@@ -135,7 +137,7 @@ namespace AElf.Contracts.SideChain.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
-        
+
         public async Task ApproveSideChain(Hash chainId)
         {
             var tx = new Transaction
@@ -153,7 +155,7 @@ namespace AElf.Contracts.SideChain.Tests
             await Executive.SetTransactionContext(TransactionContext).Apply();
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
         }
-        
+
         public async Task DisposeSideChain(Hash chainId)
         {
             var tx = new Transaction
@@ -189,7 +191,7 @@ namespace AElf.Contracts.SideChain.Tests
             await Executive.SetTransactionContext(TransactionContext).Apply();
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
         }
-        
+
         public async Task<bool?> VerifyTransaction(Hash txHash, MerklePath path, ulong height)
         {
             var tx = new Transaction
@@ -208,7 +210,7 @@ namespace AElf.Contracts.SideChain.Tests
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBool();
         }
-        
+
         public async Task GetMerklePath(ulong height)
         {
             var tx = new Transaction
@@ -226,9 +228,9 @@ namespace AElf.Contracts.SideChain.Tests
             await Executive.SetTransactionContext(TransactionContext).Apply();
             await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
         }
+
         #endregion Actions
 
         #endregion ABI (Public) Methods
-
     }
 }

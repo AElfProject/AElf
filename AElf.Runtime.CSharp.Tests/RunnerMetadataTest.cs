@@ -13,6 +13,7 @@ using Google.Protobuf;
 using QuickGraph;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -38,7 +39,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(_mock.ContractCode),
-                ContractHash = new Hash(_mock.ContractCode)
+                ContractHash = Hash.FromBytes(_mock.ContractCode)
             };
 
             var resC = runner.ExtractMetadata(typeof(TestContractC));
@@ -69,7 +70,7 @@ namespace AElf.Runtime.CSharp.Tests
                 });
             
             var groundTruthTemplateC = new ContractMetadataTemplate(typeof(TestContractC).FullName, groundTruthResC,
-                new Dictionary<string, Hash>());
+                new Dictionary<string, Address>());
             
             Assert.Equal(groundTruthTemplateC, resC, new ContractMetadataTemplateEqualityComparer());
 
@@ -92,9 +93,9 @@ namespace AElf.Runtime.CSharp.Tests
                             {new Resource("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)})))
             });
             
-            var refB = new Dictionary<string, Hash>(new []
+            var refB = new Dictionary<string, Address>(new []
             {
-                new KeyValuePair<string, Hash>("ContractC", ByteArrayHelpers.FromHexString("0x4567")), 
+                new KeyValuePair<string, Address>("ContractC", Address.FromBytes(ByteArrayHelpers.FromHexString("0x4567"))), 
             });
             
             var groundTruthTemplateB = new ContractMetadataTemplate(typeof(TestContractB).FullName, groundTruthResB,
@@ -161,10 +162,10 @@ namespace AElf.Runtime.CSharp.Tests
                         new HashSet<Resource>())),
             });
             
-            var refA = new Dictionary<string, Hash>(new []
+            var refA = new Dictionary<string, Address>(new []
             {
-                new KeyValuePair<string, Hash>("ContractC", ByteArrayHelpers.FromHexString("0x4567")), 
-                new KeyValuePair<string, Hash>("_contractB", ByteArrayHelpers.FromHexString("0x1234")), 
+                new KeyValuePair<string, Address>("ContractC", Address.FromBytes(ByteArrayHelpers.FromHexString("0x4567"))), 
+                new KeyValuePair<string, Address>("_contractB", Address.FromBytes(ByteArrayHelpers.FromHexString("0x1234"))), 
             });
             
             var groundTruthTemplateA = new ContractMetadataTemplate(typeof(TestContractA).FullName, groundTruthResA,
@@ -254,9 +255,9 @@ namespace AElf.Runtime.CSharp.Tests
                    string.Join(", ", callGraph.Vertices?.OrderBy(a => a));
         }
 
-        private string ContractReferencesToString(Dictionary<string, Hash> references)
+        private string ContractReferencesToString(Dictionary<string, Address> references)
         {
-            return string.Join(", ", references.OrderBy(kv => kv.Key).Select(kv => $"[{kv.Key}, {kv.Value.ToHex()}]"));
+            return string.Join(", ", references.OrderBy(kv => kv.Key).Select(kv => $"[{kv.Key}, {kv.Value.Dumps()}]"));
         }
 
         private string ExternalFunctionCallToString(Dictionary<string, List<string>> externalFuncCall)

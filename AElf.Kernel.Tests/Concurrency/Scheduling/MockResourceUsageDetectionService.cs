@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Execution;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {

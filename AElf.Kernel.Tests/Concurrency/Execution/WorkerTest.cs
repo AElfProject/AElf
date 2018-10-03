@@ -7,6 +7,9 @@ using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using AElf.Execution;
+using AElf.Common;
+using Google.Protobuf;
+using Address= AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
@@ -23,8 +26,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void SingleTransactionExecutionTest()
         {
-            Hash from = Hash.Generate();
-            Hash to = Hash.Generate();
+            Address from = Address.FromBytes(Hash.Generate().ToByteArray());
+            Address to = Address.FromBytes(Hash.Generate().ToByteArray());
 
             _mock.Initialize1(from, 100);
             _mock.Initialize1(to, 0);
@@ -85,12 +88,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void MultipleTransactionExecutionTest()
         {
-            var address1 = Hash.Generate();
-            var address2 = Hash.Generate();
-            var address3 = Hash.Generate();
-            var address4 = Hash.Generate();
-            var address5 = Hash.Generate();
-            var address6 = Hash.Generate();
+            var address1 = Address.FromBytes(Hash.Generate().ToByteArray());
+            var address2 = Address.FromBytes(Hash.Generate().ToByteArray());
+            var address3 = Address.FromBytes(Hash.Generate().ToByteArray());
+            var address4 = Address.FromBytes(Hash.Generate().ToByteArray());
+            var address5 = Address.FromBytes(Hash.Generate().ToByteArray());
+            var address6 = Address.FromBytes(Hash.Generate().ToByteArray());
             
             _mock.Initialize1(address1, 100);
             _mock.Initialize1(address2, 0);

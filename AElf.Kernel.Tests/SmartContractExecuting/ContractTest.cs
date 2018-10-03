@@ -9,6 +9,7 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
@@ -45,7 +46,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         {
             _stateDictator = stateDictator;
             _stateDictator.ChainId = Hash.Generate();
-            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
+            _stateDictator.BlockProducerAccountAddress = Address.FromBytes(Hash.Generate().ToByteArray());
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _transactionManager = transactionManager;
@@ -72,7 +73,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
            
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
+            var contractAddressZero = Address.FromBytes(ChainId.CalculateHashWith(Globals.GenesisBasicContract));
             var copy = await _smartContractManager.GetAsync(contractAddressZero);
 
             // throw exception if not registered
@@ -92,11 +93,11 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
             
             var code = ExampleContractCode;
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
+            var contractAddressZero = Address.FromBytes(ChainId.CalculateHashWith(Globals.GenesisBasicContract));
 
             var txnDep = new Transaction()
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
@@ -114,13 +115,13 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             
             Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
-            var address = txnCtxt.Trace.RetVal.Data.DeserializeToBytes();
+            var address = Address.FromBytes(txnCtxt.Trace.RetVal.Data.DeserializeToBytes());
 
             var regExample = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = code.CalculateHash()
+                ContractHash = Hash.FromBytes(code)
             };
             var copy = await _smartContractManager.GetAsync(address);
 
@@ -142,11 +143,11 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var code = ExampleContractCode;
 
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
+            var contractAddressZero = Address.FromBytes(ChainId.CalculateHashWith(Globals.GenesisBasicContract));
 
             var txnDep = new Transaction()
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
@@ -163,13 +164,13 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
 
             var bs = txnCtxt.Trace.RetVal;
-            var address = bs.Data.DeserializeToBytes();
+            var address = Address.FromBytes(bs.Data.DeserializeToBytes());
 
             #region initialize account balance
-            var account = Hash.Generate();
+            var account = Address.FromBytes(Hash.Generate().ToByteArray());
             var txnInit = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "Initialize",
@@ -188,7 +189,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             #region check account balance
             var txnBal = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "GetBalance",
@@ -206,7 +207,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             #region check account balance
             var txnPrint = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "Print"

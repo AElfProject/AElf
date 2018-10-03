@@ -13,6 +13,7 @@ using SharpRepository.Repository.Configuration;
 using Api = AElf.Sdk.CSharp.Api;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using AElf.Kernel.KernelAccount;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Tests
@@ -24,16 +25,16 @@ namespace AElf.Kernel.Tests
 
         public class ContractHasBeenDeployed : Event
         {
-            [Indexed] public Hash Creator;
+            [Indexed] public Address Creator;
 
-            [Indexed] public Hash Address;
+            [Indexed] public Address Address;
         }
 
         public class OwnerHasBeenChanged : Event
         {
-            [Indexed] public Hash Address;
-            [Indexed] public Hash OldOwner;
-            [Indexed] public Hash NewOwner;
+            [Indexed] public Address Address;
+            [Indexed] public Address OldOwner;
+            [Indexed] public Address NewOwner;
         }
     
         #endregion Events
@@ -91,14 +92,14 @@ namespace AElf.Kernel.Tests
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(contract),
-                ContractHash = contract.CalculateHash() // maybe no usage  
+                ContractHash = Hash.FromBytes(contract)  
             };
             
             var tx = Api.GetTransaction();
             
             ulong serialNumber = _serialNumber.Increment().Value;
 
-            Hash creator = Api.GetTransaction().From;
+            var creator = Api.GetTransaction().From;
 
             var info = new ContractInfo()
             {
@@ -108,11 +109,11 @@ namespace AElf.Kernel.Tests
 
             var address = info.Address;
             // calculate new account address
-            var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
+            var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId);
             
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success, {0}", account.ToHex());
-            return account.GetHashBytes();
+            Console.WriteLine("Deployment success, {0}", account.Dumps());
+            return account.GetValueBytes();
         }
 
         public void Print(string name)

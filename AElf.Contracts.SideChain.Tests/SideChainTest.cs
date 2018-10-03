@@ -6,6 +6,7 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Contracts.SideChain.Tests
 {
@@ -23,15 +24,14 @@ namespace AElf.Contracts.SideChain.Tests
 
         private void Init()
         {
-            _contract = new SideChainContractShim(_mock, 
-                new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount());
+            _contract = new SideChainContractShim(_mock, Address.FromBytes(_mock.ChainId1.CalculateHashWith(SmartContractType.SideChainContract.ToString())));
         }
 
         [Fact]
         public async Task SideChainLifetime()
         {
             var chainId = Hash.Generate();
-            var lockedAddress = Hash.Generate().ToAccount();
+            var lockedAddress = Address.FromBytes(Hash.Generate().ToByteArray());
             ulong lockedToken = 10000;
             // create new chain
             var bytes = await _contract.CreateSideChain(chainId, lockedAddress, lockedToken);
@@ -48,7 +48,7 @@ namespace AElf.Contracts.SideChain.Tests
             Assert.Equal(lockedToken, tokenAmount);
 
             var address = await _contract.GetLockedAddress(chainId);
-            Assert.Equal(lockedAddress, address);
+            Assert.Equal(lockedAddress.GetValueBytes(), address);
             
             // authorize the chain 
             await _contract.ApproveSideChain(chainId);
@@ -103,8 +103,8 @@ namespace AElf.Contracts.SideChain.Tests
         {
             Transaction t = new Transaction
             {
-                From = Hash.Generate(),
-                To = Hash.Generate(),
+                From = Address.FromBytes(Hash.Generate().ToByteArray()),
+                To = Address.FromBytes(Hash.Generate().ToByteArray()),
                 MethodName = "test",
                 P = ByteString.Empty,
                 Params = ByteString.Empty,

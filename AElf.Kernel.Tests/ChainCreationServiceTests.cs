@@ -5,6 +5,7 @@ using AElf.Common.Extensions;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {
@@ -28,10 +29,10 @@ namespace AElf.Kernel.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.FromBytes(SmartContractZeroCode)
             };
-            var chain = await _service.CreateNewChainAsync("Hello".CalculateHash(), new List<SmartContractRegistration>{reg});
-            Assert.Equal("Hello".CalculateHash().ToHex(), chain.Id.Dumps());
+            var chain = await _service.CreateNewChainAsync(Hash.FromString("Hello"), new List<SmartContractRegistration>{reg});
+            Assert.Equal(Hash.FromString("Hello").Dumps(), chain.Id.Dumps());
         }
     }
 }

@@ -3,6 +3,8 @@ using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -23,8 +25,8 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public void Test()
         {
-            Hash account0 = Hash.Generate();
-            Hash account1 = Hash.Generate();
+            Address account0 = Address.FromBytes(Hash.Generate().ToByteArray());
+            Address account1 = Address.FromBytes(Hash.Generate().ToByteArray());
 
             // Initialize
             _contract1.Initialize(account0, 200);

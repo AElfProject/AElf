@@ -4,13 +4,14 @@ using AElf.SmartContract;
 using ServiceStack;
 using Google.Protobuf;
 using AElf.Types.CSharp;
+using AElf.Common;
 
 namespace AElf.Sdk.CSharp.Tests
 {
     public class TestContractShim
     {
         private MockSetup _mock;
-        public Hash ContractAddres = Hash.Generate();
+        public Address ContractAddres = Address.FromBytes(Hash.Generate().ToByteArray());
         public IExecutive Executive { get; set; }
 
         public byte[] Code
@@ -47,7 +48,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.FromBytes(Hash.Generate().ToByteArray()),
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetTotalSupply",
@@ -66,7 +67,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.FromBytes(Hash.Generate().ToByteArray()),
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "SetAccount",
@@ -85,7 +86,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.FromBytes(Hash.Generate().ToByteArray()),
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetAccountName",
@@ -105,7 +106,7 @@ namespace AElf.Sdk.CSharp.Tests
             // This is not a standard way of writing shim method
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.FromBytes(Hash.Generate().ToByteArray()),
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "InlineCallToZero",
