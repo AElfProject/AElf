@@ -191,7 +191,6 @@ namespace AElf.Runtime.CSharp.Tests
 
             exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractE))));
-            Assert.Null(exception.Message);
             Assert.True(
                 exception.Message.Contains("Duplicate name of smart contract reference attributes in contract "));
 
@@ -321,7 +320,7 @@ namespace AElf.Runtime.CSharp.Tests
         [SmartContractFieldData("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)]
         private int resource3;
 
-        [SmartContractReference("ContractC", "0x053f751c35f7c681be14bcee03085dc8a309")]
+        [SmartContractReference("ContractC", "0x456745674567456745674567456745674567")]
         public TestContractC ContractC;
 
         [SmartContractFunction("${this}.Func0", new[] {"${ContractC}.Func1"}, new[] {"${this}.resource2"})]
