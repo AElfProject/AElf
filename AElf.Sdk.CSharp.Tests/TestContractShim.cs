@@ -106,7 +106,7 @@ namespace AElf.Sdk.CSharp.Tests
             // This is not a standard way of writing shim method
             var tx = new Transaction
             {
-                From = Address.FromBytes(Hash.Generate().ToByteArray()),
+                From = Address.Zero,
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "InlineCallToZero",
