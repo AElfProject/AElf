@@ -48,7 +48,7 @@ namespace AElf.Miner.Miner
 
         private IMinerConfig Config { get; }
 
-        public Hash Coinbase => Config.CoinBase;
+        public Address Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,

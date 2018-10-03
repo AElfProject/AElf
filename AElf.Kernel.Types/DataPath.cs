@@ -183,13 +183,14 @@ namespace AElf.Kernel
         /// <param name="parentAccount"></param>
         /// <param name="nonce"></param>
         /// <returns></returns>
-        public static Hash CalculateAccountAddress(Hash parentAccount, ulong nonce)
+        public static Address CalculateAccountAddress(Address parentAccount, ulong nonce)
         {
-            return HashExtensions.CalculateHashOfHashList(parentAccount,
+            return Address.FromBytes(HashExtensions.CalculateHashOfHashList(
+                Hash.FromMessage(parentAccount),
                 Hash.FromMessage(new UInt64Value
             {
                 Value = nonce
-            }));
+            })).ToByteArray());
         }
         
         #endregion

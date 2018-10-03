@@ -16,6 +16,7 @@ using Google.Protobuf;
 using NLog;
 using ServiceStack;
 using ServiceStack.Text;
+using AElf.Common;
 
 namespace AElf.Benchmark
 {
@@ -31,7 +32,7 @@ namespace AElf.Benchmark
         private readonly ServicePack _servicePack;
 
         private readonly TransactionDataGenerator _dataGenerater;
-        private readonly Hash _contractHash;
+        private readonly Address _contractHash;
         
         private Hash ChainId { get; }
         private int _incrementId;
@@ -176,23 +177,23 @@ namespace AElf.Benchmark
             return new KeyValuePair<string,double>(str, time);
         }
 
-        private List<Hash> GetTargetHashesForTransfer(List<Transaction> transactions)
+        private List<Address> GetTargetHashesForTransfer(List<Transaction> transactions)
         {
             if (transactions.Count(a => a.MethodName != "Transfer") != 0)
             {
                 throw new Exception("Missuse for function GetTargetHashesForTransfer with non transfer transactions");
             }
-            HashSet<Hash> res = new HashSet<Hash>();
+            HashSet<Address> res = new HashSet<Address>();
             foreach (var tx in transactions)
             {
-                var parameters = ParamsPacker.Unpack(tx.Params.ToByteArray(), new[] {typeof(Hash), typeof(Hash), typeof(ulong)});
-                res.Add(parameters[1] as Hash);
+                var parameters = ParamsPacker.Unpack(tx.Params.ToByteArray(), new[] {typeof(Address), typeof(Address), typeof(ulong)});
+                res.Add(parameters[1] as Address);
             }
 
             return res.ToList();
         }
 
-        private async Task<List<ulong>> ReadBalancesForAddrs(List<Hash> targets, Hash tokenContractAddr)
+        private async Task<List<ulong>> ReadBalancesForAddrs(List<Address> targets, Address tokenContractAddr)
         {
             List<ulong> res = new List<ulong>();
             foreach (var target in targets)
@@ -234,14 +235,14 @@ namespace AElf.Benchmark
             return (ulong)n;
         }
 
-        public async Task<Hash> Prepare(byte[] contractCode)
+        public async Task<Address> Prepare(byte[] contractCode)
         {
             //create smart contact zero
             var reg = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero,
+                ContractHash = Hash.FromBytes(SmartContractZeroCode),
                 Type = (int)SmartContractType.BasicContractZero
             };
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId,
@@ -278,7 +279,7 @@ namespace AElf.Benchmark
                 await _smartContractService.PutExecutiveAsync(contractAddressZero, executive);    
             }
             
-            var contractAddr = txnCtxt.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
+            var contractAddr = txnCtxt.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
             return contractAddr;
         }
 
@@ -287,17 +288,17 @@ namespace AElf.Benchmark
             await InitContract(_contractHash, _dataGenerater.KeyList);
         }
         
-        public async Task InitContract(Hash contractAddr, IEnumerable<Hash> addrBook)
+        public async Task InitContract(Address contractAddr, IEnumerable<Address> addrBook)
         {
             //init contract
             string name = "TestToken" + _incrementId;
             var txnInit = new Transaction
             {
-                From = Hash.Zero.ToAccount(),
+                From = Address.Zero,
                 To = contractAddr,
                 IncrementId = NewIncrementId(),
                 MethodName = "InitBalance",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(name, Hash.Zero.ToAccount()))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(name, Address.Zero))
             };
             
             var txnInitCtxt = new TransactionContext()

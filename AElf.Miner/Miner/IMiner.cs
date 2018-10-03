@@ -10,7 +10,7 @@ namespace AElf.Miner.Miner
         void Init(ECKeyPair nodeKeyPair);
         void Close();
 
-        Hash Coinbase { get; }
+        Address Coinbase { get; }
         
         /// <summary>
         /// mining functionality

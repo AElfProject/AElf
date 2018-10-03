@@ -6,8 +6,13 @@ using Google.Protobuf;
 
 namespace AElf.Common
 {
-    public partial class Address
+    public partial class Address : ICustomDiagnosticMessage
     {
+        public string ToDiagnosticString()
+        {
+            return $@"""{Dumps()}""";
+        }
+
         private Address(byte[] bytes)
         {
             if (bytes.Length < Globals.AddressLength)

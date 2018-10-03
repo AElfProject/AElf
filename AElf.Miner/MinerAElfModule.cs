@@ -21,10 +21,7 @@ namespace AElf.Miner
             {
                 minerConfig = new MinerConfig
                 {
-                    CoinBase =new Hash()
-                    {
-                        Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.NodeAccount)) 
-                    }
+                    CoinBase =Address.Loads(NodeConfig.Instance.NodeAccount) 
                 };
             }
             minerConfig.ChainId = new Hash()
