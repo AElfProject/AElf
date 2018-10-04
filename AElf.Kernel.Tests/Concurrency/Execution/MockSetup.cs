@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
@@ -38,8 +39,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public IActorRef Worker2 { get; }
         public IActorRef Requestor { get; }
 
-        public Hash ChainId1 { get; } = Hash.Generate();
-        public Hash ChainId2 { get; } = Hash.Generate();
+        public Hash ChainId1 { get; } = Hash.FromString("ChainId1");
+        public Hash ChainId2 { get; } = Hash.FromString("ChainId2");
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
 
@@ -48,8 +49,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public IAccountDataProvider DataProvider1;
         public IAccountDataProvider DataProvider2;
 
-        public Address SampleContractAddress1 { get; } = Address.FromBytes(Hash.Generate().ToByteArray());
-        public Address SampleContractAddress2 { get; } = Address.FromBytes(Hash.Generate().ToByteArray());
+        public Address SampleContractAddress1 { get; } = Address.FromString("SampleContractAddress1");
+        public Address SampleContractAddress2 { get; } = Address.FromString("SampleContractAddress2");
 
         public IExecutive Executive1 { get; private set; }
         public IExecutive Executive2 { get; private set; }
@@ -156,6 +157,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public async Task CommitTrace(TransactionTrace trace)
         {
+            Console.WriteLine(trace);
+            Console.WriteLine(
+                string.Join(
+                    "\r\n",
+                    trace.ValueChanges.Select(x => $"\r\n{x.Path} => {x.Path.ResourcePathHash} => {x.Path.ResourcePointerHash}\r\n")
+                )
+            );
             var changesDict = await trace.CommitChangesAsync(StateDictator);
             await StateDictator.ApplyCachedDataAction(changesDict);
         }
@@ -163,6 +171,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public void Initialize1(Address account, ulong qty)
         {
             var tc = GetInitializeTxnCtxt(SampleContractAddress1, account, qty);
+            StateDictator.ChainId = ChainId1;
             Executive1.SetTransactionContext(tc).Apply()
                 .Wait();
             CommitTrace(tc.Trace).Wait();
@@ -266,7 +275,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var txn = GetBalanceTxn(SampleContractAddress1, account);
             var txnCtxt = new TransactionContext()
             {
-                Transaction = txn
+                Transaction = txn,
+                Trace = new TransactionTrace()
             };
             // TODO: Check why this doesn't work
 //            Executive1.SetDataCache(new Dictionary<DataPath, StateCache>());
@@ -274,7 +284,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var t = SmartContractService.GetExecutiveAsync(SampleContractAddress1, ChainId1);
             t.Wait();
             t.Result.SetTransactionContext(txnCtxt).Apply().Wait();
-
+Console.WriteLine($"txn {txn} trc {txnCtxt.Trace}");
             return txnCtxt.Trace.RetVal.Data.DeserializeToUInt64();
         }
 

@@ -26,8 +26,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void SingleTransactionExecutionTest()
         {
-            Address from = Address.FromBytes(Hash.Generate().ToByteArray());
-            Address to = Address.FromBytes(Hash.Generate().ToByteArray());
+            Address from = Address.FromString(nameof(SingleTransactionExecutionTest)+"/from");
+            Address to = Address.FromString(nameof(SingleTransactionExecutionTest)+"/to");
 
             _mock.Initialize1(from, 100);
             _mock.Initialize1(to, 0);
