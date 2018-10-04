@@ -60,7 +60,8 @@ namespace AElf.Common
 
         public static byte[] CalculateWith(this Hash hash1, Hash hash2)
         {
-            return hash1 > hash2 ? hash1.CalculateHashWith(hash2) : hash2.CalculateHashWith(hash1);
+            return hash1.CalculateHashWith(hash2);
+//            return hash1 > hash2 ? hash1.CalculateHashWith(hash2) : hash2.CalculateHashWith(hash1);
         }
 
         /// <summary>

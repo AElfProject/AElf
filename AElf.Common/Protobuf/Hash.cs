@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using AElf.Common.Extensions;
@@ -33,6 +34,21 @@ namespace AElf.Common
             return FromBytes(message.ToByteArray());
         }
 
+        public static Hash FromHashes(params Hash[] hashes)
+        {
+            using (var mm = new MemoryStream())
+            using (var stream = new CodedOutputStream(mm))
+            {
+                foreach (var hash in hashes)
+                {
+                    hash.WriteTo(stream);
+                }
+
+                mm.Position = 0;
+                return FromBytes(mm.ToArray());
+            }
+        }
+        
         public static Hash Generate()
         {
             return FromBytes(Guid.NewGuid().ToByteArray());

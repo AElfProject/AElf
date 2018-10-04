@@ -15,7 +15,6 @@ namespace AElf.Contracts.Token.Tests
     public class TokenContractShim
     {
         private MockSetup _mock;
-        public Address ContractAddres = Address.FromBytes(Hash.Generate().ToByteArray());
         public IExecutive Executive { get; set; }
 
         public TransactionContext TransactionContext { get; private set; }

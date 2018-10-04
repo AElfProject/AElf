@@ -199,9 +199,9 @@ namespace AElf.Contracts.SideChain
             var key = new UInt64Value {Value = parentChainHeight};
             Api.Assert(_parentChainBlockInfo.GetValue(key) != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
-            var rootCalculated = path.ComputeRootWith(tx);
-            var parentRoot = _parentChainBlockInfo.GetValue(key).Root.SideChainTransactionsRoot;
-            Api.Assert(parentRoot.Equals(rootCalculated), "Transaction verification Failed");
+            var rootCalculated =  path.ComputeRootWith(tx);
+            var parentRoot = _parentChainBlockInfo.GetValue(key)?.Root?.SideChainTransactionsRoot;
+            Api.Assert((parentRoot??Hash.Zero).Equals(rootCalculated), "Transaction verification Failed");
             return true;
         }
 

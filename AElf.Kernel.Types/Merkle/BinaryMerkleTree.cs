@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -71,7 +72,7 @@ namespace AElf.Kernel
             {
                 var left = Nodes[i++];
                 var right = Nodes[i++];
-                Nodes.Add(Hash.FromBytes(left.CalculateWith(right)));
+                Nodes.Add(Hash.FromHashes(left, right));
                 if (++newAdded != nodeToAdd) 
                     continue;
                 // complete one row

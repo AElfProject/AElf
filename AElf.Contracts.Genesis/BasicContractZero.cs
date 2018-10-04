@@ -82,7 +82,6 @@ namespace AElf.Contracts.Genesis
         }
     }
 
-
     #endregion Customized Field Types
 
     public class BasicContractZero : CSharpSmartContract, ISmartContractZero
@@ -90,7 +89,9 @@ namespace AElf.Contracts.Genesis
         #region Fields
 
         private readonly ContractSerialNumber _contractSerialNumber = ContractSerialNumber.Instance;
-        private readonly Map<Address, ContractInfo> _contractInfos = new Map<Address, ContractInfo>(FieldNames.ContractInfos);
+
+        private readonly Map<Address, ContractInfo> _contractInfos =
+            new Map<Address, ContractInfo>(FieldNames.ContractInfos);
 
         #endregion Fields
 
@@ -153,7 +154,6 @@ namespace AElf.Contracts.Genesis
             return address.GetValueBytes();
         }
 
-        
         public void ChangeContractOwner(Address contractAddress, Address newOwner)
         {
             var info = _contractInfos[contractAddress];
@@ -172,7 +172,7 @@ namespace AElf.Contracts.Genesis
         public Address GetContractOwner(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
-            return info.Owner;
+            return info?.Owner ?? Address.FromString("NonExistent");
         }
     }
 }

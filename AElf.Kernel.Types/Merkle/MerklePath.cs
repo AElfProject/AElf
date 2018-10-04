@@ -13,7 +13,7 @@ namespace AElf.Kernel
             Hash hash = leaf.Clone();
             foreach (var node in Path)
             {
-                hash = Hash.FromBytes(hash.CalculateWith(node));
+                hash = Hash.FromHashes(hash, node);
             }
             return hash;
         }
