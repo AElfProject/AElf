@@ -11,6 +11,7 @@ using Google.Protobuf;
 using Mono.Cecil;
 using NLog;
 using AElf.Common;
+using AElf.Kernel.Types;
 
 // ReSharper disable CheckNamespace
 namespace AElf.SmartContract
@@ -79,6 +80,7 @@ namespace AElf.SmartContract
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _dataStore.InsertAsync(dataPath.StateHash, _worldState);
+//            await _dataStore.InsertBytesAsync<IMessage>(dataPath.StateHash, _worldState.ToByteArray());
             _worldState = new WorldState();
         }
         
@@ -132,7 +134,8 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task SetDataAsync<T>(Hash pointerHash, T data) where T : IMessage
         {
-            await _dataStore.InsertAsync(pointerHash, data);
+//            await _dataStore.InsertAsync(pointerHash, data);
+            await _dataStore.InsertBytesAsync<IMessage>(pointerHash, data.ToByteArray());
         }
 
         /// <summary>
@@ -142,7 +145,9 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<T> GetDataAsync<T>(Hash pointerHash) where T : IMessage, new()
         {
-            return await _dataStore.GetAsync<T>(pointerHash);
+//            return await _dataStore.GetAsync<T>(pointerHash);
+            var res = await _dataStore.GetBytesAsync<T>(pointerHash);
+            return res == null ? default(T) : res.Deserialize<T>();
         }
 
         public Task RollbackToPreviousBlock()

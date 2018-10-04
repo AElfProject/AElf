@@ -44,13 +44,14 @@ namespace AElf.Kernel
         /// <summary>
         /// For pipeline setting.
         /// </summary>
-        public Hash Key =>Hash.FromMessage( 
-            new Key
-        {
-            Type =  Type,
-            Value = ByteString.CopyFrom(ResourcePointerHash.GetHashBytes()),
-            HashType = (uint) HashType.ResourcePointer
-        });
+        public Hash Key => ResourcePointerHash;
+//            Hash.FromMessage( 
+//            new Key
+//        {
+//            Type =  Type,
+//            Value = ByteString.CopyFrom(ResourcePointerHash.GetHashBytes()),
+//            HashType = (uint) HashType.ResourcePointer
+//        });
             
         public string Type { get; set; }
 

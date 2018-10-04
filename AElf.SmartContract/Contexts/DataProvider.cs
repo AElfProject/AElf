@@ -99,7 +99,14 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-            return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
+//            return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
+            var val = GetStateAsync(keyHash)?.CurrentValue;
+            if (val == null)
+            {
+                val = (await GetDataAsync<T>(keyHash))?.ToByteArray();
+                await SetAsync<T>(keyHash, val);
+            }
+            return  val;
         }
 
         public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
