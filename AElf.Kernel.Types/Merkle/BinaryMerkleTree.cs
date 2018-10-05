@@ -61,7 +61,7 @@ namespace AElf.Kernel
             if (Root != null)
                 return Root;
             if (Nodes.Count == 0)
-                return Hash.Default;
+                return Hash.Zero;
             LeafCount = Nodes.Count;
             if(Nodes.Count % 2 == 1)
                 Nodes.Add(Nodes.Last());
@@ -72,7 +72,7 @@ namespace AElf.Kernel
             {
                 var left = Nodes[i++];
                 var right = Nodes[i++];
-                Nodes.Add(Hash.FromHashes(left, right));
+                Nodes.Add(Hash.FromTwoHashes(left, right));
                 if (++newAdded != nodeToAdd) 
                     continue;
                 // complete one row

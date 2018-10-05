@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.ByteArrayHelpers;
@@ -17,7 +18,7 @@ namespace AElf.Kernel.Tests
             var hash = Hash.FromString(strings[0]);
             foreach (var s in strings.Skip(1))
             {
-                hash = Hash.FromHashes(hash, Hash.FromString(s));
+                hash = Hash.FromTwoHashes(hash, Hash.FromString(s));
             }
 
             return hash;
@@ -55,20 +56,20 @@ namespace AElf.Kernel.Tests
             tree2.AddNodes(CreateLeaves(new[] { "a", "e" , "l"}));
             var root2 = tree2.ComputeRootHash();
             Hash right = GetHashFromStrings("l", "l");
-            Assert.Equal(Hash.FromHashes(root1, right), root2);
+            Assert.Equal(Hash.FromTwoHashes(root1, right), root2);
             
             var tree3 = new BinaryMerkleTree();
             tree3.AddNodes(CreateLeaves(new[] { "a", "e" , "l", "f"}));
             var root3 = tree3.ComputeRootHash();
             Hash right2 = GetHashFromStrings("l", "f");
-            Assert.Equal(Hash.FromHashes(root1, right2), root3);
+            Assert.Equal(Hash.FromTwoHashes(root1, right2), root3);
             
             var tree4 = new BinaryMerkleTree();
             tree4.AddNodes(CreateLeaves(new[] {"a", "e", "l", "f", "a"}));
             var root4 = tree4.ComputeRootHash();
             Hash l2 = GetHashFromStrings("a", "a");
-            Hash l3 = Hash.FromHashes(l2, l2);
-            Assert.Equal(Hash.FromHashes(root3, l3), root4);
+            Hash l3 = Hash.FromTwoHashes(l2, l2);
+            Assert.Equal(Hash.FromTwoHashes(root3, l3), root4);
         }
 
         [Fact]

@@ -24,7 +24,7 @@ namespace AElf.ChainController
         /// <inheritdoc/>
         public async Task<IAccountDataContext> GetAccountDataContext(Address accountAddress, Hash chainId)
         {
-            var key = Hash.FromHashes(chainId, Hash.FromMessage(accountAddress));    
+            var key = Hash.FromTwoHashes(chainId, Hash.FromMessage(accountAddress));    
             if (_accountDataContexts.TryGetValue(key, out var ctx))
             {
                 return ctx;
@@ -51,7 +51,7 @@ namespace AElf.ChainController
         public async Task SetAccountContext(IAccountDataContext accountDataContext)
         {
             _accountDataContexts.AddOrUpdate(
-                Hash.FromHashes(accountDataContext.ChainId, Hash.FromMessage(accountDataContext.Address)),
+                Hash.FromTwoHashes(accountDataContext.ChainId, Hash.FromMessage(accountDataContext.Address)),
                 accountDataContext, (hash, context) => accountDataContext);
 
             var adp = _stateDictator.GetAccountDataProvider(accountDataContext.Address);

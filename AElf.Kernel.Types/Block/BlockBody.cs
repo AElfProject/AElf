@@ -17,11 +17,13 @@ namespace AElf.Kernel
 
         private Hash CalculateBodyHash()
         {
-            _blockBodyHash = Hash.FromBytes(
-                BlockHeader.CalculateHashWith(
-                    HashExtensions.CalculateHashOfHashList(BinaryMerkleTree.Root,
-                        SideChainBlockHeadersRoot ?? CalculateSideChainBlockHeadersRoot(),
-                        SideChainTransactionsRoot ?? CalculateSideChainTransactionsRoot())));
+            _blockBodyHash = new List<Hash>()
+            {
+                BlockHeader,
+                BinaryMerkleTree.Root,
+                SideChainBlockHeadersRoot ?? CalculateSideChainBlockHeadersRoot(),
+                SideChainTransactionsRoot ?? CalculateSideChainTransactionsRoot()
+            }.Aggregate(Hash.FromTwoHashes);
             return _blockBodyHash;
         }
         

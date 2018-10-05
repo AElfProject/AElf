@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ using Google.Protobuf;
 // ReSharper disable once CheckNamespace
 namespace AElf.Common
 {
-    public partial class Hash : ICustomDiagnosticMessage
+    public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>
     {
         public string ToDiagnosticString()
         {
@@ -34,12 +35,16 @@ namespace AElf.Common
             return FromBytes(message.ToByteArray());
         }
 
-        public static Hash FromHashes(params Hash[] hashes)
+        public static Hash FromTwoHashes(Hash hash1, Hash hash2)
         {
+            var hashes = new List<Hash>()
+            {
+                hash1, hash2
+            };
             using (var mm = new MemoryStream())
             using (var stream = new CodedOutputStream(mm))
             {
-                foreach (var hash in hashes)
+                foreach (var hash in hashes.OrderBy(x=>x))
                 {
                     hash.WriteTo(stream);
                 }
@@ -47,6 +52,11 @@ namespace AElf.Common
                 mm.Flush();
                 return FromBytes(mm.ToArray());
             }
+        }
+
+        private static Hash GetHashFromTwoHashes()
+        {
+            return Hash.Default;
         }
         
         public static Hash Generate()
@@ -182,6 +192,10 @@ namespace AElf.Common
             }
 
             return 0;
+        }
+        public int CompareTo(Hash that)
+        {
+            return Compare(this, that);
         }
 //        
 //        public static implicit operator Hash(byte[] value)

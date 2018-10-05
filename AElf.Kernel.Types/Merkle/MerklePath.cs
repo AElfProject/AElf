@@ -1,3 +1,4 @@
+using System;
 using AElf.Common;
 namespace AElf.Kernel
 {
@@ -13,7 +14,7 @@ namespace AElf.Kernel
             Hash hash = leaf.Clone();
             foreach (var node in Path)
             {
-                hash = Hash.FromHashes(hash, node);
+                hash = Hash.FromTwoHashes(hash, node);
             }
             return hash;
         }

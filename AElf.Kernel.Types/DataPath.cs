@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
@@ -25,21 +27,21 @@ namespace AElf.Kernel
                     throw new InvalidOperationException("Should set chain id and bp address before calculating state hash");
                 }
 
-                return HashExtensions.CalculateHashOfHashList(
+                return Hash.FromTwoHashes(
                     Hash.FromBytes(ChainId.CalculateHashWith(BlockProducerAddress)),
                     Hash.FromMessage(new UInt64Value(){Value = BlockHeight})
-                    ).OfType(HashType.StateHash);
+                ).OfType(HashType.StateHash);
             }
             set => _stateHash = value;
         }
 
-        public Hash ResourcePathHash => HashExtensions
-            .CalculateHashOfHashList(
-               Hash.FromMessage(ContractAddress), DataProviderHash, KeyHash).OfType(HashType.ResourcePath
-            );
+        public Hash ResourcePathHash => new List<Hash> {
+            Hash.FromMessage(ContractAddress), DataProviderHash, KeyHash
+        }.Aggregate(Hash.FromTwoHashes).OfType(HashType.ResourcePath);
 
-        public Hash ResourcePointerHash =>
-            HashExtensions.CalculateHashOfHashList(StateHash,ResourcePathHash).OfType(HashType.ResourcePointer);
+        public Hash ResourcePointerHash => Hash.FromTwoHashes(
+            StateHash,ResourcePathHash
+        ).OfType(HashType.ResourcePointer);
 
         /// <summary>
         /// For pipeline setting.
