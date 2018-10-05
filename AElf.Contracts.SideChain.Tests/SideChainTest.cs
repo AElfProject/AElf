@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Node.CrossChain;
@@ -7,6 +8,7 @@ using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Contracts.SideChain.Tests
 {
@@ -30,8 +32,9 @@ namespace AElf.Contracts.SideChain.Tests
         [Fact]
         public async Task SideChainLifetime()
         {
-            var chainId = Hash.Generate();
-            var lockedAddress = Address.FromBytes(Hash.Generate().ToByteArray());
+//            var chainId = Hash.Generate();
+            var chainId = Hash.FromString("Chain1");
+            var lockedAddress = Address.FromBytes(Hash.FromString("LockedAddress1").ToByteArray());
             ulong lockedToken = 10000;
             // create new chain
             var bytes = await _contract.CreateSideChain(chainId, lockedAddress, lockedToken);
@@ -68,7 +71,7 @@ namespace AElf.Contracts.SideChain.Tests
         [Fact]
         public async Task MerklePathTest()
         {
-            var chainId = Hash.Generate();
+            var chainId = Hash.FromString("Chain1");
             ParentChainBlockRootInfo parentChainBlockRootInfo = new ParentChainBlockRootInfo
             {
                 ChainId = chainId,
@@ -82,7 +85,7 @@ namespace AElf.Contracts.SideChain.Tests
             };
             parentChainBlockInfo.IndexedBlockInfo.Add(0, new MerklePath
             {
-                Path = {Hash.Generate(), Hash.Generate(), Hash.Generate()}
+                Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
             var crossChainInfo = new CrossChainInfo(_mock.StateDictator);
@@ -103,8 +106,8 @@ namespace AElf.Contracts.SideChain.Tests
         {
             Transaction t = new Transaction
             {
-                From = Address.FromBytes(Hash.Generate().ToByteArray()),
-                To = Address.FromBytes(Hash.Generate().ToByteArray()),
+                From = Address.FromString("1"),
+                To = Address.FromString("2"),
                 MethodName = "test",
                 P = ByteString.Empty,
                 Params = ByteString.Empty,
@@ -112,7 +115,7 @@ namespace AElf.Contracts.SideChain.Tests
                 RefBlockNumber = 0,
                 RefBlockPrefix = ByteString.Empty
             };
-            var list = new List<Hash> {t.GetHash(), Hash.Generate(), Hash.Generate(), Hash.Generate()};
+            var list = new List<Hash> {t.GetHash(), Hash.FromString("a"), Hash.FromString("b"), Hash.FromString("c")};
             var bmt = new BinaryMerkleTree();
             bmt.AddNodes(list);
             var root = bmt.ComputeRootHash();
@@ -122,7 +125,7 @@ namespace AElf.Contracts.SideChain.Tests
                 ChainId = chainId,
                 Height = 2,
                 SideChainTransactionsRoot = root,
-                SideChainBlockHeadersRoot = Hash.Generate()
+                SideChainBlockHeadersRoot = Hash.FromString("SideChainBlockHeadersRoot")
             };
             ParentChainBlockInfo parentChainBlockInfo = new ParentChainBlockInfo
             {

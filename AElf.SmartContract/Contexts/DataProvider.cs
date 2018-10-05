@@ -5,6 +5,7 @@ using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -99,14 +100,15 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-//            return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
-            var val = GetStateAsync(keyHash)?.CurrentValue;
-            if (val == null)
-            {
-                val = (await GetDataAsync<T>(keyHash))?.ToByteArray();
-                await SetAsync<T>(keyHash, val);
-            }
-            return  val;
+            return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
+            // TODO: current cache mechanism has flaws, fix it
+//            var val = GetStateAsync(keyHash)?.CurrentValue;
+//            if (val == null)
+//            {
+//                val = (await GetDataAsync<T>(keyHash))?.ToByteArray();
+//                await SetAsync<T>(keyHash, val);
+//            }
+//            return  val;
         }
 
         public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
@@ -162,9 +164,9 @@ namespace AElf.SmartContract
             }
 
             //Directly set to database.
-            await _stateDictator.SetDataAsync(dataPath.ResourcePointerHash, obj);
+            await _stateDictator.SetDataAsync(dataPath.Key, obj);
             //Set path hash - pointer hash.
-            await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
+            await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.Key);
         }
 
         /// <summary>

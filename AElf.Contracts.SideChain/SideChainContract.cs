@@ -190,6 +190,7 @@ namespace AElf.Contracts.SideChain
                 BindParentChainHeight(_.Key, parentChainHeight);
                 AddIndexedTxRootMerklePathInParentChain(_.Key, _.Value);
             }
+//            _parentChainBlockInfo[key] = parentChainBlockInfo;
             _parentChainBlockInfo.SetValueToDatabaseAsync(key, parentChainBlockInfo).Wait();
             Console.WriteLine("WriteParentChainBlockInfo success.");
         }
@@ -210,6 +211,7 @@ namespace AElf.Contracts.SideChain
             var key = new UInt64Value {Value = childHeight};
             Api.Assert(_childHeightToParentChainHeight.GetValue(key) == null,
                 $"Already bound at height {childHeight} with parent chain");
+//            _childHeightToParentChainHeight[key] = new UInt64Value {Value = parentHeight};
             _childHeightToParentChainHeight.SetValueToDatabaseAsync(key, new UInt64Value{Value = parentHeight}).Wait();
         }
 
@@ -218,6 +220,7 @@ namespace AElf.Contracts.SideChain
             var key = new UInt64Value {Value = height};
             Api.Assert(_txRootMerklePathInParentChain.GetValue(key) == null,
                 $"Merkle path already bound at height {height}.");
+//            _txRootMerklePathInParentChain[key] = path;
             _txRootMerklePathInParentChain.SetValueToDatabaseAsync(key, path).Wait();
             Console.WriteLine("Path: {0}", path.Path[0].Dumps());
 

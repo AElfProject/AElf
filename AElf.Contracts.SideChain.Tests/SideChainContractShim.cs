@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.Kernel;
 using Google.Protobuf;
@@ -11,12 +13,21 @@ namespace AElf.Contracts.SideChain.Tests
     public class SideChainContractShim
     {
         private MockSetup _mock;
-        public Address ContractAddres = Address.FromBytes(Hash.Generate().ToByteArray());
-        public IExecutive Executive { get; set; }
+        public Address ContractAddres = Address.FromString("SideChainContract");
+        public IExecutive _executive;
+        public IExecutive Executive {
+            get
+            {
+                _executive?.SetDataCache(new Dictionary<DataPath, StateCache>());
+                return _executive;
+            }
+      
+            set => _executive = value;
+        }
 
         public ITransactionContext TransactionContext { get; private set; }
 
-        public Address Sender { get; } = Address.FromBytes(Hash.Generate().ToByteArray());
+        public Address Sender { get; } = Address.FromString("Sender");
 
         public Address SideChainContractAddress { get; set; }
 
@@ -133,7 +144,8 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await _mock.StateDictator.ApplyCachedDataAction(changes);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
@@ -153,7 +165,8 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await _mock.StateDictator.ApplyCachedDataAction(changes);
         }
 
         public async Task DisposeSideChain(Hash chainId)
@@ -171,7 +184,8 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await _mock.StateDictator.ApplyCachedDataAction(changes);
         }
 
         public async Task WriteParentChainBLockInfo(ParentChainBlockInfo parentChainBlockInfo)
@@ -189,7 +203,8 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await _mock.StateDictator.ApplyCachedDataAction(changes);
         }
 
         public async Task<bool?> VerifyTransaction(Hash txHash, MerklePath path, ulong height)
@@ -207,7 +222,8 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await _mock.StateDictator.ApplyCachedDataAction(changes);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBool();
         }
 
@@ -226,7 +242,8 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await _mock.StateDictator.ApplyCachedDataAction(changes);
         }
 
         #endregion Actions

@@ -58,9 +58,8 @@ namespace AElf.Kernel.Storages
                     throw new Exception("Cannot insert null value.");
                 }
 
-//                var key = pointerHash.GetKeyString(typeof(T).Name);
-//                await _keyValueDatabase.SetAsync(key, obj);
-                await _keyValueDatabase.SetAsync(pointerHash.Dumps(), obj);
+                var key = pointerHash.GetKeyString(typeof(byte[]).Name);
+                await _keyValueDatabase.SetAsync(key, obj);
             }
             catch (Exception e)
             {
@@ -98,9 +97,8 @@ namespace AElf.Kernel.Storages
                     throw new Exception("Pointer hash cannot be null.");
                 }
                 
-//                var key = pointerHash.GetKeyString(typeof(T).Name);
-//                return await _keyValueDatabase.GetAsync(key);
-                return await _keyValueDatabase.GetAsync(pointerHash.Dumps());
+                var key = pointerHash.GetKeyString(typeof(byte[]).Name);
+                return await _keyValueDatabase.GetAsync(key);
             }
             catch (Exception e)
             {
@@ -114,7 +112,7 @@ namespace AElf.Kernel.Storages
             try
             {
                 return await _keyValueDatabase.PipelineSetAsync(
-                    pipelineSet.ToDictionary(kv => kv.Key.Dumps(), kv => kv.Value));
+                    pipelineSet.ToDictionary(kv => kv.Key.GetKeyString(typeof(byte[]).Name), kv => kv.Value));
             }
             catch (Exception e)
             {

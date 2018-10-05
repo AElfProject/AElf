@@ -25,7 +25,7 @@ using    AElf.Common;
                 return (ulong)n;
             }
     
-            public Hash ChainId1 { get; } = Hash.Generate();
+            public Hash ChainId1 { get; } = Hash.FromString("ChainId1");
             public ISmartContractManager SmartContractManager;
             public ISmartContractService SmartContractService;
             private IFunctionMetadataService _functionMetadataService;
