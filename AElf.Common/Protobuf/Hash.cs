@@ -43,8 +43,8 @@ namespace AElf.Common
                 {
                     hash.WriteTo(stream);
                 }
-
-                mm.Position = 0;
+                stream.Flush();
+                mm.Flush();
                 return FromBytes(mm.ToArray());
             }
         }
