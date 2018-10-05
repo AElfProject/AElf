@@ -9,7 +9,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 using AElf.Sdk.CSharp.ReadOnly;
-using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Sdk.CSharp
 {
@@ -68,7 +67,7 @@ namespace AElf.Sdk.CSharp
 
         public static Address GetContractZeroAddress()
         {
-            return Address.FromBytes(_smartContractContext.ChainId.CalculateHashWith(Globals.GenesisBasicContract));
+            return Address.FromBytes(_smartContractContext.ChainId.CalculateHashWith(GlobalConfig.GenesisBasicContract));
         }
 
         public static Hash GetPreviousBlockHash()

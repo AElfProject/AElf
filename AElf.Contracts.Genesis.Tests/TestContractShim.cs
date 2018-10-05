@@ -23,7 +23,7 @@ namespace AElf.Contracts.Genesis.Tests
             get => Address.Zero;
         }
 
-        private Address Address => Address.FromBytes(_mock.ChainId1.CalculateHashWith(Kernel.Globals.GenesisBasicContract));
+        private Address Address => Address.FromBytes(_mock.ChainId1.CalculateHashWith(GlobalConfig.GenesisBasicContract));
         
         public TestContractShim(MockSetup mock)
         {

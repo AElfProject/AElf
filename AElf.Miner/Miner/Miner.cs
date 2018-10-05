@@ -23,7 +23,6 @@ using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using Status = AElf.Kernel.Status;
 using AElf.Common;
-using Globals =AElf.Kernel.Globals; 
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -437,7 +436,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init(ECKeyPair nodeKeyPair)
         {
-            _timeoutMilliseconds = Globals.AElfMiningInterval;
+            _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
             _keyPair = nodeKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
             

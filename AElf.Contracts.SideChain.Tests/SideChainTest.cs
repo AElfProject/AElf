@@ -8,7 +8,6 @@ using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
-using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Contracts.SideChain.Tests
 {

@@ -22,7 +22,6 @@ using Google.Protobuf;
 using NLog;
 using ServiceStack;
 using AElf.Common;
-using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Node.AElfChain
 {
@@ -86,7 +85,7 @@ namespace AElf.Node.AElfChain
             get
             {
                 var contractZeroDllPath 
-                    = Path.Combine(_assemblyDir, $"{Globals.GenesisTokenContractAssemblyName}.dll");
+                    = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisTokenContractAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
@@ -103,7 +102,7 @@ namespace AElf.Node.AElfChain
             get
             {
                 var contractZeroDllPath 
-                    = Path.Combine(_assemblyDir, $"{Globals.GenesisConsensusContractAssemblyName}.dll");
+                    = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisConsensusContractAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
@@ -120,7 +119,7 @@ namespace AElf.Node.AElfChain
             get
             {
                 var contractZeroDllPath =
-                    Path.Combine(_assemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
+                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSmartContractZeroAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
@@ -137,7 +136,7 @@ namespace AElf.Node.AElfChain
             get
             {
                 var contractZeroDllPath =
-                    Path.Combine(_assemblyDir, $"{Globals.GenesisSideChainContractAssemblyName}.dll");
+                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSideChainContractAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))

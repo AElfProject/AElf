@@ -83,9 +83,9 @@ namespace AElf.Kernel.Node
             _contractAccountAddressHash = contractAccountHash;
 
             var count = MinersConfig.Instance.Producers.Count;
-            Globals.BlockProducerNumber = count;
+            GlobalConfig.BlockProducerNumber = count;
             _logger?.Trace("Block Producer nodes count:" + count);
-            if (Globals.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
+            if (GlobalConfig.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
             {
                 AElfDPoSObserver.RecoverMining();
             }
@@ -122,13 +122,13 @@ namespace AElf.Kernel.Node
 
             if (NodeConfig.Instance.ConsensusInfoGenerater && !await Helper.HasGenerated())
             {
-                Globals.IsConsensusGenerator = true;
+                GlobalConfig.IsConsensusGenerator = true;
                 AElfDPoSObserver.Initialization();
                 return;
             }
 
             Helper.SyncMiningInterval();
-            _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms.");
+            _logger?.Trace($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
 
 
             if (Helper.CanRecoverDPoSInformation())
@@ -244,7 +244,7 @@ namespace AElf.Kernel.Node
             {
                 Miners.ToByteArray(),
                 Helper.GenerateInfoForFirstTwoRounds().ToByteArray(),
-                new SInt32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray(),
+                new SInt32Value {Value = GlobalConfig.AElfDPoSMiningInterval}.ToByteArray(),
                 logLevel.ToByteArray()
             };
             var txToInitializeAElfDPoS = await GenerateTransactionAsync("InitializeAElfDPoS", parameters);
@@ -389,11 +389,11 @@ namespace AElf.Kernel.Node
             var startTimeSlot = currentRound.BlockProducers.First(bp => bp.Value.Order == 1).Value.TimeSlot.ToDateTime();
 
             var endTimeSlot =
-                startTimeSlot.AddMilliseconds(Globals.BlockProducerNumber * Globals.AElfDPoSMiningInterval * 2);
+                startTimeSlot.AddMilliseconds(GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval * 2);
 
             return currentTime >
-                   startTimeSlot.AddMilliseconds(-Globals.BlockProducerNumber * Globals.AElfDPoSMiningInterval) &&
-                   currentTime < endTimeSlot.AddMilliseconds(Globals.AElfDPoSMiningInterval);
+                   startTimeSlot.AddMilliseconds(-GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval) &&
+                   currentTime < endTimeSlot.AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval);
         }
 
         private async Task BroadcastTransaction(Transaction tx)

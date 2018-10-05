@@ -4,7 +4,6 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
-using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Node.CrossChain
 {
@@ -27,7 +26,7 @@ namespace AElf.Node.CrossChain
         {
             var bytes = GetBytes<MerklePath>(
                 Hash.FromMessage(new UInt64Value {Value = height}), contractAddressHash,
-                Globals.AElfTxRootMerklePathInParentChain);
+                GlobalConfig.AElfTxRootMerklePathInParentChain);
             return MerklePath.Parser.ParseFrom(bytes);
         }
         
@@ -53,14 +52,14 @@ namespace AElf.Node.CrossChain
         {
             var bytes = GetBytes<UInt64Value>(
                 Hash.FromMessage(new UInt64Value {Value = height}), contractAddressHash,
-                Globals.AElfBoundParentChainHeight);
+                GlobalConfig.AElfBoundParentChainHeight);
             return UInt64Value.Parser.ParseFrom(bytes).Value;
         }
         
         internal ParentChainBlockInfo GetBoundParentChainBlockInfo(Address contractAddressHash, ulong height)
         {
             var bytes = GetBytes<ParentChainBlockInfo>(Hash.FromMessage(new UInt64Value {Value = height}), contractAddressHash,
-                Globals.AElfParentChainBlockInfo);
+                GlobalConfig.AElfParentChainBlockInfo);
             return ParentChainBlockInfo.Parser.ParseFrom(bytes);
         }
     }

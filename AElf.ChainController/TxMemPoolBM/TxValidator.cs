@@ -14,7 +14,6 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using Globals=AElf.Kernel.Globals;
 
 namespace AElf.ChainController.TxMemPoolBM
 {
@@ -107,8 +106,8 @@ namespace AElf.ChainController.TxMemPoolBM
                 return TxValidation.TxInsertionAndBroadcastingError.InvalidReferenceBlock;
             }
 
-            if (curHeight > Globals.ReferenceBlockValidPeriod &&
-                tx.RefBlockNumber < curHeight - Globals.ReferenceBlockValidPeriod)
+            if (curHeight > GlobalConfig.ReferenceBlockValidPeriod &&
+                tx.RefBlockNumber < curHeight - GlobalConfig.ReferenceBlockValidPeriod)
             {
                 return TxValidation.TxInsertionAndBroadcastingError.ExpiredReferenceBlock;
             }
@@ -134,7 +133,7 @@ namespace AElf.ChainController.TxMemPoolBM
                     $"Unable to get canonical hash for height {tx.RefBlockNumber} - current height: {curHeight}");
             }
 
-            if (Globals.BlockProducerNumber == 1)
+            if (GlobalConfig.BlockProducerNumber == 1)
             {
                 return TxValidation.TxInsertionAndBroadcastingError.Valid;
             }
@@ -147,7 +146,7 @@ namespace AElf.ChainController.TxMemPoolBM
 
         public List<Transaction> RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Address blockProducerAddress, Round currentRoundInfo)
         {
-            if (Globals.BlockProducerNumber == 1 && readyTxs.Count == 1 && readyTxs.Any(tx => tx.MethodName == "UpdateAElfDPoS"))
+            if (GlobalConfig.BlockProducerNumber == 1 && readyTxs.Count == 1 && readyTxs.Any(tx => tx.MethodName == "UpdateAElfDPoS"))
             {
                 return null;
             }

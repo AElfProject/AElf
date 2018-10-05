@@ -12,7 +12,6 @@ using AElf.Node.Protocol;
 using NLog;
 using NServiceKit.Common;
 using NServiceKit.Text;
-using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Node
 {
@@ -82,7 +81,7 @@ namespace AElf.Node
                 return null;
             }
 
-            if (Globals.IsConsensusGenerator)
+            if (GlobalConfig.IsConsensusGenerator)
             {
                 _isInitialSync = false;
             }
@@ -211,8 +210,8 @@ namespace AElf.Node
             PrintPendingBlocks(PendingBlocks);
 
             _logger?.Trace(
-                $"Ready to add pending block height: {pendingBlock.Block.Header.Index}\nBlock number of each round: {Globals.BlockNumberOfEachRound}\nPending block height or Synced height: {(PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight)}");
-            if (pendingBlock.Block.Header.Index + (ulong) Globals.BlockNumberOfEachRound <
+                $"Ready to add pending block height: {pendingBlock.Block.Header.Index}\nBlock number of each round: {GlobalConfig.BlockNumberOfEachRound}\nPending block height or Synced height: {(PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight)}");
+            if (pendingBlock.Block.Header.Index + (ulong) GlobalConfig.BlockNumberOfEachRound <
                 (PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight))
             {
                 return null;
@@ -332,7 +331,7 @@ namespace AElf.Node
         private BranchedChain AdjustBranchedChains()
         {
             _branchedChains.RemoveWhere(bc =>
-                bc.StartHeight + (ulong) Globals.BlockNumberOfEachRound <
+                bc.StartHeight + (ulong) GlobalConfig.BlockNumberOfEachRound <
                 (PendingBlockHeight == 0 ? SyncedHeight : PendingBlockHeight));
 
             var preBlockHashes = new List<Hash>();

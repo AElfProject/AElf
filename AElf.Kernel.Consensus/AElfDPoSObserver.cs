@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Kernel.Consensus
 {
@@ -76,7 +77,7 @@ namespace AElf.Kernel.Consensus
         public void RecoverMining()
         {
             var recoverMining = Observable
-                .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * Globals.BlockProducerNumber))
+                .Timer(TimeSpan.FromMilliseconds(GlobalConfig.AElfDPoSMiningInterval * GlobalConfig.BlockProducerNumber))
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
             Observable.Return(ConsensusBehavior.DoNothing)
@@ -174,19 +175,19 @@ namespace AElf.Kernel.Consensus
             }
 
             IObservable<ConsensusBehavior> produceExtraBlock;
-            if (distanceToPublishInValue < 0 && Globals.BlockProducerNumber != 1)
+            if (distanceToPublishInValue < 0 && GlobalConfig.BlockProducerNumber != 1)
             {
                 produceExtraBlock = doNothingObservable;
-                if (Globals.BlockProducerNumber != 1)
+                if (GlobalConfig.BlockProducerNumber != 1)
                 {
                     produceExtraBlock = doNothingObservable;
                 }
             }
             else if (infoOfMe.IsEBP)
             {
-                var after = distanceToPublishInValue + Globals.AElfDPoSMiningInterval / 1000;
+                var after = distanceToPublishInValue + GlobalConfig.AElfDPoSMiningInterval / 1000;
                 produceExtraBlock = Observable
-                    .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
+                    .Timer(TimeSpan.FromMilliseconds(GlobalConfig.AElfDPoSMiningInterval))
                     .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
                 if (after >= 0)
@@ -196,12 +197,12 @@ namespace AElf.Kernel.Consensus
             }
             else
             {
-                var after = distanceToPublishInValue + Globals.AElfDPoSMiningInterval / 1000 +
-                            Globals.AElfDPoSMiningInterval * infoOfMe.Order / 1000 + Globals.AElfDPoSMiningInterval / 750;
+                var after = distanceToPublishInValue + GlobalConfig.AElfDPoSMiningInterval / 1000 +
+                            GlobalConfig.AElfDPoSMiningInterval * infoOfMe.Order / 1000 + GlobalConfig.AElfDPoSMiningInterval / 750;
                 produceExtraBlock = Observable
-                    .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval +
-                                                     Globals.AElfDPoSMiningInterval * infoOfMe.Order +
-                                                     Globals.AElfDPoSMiningInterval / 2))
+                    .Timer(TimeSpan.FromMilliseconds(GlobalConfig.AElfDPoSMiningInterval +
+                                                     GlobalConfig.AElfDPoSMiningInterval * infoOfMe.Order +
+                                                     GlobalConfig.AElfDPoSMiningInterval / 2))
                     .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
                 if (after >= 0)

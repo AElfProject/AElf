@@ -29,7 +29,7 @@ namespace AElf.Kernel.Consensus
                 try
                 {
                     var miners = Miners.Parser.ParseFrom(_dataProvider
-                        .GetAsync<Miners>(Hash.FromString(Globals.AElfDPoSBlockProducerString)).Result);
+                        .GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)).Result);
                     
                     return miners;
                 }
@@ -46,7 +46,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return UInt64Value.Parser.ParseFrom(GetBytes<UInt64Value>(Hash.FromString(Globals.AElfDPoSCurrentRoundNumber)));
+                    return UInt64Value.Parser.ParseFrom(GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber)));
                 }
                 catch (Exception)
                 {
@@ -62,7 +62,7 @@ namespace AElf.Kernel.Consensus
                 try
                 {
                     return Timestamp.Parser.ParseFrom(
-                        GetBytes<Timestamp>(Hash.FromString(Globals.AElfDPoSExtraBlockTimeSlotString)));
+                        GetBytes<Timestamp>(Hash.FromString(GlobalConfig.AElfDPoSExtraBlockTimeSlotString)));
                 }
                 catch (Exception e)
                 {
@@ -80,7 +80,7 @@ namespace AElf.Kernel.Consensus
                 try
                 {
                     return Round.Parser.ParseFrom(GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber),
-                        Globals.AElfDPoSInformationString));
+                        GlobalConfig.AElfDPoSInformationString));
                 }
                 catch (Exception e)
                 {
@@ -96,12 +96,12 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return SInt32Value.Parser.ParseFrom(GetBytes<SInt32Value>(Hash.FromString(Globals.AElfDPoSMiningIntervalString)));
+                    return SInt32Value.Parser.ParseFrom(GetBytes<SInt32Value>(Hash.FromString(GlobalConfig.AElfDPoSMiningIntervalString)));
                 }
                 catch (Exception e)
                 {
                     _logger?.Error(e, "Failed to get DPoS mining interval.\n");
-                    return new SInt32Value {Value = Globals.AElfDPoSMiningInterval};
+                    return new SInt32Value {Value = GlobalConfig.AElfDPoSMiningInterval};
                 }
             }
         }
@@ -113,7 +113,7 @@ namespace AElf.Kernel.Consensus
                 try
                 {
                     return StringValue.Parser.ParseFrom(GetBytes<StringValue>(Hash.FromMessage(CurrentRoundNumber),
-                        Globals.AElfDPoSFirstPlaceOfEachRoundString));
+                        GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString));
                 }
                 catch (Exception e)
                 {
@@ -159,7 +159,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber), Globals.AElfDPoSInformationString);
+                    var bytes = GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber), GlobalConfig.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
                     return round.BlockProducers[accountAddress];
                 }
@@ -177,7 +177,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = GetBytes<Round>(Hash.FromMessage(roundNumber), Globals.AElfDPoSInformationString);
+                    var bytes = GetBytes<Round>(Hash.FromMessage(roundNumber), GlobalConfig.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
                     return round;
                 }
@@ -191,7 +191,7 @@ namespace AElf.Kernel.Consensus
 
         public async Task<bool> HasGenerated()
         {
-            var bytes = await _dataProvider.GetAsync<Miners>(Hash.FromString(Globals.AElfDPoSBlockProducerString));
+            var bytes = await _dataProvider.GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString));
             return bytes != null;
         }
 
@@ -226,7 +226,7 @@ namespace AElf.Kernel.Consensus
 
                 bpInfo.Order = i + 1;
                 bpInfo.Signature = Hash.Generate();
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfDPoSMiningInterval + Globals.AElfWaitFirstRoundTime);
+                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfWaitFirstRoundTime);
 
                 infosOfRound1.BlockProducers.Add(enumerable[i], bpInfo);
             }
@@ -248,7 +248,7 @@ namespace AElf.Kernel.Consensus
             
             var infosOfRound2 = new Round();
 
-            var addition = enumerable.Count * Globals.AElfDPoSMiningInterval + Globals.AElfDPoSMiningInterval;
+            var addition = enumerable.Count * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfDPoSMiningInterval;
 
             selected = _miners.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
@@ -260,7 +260,7 @@ namespace AElf.Kernel.Consensus
                     bpInfo.IsEBP = true;
                 }
 
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfDPoSMiningInterval + addition + Globals.AElfWaitFirstRoundTime);
+                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * GlobalConfig.AElfDPoSMiningInterval + addition + GlobalConfig.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
                 infosOfRound2.BlockProducers.Add(enumerable[i], bpInfo);
@@ -380,7 +380,7 @@ namespace AElf.Kernel.Consensus
                 var blockTimeSlot = ExtraBlockTimeSlot;
 
                 //Maybe because something happened with setting extra block time slot.
-                if (blockTimeSlot.ToDateTime().AddMilliseconds(Globals.AElfDPoSMiningInterval * 1.5) <
+                if (blockTimeSlot.ToDateTime().AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * 1.5) <
                     GetTimestampOfUtcNow().ToDateTime())
                 {
                     blockTimeSlot = GetTimestampOfUtcNow();
@@ -391,7 +391,7 @@ namespace AElf.Kernel.Consensus
                     var bpInfoNew = new BlockProducer
                     {
                         TimeSlot = GetTimestampWithOffset(blockTimeSlot,
-                            i * Globals.AElfDPoSMiningInterval + Globals.AElfDPoSMiningInterval * 2),
+                            i * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfDPoSMiningInterval * 2),
                         Order = i + 1
                     };
 
@@ -558,13 +558,13 @@ namespace AElf.Kernel.Consensus
 
         public void SyncMiningInterval()
         {
-            Globals.AElfDPoSMiningInterval = MiningInterval.Value;
+            GlobalConfig.AElfDPoSMiningInterval = MiningInterval.Value;
         }
         
         public void LogDPoSInformation(ulong height)
         {
             _logger?.Trace("Log dpos information - Start");
-            _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}");
+            _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) + $". Current height: {height}");
             _logger?.Trace("Log dpos information - End");
         }
 

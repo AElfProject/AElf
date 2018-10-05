@@ -16,7 +16,6 @@ using Google.Protobuf;
 using Grpc.Core;
 using NLog;
 using ClientBase = AElf.Miner.Rpc.Client.ClientBase;
-using Globals = AElf.Kernel.Globals;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Miner
@@ -78,7 +77,7 @@ namespace AElf.Miner
             _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
             _tokenSourceToSideChain = new CancellationTokenSource();
             _tokenSourceToParentChain = new CancellationTokenSource();
-            _interval = interval == 0 ? Globals.AElfMiningInterval : interval;
+            _interval = interval == 0 ? GlobalConfig.AElfMiningInterval : interval;
             CreateClientsToSideChain();
             CreateClientToParentChain();
         }

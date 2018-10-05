@@ -7,7 +7,7 @@ using AElf.Kernel.Types;
 using Google.Protobuf;
 using AElf.Kernel;
 using AElf.Common;
-using Globals = AElf.Common.Globals;
+using GlobalConfig = AElf.Common.GlobalConfig;
 
 namespace AElf.Execution
 {
@@ -30,7 +30,7 @@ namespace AElf.Execution
                             break;
                         case WireFormat.WireType.LengthDelimited:
                             var bytes = input.ReadBytes();
-                            if (bytes.Length == Globals.AddressLength + 2)
+                            if (bytes.Length == GlobalConfig.AddressLength + 2)
                             {
                                 var h = new Address();
                                 h.MergeFrom(bytes);

@@ -3,7 +3,6 @@ using System.Linq;
 using AElf.Common.Extensions;
 using Google.Protobuf;
 
-
 namespace AElf.Common
 {
     public partial class Address : ICustomDiagnosticMessage
@@ -15,11 +14,11 @@ namespace AElf.Common
 
         private Address(byte[] bytes)
         {
-            if (bytes.Length < Globals.AddressLength)
+            if (bytes.Length < GlobalConfig.AddressLength)
             {
-                throw new ArgumentOutOfRangeException($"Address bytes has to be at least {Globals.AddressLength}. The input is {bytes.Length} bytes long.");
+                throw new ArgumentOutOfRangeException($"Address bytes has to be at least {GlobalConfig.AddressLength}. The input is {bytes.Length} bytes long.");
             }
-            var toTruncate = bytes.Length - Globals.AddressLength;
+            var toTruncate = bytes.Length - GlobalConfig.AddressLength;
             Value = ByteString.CopyFrom(bytes.Skip(toTruncate).ToArray());
         }
 
@@ -55,7 +54,7 @@ namespace AElf.Common
         public static Address Loads(string hex)
         {
             var bytes = ByteArrayHelpers.ByteArrayHelpers.FromHexString(hex);
-            if (bytes.Length != Globals.AddressLength)
+            if (bytes.Length != GlobalConfig.AddressLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(hex));
             }

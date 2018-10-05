@@ -8,7 +8,6 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
-using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Contracts.SideChain
 {
@@ -19,9 +18,9 @@ namespace AElf.Contracts.SideChain
     {
         public static readonly string SideChainSerialNumber = "__SideChainSerialNumber__";
         public static readonly string SideChainInfos = "__SideChainInfos__";
-        public static readonly string ParentChainBlockInfo = Globals.AElfParentChainBlockInfo;
-        public static readonly string AElfBoundParentChainHeight = Globals.AElfBoundParentChainHeight;
-        public static readonly string TxRootMerklePathInParentChain = Globals.AElfTxRootMerklePathInParentChain;
+        public static readonly string ParentChainBlockInfo = GlobalConfig.AElfParentChainBlockInfo;
+        public static readonly string AElfBoundParentChainHeight = GlobalConfig.AElfBoundParentChainHeight;
+        public static readonly string TxRootMerklePathInParentChain = GlobalConfig.AElfTxRootMerklePathInParentChain;
     }
 
     #endregion Field Names

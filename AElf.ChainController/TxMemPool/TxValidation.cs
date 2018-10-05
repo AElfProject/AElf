@@ -2,7 +2,7 @@
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
-using Globals = AElf.Common.Globals;
+using GlobalConfig = AElf.Common.GlobalConfig;
 
 namespace AElf.ChainController.TxMemPool
 {
@@ -110,7 +110,7 @@ namespace AElf.ChainController.TxMemPool
         public static bool CheckAccountAddress(this Transaction tx)
         {
             // TODO: more verifications
-            return tx.From.Value.Length == Globals.AddressLength && (tx.To == null || tx.To.Value.Length == Globals.AddressLength);
+            return tx.From.Value.Length == GlobalConfig.AddressLength && (tx.To == null || tx.To.Value.Length == GlobalConfig.AddressLength);
         }
         
        
