@@ -62,8 +62,7 @@ namespace AElf.ChainController
 
         public Address GenesisContractHash(Hash chainId, SmartContractType contractType)
         {
-            return Address.FromBytes(chainId.CalculateHashWith(contractType.ToString()));
-//            return new Hash(chainId.CalculateHashWith(contractType.ToString())).ToAccount();
+            return AddressHelpers.GetSystemContractAddress(chainId, contractType.ToString());
         }
     }
 }

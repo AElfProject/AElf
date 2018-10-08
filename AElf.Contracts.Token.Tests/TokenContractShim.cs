@@ -69,7 +69,7 @@ namespace AElf.Contracts.Token.Tests
         private async Task DeployTokenContractAsync()
         {
             
-            var address0 = Address.FromBytes(_mock.ChainId1.CalculateHashWith(SmartContractType.BasicContractZero.ToString()));
+            var address0 = AddressHelpers.GetSystemContractAddress(_mock.ChainId1, SmartContractType.BasicContractZero.ToString());
             var executive0 = await _mock.GetExecutiveAsync(address0);
 
             var tx = new Transaction

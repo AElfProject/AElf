@@ -73,7 +73,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
            
-            var contractAddressZero = Address.FromBytes(ChainId.CalculateHashWith(GlobalConfig.GenesisBasicContract));
+            var contractAddressZero = AddressHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
             var copy = await _smartContractManager.GetAsync(contractAddressZero);
 
             // throw exception if not registered
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
             
             var code = ExampleContractCode;
-            var contractAddressZero = Address.FromBytes(ChainId.CalculateHashWith(GlobalConfig.GenesisBasicContract));
+            var contractAddressZero = AddressHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
 
             var txnDep = new Transaction()
             {
@@ -143,7 +143,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var code = ExampleContractCode;
 
-            var contractAddressZero = Address.FromBytes(ChainId.CalculateHashWith(GlobalConfig.GenesisBasicContract));
+            var contractAddressZero = AddressHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
 
             var txnDep = new Transaction()
             {

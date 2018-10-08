@@ -21,7 +21,7 @@ namespace AElf.Contracts.SideChain.Tests
         
         public Address Address
         {
-            get => Address.FromBytes(_mock.ChainId1.CalculateHashWith(SmartContractType.TokenContract.ToString()));
+            get => AddressHelpers.GetSystemContractAddress(_mock.ChainId1, SmartContractType.TokenContract.ToString());
         }
         
         public ContractZeroShim(MockSetup mock)

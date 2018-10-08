@@ -33,7 +33,7 @@ namespace AElf.Contracts.Token.Tests
         [Fact]
         public void Test()
         {
-            _contract.GetContractOwner(Address.FromBytes(_mock.ChainId1.CalculateHashWith(SmartContractType.BasicContractZero.ToString())));
+            _contract.GetContractOwner(AddressHelpers.GetSystemContractAddress(_mock.ChainId1, SmartContractType.BasicContractZero.ToString()));
             Assert.True(_contract.TransactionContext.Trace.StdErr.IsNullOrEmpty());
             var owner = _contract.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
 

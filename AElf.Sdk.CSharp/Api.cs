@@ -67,7 +67,7 @@ namespace AElf.Sdk.CSharp
 
         public static Address GetContractZeroAddress()
         {
-            return Address.FromBytes(_smartContractContext.ChainId.CalculateHashWith(GlobalConfig.GenesisBasicContract));
+            return AddressHelpers.GetSystemContractAddress(_smartContractContext.ChainId, GlobalConfig.GenesisBasicContract);
         }
 
         public static Hash GetPreviousBlockHash()

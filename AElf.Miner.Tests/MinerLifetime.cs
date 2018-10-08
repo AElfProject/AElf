@@ -63,7 +63,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public Mock<ITxPoolService> MockTxPoolService(Hash chainId)
         {
-            var contractAddressZero = Address.FromBytes(chainId.CalculateHashWith(GlobalConfig.GenesisBasicContract));
+            var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
 
             var code = ExampleContractCode;
 
@@ -115,7 +115,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public List<Transaction> CreateTx(Hash chainId)
         {
-            var contractAddressZero = Address.FromBytes(chainId.CalculateHashWith(GlobalConfig.GenesisBasicContract));
+            var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
             Console.WriteLine($"zero {contractAddressZero}");
             var code = ExampleContractCode;
          
@@ -175,7 +175,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public List<Transaction> CreateTxs(Hash chainId)
         {
-            var contractAddressZero = Address.FromBytes(chainId.CalculateHashWith(GlobalConfig.GenesisBasicContract));
+            var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
 
             var code = ExampleContractCode;
             

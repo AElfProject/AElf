@@ -25,7 +25,7 @@ namespace AElf.Contracts.SideChain.Tests
 
         private void Init()
         {
-            _contract = new SideChainContractShim(_mock, Address.FromBytes(_mock.ChainId1.CalculateHashWith(SmartContractType.SideChainContract.ToString())));
+            _contract = new SideChainContractShim(_mock, AddressHelpers.GetSystemContractAddress(_mock.ChainId1, SmartContractType.SideChainContract.ToString()));
         }
 
         [Fact]
