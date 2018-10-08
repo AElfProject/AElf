@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common.ByteArrayHelpers;
-using Xunit;
 using AElf.Common;
-using Google.Protobuf;
+using Xunit;
 
 namespace AElf.Kernel.Tests
 {

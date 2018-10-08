@@ -5,7 +5,6 @@ using System.Data.JsonRpc;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;

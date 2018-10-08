@@ -2,8 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Kernel.Types;
 using Google.Protobuf;
 using AElf.Kernel;
 using AElf.Common;

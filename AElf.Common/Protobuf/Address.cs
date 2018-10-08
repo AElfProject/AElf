@@ -53,7 +53,7 @@ namespace AElf.Common
 
         public static Address Loads(string hex)
         {
-            var bytes = ByteArrayHelpers.ByteArrayHelpers.FromHexString(hex);
+            var bytes = ByteArrayHelpers.FromHexString(hex);
             if (bytes.Length != GlobalConfig.AddressLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(hex));

@@ -1,5 +1,5 @@
-﻿using AElf.Common.Extensions;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
+using AElf.Common;
 using AElf.Kernel;
 
 namespace AElf.ChainController.Rpc

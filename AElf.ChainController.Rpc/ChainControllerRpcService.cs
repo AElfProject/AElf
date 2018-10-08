@@ -4,8 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
@@ -19,7 +17,6 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
-using Mono.Cecil;
 using NLog;
 
 namespace AElf.ChainController.Rpc

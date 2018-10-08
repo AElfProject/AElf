@@ -4,7 +4,7 @@ using System.Linq;
 using AElf.CLI.Command;
 using AElf.CLI.Http;
 using AElf.CLI.Parsing;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.CLI.Data.Protobuf;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;

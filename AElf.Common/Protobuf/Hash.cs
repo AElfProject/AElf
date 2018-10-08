@@ -220,7 +220,7 @@ namespace AElf.Common
 
         public static Hash Loads(string hex)
         {
-            var bytes = ByteArrayHelpers.ByteArrayHelpers.FromHexString(hex);
+            var bytes = ByteArrayHelpers.FromHexString(hex);
             if (bytes.Length != 32)
             {
                 throw new ArgumentOutOfRangeException(nameof(hex));

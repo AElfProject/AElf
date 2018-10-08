@@ -1,4 +1,4 @@
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Kernel;
 using Newtonsoft.Json.Linq;
 

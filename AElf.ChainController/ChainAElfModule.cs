@@ -2,10 +2,9 @@
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Application;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Common.Module;
 using AElf.Configuration;
-using AElf.Common;
 using Autofac;
 using Easy.MessageHub;
 using Google.Protobuf;

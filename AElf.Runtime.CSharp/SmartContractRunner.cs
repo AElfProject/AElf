@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.ABI.CSharp;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using AElf.SmartContract;

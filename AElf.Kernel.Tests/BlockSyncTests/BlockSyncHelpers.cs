@@ -1,5 +1,4 @@
 ﻿using System;
-using AElf.Common.ByteArrayHelpers;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 

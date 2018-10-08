@@ -1,10 +1,9 @@
 ﻿using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel.Managers;
-using AElf.Common;
 
 namespace AElf.Kernel.Node
 {

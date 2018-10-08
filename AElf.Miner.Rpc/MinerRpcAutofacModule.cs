@@ -1,9 +1,7 @@
-using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Miner.Rpc.Server;
 using Autofac;
 using AElf.Common;
-using Google.Protobuf;
 
 namespace AElf.Miner.Rpc
 {

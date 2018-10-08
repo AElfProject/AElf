@@ -1,7 +1,6 @@
 ﻿using System;
 using AElf.Common;
 using AElf.Common.Application;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Miner.Miner;

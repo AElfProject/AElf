@@ -1,11 +1,5 @@
-﻿using System;
-using AElf.Common;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
-using AElf.Types.CSharp;
-using Akka.Util;
+﻿using AElf.Common;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Serialization

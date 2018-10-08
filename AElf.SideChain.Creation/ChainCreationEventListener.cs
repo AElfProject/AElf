@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Application;
 using AElf.Common.Attributes;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Management;
 using AElf.Cryptography;

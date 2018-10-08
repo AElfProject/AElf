@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Node;

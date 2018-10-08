@@ -2,13 +2,11 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Common;
 
 namespace AElf.ABI.CSharp
 {
