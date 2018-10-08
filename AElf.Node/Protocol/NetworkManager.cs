@@ -87,7 +87,7 @@ namespace AElf.Node.Protocol
                     
                     await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
                     
-                    //_logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
+                    _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
             MessageHub.Instance.Subscribe<BlockMinedMessage>(async inBlock => 
@@ -258,7 +258,7 @@ namespace AElf.Node.Protocol
 
                 if (addResult == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    //_logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
+                    _logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
                         
                     foreach (var p in _peers.Where(p => !p.Equals(peer)))
                         p.EnqueueOutgoing(msg);
