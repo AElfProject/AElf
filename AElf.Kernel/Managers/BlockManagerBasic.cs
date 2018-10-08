@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
+using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.Kernel.Managers
@@ -55,7 +56,32 @@ namespace AElf.Kernel.Managers
                 Body = await _dataStore.GetAsync<BlockBody>(blockHash.Clone().OfType(HashType.BlockBodyHash))
             };
         }
-        
+
+        /// <summary>
+        /// Bind child chain height with parent height who indexed it.  
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="childHeight"></param>
+        /// <param name="parentHeight"></param>
+        /// <returns></returns>
+        public async Task BindParentChainHeight(Hash chainId, ulong childHeight, ulong parentHeight)
+        {
+            var key = DataPath.CalculatePointerForParentChainHeightByChildChainHeight(chainId, childHeight);
+            await _dataStore.InsertAsync(key, new UInt64Value {Value = parentHeight});
+        }
+
+        /// <summary>
+        /// Get the parent chain block height indexing the child chain <param name="childHeight"/>.
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="childHeight"></param>
+        /// <returns></returns>
+        public async Task<ulong> GetBoundParentChainHeight(Hash chainId, ulong childHeight)
+        {
+            var key = DataPath.CalculatePointerForParentChainHeightByChildChainHeight(chainId, childHeight);
+            return (await _dataStore.GetAsync<UInt64Value>(key))?.Value ?? 0;
+        }
+
         public async Task<Block> GetNextBlockOf(Hash chainId, Hash blockHash)
         {
             var nextBlockHeight = (await GetBlockHeaderAsync(blockHash)).Index + 1;

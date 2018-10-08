@@ -226,7 +226,7 @@ namespace AElf.ChainController.TxMemPoolBM
             
             if (readyTxs.Any(tx => tx.MethodName == "UpdateAElfDPoS"))
             {
-                toRemove.AddRange(readyTxs.Where(tx => tx.MethodName != inValueTxName && tx.MethodName != "UpdateAElfDPoS"));
+                toRemove.AddRange(readyTxs.Where(tx => tx.Type != TransactionType.CrossChainBlockInfoTransaction && tx.MethodName != inValueTxName && tx.MethodName != "UpdateAElfDPoS"));
             }
 
             var count = readyTxs.Count(tx => tx.MethodName == "UpdateAElfDPoS");

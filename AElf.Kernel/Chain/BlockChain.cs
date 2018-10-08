@@ -11,7 +11,7 @@ using NLog;
 namespace AElf.Kernel
 {
     public class BlockChain : LightChain, IBlockChain
-    {
+    {    
         private readonly ITransactionManager _transactionManager;
 
         private readonly ILogger _logger;

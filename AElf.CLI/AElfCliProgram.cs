@@ -6,7 +6,9 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ABI.CSharp;
+using AElf.CLI.Certificate;
 using AElf.CLI.Command;
+using AElf.CLI.Command.Account;
 using AElf.CLI.Helpers;
 using AElf.CLI.Http;
 using AElf.CLI.Parsing;
@@ -64,7 +66,7 @@ namespace AElf.CLI
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
         
         private const string ExitReplCommand = "quit";
-        private const string ServerConnError = "Could not connect to server.";
+        private const string ServerConnError = "Unable to connect to server.";
         private const string AbiNotLoaded = "ABI not loaded.";
         private const string NotConnected = "Please connect-blockchain first.";
         private const string InvalidTransaction = "Invalid transaction data.";
@@ -78,10 +80,11 @@ namespace AElf.CLI
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
+        private readonly CertificatManager _certificatManager;
 
         private readonly Dictionary<string, Module> _loadedModules;
         
-        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, string host = "http://localhost:5000")
+        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, CertificatManager certificatManager, string host = "http://localhost:5000")
         {
             _rpcAddress = host;
             _port = int.Parse(host.Split(':')[2]);
@@ -89,6 +92,7 @@ namespace AElf.CLI
             _screenManager = screenManager;
             _cmdParser = cmdParser;
             _accountManager = accountManager;
+            _certificatManager = certificatManager;
             _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
@@ -325,7 +329,7 @@ namespace AElf.CLI
                         byte[] serializedParams = meth.SerializeParams(new List<string> {"1", hex} );
             
                         Transaction t = new Transaction();
-                        t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, parsedCmd.Args.ElementAt(1),
+                        t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, 
                             DeploySmartContract, serializedParams, TransactionType.ContractTransaction);
 
                         t = t.AddBlockReference(_rpcAddress);
@@ -505,9 +509,13 @@ namespace AElf.CLI
                             string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
                             _screenManager.PrintLine(toPrint);
                     }
-                    else
+                    else if (def is AccountCmd)
                     {
                         _accountManager.ProcessCommand(parsedCmd);
+                    }
+                    else if (def is CertificateCmd)
+                    {
+                        _certificatManager.ProcCmd(parsedCmd);
                     }
                 }
                 else
@@ -568,7 +576,7 @@ namespace AElf.CLI
             }
         }
 
-        private Transaction CreateTransaction(string elementAt, string genesisAddress, string incrementid,
+        private Transaction CreateTransaction(string elementAt, string genesisAddress,
             string methodName, byte[] serializedParams, TransactionType contracttransaction)
         {
             try
@@ -576,7 +584,6 @@ namespace AElf.CLI
                 Transaction t = new Transaction();
                 t.From = ByteArrayHelpers.FromHexString(elementAt);
                 t.To = ByteArrayHelpers.FromHexString(genesisAddress);
-                t.IncrementId = Convert.ToUInt64(incrementid);
                 t.MethodName = methodName;
                 t.Params = serializedParams;
                 t.type = contracttransaction;
@@ -645,7 +652,6 @@ namespace AElf.CLI
                 Transaction tr = new Transaction();
                 tr.From = ByteArrayHelpers.FromHexString(j["from"].ToString());
                 tr.To = ByteArrayHelpers.FromHexString(j["to"].ToString());
-                tr.IncrementId = j["incr"].ToObject<ulong>();
                 tr.MethodName = j["method"].ToObject<string>();
                 return tr;
             }

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Extensions;
 using AElf.Kernel;
 using AElf.Types.CSharp;
@@ -22,17 +23,18 @@ namespace AElf.ABI.CSharp
         private static readonly Dictionary<System.Type, Func<string, object>> StringHandlers =
             new Dictionary<System.Type, Func<string, object>>()
             {
-                {typeof(bool), (s) => bool.Parse(s)},
-                {typeof(int), (s) => IsHex(s) ? int.Parse(s.Substring(2), NumberStyles.HexNumber) : int.Parse(s)},
-                {typeof(uint), (s) => IsHex(s) ? uint.Parse(s.Substring(2), NumberStyles.HexNumber) : uint.Parse(s)},
-                {typeof(long), (s) => IsHex(s) ? long.Parse(s.Substring(2), NumberStyles.HexNumber) : long.Parse(s)},
-                {typeof(ulong), (s) => IsHex(s) ? ulong.Parse(s.Substring(2), NumberStyles.HexNumber) : ulong.Parse(s)},
-                {typeof(string), (s) => s},
+                {typeof(bool), s => bool.Parse(s)},
+                {typeof(int), s => IsHex(s) ? int.Parse(s.Substring(2), NumberStyles.HexNumber) : int.Parse(s)},
+                {typeof(uint), s => IsHex(s) ? uint.Parse(s.Substring(2), NumberStyles.HexNumber) : uint.Parse(s)},
+                {typeof(long), s => IsHex(s) ? long.Parse(s.Substring(2), NumberStyles.HexNumber) : long.Parse(s)},
+                {typeof(ulong), s => IsHex(s) ? ulong.Parse(s.Substring(2), NumberStyles.HexNumber) : ulong.Parse(s)},
+                {typeof(string), s => s},
                 {
                     typeof(byte[]),
-                    (s) => Enumerable.Range(0, s.Length).Where(x => x % 2 == 0 && !(IsHex(s) && x == 0))
+                    s => Enumerable.Range(0, s.Length).Where(x => x % 2 == 0 && !(IsHex(s) && x == 0))
                         .Select(x => Convert.ToByte(s.Substring(x, 2), 16)).ToArray()
-                }
+                },
+                {typeof(MerklePath), (s) => MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
             };
         
         
@@ -48,7 +50,8 @@ namespace AElf.ABI.CSharp
                 {
                     typeof(byte[]),
                     obj => ((byte[])obj).ToHex()
-                }
+                },
+                {typeof(MerklePath), obj => ((MerklePath)obj).ToByteArray().ToHex()}
             };
         
         static StringInputParsers()
@@ -57,7 +60,10 @@ namespace AElf.ABI.CSharp
             foreach (var t in StringHandlers.Keys)
             {
                 _nameToType.Add(t.FullName, t);
-                _nameToType.Add(t.FullName.ToShorterName(), t);
+                var shortName = t.FullName.ToShorterName();
+                if(shortName.Equals(t.FullName))
+                    continue;
+                _nameToType.Add(shortName, t);
             }
         }
 
@@ -92,7 +98,7 @@ namespace AElf.ABI.CSharp
                 };
             }
 
-            throw new Exception($"Cannot find parser for type {typeName}");
+            throw new Exception($"Not Found parser for type {typeName}");
         }
         
         
@@ -111,7 +117,7 @@ namespace AElf.ABI.CSharp
                 return obj => ((Hash)obj).ToHex();
             }
 
-            throw new Exception($"Cannot find parser for type {typeName}");
+            throw new Exception($"Not Found parser for type {typeName}");
         }
     }
 }

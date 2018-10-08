@@ -41,7 +41,7 @@ namespace AElf.Kernel.Managers
             var hash = await _dataStore.GetAsync<Hash>(key);
             return hash;
         }
-
+        
         /// <summary>
         /// update block count in this chain not last block index
         /// </summary>

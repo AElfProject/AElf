@@ -64,7 +64,7 @@ namespace AElf.Kernel
 
         public void FillTxsMerkleTreeRootInHeader()
         {
-            Header.MerkleTreeRootOfTransactions = Body.CalculateTransactionMerkleTreeRoot();
+            Header.MerkleTreeRootOfTransactions = Body.CalculateMerkleTreeRoots();
         }
 
         public Hash GetHash()
@@ -79,7 +79,7 @@ namespace AElf.Kernel
 
         public Block Complete()
         {
-            Header.MerkleTreeRootOfTransactions = Body.CalculateTransactionMerkleTreeRoot();
+            Header.MerkleTreeRootOfTransactions = Body.CalculateMerkleTreeRoots();
             Header.SideChainBlockHeadersRoot = Body.SideChainBlockHeadersRoot;
             Header.SideChainTransactionsRoot = Body.SideChainTransactionsRoot;
             Body.Complete(Header.GetHash());

@@ -12,6 +12,7 @@ namespace AElf.Kernel
     }
     public partial class ParentChainBlockInfo : IBlockInfo
     {
-        
+        public ulong Height => Root.Height;
+        public Hash ChainId => Root.ChainId;
     }
 }

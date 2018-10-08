@@ -134,22 +134,24 @@ namespace AElf.Miner.Tests.Grpc
                 var result = await manager.CollectParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)0, result.Height);
-                Assert.Equal(1, result.IndexedBlockHeight.Count);
-                Assert.True(result.IndexedBlockHeight.Contains(0));
+                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(result.IndexedBlockInfo.Keys.Contains(0));
+                Assert.True(await manager.UpdateParentChainBlockInfo(result));
                 
                 Thread.Sleep(t);
                 result = await manager.CollectParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)1, result.Height);
-                Assert.Equal(1, result.IndexedBlockHeight.Count);
-                Assert.True(result.IndexedBlockHeight.Contains(1));
-                
+                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(result.IndexedBlockInfo.Keys.Contains(1));
+                Assert.True(await manager.UpdateParentChainBlockInfo(result));
+
                 Thread.Sleep(t);
                 result = await manager.CollectParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)2, result.Height);
-                Assert.Equal(1, result.IndexedBlockHeight.Count);
-                Assert.True(result.IndexedBlockHeight.Contains(2));
+                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(result.IndexedBlockInfo.Keys.Contains(2));
                 manager.CloseClientToParentChain();
             }
             finally
@@ -172,6 +174,7 @@ namespace AElf.Miner.Tests.Grpc
                 int parentPort = 50055;
                 string address = "127.0.0.1";
                 _mock.ClearDirectory(dir);
+                GrpcRemoteConfig.Instance.ParentChain = null;
                 var sideChainId = _mock.MockSideChainServer(sidePort, address, dir);
                 //var parentChainId = _mock.MockParentChainServer(parentPort, address, dir);
                 var parimpl = _mock.MockParentChainBlockInfoRpcServerImpl();

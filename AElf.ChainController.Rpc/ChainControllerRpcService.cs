@@ -10,6 +10,7 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Node.AElfChain;
+using AElf.Node.CrossChain;
 using AElf.RPC;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
@@ -37,6 +38,7 @@ namespace AElf.ChainController.Rpc
         public IAccountContextService AccountContextService { get; set; }
         public TxHub TxHub { get; set; }
         public INodeService MainchainNodeService { get; set; }
+        public ICrossChainInfo CrossChainInfo { get; set; }
 
         #endregion Properties
 
@@ -82,14 +84,15 @@ namespace AElf.ChainController.Rpc
             {
                 var chainId = NodeConfig.Instance.ChainId;
                 var basicContractZero = this.GetGenesisContractHash(SmartContractType.BasicContractZero);
-                var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
+                var sideChainContract = this.GetGenesisContractHash(SmartContractType.SideChainContract);
+                //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject()
                 {
                     ["result"] =
                         new JObject
                         {
                             [SmartContractType.BasicContractZero.ToString()] = basicContractZero.ToHex(),
-                            [SmartContractType.TokenContract.ToString()] = tokenContract.ToHex(),
+                            [SmartContractType.SideChainContract.ToString()] = sideChainContract.ToHex(),
                             ["chain_id"] = chainId
                         }
                 };
@@ -237,6 +240,92 @@ namespace AElf.ChainController.Rpc
             };
         }
 
+        [JsonRpcMethod("get_merkle_path", "txid")]
+        public async Task<JObject> ProcGetTxMerklePath(string txid)
+        {
+            try
+            {
+                Hash txHash;
+                try
+                {
+                    txHash = ByteArrayHelpers.FromHexString(txid);
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Invalid Address Format");
+                }
+                var txResult = await this.GetTransactionResult(txHash);
+                if(txResult.Status != Status.Mined)
+                   throw new Exception("Transaction is not mined.");
+                
+                var merklePath = txResult.MerklePath?.Clone();
+                if(merklePath == null)
+                    throw new Exception("Not found merkle path for this transaction.");
+                MerklePath merklePathInParentChain = null;
+                ulong boundParentChainHeight = 0;
+                try
+                {
+                    merklePathInParentChain = this.GetTxRootMerklePathinParentChain(txResult.BlockNumber);
+                    boundParentChainHeight = this.GetBoundParentChainHeight(txResult.BlockNumber);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Unable to get merkle path from parent chain");
+                }
+                /*if(merklePathInParentChain == null)
+                    throw new Exception("Not found merkle path in parent chain");*/
+                if(merklePathInParentChain != null)
+                    merklePath.Path.AddRange(merklePathInParentChain.Path);
+                return new JObject
+                {
+                    ["merkle_path"] = merklePath.ToByteArray().ToHex(),
+                    ["parent_height"] = boundParentChainHeight
+                };
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = e.Message
+                };
+            }
+        }
+        
+        [JsonRpcMethod("get_pcb_info", "height")]
+        public async Task<JObject> ProcGetPCB(string height)
+        {
+            try
+            {
+                ulong h;
+                try
+                {
+                    h = ulong.Parse(height);
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Invalid height");
+                }
+                var merklePathInParentChain = this.GetParentChainBlockInfo(h);
+                if (merklePathInParentChain == null)
+                {
+                    throw new Exception("Unable to get parent chain block at height " + height);
+                }
+                return new JObject
+                {
+                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.ToHex(),
+                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
+                    ["parent_height"] = merklePathInParentChain.Height
+                };
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = e.Message
+                };
+            }
+        }
+        
         [JsonRpcMethod("get_tx_result", "txhash")]
         public async Task<JObject> ProcGetTxResult(string txhash)
         {
@@ -341,6 +430,7 @@ namespace AElf.ChainController.Rpc
                         ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.ToHex(),
                         ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                         ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.ToHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.ToHex(),
@@ -348,7 +438,8 @@ namespace AElf.ChainController.Rpc
                     },
                     ["Body"] = new JObject
                     {
-                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount
+                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
+                        ["IndexedSideChainBlcokInfo"] = blockinfo.GetIndexedSideChainBlcokInfo()
                     },
                     ["CurrentTransactionPoolSize"] = transactionPoolSize
                 }

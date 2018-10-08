@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Types.Merkle;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -11,7 +10,7 @@ namespace AElf.Kernel
         public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
             var nodes = Data.Select(p => p.StateMerkleTreeLeaf).ToList();
-            nodes.Sort(BinaryMerkleTree.CompareHash);
+            nodes.Sort(Hash.CompareHash);
             return await Task.FromResult(new BinaryMerkleTree().AddNodes(nodes).ComputeRootHash());
         }
 

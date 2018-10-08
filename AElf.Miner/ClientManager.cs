@@ -210,7 +210,7 @@ namespace AElf.Miner
         /// <returns>
         /// Return true and remove the first cached one as <param name="blockInfo"></param>.
         /// Return true if client for that chain is not existed which means the side chain is not available.
-        /// Return false if it is not same or client for that chain is not existed.
+        /// Return false if it is not same to cached element.
         /// </returns>
         public bool TryRemoveSideChainBlockInfo(SideChainBlockInfo blockInfo)
         {
@@ -251,17 +251,31 @@ namespace AElf.Miner
         /// </returns>
         public async Task<ParentChainBlockInfo> CollectParentChainBlockInfo()
         {
+            if (_clientToParentChain == null)
+                return null;
             var chainId = GrpcRemoteConfig.Instance.ParentChain?.ElementAtOrDefault(0).Key;
             if (chainId == null)
                 return null;
-            Hash parentChainId =
-                ByteArrayHelpers.FromHexString(chainId);
+            Hash parentChainId = ByteArrayHelpers.FromHexString(chainId);
             var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightAsync(parentChainId);
-            if (_clientToParentChain.Empty() || _clientToParentChain.First().Height != targetHeight ||
-                !_clientToParentChain.TryTake(Interval, out var blockInfo))
-                return null;
-            await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height + 1);
-            return (ParentChainBlockInfo) blockInfo;
+            if (!_clientToParentChain.Empty() &&  _clientToParentChain.First().Height == targetHeight)
+                return (ParentChainBlockInfo) _clientToParentChain.First();
+            return null;
+        }
+        
+        /// <summary>
+        /// Update parent chain block cached in client and database.
+        /// </summary>
+        /// <param name="parentChainBlockInfo"></param>
+        /// <returns></returns>
+        public async Task<bool> UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
+        {
+            if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(parentChainBlockInfo))
+                return false;
+            _clientToParentChain.Take();
+            await _chainManagerBasic.UpdateCurrentBlockHeightAsync(parentChainBlockInfo.ChainId,
+                parentChainBlockInfo.Height + 1);
+            return true;
         }
 
         /// <summary>
