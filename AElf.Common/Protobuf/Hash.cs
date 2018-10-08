@@ -53,25 +53,10 @@ namespace AElf.Common
                 return FromBytes(mm.ToArray());
             }
         }
-
-        private static Hash GetHashFromTwoHashes()
-        {
-            return Hash.Default;
-        }
         
         public static Hash Generate()
         {
             return FromBytes(Guid.NewGuid().ToByteArray());
-        }
-
-        public bool CheckPrefix(ByteString prefix)
-        {
-            if (prefix.Length > Value.Length)
-            {
-                return false;
-            }
-
-            return !prefix.Where((t, i) => t != Value[i]).Any();
         }
 
         public static readonly Hash Zero = Hash.FromBytes(new byte[] { });

@@ -92,9 +92,19 @@ namespace AElf.ChainController.TxMemPoolBM
             return TxValidation.TxInsertionAndBroadcastingError.Valid;
         }
 
+        private bool CheckPrefix(Hash blockHash, ByteString prefix)
+        {
+            if (prefix.Length > blockHash.Value.Length)
+            {
+                return false;
+            }
+
+            return !prefix.Where((t, i) => t != blockHash.Value[i]).Any();
+        }
+        
         public async Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(Transaction tx)
         {
-            if (tx.RefBlockNumber == 0 && Hash.Genesis.CheckPrefix(tx.RefBlockPrefix))
+            if (tx.RefBlockNumber == 0 && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
             {
                 return TxValidation.TxInsertionAndBroadcastingError.Valid;
             }
@@ -138,7 +148,7 @@ namespace AElf.ChainController.TxMemPoolBM
                 return TxValidation.TxInsertionAndBroadcastingError.Valid;
             }
 
-            var res = canonicalHash.CheckPrefix(tx.RefBlockPrefix)
+            var res = CheckPrefix(canonicalHash, tx.RefBlockPrefix)
                 ? TxValidation.TxInsertionAndBroadcastingError.Valid
                 : TxValidation.TxInsertionAndBroadcastingError.InvalidReferenceBlock;
             return res;
