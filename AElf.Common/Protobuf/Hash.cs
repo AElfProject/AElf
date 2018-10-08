@@ -11,18 +11,24 @@ namespace AElf.Common
 {
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>
     {
+        private const int ByteArrayLength = 32;
         public string ToDiagnosticString()
         {
             return $@"""{Dumps()}""";
         }
 
+        private Hash(byte[] bytes)
+        {
+            if (bytes.Length != ByteArrayLength)
+            {
+                throw new ArgumentOutOfRangeException($"Hash bytes has to be {ByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
+            }
+            Value = ByteString.CopyFrom(bytes.ToArray());
+        }
+
         public static Hash FromBytes(byte[] bytes)
         {
-            var hash = new Hash()
-            {
-                Value = ByteString.CopyFrom(bytes.CalculateHash())
-            };
-            return hash;
+            return new Hash(bytes.CalculateHash());
         }
 
         public static Hash FromString(string str)
