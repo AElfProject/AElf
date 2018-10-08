@@ -154,21 +154,21 @@ namespace AElf.Common
         /// </summary>
         /// <param name="hashes"></param>
         /// <returns></returns>
-        public static Hash CalculateHashOfHashList(params Hash[] hashes)
-        {
-            if (hashes[0] == null)
-            {
-                return Hash.Zero;
-            }
-            
-            if (hashes.Length == 1)
-            {
-                return hashes[0];
-            }
-            
-            var remains = hashes.Skip(1).ToArray();
-            return hashes[0].CombineHashWith(CalculateHashOfHashList(remains));
-        }
+//        public static Hash CalculateHashOfHashList(params Hash[] hashes)
+//        {
+//            if (hashes[0] == null)
+//            {
+//                return Hash.Zero;
+//            }
+//            
+//            if (hashes.Length == 1)
+//            {
+//                return hashes[0];
+//            }
+//            
+//            var remains = hashes.Skip(1).ToArray();
+//            return hashes[0].CombineHashWith(CalculateHashOfHashList(remains));
+//        }
         
         public static bool IsNull(this Hash hash)
         {

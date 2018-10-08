@@ -44,7 +44,7 @@ namespace AElf.Kernel.Managers
                         DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, i));
                 var header = await _dataStore.GetAsync<BlockHeader>(rollBackBlockHash);
                 var body = await _dataStore.GetAsync<BlockBody>(
-                    HashExtensions.CalculateHashOfHashList(
+                    Hash.Xor(
                     header.GetHash(),header.MerkleTreeRootOfTransactions));
                 foreach (var txId in body.Transactions)
                 {

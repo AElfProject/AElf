@@ -127,8 +127,11 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForGettingBlockHashByHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("HeightHashMap"),
-                Hash.FromMessage(new UInt64Value {Value = height}));
+            return new List<Hash> {
+                chainId,
+                Hash.FromString("HeightHashMap"),
+                Hash.FromMessage(new UInt64Value {Value = height})
+            }.Aggregate(Hash.Xor);
         }
         
         /// <summary>
@@ -139,8 +142,11 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForTransactionsMerkleTreeByHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("TransactionsMerkleTree"),
-                Hash.FromMessage(new UInt64Value {Value = height}));
+            return new List<Hash>()
+            {
+                chainId, Hash.FromString("TransactionsMerkleTree"),
+                Hash.FromMessage(new UInt64Value {Value = height}) 
+            }.Aggregate(Hash.Xor);
         }
         
         /// <summary>
@@ -152,8 +158,11 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForSideChainTxRootsMerkleTreeByHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("SideChainTxRootsMerkleTree"),
-                Hash.FromMessage(new UInt64Value {Value = height}));
+            return new List<Hash>()
+            {
+                chainId, Hash.FromString("SideChainTxRootsMerkleTree"),
+                Hash.FromMessage(new UInt64Value {Value = height}) 
+            }.Aggregate(Hash.Xor);
         }
         
         /// <summary>
@@ -165,14 +174,20 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForIndexedTxRootMerklePathByHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("IndexedBlockTxRoot"),
-                Hash.FromMessage(new UInt64Value {Value = height}));
+            return new List<Hash>()
+            {
+                chainId, Hash.FromString("IndexedBlockTxRoot"),
+                Hash.FromMessage(new UInt64Value {Value = height}) 
+            }.Aggregate(Hash.Xor);
         }
 
         public static Hash CalculatePointerForParentChainHeightByChildChainHeight(Hash chainId, ulong height)
         {
-            return HashExtensions.CalculateHashOfHashList(chainId, Hash.FromString("ParentChainHeight"),
-                Hash.FromMessage(new UInt64Value {Value = height}));
+            return new List<Hash>()
+            {
+                chainId, Hash.FromString("ParentChainHeight"),
+                Hash.FromMessage(new UInt64Value {Value = height}) 
+            }.Aggregate(Hash.Xor);
         }
         
         #endregion
@@ -188,7 +203,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Address CalculateAccountAddress(Address parentAccount, ulong nonce)
         {
-            return Address.FromBytes(HashExtensions.CalculateHashOfHashList(
+            return Address.FromBytes(Hash.Xor(
                 Hash.FromMessage(parentAccount),
                 Hash.FromMessage(new UInt64Value
             {
@@ -202,7 +217,7 @@ namespace AElf.Kernel
 
         public static Hash CalculatePointerForTxResult(Hash txId)
         {
-            return HashExtensions.CalculateHashOfHashList(txId, Hash.FromString("TransactionResult"));
+            return Hash.Xor(txId, Hash.FromString("TransactionResult"));
         }
 
         #endregion

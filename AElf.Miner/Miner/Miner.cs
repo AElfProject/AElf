@@ -163,7 +163,7 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
-                    To=Address.FromBytes(HashExtensions.CalculateHashOfHashList(Config.ChainId,
+                    To=Address.FromBytes(Hash.Xor(Config.ChainId,
                         Hash.FromString(SmartContractType.SideChainContract.ToString())).ToByteArray()),
 //                    To = new Hash(Config.ChainId.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount(),
                     RefBlockNumber = bn,

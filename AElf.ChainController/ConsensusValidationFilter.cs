@@ -41,7 +41,7 @@ namespace AElf.ChainController
             //Calculate the address of smart contract zero
             //var contractAccountHash = new Hash(context.ChainId.CalculateHashWith(Globals.ConsensusContract)).ToAccount();
             var contractAccountHash = Address.FromBytes(
-                HashExtensions.CalculateHashOfHashList(context.ChainId, Hash.FromString(GlobalConfig.ConsensusContract)).GetHashBytes()
+                Hash.Xor(context.ChainId, Hash.FromString(GlobalConfig.ConsensusContract)).GetHashBytes()
             );
             var timestampOfBlock = block.Header.Time;
             

@@ -175,7 +175,7 @@ namespace AElf.SmartContract
             var data = stateValueChange.CurrentValue;
             var length = data.Length / 3;
             var represent = stateValueChange.ToString().Substring(length, data.Length > 150 ? 50 : length);
-            return HashExtensions.CalculateHashOfHashList(
+            return Hash.Xor(
                 stateValueChange.Path.ResourcePathHash,
                 Hash.FromString(represent)
             );

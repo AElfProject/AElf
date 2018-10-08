@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using AElf.Common.Extensions;
 using Google.Protobuf;
@@ -150,7 +151,20 @@ namespace AElf.Common
             return CompareHash(h1, h2) > 0;
         }
 
-        public static int CompareHash(Hash hash1, Hash hash2)
+        public static Hash Xor(Hash h1, Hash h2)
+        {
+            var newHashBytes = new byte[h1.Value.Length];
+            for (int i= 0; i < newHashBytes.Length; i++)
+            {
+                newHashBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
+            }
+            return new Hash()
+            {
+                Value = ByteString.CopyFrom(newHashBytes)
+            };
+        }
+
+        private static int CompareHash(Hash hash1, Hash hash2)
         {
             if (hash1 != null)
             {

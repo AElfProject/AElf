@@ -76,7 +76,7 @@ namespace AElf.SmartContract
 
         private Hash GetHash()
         {
-            return HashExtensions.CalculateHashOfHashList(
+            return Hash.Xor(
                 Hash.FromMessage(new StringValue {Value = _dataProviderKey}),
                 Hash.FromMessage(new SInt32Value {Value = Layer})
             );
