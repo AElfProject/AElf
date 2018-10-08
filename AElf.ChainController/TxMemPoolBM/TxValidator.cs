@@ -217,7 +217,7 @@ namespace AElf.ChainController.TxMemPoolBM
                     var inValue = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
                         new[] {typeof(UInt64Value), typeof(StringValue), typeof(Hash)})[2] as Hash;
                     var outValue = currentRoundInfo.BlockProducers[transaction.From.Dumps().RemoveHexPrefix()].OutValue;
-                    if (outValue == new Hash(){Value = ByteString.CopyFrom(inValue.CalculateHash())})
+                    if (outValue == Hash.FromMessage(inValue))
                     {
                         toRemove.Add(transaction);
                     }

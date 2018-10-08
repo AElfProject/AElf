@@ -268,7 +268,7 @@ namespace AElf.Kernel.Node
             if (_consensusData.Count <= 0)
             {
                 _consensusData.Push(inValue);
-                _consensusData.Push(Hash.FromBytes(inValue.CalculateHash()));
+                _consensusData.Push(Hash.FromMessage(inValue));
             }
 
             var currentRoundNumber = Helper.CurrentRoundNumber;

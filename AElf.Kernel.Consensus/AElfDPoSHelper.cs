@@ -288,7 +288,7 @@ namespace AElf.Kernel.Consensus
                     if (info.Value.InValue != null && info.Value.OutValue != null) continue;
 
                     var inValue = Hash.Generate();
-                    var outValue = Hash.FromBytes(inValue.CalculateHash());
+                    var outValue = Hash.FromMessage(inValue);
 
                     info.Value.OutValue = outValue;
                     info.Value.InValue = inValue;
@@ -322,10 +322,10 @@ namespace AElf.Kernel.Consensus
                 foreach (var node in _miners.Nodes)
                 {
                     var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[node].Signature;
-                    add = Hash.FromBytes(add.CalculateHashWith(lastSignature));
+                    add = Hash.FromTwoHashes(add, lastSignature);
                 }
 
-                Hash sig = Hash.FromBytes(inValue.CalculateHashWith(add));
+                Hash sig = Hash.FromTwoHashes(inValue, add);
                 _logger?.Trace("Generated signature: " + sig.Dumps());
                 return sig;
             }

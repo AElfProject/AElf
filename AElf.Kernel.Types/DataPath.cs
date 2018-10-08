@@ -27,10 +27,12 @@ namespace AElf.Kernel
                     throw new InvalidOperationException("Should set chain id and bp address before calculating state hash");
                 }
 
-                return Hash.FromTwoHashes(
-                    Hash.FromBytes(ChainId.CalculateHashWith(BlockProducerAddress)),
+                return new List<Hash>()
+                {
+                    ChainId, 
+                    Hash.FromMessage(BlockProducerAddress),
                     Hash.FromMessage(new UInt64Value(){Value = BlockHeight})
-                ).OfType(HashType.StateHash);
+                }.Aggregate(Hash.FromTwoHashes).OfType(HashType.StateHash);
             }
             set => _stateHash = value;
         }
@@ -116,7 +118,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForMetadata(Hash chainId, string addrFuncSig)
         {
-            return Hash.FromBytes(chainId.CalculateHashWith(Hash.FromString("Metadata" + addrFuncSig)));
+            return Hash.FromTwoHashes(chainId, Hash.FromString("Metadata" + addrFuncSig));
         }
 
         /// <summary>
