@@ -150,11 +150,6 @@ namespace AElf.Node
             var bh = block.GetHash().ToHex();
             _logger?.Trace(
                 $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
-            _logger?.Trace("Txs of this block:");
-            foreach (var txId in block.Body.Transactions)
-            {
-                _logger?.Trace(txId.ToHex());
-            }
 
             return true;
         }

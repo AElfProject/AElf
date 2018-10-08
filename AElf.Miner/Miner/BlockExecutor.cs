@@ -57,11 +57,6 @@ namespace AElf.Miner.Miner
                 return false;
             }
             _logger?.Trace($"Executing block {block.GetHash()}");
-            _logger?.Trace("Txs of this block:");
-            foreach (var txId in block.Body.Transactions)
-            {
-                _logger?.Trace(txId.ToHex());
-            }
 
             var uncompressedPrivateKey = block.Header.P.ToByteArray();
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);

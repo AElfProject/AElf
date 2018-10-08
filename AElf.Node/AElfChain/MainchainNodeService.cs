@@ -425,6 +425,7 @@ namespace AElf.Node.AElfChain
                     if (DPoS.ConsensusDisposable != null)
                     {
                         DPoS.ConsensusDisposable.Dispose();
+                        _logger?.Trace("Disposed previous consensus observables list.");
                     }
                 }
 

@@ -107,11 +107,6 @@ namespace AElf.Node.Protocol
                     
                     _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
                                    $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
-                    _logger?.Trace("Txs of this block:");
-                    foreach (var txId in inBlock.Block.Body.Transactions)
-                    {
-                        _logger?.Trace(txId.ToHex());
-                    }
                 });
         }
 
@@ -263,7 +258,7 @@ namespace AElf.Node.Protocol
 
                 if (addResult == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
+                    //_logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
                         
                     foreach (var p in _peers.Where(p => !p.Equals(peer)))
                         p.EnqueueOutgoing(msg);
