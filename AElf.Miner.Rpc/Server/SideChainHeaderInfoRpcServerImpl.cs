@@ -6,6 +6,7 @@ using AElf.Common.Attributes;
 using AElf.Kernel;
 using Grpc.Core;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Miner.Rpc.Server
 {

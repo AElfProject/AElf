@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Contracts.SideChain";
 
-import "hash.proto";
+import "common.proto";
 
 enum SideChainStatus
 {

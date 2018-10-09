@@ -1,6 +1,11 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Kernel";
+option csharp_namespace = "AElf.Common";
+
+message Address
+{
+    bytes Value = 1;
+}
 
 message Hash
 {
@@ -26,4 +31,15 @@ enum HashType
     GenesisHash = 13;
     BlockHeaderHash = 14;
     BlockBodyHash = 15;
+}
+
+
+message SInt32Value
+{
+    sint32 value = 1;
+}
+
+message SInt64Value
+{
+    sint64 value = 1;
 }

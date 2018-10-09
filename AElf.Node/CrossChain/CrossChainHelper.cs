@@ -3,6 +3,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 namespace AElf.Node.CrossChain
 {
@@ -21,10 +22,11 @@ namespace AElf.Node.CrossChain
         /// <param name="contractAddressHash"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        internal MerklePath GetMerklePath(Hash contractAddressHash, ulong height)
+        internal MerklePath GetMerklePath(Address contractAddressHash, ulong height)
         {
-            var bytes = GetBytes<MerklePath>(new UInt64Value {Value = height}.CalculateHash(), contractAddressHash,
-                Globals.AElfTxRootMerklePathInParentChain);
+            var bytes = GetBytes<MerklePath>(
+                Hash.FromMessage(new UInt64Value {Value = height}), contractAddressHash,
+                GlobalConfig.AElfTxRootMerklePathInParentChain);
             return MerklePath.Parser.ParseFrom(bytes);
         }
         
@@ -35,7 +37,7 @@ namespace AElf.Node.CrossChain
         /// <param name="contractAddressHash"></param>
         /// <param name="resourceStr"></param>
         /// <returns></returns>
-        private byte[] GetBytes<T>(Hash keyHash, Hash contractAddressHash, string resourceStr = "") where T : IMessage, new()
+        private byte[] GetBytes<T>(Hash keyHash, Address contractAddressHash, string resourceStr = "") where T : IMessage, new()
         {
             //Console.WriteLine("resourceStr: {0}", dataPath.ResourcePathHash.ToHex());
 
@@ -46,17 +48,18 @@ namespace AElf.Node.CrossChain
                     .GetAsync<T>(keyHash).Result;
         }
 
-        internal ulong GetBoundParentChainHeight(Hash contractAddressHash, ulong height)
+        internal ulong GetBoundParentChainHeight(Address contractAddressHash, ulong height)
         {
-            var bytes = GetBytes<UInt64Value>(new UInt64Value {Value = height}.CalculateHash(), contractAddressHash,
-                Globals.AElfBoundParentChainHeight);
+            var bytes = GetBytes<UInt64Value>(
+                Hash.FromMessage(new UInt64Value {Value = height}), contractAddressHash,
+                GlobalConfig.AElfBoundParentChainHeight);
             return UInt64Value.Parser.ParseFrom(bytes).Value;
         }
         
-        internal ParentChainBlockInfo GetBoundParentChainBlockInfo(Hash contractAddressHash, ulong height)
+        internal ParentChainBlockInfo GetBoundParentChainBlockInfo(Address contractAddressHash, ulong height)
         {
-            var bytes = GetBytes<ParentChainBlockInfo>(new UInt64Value {Value = height}.CalculateHash(), contractAddressHash,
-                Globals.AElfParentChainBlockInfo);
+            var bytes = GetBytes<ParentChainBlockInfo>(Hash.FromMessage(new UInt64Value {Value = height}), contractAddressHash,
+                GlobalConfig.AElfParentChainBlockInfo);
             return ParentChainBlockInfo.Parser.ParseFrom(bytes);
         }
     }

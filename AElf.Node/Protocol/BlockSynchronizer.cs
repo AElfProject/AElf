@@ -8,8 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Protocol.Exceptions;
@@ -268,7 +267,7 @@ namespace AElf.Node.Protocol
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error("Error while dequeuing " + job?.Block.GetHash().ToHex());
+                    _logger?.Error("Error while dequeuing " + job?.Block.GetHash().Dumps());
                     continue;
                 }
 

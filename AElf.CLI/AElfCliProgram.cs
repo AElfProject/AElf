@@ -17,15 +17,12 @@ using AElf.CLI.Screen;
 using AElf.CLI.Streaming;
 using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ProtoBuf;
 using ServiceStack;
-using Globals = AElf.Kernel.Globals;
 using Method = AElf.CLI.Data.Protobuf.Method;
 using Module = AElf.CLI.Data.Protobuf.Module;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
@@ -309,7 +306,7 @@ namespace AElf.CLI
                         byte[] sc = screader.Read(filename);
                         string hex = sc.ToHex();
 
-                        var name = Globals.GenesisBasicContract;
+                        var name = GlobalConfig.GenesisBasicContract;
                         Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
             
                         if (m == null)

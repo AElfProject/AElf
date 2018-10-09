@@ -1,3 +1,5 @@
+using System;
+using AElf.Common;
 namespace AElf.Kernel
 {
     public partial class MerklePath
@@ -12,7 +14,7 @@ namespace AElf.Kernel
             Hash hash = leaf.Clone();
             foreach (var node in Path)
             {
-                hash = hash.CalculateWith(node);
+                hash = Hash.FromTwoHashes(hash, node);
             }
             return hash;
         }

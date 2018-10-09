@@ -9,6 +9,7 @@ using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Common.Synchronisation;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Easy.MessageHub;
@@ -46,7 +47,7 @@ namespace AElf.ChainController.TxMemPool
 
         private readonly ConcurrentDictionary<Hash, Transaction> _contractTxs = new ConcurrentDictionary<Hash, Transaction>();
         private readonly ConcurrentDictionary<Hash, Transaction> _priorTxs = new ConcurrentDictionary<Hash, Transaction>();
-        private readonly ConcurrentBag<Hash> _priorAddresses = new ConcurrentBag<Hash>();
+        private readonly ConcurrentBag<Address> _priorAddresses = new ConcurrentBag<Address>();
 
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true)
@@ -121,7 +122,7 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="addr"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private async Task TrySetNonce(Hash addr, TransactionType type)
+        private async Task TrySetNonce(Address addr, TransactionType type)
         {
             IPool pool;
             if(type == TransactionType.ContractTransaction)
@@ -151,7 +152,7 @@ namespace AElf.ChainController.TxMemPool
             throw new NotImplementedException();
         }
 
-        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash myAddress,
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Address myAddress,
             double intervals = 150)
         {
             // get prior tx
@@ -283,7 +284,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
+        public Task<bool> GetReadyTxsAsync(Address addr, ulong start, ulong ids)
         {
             return _priorAddresses.Contains(addr)
                 ? PriorTxLock.WriteLock(() => { return _priorTxPool.ReadyTxs(addr, start, ids); })
@@ -346,7 +347,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAccountContext(HashSet<Hash> addrs)
+        public async Task UpdateAccountContext(HashSet<Address> addrs)
         {
             foreach (var addr in addrs)
             {
@@ -397,7 +398,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public ulong GetIncrementId(Hash addr, bool isBlockProducer = false)
+        public ulong GetIncrementId(Address addr, bool isBlockProducer = false)
         {
             ILock @lock;
             IPool pool;
@@ -425,7 +426,7 @@ namespace AElf.ChainController.TxMemPool
                 var nonces = txsOut.Select(async p => await TrySetNonce(p.From, p.Type));
                 await Task.WhenAll(nonces);
 
-                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<Transaction>>(),  (current, p) =>
+                var tmap = txsOut.Aggregate(new Dictionary<Address, HashSet<Transaction>>(),  (current, p) =>
                 {
                     if (!current.TryGetValue(p.From, out _))
                     {

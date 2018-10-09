@@ -1,7 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Kernel;
+using AElf.Common;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -21,23 +22,23 @@ namespace AElf.ChainController
         }
         
         /// <inheritdoc/>
-        public async Task<IAccountDataContext> GetAccountDataContext(Hash account, Hash chainId)
+        public async Task<IAccountDataContext> GetAccountDataContext(Address accountAddress, Hash chainId)
         {
-            var key = chainId.CalculateHashWith(account);    
+            var key = Hash.FromTwoHashes(chainId, Hash.FromMessage(accountAddress));    
             if (_accountDataContexts.TryGetValue(key, out var ctx))
             {
                 return ctx;
             }
 
             _stateDictator.ChainId = chainId;
-            var adp = _stateDictator.GetAccountDataProvider(account);
+            var adp = _stateDictator.GetAccountDataProvider(accountAddress);
             var idBytes = await adp.GetDataProvider().GetAsync<UInt64Value>(GetKeyForIncrementId());
             var id = idBytes == null ? 0 : UInt64Value.Parser.ParseFrom(idBytes).Value;
             
             var accountDataContext = new AccountDataContext
             {
                 IncrementId = id,
-                Address = account,
+                Address = accountAddress,
                 ChainId = chainId
             };
 
@@ -49,22 +50,23 @@ namespace AElf.ChainController
         /// <inheritdoc/>
         public async Task SetAccountContext(IAccountDataContext accountDataContext)
         {
-            _accountDataContexts.AddOrUpdate(accountDataContext.ChainId.CalculateHashWith(accountDataContext.Address),
+            _accountDataContexts.AddOrUpdate(
+                Hash.FromTwoHashes(accountDataContext.ChainId, Hash.FromMessage(accountDataContext.Address)),
                 accountDataContext, (hash, context) => accountDataContext);
-            
+
             var adp = _stateDictator.GetAccountDataProvider(accountDataContext.Address);
 
             //await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
-            await adp.GetDataProvider().SetAsync<UInt64Value>(GetKeyForIncrementId(), new UInt64Value
+            await adp.GetDataProvider().SetDataAsync(GetKeyForIncrementId(), new UInt64Value
             {
                 Value = accountDataContext.IncrementId
-            }.ToByteArray());
+            });
 
         }
 
         private Hash GetKeyForIncrementId()
         {
-            return "Id".CalculateHash();
+            return Hash.FromString("Id");
         }
     }
 }

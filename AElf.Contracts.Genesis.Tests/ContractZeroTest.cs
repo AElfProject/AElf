@@ -5,6 +5,8 @@ using AElf.Types.CSharp;
 using Xunit.Frameworks.Autofac;
 using Xunit;
 using ServiceStack;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Contracts.Genesis.Tests
 {
@@ -42,18 +44,18 @@ namespace AElf.Contracts.Genesis.Tests
             Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal);
             
             // get the address of deployed contract
-            var address = new Hash(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToBytes());
+            var address = Address.FromBytes(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToBytes());
             
             // query owner
             _contractShim.GetContractOwner(address);
-            var owner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
+            var owner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
             Assert.Equal(_contractShim.Sender, owner);
 
             // chang owner and query again, owner will be new owner
-            var newOwner = Hash.Generate().ToAccount();
+            var newOwner = Address.FromBytes(Hash.Generate().ToByteArray());
             _contractShim.ChangeContractOwner(address, newOwner);
             _contractShim.GetContractOwner(address);
-            var queryNewOwner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
+            var queryNewOwner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
             Assert.Equal(newOwner, queryNewOwner);     
         }
     }

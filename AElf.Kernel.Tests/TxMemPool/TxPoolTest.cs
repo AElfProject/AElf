@@ -8,6 +8,7 @@ using Google.Protobuf;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests.TxMemPool
 {
@@ -31,13 +32,13 @@ namespace AElf.Kernel.Tests.TxMemPool
             return new ContractTxPool(config, _logger);
         }
 
-        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
+        public static Transaction BuildTransaction(Address adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
             keyPair = keyPair ?? new KeyPairGenerator().Generate();
 
             var tx = new Transaction();
             tx.From = keyPair.GetAddress();
-            tx.To = (adrTo == null ? Hash.Generate().ToAccount() : adrTo);
+            tx.To = adrTo ?? Address.FromBytes(Hash.Generate().ToByteArray());
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;

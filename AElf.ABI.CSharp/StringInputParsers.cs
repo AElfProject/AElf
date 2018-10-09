@@ -2,8 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -34,26 +33,30 @@ namespace AElf.ABI.CSharp
                     s => Enumerable.Range(0, s.Length).Where(x => x % 2 == 0 && !(IsHex(s) && x == 0))
                         .Select(x => Convert.ToByte(s.Substring(x, 2), 16)).ToArray()
                 },
+                {typeof(Hash), Hash.Loads},
+                {typeof(Address), Address.Loads},
                 {typeof(MerklePath), (s) => MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
             };
-        
-        
+
+
         private static readonly Dictionary<System.Type, Func<object, string>> ObjectHandlers =
             new Dictionary<System.Type, Func<object, string>>()
             {
-                {typeof(bool), obj => ((bool)obj).ToString()},
-                {typeof(int), obj => ((int)obj).ToString()},
-                {typeof(uint), obj => ((uint)obj).ToString()},
-                {typeof(long), obj => ((long)obj).ToString()},
-                {typeof(ulong), obj => ((ulong)obj).ToString()},
-                {typeof(string), obj => (string)obj},
+                {typeof(bool), obj => ((bool) obj).ToString()},
+                {typeof(int), obj => ((int) obj).ToString()},
+                {typeof(uint), obj => ((uint) obj).ToString()},
+                {typeof(long), obj => ((long) obj).ToString()},
+                {typeof(ulong), obj => ((ulong) obj).ToString()},
+                {typeof(string), obj => (string) obj},
                 {
                     typeof(byte[]),
-                    obj => ((byte[])obj).ToHex()
+                    obj => ((byte[]) obj).ToHex()
                 },
-                {typeof(MerklePath), obj => ((MerklePath)obj).ToByteArray().ToHex()}
+                {typeof(Hash), obj=> ((Hash)obj).Dumps()},
+                {typeof(Address), obj=> ((Address)obj).Dumps()},
+                {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()}
             };
-        
+
         static StringInputParsers()
         {
             _nameToType = new Dictionary<string, System.Type>();
@@ -61,7 +64,7 @@ namespace AElf.ABI.CSharp
             {
                 _nameToType.Add(t.FullName, t);
                 var shortName = t.FullName.ToShorterName();
-                if(shortName.Equals(t.FullName))
+                if (shortName.Equals(t.FullName))
                     continue;
                 _nameToType.Add(shortName, t);
             }
@@ -90,7 +93,7 @@ namespace AElf.ABI.CSharp
 
                     // Note: Hash has the same structure as BytesValue, hence using BytesValue for serialization.
                     // So that we don't need dependency AElf.Kernel.
-                    
+
                     return new BytesValue()
                     {
                         Value = ByteString.CopyFrom((byte[]) StringHandlers[typeof(byte[])](s))
@@ -100,8 +103,8 @@ namespace AElf.ABI.CSharp
 
             throw new Exception($"Not Found parser for type {typeName}");
         }
-        
-        
+
+
         public static Func<object, string> ParseToStringFor(string typeName)
         {
             if (_nameToType.TryGetValue(typeName, out var type))
@@ -114,7 +117,7 @@ namespace AElf.ABI.CSharp
 
             if (typeName == Globals.HASH_TYPE_FULL_NAME)
             {
-                return obj => ((Hash)obj).ToHex();
+                return obj => ((Hash) obj).Dumps();
             }
 
             throw new Exception($"Not Found parser for type {typeName}");

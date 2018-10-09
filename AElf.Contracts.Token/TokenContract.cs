@@ -4,6 +4,7 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using Api = AElf.Sdk.CSharp.Api;
+using AElf.Common;
 
 namespace AElf.Contracts.Token
 {
@@ -11,23 +12,23 @@ namespace AElf.Contracts.Token
 
     public class Transfered : Event
     {
-        [Indexed] public Hash From { get; set; }
-        [Indexed] public Hash To { get; set; }
+        [Indexed] public Address From { get; set; }
+        [Indexed] public Address To { get; set; }
         [Indexed] public ulong Amount { get; set; }
     }
 
     public class Approved : Event
     {
-        [Indexed] public Hash Owner { get; set; }
-        [Indexed] public Hash Spender { get; set; }
+        [Indexed] public Address Owner { get; set; }
+        [Indexed] public Address Spender { get; set; }
         [Indexed] public ulong Amount { get; set; }
     }
 
 
     public class UnApproved : Event
     {
-        [Indexed] public Hash Owner { get; set; }
-        [Indexed] public Hash Spender { get; set; }
+        [Indexed] public Address Owner { get; set; }
+        [Indexed] public Address Spender { get; set; }
         [Indexed] public ulong Amount { get; set; }
     }
 
@@ -46,7 +47,7 @@ namespace AElf.Contracts.Token
         [SmartContractFieldData("${this}._decimals", DataAccessMode.ReadOnlyAccountSharing)]
         private readonly UInt32Field _decimals = new UInt32Field("_Decimals_");
         [SmartContractFieldData("${this}._balances", DataAccessMode.AccountSpecific)]
-        private readonly MapToUInt64<Hash> _balances = new MapToUInt64<Hash>("_Balances_");
+        private readonly MapToUInt64<Address> _balances = new MapToUInt64<Address>("_Balances_");
 
         [SmartContractFieldData("${this}._allowancePlaceHolder", DataAccessMode.AccountSpecific)]
         private readonly object _allowancePlaceHolder;
@@ -85,14 +86,14 @@ namespace AElf.Contracts.Token
 
         [SmartContractFunction("${this}.BalanceOf", new string[]{}, new []{"${this}._balances"})]
         [View]
-        public ulong BalanceOf(Hash owner)
+        public ulong BalanceOf(Address owner)
         {
             return _balances[owner];
         }
 
         [SmartContractFunction("${this}.Allowance", new string[]{}, new []{"${this}._allowancePlaceHolder"})]
         [View]
-        public ulong Allowance(Hash owner, Hash spender)
+        public ulong Allowance(Address owner, Address spender)
         {
             return Allowances.GetAllowance(owner, spender);
         }
@@ -116,14 +117,14 @@ namespace AElf.Contracts.Token
         }
 
         [SmartContractFunction("${this}.Transfer", new string[]{"${this}.DoTransfer"}, new string[]{})]
-        public void Transfer(Hash to, ulong amount)
+        public void Transfer(Address to, ulong amount)
         {
             var from = Api.GetTransaction().From;
             DoTransfer(from, to, amount);
         }
 
         [SmartContractFunction("${this}.TransferFrom", new string[]{"${this}.DoTransfer"}, new string[]{"${this}._allowancePlaceHolder"})]
-        public void TransferFrom(Hash from, Hash to, ulong amount)
+        public void TransferFrom(Address from, Address to, ulong amount)
         {
             var allowance = Allowances.GetAllowance(from, Api.GetTransaction().From);
             Api.Assert(allowance > amount, "Insufficient allowance.");
@@ -133,7 +134,7 @@ namespace AElf.Contracts.Token
         }
 
         [SmartContractFunction("${this}.Approve", new string[]{}, new string[]{"${this}._allowancePlaceHolder"})]
-        public void Approve(Hash spender, ulong amount)
+        public void Approve(Address spender, ulong amount)
         {
             Allowances.Approve(spender, amount);
             new Approved()
@@ -145,7 +146,7 @@ namespace AElf.Contracts.Token
         }
 
         [SmartContractFunction("${this}.UnApprove", new string[]{}, new string[]{"${this}._allowancePlaceHolder"})]
-        public void UnApprove(Hash spender, ulong amount)
+        public void UnApprove(Address spender, ulong amount)
         {
             Allowances.Reduce(spender, amount);
             new UnApproved()
@@ -164,7 +165,7 @@ namespace AElf.Contracts.Token
         #region Private Methods
 
         [SmartContractFunction("${this}.DoTransfer", new string[]{}, new string[]{"${this}._balances"})]
-        private void DoTransfer(Hash from, Hash to, ulong amount)
+        private void DoTransfer(Address from, Address to, ulong amount)
         {
             var balSender = _balances[from];
             Api.Assert(balSender >= amount, "Insufficient balance.");
@@ -188,22 +189,22 @@ namespace AElf.Contracts.Token
 
     internal class Allowances
     {
-        private static MapToUInt64<HashPair> _allowances = new MapToUInt64<HashPair>("_Allowances_");
+        private static MapToUInt64<AddressPair> _allowances = new MapToUInt64<AddressPair>("_Allowances_");
 
-        public static ulong GetAllowance(Hash owner, Hash spender)
+        public static ulong GetAllowance(Address owner, Address spender)
         {
-            return _allowances.GetValue(new HashPair() {First = owner, Second = spender});
+            return _allowances.GetValue(new AddressPair() {First = owner, Second = spender});
         }
 
-        public static void Approve(Hash spender, ulong amount)
+        public static void Approve(Address spender, ulong amount)
         {
-            var pair = new HashPair() {First = Api.GetTransaction().From, Second = spender};
+            var pair = new AddressPair() {First = Api.GetTransaction().From, Second = spender};
             _allowances[pair] = _allowances[pair].Add(amount);
         }
 
-        public static void Reduce(Hash owner, ulong amount)
+        public static void Reduce(Address owner, ulong amount)
         {
-            var pair = new HashPair() {First = owner, Second = Api.GetTransaction().From};
+            var pair = new AddressPair() {First = owner, Second = Api.GetTransaction().From};
             _allowances[pair] = _allowances[pair].Sub(amount);
         }
     }

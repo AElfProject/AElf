@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Kernel;
+using AElf.Common;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -68,18 +68,18 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, TValue value)
         {
-            await DataProvider.SetAsync<TValue>(key.CalculateHash(), value.ToByteArray());
+            await DataProvider.SetAsync<TValue>(Hash.FromMessage(key), value.ToByteArray());
         }
 
         public async Task<TValue> GetValueAsync(TKey key)
         {
-            var bytes = await DataProvider.GetAsync<TValue>(key.CalculateHash());
+            var bytes = await DataProvider.GetAsync<TValue>(Hash.FromMessage(key));
             return bytes == null ? default(TValue) : Api.Serializer.Deserialize<TValue>(bytes);
         }
 
         public async Task SetValueToDatabaseAsync(TKey key, TValue value)
         {
-            await DataProvider.SetDataAsync(key.CalculateHash(), value);
+            await DataProvider.SetDataAsync(Hash.FromMessage(key), value);
         }
     }
 
@@ -422,13 +422,13 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, TValue value)
         {
-            await DataProvider.SetAsync<UserTypeHolder>(key.CalculateHash(), value.ToPbMessage().ToByteArray());
+            await DataProvider.SetAsync<UserTypeHolder>(Hash.FromMessage(key), value.ToPbMessage().ToByteArray());
         }
 
         public async Task<TValue> GetValueAsync(TKey key)
         {
             var obj = (TValue) Activator.CreateInstance(typeof(TValue));
-            var bytes = await DataProvider.GetAsync<UserTypeHolder>(key.CalculateHash());
+            var bytes = await DataProvider.GetAsync<UserTypeHolder>(Hash.FromMessage(key));
             if (bytes == null)
             {
                 return default(TValue);

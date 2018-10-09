@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace AElf.Kernel
+namespace AElf.Common
 {
     public static class ConvertExtensions
     {

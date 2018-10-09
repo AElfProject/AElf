@@ -22,7 +22,6 @@ namespace AElf.Contracts.SideChain.Tests
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
             var assembly1 = typeof(IStateDictator).Assembly;
-            builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
             var assembly2 = typeof(ISerializer<>).Assembly;
             builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
@@ -36,7 +35,6 @@ namespace AElf.Contracts.SideChain.Tests
             builder.RegisterAssemblyTypes(assembly6).AsImplementedInterfaces();
             var assembly7 = typeof(BlockHeader).Assembly;
             builder.RegisterAssemblyTypes(assembly7).AsImplementedInterfaces();
-            builder.RegisterType(typeof(Hash)).As(typeof(IHash));
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
             
             builder.RegisterModule(new DatabaseAutofacModule());

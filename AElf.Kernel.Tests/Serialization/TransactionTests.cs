@@ -1,10 +1,5 @@
-﻿using System;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
-using AElf.Types.CSharp;
-using Akka.Util;
+﻿using AElf.Common;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Serialization
@@ -15,8 +10,8 @@ namespace AElf.Kernel.Tests.Serialization
         public void FromTo()
         {
             Transaction t = new Transaction();
-            t.From = new byte[] { 0x01, 0x02 };
-            t.To = new byte[] { 0x03, 0x04 };
+//            t.From = Address.FromBytes(new byte[] { 0x01, 0x02 });
+//            t.To = Address.FromBytes(new byte[] { 0x03, 0x04 });
 
             byte[] b = t.ToByteArray();
 

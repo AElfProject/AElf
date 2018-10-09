@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Routing;
 using Google.Protobuf;
-using AElf.Kernel;
+using AElf.Common;
 using AElf.SmartContract;
 
 namespace AElf.Execution

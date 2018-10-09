@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
+using AElf.Kernel.Storages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -13,7 +15,7 @@ namespace AElf.SmartContract
         private readonly DataPath _dataPath;
         private readonly IStateDictator _stateDictator;
         private readonly List<IDataProvider> _children = new List<IDataProvider>();
-        
+
         public IEnumerable<StateValueChange> GetValueChanges()
         {
             var changes = new List<StateValueChange>();
@@ -49,7 +51,7 @@ namespace AElf.SmartContract
                 }
             }
         }
- 
+
         public void ClearCache()
         {
             StateCache = new Dictionary<DataPath, StateCache>();
@@ -74,7 +76,10 @@ namespace AElf.SmartContract
 
         private Hash GetHash()
         {
-            return new StringValue {Value = _dataProviderKey}.CalculateHashWith(Layer);
+            return Hash.Xor(
+                Hash.FromMessage(new StringValue {Value = _dataProviderKey}),
+                Hash.FromMessage(new SInt32Value {Value = Layer})
+            );
         }
 
         /// <inheritdoc />
@@ -96,6 +101,14 @@ namespace AElf.SmartContract
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
             return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
+            // TODO: current cache mechanism has flaws, fix it
+//            var val = GetStateAsync(keyHash)?.CurrentValue;
+//            if (val == null)
+//            {
+//                val = (await GetDataAsync<T>(keyHash))?.ToByteArray();
+//                await SetAsync<T>(keyHash, val);
+//            }
+//            return  val;
         }
 
         public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
@@ -151,9 +164,9 @@ namespace AElf.SmartContract
             }
 
             //Directly set to database.
-            await _stateDictator.SetDataAsync(dataPath.ResourcePointerHash, obj);
+            await _stateDictator.SetDataAsync(dataPath.Key, obj);
             //Set path hash - pointer hash.
-            await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
+            await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.Key);
         }
 
         /// <summary>

@@ -6,25 +6,26 @@ using ServiceStack;
 using Google.Protobuf;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
+using AElf.Common;
 
 namespace AElf.Contracts.Token.Tests
 {
     public class ContractZeroShim
     {
         private MockSetup _mock;
-        public Hash ContractAddres = Hash.Generate();
+        public Address ContractAddres = Common.Address.FromBytes(Hash.Generate().ToByteArray());
         public IExecutive Executive { get; set; }
 
         public TransactionContext TransactionContext { get; private set; }
 
-        public Hash Sender
+        public Address Sender
         {
-            get => Hash.Zero;
+            get => Address.Zero;
         }
         
-        public Hash Address
+        public Address Address
         {
-            get => new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.TokenContract.ToString())).ToAccount();
+            get => AddressHelpers.GetSystemContractAddress(_mock.ChainId1, SmartContractType.TokenContract.ToString());
         }
         
         public ContractZeroShim(MockSetup mock)
@@ -79,7 +80,7 @@ namespace AElf.Contracts.Token.Tests
             TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
         }
         
-        public Hash GetContractOwner(Hash contractAddress)
+        public Address GetContractOwner(Address contractAddress)
         {
             var tx = new Transaction
             {
@@ -96,7 +97,7 @@ namespace AElf.Contracts.Token.Tests
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
         }
     }
 }

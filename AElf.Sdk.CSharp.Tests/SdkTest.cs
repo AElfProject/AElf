@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Kernel;
 using Xunit.Frameworks.Autofac;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -35,8 +36,8 @@ namespace AElf.Sdk.CSharp.Tests
             var trace = _contractShim.InlineCallToZero();
             var expected =new Transaction()
             {
-                From = Hash.Zero,
-                To = Hash.Zero,
+                From = Address.Zero,
+                To = Address.Zero,
                 MethodName = "Dummy"
             };
             Assert.Equal(expected, trace.InlineTransactions[0]);

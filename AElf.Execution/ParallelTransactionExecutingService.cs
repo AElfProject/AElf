@@ -10,6 +10,7 @@ using AElf.Kernel;
 using AElf.Configuration;
 using AElf.Execution.Scheduling;
 using AElf.SmartContract;
+using AElf.Common;
 
 namespace AElf.Execution
 {
@@ -58,7 +59,7 @@ namespace AElf.Execution
             {
                 var failedTrace = new TransactionTrace
                 {
-                    StdErr = "Transaction with ID/hash " + failed.Key.GetHash().ToHex() +
+                    StdErr = "Transaction with ID/hash " + failed.Key.GetHash().Dumps() +
                              " failed, detail message: \n" + failed.Value.Dump(),
                     TransactionId = failed.Key.GetHash()
                 };

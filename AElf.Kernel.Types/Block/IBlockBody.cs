@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Google.Protobuf.Collections;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
