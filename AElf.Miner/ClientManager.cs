@@ -158,12 +158,12 @@ namespace AElf.Miner
             try
             {
                 // do not use cache since configuration is managed by cluster
-                var parent = GrpcRemoteConfig.Instance.ParentChain?.ElementAt(0);
-                if (parent == null)
+                var parent = GrpcRemoteConfig.Instance.ParentChain;
+                if (parent == null || parent.Count == 0)
                     throw new ChainInfoNotFoundException("Unable to get parent chain info.");
-                _clientToParentChain = (ClientToParentChain) CreateClient(parent.Value.Value, parent.Value.Key, false);
+                _clientToParentChain = (ClientToParentChain) CreateClient(parent.ElementAt(0).Value, parent.ElementAt(0).Key, false);
                 var height =
-                    await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(parent.Value.Key));
+                    await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(parent.ElementAt(0).Key));
                 _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, height);
             }
             catch (Exception e)

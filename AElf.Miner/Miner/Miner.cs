@@ -13,6 +13,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Miner.Rpc.Exceptions;
+using AElf.Miner.Rpc.Server;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -42,6 +43,7 @@ namespace AElf.Miner.Miner
         private IBlockChain _blockChain;
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private readonly ServerManager _serverManager;
 
         private IMinerConfig Config { get; }
 
@@ -50,7 +52,7 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
             ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, 
-            IBinaryMerkleTreeManager binaryMerkleTreeManager)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -62,6 +64,7 @@ namespace AElf.Miner.Miner
             _logger = logger;
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
+            _serverManager = serverManager;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
@@ -445,6 +448,7 @@ namespace AElf.Miner.Miner
         public void Close()
         {
             _clientManager.CloseClientsToSideChain();
+            _serverManager.Close();
         }
     }
 }
