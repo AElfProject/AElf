@@ -420,7 +420,6 @@ namespace AElf.Kernel.Consensus
                 {
                     sig = Hash.Generate();
                 }
-                _logger?.Trace("Sigature: " + sig.GetHashBytes().Length);
 
                 var sigNum = BitConverter.ToUInt64(
                     BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);

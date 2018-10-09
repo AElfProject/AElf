@@ -103,7 +103,7 @@ namespace AElf.Kernel.Tests
             var info = new ContractInfo()
             {
                 Owner = creator,
-                SerialNumer = serialNumber
+                SerialNumber = serialNumber
             };
 
             var address = info.Address;
@@ -111,8 +111,9 @@ namespace AElf.Kernel.Tests
             var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId);
             
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success, {0}", account.Dumps());
+            Console.WriteLine("TestContractZero: Deployment success, {0}", account.Dumps());
             return account.GetValueBytes();
+
         }
 
         public void Print(string name)

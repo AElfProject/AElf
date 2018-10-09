@@ -284,7 +284,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var t = SmartContractService.GetExecutiveAsync(SampleContractAddress1, ChainId1);
             t.Wait();
             t.Result.SetTransactionContext(txnCtxt).Apply().Wait();
-Console.WriteLine($"txn {txn} trc {txnCtxt.Trace}");
+
             return txnCtxt.Trace.RetVal.Data.DeserializeToUInt64();
         }
 

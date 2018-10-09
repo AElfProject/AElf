@@ -14,7 +14,7 @@ namespace AElf.SmartContract
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 
-        private bool _alreadyCommited;
+        private bool _alreadyCommitted;
 
         public IEnumerable<LogEvent> FlattenedLogs
         {
@@ -46,10 +46,11 @@ namespace AElf.SmartContract
             Dictionary<DataPath, StateCache> changedDict = new Dictionary<DataPath, StateCache>();
             if (ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
-                throw new InvalidOperationException($"Attempting to commit a trace with a wrong status {ExecutionStatus}.");
+                throw new InvalidOperationException(
+                    $"Attempting to commit a trace with a wrong status {ExecutionStatus}.");
             }
 
-            if (!_alreadyCommited)
+            if (!_alreadyCommitted)
             {
                 foreach (var vc in ValueChanges)
                 {
@@ -73,7 +74,7 @@ namespace AElf.SmartContract
                 ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
             }
 
-            _alreadyCommited = true;
+            _alreadyCommitted = true;
             return changedDict;
         }
     }
