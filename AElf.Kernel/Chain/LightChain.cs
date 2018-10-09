@@ -119,6 +119,7 @@ namespace AElf.Kernel
             if (blockHeader.Index == 0)
             {
                 var curHash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
+                Console.WriteLine($"curHash {curHash} isNull {curHash.IsNull()}");
                 if (curHash.IsNull())
                 {
                     await _chainManager.AddChainAsync(_chainId, header.GetHash());
@@ -127,7 +128,7 @@ namespace AElf.Kernel
             }
 
             #endregion genesis
-
+Console.WriteLine($"bh {blockHeader}");
             var prevHeader = await GetHeaderByHashAsync(blockHeader.PreviousBlockHash);
             if (prevHeader == null)
             {
