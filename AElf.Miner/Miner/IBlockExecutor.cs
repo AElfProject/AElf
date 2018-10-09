@@ -6,6 +6,7 @@ namespace AElf.Miner.Miner
     public interface IBlockExecutor
     {
         Task<bool> ExecuteBlock(IBlock block);
-        void Start();
+        void Init();
+        void FinishInitialSync();
     }
 }

@@ -13,6 +13,7 @@ using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using Grpc.Core;
 using NLog;
+using NServiceKit.Common.Extensions;
 using ClientBase = AElf.Miner.Rpc.Client.ClientBase;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
@@ -75,11 +76,26 @@ namespace AElf.Miner
             _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
             _tokenSourceToSideChain = new CancellationTokenSource();
             _tokenSourceToParentChain = new CancellationTokenSource();
-            _interval = interval == 0 ? Globals.AElfMiningInterval : interval;
+            _interval = interval == 0 ? Globals.AElfInitCrossChainRequestInterval : interval;
             CreateClientsToSideChain();
             CreateClientToParentChain();
         }
 
+        /// <summary>
+        /// Extend interval for request after initial block synchronization.
+        /// </summary>
+        public void UpdateRequestInterval()
+        {
+            _clientToParentChain.UpdateRequestInterval(Globals.AElfMiningInterval);
+            _clientsToSideChains.AsParallel().ForEach(kv =>
+            {
+                kv.Value.UpdateRequestInterval(Globals.AElfMiningInterval);
+            });
+        }
+
+        
+        #region Create client
+        
         /// <summary>
         /// Create multi clients for different side chains
         /// this would be invoked when miner starts or configuration reloaded 
@@ -102,6 +118,7 @@ namespace AElf.Miner
             }
         }
 
+
         /// <summary>
         /// Start a new client to the side chain
         /// </summary>
@@ -118,6 +135,7 @@ namespace AElf.Miner
             _clientsToSideChains.Add(targetChainId, clientToSideChain);
             return clientToSideChain;
         }
+
 
         /// <summary>
         /// Start a new client to the parent chain
@@ -176,6 +194,11 @@ namespace AElf.Miner
             //var channel = new Channel(uriStr, ChannelCredentials.Insecure);
             return channel;
         }
+
+        #endregion
+
+        
+        #region Chain block info process
 
         /// <summary>
         /// Take each side chain's header info 
@@ -251,6 +274,8 @@ namespace AElf.Miner
         /// </returns>
         public async Task<ParentChainBlockInfo> CollectParentChainBlockInfo()
         {
+            if (!GrpcLocalConfig.Instance.Client)
+                throw new ClientShutDownException("Client to parent chain is shut down");
             if (_clientToParentChain == null)
                 return null;
             var chainId = GrpcRemoteConfig.Instance.ParentChain?.ElementAtOrDefault(0).Key;
@@ -277,6 +302,9 @@ namespace AElf.Miner
                 parentChainBlockInfo.Height + 1);
             return true;
         }
+        
+        #endregion
+
 
         /// <summary>
         /// Close and clear clients to side chain

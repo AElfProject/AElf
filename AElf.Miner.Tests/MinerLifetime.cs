@@ -335,7 +335,7 @@ namespace AElf.Kernel.Tests.Miner
             var manager = _mock.MinerClientManager();
             var synchronizer = _mock.GetBlockExecutor(poolService, manager);
 
-            synchronizer.Start();
+            synchronizer.Init();
             var res = await synchronizer.ExecuteBlock(block);
             Assert.False(res);
 

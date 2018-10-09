@@ -96,7 +96,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
-                clientManager, _binaryMerkleTreeManager, null);
+                clientManager, _binaryMerkleTreeManager);
 
             return miner;
         }

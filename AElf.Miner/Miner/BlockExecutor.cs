@@ -8,6 +8,7 @@ using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Miner.Rpc.Exceptions;
 using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;
@@ -123,7 +124,7 @@ namespace AElf.Miner.Miner
             else if (!ValidateSideChainBlockInfo(block))
             {
                 // side chain info verification 
-                // side chain info in block cannot fit together with local side chain info.
+                // side chain info in this block cannot fit together with local side chain info.
                 errlog = "Invalid side chain info";
                 res = false;
             }
@@ -353,12 +354,22 @@ namespace AElf.Miner.Miner
             }
             catch (Exception e)
             {
+                if (e is ClientShutDownException)
+                    return true;
                 _logger.Error(e, "Parent chain block info validation failed.");
                 return false;
             }
         }
+
+        /// <summary>
+        /// Finish initial synchronization process.
+        /// </summary>
+        public void FinishInitialSync()
+        {
+            _clientManager.UpdateRequestInterval();
+        }
         
-        public void Start()
+        public void Init()
         {
             Cts = new CancellationTokenSource();
         }

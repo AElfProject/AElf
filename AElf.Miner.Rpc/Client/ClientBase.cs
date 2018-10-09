@@ -17,7 +17,7 @@ namespace AElf.Miner.Rpc.Client
         private readonly ILogger _logger;
         private ulong _next;
         private readonly Hash _targetChainId;
-        private readonly int _interval;
+        private int _interval;
 
         private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } =
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
@@ -29,6 +29,11 @@ namespace AElf.Miner.Rpc.Client
             _interval = interval;
         }
 
+        public void UpdateRequestInterval(int interval)
+        {
+            _interval = interval;
+        }
+        
         /// <summary>
         /// Task to read response in loop.
         /// </summary>
@@ -48,7 +53,7 @@ namespace AElf.Miner.Rpc.Client
                     if (IndexedInfoQueue.TryAdd(response.BlockInfoResult))
                     {
                         _next++;
-                        _logger.Debug(
+                        _logger.Trace(
                             $"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
                     }
                 }
@@ -66,10 +71,8 @@ namespace AElf.Miner.Rpc.Client
         private async Task RequestLoop(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, 
             CancellationToken cancellationToken)
         {
-            // send request every second until cancellation
             while (!cancellationToken.IsCancellationRequested)
             {
-                
                 var request = new RequestBlockInfo
                 {
                     ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
