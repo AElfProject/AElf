@@ -111,7 +111,6 @@ namespace AElf.ChainController.TxMemPoolBM
             var curHeight = _canonicalBlockHashCache.CurrentHeight;
             if (tx.RefBlockNumber > curHeight && curHeight != 0)
             {
-                _logger?.Trace($"tx.RefBlockNumber({tx.RefBlockNumber}) > curHeight({curHeight})");
                 return TxValidation.TxInsertionAndBroadcastingError.InvalidReferenceBlock;
             }
 
@@ -125,6 +124,7 @@ namespace AElf.ChainController.TxMemPoolBM
             if (curHeight == 0)
             {
                 canonicalHash = await BlockChain.GetCurrentBlockHashAsync();
+                _logger?.Trace("Current block hash: " + canonicalHash.Dumps());
             }
             else
             {

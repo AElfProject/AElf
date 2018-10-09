@@ -18,7 +18,7 @@ namespace AElf.Common
             return $@"""{Dumps()}""";
         }
 
-        private Hash(byte[] bytes)
+        public Hash(byte[] bytes)
         {
             if (bytes.Length != ByteArrayLength)
             {
@@ -26,7 +26,7 @@ namespace AElf.Common
             }
             Value = ByteString.CopyFrom(bytes.ToArray());
         }
-
+        
         public static Hash FromBytes(byte[] bytes)
         {
             return new Hash(bytes.CalculateHash());
@@ -101,46 +101,16 @@ namespace AElf.Common
 //
         public byte[] GetHashBytes() => Value.ToByteArray();
 
-//        public bool Equals(IHash other)
-//        {
-//            return value_.Equals(other.Value);
-//        }
+        public static bool operator ==(Hash h1, Hash h2)
+        {
+            return h1?.Equals(h2) ?? ReferenceEquals(h2, null);
+        }
 
-//        public int Compare(Hash x, Hash y)
-//        {
-//            if (x == null || y == null)
-//            {
-//                throw new InvalidOperationException("Cannot compare hash when hash is null");
-//            }
-//
-//            var xValue = x.Value;
-//            var yValue = y.Value;
-//            for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
-//            {
-//                if (xValue[i] > yValue[i])
-//                {
-//                    return 1;
-//                }
-//
-//                if (xValue[i] < yValue[i])
-//                {
-//                    return -1;
-//                }
-//            }
-//
-//            return 0;
-//        }
+        public static bool operator !=(Hash h1, Hash h2)
+        {
+            return !(h1 == h2);
+        }
 
-//        public static bool operator ==(Hash h1, Hash h2)
-//        {
-//            return h1?.Equals(h2) ?? ReferenceEquals(h2, null);
-//        }
-//
-//        public static bool operator !=(Hash h1, Hash h2)
-//        {
-//            return !(h1 == h2);
-//        }
-//
         public static bool operator <(Hash h1, Hash h2)
         {
             return CompareHash(h1, h2) < 0;
@@ -181,6 +151,11 @@ namespace AElf.Common
         
         private static int Compare(Hash x, Hash y)
         {
+            if (x == null || y == null)
+            {
+                throw new InvalidOperationException("Cannot compare hash when hash is null");
+            }
+            
             var xValue = x.Value;
             var yValue = y.Value;
             for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
@@ -198,21 +173,12 @@ namespace AElf.Common
 
             return 0;
         }
+        
         public int CompareTo(Hash that)
         {
             return Compare(this, that);
         }
-//        
-//        public static implicit operator Hash(byte[] value)
-//        {
-//            return value == null ? Default : new Hash(value);
-//        }
-//
-//        public static implicit operator Hash(ByteString value)
-//        {
-//            return value == null ? Default : new Hash(value);
-//        }
-//
+
         public string Dumps()
         {
             return Value.ToByteArray().ToHex();
@@ -225,7 +191,7 @@ namespace AElf.Common
             {
                 throw new ArgumentOutOfRangeException(nameof(hex));
             }
-            return new Hash()
+            return new Hash
             {
                 Value = ByteString.CopyFrom(bytes)
             };
