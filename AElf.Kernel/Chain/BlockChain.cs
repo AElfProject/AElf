@@ -75,13 +75,19 @@ namespace AElf.Kernel
             return await GetBlockByHashAsync(header.GetHash());
         }
 
+        public async Task<List<Transaction>> RollbackOneBlock()
+        {
+            var currentHeight = await GetCurrentBlockHeightAsync();
+            return await RollbackToHeight(currentHeight);
+        }
+
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
         {   
             var currentHash = await GetCurrentBlockHashAsync();
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
             
             var txs = new List<Transaction>();
-            if (currentHeight == height)
+            if (currentHeight <= height)
             {
                 return txs;
             }

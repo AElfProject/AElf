@@ -30,7 +30,7 @@ namespace AElf.Contracts.Genesis
                     Hash.FromMessage(
                         new UInt64Value()
                         {
-                            Value = SerialNumer
+                            Value = SerialNumber
                         })
                 ).ToByteArray()
             );
