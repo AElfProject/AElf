@@ -26,6 +26,9 @@ using Google.Protobuf.WellKnownTypes;
 using Moq;
 using NLog;
 using MinerConfig = AElf.Miner.Miner.MinerConfig;
+using AElf.Common;
+using Address = AElf.Common.Address;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -60,7 +63,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public Mock<ITxPoolService> MockTxPoolService(Hash chainId)
         {
-            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
+            var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
 
             var code = ExampleContractCode;
 
@@ -68,7 +71,7 @@ namespace AElf.Kernel.Tests.Miner
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = code.CalculateHash()
+                ContractHash = Hash.FromBytes(code)
             };
             
             
@@ -105,15 +108,15 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             var mock = new Mock<ITxPoolService>();
-            mock.Setup((s) => s.GetReadyTxsAsync(null, Hash.Generate(), 3000)).Returns(Task.FromResult(txs));
+            mock.Setup((s) => s.GetReadyTxsAsync(null, Address.FromBytes(Hash.Generate().ToByteArray()), 3000)).Returns(Task.FromResult(txs));
             return mock;
         }
         
         
         public List<Transaction> CreateTx(Hash chainId)
         {
-            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
-
+            var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
+            Console.WriteLine($"zero {contractAddressZero}");
             var code = ExampleContractCode;
          
             
@@ -172,7 +175,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public List<Transaction> CreateTxs(Hash chainId)
         {
-            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
+            var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
 
             var code = ExampleContractCode;
             
@@ -251,7 +254,7 @@ namespace AElf.Kernel.Tests.Miner
             
             // create miner
             var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().GetValueBytes());
             var manager = _mock.MinerClientManager();
             var miner = _mock.GetMiner(minerconfig, poolService, manager);
 
@@ -266,7 +269,8 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Equal((ulong)1, block.Header.Index);
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
-            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
+//            Hash addr = uncompressedPrivKey.Take(Common.Globals.AddressLength).ToArray();
+            Address addr = Address.FromBytes(uncompressedPrivKey);
             Assert.Equal(minerconfig.CoinBase, addr);
             
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
@@ -283,7 +287,7 @@ namespace AElf.Kernel.Tests.Miner
 
             // create miner
             var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().GetValueBytes());
             var manager = _mock.MinerClientManager();
             var miner = _mock.GetMiner(minerconfig, poolService, manager);
             GrpcLocalConfig.Instance.Client = false;
@@ -296,7 +300,8 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Equal((ulong)1, block.Header.Index);
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
-            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
+//            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
+            Address addr = Address.FromBytes(uncompressedPrivKey);
             Assert.Equal(minerconfig.CoinBase, addr);
             
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
@@ -348,7 +353,7 @@ namespace AElf.Kernel.Tests.Miner
             var curHash = await blockchain.GetCurrentBlockHashAsync();
             var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
             Assert.Equal((ulong)0, index);
-            Assert.Equal(chain.GenesisBlockHash.ToHex(), curHash.ToHex());
+            Assert.Equal(chain.GenesisBlockHash.Dumps(), curHash.Dumps());
         }
     }
 }

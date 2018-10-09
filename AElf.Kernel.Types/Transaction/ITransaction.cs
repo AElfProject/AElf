@@ -1,6 +1,7 @@
 ﻿﻿using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
  using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel

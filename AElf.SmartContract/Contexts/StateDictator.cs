@@ -10,6 +10,8 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Mono.Cecil;
 using NLog;
+using AElf.Common;
+using AElf.Kernel.Types;
 
 // ReSharper disable CheckNamespace
 namespace AElf.SmartContract
@@ -25,7 +27,7 @@ namespace AElf.SmartContract
         private WorldState _worldState = new WorldState();
 
         public Hash ChainId { get; set; }
-        public Hash BlockProducerAccountAddress { get; set; } = Hash.Zero;
+        public Address BlockProducerAccountAddress { get; set; } = Address.Zero;
         public ulong BlockHeight { get; set; }
 
         public StateDictator(IHashManager hashManager, ITransactionManager transactionManager, IDataStore dataStore, ILogger logger = null)
@@ -43,7 +45,7 @@ namespace AElf.SmartContract
         /// </summary>
         /// <param name="accountAddress"></param>
         /// <returns></returns>
-        public IAccountDataProvider GetAccountDataProvider(Hash accountAddress)
+        public IAccountDataProvider GetAccountDataProvider(Address accountAddress)
         {
             return new AccountDataProvider(accountAddress, this);
         }
@@ -78,6 +80,7 @@ namespace AElf.SmartContract
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _dataStore.InsertAsync(dataPath.StateHash, _worldState);
+//            await _dataStore.InsertBytesAsync<IMessage>(dataPath.StateHash, _worldState.ToByteArray());
             _worldState = new WorldState();
         }
         
@@ -131,7 +134,8 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task SetDataAsync<T>(Hash pointerHash, T data) where T : IMessage
         {
-            await _dataStore.InsertAsync(pointerHash, data);
+//            await _dataStore.InsertAsync(pointerHash, data);
+            await _dataStore.InsertBytesAsync<IMessage>(pointerHash, data.ToByteArray());
         }
 
         /// <summary>
@@ -141,7 +145,9 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<T> GetDataAsync<T>(Hash pointerHash) where T : IMessage, new()
         {
-            return await _dataStore.GetAsync<T>(pointerHash);
+//            return await _dataStore.GetAsync<T>(pointerHash);
+            var res = await _dataStore.GetBytesAsync<T>(pointerHash);
+            return res == null ? default(T) : res.Deserialize<T>();
         }
 
         public Task RollbackToPreviousBlock()
@@ -169,7 +175,10 @@ namespace AElf.SmartContract
             var data = stateValueChange.CurrentValue;
             var length = data.Length / 3;
             var represent = stateValueChange.ToString().Substring(length, data.Length > 150 ? 50 : length);
-            return stateValueChange.Path.ResourcePathHash.CalculateHashWith(represent);
+            return Hash.Xor(
+                stateValueChange.Path.ResourcePathHash,
+                Hash.FromString(represent)
+            );
         }
 
         /// <summary>

@@ -6,8 +6,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Cryptography.ECDSA;
@@ -113,7 +112,7 @@ namespace AElf.Network.Peers
             _nodeKey = NetworkConfig.Instance.EcKeyPair;
             
             // This nodes key
-            _isBp = _bpAddresses.Any(k => k.BytesEqual(_nodeKey.GetAddress()));
+            _isBp = _bpAddresses.Any(k => k.BytesEqual(_nodeKey.GetAddress().GetValueBytes()));
         }
 
         public void Start()

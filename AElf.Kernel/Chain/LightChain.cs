@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Kernel;
+using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Akka.Dispatch;
@@ -190,7 +190,7 @@ namespace AElf.Kernel
             if (blockHeader.Index == 0)
             {
                 var hash = GetHeightHash(blockHeader.Index).OfType(HashType.CanonicalHash);
-                hash.Height = blockHeader.Index;
+//                hash.Height = blockHeader.Index;
                 await _dataStore.InsertAsync(hash, header.GetHash());
                 return;
             }
@@ -201,7 +201,7 @@ namespace AElf.Kernel
                 ((BlockHeader) header).PreviousBlockHash.Equals(Hash.Genesis))
             {
                 var hash = GetHeightHash(((BlockHeader) header).Index).OfType(HashType.CanonicalHash);
-                hash.Height = ((BlockHeader) header).Index;
+//                hash.Height = ((BlockHeader) header).Index;
                 await _dataStore.InsertAsync(hash, header.GetHash());
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 return;
@@ -221,7 +221,7 @@ namespace AElf.Kernel
                         }
 
                         var hash = GetHeightHash(((BlockHeader) newBranchHeader).Index).OfType(HashType.CanonicalHash);
-                        hash.Height = ((BlockHeader) newBranchHeader).Index;
+//                        hash.Height = ((BlockHeader) newBranchHeader).Index;
                         await _dataStore.InsertAsync(hash, newBranchHeader.GetHash());
                     }
                 }

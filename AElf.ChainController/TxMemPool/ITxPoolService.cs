@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.ChainController.TxMemPool
 {
@@ -28,7 +29,7 @@ namespace AElf.ChainController.TxMemPool
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo = null, Hash myAddress = null,
+        Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo = null, Address myAddress = null,
             double intervals = 150);
 
         List<Transaction> GetSystemTxs();
@@ -60,7 +61,7 @@ namespace AElf.ChainController.TxMemPool
         /// which happens a block generated 
         /// </summary>
         /// <returns></returns>
-        Task UpdateAccountContext(HashSet<Hash> txResultList);
+        Task UpdateAccountContext(HashSet<Address> txResultList);
         
         /// <summary>
         /// open transaction pool

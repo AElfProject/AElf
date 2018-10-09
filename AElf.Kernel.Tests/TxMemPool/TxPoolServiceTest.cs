@@ -11,6 +11,7 @@ using Google.Protobuf;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests.TxMemPool
 {
@@ -26,7 +27,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             _accountContextService = accountContextService;
             _logger = logger;
             _stateDictator = stateDictator;
-            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
+            _stateDictator.BlockProducerAccountAddress = Address.FromBytes(Hash.Generate().ToByteArray());
         }
 
         private ContractTxPool GetContractTxPool(ITxPoolConfig config)
@@ -109,7 +110,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 TransactionId = t.GetHash()
             }).ToList();
 
-            await poolService.UpdateAccountContext(new HashSet<Hash>{keyPair.GetAddress()});
+            await poolService.UpdateAccountContext(new HashSet<Address>{keyPair.GetAddress()});
 
             var addr1 = keyPair.GetAddress();
             var context1 = await _accountContextService.GetAccountDataContext(addr1, pool.ChainId);
@@ -130,7 +131,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 TransactionId = t.GetHash()
             }).ToList();
 
-            await poolService.UpdateAccountContext(new HashSet<Hash>{addr1});
+            await poolService.UpdateAccountContext(new HashSet<Address>{addr1});
             var context2 = await _accountContextService.GetAccountDataContext(addr1, pool.ChainId);
             Assert.Equal(4, (int)context2.IncrementId);
 
@@ -166,7 +167,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var kp = new KeyPairGenerator().Generate();
             var tx1 = BuildTransaction(keyPair:kp, nonce: 0);
             var tx2 = BuildTransaction(keyPair:kp, nonce: 1);
-            var tx2_1 = BuildTransaction(adrTo:Hash.Generate().ToAccount(), keyPair: kp, nonce: 1);
+            var tx2_1 = BuildTransaction(adrTo:Address.FromBytes(Hash.Generate().ToByteArray()), keyPair: kp, nonce: 1);
             var r2 = await poolService.AddTxAsync(tx2);
             Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.Success, r2);
             var r2_1 = await poolService.AddTxAsync(tx2_1);
@@ -250,13 +251,13 @@ namespace AElf.Kernel.Tests.TxMemPool
         }
 
 
-        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
+        public static Transaction BuildTransaction(Address adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
             keyPair = keyPair ?? new KeyPairGenerator().Generate();
 
             var tx = new Transaction();
             tx.From = keyPair.GetAddress();
-            tx.To = (adrTo == null ? Hash.Generate().ToAccount() : adrTo);
+            tx.To = adrTo ?? Address.FromBytes(Hash.Generate().ToByteArray());
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;

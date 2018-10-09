@@ -1,6 +1,7 @@
 ﻿using System;
 using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 namespace AElf.Kernel
 {

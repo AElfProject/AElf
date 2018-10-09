@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
@@ -17,9 +18,9 @@ namespace AElf.Contracts.SideChain
     {
         public static readonly string SideChainSerialNumber = "__SideChainSerialNumber__";
         public static readonly string SideChainInfos = "__SideChainInfos__";
-        public static readonly string ParentChainBlockInfo = Globals.AElfParentChainBlockInfo;
-        public static readonly string AElfBoundParentChainHeight = Globals.AElfBoundParentChainHeight;
-        public static readonly string TxRootMerklePathInParentChain = Globals.AElfTxRootMerklePathInParentChain;
+        public static readonly string ParentChainBlockInfo = GlobalConfig.AElfParentChainBlockInfo;
+        public static readonly string AElfBoundParentChainHeight = GlobalConfig.AElfBoundParentChainHeight;
+        public static readonly string TxRootMerklePathInParentChain = GlobalConfig.AElfTxRootMerklePathInParentChain;
     }
 
     #endregion Field Names
@@ -28,7 +29,7 @@ namespace AElf.Contracts.SideChain
 
     public class SideChainCreationRequested : Event
     {
-        public Hash Creator;
+        public Address Creator;
         public Hash ChainId;
     }
 
@@ -124,11 +125,11 @@ namespace AElf.Contracts.SideChain
             Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain.");
             var info = _sideChainInfos[chainId];
             Api.Assert(info.Status != (SideChainStatus) 3, "Disposed side chain.");
-            return info.LockedAddress.GetHashBytes();
+            return info.LockedAddress.GetValueBytes();
         }
 
         #region Actions
-        public byte[] CreateSideChain(Hash chainId, Hash lockedAddress, ulong lockedToken)
+        public byte[] CreateSideChain(Hash chainId, Address lockedAddress, ulong lockedToken)
         {
             ulong serialNumber = _sideChainSerialNumber.Increment().Value;
             var info = new SideChainInfo
@@ -188,6 +189,7 @@ namespace AElf.Contracts.SideChain
                 BindParentChainHeight(_.Key, parentChainHeight);
                 AddIndexedTxRootMerklePathInParentChain(_.Key, _.Value);
             }
+//            _parentChainBlockInfo[key] = parentChainBlockInfo;
             _parentChainBlockInfo.SetValueToDatabaseAsync(key, parentChainBlockInfo).Wait();
             Console.WriteLine("WriteParentChainBlockInfo success.");
         }
@@ -197,9 +199,9 @@ namespace AElf.Contracts.SideChain
             var key = new UInt64Value {Value = parentChainHeight};
             Api.Assert(_parentChainBlockInfo.GetValue(key) != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
-            var rootCalculated = path.ComputeRootWith(tx);
-            var parentRoot = _parentChainBlockInfo.GetValue(key).Root.SideChainTransactionsRoot;
-            Api.Assert(parentRoot.Equals(rootCalculated), "Transaction verification Failed");
+            var rootCalculated =  path.ComputeRootWith(tx);
+            var parentRoot = _parentChainBlockInfo.GetValue(key)?.Root?.SideChainTransactionsRoot;
+            Api.Assert((parentRoot??Hash.Zero).Equals(rootCalculated), "Transaction verification Failed");
             return true;
         }
 
@@ -208,6 +210,7 @@ namespace AElf.Contracts.SideChain
             var key = new UInt64Value {Value = childHeight};
             Api.Assert(_childHeightToParentChainHeight.GetValue(key) == null,
                 $"Already bound at height {childHeight} with parent chain");
+//            _childHeightToParentChainHeight[key] = new UInt64Value {Value = parentHeight};
             _childHeightToParentChainHeight.SetValueToDatabaseAsync(key, new UInt64Value{Value = parentHeight}).Wait();
         }
 
@@ -216,8 +219,9 @@ namespace AElf.Contracts.SideChain
             var key = new UInt64Value {Value = height};
             Api.Assert(_txRootMerklePathInParentChain.GetValue(key) == null,
                 $"Merkle path already bound at height {height}.");
+//            _txRootMerklePathInParentChain[key] = path;
             _txRootMerklePathInParentChain.SetValueToDatabaseAsync(key, path).Wait();
-            Console.WriteLine("Path: {0}", path.Path[0].ToHex());
+            Console.WriteLine("Path: {0}", path.Path[0].Dumps());
 
         }
         #endregion

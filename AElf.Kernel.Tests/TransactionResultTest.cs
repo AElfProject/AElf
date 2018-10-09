@@ -3,6 +3,7 @@ using AElf.Kernel.Managers;
 using AElf.ChainController;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Kernel.Managers
 {
@@ -10,7 +11,7 @@ namespace AElf.Kernel.Managers
     {
         private readonly IDataStore _dataStore;
         private readonly ILogger _logger;
-        private readonly Hash _sideChainIdListKey = "SideChainIdList".CalculateHash();
+        private readonly Hash _sideChainIdListKey = Hash.FromString("SideChainIdList");
 
         public ChainManagerBasic(IDataStore dataStore, ILogger logger = null)
         {

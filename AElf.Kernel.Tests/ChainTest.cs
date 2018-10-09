@@ -8,6 +8,7 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {
@@ -82,7 +83,7 @@ namespace AElf.Kernel.Tests
             await blockchain.AddBlocksAsync(new List<IBlock> {block});
             
             Assert.Equal(await getNextHeight(), (ulong)2);
-            Assert.Equal((await blockchain.GetCurrentBlockHashAsync()).ToHex(), block.GetHash().ToHex());
+            Assert.Equal((await blockchain.GetCurrentBlockHashAsync()).Dumps(), block.GetHash().Dumps());
             Assert.Equal(block.Header.Index, (ulong)1);
         }
         

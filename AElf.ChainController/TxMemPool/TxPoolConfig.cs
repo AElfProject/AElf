@@ -1,6 +1,6 @@
 ﻿using AElf.ChainController.TxMemPool;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.ChainController.TxMemPool
  {

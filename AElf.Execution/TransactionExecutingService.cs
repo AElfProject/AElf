@@ -5,13 +5,14 @@ using AElf.Kernel.Types;
 using QuickGraph;
 using AElf.Kernel;
 using AElf.SmartContract;
+using AElf.Common;
 
 namespace AElf.Execution
 {
     public class TransactionExecutingService : ITransactionExecutingService
     {
         public Dictionary<int, List<Transaction>> ExecutingPlan { get; private set; }
-        private Dictionary<Hash, List<Transaction>> _pending;
+        private Dictionary<Address, List<Transaction>> _pending;
         private UndirectedGraph<Transaction, Edge<Transaction>> _graph;
         private readonly ISmartContractService _smartContractService;
         private readonly IChainContext _chainContext;
@@ -52,13 +53,13 @@ namespace AElf.Execution
         public void Schedule(List<Transaction> transactions, IChainContext chainContext)
         {
             // reset 
-            _pending = new Dictionary<Hash, List<Transaction>>();
+            _pending = new Dictionary<Address, List<Transaction>>();
             ExecutingPlan = new Dictionary<int, List<Transaction>>();
             _graph = new UndirectedGraph<Transaction, Edge<Transaction>>(false);
             
             foreach (var tx in transactions)
             {
-                var conflicts = new List<Hash> {tx.From, tx.To};
+                var conflicts = new List<Address> {tx.From, tx.To};
                 _graph.AddVertex(tx);
                 foreach (var res in conflicts)
                 {

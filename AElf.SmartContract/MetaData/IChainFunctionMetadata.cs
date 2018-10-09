@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Types;
 using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.SmartContract
 {
@@ -17,7 +18,7 @@ namespace AElf.SmartContract
         /// <param name="contractReferences">the map where smart contract member reference to its acutal address</param>
         /// <exception cref="InvalidOperationException">Throw when FunctionMetadataMap already contains a function with same fullname</exception>
         /// <returns>True when success, false when something is wrong (usually is cannot find record with respect to functionName in the parameter otherFunctionsCallByThis)</returns>
-        Task DeployNewContract(Hash chainID, Hash contractAddr, ContractMetadataTemplate contractMetadataTemplate);
+        Task DeployNewContract(Hash chainID, Address contractAddr, ContractMetadataTemplate contractMetadataTemplate);
 
         /// <summary>
         /// Get a function's metadata, throw  if this function is not found in the map.

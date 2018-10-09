@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Types;
+using AElf.Common;
 using Google.Protobuf;
 
 namespace AElf.Kernel

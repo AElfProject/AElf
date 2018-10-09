@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 namespace AElf.Kernel
 {

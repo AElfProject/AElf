@@ -15,6 +15,7 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {

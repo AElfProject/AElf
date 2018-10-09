@@ -15,24 +15,24 @@ namespace AElf.Kernel
         {
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {
-                Globals.AElfDPoSMiningInterval = ConsensusConfig.Instance.DPoSMiningInterval;
+                GlobalConfig.AElfDPoSMiningInterval = ConsensusConfig.Instance.DPoSMiningInterval;
                 if (NodeConfig.Instance.ConsensusInfoGenerater)
                 {
-                    Console.WriteLine($"Mining interval: {Globals.AElfDPoSMiningInterval} ms");
+                    Console.WriteLine($"Mining interval: {GlobalConfig.AElfDPoSMiningInterval} ms");
                 }
             }
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.PoTC)
             {
-                Globals.BlockProducerNumber = 1;
-                Globals.ExpectedTransactionCount = ConsensusConfig.Instance.ExpectedTransanctionCount;
+                GlobalConfig.BlockProducerNumber = 1;
+                GlobalConfig.ExpectedTransactionCount = ConsensusConfig.Instance.ExpectedTransanctionCount;
             }
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.SingleNode)
             {
-                Globals.BlockProducerNumber = 1;
-                Globals.SingleNodeTestMiningInterval = ConsensusConfig.Instance.SingleNodeTestMiningInterval;
-                Console.WriteLine($"Mining interval: {Globals.SingleNodeTestMiningInterval} ms");
+                GlobalConfig.BlockProducerNumber = 1;
+                GlobalConfig.SingleNodeTestMiningInterval = ConsensusConfig.Instance.SingleNodeTestMiningInterval;
+                Console.WriteLine($"Mining interval: {GlobalConfig.SingleNodeTestMiningInterval} ms");
             }
             
             builder.RegisterModule(new KernelAutofacModule());

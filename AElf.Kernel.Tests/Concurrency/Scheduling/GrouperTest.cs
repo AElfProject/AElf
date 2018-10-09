@@ -4,22 +4,24 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Execution.Scheduling;
 using Xunit;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
     public class GrouperTest
     {
-        public List<Hash> _accountList = new List<Hash>();
+        public List<Address> _accountList = new List<Address>();
         private ParallelTestDataUtil _dataUtil = new ParallelTestDataUtil();
 
-        public Dictionary<Hash, List<Transaction>> GetTestData()
+        public Dictionary<Address, List<Transaction>> GetTestData()
         {
-            Dictionary<Hash, List<Transaction>> txList = new Dictionary<Hash, List<Transaction>>();
+            Dictionary<Address, List<Transaction>> txList = new Dictionary<Address, List<Transaction>>();
 
 
             for (int i = 0; i < 12; i++)
             {
-                _accountList.Add(Hash.Generate());
+                _accountList.Add(Address.FromBytes(Hash.Generate().ToByteArray()));
             }
 
             GetTransactionReadyInList(txList, 0, 1);
@@ -35,7 +37,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return txList;
         }
 
-        public void GetTransactionReadyInList(Dictionary<Hash, List<Transaction>> txList, int from, int to)
+        public void GetTransactionReadyInList(Dictionary<Address, List<Transaction>> txList, int from, int to)
         {
             var tx = GetTransaction(from, to);
             if (txList.ContainsKey(tx.From))
@@ -205,8 +207,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                 {
                     txGroup.Add(new Transaction()
                     {
-                        From = userId++.ToString().CalculateHash(),
-                        To = userId.ToString().CalculateHash()
+                        From = Address.FromString(userId++.ToString()),
+                        To = Address.FromString(userId.ToString())
                     });
                 }
                 res.Add(txGroup);

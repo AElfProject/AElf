@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.ChainController.TxMemPool
 {
@@ -27,7 +28,7 @@ namespace AElf.ChainController.TxMemPool
         /// promote txs from waiting to executable
         /// </summary>
         /// <param name="addrs"></param>
-        void Promote(List<Hash> addrs = null);
+        void Promote(List<Address> addrs = null);
         
         /// <summary>
         /// return pool size
@@ -96,7 +97,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="addr"></param>
         /// <returns></returns>
-        ulong GetPendingIncrementId(Hash addr);
+        ulong GetPendingIncrementId(Address addr);
 
         /// <summary>
         /// return ready txs from the addr
@@ -107,12 +108,12 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="count"></param>
         /// <param name="ids"></param>
         /// <returns></returns>
-        bool ReadyTxs(Hash addr, ulong start, ulong count);
+        bool ReadyTxs(Address addr, ulong start, ulong count);
 
         /// <summary>
         /// demote all txs from executable to waiting and reset nonces
         /// </summary>
-        void Withdraw(Hash addr, ulong withdraw);
+        void Withdraw(Address addr, ulong withdraw);
 
         /// <summary>
         /// add nonce if a new address inserted
@@ -120,14 +121,14 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="addr"></param>
         /// <param name="incrementId"></param>
         /// <returns>return true if incrementId inserted</returns>
-        bool TrySetNonce(Hash addr, ulong incrementId);
+        bool TrySetNonce(Address addr, ulong incrementId);
         
         /// <summary>
         /// return incrementId of account
         /// </summary>
         /// <param name="addr"></param>
         /// <returns></returns>
-        ulong? GetNonce(Hash addr);
+        ulong? GetNonce(Address addr);
         
         
         /// <summary>

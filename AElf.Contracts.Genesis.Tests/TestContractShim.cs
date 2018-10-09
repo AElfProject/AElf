@@ -6,6 +6,7 @@ using ServiceStack;
 using Google.Protobuf;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
+using AElf.Common;
 
 namespace AElf.Contracts.Genesis.Tests
 {
@@ -17,12 +18,12 @@ namespace AElf.Contracts.Genesis.Tests
 
         public TransactionContext TransactionContext { get; private set; }
 
-        public Hash Sender
+        public Address Sender
         {
-            get => Hash.Zero;
+            get => Address.Zero;
         }
 
-        private Hash Address => new Hash(_mock.ChainId1.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
+        private Address Address => AddressHelpers.GetSystemContractAddress(_mock.ChainId1, GlobalConfig.GenesisBasicContract);
         
         public TestContractShim(MockSetup mock)
         {
@@ -57,7 +58,7 @@ namespace AElf.Contracts.Genesis.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
-        public void ChangeContractOwner(Hash contractAddress, Hash newOwner)
+        public void ChangeContractOwner(Address contractAddress, Address newOwner)
         {
             var tx = new Transaction
             {
@@ -76,7 +77,7 @@ namespace AElf.Contracts.Genesis.Tests
             TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
         }
         
-        public Hash GetContractOwner(Hash contractAddress)
+        public Address GetContractOwner(Address contractAddress)
         {
             var tx = new Transaction
             {
@@ -93,7 +94,7 @@ namespace AElf.Contracts.Genesis.Tests
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
         }
     }
 }

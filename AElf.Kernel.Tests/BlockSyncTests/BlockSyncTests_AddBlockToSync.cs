@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Common.Collections;
-using AElf.Kernel.Node.Protocol;
 using Xunit;
 
 namespace AElf.Kernel.Tests.BlockSyncTests

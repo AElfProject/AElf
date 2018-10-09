@@ -1,4 +1,5 @@
 using AElf.Kernel;
+using AElf.Common;
 using AElf.SmartContract;
 
 namespace AElf.Node.CrossChain
@@ -18,17 +19,17 @@ namespace AElf.Node.CrossChain
         /// <param name="contractAddress">Side chain contract address.</param>
         /// <param name="blockHeight">Child chain block height.</param>
         /// <returns></returns>
-        public MerklePath GetTxRootMerklePathInParentChain(Hash contractAddress, ulong blockHeight)
+        public MerklePath GetTxRootMerklePathInParentChain(Address contractAddress, ulong blockHeight)
         {
             return _crossChainHelper.GetMerklePath(contractAddress, blockHeight);
         }
 
-        public ulong GetBoundParentChainHeight(Hash contractAddressHash, ulong height)
+        public ulong GetBoundParentChainHeight(Address contractAddressHash, ulong height)
         {
             return _crossChainHelper.GetBoundParentChainHeight(contractAddressHash, height);
         }
 
-        public ParentChainBlockInfo GetBoundParentChainBlockInfo(Hash contractAddressHash, ulong height)
+        public ParentChainBlockInfo GetBoundParentChainBlockInfo(Address contractAddressHash, ulong height)
         {
             return _crossChainHelper.GetBoundParentChainBlockInfo(contractAddressHash, height);
         }

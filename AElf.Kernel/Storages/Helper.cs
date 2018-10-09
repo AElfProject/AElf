@@ -1,6 +1,7 @@
 using System;
 using AElf.Common.Extensions;
 using Google.Protobuf;
+using AElf.Common;
 
 // ReSharper disable InconsistentNaming
 namespace AElf.Kernel.Storages

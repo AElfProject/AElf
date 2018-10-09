@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.SmartContract
 {
     public interface ISmartContractService
     {
-        Task<IExecutive> GetExecutiveAsync(Hash contractAddress, Hash chainId);
-        Task PutExecutiveAsync(Hash account, IExecutive executive);
+        Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId);
+        Task PutExecutiveAsync(Address account, IExecutive executive);
         /// <summary>
         /// Deploys a contract to the specified chain and account.
         /// </summary>
@@ -18,8 +19,8 @@ namespace AElf.SmartContract
         /// <param name="registration">The contract registration info.</param>
         /// <param name="isPrivileged">Whether the contract is a privileged (system) one.</param>
         /// <returns></returns>
-        Task DeployContractAsync(Hash chainId, Hash contractAddress, SmartContractRegistration registration, bool isPrivileged);
-        Task<IMessage> GetAbiAsync(Hash account, string name = null);
+        Task DeployContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
+        Task<IMessage> GetAbiAsync(Address account, string name = null);
         
         /// <summary>
         /// return invoking parameters in one tx
