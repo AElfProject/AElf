@@ -81,7 +81,7 @@ namespace AElf.Kernel
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
             
             var txs = new List<Transaction>();
-            if (currentHeight == height)
+            if (currentHeight <= height)
             {
                 return txs;
             }
