@@ -86,7 +86,7 @@ namespace AElf.Miner
         /// </summary>
         public void UpdateRequestInterval()
         {
-            _clientToParentChain.UpdateRequestInterval(Globals.AElfMiningInterval);
+            _clientToParentChain?.UpdateRequestInterval(Globals.AElfMiningInterval);
             _clientsToSideChains.AsParallel().ForEach(kv =>
             {
                 kv.Value.UpdateRequestInterval(Globals.AElfMiningInterval);
@@ -129,11 +129,20 @@ namespace AElf.Miner
         {
             // NOTE: do not use cache if configuration is managed by cluster
             //if (_clientsToSideChains.TryGetValue(targetChainId, out var clientToSideChain)) return clientToSideChain;
-            if (!ChildChains.TryGetValue(targetChainId, out var chainUri))
-                throw new ChainInfoNotFoundException($"Unable to get chain Info of {targetChainId}.");
-            ClientToSideChain clientToSideChain = (ClientToSideChain) CreateClient(chainUri, targetChainId, true);
-            _clientsToSideChains.Add(targetChainId, clientToSideChain);
-            return clientToSideChain;
+            try
+            {
+                if (!ChildChains.TryGetValue(targetChainId, out var chainUri))
+                    throw new ChainInfoNotFoundException($"Unable to get chain Info of {targetChainId}.");
+                ClientToSideChain clientToSideChain = (ClientToSideChain) CreateClient(chainUri, targetChainId, true);
+                _clientsToSideChains.Add(targetChainId, clientToSideChain);
+                return clientToSideChain;
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                throw;
+            }
+            
         }
 
 
@@ -146,14 +155,22 @@ namespace AElf.Miner
         {
             if (!GrpcLocalConfig.Instance.Client)
                 return;
-            // do not use cache since configuration is managed by cluster
-            var parent = GrpcRemoteConfig.Instance.ParentChain?.ElementAt(0);
-            if (parent == null)
-                throw new ChainInfoNotFoundException("Unable to get parent chain info.");
-            _clientToParentChain = (ClientToParentChain) CreateClient(parent.Value.Value, parent.Value.Key, false);
-            var height =
-                await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(parent.Value.Key));
-            _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, height);
+            try
+            {
+                // do not use cache since configuration is managed by cluster
+                var parent = GrpcRemoteConfig.Instance.ParentChain?.ElementAt(0);
+                if (parent == null)
+                    throw new ChainInfoNotFoundException("Unable to get parent chain info.");
+                _clientToParentChain = (ClientToParentChain) CreateClient(parent.Value.Value, parent.Value.Key, false);
+                var height =
+                    await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(parent.Value.Key));
+                _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, height);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                throw;
+            }
         }
 
         /// <summary>
