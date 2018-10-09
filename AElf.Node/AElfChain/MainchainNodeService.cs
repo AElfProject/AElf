@@ -324,15 +324,12 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                {
                     var chainId = Hash.Loads(NodeConfig.Instance.ChainId);
-
                     var dpos = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer, _logger);
                     var genesisContractHash =
                         _chainCreationService.GenesisContractHash(chainId, SmartContractType.AElfDPoS);
                     dpos.Initialize(genesisContractHash, _nodeKeyPair);
                     _consensus = dpos;
-                }
                     break;
 
                 case ConsensusType.PoTC:
