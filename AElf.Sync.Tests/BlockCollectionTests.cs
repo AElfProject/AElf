@@ -11,6 +11,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Sync.Tests
 {
@@ -30,7 +31,7 @@ namespace AElf.Sync.Tests
         [Fact]
         public void AddPendingBlock_Initial()
         {
-            NodeConfig.Instance.ChainId = Hash.Generate().ToHex();
+            NodeConfig.Instance.ChainId = Hash.Generate().Dumps();
             var blockCollection = new BlockCollection(_chainService);
 
             // Initial sync.
@@ -53,7 +54,7 @@ namespace AElf.Sync.Tests
         [Fact]
         public void AddPendingBlock_Initial_Reverse()
         {
-            NodeConfig.Instance.ChainId = Hash.Generate().ToHex();
+            NodeConfig.Instance.ChainId = Hash.Generate().Dumps();
             var blockCollection = new BlockCollection(_chainService);
 
             // Initial sync.

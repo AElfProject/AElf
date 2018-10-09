@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Common;
 
 namespace AElf.ChainController.TxMemPoolBM
 {

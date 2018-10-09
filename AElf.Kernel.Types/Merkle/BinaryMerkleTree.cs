@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -59,7 +61,7 @@ namespace AElf.Kernel
             if (Root != null)
                 return Root;
             if (Nodes.Count == 0)
-                return Hash.Default;
+                return Hash.Zero;
             LeafCount = Nodes.Count;
             if(Nodes.Count % 2 == 1)
                 Nodes.Add(Nodes.Last());
@@ -70,7 +72,7 @@ namespace AElf.Kernel
             {
                 var left = Nodes[i++];
                 var right = Nodes[i++];
-                Nodes.Add(left.CalculateWith(right));
+                Nodes.Add(Hash.FromTwoHashes(left, right));
                 if (++newAdded != nodeToAdd) 
                     continue;
                 // complete one row

@@ -18,6 +18,7 @@ using ServiceStack;
 using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -37,8 +38,8 @@ namespace AElf.Runtime.CSharp.Tests
         public IAccountDataProvider DataProvider1;
         public IAccountDataProvider DataProvider2;
 
-        public Hash ContractAddress1 { get; } = Hash.Generate();
-        public Hash ContractAddress2 { get; } = Hash.Generate();
+        public Address ContractAddress1 { get; } = Address.FromBytes(Hash.Generate().ToByteArray());
+        public Address ContractAddress2 { get; } = Address.FromBytes(Hash.Generate().ToByteArray());
 
         private ISmartContractManager _smartContractManager;
         public IStateDictator StateDictator;
@@ -85,11 +86,15 @@ namespace AElf.Runtime.CSharp.Tests
 
             StateDictator.ChainId = ChainId1;
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
-            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
+            DataProvider1 = StateDictator.GetAccountDataProvider(
+                Address.FromBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
+            );
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             StateDictator.ChainId = ChainId2;
-            DataProvider2 = StateDictator.GetAccountDataProvider(ChainId2.OfType(HashType.AccountZero));
+            DataProvider2 = StateDictator.GetAccountDataProvider(
+                Address.FromBytes(ChainId2.OfType(HashType.AccountZero).ToByteArray())
+            );
         }
 
         private async Task DeploySampleContracts()
@@ -98,7 +103,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Category = 1,
                 ContractBytes = ByteString.CopyFrom(ContractCode),
-                ContractHash = new Hash(ContractCode)
+                ContractHash = Hash.FromBytes(ContractCode)
             };
 
             await SmartContractService.DeployContractAsync(ChainId1, ContractAddress1, reg, false);

@@ -17,6 +17,7 @@ using AElf.SmartContract.Metadata;
 using Google.Protobuf;
 using Moq;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Miner.Tests
 {
@@ -83,7 +84,7 @@ namespace AElf.Miner.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = SmartContractZeroCode.CalculateHash()
+                ContractHash = Hash.FromBytes(SmartContractZeroCode)
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId,
@@ -129,7 +130,7 @@ namespace AElf.Miner.Tests
             return new MinerConfig
             {
                 ChainId = chainId,
-                CoinBase = getAddress
+                CoinBase = Address.FromBytes(getAddress)
             };
         }
 
@@ -252,7 +253,7 @@ namespace AElf.Miner.Tests
         {
             
             var certificateStore = new CertificateStore(dir);
-            var name = chainId.ToHex();
+            var name = chainId.Dumps();
             var keyPair = certificateStore.WriteKeyAndCertificate(name, "127.0.0.1");
         }
         
@@ -266,7 +267,7 @@ namespace AElf.Miner.Tests
             };
             
             var sideChainId = Hash.Generate();
-            NodeConfig.Instance.ChainId = sideChainId.ToHex();
+            NodeConfig.Instance.ChainId = sideChainId.Dumps();
             
             MockKeyPair(sideChainId, dir);
             GrpcLocalConfig.Instance.LocalSideChainServerPort = port;
@@ -300,7 +301,7 @@ namespace AElf.Miner.Tests
             GrpcLocalConfig.Instance.LocalParentChainServerPort = port;
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.ParentChainServer = true;
-            NodeConfig.Instance.ChainId = chainId.ToHex();
+            NodeConfig.Instance.ChainId = chainId.Dumps();
             
             return chainId;
         }

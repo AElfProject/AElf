@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Kernel.Node;
-using AElf.Kernel.Node.Protocol;
-using Moq;
+﻿using System.Threading.Tasks;
 using Xunit;
 
 namespace AElf.Kernel.Tests.BlockSyncTests

@@ -1,11 +1,12 @@
 using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.Node.CrossChain
 {
     public interface ICrossChainInfo
     {
-        MerklePath GetTxRootMerklePathInParentChain(Hash contractAddress, ulong blockHeight);
-        ParentChainBlockInfo GetBoundParentChainBlockInfo(Hash contractAddressHash, ulong height);
-        ulong GetBoundParentChainHeight(Hash contractAddressHash, ulong height);
+        MerklePath GetTxRootMerklePathInParentChain(Address contractAddress, ulong blockHeight);
+        ParentChainBlockInfo GetBoundParentChainBlockInfo(Address contractAddressHash, ulong height);
+        ulong GetBoundParentChainHeight(Address contractAddressHash, ulong height);
     }
 }

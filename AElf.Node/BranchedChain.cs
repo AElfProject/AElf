@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AElf.Kernel;
+using AElf.Common;
 using AElf.Node.Protocol;
 
 // ReSharper disable once CheckNamespace

@@ -2,6 +2,7 @@
 using System.Linq;
 using Moq;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {
@@ -25,7 +26,8 @@ namespace AElf.Kernel.Tests
             
             
             Mock <IAccount> account=new Mock<IAccount>();
-            account.Setup(a => a.GetAddress()).Returns( hash.Object.Value.Take(18).ToArray());
+//            account.Setup(a => a.GetAddress()).Returns( hash.Object.Value.Take(18).ToArray());
+            account.Setup(a => a.GetAddress()).Returns(Hash.FromBytes(hash.Object.Value.Take(18).ToArray()));
            
             Mock.Get(account.Object).Setup(a => a.Equals(It.IsAny<Transaction>()))
                 .Returns<IAccount>(t =>t?.GetAddress() == account.Object.GetAddress());
@@ -43,7 +45,7 @@ namespace AElf.Kernel.Tests
         }
         
         
-        private Transaction CreateTransaction(byte b, Hash from, Hash to)
+        private Transaction CreateTransaction(byte b, Address from, Address to)
         {
             Mock<Hash> hash = new Mock<Hash>();
             hash.Setup(h => h.GetHashBytes()).Returns(new []{b});

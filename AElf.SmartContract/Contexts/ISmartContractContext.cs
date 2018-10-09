@@ -1,4 +1,4 @@
-﻿using AElf.Kernel;
+﻿using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -6,7 +6,7 @@ namespace AElf.SmartContract
     public interface ISmartContractContext
     {
         Hash ChainId { get; }
-        Hash ContractAddress { get; }
+        Address ContractAddress { get; }
         IDataProvider DataProvider { get; }
         ISmartContractService SmartContractService { get; }
     }

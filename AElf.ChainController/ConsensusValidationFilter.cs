@@ -4,6 +4,7 @@ using AElf.Common.Attributes;
 using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Common;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -38,13 +39,15 @@ namespace AElf.ChainController
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             
             //Calculate the address of smart contract zero
-            var contractAccountHash = new Hash(context.ChainId.CalculateHashWith(Globals.ConsensusContract)).ToAccount();
-
+            //var contractAccountHash = new Hash(context.ChainId.CalculateHashWith(Globals.ConsensusContract)).ToAccount();
+            var contractAccountHash = Address.FromBytes(
+                Hash.Xor(context.ChainId, Hash.FromString(GlobalConfig.ConsensusContract)).GetHashBytes()
+            );
             var timestampOfBlock = block.Header.Time;
             
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
-            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().ToHex(), timestampOfBlock);
+            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().Dumps(), timestampOfBlock);
             if (tx == null)
             {
                 return ValidationError.FailedToCheckConsensusInvalidation;
@@ -67,7 +70,7 @@ namespace AElf.ChainController
                 : ValidationError.InvalidTimeslot;
         }
 
-        private Transaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)
+        private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)
         {
             if (contractAccountHash == null || keyPair == null || recepientAddress == null)
             {

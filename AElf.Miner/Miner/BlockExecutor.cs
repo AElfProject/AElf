@@ -13,6 +13,7 @@ using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
+using AElf.Common;
 
 namespace AElf.Miner.Miner
 {
@@ -285,11 +286,11 @@ namespace AElf.Miner.Miner
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
         /// <param name="block"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
+        private async Task<HashSet<Address>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-            var addrs = new HashSet<Hash>();
+            var addrs = new HashSet<Address>();
             Transaction pcbTx = null;
             foreach (var t in executedTxs)
             {

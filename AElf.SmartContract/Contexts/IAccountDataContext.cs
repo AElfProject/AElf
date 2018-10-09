@@ -1,15 +1,15 @@
 ﻿using AElf.Kernel.Types;
-using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.SmartContract
 {
     public interface IAccountDataContext
     {
         ulong IncrementId { get; set; }
-        Hash Address { get; set; }
+        Address Address { get; set; }
         
         Hash ChainId { get; set; }
 
-        Hash GetHash();
+//        Hash GetHash();
     }
 }

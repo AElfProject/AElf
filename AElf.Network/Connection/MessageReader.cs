@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Network.Data;
 using AElf.Network.Exceptions;
 using Google.Protobuf;

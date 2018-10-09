@@ -1,5 +1,5 @@
-﻿using AElf.Common.Extensions;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
+using AElf.Common;
 using AElf.Kernel;
 
 namespace AElf.ChainController.Rpc
@@ -12,9 +12,9 @@ namespace AElf.ChainController.Rpc
             {
                 ["tx"] = new JObject
                 {
-                    {"TxId", tx.GetHash().ToHex()},
-                    {"From", tx.From.ToHex()},
-                    {"To", tx.To.ToHex()},
+                    {"TxId", tx.GetHash().Dumps()},
+                    {"From", tx.From.Dumps()},
+                    {"To", tx.To.Dumps()},
                     {"RefBlockNumber", tx.RefBlockNumber},
                     {"RefBlockPrefix", tx.RefBlockPrefix.ToByteArray().ToHex()},
                     {"Method", tx.MethodName}
@@ -27,11 +27,11 @@ namespace AElf.ChainController.Rpc
             var res = new JObject();
             foreach (var sideChainIndexedInfo in block.Body.IndexedInfo)
             {
-                res.Add(sideChainIndexedInfo.ChainId.ToHex(), new JObject
+                res.Add(sideChainIndexedInfo.ChainId.Dumps(), new JObject
                 {
                     {"Height", sideChainIndexedInfo.Height},
-                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.ToHex()},
-                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.ToHex()}
+                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.Dumps()},
+                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.Dumps()}
                 });
             }
 

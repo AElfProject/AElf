@@ -14,6 +14,7 @@ using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using k8s;
+using AElf.Common;
 
 namespace AElf.Management.Services
 {
@@ -74,7 +75,7 @@ namespace AElf.Management.Services
 
         private string GenerateChainId()
         {
-            return SHA256.Create().ComputeHash(Guid.NewGuid().ToByteArray()).Take(ECKeyPair.AddressLength).ToArray().ToHex();
+            return SHA256.Create().ComputeHash(Guid.NewGuid().ToByteArray()).Take(GlobalConfig.AddressLength).ToArray().ToHex();
         }
     }
 }

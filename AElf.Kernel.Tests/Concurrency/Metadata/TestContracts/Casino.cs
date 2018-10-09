@@ -2,6 +2,7 @@
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 {
@@ -11,7 +12,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
     public class Casino : CSharpSmartContract
     {
         [SmartContractFieldData("${this}.CasinoToken", DataAccessMode.AccountSpecific)]
-        public readonly MapToUInt64<Hash> CasinoToken = new MapToUInt64<Hash>("CasinoToken");
+        public readonly MapToUInt64<Address> CasinoToken = new MapToUInt64<Address>("CasinoToken");
 
         [SmartContractFieldData("${this}.ExchangeRate", DataAccessMode.ReadOnlyAccountSharing)]
         public ulong ExchangeRate = 100;
@@ -30,7 +31,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
             "${this}.BuyTokenFromA(AElf.Kernel.Hash, UInt64)", 
             new []{"${_tokenContractA}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)"}, 
             new []{"${this}.CasinoToken", "${this}.ExchangeRate"})]
-        public bool BuyTokenFromA(Hash from, ulong value)
+        public bool BuyTokenFromA(Address from, ulong value)
         {
             if(_tokenContractA.Transfer(from, Api.GetContractAddress(), value))
             {
@@ -47,7 +48,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         
         //To test in-class function call
         [SmartContractFunction("${this}.BuyTokenFromB(AElf.Kernel.Hash, UInt64)", new []{"${_tokenContractB}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)", "${this}.GetExchangeRate()"}, new []{"${this}.CasinoToken"})]
-        public bool BuyTokenFromB(Hash from, ulong value)
+        public bool BuyTokenFromB(Address from, ulong value)
         {
             if(_tokenContractB.Transfer(from, Api.GetContractAddress(), value))
             {
@@ -70,8 +71,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 
         public void Initialize(IAccountDataProvider dataProvider)
         {
-            CasinoToken.SetValue("0".CalculateHash(), 200);
-            CasinoToken.SetValue("1".CalculateHash(), 100);
+            CasinoToken.SetValue(Address.FromString("0"), 200);
+            CasinoToken.SetValue(Address.FromString("1"), 100);
         }
 
 //        public override async Task InvokeAsync()

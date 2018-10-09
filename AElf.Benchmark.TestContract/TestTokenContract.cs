@@ -5,19 +5,20 @@ using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf.WellKnownTypes;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using Api = AElf.Sdk.CSharp.Api;
+using AElf.Common;
 
 namespace AElf.Benchmark.TestContract
 {
     public class TestTokenContract : CSharpSmartContract
     {
         [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
-        public MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
+        public MapToUInt64<Address> Balances = new MapToUInt64<Address>("Balances");
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public StringField TokenContractName;
         
         
         [SmartContractFunction("${this}.InitBalance", new string[]{}, new []{"${this}.Balances"})]
-        public bool InitBalance(Hash addr)
+        public bool InitBalance(Address addr)
         {
             Console.WriteLine("InitBalance " + addr);
             ulong initBalance = ulong.MaxValue - 1;
@@ -28,7 +29,7 @@ namespace AElf.Benchmark.TestContract
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
-        public bool Transfer(Hash from, Hash to, ulong qty)
+        public bool Transfer(Address from, Address to, ulong qty)
         {
             var fromBal = Balances.GetValue(from);
             //Console.WriteLine("from pass");
@@ -50,7 +51,7 @@ namespace AElf.Benchmark.TestContract
         }
 
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
-        public ulong GetBalance(Hash account)
+        public ulong GetBalance(Address account)
         {
             Console.WriteLine("Getting balance.");
             return Balances.GetValue(account);

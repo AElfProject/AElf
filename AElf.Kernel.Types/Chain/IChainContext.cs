@@ -1,4 +1,5 @@
-﻿namespace AElf.Kernel
+﻿using AElf.Common;
+namespace AElf.Kernel
 {
     /// <summary>
     /// a running chain context

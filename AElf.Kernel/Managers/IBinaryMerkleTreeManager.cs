@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Common;
 
 namespace AElf.Kernel.Managers
 {

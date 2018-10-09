@@ -7,11 +7,9 @@ using AElf.CLI.Command;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet.Exceptions;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using ProtoBuf;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 

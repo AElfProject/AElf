@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Enums;
-using AElf.Kernel;
+using AElf.Common;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 

@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Configuration;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
@@ -182,11 +183,11 @@ namespace AElf.Kernel
         public void OnNewBlockHeader(BlockHeader blockHeader)
         {
             var expiredBns = new List<ulong>();
-            if (blockHeader.Index > Globals.ReferenceBlockValidPeriod)
+            if (blockHeader.Index > GlobalConfig.ReferenceBlockValidPeriod)
             {
                 foreach (var kv in _validatedByRefBlockNumber)
                 {
-                    if (kv.Key < blockHeader.Index - Globals.ReferenceBlockValidPeriod)
+                    if (kv.Key < blockHeader.Index - GlobalConfig.ReferenceBlockValidPeriod)
                     {
                         expiredBns.Add(kv.Key);
                     }

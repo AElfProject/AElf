@@ -6,6 +6,7 @@ using System.Linq;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using Org.BouncyCastle.Asn1.X509;
+using AElf.Common;
 
 namespace AElf.Kernel.Storages
 {
@@ -57,7 +58,7 @@ namespace AElf.Kernel.Storages
                     throw new Exception("Cannot insert null value.");
                 }
 
-                var key = pointerHash.GetKeyString(typeof(T).Name);
+                var key = pointerHash.GetKeyString(typeof(byte[]).Name);
                 await _keyValueDatabase.SetAsync(key, obj);
             }
             catch (Exception e)
@@ -96,7 +97,7 @@ namespace AElf.Kernel.Storages
                     throw new Exception("Pointer hash cannot be null.");
                 }
                 
-                var key = pointerHash.GetKeyString(typeof(T).Name);
+                var key = pointerHash.GetKeyString(typeof(byte[]).Name);
                 return await _keyValueDatabase.GetAsync(key);
             }
             catch (Exception e)
@@ -111,7 +112,7 @@ namespace AElf.Kernel.Storages
             try
             {
                 return await _keyValueDatabase.PipelineSetAsync(
-                    pipelineSet.ToDictionary(kv => kv.Key.ToHex(), kv => kv.Value));
+                    pipelineSet.ToDictionary(kv => kv.Key.GetKeyString(typeof(byte[]).Name), kv => kv.Value));
             }
             catch (Exception e)
             {

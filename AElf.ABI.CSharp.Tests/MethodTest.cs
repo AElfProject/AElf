@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.ABI.Tests
 {
@@ -28,7 +29,7 @@ namespace AElf.ABI.Tests
                 (ulong) 64,
                 "AElf",
                 new byte[] {0x01, 0x02, 0x03},
-                new Kernel.Hash()
+                new Address()
                 {
                     Value = ByteString.CopyFrom(new byte[]
                     {

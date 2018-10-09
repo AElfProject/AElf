@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
@@ -9,10 +10,10 @@ namespace AElf.Kernel
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<IHash> GetDataConflict()
+        public IEnumerable<Hash> GetDataConflict()
         {
-            IHash a = null;
-            IHash b = null;
+            Hash a = null;
+            Hash b = null;
 
             yield return a;
             yield return b;

@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.ABI.CSharp;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using AElf.SmartContract;
@@ -18,6 +18,7 @@ using Mono.Cecil;
 using Module = AElf.ABI.CSharp.Module;
 using Resource = AElf.SmartContract.Resource;
 using Type = System.Type;
+using AElf.Common;
 
 namespace AElf.Runtime.CSharp
 {
@@ -120,7 +121,7 @@ namespace AElf.Runtime.CSharp
 
             var code = reg.ContractBytes.ToByteArray();
 
-            Hash codeHash = SHA256.Create().ComputeHash(code);
+            var codeHash = Hash.FromBytes(code);
             if (_cachedContractTypeByHash.TryGetValue(codeHash, out var t))
             {
                 return t;
@@ -203,11 +204,11 @@ namespace AElf.Runtime.CSharp
         /// <param name="contractType"></param>
         /// <param name="contractReferences"></param>
         /// <exception cref="FunctionMetadataException"></exception>
-        private Dictionary<string, FunctionMetadataTemplate> ExtractRawMetadataFromType(Type contractType, out Dictionary<string, Hash> contractReferences)
+        private Dictionary<string, FunctionMetadataTemplate> ExtractRawMetadataFromType(Type contractType, out Dictionary<string, Address> contractReferences)
         {
             var localFunctionMetadataTemplateMap = new Dictionary<string, FunctionMetadataTemplate>();
             var templocalFieldMap = new Dictionary<string, DataAccessMode>();
-            contractReferences = new Dictionary<string, Hash>();
+            contractReferences = new Dictionary<string, Address>();
 
             //load localFieldMap: <"${this}.[ResourceName]", DataAccessMode>
             foreach (var fieldInfo in contractType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
@@ -227,7 +228,7 @@ namespace AElf.Runtime.CSharp
                 if (smartContractRefAttr == null) continue;
                 try
                 {
-                    if (!contractReferences.TryAdd(smartContractRefAttr.FieldName, ByteArrayHelpers.FromHexString(smartContractRefAttr.ContractAddress)))
+                    if (!contractReferences.TryAdd(smartContractRefAttr.FieldName, Address.Loads(smartContractRefAttr.ContractAddress)))
                     {
                         throw new FunctionMetadataException("Duplicate name of smart contract reference attributes in contract " + contractType.FullName);
                     }

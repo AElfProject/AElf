@@ -6,17 +6,18 @@ using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Kernel;
 using NLog;
+using AElf.Common;
 
 namespace AElf.ChainController.TxMemPool
 {
     [LoggerName("ContractTxPool")]
     public class ContractTxPool : IContractTxPool
     {
-        private readonly Dictionary<Hash, List<Transaction>> _executable =
-            new Dictionary<Hash, List<Transaction>>();
+        private readonly Dictionary<Address, List<Transaction>> _executable =
+            new Dictionary<Address, List<Transaction>>();
 
-        private readonly Dictionary<Hash, Dictionary<ulong, Transaction>> _waiting =
-            new Dictionary<Hash, Dictionary<ulong, Transaction>>();
+        private readonly Dictionary<Address, Dictionary<ulong, Transaction>> _waiting =
+            new Dictionary<Address, Dictionary<ulong, Transaction>>();
 
         //private readonly Dictionary<Hash, ITransaction> _pool = new Dictionary<Hash, ITransaction>();
         private readonly ILogger _logger;
@@ -39,7 +40,7 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public ulong MinimalFee => _config.FeeThreshold;
 
-        private ConcurrentDictionary<Hash, ulong> _nonces  = new ConcurrentDictionary<Hash, ulong>();
+        private ConcurrentDictionary<Address, ulong> _nonces  = new ConcurrentDictionary<Address, ulong>();
 
 
         /// <inheritdoc />
@@ -310,14 +311,14 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public void Withdraw(Hash addr, ulong withdraw)
+        public void Withdraw(Address addr, ulong withdraw)
         {
             Demote(addr);
             WithdrawNonce(addr, withdraw);
         }
 
 
-        private void Demote(Hash addr)
+        private void Demote(Address addr)
         {
             var txs = RemoveExecutableList(addr);
             if (txs == null)
@@ -328,7 +329,7 @@ namespace AElf.ChainController.TxMemPool
             }
         }
 
-        private List<Transaction> RemoveExecutableList(Hash addr)
+        private List<Transaction> RemoveExecutableList(Address addr)
         {
             // fail if not exist
             if (!_executable.TryGetValue(addr, out var executableList))
@@ -366,7 +367,7 @@ namespace AElf.ChainController.TxMemPool
         /// promote txs from waiting to executable list
         /// </summary>
         /// <param name="addrs"></param>
-        public void Promote(List<Hash> addrs = null)
+        public void Promote(List<Address> addrs = null)
         {
             if (addrs == null)
             {
@@ -380,7 +381,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
 
-        private ulong? GetNextPromotableTxId(Hash addr)
+        private ulong? GetNextPromotableTxId(Address addr)
         {
             if (!_waiting.TryGetValue(addr, out var waitingList))
             {
@@ -420,7 +421,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         /// <param name="addr"></param>
         /// <param name="w"></param>
-        private void DiscardOldTransaction(Hash addr, ulong w)
+        private void DiscardOldTransaction(Address addr, ulong w)
         {
             var waitingList = _waiting[addr];
 
@@ -437,7 +438,7 @@ namespace AElf.ChainController.TxMemPool
         /// promote ready tx from waiting to exectuable
         /// </summary>
         /// <param name="addr">From account addr</param>
-        private void Promote(Hash addr)
+        private void Promote(Address addr)
         {
             if (!_waiting.ContainsKey(addr))
                 return;
@@ -473,14 +474,14 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="addr"></param>
         /// <param name="increment"></param>
         /// <returns></returns>
-        private void AddNonce(Hash addr, ulong increment)
+        private void AddNonce(Address addr, ulong increment)
         {
             var n = GetNonce(addr);
             if(n.HasValue)
                 _nonces[addr] = n.Value + increment;
         }
 
-        private void WithdrawNonce(Hash addr, ulong increment)
+        private void WithdrawNonce(Address addr, ulong increment)
         {
             var n = GetNonce(addr);
             if(n.HasValue)
@@ -489,13 +490,13 @@ namespace AElf.ChainController.TxMemPool
 
 
         /// <inheritdoc/>
-        public ulong GetPendingIncrementId(Hash addr)
+        public ulong GetPendingIncrementId(Address addr)
         {
             return _nonces.TryGetValue(addr, out var incrementId) ? incrementId : (ulong) 0;
         }
 
         /// <inheritdoc/>
-        public bool ReadyTxs(Hash addr, ulong start, ulong count)
+        public bool ReadyTxs(Address addr, ulong start, ulong count)
         {
             if (!_executable.TryGetValue(addr, out var list) || (ulong) list.Count < count ||
                 list[0].IncrementId != start)
@@ -512,7 +513,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public bool TrySetNonce(Hash addr, ulong incrementId)
+        public bool TrySetNonce(Address addr, ulong incrementId)
         {
             if (!_nonces.TryGetValue(addr, out _))
             {
@@ -524,7 +525,7 @@ namespace AElf.ChainController.TxMemPool
         }
         
         /// <inheritdoc/>
-        public ulong? GetNonce(Hash addr)
+        public ulong? GetNonce(Address addr)
         {
             if (_nonces.TryGetValue(addr, out var n))
             {

@@ -6,6 +6,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Easy.MessageHub;
 using NLog;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -105,7 +106,7 @@ namespace AElf.Kernel
             for (var i = currentHeight - 1; i > height; i--)
             {
                 var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
-                h.Height = i;
+//                h.Height = i;
                 await _dataStore.RemoveAsync<Hash>(h);
             }
 

@@ -6,6 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
+using AElf.Common;
+using AElf.Common.Extensions;
+using Google.Protobuf;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -170,7 +173,9 @@ namespace AElf.Cryptography
             string fullPath = null;
             try
             {
-                var address = keyPair.GetAddressHex();
+                Address.FromBytes(keyPair.GetEncodedPublicKey());
+                var address = Address.FromBytes(keyPair.GetEncodedPublicKey()).Value.ToByteArray().ToHex();
+//                var address = keyPair.GetAddressHex();
                 fullPath = GetKeyFileFullPath(address);
             }
             catch (Exception e)

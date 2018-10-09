@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Contracts.SideChain";
 
-import "hash.proto";
+import "common.proto";
 
 enum SideChainStatus
 {
@@ -14,11 +14,11 @@ enum SideChainStatus
 
 message SideChainInfo
 {
-    Hash Owner = 1;
+    Address Owner = 1;
     uint64 SerialNumer = 2;
     Hash ChainId = 3;
     SideChainStatus Status = 4;
-    Hash LockedAddress = 5;
+    Address LockedAddress = 5;
     uint64 LockedToken = 6;
     uint64 CreationHeight =7;
 }

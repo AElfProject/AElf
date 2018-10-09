@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
@@ -14,6 +15,6 @@ namespace AElf.Kernel
         /// Data conflict means if two transactions have one same hash, they cannot run parallelly
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IHash> GetDataConflict();
+        IEnumerable<Hash> GetDataConflict();
     }
 }

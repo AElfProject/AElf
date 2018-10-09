@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
+using AElf.Common;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using QuickGraph;
 using Xunit;
 
 namespace AElf.Kernel.Tests
