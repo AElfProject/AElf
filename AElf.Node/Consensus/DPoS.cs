@@ -83,8 +83,12 @@ namespace AElf.Kernel.Node
             _contractAccountAddressHash = contractAccountHash;
 
             var count = MinersConfig.Instance.Producers.Count;
+
             GlobalConfig.BlockProducerNumber = count;
-            _logger?.Trace("Block Producer nodes count:" + count);
+            GlobalConfig.BlockNumberOfEachRound = count + 1;
+
+            _logger?.Trace("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
+            _logger?.Trace("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
             if (GlobalConfig.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
             {
                 AElfDPoSObserver.RecoverMining();

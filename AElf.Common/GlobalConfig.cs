@@ -15,7 +15,7 @@ namespace AElf.Common
         public static readonly string ConsensusContract = "AElfDPoS";
         
         public static int BlockProducerNumber = 17;
-        public static readonly int BlockNumberOfEachRound = BlockProducerNumber + 1;
+        public static int BlockNumberOfEachRound = 18;
         public const int AElfLogInterval = 900;
 
         #region AElf DPoS
@@ -53,5 +53,7 @@ namespace AElf.Common
         public static int SingleNodeTestMiningInterval = 4000;
 
         #endregion
+
+        public static ulong BasicContractZeroSerialNumber = 0;
     }
 }

@@ -50,8 +50,8 @@ namespace AElf.Node.Protocol
         /// </summary>
         private List<PendingBlock> PendingBlocks => _syncService.PendingBlocks;
 
-        public bool ShouldDoInitialSync { get; private set; } = false;
-        public bool IsInitialSyncInProgress { get; private set; } = false;
+        public bool ShouldDoInitialSync { get; private set; }
+        public bool IsInitialSyncInProgress { get; private set; }
 
         public int CurrentExecHeight = 1;
 

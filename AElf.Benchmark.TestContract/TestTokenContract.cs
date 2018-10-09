@@ -20,11 +20,11 @@ namespace AElf.Benchmark.TestContract
         [SmartContractFunction("${this}.InitBalance", new string[]{}, new []{"${this}.Balances"})]
         public bool InitBalance(Address addr)
         {
-            //Console.WriteLine("InitBalance " + addr);
+            Console.WriteLine("InitBalance " + addr);
             ulong initBalance = ulong.MaxValue - 1;
             Balances.SetValue(addr, initBalance);
             var fromBal = Balances.GetValue(addr);
-            //Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
+            Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
             return true;
         }
         
@@ -46,13 +46,14 @@ namespace AElf.Benchmark.TestContract
 
             Balances.SetValue(to, newToBal);
             //Console.WriteLine("set to pass");
-            //Console.WriteLine($"After transfer: {from.ToHex()} - {newFromBal} || {to.ToHex()} - {newToBal}");
+            Console.WriteLine($"After transfer: {from.Dumps()} - {newFromBal} || {to.Dumps()} - {newToBal}");
             return true;
         }
 
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
         public ulong GetBalance(Address account)
         {
+            Console.WriteLine("Getting balance.");
             return Balances.GetValue(account);
         }
     }
