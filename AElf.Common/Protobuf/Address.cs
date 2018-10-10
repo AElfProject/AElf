@@ -110,7 +110,7 @@ namespace AElf.Common
         public static Address LoadHex(string hex)
         {
             var bytes = ByteArrayHelpers.FromHexString(hex);
-            return FromRawBytes(bytes);
+            return LoadByteArray(bytes);
         }
         #endregion Load and dump
     }
