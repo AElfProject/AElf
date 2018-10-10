@@ -32,7 +32,7 @@ namespace AElf.Kernel
             if (_blockHash == null)
                 _blockHash = Hash.FromBytes(GetSignatureData());
 
-            return _blockHash.GetHashBytes();
+            return _blockHash.Dump();
         }
         
         public ECSignature GetSignature()

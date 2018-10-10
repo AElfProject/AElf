@@ -104,7 +104,7 @@ namespace AElf.Node
                 foreach (var txHash in breq.TxHashes)
                 {
                     var hash = txHash.ToByteArray();
-                    var tx = await _handler.GetTransaction(new Hash(hash));
+                    var tx = await _handler.GetTransaction(Hash.Load(hash));
                 
                     if(tx != null)
                         txList.Transactions.Add(tx);

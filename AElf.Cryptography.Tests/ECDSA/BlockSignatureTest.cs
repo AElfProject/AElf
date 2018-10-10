@@ -30,11 +30,11 @@ namespace AElf.Cryptography.Tests.ECDSA
         
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.Dump());
         
             ECVerifier verifier = new ECVerifier(keyPair);
         
-            Assert.True(verifier.Verify(signature, hash.GetHashBytes()));
+            Assert.True(verifier.Verify(signature, hash.Dump()));
         }
     }
 }

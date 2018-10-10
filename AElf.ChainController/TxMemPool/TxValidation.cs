@@ -97,7 +97,7 @@ namespace AElf.ChainController.TxMemPool
                 return false;
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            return verifier.Verify(tx.GetSignature(), tx.GetHash().GetHashBytes());
+            return verifier.Verify(tx.GetSignature(), tx.GetHash().Dump());
 
         }
 

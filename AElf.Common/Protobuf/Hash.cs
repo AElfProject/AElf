@@ -18,7 +18,7 @@ namespace AElf.Common
             return $@"""{Dumps()}""";
         }
 
-        public Hash(byte[] bytes)
+        private Hash(byte[] bytes)
         {
             if (bytes.Length != ByteArrayLength)
             {
@@ -26,7 +26,9 @@ namespace AElf.Common
             }
             Value = ByteString.CopyFrom(bytes.ToArray());
         }
-        
+
+        #region Hashes from various types
+
         public static Hash FromBytes(byte[] bytes)
         {
             return new Hash(bytes.CalculateHash());
@@ -64,42 +66,28 @@ namespace AElf.Common
         public static Hash Generate()
         {
             return FromBytes(Guid.NewGuid().ToByteArray());
-        }
+        }        
+
+        #endregion
+
+        #region Predefined
 
         public static readonly Hash Zero = Hash.FromBytes(new byte[] { });
 
         public static readonly Hash Default = Hash.FromString("AElf");
 
-        public static readonly Hash Genesis = Hash.FromString("Genesis");
+        public static readonly Hash Genesis = Hash.FromString("Genesis");        
 
-//        public Hash(byte[] buffer)
-//        {
-//            Value = ByteString.CopyFrom(buffer);
-//            HashType = HashType.General;
-//        }
-//
-//        public Hash(ByteString value)
-//        {
-//            Value = value;
-//            HashType = HashType.General;
-//        }
-//
+        #endregion
+
         public Hash OfType(HashType hashType)
         {
             var hash = Clone();
             hash.HashType = hashType;
             return hash;
         }
-//
-//        public Hash OfType(int typeIndex)
-//        {
-//            var hash = Clone();
-//            var hashType = (HashType) typeIndex;
-//            hash.HashType = hashType;
-//            return hash;
-//        }
-//
-        public byte[] GetHashBytes() => Value.ToByteArray();
+
+        #region Comparing
 
         public static bool operator ==(Hash h1, Hash h2)
         {
@@ -119,19 +107,6 @@ namespace AElf.Common
         public static bool operator >(Hash h1, Hash h2)
         {
             return CompareHash(h1, h2) > 0;
-        }
-
-        public static Hash Xor(Hash h1, Hash h2)
-        {
-            var newHashBytes = new byte[h1.Value.Length];
-            for (int i= 0; i < newHashBytes.Length; i++)
-            {
-                newHashBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
-            }
-            return new Hash()
-            {
-                Value = ByteString.CopyFrom(newHashBytes)
-            };
         }
 
         private static int CompareHash(Hash hash1, Hash hash2)
@@ -177,24 +152,75 @@ namespace AElf.Common
         public int CompareTo(Hash that)
         {
             return Compare(this, that);
+        }        
+
+        #endregion
+
+        #region Bitwise operations
+
+        public static Hash Xor(Hash h1, Hash h2)
+        {
+            var newHashBytes = new byte[h1.Value.Length];
+            for (int i= 0; i < newHashBytes.Length; i++)
+            {
+                newHashBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
+            }
+            return new Hash()
+            {
+                Value = ByteString.CopyFrom(newHashBytes)
+            };
         }
 
+        #endregion
+        
+        #region Load and dump
+        /// <summary>
+        /// Dumps the content value to byte array.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] Dump()
+        {
+            return Value.ToByteArray();
+        }
+
+        /// <summary>
+        /// Dumps the content value to hex string.
+        /// </summary>
+        /// <returns></returns>
         public string Dumps()
         {
             return Value.ToByteArray().ToHex();
         }
 
-        public static Hash Loads(string hex)
+        /// <summary>
+        /// Loads the content value from 32-byte long byte array.
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Hash Load(byte[] bytes)
         {
-            var bytes = ByteArrayHelpers.FromHexString(hex);
             if (bytes.Length != 32)
             {
-                throw new ArgumentOutOfRangeException(nameof(hex));
+                throw new ArgumentOutOfRangeException(nameof(bytes));
             }
             return new Hash
             {
                 Value = ByteString.CopyFrom(bytes)
-            };
+            };            
         }
+
+        /// <summary>
+        /// Loads the content value represented in hex string.
+        /// </summary>
+        /// <param name="hex"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Hash Loads(string hex)
+        {
+            var bytes = ByteArrayHelpers.FromHexString(hex);
+            return Load(bytes);
+        }
+        #endregion Load and dump
     }
 }

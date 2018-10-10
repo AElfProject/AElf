@@ -427,7 +427,7 @@ namespace AElf.Node.Protocol
             byte[] blockHash;
             try
             {
-                blockHash = block.GetHash().GetHashBytes();
+                blockHash = block.GetHash().Dump();
             }
             catch (Exception e)
             {

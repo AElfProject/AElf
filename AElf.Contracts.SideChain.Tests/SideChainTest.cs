@@ -37,7 +37,7 @@ namespace AElf.Contracts.SideChain.Tests
             ulong lockedToken = 10000;
             // create new chain
             var bytes = await _contract.CreateSideChain(chainId, lockedAddress, lockedToken);
-            Assert.Equal(chainId.GetHashBytes(), bytes);
+            Assert.Equal(chainId.Dump(), bytes);
 
             // check status
             var status = await _contract.GetChainStatus(chainId);

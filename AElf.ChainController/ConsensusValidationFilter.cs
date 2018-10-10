@@ -88,7 +88,7 @@ namespace AElf.ChainController
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(keyPair, tx.GetHash().GetHashBytes());
+            var signature = signer.Sign(keyPair, tx.GetHash().Dump());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

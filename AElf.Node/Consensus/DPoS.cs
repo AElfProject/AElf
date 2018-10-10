@@ -224,7 +224,7 @@ namespace AElf.Kernel.Node
             }
 
             var signer = new ECSigner();
-            var signature = signer.Sign(_nodeKeyPair, tx.GetHash().GetHashBytes());
+            var signature = signer.Sign(_nodeKeyPair, tx.GetHash().Dump());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

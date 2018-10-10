@@ -12,10 +12,10 @@ namespace AElf.Kernel.Tests
         private Mock<Hash> CreateHash(byte b)
         {
             Mock<Hash> hash = new Mock<Hash>();
-            hash.Setup(h => h.GetHashBytes()).Returns(new[] {b});
+            hash.Setup(h => h.Dump()).Returns(new[] {b});
             
             Mock.Get(hash.Object).Setup(h => h.Equals(It.IsAny<Hash>()))
-                .Returns<Hash>(t => t?.GetHashBytes() == hash.Object.GetHashBytes());
+                .Returns<Hash>(t => t?.Dump() == hash.Object.Dump());
             return hash;
         }
         
@@ -48,9 +48,9 @@ namespace AElf.Kernel.Tests
         private Transaction CreateTransaction(byte b, Address from, Address to)
         {
             Mock<Hash> hash = new Mock<Hash>();
-            hash.Setup(h => h.GetHashBytes()).Returns(new []{b});
+            hash.Setup(h => h.Dump()).Returns(new []{b});
             hash.Setup(h => h.Equals(It.IsAny<Hash>()))
-                .Returns<Hash>(t => t? .GetHashBytes() == t.GetHashBytes() );
+                .Returns<Hash>(t => t? .Dump() == t.Dump() );
             
             Mock <Transaction> transaction=new Mock<Transaction>();
             transaction.Setup(t => t.GetHash()).Returns(hash.Object);
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Tests
             transaction.Setup(t => t.To).Returns(to);
 
             Mock.Get(transaction.Object).Setup(m => m.Equals(It.IsAny<Transaction>()))
-                .Returns<Transaction>(t =>t?.GetHash().GetHashBytes() == transaction.Object.GetHash().GetHashBytes());
+                .Returns<Transaction>(t =>t?.GetHash().Dump() == transaction.Object.GetHash().Dump());
             
             return transaction.Object;
         }

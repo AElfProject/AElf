@@ -175,7 +175,7 @@ namespace AElf.Miner.Miner
                 };
                 
                 // sign tx
-                var signature = new ECSigner().Sign(_keyPair, tx.GetHash().GetHashBytes());
+                var signature = new ECSigner().Sign(_keyPair, tx.GetHash().Dump());
                 tx.R = ByteString.CopyFrom(signature.R);
                 tx.S = ByteString.CopyFrom(signature.S);
                 

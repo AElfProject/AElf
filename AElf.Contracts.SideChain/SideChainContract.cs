@@ -148,7 +148,7 @@ namespace AElf.Contracts.SideChain
                 ChainId = chainId,
                 Creator = Api.GetTransaction().From
             }.Fire();
-            return chainId.GetHashBytes();
+            return chainId.Dump();
         }
     
         public void ApproveSideChain(Hash chainId)
