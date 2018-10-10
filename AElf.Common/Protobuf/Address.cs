@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using AElf.Common.Extensions;
 using Google.Protobuf;
 
-[assembly:InternalsVisibleTo("AElf.Kernel.Tests")]
-[assembly:InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
+[assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
+[assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
+
 namespace AElf.Common
 {
     public partial class Address : ICustomDiagnosticMessage
@@ -26,6 +26,7 @@ namespace AElf.Common
             {
                 throw new ArgumentOutOfRangeException($"Address bytes has to be at least {GlobalConfig.AddressLength}. The input is {bytes.Length} bytes long.");
             }
+
             var toTruncate = bytes.Length - GlobalConfig.AddressLength;
             Value = ByteString.CopyFrom(bytes.Skip(toTruncate).ToArray());
         }
@@ -52,11 +53,11 @@ namespace AElf.Common
             return new Address(name.CalculateHash());
         }
 
-//        // ReSharper disable once InconsistentNaming
-//        public static Address FromECKeyPair(ECKeyPair keyPair)
-//        {
-//            return new Address(keyPair.GetEncodedPublicKey());
-//        }
+        // ReSharper disable once InconsistentNaming
+        // public static Address FromECKeyPair(ECKeyPair keyPair)
+        // {
+        //    return new Address(keyPair.GetEncodedPublicKey());
+        // }
 
         #region Predefined
 
@@ -64,11 +65,12 @@ namespace AElf.Common
 
         public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
 
-        public static readonly Address Genesis = FromString("Genesis");        
+        public static readonly Address Genesis = FromString("Genesis");
 
         #endregion
 
         #region Load and dump
+
         /// <summary>
         /// Dumps the content value to byte array.
         /// </summary>
@@ -99,10 +101,11 @@ namespace AElf.Common
             {
                 throw new ArgumentOutOfRangeException(nameof(bytes));
             }
+
             return new Address
             {
                 Value = ByteString.CopyFrom(bytes)
-            };            
+            };
         }
 
         /// <summary>
@@ -115,6 +118,21 @@ namespace AElf.Common
             var bytes = ByteArrayHelpers.FromHexString(hex);
             return LoadByteArray(bytes);
         }
+
         #endregion Load and dump
+
+        #region Comparing
+
+        public static bool operator ==(Address address1, Address address2)
+        {
+            return address1?.Equals(address2) ?? ReferenceEquals(address2, null);
+        }
+
+        public static bool operator !=(Address address1, Address address2)
+        {
+            return !(address1 == address2);
+        }
+
+        #endregion
     }
 }
