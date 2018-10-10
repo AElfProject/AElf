@@ -51,7 +51,7 @@ namespace AElf.SmartContract
             // get registration
             var reg = await _smartContractManager.GetAsync(contractAddress);
 
-            // get runnner
+            // get runner
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
 
             if (runner == null)

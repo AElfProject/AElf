@@ -117,10 +117,14 @@ namespace AElf.Node
                 foreach (var txHash in breq.TxHashes)
                 {
                     var hash = txHash.ToByteArray();
-                    var tx = await _handler.GetTransaction(Hash.FromBytes(hash));
+                    var tx = await _handler.GetTransaction(new Hash(hash));
                 
                     if(tx != null)
                         txList.Transactions.Add(tx);
+                    else
+                    {
+                        _logger?.Trace("wanna get tx: " + txHash.ToByteArray().ToHex());
+                    }
                 }
 
                 if (!txList.Transactions.Any())
@@ -131,7 +135,8 @@ namespace AElf.Node
 
                 byte[] serializedTxList = txList.ToByteArray();
                 Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Transactions, serializedTxList);
-                
+                _logger?.Trace("payload length: " + req.Length);
+
                 if (message.HasId)
                 {
                     req.HasId = true;
