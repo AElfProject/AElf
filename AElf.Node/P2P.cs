@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -96,9 +97,21 @@ namespace AElf.Node
 
         private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
         {
+            if (message.Payload == null || message.Payload.Length <= 0)
+            {
+                _logger?.Warn("Payload null or empty, cannot process transaction request.");
+                return;
+            }
+                
             try
             {
                 TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
+
+                if (!breq.TxHashes.Any())
+                {
+                    _logger?.Warn("Received transaction request with empty hash list.");
+                    return;
+                }
 
                 TransactionList txList = new TransactionList();
                 foreach (var txHash in breq.TxHashes)
@@ -114,6 +127,12 @@ namespace AElf.Node
                     }
                 }
 
+                if (!txList.Transactions.Any())
+                {
+                    _logger?.Warn("None of the transactions where found.");
+                    return;
+                }
+
                 byte[] serializedTxList = txList.ToByteArray();
                 Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Transactions, serializedTxList);
                 _logger?.Trace("payload length: " + req.Length);
@@ -125,13 +144,12 @@ namespace AElf.Node
                 }
                 
                 args.Peer.EnqueueOutgoing(req);
-
-//todo                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + serializedTxList.Length +
-//                               " bytes)");
+                
+                _logger?.Trace("Send " + txList.Transactions.Count + " to " + args.Peer);
             }
             catch (Exception e)
             {
-                //_logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
+                _logger?.Error(e, $"Transaction request failed.");
             }
         }
 
