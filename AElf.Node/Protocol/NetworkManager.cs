@@ -229,7 +229,6 @@ namespace AElf.Node.Protocol
                     GetAndClearRequest(msg);
                 
                 TransactionList txList = TransactionList.Parser.ParseFrom(msg.Payload);
-                
                 // The sync should subscribe to this and add to pool
                 TransactionsReceived?.Invoke(this, new TransactionsReceivedEventArgs(txList, peer, msgType));
             }
@@ -254,11 +253,11 @@ namespace AElf.Node.Protocol
 
                 // Add to the pool; if valid, rebroadcast.
                 var addResult = _transactionPoolService.AddTxAsync(tx).GetAwaiter().GetResult();
-
+                
                 if (addResult == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
                     _logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
-                        
+
                     foreach (var p in _peers.Where(p => !p.Equals(peer)))
                         p.EnqueueOutgoing(msg);
                 }

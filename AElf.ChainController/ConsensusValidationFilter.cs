@@ -28,21 +28,18 @@ namespace AElf.ChainController
 
         public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
-            //If the height of chain is 1, no need to check consensus validation
+            // If the height of chain is 1, no need to check consensus validation
             if (block.Header.Index < 2)
             {
                 return ValidationError.Success;
             }
             
-            //Get block producer's address from block header
+            // Get block producer's address from block header
             var uncompressedPrivKey = block.Header.P.ToByteArray();
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             
-            //Calculate the address of smart contract zero
-            //var contractAccountHash = new Hash(context.ChainId.CalculateHashWith(Globals.ConsensusContract)).ToAccount();
-            var contractAccountHash = Address.FromBytes(
-                Hash.Xor(context.ChainId, Hash.FromString(GlobalConfig.ConsensusContract)).GetHashBytes()
-            );
+            // Get the address of consensus contract
+            var contractAccountHash = AddressHelpers.GetSystemContractAddress(context.ChainId, SmartContractType.AElfDPoS.ToString());
             var timestampOfBlock = block.Header.Time;
             
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
