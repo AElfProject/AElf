@@ -198,7 +198,7 @@ namespace AElf.Miner.Rpc.Client
         /// <summary>
         /// Get cached count.
         /// </summary>
-        public int IndexedInfoQueueCount => IndexedInfoQueue.Count;
+        private int IndexedInfoQueueCount => IndexedInfoQueue.Count;
 
         protected abstract AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> Call();
         protected abstract AsyncServerStreamingCall<TResponse> Call(RequestBlockInfo requestBlockInfo);

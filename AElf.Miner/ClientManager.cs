@@ -257,10 +257,9 @@ namespace AElf.Miner
             if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId.ToHex(), out var client))
                 // TODO: this could be changed.
                 return true;
-            if (!client.First().Equals(blockInfo))
+            if (client.Empty() || !client.First().Equals(blockInfo))
                 return false;
-            client.Take();
-            return true;
+            return client.Take() != null;
         }
         
         /// <summary>
@@ -277,10 +276,9 @@ namespace AElf.Miner
             if (_clientToParentChain == null)
                 // TODO: this could be changed
                 return true;
-            if (!_clientToParentChain.First().Equals(blockInfo))
+            if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(blockInfo))
                 return false;
-            _clientToParentChain.Take();
-            return true;
+            return _clientToParentChain.Take() != null;
         }
 
         /// <summary>
