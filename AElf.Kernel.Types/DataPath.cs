@@ -205,7 +205,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Address CalculateAccountAddress(Address parentAccount, ulong nonce)
         {
-            return Address.FromBytes(Hash.Xor(
+            return Address.FromRawBytes(Hash.Xor(
                 Hash.FromMessage(parentAccount),
                 Hash.FromMessage(new UInt64Value
             {

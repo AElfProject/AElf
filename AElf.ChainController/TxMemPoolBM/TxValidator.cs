@@ -32,7 +32,7 @@ namespace AElf.ChainController.TxMemPoolBM
                 if (_blockChain == null)
                 {
                     _blockChain =
-                        _chainService.GetBlockChain(Hash.Loads(NodeConfig.Instance.ChainId));
+                        _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
                 }
 
                 return _blockChain;
@@ -124,7 +124,7 @@ namespace AElf.ChainController.TxMemPoolBM
             if (curHeight == 0)
             {
                 canonicalHash = await BlockChain.GetCurrentBlockHashAsync();
-                _logger?.Trace("Current block hash: " + canonicalHash.Dumps());
+                _logger?.Trace("Current block hash: " + canonicalHash.DumpHex());
             }
             else
             {
@@ -215,7 +215,7 @@ namespace AElf.ChainController.TxMemPoolBM
                     }
                     var inValue = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
                         new[] {typeof(UInt64Value), typeof(StringValue), typeof(Hash)})[2] as Hash;
-                    var outValue = currentRoundInfo.BlockProducers[transaction.From.Dumps().RemoveHexPrefix()].OutValue;
+                    var outValue = currentRoundInfo.BlockProducers[transaction.From.DumpHex().RemoveHexPrefix()].OutValue;
                     if (outValue == Hash.FromMessage(inValue))
                     {
                         toRemove.Add(transaction);
@@ -261,7 +261,7 @@ namespace AElf.ChainController.TxMemPoolBM
             _logger?.Trace("Txs list:");
             foreach (var transaction in txs)
             {
-                _logger?.Trace($"{transaction.GetHash().Dumps()} - {transaction.MethodName}");
+                _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName}");
             }
         }
     }

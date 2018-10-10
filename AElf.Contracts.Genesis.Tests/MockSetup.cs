@@ -92,7 +92,7 @@ namespace AElf.Contracts.Genesis.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
             StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromBytes(ChainId1.Clone().OfType(HashType.AccountZero).ToByteArray()));
+            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.Clone().OfType(HashType.AccountZero).ToByteArray()));
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Address address)

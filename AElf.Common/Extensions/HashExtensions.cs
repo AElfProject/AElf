@@ -36,7 +36,7 @@ namespace AElf.Common
         /// <returns></returns>
         public static bool IsNull(this Hash hash)
         {
-            return hash == null || hash.Dumps().RemoveHexPrefix().Length == 0;
+            return hash == null || hash.DumpHex().RemoveHexPrefix().Length == 0;
         }
     }
 }

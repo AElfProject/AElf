@@ -39,7 +39,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(_mock.ContractCode),
-                ContractHash = Hash.FromBytes(_mock.ContractCode)
+                ContractHash = Hash.FromRawBytes(_mock.ContractCode)
             };
 
             var resC = runner.ExtractMetadata(typeof(TestContractC));
@@ -95,7 +95,7 @@ namespace AElf.Runtime.CSharp.Tests
             
             var refB = new Dictionary<string, Address>(new []
             {
-                new KeyValuePair<string, Address>("ContractC", Address.FromBytes(ByteArrayHelpers.FromHexString("0x456745674567456745674567456745674567"))), 
+                new KeyValuePair<string, Address>("ContractC", Address.FromRawBytes(ByteArrayHelpers.FromHexString("0x456745674567456745674567456745674567"))), 
             });
             
             var groundTruthTemplateB = new ContractMetadataTemplate(typeof(TestContractB).FullName, groundTruthResB,
@@ -164,8 +164,8 @@ namespace AElf.Runtime.CSharp.Tests
             
             var refA = new Dictionary<string, Address>(new []
             {
-                new KeyValuePair<string, Address>("ContractC", Address.FromBytes(ByteArrayHelpers.FromHexString("0x456745674567456745674567456745674567"))), 
-                new KeyValuePair<string, Address>("_contractB", Address.FromBytes(ByteArrayHelpers.FromHexString("0x123412341234123412341234123412341234"))), 
+                new KeyValuePair<string, Address>("ContractC", Address.FromRawBytes(ByteArrayHelpers.FromHexString("0x456745674567456745674567456745674567"))), 
+                new KeyValuePair<string, Address>("_contractB", Address.FromRawBytes(ByteArrayHelpers.FromHexString("0x123412341234123412341234123412341234"))), 
             });
             
             var groundTruthTemplateA = new ContractMetadataTemplate(typeof(TestContractA).FullName, groundTruthResA,
@@ -257,7 +257,7 @@ namespace AElf.Runtime.CSharp.Tests
 
         private string ContractReferencesToString(Dictionary<string, Address> references)
         {
-            return string.Join(", ", references.OrderBy(kv => kv.Key).Select(kv => $"[{kv.Key}, {kv.Value.Dumps()}]"));
+            return string.Join(", ", references.OrderBy(kv => kv.Key).Select(kv => $"[{kv.Key}, {kv.Value.DumpHex()}]"));
         }
 
         private string ExternalFunctionCallToString(Dictionary<string, List<string>> externalFuncCall)

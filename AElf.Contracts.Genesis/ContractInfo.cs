@@ -24,7 +24,7 @@ namespace AElf.Contracts.Genesis
 
         private Address GetAddress()
         {
-            return Address.FromBytes(
+            return Address.FromRawBytes(
                 Hash.FromTwoHashes(
                     Api.GetChainId(),
                     Hash.FromMessage(

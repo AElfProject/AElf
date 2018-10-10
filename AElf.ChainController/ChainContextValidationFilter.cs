@@ -55,8 +55,8 @@ namespace AElf.ChainController
                     if (currentPreviousBlockHash.Equals(previousBlockHash))
                         return ValidationError.Success;
 
-                    _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.Dumps());
-                    _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.Dumps());
+                    _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.DumpHex());
+                    _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.DumpHex());
 
                     return ValidationError.IncorrectPreBlockHash;
                 }

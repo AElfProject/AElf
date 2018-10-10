@@ -29,10 +29,10 @@ namespace AElf.Kernel.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.FromBytes(SmartContractZeroCode)
+                ContractHash = Hash.FromRawBytes(SmartContractZeroCode)
             };
             var chain = await _service.CreateNewChainAsync(Hash.FromString("Hello"), new List<SmartContractRegistration>{reg});
-            Assert.Equal(Hash.FromString("Hello").Dumps(), chain.Id.Dumps());
+            Assert.Equal(Hash.FromString("Hello").DumpHex(), chain.Id.DumpHex());
         }
     }
 }

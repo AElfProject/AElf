@@ -83,7 +83,7 @@ namespace AElf.Sdk.CSharp.Tests
 
             StateDictator.ChainId = ChainId1;
             DataProvider1 = StateDictator.GetAccountDataProvider(
-                Address.FromBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
+                Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
             );
         }
 
@@ -93,7 +93,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Category = 1,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.FromBytes(code)
+                ContractHash = Hash.FromRawBytes(code)
             };
 
             await SmartContractService.DeployContractAsync(ChainId1, address, reg, false);

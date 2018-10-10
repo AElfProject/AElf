@@ -46,7 +46,7 @@ namespace AElf.Benchmark.TestContract
 
             Balances.SetValue(to, newToBal);
             //Console.WriteLine("set to pass");
-            Console.WriteLine($"After transfer: {from.Dumps()} - {newFromBal} || {to.Dumps()} - {newToBal}");
+            Console.WriteLine($"After transfer: {from.DumpHex()} - {newFromBal} || {to.DumpHex()} - {newToBal}");
             return true;
         }
 

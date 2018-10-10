@@ -38,8 +38,8 @@ namespace AElf.Runtime.CSharp.Tests
         public IAccountDataProvider DataProvider1;
         public IAccountDataProvider DataProvider2;
 
-        public Address ContractAddress1 { get; } = Address.FromBytes(Hash.Generate().ToByteArray());
-        public Address ContractAddress2 { get; } = Address.FromBytes(Hash.Generate().ToByteArray());
+        public Address ContractAddress1 { get; } = Address.FromRawBytes(Hash.Generate().ToByteArray());
+        public Address ContractAddress2 { get; } = Address.FromRawBytes(Hash.Generate().ToByteArray());
 
         private ISmartContractManager _smartContractManager;
         public IStateDictator StateDictator;
@@ -87,13 +87,13 @@ namespace AElf.Runtime.CSharp.Tests
             StateDictator.ChainId = ChainId1;
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
             DataProvider1 = StateDictator.GetAccountDataProvider(
-                Address.FromBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
+                Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
             );
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             StateDictator.ChainId = ChainId2;
             DataProvider2 = StateDictator.GetAccountDataProvider(
-                Address.FromBytes(ChainId2.OfType(HashType.AccountZero).ToByteArray())
+                Address.FromRawBytes(ChainId2.OfType(HashType.AccountZero).ToByteArray())
             );
         }
 
@@ -103,7 +103,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Category = 1,
                 ContractBytes = ByteString.CopyFrom(ContractCode),
-                ContractHash = Hash.FromBytes(ContractCode)
+                ContractHash = Hash.FromRawBytes(ContractCode)
             };
 
             await SmartContractService.DeployContractAsync(ChainId1, ContractAddress1, reg, false);

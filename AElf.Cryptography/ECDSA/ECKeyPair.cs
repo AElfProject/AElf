@@ -40,12 +40,12 @@ namespace AElf.Cryptography.ECDSA
 
         public Address GetAddress()
         {
-            return Address.FromBytes(GetEncodedPublicKey());
+            return Address.FromRawBytes(GetEncodedPublicKey());
         }
 
         public string GetAddressHex()
         {
-            return Address.FromBytes(GetEncodedPublicKey()).Value.ToByteArray().ToHex();
+            return Address.FromRawBytes(GetEncodedPublicKey()).Value.ToByteArray().ToHex();
             //"0x" + BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
         }
     }

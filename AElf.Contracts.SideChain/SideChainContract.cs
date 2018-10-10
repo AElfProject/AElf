@@ -125,7 +125,7 @@ namespace AElf.Contracts.SideChain
             Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain.");
             var info = _sideChainInfos[chainId];
             Api.Assert(info.Status != (SideChainStatus) 3, "Disposed side chain.");
-            return info.LockedAddress.GetValueBytes();
+            return info.LockedAddress.DumpByteArray();
         }
 
         #region Actions
@@ -148,7 +148,7 @@ namespace AElf.Contracts.SideChain
                 ChainId = chainId,
                 Creator = Api.GetTransaction().From
             }.Fire();
-            return chainId.Dump();
+            return chainId.DumpByteArray();
         }
     
         public void ApproveSideChain(Hash chainId)
@@ -221,7 +221,7 @@ namespace AElf.Contracts.SideChain
                 $"Merkle path already bound at height {height}.");
 //            _txRootMerklePathInParentChain[key] = path;
             _txRootMerklePathInParentChain.SetValueToDatabaseAsync(key, path).Wait();
-            Console.WriteLine("Path: {0}", path.Path[0].Dumps());
+            Console.WriteLine("Path: {0}", path.Path[0].DumpHex());
 
         }
         #endregion

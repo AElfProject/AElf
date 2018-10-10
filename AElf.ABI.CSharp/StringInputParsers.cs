@@ -33,8 +33,8 @@ namespace AElf.ABI.CSharp
                     s => Enumerable.Range(0, s.Length).Where(x => x % 2 == 0 && !(IsHex(s) && x == 0))
                         .Select(x => Convert.ToByte(s.Substring(x, 2), 16)).ToArray()
                 },
-                {typeof(Hash), Hash.Loads},
-                {typeof(Address), Address.Loads},
+                {typeof(Hash), Hash.LoadHex},
+                {typeof(Address), Address.LoadHex},
                 {typeof(MerklePath), (s) => MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
             };
 
@@ -52,8 +52,8 @@ namespace AElf.ABI.CSharp
                     typeof(byte[]),
                     obj => ((byte[]) obj).ToHex()
                 },
-                {typeof(Hash), obj=> ((Hash)obj).Dumps()},
-                {typeof(Address), obj=> ((Address)obj).Dumps()},
+                {typeof(Hash), obj=> ((Hash)obj).DumpHex()},
+                {typeof(Address), obj=> ((Address)obj).DumpHex()},
                 {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()}
             };
 
@@ -117,7 +117,7 @@ namespace AElf.ABI.CSharp
 
             if (typeName == Globals.HASH_TYPE_FULL_NAME)
             {
-                return obj => ((Hash) obj).Dumps();
+                return obj => ((Hash) obj).DumpHex();
             }
 
             throw new Exception($"Not Found parser for type {typeName}");

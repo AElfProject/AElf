@@ -26,8 +26,8 @@ namespace AElf.Cryptography.Tests.ECDSA
             ;
             
             Transaction tx = new Transaction();
-            tx.From = Address.FromBytes(fromAdress);
-            tx.To = Address.FromBytes(toAdress);
+            tx.From = Address.FromRawBytes(fromAdress);
+            tx.To = Address.FromRawBytes(toAdress);
             tx.P =  ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             
             // Serialize and hash the transaction
@@ -35,7 +35,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.Dump());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -56,7 +56,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
             
-            Assert.True(verifier.Verify(dTx.GetSignature(), dHash.Dump()));
+            Assert.True(verifier.Verify(dTx.GetSignature(), dHash.DumpByteArray()));
         }
     }
 }

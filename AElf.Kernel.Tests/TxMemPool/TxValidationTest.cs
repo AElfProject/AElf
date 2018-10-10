@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx = new Transaction
             {
                 From = keyPair.GetAddress(),
-                To = to ?? Address.FromBytes(Hash.Generate().ToByteArray()),
+                To = to ?? Address.FromRawBytes(Hash.Generate().ToByteArray()),
                 IncrementId = id,
                 MethodName = "null",
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
@@ -67,7 +67,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.Dump());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -81,7 +81,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         public Transaction ValidTx()
         {
             var pool = GetPool(1, 1024);
-            var tx = CreateAndSignTransaction(Address.FromBytes(Hash.Generate().ToByteArray()), Address.FromBytes(Hash.Generate().ToByteArray()), 0, 2);
+            var tx = CreateAndSignTransaction(Address.FromRawBytes(Hash.Generate().ToByteArray()), Address.FromRawBytes(Hash.Generate().ToByteArray()), 0, 2);
             Assert.Equal(pool.ValidateTx(tx), TxValidation.TxInsertionAndBroadcastingError.Valid);
             return tx;
         }
@@ -102,9 +102,9 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public void InvalidSignature()
         {
-            var tx = CreateAndSignTransaction(Address.FromBytes(Hash.Generate().ToByteArray()), Address.FromBytes(Hash.Generate().ToByteArray()), 0, 2);
+            var tx = CreateAndSignTransaction(Address.FromRawBytes(Hash.Generate().ToByteArray()), Address.FromRawBytes(Hash.Generate().ToByteArray()), 0, 2);
             Assert.True(tx.VerifySignature());
-            tx.To = Address.FromBytes(Hash.Generate().ToByteArray());
+            tx.To = Address.FromRawBytes(Hash.Generate().ToByteArray());
             Assert.False(tx.VerifySignature());
             
         }
@@ -125,7 +125,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         public void InvalidTxWithFeeNotEnough()
         {
             var pool = GetPool(2, 1024);
-            var tx = CreateAndSignTransaction(Address.FromBytes(Hash.Generate().ToByteArray()), Address.FromBytes(Hash.Generate().ToByteArray()),0, 3);
+            var tx = CreateAndSignTransaction(Address.FromRawBytes(Hash.Generate().ToByteArray()), Address.FromRawBytes(Hash.Generate().ToByteArray()),0, 3);
             Assert.Equal(pool.ValidateTx(tx), TxValidation.TxInsertionAndBroadcastingError.Valid);
 
             tx.Fee = 1;
@@ -137,7 +137,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         public void InvalidTxWithWrongSize()
         {  
             var pool = GetPool(2, 3);
-            var tx = CreateAndSignTransaction(Address.FromBytes(Hash.Generate().ToByteArray()), Address.FromBytes(Hash.Generate().ToByteArray()),0, 1);
+            var tx = CreateAndSignTransaction(Address.FromRawBytes(Hash.Generate().ToByteArray()), Address.FromRawBytes(Hash.Generate().ToByteArray()),0, 1);
             tx.Params = ByteString.CopyFrom(new Parameters
             {
                 Params =

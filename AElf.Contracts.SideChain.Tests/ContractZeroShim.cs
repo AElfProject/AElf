@@ -9,7 +9,7 @@ namespace AElf.Contracts.SideChain.Tests
     public class ContractZeroShim
     {
         private MockSetup _mock;
-        public Address ContractAddres = Address.FromBytes(Hash.Generate().ToByteArray());
+        public Address ContractAddres = Address.FromRawBytes(Hash.Generate().ToByteArray());
         public IExecutive Executive { get; set; }
 
         public ITransactionContext TransactionContext { get; private set; }

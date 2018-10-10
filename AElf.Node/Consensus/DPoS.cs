@@ -78,7 +78,7 @@ namespace AElf.Kernel.Node
         public void Initialize(Address contractAccountHash, ECKeyPair nodeKeyPair)
         {
             Helper = new AElfDPoSHelper(_stateDictator,
-                Hash.Loads(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
+                Hash.LoadHex(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
             _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
             _contractAccountAddressHash = contractAccountHash;
 
@@ -119,7 +119,7 @@ namespace AElf.Kernel.Node
 
             isMining = true;
 
-            if (!Miners.Nodes.Contains(_nodeKeyPair.Address.Dumps().RemoveHexPrefix()))
+            if (!Miners.Nodes.Contains(_nodeKeyPair.Address.DumpHex().RemoveHexPrefix()))
             {
                 return;
             }
@@ -149,7 +149,7 @@ namespace AElf.Kernel.Node
             try
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
-                _stateDictator.ChainId = Hash.Loads(NodeConfig.Instance.ChainId);
+                _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
                 _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
                 _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
 
@@ -224,7 +224,7 @@ namespace AElf.Kernel.Node
             }
 
             var signer = new ECSigner();
-            var signature = signer.Sign(_nodeKeyPair, tx.GetHash().Dump());
+            var signature = signer.Sign(_nodeKeyPair, tx.GetHash().DumpByteArray());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -279,14 +279,14 @@ namespace AElf.Kernel.Node
             var signature = Hash.Default;
             if (currentRoundNumber.Value > 1)
             {
-                _logger?.Trace("In value used for generating signature: " + inValue.Dumps());
+                _logger?.Trace("In value used for generating signature: " + inValue.DumpHex());
                 signature = Helper.CalculateSignature(inValue);
             }
 
             var parameters = new List<byte[]>
             {
                 Helper.CurrentRoundNumber.ToByteArray(),
-                new StringValue {Value = _nodeKeyPair.Address.Dumps().RemoveHexPrefix()}.ToByteArray(),
+                new StringValue {Value = _nodeKeyPair.Address.DumpHex().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray(),
                 signature.ToByteArray(),
                 new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
@@ -315,7 +315,7 @@ namespace AElf.Kernel.Node
             var parameters = new List<byte[]>
             {
                 currentRoundNumber.ToByteArray(),
-                new StringValue {Value = _nodeKeyPair.Address.Dumps().RemoveHexPrefix()}.ToByteArray(),
+                new StringValue {Value = _nodeKeyPair.Address.DumpHex().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray(),
                 new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
             };
@@ -365,7 +365,7 @@ namespace AElf.Kernel.Node
             }
 
             // Update observer.
-            var address = _nodeKeyPair.Address.Dumps().RemoveHexPrefix();
+            var address = _nodeKeyPair.Address.DumpHex().RemoveHexPrefix();
             var miners = Helper.Miners;
             if (!miners.Nodes.Contains(address))
             {
@@ -404,11 +404,11 @@ namespace AElf.Kernel.Node
         {
             if (tx.Type == TransactionType.DposTransaction)
             {
-                _logger?.Trace($"A DPoS tx has been generated: {tx.GetHash().Dumps()} - {tx.MethodName} from {tx.From.Dumps()}");
+                _logger?.Trace($"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.DumpHex()}");
             }
             
             if (tx.From.Equals(_nodeKeyPair.Address))
-                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().Dumps() + ", threadId: " +
+                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().DumpHex() + ", threadId: " +
                                Thread.CurrentThread.ManagedThreadId);
             try
             {

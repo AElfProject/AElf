@@ -130,12 +130,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
 
             StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
+            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             
             StateDictator.ChainId = ChainId2;
-            DataProvider2 = StateDictator.GetAccountDataProvider(Address.FromBytes(ChainId2.OfType(HashType.AccountZero).ToByteArray()));
+            DataProvider2 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId2.OfType(HashType.AccountZero).ToByteArray()));
         }
 
         private async Task DeploySampleContracts()
@@ -144,7 +144,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Category = 1,
                 ContractBytes = ByteString.CopyFrom(ExampleContractCode),
-                ContractHash = Hash.FromBytes(ExampleContractCode)
+                ContractHash = Hash.FromRawBytes(ExampleContractCode)
             };
 
             await SmartContractService.DeployContractAsync(ChainId1, SampleContractAddress1, reg, true);

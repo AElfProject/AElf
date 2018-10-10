@@ -138,7 +138,7 @@ namespace AElf.Contracts.Genesis
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.FromBytes(code)
+                ContractHash = Hash.FromRawBytes(code)
             };
 
             await Api.DeployContractAsync(address, reg);
@@ -155,8 +155,8 @@ namespace AElf.Contracts.Genesis
             */
 
             Console.WriteLine($"SerialNumber: {info.SerialNumber}");
-            Console.WriteLine("BasicContractZero - Deployment success: " + address.Dumps());
-            return address.GetValueBytes();
+            Console.WriteLine("BasicContractZero - Deployment success: " + address.DumpHex());
+            return address.DumpByteArray();
         }
 
         public void ChangeContractOwner(Address contractAddress, Address newOwner)

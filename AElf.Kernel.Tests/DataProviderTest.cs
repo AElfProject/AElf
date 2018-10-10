@@ -31,7 +31,7 @@ namespace AElf.Kernel.Tests
             var list = new List<byte[]>(count);
             for (var i = 0; i < count; i++)
             {
-                list.Add(Hash.Generate().Dump());
+                list.Add(Hash.Generate().DumpByteArray());
             }
 
             return list;
@@ -39,7 +39,7 @@ namespace AElf.Kernel.Tests
 
         private IEnumerable<Hash> GenerateKeys(IEnumerable<byte[]> set)
         {
-           return set.Select(Hash.FromBytes).ToList();
+           return set.Select(Hash.FromRawBytes).ToList();
         }
     }
 }

@@ -13,11 +13,17 @@ namespace AElf.Common
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>
     {
         private const int ByteArrayLength = 32;
+
+        /// <summary>
+        /// Used to override IMessage's default string representation.
+        /// </summary>
+        /// <returns></returns>
         public string ToDiagnosticString()
         {
-            return $@"""{Dumps()}""";
+            return $@"""{DumpHex()}""";
         }
 
+        // Make private to avoid confusion
         private Hash(byte[] bytes)
         {
             if (bytes.Length != ByteArrayLength)
@@ -29,21 +35,43 @@ namespace AElf.Common
 
         #region Hashes from various types
 
-        public static Hash FromBytes(byte[] bytes)
+        /// <summary>
+        /// Gets the hash from a byte array.
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static Hash FromRawBytes(byte[] bytes)
         {
             return new Hash(bytes.CalculateHash());
         }
 
+        /// <summary>
+        /// Gets the hash from a string encoded in UTF8.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
         public static Hash FromString(string str)
         {
-            return FromBytes(Encoding.UTF8.GetBytes(str));
+            return FromRawBytes(Encoding.UTF8.GetBytes(str));
         }
 
+        /// <summary>
+        /// Gets the hash from a Protobuf Message. Its serialized byte array is used for hash calculation.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public static Hash FromMessage(IMessage message)
         {
-            return FromBytes(message.ToByteArray());
+            return FromRawBytes(message.ToByteArray());
         }
 
+        /// <summary>
+        /// Creates a hash from two hashes. The serialized byte arrays of the two hashes are concatenated and
+        /// used to calculate the hash. 
+        /// </summary>
+        /// <param name="hash1"></param>
+        /// <param name="hash2"></param>
+        /// <returns></returns>
         public static Hash FromTwoHashes(Hash hash1, Hash hash2)
         {
             var hashes = new List<Hash>()
@@ -59,20 +87,20 @@ namespace AElf.Common
                 }
                 stream.Flush();
                 mm.Flush();
-                return FromBytes(mm.ToArray());
+                return FromRawBytes(mm.ToArray());
             }
         }
         
         public static Hash Generate()
         {
-            return FromBytes(Guid.NewGuid().ToByteArray());
+            return FromRawBytes(Guid.NewGuid().ToByteArray());
         }        
 
         #endregion
 
         #region Predefined
 
-        public static readonly Hash Zero = Hash.FromBytes(new byte[] { });
+        public static readonly Hash Zero = Hash.FromRawBytes(new byte[] { });
 
         public static readonly Hash Default = Hash.FromString("AElf");
 
@@ -158,6 +186,12 @@ namespace AElf.Common
 
         #region Bitwise operations
 
+        /// <summary>
+        /// Gets a new hash from two input hashes from bitwise xor operation.
+        /// </summary>
+        /// <param name="h1"></param>
+        /// <param name="h2"></param>
+        /// <returns></returns>
         public static Hash Xor(Hash h1, Hash h2)
         {
             var newHashBytes = new byte[h1.Value.Length];
@@ -178,7 +212,7 @@ namespace AElf.Common
         /// Dumps the content value to byte array.
         /// </summary>
         /// <returns></returns>
-        public byte[] Dump()
+        public byte[] DumpByteArray()
         {
             return Value.ToByteArray();
         }
@@ -187,7 +221,7 @@ namespace AElf.Common
         /// Dumps the content value to hex string.
         /// </summary>
         /// <returns></returns>
-        public string Dumps()
+        public string DumpHex()
         {
             return Value.ToByteArray().ToHex();
         }
@@ -198,7 +232,7 @@ namespace AElf.Common
         /// <param name="bytes"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Hash Load(byte[] bytes)
+        public static Hash LoadByteArray(byte[] bytes)
         {
             if (bytes.Length != 32)
             {
@@ -216,10 +250,10 @@ namespace AElf.Common
         /// <param name="hex"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Hash Loads(string hex)
+        public static Hash LoadHex(string hex)
         {
             var bytes = ByteArrayHelpers.FromHexString(hex);
-            return Load(bytes);
+            return LoadByteArray(bytes);
         }
         #endregion Load and dump
     }

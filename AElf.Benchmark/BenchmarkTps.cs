@@ -242,7 +242,7 @@ namespace AElf.Benchmark
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.FromBytes(SmartContractZeroCode),
+                ContractHash = Hash.FromRawBytes(SmartContractZeroCode),
                 Type = (int)SmartContractType.BasicContractZero
             };
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId,

@@ -173,8 +173,8 @@ namespace AElf.Cryptography
             string fullPath = null;
             try
             {
-                Address.FromBytes(keyPair.GetEncodedPublicKey());
-                var address = Address.FromBytes(keyPair.GetEncodedPublicKey()).Value.ToByteArray().ToHex();
+                Address.FromRawBytes(keyPair.GetEncodedPublicKey());
+                var address = Address.FromRawBytes(keyPair.GetEncodedPublicKey()).Value.ToByteArray().ToHex();
 //                var address = keyPair.GetAddressHex();
                 fullPath = GetKeyFileFullPath(address);
             }

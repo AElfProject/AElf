@@ -59,7 +59,7 @@ namespace AElf.Execution
             {
                 var failedTrace = new TransactionTrace
                 {
-                    StdErr = "Transaction with ID/hash " + failed.Key.GetHash().Dumps() +
+                    StdErr = "Transaction with ID/hash " + failed.Key.GetHash().DumpHex() +
                              " failed, detail message: \n" + failed.Value.Dump(),
                     TransactionId = failed.Key.GetHash()
                 };

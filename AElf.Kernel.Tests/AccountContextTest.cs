@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests
         public AccountContextTest(IStateDictator stateDictator)
         {
             stateDictator.ChainId = Hash.Generate();
-            stateDictator.BlockProducerAccountAddress = Address.FromBytes(Hash.Generate().ToByteArray());
+            stateDictator.BlockProducerAccountAddress = Address.FromRawBytes(Hash.Generate().ToByteArray());
 
             _accountContextService = new AccountContextService(stateDictator);
         }
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Tests
         public async Task GetAccountContextTest()
         {
             var chainId = Hash.Generate();
-            var accountId = Address.FromBytes(Hash.Generate().ToByteArray());
+            var accountId = Address.FromRawBytes(Hash.Generate().ToByteArray());
 
             var context1 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
             var context2 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
@@ -37,7 +37,7 @@ namespace AElf.Kernel.Tests
         public async Task SetAccountContextTest()
         {
             var chainId = Hash.Generate();
-            var accountId = Address.FromBytes(Hash.Generate().ToByteArray());
+            var accountId = Address.FromRawBytes(Hash.Generate().ToByteArray());
 
             var context1 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
             context1.IncrementId++;

@@ -153,7 +153,7 @@ namespace AElf.Node.AElfChain
         {
             _nodeKeyPair = conf.KeyPair;
             _assemblyDir = conf.LauncherAssemblyLocation;
-            _blockChain = _chainService.GetBlockChain(Hash.Loads(NodeConfig.Instance.ChainId));
+            _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
 
             SetupConsensus();
         }
@@ -199,7 +199,7 @@ namespace AElf.Node.AElfChain
             }
 
             // set world state
-            _stateDictator.ChainId = Hash.Loads(NodeConfig.Instance.ChainId);
+            _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
 
             #endregion setup
 
@@ -214,7 +214,7 @@ namespace AElf.Node.AElfChain
             {
                 _miner.Init(_nodeKeyPair);
 
-                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Dumps());
+                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.DumpHex());
             }
 
             // todo maybe move
@@ -255,22 +255,22 @@ namespace AElf.Node.AElfChain
 
         private Address GetGenesisContractHash(SmartContractType contractType)
         {
-            return _chainCreationService.GenesisContractHash(Hash.Loads(NodeConfig.Instance.ChainId), contractType);
+            return _chainCreationService.GenesisContractHash(Hash.LoadHex(NodeConfig.Instance.ChainId), contractType);
         }
 
         private void LogGenesisContractInfo()
         {
             var genesis = GetGenesisContractHash(SmartContractType.BasicContractZero);
-            _logger?.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"", genesis.Dumps());
+            _logger?.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"", genesis.DumpHex());
 
             var tokenContractAddress = GetGenesisContractHash(SmartContractType.TokenContract);
-            _logger?.Log(LogLevel.Debug, "Token contract address = \"{0}\"", tokenContractAddress.Dumps());
+            _logger?.Log(LogLevel.Debug, "Token contract address = \"{0}\"", tokenContractAddress.DumpHex());
 
             var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
-            _logger?.Log(LogLevel.Debug, "DPoS contract address = \"{0}\"", consensusAddress.Dumps());
+            _logger?.Log(LogLevel.Debug, "DPoS contract address = \"{0}\"", consensusAddress.DumpHex());
 
             var sidechainContractAddress = GetGenesisContractHash(SmartContractType.SideChainContract);
-            _logger?.Log(LogLevel.Debug, "SideChain contract address = \"{0}\"", sidechainContractAddress.Dumps());
+            _logger?.Log(LogLevel.Debug, "SideChain contract address = \"{0}\"", sidechainContractAddress.DumpHex());
         }
 
         private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero,
@@ -280,7 +280,7 @@ namespace AElf.Node.AElfChain
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(tokenContractCode),
-                ContractHash = Hash.FromBytes(tokenContractCode),
+                ContractHash = Hash.FromRawBytes(tokenContractCode),
                 Type = (int) SmartContractType.TokenContract
             };
 
@@ -288,7 +288,7 @@ namespace AElf.Node.AElfChain
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(consensusContractCode),
-                ContractHash = Hash.FromBytes(consensusContractCode),
+                ContractHash = Hash.FromRawBytes(consensusContractCode),
                 Type = (int) SmartContractType.AElfDPoS
             };
 
@@ -296,7 +296,7 @@ namespace AElf.Node.AElfChain
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(basicContractZero),
-                ContractHash = Hash.FromBytes(basicContractZero),
+                ContractHash = Hash.FromRawBytes(basicContractZero),
                 Type = (int) SmartContractType.BasicContractZero
             };
 
@@ -304,13 +304,13 @@ namespace AElf.Node.AElfChain
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(sideChainGenesisContractCode),
-                ContractHash = Hash.FromBytes(sideChainGenesisContractCode),
+                ContractHash = Hash.FromRawBytes(sideChainGenesisContractCode),
                 Type = (int) SmartContractType.SideChainContract
             };
-            var res = _chainCreationService.CreateNewChainAsync(Hash.Loads(NodeConfig.Instance.ChainId),
+            var res = _chainCreationService.CreateNewChainAsync(Hash.LoadHex(NodeConfig.Instance.ChainId),
                 new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg}).Result;
 
-            _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Dumps());
+            _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.DumpHex());
         }
 
         private void SetupConsensus()
@@ -324,7 +324,7 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    var chainId = Hash.Loads(NodeConfig.Instance.ChainId);
+                    var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
                     var dpos = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer, _logger);
                     var genesisContractHash =
                         _chainCreationService.GenesisContractHash(chainId, SmartContractType.AElfDPoS);
@@ -378,14 +378,14 @@ namespace AElf.Node.AElfChain
         {
             try
             {
-                var chainId = Hash.Loads(NodeConfig.Instance.ChainId);
+                var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
                 var context = await _chainContextService.GetChainContextAsync(chainId);
                 var error = await _blockValidationService.ValidateBlockAsync(block, context, _nodeKeyPair);
 
                 if (error != ValidationError.Success)
                 {
                     var blockchain =
-                        _chainService.GetBlockChain(Hash.Loads(NodeConfig.Instance.ChainId));
+                        _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
                     var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
                     if (error == ValidationError.OrphanBlock)
                     {

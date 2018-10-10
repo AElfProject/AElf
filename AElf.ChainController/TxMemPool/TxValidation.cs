@@ -90,14 +90,14 @@ namespace AElf.ChainController.TxMemPool
 
             
             byte[] uncompressedPrivKey = tx.P.ToByteArray();
-            var addr = Address.FromBytes(uncompressedPrivKey);
+            var addr = Address.FromRawBytes(uncompressedPrivKey);
 //            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
 
             if (!addr.Equals(tx.From))
                 return false;
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            return verifier.Verify(tx.GetSignature(), tx.GetHash().Dump());
+            return verifier.Verify(tx.GetSignature(), tx.GetHash().DumpByteArray());
 
         }
 

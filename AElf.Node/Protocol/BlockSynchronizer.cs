@@ -267,7 +267,7 @@ namespace AElf.Node.Protocol
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error("Error while dequeuing " + job?.Block.GetHash().Dumps());
+                    _logger?.Error("Error while dequeuing " + job?.Block.GetHash().DumpHex());
                     continue;
                 }
 
@@ -427,7 +427,7 @@ namespace AElf.Node.Protocol
             byte[] blockHash;
             try
             {
-                blockHash = block.GetHash().Dump();
+                blockHash = block.GetHash().DumpByteArray();
             }
             catch (Exception e)
             {

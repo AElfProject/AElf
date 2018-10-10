@@ -97,7 +97,7 @@ namespace AElf.Node.Protocol
                         return;
                     }
 
-                    byte[] blockHash = inBlock.Block.GetHash().Dump();
+                    byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
 
                     if (blockHash != null)
                         _lastBlocksReceived.Enqueue(blockHash);

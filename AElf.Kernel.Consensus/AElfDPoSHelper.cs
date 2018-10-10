@@ -326,7 +326,7 @@ namespace AElf.Kernel.Consensus
                 }
 
                 Hash sig = Hash.FromTwoHashes(inValue, add);
-                _logger?.Trace("Generated signature: " + sig.Dumps());
+                _logger?.Trace("Generated signature: " + sig.DumpHex());
                 return sig;
             }
             catch (Exception e)

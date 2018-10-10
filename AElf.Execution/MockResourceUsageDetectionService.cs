@@ -42,7 +42,7 @@ namespace AElf.Execution
 
             addresses.Add(transaction.From);
 
-            return await Task.FromResult(addresses.Select(a=>a.Dumps()));
+            return await Task.FromResult(addresses.Select(a=>a.DumpHex()));
         }
     }
 }

@@ -33,11 +33,11 @@ namespace AElf.Contracts.SideChain.Tests
         {
 //            var chainId = Hash.Generate();
             var chainId = Hash.FromString("Chain1");
-            var lockedAddress = Address.FromBytes(Hash.FromString("LockedAddress1").ToByteArray());
+            var lockedAddress = Address.FromRawBytes(Hash.FromString("LockedAddress1").ToByteArray());
             ulong lockedToken = 10000;
             // create new chain
             var bytes = await _contract.CreateSideChain(chainId, lockedAddress, lockedToken);
-            Assert.Equal(chainId.Dump(), bytes);
+            Assert.Equal(chainId.DumpByteArray(), bytes);
 
             // check status
             var status = await _contract.GetChainStatus(chainId);
@@ -50,7 +50,7 @@ namespace AElf.Contracts.SideChain.Tests
             Assert.Equal(lockedToken, tokenAmount);
 
             var address = await _contract.GetLockedAddress(chainId);
-            Assert.Equal(lockedAddress.GetValueBytes(), address);
+            Assert.Equal(lockedAddress.DumpByteArray(), address);
             
             // authorize the chain 
             await _contract.ApproveSideChain(chainId);

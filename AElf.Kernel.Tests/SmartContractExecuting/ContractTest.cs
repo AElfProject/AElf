@@ -46,7 +46,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         {
             _stateDictator = stateDictator;
             _stateDictator.ChainId = Hash.Generate();
-            _stateDictator.BlockProducerAccountAddress = Address.FromBytes(Hash.Generate().ToByteArray());
+            _stateDictator.BlockProducerAccountAddress = Address.FromRawBytes(Hash.Generate().ToByteArray());
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _transactionManager = transactionManager;
@@ -115,13 +115,13 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             
             Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
-            var address = Address.FromBytes(txnCtxt.Trace.RetVal.Data.DeserializeToBytes());
+            var address = Address.FromRawBytes(txnCtxt.Trace.RetVal.Data.DeserializeToBytes());
 
             var regExample = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.FromBytes(code)
+                ContractHash = Hash.FromRawBytes(code)
             };
             var copy = await _smartContractManager.GetAsync(address);
 
@@ -164,10 +164,10 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
 
             var bs = txnCtxt.Trace.RetVal;
-            var address = Address.FromBytes(bs.Data.DeserializeToBytes());
+            var address = Address.FromRawBytes(bs.Data.DeserializeToBytes());
 
             #region initialize account balance
-            var account = Address.FromBytes(Hash.Generate().ToByteArray());
+            var account = Address.FromRawBytes(Hash.Generate().ToByteArray());
             var txnInit = new Transaction
             {
                 From = Address.Zero,
