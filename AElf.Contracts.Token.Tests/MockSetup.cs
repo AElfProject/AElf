@@ -101,14 +101,14 @@ namespace AElf.Contracts.Token.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(TokenCode),
-                ContractHash = Hash.FromBytes(TokenCode),
+                ContractHash = Hash.FromRawBytes(TokenCode),
                 Type = (int)SmartContractType.TokenContract
             };
             var reg0 = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SCZeroContractCode),
-                ContractHash = Hash.FromBytes(SCZeroContractCode),
+                ContractHash = Hash.FromRawBytes(SCZeroContractCode),
                 Type = (int)SmartContractType.BasicContractZero
             };
 
@@ -116,7 +116,7 @@ namespace AElf.Contracts.Token.Tests
                 await _chainCreationService.CreateNewChainAsync(ChainId1,
                     new List<SmartContractRegistration> {reg0});
             StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
+            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Address address)

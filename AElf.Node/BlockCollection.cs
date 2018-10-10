@@ -25,7 +25,7 @@ namespace AElf.Node
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.Loads(NodeConfig.Instance.ChainId)));
+                                                  Hash.LoadHex(NodeConfig.Instance.ChainId)));
 
         /// <summary>
         /// To store branched chains.
@@ -38,7 +38,7 @@ namespace AElf.Node
         public ulong PendingBlockHeight { get; set; }
 
         public ulong SyncedHeight =>
-            _chainService.GetBlockChain(Hash.Loads(NodeConfig.Instance.ChainId))
+            _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId))
                 .GetCurrentBlockHeightAsync().Result;
 
         public List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
@@ -173,7 +173,7 @@ namespace AElf.Node
         private void AddToPendingBlocks(PendingBlock pendingBlock)
         {
             PendingBlockHeight = Math.Max(PendingBlockHeight, pendingBlock.Block.Header.Index);
-            _logger?.Trace("Adding to pending blocks: " + pendingBlock.Block.GetHash().Dumps());
+            _logger?.Trace("Adding to pending blocks: " + pendingBlock.Block.GetHash().DumpHex());
             PrintPendingBlocks(PendingBlocks);
             PendingBlocks.Add(pendingBlock);
             PendingBlocks.SortByBlockIndex();
@@ -217,7 +217,7 @@ namespace AElf.Node
             }
 
             _logger?.Trace(
-                $"Adding to branched chain: {pendingBlock.Block.GetHash().Dumps()} : {pendingBlock.Block.Header.Index}");
+                $"Adding to branched chain: {pendingBlock.Block.GetHash().DumpHex()} : {pendingBlock.Block.Header.Index}");
 
             if (_branchedChains.Count == 0)
             {
@@ -398,7 +398,7 @@ namespace AElf.Node
                 _logger?.Trace("Current PendingBlocks:");
                 foreach (var pendingBlock in pendingBlocks)
                 {
-                    _logger?.Trace($"{pendingBlock.Block.GetHash().Dumps()} - {pendingBlock.Block.Header.Index}");
+                    _logger?.Trace($"{pendingBlock.Block.GetHash().DumpHex()} - {pendingBlock.Block.Header.Index}");
                 }
             }
         }

@@ -89,14 +89,14 @@ using    AElf.Common;
                 {
                     Category = 0,
                     ContractBytes = ByteString.CopyFrom(SideChainCode),
-                    ContractHash = Hash.FromBytes(SideChainCode),
+                    ContractHash = Hash.FromRawBytes(SideChainCode),
                     Type = (int)SmartContractType.SideChainContract
                 };
                 var reg0 = new SmartContractRegistration
                 {
                     Category = 0,
                     ContractBytes = ByteString.CopyFrom(SCZeroContractCode),
-                    ContractHash = Hash.FromBytes(SCZeroContractCode),
+                    ContractHash = Hash.FromRawBytes(SCZeroContractCode),
                     Type = (int)SmartContractType.BasicContractZero
                 };
     
@@ -104,7 +104,7 @@ using    AElf.Common;
                     await _chainCreationService.CreateNewChainAsync(ChainId1,
                         new List<SmartContractRegistration> {reg0, reg1});
                 StateDictator.ChainId = ChainId1;
-                StateDictator.GetAccountDataProvider(Address.FromBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
+                StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
             }
             
             public async Task<IExecutive> GetExecutiveAsync(Address address)

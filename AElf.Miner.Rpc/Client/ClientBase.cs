@@ -72,10 +72,10 @@ namespace AElf.Miner.Rpc.Client
                 
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.Loads(NodeConfig.Instance.ChainId),
+                    ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
                     NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                 };
-                _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.Dumps()}");
+                _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_interval);
             }
@@ -109,7 +109,7 @@ namespace AElf.Miner.Rpc.Client
                 if (status == StatusCode.Unavailable)
                 {
                     var detail = e.Status.Detail;
-                    _logger.Error(detail + $" exception during request to chain {_targetChainId.Dumps()}.");
+                    _logger.Error(detail + $" exception during request to chain {_targetChainId.DumpHex()}.");
                     StartDuplexStreamingCall(cancellationToken, _next);
                     return;
                 }
@@ -130,7 +130,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.Loads(NodeConfig.Instance.ChainId),
+                    ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
                     NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                 };
                 

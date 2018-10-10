@@ -13,7 +13,7 @@ namespace AElf.Kernel.Storages
             return new Key
             {
                 Type = type,
-                Value = ByteString.CopyFrom(hash.GetHashBytes()),
+                Value = ByteString.CopyFrom(hash.DumpByteArray()),
                 HashType = (uint) hash.HashType
             }.ToByteArray().ToHex();
         }

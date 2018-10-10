@@ -44,7 +44,7 @@ namespace AElf.ChainController
             
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
-            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().Dumps(), timestampOfBlock);
+            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().DumpHex(), timestampOfBlock);
             if (tx == null)
             {
                 return ValidationError.FailedToCheckConsensusInvalidation;
@@ -88,7 +88,7 @@ namespace AElf.ChainController
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(keyPair, tx.GetHash().GetHashBytes());
+            var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

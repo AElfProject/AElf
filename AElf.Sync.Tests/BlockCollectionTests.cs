@@ -31,7 +31,7 @@ namespace AElf.Sync.Tests
         [Fact]
         public void AddPendingBlock_Initial()
         {
-            NodeConfig.Instance.ChainId = Hash.Generate().Dumps();
+            NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
             var blockCollection = new BlockCollection(_chainService);
 
             // Initial sync.
@@ -54,7 +54,7 @@ namespace AElf.Sync.Tests
         [Fact]
         public void AddPendingBlock_Initial_Reverse()
         {
-            NodeConfig.Instance.ChainId = Hash.Generate().Dumps();
+            NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
             var blockCollection = new BlockCollection(_chainService);
 
             // Initial sync.

@@ -89,8 +89,8 @@ namespace AElf.ChainController.Rpc
                     ["result"] =
                         new JObject
                         {
-                            [SmartContractType.BasicContractZero.ToString()] = basicContractZero.Dumps(),
-                            [SmartContractType.SideChainContract.ToString()] = sideChainContract.Dumps(),
+                            [SmartContractType.BasicContractZero.ToString()] = basicContractZero.DumpHex(),
+                            [SmartContractType.SideChainContract.ToString()] = sideChainContract.DumpHex(),
                             ["chain_id"] = chainId
                         }
                 };
@@ -113,7 +113,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var addrHash =Address.Loads(address);
+                var addrHash =Address.LoadHex(address);
 
                 var abi = await this.GetContractAbi(addrHash);
 
@@ -141,7 +141,7 @@ namespace AElf.ChainController.Rpc
             Address addr;
             try
             {
-                addr = Address.Loads(address);
+                addr = Address.LoadHex(address);
             }
             catch (Exception e)
             {
@@ -195,7 +195,7 @@ namespace AElf.ChainController.Rpc
             var hexString = ByteArrayHelpers.FromHexString(raw64);
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
-            var res = new JObject {["hash"] = transaction.GetHash().Dumps()};
+            var res = new JObject {["hash"] = transaction.GetHash().DumpHex()};
             try
             {
                 var valRes = await TxPoolService.AddTxAsync(transaction);
@@ -243,7 +243,7 @@ namespace AElf.ChainController.Rpc
                 Hash txHash;
                 try
                 {
-                    txHash = Hash.Loads(txid);
+                    txHash = Hash.LoadHex(txid);
                 }
                 catch (Exception)
                 {
@@ -307,8 +307,8 @@ namespace AElf.ChainController.Rpc
                 }
                 return new JObject
                 {
-                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.Dumps(),
-                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.Dumps(),
+                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpHex(),
+                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.DumpHex(),
                     ["parent_height"] = merklePathInParentChain.Height
                 };
             }
@@ -327,7 +327,7 @@ namespace AElf.ChainController.Rpc
             Hash txHash;
             try
             {
-                txHash = Hash.Loads(txhash);
+                txHash = Hash.LoadHex(txhash);
             }
             catch (Exception e)
             {
@@ -365,7 +365,7 @@ namespace AElf.ChainController.Rpc
                 if (txResult.Status == Status.Mined)
                 {
                     response["block_number"] = txResult.BlockNumber;
-                    response["block_hash"] = txResult.BlockHash.Dumps();
+                    response["block_hash"] = txResult.BlockHash.DumpHex();
                     response["return"] = txResult.RetVal.ToByteArray().ToHex();
                 }
                 // Todo: it should be deserialized to obj ion cli, 
@@ -419,16 +419,16 @@ namespace AElf.ChainController.Rpc
             {
                 ["result"] = new JObject
                 {
-                    ["Blockhash"] = blockinfo.GetHash().Dumps(),
+                    ["Blockhash"] = blockinfo.GetHash().DumpHex(),
                     ["Header"] = new JObject
                     {
-                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.Dumps(),
-                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.Dumps(),
-                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.Dumps(),
-                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.Dumps(),
+                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.DumpHex(),
+                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.DumpHex(),
+                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.DumpHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.DumpHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
-                        ["ChainId"] = blockinfo.Header.ChainId.Dumps(),
+                        ["ChainId"] = blockinfo.Header.ChainId.DumpHex(),
                         //["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                     },
                     ["Body"] = new JObject
@@ -446,7 +446,7 @@ namespace AElf.ChainController.Rpc
                 var txs = new List<string>();
                 foreach (var txHash in transactions)
                 {
-                    txs.Add(txHash.Dumps());
+                    txs.Add(txHash.DumpHex());
                 }
 
                 response["result"]["Body"]["Transactions"] = JArray.FromObject(txs);

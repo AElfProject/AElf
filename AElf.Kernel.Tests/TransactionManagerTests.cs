@@ -24,8 +24,8 @@ namespace AElf.Kernel.Tests
         {
             await _manager.AddTransactionAsync(new Transaction
             {
-                From = Address.FromBytes(Hash.Generate().ToByteArray()),
-                To = Address.FromBytes(Hash.Generate().ToByteArray())
+                From = Address.FromRawBytes(Hash.Generate().ToByteArray()),
+                To = Address.FromRawBytes(Hash.Generate().ToByteArray())
             });
         }
 
@@ -44,7 +44,7 @@ namespace AElf.Kernel.Tests
 
             var tx = new Transaction();
             tx.From = keyPair.GetAddress();
-            tx.To = adrTo ?? Address.FromBytes(Hash.Generate().ToByteArray());
+            tx.To = adrTo ?? Address.FromRawBytes(Hash.Generate().ToByteArray());
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
@@ -62,7 +62,7 @@ namespace AElf.Kernel.Tests
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

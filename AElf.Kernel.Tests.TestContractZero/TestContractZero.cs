@@ -91,7 +91,7 @@ namespace AElf.Kernel.Tests
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(contract),
-                ContractHash = Hash.FromBytes(contract)  
+                ContractHash = Hash.FromRawBytes(contract)  
             };
             
             var tx = Api.GetTransaction();
@@ -111,8 +111,8 @@ namespace AElf.Kernel.Tests
             var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId);
             
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("TestContractZero: Deployment success, {0}", account.Dumps());
-            return account.GetValueBytes();
+            Console.WriteLine("TestContractZero: Deployment success, {0}", account.DumpHex());
+            return account.DumpByteArray();
 
         }
 

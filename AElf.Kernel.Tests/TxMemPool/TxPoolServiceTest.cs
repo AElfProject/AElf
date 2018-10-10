@@ -27,7 +27,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             _accountContextService = accountContextService;
             _logger = logger;
             _stateDictator = stateDictator;
-            _stateDictator.BlockProducerAccountAddress = Address.FromBytes(Hash.Generate().ToByteArray());
+            _stateDictator.BlockProducerAccountAddress = Address.FromRawBytes(Hash.Generate().ToByteArray());
         }
 
         private ContractTxPool GetContractTxPool(ITxPoolConfig config)
@@ -167,7 +167,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var kp = new KeyPairGenerator().Generate();
             var tx1 = BuildTransaction(keyPair:kp, nonce: 0);
             var tx2 = BuildTransaction(keyPair:kp, nonce: 1);
-            var tx2_1 = BuildTransaction(adrTo:Address.FromBytes(Hash.Generate().ToByteArray()), keyPair: kp, nonce: 1);
+            var tx2_1 = BuildTransaction(adrTo:Address.FromRawBytes(Hash.Generate().ToByteArray()), keyPair: kp, nonce: 1);
             var r2 = await poolService.AddTxAsync(tx2);
             Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.Success, r2);
             var r2_1 = await poolService.AddTxAsync(tx2_1);
@@ -257,7 +257,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
             var tx = new Transaction();
             tx.From = keyPair.GetAddress();
-            tx.To = adrTo ?? Address.FromBytes(Hash.Generate().ToByteArray());
+            tx.To = adrTo ?? Address.FromRawBytes(Hash.Generate().ToByteArray());
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
@@ -277,7 +277,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

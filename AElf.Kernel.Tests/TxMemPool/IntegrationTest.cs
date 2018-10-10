@@ -27,7 +27,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             _logger = logger;
             _stateDictator = stateDictator;
-            _stateDictator.BlockProducerAccountAddress = Address.FromBytes(Hash.Generate().ToByteArray());
+            _stateDictator.BlockProducerAccountAddress = Address.FromRawBytes(Hash.Generate().ToByteArray());
             _accountContextService = new AccountContextService(stateDictator);
         }
         
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
             var tx = new Transaction();
             tx.From = keyPair.GetAddress();
-            tx.To = adrTo ?? Address.FromBytes(Hash.Generate().ToByteArray());
+            tx.To = adrTo ?? Address.FromRawBytes(Hash.Generate().ToByteArray());
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
@@ -69,7 +69,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

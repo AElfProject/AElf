@@ -16,7 +16,7 @@ namespace AElf.Kernel.Node
 
         public async Task<Block> GetBlockAtHeight(int height)
         {
-            var blockchain = ChainService.GetBlockChain(Hash.Loads(NodeConfig.Instance.ChainId));
+            var blockchain = ChainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
         }
 

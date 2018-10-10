@@ -56,7 +56,7 @@ namespace AElf.Miner.Tests.Grpc
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
                 {
                     {
-                        sideChainId.Dumps(), new Uri{
+                        sideChainId.DumpHex(), new Uri{
                             Address = address,
                             Port = port
                         }
@@ -122,7 +122,7 @@ namespace AElf.Miner.Tests.Grpc
                 GrpcRemoteConfig.Instance.ParentChain = new Dictionary<string, Uri>
                 {
                     {
-                        parentChainId.Dumps(), new Uri{
+                        parentChainId.DumpHex(), new Uri{
                             Address = address,
                             Port = port
                         }
@@ -185,13 +185,13 @@ namespace AElf.Miner.Tests.Grpc
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
                 serverManager.Init(dir);
                 var keypair = new KeyPairGenerator().Generate();
-                var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().GetValueBytes());
+                var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
                 {
                     {
-                        sideChainId.Dumps(), new Uri{
+                        sideChainId.DumpHex(), new Uri{
                             Address = address,
                             Port = sidePort
                         }

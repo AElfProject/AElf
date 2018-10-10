@@ -87,7 +87,7 @@ namespace AElf.Node
 
                 args.Peer.EnqueueOutgoing(req);
 
-                _logger?.Trace("Send block " + block.GetHash().Dumps() + " to " + args.Peer);
+                _logger?.Trace("Send block " + block.GetHash().DumpHex() + " to " + args.Peer);
             }
             catch (Exception e)
             {
@@ -117,7 +117,7 @@ namespace AElf.Node
                 foreach (var txHash in breq.TxHashes)
                 {
                     var hash = txHash.ToByteArray();
-                    var tx = await _handler.GetTransaction(new Hash(hash));
+                    var tx = await _handler.GetTransaction(Hash.LoadByteArray(hash));
                 
                     if(tx != null)
                         txList.Transactions.Add(tx);
@@ -171,7 +171,7 @@ namespace AElf.Node
             var serializedBlock = b.ToByteArray();
             await _netManager.BroadcastBlock(block.GetHash().Value.ToByteArray(), serializedBlock);
 
-            var bh = block.GetHash().Dumps();
+            var bh = block.GetHash().DumpHex();
             _logger?.Trace(
                 $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
 

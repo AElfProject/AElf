@@ -24,7 +24,7 @@ namespace AElf.Sdk.CSharp
             {
                 Address = Api.GetContractAddress()
             };
-            le.Topics.Add(ByteString.CopyFrom(Hash.FromString(t.Name).GetHashBytes()));
+            le.Topics.Add(ByteString.CopyFrom(Hash.FromString(t.Name).DumpByteArray()));
             var fields = t.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                 .Select(x => new {Name = x.Name, Value = x.GetValue(this), Indexed = IsIndexed(x)})
                 .Where(x => x.Value != null && x.Value.GetType().GetInterfaces().Contains(typeof(IMessage))).ToList();

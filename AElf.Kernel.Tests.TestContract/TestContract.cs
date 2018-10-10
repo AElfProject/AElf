@@ -25,7 +25,7 @@ namespace AElf.Kernel.Tests.TestContract
         [SmartContractFunction("${this}.Initialize", new string[]{}, new []{"${this}.Balances"})]
         public bool Initialize(Address account, UInt64Value qty)
         {
-            Console.WriteLine($"Initialize {account.Dumps()} to {qty.Value}");
+            Console.WriteLine($"Initialize {account.DumpHex()} to {qty.Value}");
             Balances.SetValue(account, qty.Value);
             return true;
         }
@@ -47,8 +47,8 @@ namespace AElf.Kernel.Tests.TestContract
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances", "${this}.TransactionStartTimes", "${this}.TransactionEndTimes"})]
         public bool Transfer(Address from, Address to, UInt64Value qty)
         {
-            Console.WriteLine("From: " + from.Dumps());
-            Console.WriteLine("To: " + to.Dumps());
+            Console.WriteLine("From: " + from.DumpHex());
+            Console.WriteLine("To: " + to.DumpHex());
 
             // This is for testing batched transaction sequence
             TransactionStartTimes.SetValue(Api.GetTransaction().GetHash(), Now());

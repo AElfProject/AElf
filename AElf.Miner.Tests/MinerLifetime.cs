@@ -71,7 +71,7 @@ namespace AElf.Kernel.Tests.Miner
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.FromBytes(code)
+                ContractHash = Hash.FromRawBytes(code)
             };
             
             
@@ -98,7 +98,7 @@ namespace AElf.Kernel.Tests.Miner
             
             Hash hash = txnDep.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             txnDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txnDep.R = ByteString.CopyFrom(signature.R); 
             txnDep.S = ByteString.CopyFrom(signature.S);
@@ -108,7 +108,7 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             var mock = new Mock<ITxPoolService>();
-            mock.Setup((s) => s.GetReadyTxsAsync(null, Address.FromBytes(Hash.Generate().ToByteArray()), 3000)).Returns(Task.FromResult(txs));
+            mock.Setup((s) => s.GetReadyTxsAsync(null, Address.FromRawBytes(Hash.Generate().ToByteArray()), 3000)).Returns(Task.FromResult(txs));
             return mock;
         }
         
@@ -144,7 +144,7 @@ namespace AElf.Kernel.Tests.Miner
             
             Hash hash = txPrint.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             txPrint.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txPrint.R = ByteString.CopyFrom(signature.R); 
             txPrint.S = ByteString.CopyFrom(signature.S);
@@ -195,7 +195,7 @@ namespace AElf.Kernel.Tests.Miner
             
             Hash hash = txnDep.GetHash();
 
-            ECSignature signature1 = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature1 = signer.Sign(keyPair, hash.DumpByteArray());
             txnDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txnDep.R = ByteString.CopyFrom(signature1.R); 
             txnDep.S = ByteString.CopyFrom(signature1.S);
@@ -211,7 +211,7 @@ namespace AElf.Kernel.Tests.Miner
                 Fee = TxPoolConfig.Default.FeeThreshold + 1,
                 Type = TransactionType.ContractTransaction
             };
-            ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().GetHashBytes());
+            ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().DumpByteArray());
             txInv_1.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txInv_1.R = ByteString.CopyFrom(signature2.R); 
             txInv_1.S = ByteString.CopyFrom(signature2.S);
@@ -228,7 +228,7 @@ namespace AElf.Kernel.Tests.Miner
                 Type = TransactionType.ContractTransaction
             };
             
-            ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().GetHashBytes());
+            ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().DumpByteArray());
             txInv_2.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txInv_2.R = ByteString.CopyFrom(signature3.R); 
             txInv_2.S = ByteString.CopyFrom(signature3.S);
@@ -254,7 +254,7 @@ namespace AElf.Kernel.Tests.Miner
             
             // create miner
             var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().GetValueBytes());
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
             var manager = _mock.MinerClientManager();
             var miner = _mock.GetMiner(minerconfig, poolService, manager);
 
@@ -270,12 +270,12 @@ namespace AElf.Kernel.Tests.Miner
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
 //            Hash addr = uncompressedPrivKey.Take(Common.Globals.AddressLength).ToArray();
-            Address addr = Address.FromBytes(uncompressedPrivKey);
+            Address addr = Address.FromRawBytes(uncompressedPrivKey);
             Assert.Equal(minerconfig.CoinBase, addr);
             
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()));
+            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().DumpByteArray()));
         }
         
         [Fact]
@@ -287,7 +287,7 @@ namespace AElf.Kernel.Tests.Miner
 
             // create miner
             var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().GetValueBytes());
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
             var manager = _mock.MinerClientManager();
             var miner = _mock.GetMiner(minerconfig, poolService, manager);
             GrpcLocalConfig.Instance.Client = false;
@@ -301,12 +301,12 @@ namespace AElf.Kernel.Tests.Miner
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
 //            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
-            Address addr = Address.FromBytes(uncompressedPrivKey);
+            Address addr = Address.FromRawBytes(uncompressedPrivKey);
             Assert.Equal(minerconfig.CoinBase, addr);
             
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()));
+            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().DumpByteArray()));
         }
 
         [Fact]
@@ -353,7 +353,7 @@ namespace AElf.Kernel.Tests.Miner
             var curHash = await blockchain.GetCurrentBlockHashAsync();
             var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
             Assert.Equal((ulong)0, index);
-            Assert.Equal(chain.GenesisBlockHash.Dumps(), curHash.Dumps());
+            Assert.Equal(chain.GenesisBlockHash.DumpHex(), curHash.DumpHex());
         }
     }
 }

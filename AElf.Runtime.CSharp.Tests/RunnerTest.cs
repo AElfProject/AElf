@@ -25,8 +25,8 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public void Test()
         {
-            Address account0 = Address.FromBytes(Hash.Generate().ToByteArray());
-            Address account1 = Address.FromBytes(Hash.Generate().ToByteArray());
+            Address account0 = Address.FromRawBytes(Hash.Generate().ToByteArray());
+            Address account1 = Address.FromRawBytes(Hash.Generate().ToByteArray());
 
             // Initialize
             _contract1.Initialize(account0, 200);

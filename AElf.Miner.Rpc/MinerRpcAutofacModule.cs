@@ -11,11 +11,11 @@ namespace AElf.Miner.Rpc
         {
             builder.RegisterType<SideChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
             {
-                impl.Instance.Init(Hash.Loads(NodeConfig.Instance.ChainId));
+                impl.Instance.Init(Hash.LoadHex(NodeConfig.Instance.ChainId));
             });
             builder.RegisterType<ParentChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
             {
-                impl.Instance.Init(Hash.Loads(NodeConfig.Instance.ChainId));
+                impl.Instance.Init(Hash.LoadHex(NodeConfig.Instance.ChainId));
             });
         }
     }

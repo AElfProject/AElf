@@ -45,7 +45,7 @@ namespace AElf.SmartContract.Metadata
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.Dumps());
+                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.DumpHex());
             }
 
             return await chainFuncMetadata.GetFunctionMetadata(chainId, addrFunctionName);

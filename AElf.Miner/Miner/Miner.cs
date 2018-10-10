@@ -99,7 +99,7 @@ namespace AElf.Miner.Miner
                     _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
                     foreach (var transaction in dposTxs)
                     {
-                        _logger?.Trace($"{transaction.GetHash().Dumps()} - {transaction.MethodName} from {transaction.From.Dumps()}");
+                        _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName} from {transaction.From.DumpHex()}");
                     }
                     
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
@@ -163,7 +163,7 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
-                    To=Address.FromBytes(Hash.Xor(Config.ChainId,
+                    To=Address.FromRawBytes(Hash.Xor(Config.ChainId,
                         Hash.FromString(SmartContractType.SideChainContract.ToString())).ToByteArray()),
 //                    To = new Hash(Config.ChainId.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount(),
                     RefBlockNumber = bn,
@@ -175,7 +175,7 @@ namespace AElf.Miner.Miner
                 };
                 
                 // sign tx
-                var signature = new ECSigner().Sign(_keyPair, tx.GetHash().GetHashBytes());
+                var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
                 tx.R = ByteString.CopyFrom(signature.R);
                 tx.S = ByteString.CopyFrom(signature.S);
                 

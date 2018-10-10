@@ -29,10 +29,10 @@ namespace AElf.ChainController
                 }
                 else
                 {
-                    chainIdHash = Hash.Loads(NodeConfig.Instance.ChainId);
+                    chainIdHash = Hash.LoadHex(NodeConfig.Instance.ChainId);
                 }
 
-                var obj = new JObject(new JProperty("id", chainIdHash.Dumps()));
+                var obj = new JObject(new JProperty("id", chainIdHash.DumpHex()));
 
                 // write JSON directly to a file
                 if (!Directory.Exists(FileFolder))
@@ -53,11 +53,11 @@ namespace AElf.ChainController
                 using (var reader = new JsonTextReader(file))
                 {
                     var chain = (JObject) JToken.ReadFrom(reader);
-                    chainIdHash = Hash.Loads(chain.GetValue("id").ToString());
+                    chainIdHash = Hash.LoadHex(chain.GetValue("id").ToString());
                 }
             }
 
-            NodeConfig.Instance.ChainId = chainIdHash.Dumps();
+            NodeConfig.Instance.ChainId = chainIdHash.DumpHex();
 
             builder.RegisterModule(new ChainAutofacModule());
 

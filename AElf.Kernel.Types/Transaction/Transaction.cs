@@ -28,7 +28,7 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            return Hash.FromBytes(GetSignatureData());
+            return Hash.FromRawBytes(GetSignatureData());
         }
 
         public byte[] GetHashBytes()

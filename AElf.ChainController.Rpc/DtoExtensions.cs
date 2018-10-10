@@ -12,9 +12,9 @@ namespace AElf.ChainController.Rpc
             {
                 ["tx"] = new JObject
                 {
-                    {"TxId", tx.GetHash().Dumps()},
-                    {"From", tx.From.Dumps()},
-                    {"To", tx.To.Dumps()},
+                    {"TxId", tx.GetHash().DumpHex()},
+                    {"From", tx.From.DumpHex()},
+                    {"To", tx.To.DumpHex()},
                     {"RefBlockNumber", tx.RefBlockNumber},
                     {"RefBlockPrefix", tx.RefBlockPrefix.ToByteArray().ToHex()},
                     {"Method", tx.MethodName}
@@ -27,11 +27,11 @@ namespace AElf.ChainController.Rpc
             var res = new JObject();
             foreach (var sideChainIndexedInfo in block.Body.IndexedInfo)
             {
-                res.Add(sideChainIndexedInfo.ChainId.Dumps(), new JObject
+                res.Add(sideChainIndexedInfo.ChainId.DumpHex(), new JObject
                 {
                     {"Height", sideChainIndexedInfo.Height},
-                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.Dumps()},
-                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.Dumps()}
+                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.DumpHex()},
+                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.DumpHex()}
                 });
             }
 
