@@ -177,7 +177,7 @@ namespace AElf.Contracts.Genesis
         public Address GetContractOwner(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
-            return info?.Owner ?? Address.FromString("NonExistent");
+            return info?.Owner;
         }
     }
 }

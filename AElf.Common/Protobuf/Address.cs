@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using AElf.Common.Extensions;
 using Google.Protobuf;
 
+[assembly:InternalsVisibleTo("AElf.Kernel.Tests")]
+[assembly:InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
 namespace AElf.Common
 {
     public partial class Address : ICustomDiagnosticMessage
@@ -28,8 +31,8 @@ namespace AElf.Common
         }
 
         /// <summary>
-        /// Creates an address from raw byte array. If the byte array are longer than required address length,
-        /// the first bytes will be skipped.
+        /// Creates an address from raw byte array. If the byte array is longer than required address length,
+        /// the first bytes will be skipped. The input byte array is usually serialized uncompressed public key.
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
@@ -39,12 +42,12 @@ namespace AElf.Common
         }
 
         /// <summary>
-        /// Creates an address from a string. This is supposed to be used for test only.
+        /// Creates an address from a string. This method is supposed to be used for test only.
         /// The hash bytes of the string will be used to create the address.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static Address FromString(string name)
+        internal static Address FromString(string name)
         {
             return new Address(name.CalculateHash());
         }
