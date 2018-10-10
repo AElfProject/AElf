@@ -231,18 +231,39 @@ namespace AElf.Miner
                 // take side chain info
                 var targetHeight =
                     await _chainManagerBasic.GetCurrentBlockHeightAsync(ByteArrayHelpers.FromHexString(_.Key));
+                
+                // index only one block from one side chain.
+                // this could be changed later.
                 if (!_.Value.TryTake(Interval, out var blockInfo) || blockInfo.Height != targetHeight)
                     continue;
 
                 res.Add((SideChainBlockInfo) blockInfo);
-                await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height + 1);
-                await _chainManagerBasic.UpdateCurrentBlockHashAsync(blockInfo.ChainId,
-                    ((SideChainBlockInfo) blockInfo).BlockHeaderHash);
+                await UpdateSideChainInfo(blockInfo);
             }
 
             return res;
         }
 
+        /// <summary>
+        /// Update side chain information
+        /// </summary>
+        /// <param name="blockInfo"></param>
+        /// <returns></returns>
+        private async Task UpdateSideChainInfo(IBlockInfo blockInfo)
+        {
+            await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height + 1);
+            await _chainManagerBasic.UpdateCurrentBlockHashAsync(blockInfo.ChainId,
+                ((SideChainBlockInfo) blockInfo).BlockHeaderHash);
+        }
+
+        public bool CheckSideChainBlockInfo(SideChainBlockInfo blockInfo)
+        {
+            if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId.ToHex(), out var client))
+                // TODO: this could be changed.
+                return true;
+            return !client.Empty() && client.First().Equals(blockInfo);
+        }
+        
         /// <summary>
         /// Check the first cached one with <param name="blockInfo"></param> and remove it.
         /// </summary>
@@ -252,13 +273,17 @@ namespace AElf.Miner
         /// Return true if client for that chain is not existed which means the side chain is not available.
         /// Return false if it is not same to cached element.
         /// </returns>
-        public bool TryRemoveSideChainBlockInfo(SideChainBlockInfo blockInfo)
+        public async Task<bool> TryUpdateAndRemoveSideChainBlockInfo(SideChainBlockInfo blockInfo)
         {
             if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId.ToHex(), out var client))
-                // TODO: this could be changed.
+            {
+                await UpdateSideChainInfo(blockInfo);
                 return true;
+            }
             if (client.Empty() || !client.First().Equals(blockInfo))
                 return false;
+            // TODO: this could be changed.
+            await UpdateSideChainInfo(blockInfo);
             return client.Take() != null;
         }
         

@@ -121,7 +121,7 @@ namespace AElf.Miner.Miner
                 errlog = "ExecuteBlock - Null block or no transactions.";
                 res = false;
             }
-            else if (!ValidateSideChainBlockInfo(block))
+            else if (!await ValidateSideChainBlockInfo(block))
             {
                 // side chain info verification 
                 // side chain info in this block cannot fit together with local side chain info.
@@ -255,9 +255,11 @@ namespace AElf.Miner.Miner
         /// <returns>
         /// Return true if side chain info is consistent with local node, else return false;
         /// </returns>
-        private bool ValidateSideChainBlockInfo(IBlock block)
+        private async Task<bool> ValidateSideChainBlockInfo(IBlock block)
         {
-            var sideChainBlockIndexedInfo = block.Body.IndexedInfo.Aggregate(
+            if (!block.Body.IndexedInfo.All(_clientManager.CheckSideChainBlockInfo))
+                return false;
+            /*var sideChainBlockIndexedInfo = block.Body.IndexedInfo.Aggregate(
                 new Dictionary<Hash, SortedList<ulong, SideChainBlockInfo>>(),
                 (m, cur) =>
                 {
@@ -267,14 +269,15 @@ namespace AElf.Miner.Miner
                     }
                     sortedList.Add(cur.Height, cur);
                     return m;
-                });
-            foreach (var _ in sideChainBlockIndexedInfo)
+                });*/
+            
+            // Todo : no need to sort as height for now, since at maximal one block from one side chain.
+            // all block info should be removed successfully because having been checked.
+            foreach (var blockInfo in block.Body.IndexedInfo)
             {
-                foreach (var blockInfo in _.Value)
-                {
-                    if (_clientManager.TryRemoveSideChainBlockInfo(blockInfo.Value))
-                        return false;
-                }
+                if (!await _clientManager.TryUpdateAndRemoveSideChainBlockInfo(blockInfo))
+                    // Todo: _clientManager would be chaos if this happened.
+                    return false;
             }
             return true;
         }

@@ -130,11 +130,6 @@ namespace AElf.Miner.Miner
             }
         }
 
-        private async Task UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
-        {
-            await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
-        }
-
         private void BroadcastBlock(IBlock block)
         {
             MessageHub.Instance.Publish(new BlockMinedMessage(block));
@@ -311,7 +306,7 @@ namespace AElf.Miner.Miner
                 // update parent chain block info
                 if (pcbTransaction != null && r.TransactionId.Equals(pcbTransaction.GetHash()) && r.Status.Equals(Status.Mined))
                 {
-                    await UpdateParentChainBlockInfo(parentChainBlockInfo);
+                    await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
                 }
             });
             // update merkle tree
