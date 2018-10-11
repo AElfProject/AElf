@@ -4,7 +4,8 @@ namespace AElf.Configuration.Config.GRPC
     [ConfigFile(FileName = "grpclocal.json")]
     public class GrpcLocalConfig : ConfigBase<GrpcLocalConfig>
     {
-        public bool Client { get; set; }
+        public bool ClientToParentChain { get; set; }
+        public bool ClientToSideChain { get; set; }
         public bool SideChainServer { get; set; }
         public bool ParentChainServer { get; set; }
         public int WaitingIntervalInMillisecond { get; set; }

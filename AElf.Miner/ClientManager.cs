@@ -73,7 +73,6 @@ namespace AElf.Miner
         /// <param name="interval"></param>
         public void Init(string dir = "", int interval = 0)
         {
-            if (!GrpcLocalConfig.Instance.Client) return;
             _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
             _tokenSourceToSideChain = new CancellationTokenSource();
             _tokenSourceToParentChain = new CancellationTokenSource();
@@ -104,7 +103,7 @@ namespace AElf.Miner
         /// <returns></returns>
         private async Task CreateClientsToSideChain()
         {
-            if (!GrpcLocalConfig.Instance.Client)
+            if (!GrpcLocalConfig.Instance.ClientToSideChain)
                 return;
 
             _clientsToSideChains.Clear();
@@ -154,7 +153,7 @@ namespace AElf.Miner
         /// <exception cref="ChainInfoNotFoundException"></exception>
         private async Task CreateClientToParentChain()
         {
-            if (!GrpcLocalConfig.Instance.Client)
+            if (!GrpcLocalConfig.Instance.ClientToParentChain)
                 return;
             try
             {
@@ -313,7 +312,7 @@ namespace AElf.Miner
         /// </returns>
         public async Task<ParentChainBlockInfo> CollectParentChainBlockInfo()
         {
-            if (!GrpcLocalConfig.Instance.Client)
+            if (!GrpcLocalConfig.Instance.ClientToParentChain)
                 throw new ClientShutDownException("Client to parent chain is shut down");
             if (_clientToParentChain == null)
                 return null;
