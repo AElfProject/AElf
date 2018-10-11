@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using System.Timers;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using NLog;
 
