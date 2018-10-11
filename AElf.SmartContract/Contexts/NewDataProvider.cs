@@ -11,7 +11,7 @@ using AElf.Kernel.Storages;
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
-    public class NewDataProvider : IDataProvider
+    public class NewDataProvider
     {
         private IStateStore _stateStore;
 
@@ -71,7 +71,7 @@ namespace AElf.SmartContract
             }
 
             var path = new List<string>(Path) {name};
-            var child = new NewDataProvider(ChainId, ContractAddress, path);
+            var child = new NewDataProvider(ChainId, ContractAddress, path) {StateStore = _stateStore};
             _children.Add(child);
             return child;
         }
@@ -97,7 +97,9 @@ namespace AElf.SmartContract
                 return value.Get();
             }
 
-            return await _stateStore.GetAsync(GetStatePathFor(key, true));
+            var bytes = await _stateStore.GetAsync(GetStatePathFor(key, true));
+            _cache[key] = StateChange.Create(bytes);
+            return bytes;
         }
 
         public async Task SetAsync(string key, byte[] value)
@@ -114,8 +116,12 @@ namespace AElf.SmartContract
 
             if (!_cache.TryGetValue(key, out var c))
             {
-                c = new StateChange();
-                _cache[key] = c;
+                await GetAsync(key);
+                if (!_cache.TryGetValue(key, out c))
+                {
+                    // This should not happen
+                    throw new Exception("Error initializing cache.");
+                }
             }
             c.Set(value);
             await Task.CompletedTask;
