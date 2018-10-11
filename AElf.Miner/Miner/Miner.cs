@@ -153,9 +153,7 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
-                    To=Address.FromRawBytes(Hash.Xor(Config.ChainId,
-                        Hash.FromString(SmartContractType.SideChainContract.ToString())).ToByteArray()),
-//                    To = new Hash(Config.ChainId.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount(),
+                    To = AddressHelpers.GetSystemContractAddress(Config.ChainId, SmartContractType.SideChainContract.ToString()),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
