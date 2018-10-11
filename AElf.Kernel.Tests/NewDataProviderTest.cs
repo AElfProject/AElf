@@ -28,6 +28,7 @@ namespace AElf.SmartContract.Tests
             var sb = Encoding.UTF8.GetBytes(s);
             var statePath = new StatePath()
             {
+// ChainId and ContractAddress is not needed in DataProvider
 //                ChainId = chainId,
 //                ContractAddress = address,
                 Path = {"", s}
@@ -57,7 +58,7 @@ namespace AElf.SmartContract.Tests
             var changes2 = root2.GetChanges();
             Assert.Equal(0, changes2.Count);
 
-            // Sub path
+            // Test path
             var sub = root.GetChild("sub");
             await sub.SetAsync("dummy", new byte[]{0x01});
             var subPath = sub.GetChanges().Keys.First();
