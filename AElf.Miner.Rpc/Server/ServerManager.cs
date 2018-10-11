@@ -144,7 +144,7 @@ namespace AElf.Miner.Rpc.Server
                 await StopParentChainServer();
                 _parentChainServer = CreateNewParentChainServer();
                 _parentChainServer.Start();
-                _logger.Debug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
+                _logger.Debug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalParentChainServerPort);
             }
             catch (Exception e)
             {

@@ -18,7 +18,7 @@ namespace AElf.Cryptography.Tests.SSL
             var certificateStore = new CertificateStore(dir);
             var name = Hash.Generate().ToHex();
                 var keyPair =
-                    certificateStore.WriteKeyAndCertificate("0x32796e95ae7152aa7a554c181d3653c188f1", "192.168.197.11");
+                    certificateStore.WriteKeyAndCertificate("0x32796e95ae7152aa7a554c181d3653c188f1", "192.168.197.39");
             
             using (StreamReader streamReader = new StreamReader(Path.Combine(dir, "certs", "0x32796e95ae7152aa7a554c181d3653c188f1" + ".cert.pem")))
             {
