@@ -481,12 +481,12 @@ namespace AElf.Node.Protocol
                 var block = pendingBlock.Block;
 
                 var res = await _mainChainNode.ExecuteAndAddBlock(block);
-                pendingBlock.ValidationError = res.ValidationError;
+                pendingBlock.BlockValidationResult = res.BlockValidationResult;
 
                 var blockHexHash = block.GetHash().Value.ToByteArray().ToHex();
                 int blockIndex = (int) block.Header.Index;
 
-                if (res.ValidationError == ValidationError.Success)
+                if (res.BlockValidationResult == BlockValidationResult.Success)
                 {
                     if (res.Executed)
                     {
@@ -513,8 +513,8 @@ namespace AElf.Node.Protocol
                 else
                 {
                     // The blocks validation failed
-                    if (res.ValidationError == ValidationError.AlreadyExecuted
-                        || res.ValidationError == ValidationError.OrphanBlock)
+                    if (res.BlockValidationResult == BlockValidationResult.AlreadyExecuted
+                        || res.BlockValidationResult == BlockValidationResult.OrphanBlock)
                     {
                         // The block is an earlier block and one with the same
                         // height as already been executed so it can safely be
@@ -527,9 +527,9 @@ namespace AElf.Node.Protocol
                         }
 
                         _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }} " +
-                                      $"ignored because validation returned {res.ValidationError}.");
+                                      $"ignored because validation returned {res.BlockValidationResult}.");
                     }
-                    else if (res.ValidationError == ValidationError.Pending)
+                    else if (res.BlockValidationResult == BlockValidationResult.Pending)
                     {
                         // The current blocks index is higher than the current height so we're missing
                         if (!ShouldDoInitialSync && (int) block.Header.Index > CurrentExecHeight)
@@ -543,7 +543,7 @@ namespace AElf.Node.Protocol
                     else
                     {
                         _logger?.Warn(
-                            $"Block execution failed: {res.Executed}, {res.ValidationError} - {{ id : {blockHexHash}, index: {blockIndex} }}");
+                            $"Block execution failed: {res.Executed}, {res.BlockValidationResult} - {{ id : {blockHexHash}, index: {blockIndex} }}");
                     }
                 }
             }

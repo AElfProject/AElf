@@ -7,7 +7,7 @@ namespace AElf.ChainController
 {
     public class ChainContextService : IChainContextService
     {
-        private IChainService _chainService;
+        private readonly IChainService _chainService;
         public ChainContextService(IChainService chainService)
         {
             _chainService = chainService;

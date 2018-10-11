@@ -143,7 +143,7 @@ namespace AElf.Miner.Miner
 
         private void BroadcastBlock(IBlock block)
         {
-            MessageHub.Instance.Publish(new BlockMinedMessage(block));
+            MessageHub.Instance.Publish(new BlockMined(block));
         }
 
         /// <summary>

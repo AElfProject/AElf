@@ -382,23 +382,23 @@ namespace AElf.Node.AElfChain
                 var context = await _chainContextService.GetChainContextAsync(chainId);
                 var error = await _blockValidationService.ValidateBlockAsync(block, context, _nodeKeyPair);
 
-                if (error != ValidationError.Success)
+                if (error != BlockValidationResult.Success)
                 {
                     var blockchain =
                         _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
                     var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
-                    if (error == ValidationError.OrphanBlock)
+                    if (error == BlockValidationResult.OrphanBlock)
                     {
                         if (block.Header.Index > localCorrespondingBlock.Header.Index)
                         {
                             var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
                             await _txPoolService.Revert(txs);
                             await _stateDictator.RollbackToPreviousBlock();
-                            error = ValidationError.AnotherBranch;
+                            error = BlockValidationResult.AnotherBranch;
                         }
                         else
                         {
-                            return new BlockExecutionResult(false, ValidationError.OrphanBlock);
+                            return new BlockExecutionResult(false, BlockValidationResult.OrphanBlock);
                         }
                     }
                     else

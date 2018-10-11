@@ -6,6 +6,6 @@ namespace AElf.ChainController
 {
     public interface IBlockValidationService
     {
-        Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair);
+        Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair);
     }
 }

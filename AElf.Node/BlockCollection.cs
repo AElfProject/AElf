@@ -185,13 +185,13 @@ namespace AElf.Node
         /// <param name="pendingBlock"></param>
         public void RemovePendingBlock(PendingBlock pendingBlock)
         {
-            if (pendingBlock.ValidationError == ValidationError.Success)
+            if (pendingBlock.BlockValidationResult == BlockValidationResult.Success)
             {
                 PendingBlocks.Remove(pendingBlock);
             }
             else
             {
-                _logger?.Trace("ValidationError: " + pendingBlock.ValidationError);
+                _logger?.Trace("ValidationError: " + pendingBlock.BlockValidationResult);
                 PendingBlocks.Remove(pendingBlock);
                 AddBlockToBranchedChains(pendingBlock);
             }

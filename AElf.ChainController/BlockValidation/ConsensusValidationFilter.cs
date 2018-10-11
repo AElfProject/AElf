@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Common.Attributes;
-using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
@@ -27,12 +25,12 @@ namespace AElf.ChainController
             _logger = logger;
         }
 
-        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
+        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
             // If the height of chain is 1, no need to check consensus validation
             if (block.Header.Index < 2)
             {
-                return ValidationError.Success;
+                return BlockValidationResult.Success;
             }
             
             // Get block producer's address from block header
@@ -48,7 +46,7 @@ namespace AElf.ChainController
             var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().DumpHex(), timestampOfBlock);
             if (tx == null)
             {
-                return ValidationError.FailedToCheckConsensusInvalidation;
+                return BlockValidationResult.FailedToCheckConsensusInvalidation;
             }
             var tc = new TransactionContext
             {
@@ -60,12 +58,12 @@ namespace AElf.ChainController
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())
             {
-                return ValidationError.FailedToCheckConsensusInvalidation;
+                return BlockValidationResult.FailedToCheckConsensusInvalidation;
             }
 
             return BoolValue.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value
-                ? ValidationError.Success
-                : ValidationError.InvalidTimeSlot;
+                ? BlockValidationResult.Success
+                : BlockValidationResult.InvalidTimeSlot;
         }
 
         private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)

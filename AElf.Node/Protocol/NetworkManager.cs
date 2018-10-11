@@ -89,7 +89,7 @@ namespace AElf.Node.Protocol
                     _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
-            MessageHub.Instance.Subscribe<BlockMinedMessage>(async inBlock => 
+            MessageHub.Instance.Subscribe<BlockMined>(async inBlock => 
                 {
                     if (inBlock?.Block == null)
                     {
