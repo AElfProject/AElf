@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Linq;
+using AElf.Common;
 
 namespace AElf.Kernel.Consensus
 {
@@ -11,7 +12,7 @@ namespace AElf.Kernel.Consensus
         /// </summary>
         /// <param name="interval">Milliseconds</param>
         /// <returns></returns>
-        public IObservable<long> GetIntervalObservable(int interval = Globals.AElfLogInterval)
+        public IObservable<long> GetIntervalObservable(int interval = GlobalConfig.AElfLogInterval)
         {
             return Observable.Interval(TimeSpan.FromMilliseconds(interval));
         }

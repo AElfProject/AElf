@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Google.Protobuf;
 using AElf.Kernel;
 using AElf.SmartContract;
+using AElf.Common;
+using GlobalConfig = AElf.Common.GlobalConfig;
 
 namespace AElf.Execution
 {
@@ -21,7 +23,7 @@ namespace AElf.Execution
         {
 
             var addrs = GetRelatedAccount(transaction).ToImmutableHashSet()
-                .Select(addr => addr.ToHex()).ToList();
+                .Select(addr => addr.DumpHex()).ToList();
 
             var results = new List<string>();
             var functionMetadata = await _functionMetadataService.GetFunctionMetadata(chainId, GetFunctionName(transaction));
@@ -47,13 +49,13 @@ namespace AElf.Execution
 
         private string GetFunctionName(Transaction tx)
         {
-            return tx.To.ToHex() + "." + tx.MethodName;
+            return tx.To.DumpHex() + "." + tx.MethodName;
         }
 
-        private List<Hash> GetRelatedAccount(Transaction transaction)
+        private List<Address> GetRelatedAccount(Transaction transaction)
         {
             //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
-            List<Hash> hashes = new List<Hash>();
+            List<Address> addresses = new List<Address>();
             using (MemoryStream mm = new MemoryStream(transaction.Params.ToByteArray()))
             using (CodedInputStream input = new CodedInputStream(mm))
             {
@@ -67,20 +69,20 @@ namespace AElf.Execution
                             break;
                         case WireFormat.WireType.LengthDelimited:
                             var bytes = input.ReadBytes();
-                            if (bytes.Length == 20)
+                            if (bytes.Length == GlobalConfig.AddressLength + 2)
                             {
-                                var h = new Hash();
+                                var h = new Address();
                                 h.MergeFrom(bytes.Skip(2).ToArray());
-                                hashes.Add(h);
+                                addresses.Add(h);
                             }
                             break;
                     }
                 }
             }
 
-            hashes.Add(transaction.From);
+            addresses.Add(transaction.From);
 
-            return hashes;
+            return addresses;
         }
     }
 }

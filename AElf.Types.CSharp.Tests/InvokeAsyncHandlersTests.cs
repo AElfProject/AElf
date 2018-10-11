@@ -5,6 +5,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.Types.CSharp.Tests
 {

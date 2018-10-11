@@ -5,9 +5,9 @@ using System.Data.JsonRpc;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel;
+using AElf.Common;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -134,12 +134,12 @@ namespace AElf.ChainController.Rpc
             return contracts;
         }
 
-        internal static async Task<IMessage> GetContractAbi(this Svc s, Hash address)
+        internal static async Task<IMessage> GetContractAbi(this Svc s, Address address)
         {
             return await s.SmartContractService.GetAbiAsync(address);
         }
 
-        internal static async Task<ulong> GetIncrementId(this Svc s, Hash addr)
+        internal static async Task<ulong> GetIncrementId(this Svc s, Address addr)
         {
             try
             {
@@ -178,9 +178,9 @@ namespace AElf.ChainController.Rpc
             return res;
         }
 
-        internal static Hash GetGenesisContractHash(this Svc s, SmartContractType contractType)
+        internal static Address GetGenesisContractHash(this Svc s, SmartContractType contractType)
         {
-            return s.ChainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), contractType);
+            return s.ChainCreationService.GenesisContractHash(Hash.LoadHex(NodeConfig.Instance.ChainId), contractType);
         }
 
         internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
@@ -190,13 +190,13 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)
         {
-            var chainContext = await s.ChainContextService.GetChainContextAsync(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
             return chainContext.BlockHeight;
         }
 
         internal static async Task<Block> GetBlockAtHeight(this Svc s, ulong height)
         {
-            var blockchain = s.ChainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHeightAsync(height);
         }
 
@@ -217,7 +217,7 @@ namespace AElf.ChainController.Rpc
                 TransactionId = tx.GetHash()
             };
 
-            var chainContext = await s.ChainContextService.GetChainContextAsync(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
             var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
@@ -226,7 +226,7 @@ namespace AElf.ChainController.Rpc
                 BlockHeight = chainContext.BlockHeight
             };
 
-            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, Hash.LoadHex(NodeConfig.Instance.ChainId));
 
             try
             {

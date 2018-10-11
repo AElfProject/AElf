@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using AElf.Common.Extensions;
+using AElf.Common;
 
 namespace AElf.Kernel
 {

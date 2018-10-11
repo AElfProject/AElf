@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using AElf.Kernel;
-using AElf.Kernel.Types;
+using AElf.Common;
 
 namespace AElf.SmartContract
 {

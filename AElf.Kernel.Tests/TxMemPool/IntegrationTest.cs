@@ -12,6 +12,7 @@ using Google.Protobuf;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests.TxMemPool
 {
@@ -26,7 +27,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             _logger = logger;
             _stateDictator = stateDictator;
-            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
+            _stateDictator.BlockProducerAccountAddress = Address.FromRawBytes(Hash.Generate().ToByteArray());
             _accountContextService = new AccountContextService(stateDictator);
         }
         
@@ -42,14 +43,14 @@ namespace AElf.Kernel.Tests.TxMemPool
             return new PriorTxPool(config, _logger);
         }
 
-        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null, TransactionType type = TransactionType.ContractTransaction)
+        public static Transaction BuildTransaction(Address adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null, TransactionType type = TransactionType.ContractTransaction)
         {
             
             keyPair = keyPair ?? new KeyPairGenerator().Generate();
 
             var tx = new Transaction();
             tx.From = keyPair.GetAddress();
-            tx.To = adrTo == null ? Hash.Generate().ToAccount() : adrTo;
+            tx.To = adrTo ?? Address.FromRawBytes(Hash.Generate().ToByteArray());
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
@@ -68,7 +69,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -95,7 +96,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             var addrList = new List<ECKeyPair>();
 
-            var sortedSet = new Dictionary<Hash, SortedSet<int>>();
+            var sortedSet = new Dictionary<Address, SortedSet<int>>();
 
             int r = 5;
 
@@ -141,7 +142,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                             TransactionId = t.GetHash()
                         });
                     }
-                    await poolService.UpdateAccountContext(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
+                    await poolService.UpdateAccountContext(new HashSet<Address>(addrList.Select(kp=> kp.GetAddress())));
                 }
                 
                 j1++;
@@ -167,7 +168,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             var results = new List<TransactionResult>();
 
-            var idDict = new Dictionary<Hash, ulong>();
+            var idDict = new Dictionary<Address, ulong>();
             int k = 0;
             
             // address number
@@ -182,7 +183,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             var addrList = new List<ECKeyPair>();
 
-            var sortedSet = new Dictionary<Hash, SortedSet<int>>();
+            var sortedSet = new Dictionary<Address, SortedSet<int>>();
 
             int i = 0;
             while (i < Num )
@@ -255,7 +256,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                                     TransactionId = t.GetHash()
                                 });
                             }
-                            await poolService.UpdateAccountContext(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
+                            await poolService.UpdateAccountContext(new HashSet<Address>(addrList.Select(kp=> kp.GetAddress())));
                         }
                     });
                     tasks.Add(task);
@@ -275,7 +276,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 TransactionId = t.GetHash()
             }).ToList();
             
-            await poolService.UpdateAccountContext(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
+            await poolService.UpdateAccountContext(new HashSet<Address>(addrList.Select(kp=> kp.GetAddress())));
 
             int cc = 0;
             foreach (var address in addrList)

@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Timers;
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -149,7 +149,7 @@ namespace AElf.Network.Peers
         {
             get
             {
-                return DistantNodeKeyPair?.GetAddress();
+                return DistantNodeKeyPair?.GetAddress().DumpByteArray();
             }
         }
 

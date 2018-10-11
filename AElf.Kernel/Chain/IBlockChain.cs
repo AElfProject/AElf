@@ -1,6 +1,6 @@
 ﻿ using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
@@ -12,5 +12,6 @@ namespace AElf.Kernel
         Task<IBlock> GetBlockByHashAsync(Hash blockId);
         Task<IBlock> GetBlockByHeightAsync(ulong height);
         Task<List<Transaction>> RollbackToHeight(ulong height);
+        Task<List<Transaction>> RollbackOneBlock();
     }
 }

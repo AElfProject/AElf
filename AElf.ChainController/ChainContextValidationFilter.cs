@@ -4,6 +4,7 @@ using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Common;
 using NLog;
 
 namespace AElf.ChainController
@@ -54,8 +55,8 @@ namespace AElf.ChainController
                     if (currentPreviousBlockHash.Equals(previousBlockHash))
                         return ValidationError.Success;
 
-                    _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.ToHex());
-                    _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.ToHex());
+                    _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.DumpHex());
+                    _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.DumpHex());
 
                     return ValidationError.IncorrectPreBlockHash;
                 }

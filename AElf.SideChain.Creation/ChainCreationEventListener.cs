@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Application;
 using AElf.Common.Attributes;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Management;
 using AElf.Cryptography;
@@ -20,6 +20,7 @@ using AElf.Kernel.Managers;
 using Newtonsoft.Json.Linq;
 using NLog;
 using SideChainInfo = AElf.Contracts.SideChain.SideChainInfo;
+using AElf.Common;
 
 namespace AElf.SideChain.Creation
 {
@@ -53,9 +54,11 @@ namespace AElf.SideChain.Creation
             InitializeClient();
         }
 
-        private Hash GetGenesisContractHash()
+        private Address GetGenesisContractHash()
         {
-            return ChainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), SmartContractType.BasicContractZero);
+            return ChainCreationService.GenesisContractHash(
+                Hash.LoadHex(NodeConfig.Instance.ChainId),
+                SmartContractType.BasicContractZero);
         }
 
         private List<SideChainInfo> GetInterestedEvent(TransactionResult result)
@@ -143,11 +146,11 @@ namespace AElf.SideChain.Creation
     
         private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash sideChainId, Hash parentChainId)
         {
-            var chainId = parentChainId.ToHex();
+            var chainId = parentChainId.DumpHex();
             var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + chainId;
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var deployArg = new DeployArg();
-            deployArg.SideChainId = sideChainId.ToHex();
+            deployArg.SideChainId = sideChainId.DumpHex();
             deployArg.AccountPassword = "123";
             deployArg.LauncherArg.IsConsensusInfoGenerator = true;
             deployArg.LighthouseArg.IsCluster = false;

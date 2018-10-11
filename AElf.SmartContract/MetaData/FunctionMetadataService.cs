@@ -4,7 +4,7 @@ using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
 using NLog;
 using Org.BouncyCastle.Security;
-using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.SmartContract.Metadata
 {
@@ -22,7 +22,7 @@ namespace AElf.SmartContract.Metadata
             _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
         }
 
-        public async Task DeployContract(Hash chainId, Hash address, ContractMetadataTemplate contractMetadataTemplate)
+        public async Task DeployContract(Hash chainId, Address address, ContractMetadataTemplate contractMetadataTemplate)
         {
             //For each chain, ChainFunctionMetadata should be used singlethreaded
             //which means transactions that deploy contracts need to execute serially
@@ -45,7 +45,7 @@ namespace AElf.SmartContract.Metadata
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.ToHex());
+                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.DumpHex());
             }
 
             return await chainFuncMetadata.GetFunctionMetadata(chainId, addrFunctionName);

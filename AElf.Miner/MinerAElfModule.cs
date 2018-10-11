@@ -1,6 +1,6 @@
 ﻿using System;
+using AElf.Common;
 using AElf.Common.Application;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Miner.Miner;
@@ -20,10 +20,13 @@ namespace AElf.Miner
             {
                 minerConfig = new MinerConfig
                 {
-                    CoinBase = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.NodeAccount))
+                    CoinBase =Address.LoadHex(NodeConfig.Instance.NodeAccount) 
                 };
             }
-            minerConfig.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+            minerConfig.ChainId = new Hash()
+            {
+                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId))
+            };
             builder.RegisterModule(new MinerRpcAutofacModule());
 
             builder.RegisterType<ClientManager>().SingleInstance().OnActivated(mc =>

@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Kernel.Managers
 {
@@ -53,9 +54,9 @@ namespace AElf.Kernel.Managers
             {
                 // Current fork
                 AddToBlocks(height, header.GetHash());
-                if (height > Globals.ReferenceBlockValidPeriod)
+                if (height > GlobalConfig.ReferenceBlockValidPeriod)
                 {
-                    var toRemove = height - Globals.ReferenceBlockValidPeriod - 1;
+                    var toRemove = height - GlobalConfig.ReferenceBlockValidPeriod - 1;
                     if (_blocks.TryRemove(toRemove, out _))
                     {
                         _logger?.Trace($"Removing Canonical Hash of height {toRemove}");
@@ -75,7 +76,7 @@ namespace AElf.Kernel.Managers
 
         private void AddToBlocks(ulong height, Hash blockHash)
         {
-            _logger?.Trace($"Adding Canonical Hash {blockHash.ToHex()} of height {height}");
+            _logger?.Trace($"Adding Canonical Hash {blockHash.DumpHex()} of height {height}");
             if (!_blocks.ContainsKey(height))
             {
                 _blocks.TryAdd(height, blockHash);
@@ -90,7 +91,7 @@ namespace AElf.Kernel.Managers
             var height = CurrentHeight;
             if (Interlocked.CompareExchange(ref _filling, 1, 0) == 0)
             {
-                for (var i = (ulong) 1; i <= Math.Max(Globals.ReferenceBlockValidPeriod, height); i++)
+                for (var i = (ulong) 1; i <= Math.Max(GlobalConfig.ReferenceBlockValidPeriod, height); i++)
                 {
                     if (height < i)
                     {

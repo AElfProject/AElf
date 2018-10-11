@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -17,7 +18,7 @@ namespace AElf.SmartContract
     /// </summary>
     public interface IStateDictator
     {
-        IAccountDataProvider GetAccountDataProvider(Hash accountAddress);
+        IAccountDataProvider GetAccountDataProvider(Address accountAddress);
 
         /*
          * WorldState
@@ -52,6 +53,6 @@ namespace AElf.SmartContract
         Task<bool> ApplyCachedDataAction(Dictionary<DataPath, StateCache> queue);
         Hash ChainId { get; set; }
         ulong BlockHeight { get; set; }
-        Hash BlockProducerAccountAddress { get; set; }
+        Address BlockProducerAccountAddress { get; set; }
     }
 }

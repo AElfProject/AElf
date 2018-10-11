@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Types;
+using AElf.Common;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
 
@@ -21,7 +21,7 @@ namespace AElf.Kernel
         {
             if (_blockHash == null)
             {
-                _blockHash = SHA256.Create().ComputeHash(GetSignatureData());
+                _blockHash = Hash.FromRawBytes(GetSignatureData());
             }
 
             return _blockHash;
@@ -30,9 +30,9 @@ namespace AElf.Kernel
         public byte[] GetHashBytes()
         {
             if (_blockHash == null)
-                _blockHash = SHA256.Create().ComputeHash(GetSignatureData());
+                _blockHash = Hash.FromRawBytes(GetSignatureData());
 
-            return _blockHash.GetHashBytes();
+            return _blockHash.DumpByteArray();
         }
         
         public ECSignature GetSignature()

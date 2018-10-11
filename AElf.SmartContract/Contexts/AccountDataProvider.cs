@@ -1,5 +1,6 @@
 using System;
 using AElf.Kernel;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -11,7 +12,7 @@ namespace AElf.SmartContract
         
         public IAccountDataContext Context { get; set; }
 
-        public AccountDataProvider(Hash accountAddress, IStateDictator stateDictator)
+        public AccountDataProvider(Address accountAddress, IStateDictator stateDictator)
         {
             _stateDictator = stateDictator;
 

@@ -4,6 +4,7 @@ using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
 using AElf.Miner.Miner;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Kernel.Node
 {
@@ -41,11 +42,11 @@ namespace AElf.Kernel.Node
                 var count = await _txPoolService.GetPoolSize();
                 if (ConsensusMemory != count)
                 {
-                    _logger?.Trace($"Current tx pool size: {count} / {Globals.ExpectedTransactionCount}");
+                    _logger?.Trace($"Current tx pool size: {count} / {GlobalConfig.ExpectedTransactionCount}");
                     ConsensusMemory = count;
                 }
 
-                if (count >= Globals.ExpectedTransactionCount)
+                if (count >= GlobalConfig.ExpectedTransactionCount)
                 {
                     _logger?.Trace("Will produce one block.");
                     await _miner.Mine();

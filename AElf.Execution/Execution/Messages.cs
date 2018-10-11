@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel;
 using AElf.SmartContract;
+using AElf.Common;
 
 namespace AElf.Execution
 {

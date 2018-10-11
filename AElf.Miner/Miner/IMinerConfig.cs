@@ -1,4 +1,4 @@
-﻿using AElf.Kernel;
+﻿using AElf.Common;
 
 namespace AElf.Miner.Miner
 {
@@ -7,7 +7,7 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// miner address
         /// </summary>
-        Hash CoinBase { get; set; }
+        Address CoinBase { get; set; }
         
         /// <summary>
         /// true if parallel execution, otherwise false

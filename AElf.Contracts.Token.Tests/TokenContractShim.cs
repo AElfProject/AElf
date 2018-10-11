@@ -7,25 +7,25 @@ using AElf.Types.CSharp;
 using Akka.IO;
 using Xunit;
 using ByteString = Google.Protobuf.ByteString;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Contracts.Token.Tests
 {
     public class TokenContractShim
     {
         private MockSetup _mock;
-        public Hash ContractAddres = Hash.Generate();
         public IExecutive Executive { get; set; }
 
         public TransactionContext TransactionContext { get; private set; }
 
-        public Hash Sender
+        public Address Sender
         {
-            get => Hash.Zero;
+            get => Address.Zero;
         }
         
-        public Hash TokenContractAddress { get; set; }
+        public Address TokenContractAddress { get; set; }
 
-        
         public TokenContractShim(MockSetup mock)
         {
             _mock = mock;
@@ -69,8 +69,7 @@ namespace AElf.Contracts.Token.Tests
         private async Task DeployTokenContractAsync()
         {
             
-            var address0 = new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.BasicContractZero.ToString()))
-                .ToAccount();
+            var address0 = AddressHelpers.GetSystemContractAddress(_mock.ChainId1, SmartContractType.BasicContractZero.ToString());
             var executive0 = await _mock.GetExecutiveAsync(address0);
 
             var tx = new Transaction
@@ -85,7 +84,7 @@ namespace AElf.Contracts.Token.Tests
             var tc = await PrepareTransactionContextAsync(tx);
             await executive0.SetTransactionContext(tc).Apply();
             await CommitChangesAsync(tc.Trace);
-            TokenContractAddress = tc.Trace.RetVal.ToFriendlyBytes();
+            TokenContractAddress = Address.FromRawBytes(tc.Trace.RetVal.ToFriendlyBytes());
         }
 
         #region ABI (Public) Methods
@@ -192,7 +191,7 @@ namespace AElf.Contracts.Token.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
-        public ulong Allowance(Hash owner, Hash spender)
+        public ulong Allowance(Address owner, Address spender)
         {
             var tx = new Transaction
             {
@@ -233,7 +232,7 @@ namespace AElf.Contracts.Token.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
-        public void Transfer(Hash to, ulong amount)
+        public void Transfer(Address to, ulong amount)
         {
             var tx = new Transaction
             {
@@ -249,7 +248,7 @@ namespace AElf.Contracts.Token.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
-        public void TransferFrom(Hash from, Hash to, ulong amount)
+        public void TransferFrom(Address from, Address to, ulong amount)
         {
             var tx = new Transaction
             {
@@ -265,7 +264,7 @@ namespace AElf.Contracts.Token.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
-        public void Approve(Hash spender, ulong amount)
+        public void Approve(Address spender, ulong amount)
         {
             var tx = new Transaction
             {
@@ -281,7 +280,7 @@ namespace AElf.Contracts.Token.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
-        public void UnApprove(Hash spender, ulong amount)
+        public void UnApprove(Address spender, ulong amount)
         {
             var tx = new Transaction
             {
@@ -297,7 +296,7 @@ namespace AElf.Contracts.Token.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
-        public Hash GetContractOwner(Hash scZeroAddress)
+        public Address GetContractOwner(Address scZeroAddress)
         {
             var executive = _mock.GetExecutiveAsync(scZeroAddress).Result;
             
@@ -313,7 +312,7 @@ namespace AElf.Contracts.Token.Tests
             TransactionContext = PrepareTransactionContext(tx);
             executive.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
         }
         
         #endregion Actions

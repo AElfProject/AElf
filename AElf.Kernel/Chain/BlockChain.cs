@@ -6,6 +6,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Easy.MessageHub;
 using NLog;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -74,13 +75,19 @@ namespace AElf.Kernel
             return await GetBlockByHashAsync(header.GetHash());
         }
 
+        public async Task<List<Transaction>> RollbackOneBlock()
+        {
+            var currentHeight = await GetCurrentBlockHeightAsync();
+            return await RollbackToHeight(currentHeight);
+        }
+
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
         {   
             var currentHash = await GetCurrentBlockHashAsync();
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
             
             var txs = new List<Transaction>();
-            if (currentHeight == height)
+            if (currentHeight <= height)
             {
                 return txs;
             }
@@ -99,7 +106,7 @@ namespace AElf.Kernel
             for (var i = currentHeight - 1; i > height; i--)
             {
                 var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
-                h.Height = i;
+//                h.Height = i;
                 await _dataStore.RemoveAsync<Hash>(h);
             }
 

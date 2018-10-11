@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Types;
+using AElf.Common;
 using Google.Protobuf;
 
 namespace AElf.Kernel
@@ -54,7 +54,7 @@ namespace AElf.Kernel
         {
             ECSigner signer = new ECSigner();
             var hash = GetHash();
-            var bytes = hash.GetHashBytes();
+            var bytes = hash.DumpByteArray();
             ECSignature signature = signer.Sign(keyPair, bytes);
 
             Header.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());

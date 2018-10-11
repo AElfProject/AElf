@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.SmartContract;
+using AElf.Common;
 
 namespace AElf.ChainController
 {

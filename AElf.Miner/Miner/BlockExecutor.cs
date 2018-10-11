@@ -14,6 +14,7 @@ using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
+using AElf.Common;
 
 namespace AElf.Miner.Miner
 {
@@ -60,8 +61,8 @@ namespace AElf.Miner.Miner
             }
             _logger?.Trace($"Executing block {block.GetHash()}");
 
-            var uncompressedPrivKey = block.Header.P.ToByteArray();
-            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+            var uncompressedPrivateKey = block.Header.P.ToByteArray();
+            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
             var blockProducerAddress = recipientKeyPair.GetAddress();
             _stateDictator.ChainId = block.Header.ChainId;
             _stateDictator.BlockHeight = block.Header.Index - 1;
@@ -79,13 +80,14 @@ namespace AElf.Miner.Miner
                     return false;
                 }
                 await InsertTxs(readyTxs, results, block);
-                bool res = await UpdateState(block);
+                var res = await UpdateState(block);
+                var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
                 if (!res)
                 {
-                    await Rollback(readyTxs);
+                    var txToRevert = await blockchain.RollbackOneBlock();
+                    await _txPoolService.Revert(txToRevert);
                     return false;
                 }
-                var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
                 await blockchain.AddBlocksAsync(new List<IBlock> {block});
                 await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, block.Header.ChainId,
                     block.Header.Index);
@@ -194,7 +196,7 @@ namespace AElf.Miner.Miner
                 if (!_txPoolService.TryGetTx(id, out var tx))
                 {
                     tx = await _transactionManager.GetTransaction(id);
-                    errlog = tx != null ? "Transaction {id} already executed." : $"Cannot find transaction {id}";
+                    errlog = tx != null ? $"Transaction {id} already executed." : $"Cannot find transaction {id}";
                     res = false;
                     break;
                 }
@@ -288,11 +290,11 @@ namespace AElf.Miner.Miner
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
         /// <param name="block"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
+        private async Task<HashSet<Address>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-            var addrs = new HashSet<Hash>();
+            var addrs = new HashSet<Address>();
             Transaction pcbTx = null;
             foreach (var t in executedTxs)
             {

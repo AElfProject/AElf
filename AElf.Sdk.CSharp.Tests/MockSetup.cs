@@ -9,6 +9,7 @@ using AElf.SmartContract;
 using AElf.Execution;
 using Google.Protobuf;
 using AElf.Kernel.Tests;
+using AElf.Common;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -81,22 +82,24 @@ namespace AElf.Sdk.CSharp.Tests
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
 
             StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
+            DataProvider1 = StateDictator.GetAccountDataProvider(
+                Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
+            );
         }
 
-        public async Task DeployContractAsync(byte[] code, Hash address)
+        public async Task DeployContractAsync(byte[] code, Address address)
         {
             var reg = new SmartContractRegistration
             {
                 Category = 1,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = new Hash(code)
+                ContractHash = Hash.FromRawBytes(code)
             };
 
             await SmartContractService.DeployContractAsync(ChainId1, address, reg, false);
         }
 
-        public async Task<IExecutive> GetExecutiveAsync(Hash address)
+        public async Task<IExecutive> GetExecutiveAsync(Address address)
         {
             var executive = await SmartContractService.GetExecutiveAsync(address, ChainId1);
             return executive;

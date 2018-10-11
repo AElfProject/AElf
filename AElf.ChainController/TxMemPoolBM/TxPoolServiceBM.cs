@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.TxMemPool;
 using AElf.Kernel;
+using AElf.Common;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -217,7 +218,7 @@ namespace AElf.ChainController.TxMemPoolBM
         }
 
         /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Hash myAddress, double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Address myAddress, double intervals = 150)
         {
             // TODO: Improve performance
             var txs = _systemTxs.Values.ToList();
@@ -255,7 +256,7 @@ namespace AElf.ChainController.TxMemPoolBM
         }
 
         /// <inheritdoc/>
-        public Task UpdateAccountContext(HashSet<Hash> addrs)
+        public Task UpdateAccountContext(HashSet<Address> addrs)
         {
             // todo remove
             return Task.CompletedTask;

@@ -1,9 +1,8 @@
-﻿// ReSharper disable InconsistentNaming
-// ReSharper disable once CheckNamespace
-namespace AElf.Kernel
+namespace AElf.Common
 {
-    public static class Globals
+ public static class GlobalConfig
     {
+        public static int AddressLength = 18;
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
         public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
@@ -11,12 +10,12 @@ namespace AElf.Kernel
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
-        public static readonly string GenesisBasicContract = SmartContractType.BasicContractZero.ToString();
+        public static readonly string GenesisBasicContract = "BasicContractZero";
         
-        public static readonly string ConsensusContract = SmartContractType.AElfDPoS.ToString();
+        public static readonly string ConsensusContract = "AElfDPoS";
         
         public static int BlockProducerNumber = 17;
-        public static readonly int BlockNumberOfEachRound = BlockProducerNumber + 1;
+        public static int BlockNumberOfEachRound = 18;
         public const int AElfLogInterval = 900;
 
         #region AElf DPoS
@@ -56,5 +55,7 @@ namespace AElf.Kernel
         public static int SingleNodeTestMiningInterval = 4000;
 
         #endregion
+
+        public static ulong BasicContractZeroSerialNumber = 0;
     }
 }

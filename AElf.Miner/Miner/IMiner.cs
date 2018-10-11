@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.Miner.Miner
 {
@@ -9,7 +10,7 @@ namespace AElf.Miner.Miner
         void Init(ECKeyPair nodeKeyPair);
         void Close();
 
-        Hash Coinbase { get; }
+        Address Coinbase { get; }
         
         /// <summary>
         /// mining functionality

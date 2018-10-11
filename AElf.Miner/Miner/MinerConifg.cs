@@ -1,11 +1,12 @@
 ﻿using AElf.ChainController;
-using AElf.Kernel;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Miner.Miner
 {
     public class MinerConfig : IMinerConfig
     {
-        public Hash CoinBase { get; set; }
+        public Address CoinBase { get; set; }
         public bool IsParallel { get; } = true;
         public Hash ChainId { get; set; }
         public bool IsMergeMining { get; set; }
@@ -14,7 +15,7 @@ namespace AElf.Miner.Miner
 
         public static MinerConfig Default = new MinerConfig
         {
-            CoinBase = Hash.Generate()
+            CoinBase = Address.FromRawBytes(Hash.Generate().ToByteArray())
         };
     }
 }

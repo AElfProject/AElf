@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.SmartContract.MetaData;
 using QuickGraph;
 using QuickGraph.Algorithms;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -89,11 +90,11 @@ namespace AElf.SmartContract
         public CallGraph LocalCallingGraph;
         public Dictionary<string, FunctionMetadataTemplate> MethodMetadataTemplates;
         public string FullName;
-        public Dictionary<string, Hash> ContractReferences;
+        public Dictionary<string, Address> ContractReferences;
         public Dictionary<string, List<string>> ExternalFuncCall;
 
         
-        public ContractMetadataTemplate(string fullName, Dictionary<string, FunctionMetadataTemplate> methodMetadataTemplates, Dictionary<string, Hash> contractReferences)
+        public ContractMetadataTemplate(string fullName, Dictionary<string, FunctionMetadataTemplate> methodMetadataTemplates, Dictionary<string, Address> contractReferences)
         {
             FullName = fullName;
             MethodMetadataTemplates = methodMetadataTemplates;

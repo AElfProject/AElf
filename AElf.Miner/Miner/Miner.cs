@@ -7,7 +7,7 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -23,6 +23,7 @@ using NLog;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using Status = AElf.Kernel.Status;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -47,7 +48,7 @@ namespace AElf.Miner.Miner
 
         private IMinerConfig Config { get; }
 
-        public Hash Coinbase => Config.CoinBase;
+        public Address Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
@@ -93,7 +94,7 @@ namespace AElf.Miner.Miner
                     _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
                     foreach (var transaction in dposTxs)
                     {
-                        _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName} from {transaction.From.ToHex()}");
+                        _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName} from {transaction.From.DumpHex()}");
                     }
                     
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
@@ -152,7 +153,9 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
-                    To = new Hash(Config.ChainId.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount(),
+                    To=Address.FromRawBytes(Hash.Xor(Config.ChainId,
+                        Hash.FromString(SmartContractType.SideChainContract.ToString())).ToByteArray()),
+//                    To = new Hash(Config.ChainId.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount(),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
@@ -162,7 +165,7 @@ namespace AElf.Miner.Miner
                 };
                 
                 // sign tx
-                var signature = new ECSigner().Sign(_keyPair, tx.GetHash().GetHashBytes());
+                var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
                 tx.R = ByteString.CopyFrom(signature.R);
                 tx.S = ByteString.CopyFrom(signature.S);
                 
@@ -432,7 +435,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init(ECKeyPair nodeKeyPair)
         {
-            _timeoutMilliseconds = Globals.AElfMiningInterval;
+            _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
             _keyPair = nodeKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
         }

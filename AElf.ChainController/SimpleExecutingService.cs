@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.SmartContract;
+using AElf.Common;
 
 namespace AElf.ChainController
 {
@@ -31,8 +32,10 @@ namespace AElf.ChainController
             foreach (var transaction in transactions)
             {
                 var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
+                //Console.WriteLine($"{transaction.GetHash().ToHex()} : {trace.ExecutionStatus.ToString()}");
                 if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
+                    //Console.WriteLine($"tx executed successfully: {transaction.GetHash().ToHex()}");
                     var bufferedStateUpdates = await trace.CommitChangesAsync(_stateDictator);
                     foreach (var kv in bufferedStateUpdates)
                     {

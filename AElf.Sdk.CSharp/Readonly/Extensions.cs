@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.Sdk.CSharp.ReadOnly
 {
@@ -13,6 +14,11 @@ namespace AElf.Sdk.CSharp.ReadOnly
         public static Hash ToReadOnly(this Hash hash)
         {
             return hash.Clone();
+        }
+
+        public static Address ToReadOnly(this Address address)
+        {
+            return address.Clone();
         }
     }
 }

@@ -10,7 +10,8 @@
     using AElf.SmartContract;
     using Google.Protobuf;
     using ServiceStack;
-    
+using    AElf.Common;
+
     namespace AElf.Contracts.SideChain.Tests
     {
         public class MockSetup
@@ -24,7 +25,7 @@
                 return (ulong)n;
             }
     
-            public Hash ChainId1 { get; } = Hash.Generate();
+            public Hash ChainId1 { get; } = Hash.FromString("ChainId1");
             public ISmartContractManager SmartContractManager;
             public ISmartContractService SmartContractService;
             private IFunctionMetadataService _functionMetadataService;
@@ -88,14 +89,14 @@
                 {
                     Category = 0,
                     ContractBytes = ByteString.CopyFrom(SideChainCode),
-                    ContractHash = SideChainCode.CalculateHash(),
+                    ContractHash = Hash.FromRawBytes(SideChainCode),
                     Type = (int)SmartContractType.SideChainContract
                 };
                 var reg0 = new SmartContractRegistration
                 {
                     Category = 0,
                     ContractBytes = ByteString.CopyFrom(SCZeroContractCode),
-                    ContractHash = SCZeroContractCode.CalculateHash(),
+                    ContractHash = Hash.FromRawBytes(SCZeroContractCode),
                     Type = (int)SmartContractType.BasicContractZero
                 };
     
@@ -103,11 +104,10 @@
                     await _chainCreationService.CreateNewChainAsync(ChainId1,
                         new List<SmartContractRegistration> {reg0, reg1});
                 StateDictator.ChainId = ChainId1;
-                StateDictator.GetAccountDataProvider(
-                    ChainId1.OfType(HashType.AccountZero));
+                StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
             }
             
-            public async Task<IExecutive> GetExecutiveAsync(Hash address)
+            public async Task<IExecutive> GetExecutiveAsync(Address address)
             {
                 var executive = await SmartContractService.GetExecutiveAsync(address, ChainId1);
                 return executive;

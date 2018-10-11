@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
-using AElf.Kernel;
+using AElf.Common;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Execution;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
@@ -11,8 +12,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var list = new List<string>()
             {
-                transaction.From.ToHex(),
-                transaction.To.ToHex()
+                transaction.From.DumpHex(),
+                transaction.To.DumpHex()
             };
             return await Task.FromResult(list.Select(a => a));
         }

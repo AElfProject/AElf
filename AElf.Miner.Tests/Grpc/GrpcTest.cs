@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Cryptography.ECDSA;
@@ -20,6 +20,7 @@ using NServiceKit.Common.Extensions;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
+using AElf.Common;
 
 namespace AElf.Miner.Tests.Grpc
 {
@@ -55,7 +56,7 @@ namespace AElf.Miner.Tests.Grpc
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
                 {
                     {
-                        sideChainId.ToHex(), new Uri{
+                        sideChainId.DumpHex(), new Uri{
                             Address = address,
                             Port = port
                         }
@@ -121,7 +122,7 @@ namespace AElf.Miner.Tests.Grpc
                 GrpcRemoteConfig.Instance.ParentChain = new Dictionary<string, Uri>
                 {
                     {
-                        parentChainId.ToHex(), new Uri{
+                        parentChainId.DumpHex(), new Uri{
                             Address = address,
                             Port = port
                         }
@@ -184,13 +185,13 @@ namespace AElf.Miner.Tests.Grpc
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
                 serverManager.Init(dir);
                 var keypair = new KeyPairGenerator().Generate();
-                var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress());
+                var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
                 {
                     {
-                        sideChainId.ToHex(), new Uri{
+                        sideChainId.DumpHex(), new Uri{
                             Address = address,
                             Port = sidePort
                         }

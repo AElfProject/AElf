@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using AElf.Common;
+using AElf.Common.Extensions;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 
@@ -10,7 +12,7 @@ namespace AElf.Cryptography.ECDSA
     // ReSharper disable once InconsistentNaming
     public class ECKeyPair
     {
-        public static int AddressLength { get; } = 18;
+//        public static int AddressLength { get; } = 18;
 
         public ECPrivateKeyParameters PrivateKey { get; private set; }
         public ECPublicKeyParameters PublicKey { get; private set; }
@@ -36,14 +38,15 @@ namespace AElf.Cryptography.ECDSA
             return k;
         }
 
-        public byte[] GetAddress()
+        public Address GetAddress()
         {
-            return GetEncodedPublicKey().Take(AddressLength).ToArray();
+            return Address.FromRawBytes(GetEncodedPublicKey());
         }
 
         public string GetAddressHex()
         {
-            return "0x" + BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
+            return Address.FromRawBytes(GetEncodedPublicKey()).Value.ToByteArray().ToHex();
+            //"0x" + BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
         }
     }
 }

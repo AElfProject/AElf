@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.SmartContract;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
@@ -10,13 +12,13 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
     /// </summary>
     public class ParallelTestDataUtil
     {
-        public List<Hash> AccountList { get; } = new List<Hash>();
+        public List<Address> AccountList { get; } = new List<Address>();
 
         public ParallelTestDataUtil()
         {
             for (int i = 0; i < 26; i++)
             {
-                AccountList.Add(Hash.Generate());
+                AccountList.Add(Address.FromRawBytes(Hash.Generate().ToByteArray()));
                 //0    1    2    3    4    5    6    7    8    9    10
                 //A    B    C    D    E    F    G    H    I    J    K
                 
@@ -42,7 +44,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         
-        public Dictionary<Hash, List<Transaction>> GetFirstGroupTxDict(out List<int[]> expectedJobSizeOfEachJobInBatch)
+        public Dictionary<Address, List<Transaction>> GetFirstGroupTxDict(out List<int[]> expectedJobSizeOfEachJobInBatch)
         {
             var txList = GetFirstGroupTxList();
             var txDict = ConvertTxListIntoTxDict(txList);
@@ -167,9 +169,9 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return tx;
         }
         
-        private Dictionary<Hash, List<Transaction>> ConvertTxListIntoTxDict(List<Transaction> txList)
+        private Dictionary<Address, List<Transaction>> ConvertTxListIntoTxDict(List<Transaction> txList)
         {
-            var txDict = new Dictionary<Hash, List<Transaction>>();
+            var txDict = new Dictionary<Address, List<Transaction>>();
             foreach (var tx in txList)
             {
                 if (!txDict.TryGetValue(tx.From, out var accountTxList))

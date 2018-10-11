@@ -2,13 +2,12 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Kernel";
 
-import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
-import "hash.proto";
+import "common.proto";
 
 message Transaction {
-    Hash From = 1;
-    Hash To = 2;
+    Address From = 1;
+    Address To = 2;
     uint64 RefBlockNumber = 3;
     bytes RefBlockPrefix = 4;
     uint64 IncrementId = 5;
@@ -45,7 +44,7 @@ message TransactionResult {
     bytes Bloom = 4;
     bytes RetVal = 5;
     uint64 BlockNumber = 6;
-    Hash BlockHash = 7;
+    Hash BlockHash = 7;;
     int32 Index = 8;
     
     // Merkle proof path for this transaction
@@ -58,7 +57,7 @@ message StateValueChange{
 }
 
 message LogEvent {
-    Hash Address = 1;
+    Address Address = 1;
     repeated bytes Topics = 2;
     bytes Data = 3;
 }
@@ -229,8 +228,8 @@ message SideChainIdList {
 message DataPath {
     Hash ChainId = 1;
     uint64 BlockHeight = 2;
-    Hash BlockProducerAddress = 3;
-    Hash ContractAddress = 4;
+    Address BlockProducerAddress = 3;
+    Address ContractAddress = 4;
     Hash DataProviderHash = 5;
     Hash KeyHash = 6;
 }

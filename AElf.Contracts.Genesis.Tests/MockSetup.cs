@@ -15,6 +15,7 @@ using AElf.Kernel.Managers;
 using AElf.Execution;
 using Google.Protobuf;
 using ServiceStack;
+using AElf.Common;
 
 namespace AElf.Contracts.Genesis.Tests
 {
@@ -91,10 +92,10 @@ namespace AElf.Contracts.Genesis.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
             StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.Clone().OfType(HashType.AccountZero));
+            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.Clone().OfType(HashType.AccountZero).ToByteArray()));
         }
         
-        public async Task<IExecutive> GetExecutiveAsync(Hash address)
+        public async Task<IExecutive> GetExecutiveAsync(Address address)
         {
             var executive = await SmartContractService.GetExecutiveAsync(address, ChainId1);
             return executive;

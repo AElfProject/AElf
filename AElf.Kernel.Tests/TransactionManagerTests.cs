@@ -5,6 +5,7 @@ using AElf.ChainController.TxMemPool;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {
@@ -23,8 +24,8 @@ namespace AElf.Kernel.Tests
         {
             await _manager.AddTransactionAsync(new Transaction
             {
-                From = Hash.Generate(),
-                To = Hash.Generate()
+                From = Address.FromRawBytes(Hash.Generate().ToByteArray()),
+                To = Address.FromRawBytes(Hash.Generate().ToByteArray())
             });
         }
 
@@ -37,13 +38,13 @@ namespace AElf.Kernel.Tests
             Assert.Equal(t, td);
         }
         
-        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
+        public static Transaction BuildTransaction(Address adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
             keyPair = keyPair ?? new KeyPairGenerator().Generate();
 
             var tx = new Transaction();
             tx.From = keyPair.GetAddress();
-            tx.To = (adrTo == null ? Hash.Generate().ToAccount() : adrTo);
+            tx.To = adrTo ?? Address.FromRawBytes(Hash.Generate().ToByteArray());
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
@@ -61,7 +62,7 @@ namespace AElf.Kernel.Tests
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

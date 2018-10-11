@@ -1,6 +1,7 @@
 using System;
 using AElf.Common.Extensions;
 using Google.Protobuf;
+using AElf.Common;
 
 // ReSharper disable InconsistentNaming
 namespace AElf.Kernel.Storages
@@ -12,7 +13,7 @@ namespace AElf.Kernel.Storages
             return new Key
             {
                 Type = type,
-                Value = ByteString.CopyFrom(hash.GetHashBytes()),
+                Value = ByteString.CopyFrom(hash.DumpByteArray()),
                 HashType = (uint) hash.HashType
             }.ToByteArray().ToHex();
         }

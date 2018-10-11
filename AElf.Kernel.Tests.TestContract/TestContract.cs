@@ -3,7 +3,7 @@ using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using Api = AElf.Sdk.CSharp.Api;
-using AElf.Kernel;
+using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Tests.TestContract
@@ -12,7 +12,7 @@ namespace AElf.Kernel.Tests.TestContract
     {
         
         [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
-        public MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
+        public MapToUInt64<Address> Balances = new MapToUInt64<Address>("Balances");
         
         
         [SmartContractFieldData("${this}.TransactionStartTimes", DataAccessMode.AccountSpecific)]
@@ -23,9 +23,9 @@ namespace AElf.Kernel.Tests.TestContract
         public MapToString<Hash> TransactionEndTimes = new MapToString<Hash>("TransactionEndTimes");
 
         [SmartContractFunction("${this}.Initialize", new string[]{}, new []{"${this}.Balances"})]
-        public bool Initialize(Hash account, UInt64Value qty)
+        public bool Initialize(Address account, UInt64Value qty)
         {
-            Console.WriteLine($"Initialize {account.ToHex()} to {qty.Value}");
+            Console.WriteLine($"Initialize {account.DumpHex()} to {qty.Value}");
             Balances.SetValue(account, qty.Value);
             return true;
         }
@@ -45,10 +45,10 @@ namespace AElf.Kernel.Tests.TestContract
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances", "${this}.TransactionStartTimes", "${this}.TransactionEndTimes"})]
-        public bool Transfer(Hash from, Hash to, UInt64Value qty)
+        public bool Transfer(Address from, Address to, UInt64Value qty)
         {
-            Console.WriteLine("From: " + from.ToHex());
-            Console.WriteLine("To: " + to.ToHex());
+            Console.WriteLine("From: " + from.DumpHex());
+            Console.WriteLine("To: " + to.DumpHex());
 
             // This is for testing batched transaction sequence
             TransactionStartTimes.SetValue(Api.GetTransaction().GetHash(), Now());
@@ -74,7 +74,7 @@ namespace AElf.Kernel.Tests.TestContract
         }
 
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
-        public ulong GetBalance(Hash account)
+        public ulong GetBalance(Address account)
         {
             var b = Balances.GetValue(account);
             //Console.WriteLine(b);

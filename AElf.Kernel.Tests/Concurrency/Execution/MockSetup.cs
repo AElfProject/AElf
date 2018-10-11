@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
@@ -15,6 +16,8 @@ using Akka.Actor;
 using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using NLog;
+using AElf.Common;
+using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
@@ -36,8 +39,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public IActorRef Worker2 { get; }
         public IActorRef Requestor { get; }
 
-        public Hash ChainId1 { get; } = Hash.Generate();
-        public Hash ChainId2 { get; } = Hash.Generate();
+        public Hash ChainId1 { get; } = Hash.FromString("ChainId1");
+        public Hash ChainId2 { get; } = Hash.FromString("ChainId2");
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
 
@@ -46,8 +49,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public IAccountDataProvider DataProvider1;
         public IAccountDataProvider DataProvider2;
 
-        public Hash SampleContractAddress1 { get; } = Hash.Generate();
-        public Hash SampleContractAddress2 { get; } = Hash.Generate();
+        public Address SampleContractAddress1 { get; } = Address.FromString("SampleContractAddress1");
+        public Address SampleContractAddress2 { get; } = Address.FromString("SampleContractAddress2");
 
         public IExecutive Executive1 { get; private set; }
         public IExecutive Executive2 { get; private set; }
@@ -127,12 +130,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
 
             StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
+            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             
             StateDictator.ChainId = ChainId2;
-            DataProvider2 = StateDictator.GetAccountDataProvider(ChainId2.OfType(HashType.AccountZero));
+            DataProvider2 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId2.OfType(HashType.AccountZero).ToByteArray()));
         }
 
         private async Task DeploySampleContracts()
@@ -141,7 +144,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Category = 1,
                 ContractBytes = ByteString.CopyFrom(ExampleContractCode),
-                ContractHash = new Hash(ExampleContractCode)
+                ContractHash = Hash.FromRawBytes(ExampleContractCode)
             };
 
             await SmartContractService.DeployContractAsync(ChainId1, SampleContractAddress1, reg, true);
@@ -154,19 +157,27 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public async Task CommitTrace(TransactionTrace trace)
         {
+            Console.WriteLine(trace);
+            Console.WriteLine(
+                string.Join(
+                    "\r\n",
+                    trace.ValueChanges.Select(x => $"\r\n{x.Path} => {x.Path.ResourcePathHash} => {x.Path.ResourcePointerHash}\r\n")
+                )
+            );
             var changesDict = await trace.CommitChangesAsync(StateDictator);
             await StateDictator.ApplyCachedDataAction(changesDict);
         }
 
-        public void Initialize1(Hash account, ulong qty)
+        public void Initialize1(Address account, ulong qty)
         {
             var tc = GetInitializeTxnCtxt(SampleContractAddress1, account, qty);
+            StateDictator.ChainId = ChainId1;
             Executive1.SetTransactionContext(tc).Apply()
                 .Wait();
             CommitTrace(tc.Trace).Wait();
         }
 
-        public void Initialize2(Hash account, ulong qty)
+        public void Initialize2(Address account, ulong qty)
         {
             var tc = GetInitializeTxnCtxt(SampleContractAddress2, account, qty);
             Executive2.SetTransactionContext(tc).Apply()
@@ -174,11 +185,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             CommitTrace(tc.Trace).Wait();
         }
 
-        private TransactionContext GetInitializeTxnCtxt(Hash contractAddress, Hash account, ulong qty)
+        private TransactionContext GetInitializeTxnCtxt(Address contractAddress, Address account, ulong qty)
         {
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddress,
                 IncrementId = NewIncrementId(),
                 MethodName = "Initialize",
@@ -190,12 +201,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
         }
 
-        public Transaction GetTransferTxn1(Hash from, Hash to, ulong qty)
+        public Transaction GetTransferTxn1(Address from, Address to, ulong qty)
         {
             return GetTransferTxn(SampleContractAddress1, from, to, qty);
         }
 
-        public Transaction GetTransferTxn2(Hash from, Hash to, ulong qty)
+        public Transaction GetTransferTxn2(Address from, Address to, ulong qty)
         {
             return GetTransferTxn(SampleContractAddress2, from, to, qty);
         }
@@ -205,11 +216,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return GetSleepTxn(SampleContractAddress1, milliSeconds);
         }
 
-        private Transaction GetSleepTxn(Hash contractAddress, int milliSeconds)
+        private Transaction GetSleepTxn(Address contractAddress, int milliSeconds)
         {
             return new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddress,
                 IncrementId = NewIncrementId(),
                 MethodName = "SleepMilliseconds",
@@ -222,11 +233,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return GetNoActionTxn(SampleContractAddress1);
         }
 
-        private Transaction GetNoActionTxn(Hash contractAddress)
+        private Transaction GetNoActionTxn(Address contractAddress)
         {
             return new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddress,
                 IncrementId = NewIncrementId(),
                 MethodName = "NoAction",
@@ -235,7 +246,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         }
 
 
-        private Transaction GetTransferTxn(Hash contractAddress, Hash from, Hash to, ulong qty)
+        private Transaction GetTransferTxn(Address contractAddress, Address from, Address to, ulong qty)
         {
             // TODO: Test with IncrementId
             return new Transaction
@@ -248,23 +259,24 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
         }
 
-        public Transaction GetBalanceTxn(Hash contractAddress, Hash account)
+        public Transaction GetBalanceTxn(Address contractAddress, Address account)
         {
             return new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddress,
                 MethodName = "GetBalance",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(account))
             };
         }
 
-        public ulong GetBalance1(Hash account)
+        public ulong GetBalance1(Address account)
         {
             var txn = GetBalanceTxn(SampleContractAddress1, account);
             var txnCtxt = new TransactionContext()
             {
-                Transaction = txn
+                Transaction = txn,
+                Trace = new TransactionTrace()
             };
             // TODO: Check why this doesn't work
 //            Executive1.SetDataCache(new Dictionary<DataPath, StateCache>());
@@ -276,7 +288,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return txnCtxt.Trace.RetVal.Data.DeserializeToUInt64();
         }
 
-        public ulong GetBalance2(Hash account)
+        public ulong GetBalance2(Address account)
         {
             var txn = GetBalanceTxn(SampleContractAddress2, account);
             var txnRes = new TransactionResult();
@@ -290,22 +302,22 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return txnCtxt.Trace.RetVal.Data.DeserializeToUInt64();
         }
 
-        private Transaction GetSTTxn(Hash contractAddress, Hash transactionHash)
+        private Transaction GetSTTxn(Address contractAddress, Hash transactionHash)
         {
             return new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddress,
                 MethodName = "GetTransactionStartTime",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(transactionHash))
             };
         }
 
-        private Transaction GetETTxn(Hash contractAddress, Hash transactionHash)
+        private Transaction GetETTxn(Address contractAddress, Hash transactionHash)
         {
             return new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddress,
                 MethodName = "GetTransactionEndTime",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(transactionHash))

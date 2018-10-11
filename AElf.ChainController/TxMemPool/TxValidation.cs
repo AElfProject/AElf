@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Common;
+using GlobalConfig = AElf.Common.GlobalConfig;
 
 namespace AElf.ChainController.TxMemPool
 {
@@ -39,7 +41,7 @@ namespace AElf.ChainController.TxMemPool
                 return TxInsertionAndBroadcastingError.WrongTransactionType;
             }
             
-            if (tx.From == Hash.Zero || tx.MethodName == "" || tx.IncrementId < 0)
+            if (tx.From == Address.Zero || tx.MethodName == "" || tx.IncrementId < 0)
             {
                 return TxInsertionAndBroadcastingError.InvalidTxFormat;
             }
@@ -85,14 +87,17 @@ namespace AElf.ChainController.TxMemPool
             {
                 return false;
             }
+
+            
             byte[] uncompressedPrivKey = tx.P.ToByteArray();
-            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
+            var addr = Address.FromRawBytes(uncompressedPrivKey);
+//            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
 
             if (!addr.Equals(tx.From))
                 return false;
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            return verifier.Verify(tx.GetSignature(), tx.GetHash().GetHashBytes());
+            return verifier.Verify(tx.GetSignature(), tx.GetHash().DumpByteArray());
 
         }
 
@@ -105,7 +110,7 @@ namespace AElf.ChainController.TxMemPool
         public static bool CheckAccountAddress(this Transaction tx)
         {
             // TODO: more verifications
-            return tx.From.Value.Length == ECKeyPair.AddressLength && (tx.To == null || tx.To.Value.Length == ECKeyPair.AddressLength);
+            return tx.From.Value.Length == GlobalConfig.AddressLength && (tx.To == null || tx.To.Value.Length == GlobalConfig.AddressLength);
         }
         
        

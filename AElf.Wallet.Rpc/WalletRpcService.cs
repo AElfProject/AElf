@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.RPC;
 using Community.AspNetCore.JsonRpc;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.Wallet.Rpc

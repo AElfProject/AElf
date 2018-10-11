@@ -3,6 +3,7 @@ using AElf.Kernel;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.Cryptography.Tests.ECDSA
 {
@@ -25,8 +26,8 @@ namespace AElf.Cryptography.Tests.ECDSA
             ;
             
             Transaction tx = new Transaction();
-            tx.From = new Hash(fromAdress);
-            tx.To = new Hash(toAdress);
+            tx.From = Address.FromRawBytes(fromAdress);
+            tx.To = Address.FromRawBytes(toAdress);
             tx.P =  ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             
             // Serialize and hash the transaction
@@ -34,7 +35,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -55,7 +56,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
             
-            Assert.True(verifier.Verify(dTx.GetSignature(), dHash.GetHashBytes()));
+            Assert.True(verifier.Verify(dTx.GetSignature(), dHash.DumpByteArray()));
         }
     }
 }

@@ -5,6 +5,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -27,7 +28,7 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            return SHA256.Create().ComputeHash(GetSignatureData());
+            return Hash.FromRawBytes(GetSignatureData());
         }
 
         public byte[] GetHashBytes()

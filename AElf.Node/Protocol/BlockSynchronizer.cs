@@ -8,8 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Protocol.Exceptions;
@@ -51,8 +50,8 @@ namespace AElf.Node.Protocol
         /// </summary>
         private List<PendingBlock> PendingBlocks => _syncService.PendingBlocks;
 
-        public bool ShouldDoInitialSync { get; private set; } = false;
-        public bool IsInitialSyncInProgress { get; private set; } = false;
+        public bool ShouldDoInitialSync { get; private set; }
+        public bool IsInitialSyncInProgress { get; private set; }
 
         public int CurrentExecHeight = 1;
 
@@ -268,7 +267,7 @@ namespace AElf.Node.Protocol
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error("Error while dequeuing " + job?.Block.GetHash().ToHex());
+                    _logger?.Error("Error while dequeuing " + job?.Block.GetHash().DumpHex());
                     continue;
                 }
 
@@ -428,7 +427,7 @@ namespace AElf.Node.Protocol
             byte[] blockHash;
             try
             {
-                blockHash = block.GetHash().GetHashBytes();
+                blockHash = block.GetHash().DumpByteArray();
             }
             catch (Exception e)
             {

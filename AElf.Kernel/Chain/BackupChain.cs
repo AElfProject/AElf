@@ -1,6 +1,7 @@
 ﻿// ReSharper disable once CheckNamespace
 
 using System.Collections.Generic;
+using AElf.Common;
 
 namespace AElf.Kernel
 {

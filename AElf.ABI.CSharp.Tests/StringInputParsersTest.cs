@@ -4,6 +4,7 @@ using AElf.Kernel;
 using Google.Protobuf;
 using  AElf.Types.CSharp;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.ABI.CSharp.Tests
 {
@@ -151,10 +152,10 @@ namespace AElf.ABI.CSharp.Tests
         [Fact]
         public void HashTest()
         {
-            var parser = StringInputParsers.GetStringParserFor(typeof(Hash).FullName);
+            var parser = StringInputParsers.GetStringParserFor(typeof(Address).FullName);
             // TODO: Value has to be a fixed length
-            var hash = Hash.Generate().ToAccount();
-            var hashHex = BitConverter.ToString(hash.GetHashBytes()).Replace("-", "");
+            var hash = Address.FromRawBytes(Hash.Generate().ToByteArray());
+            var hashHex = BitConverter.ToString(hash.DumpByteArray()).Replace("-", "");
             
             // Note: Hash has the same structure as BytesValue, hence using BytesValue for serialization.
             // So that we don't need dependency AElf.Kernel.

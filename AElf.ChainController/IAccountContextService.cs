@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
+using AElf.Common;
 using AElf.SmartContract;
 
 namespace AElf.ChainController
@@ -10,10 +10,10 @@ namespace AElf.ChainController
         /// <summary>
         /// return account context
         /// </summary>
-        /// <param name="accountHash"></param>
+        /// <param name="accountAddress"></param>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        Task<IAccountDataContext> GetAccountDataContext(Hash accountHash, Hash chainId);
+        Task<IAccountDataContext> GetAccountDataContext(Address accountAddress, Hash chainId);
 
         /// <summary>
         /// set incrementId in memory

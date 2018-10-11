@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.TxMemPool;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 
@@ -31,7 +32,7 @@ namespace AElf.ChainController.TxMemPoolBM
                 if (_blockChain == null)
                 {
                     _blockChain =
-                        _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+                        _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
                 }
 
                 return _blockChain;
@@ -55,7 +56,7 @@ namespace AElf.ChainController.TxMemPoolBM
         public TxValidation.TxInsertionAndBroadcastingError ValidateTx(Transaction tx)
         {
             // Basically the same as TxValidation.ValidateTx but without TransactionType
-            if (tx.From == Hash.Zero || tx.MethodName == "")
+            if (tx.From == Address.Zero || tx.MethodName == "")
             {
                 return TxValidation.TxInsertionAndBroadcastingError.InvalidTxFormat;
             }
@@ -90,9 +91,19 @@ namespace AElf.ChainController.TxMemPoolBM
             return TxValidation.TxInsertionAndBroadcastingError.Valid;
         }
 
+        private bool CheckPrefix(Hash blockHash, ByteString prefix)
+        {
+            if (prefix.Length > blockHash.Value.Length)
+            {
+                return false;
+            }
+
+            return !prefix.Where((t, i) => t != blockHash.Value[i]).Any();
+        }
+        
         public async Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(Transaction tx)
         {
-            if (tx.RefBlockNumber == 0 && Hash.Genesis.CheckPrefix(tx.RefBlockPrefix))
+            if (tx.RefBlockNumber == 0 && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
             {
                 return TxValidation.TxInsertionAndBroadcastingError.Valid;
             }
@@ -100,12 +111,11 @@ namespace AElf.ChainController.TxMemPoolBM
             var curHeight = _canonicalBlockHashCache.CurrentHeight;
             if (tx.RefBlockNumber > curHeight && curHeight != 0)
             {
-                _logger?.Trace($"tx.RefBlockNumber({tx.RefBlockNumber}) > curHeight({curHeight})");
                 return TxValidation.TxInsertionAndBroadcastingError.InvalidReferenceBlock;
             }
 
-            if (curHeight > Globals.ReferenceBlockValidPeriod &&
-                tx.RefBlockNumber < curHeight - Globals.ReferenceBlockValidPeriod)
+            if (curHeight > GlobalConfig.ReferenceBlockValidPeriod &&
+                tx.RefBlockNumber < curHeight - GlobalConfig.ReferenceBlockValidPeriod)
             {
                 return TxValidation.TxInsertionAndBroadcastingError.ExpiredReferenceBlock;
             }
@@ -114,6 +124,7 @@ namespace AElf.ChainController.TxMemPoolBM
             if (curHeight == 0)
             {
                 canonicalHash = await BlockChain.GetCurrentBlockHashAsync();
+                _logger?.Trace("Current block hash: " + canonicalHash.DumpHex());
             }
             else
             {
@@ -131,20 +142,20 @@ namespace AElf.ChainController.TxMemPoolBM
                     $"Unable to get canonical hash for height {tx.RefBlockNumber} - current height: {curHeight}");
             }
 
-            if (Globals.BlockProducerNumber == 1)
+            if (GlobalConfig.BlockProducerNumber == 1)
             {
                 return TxValidation.TxInsertionAndBroadcastingError.Valid;
             }
 
-            var res = canonicalHash.CheckPrefix(tx.RefBlockPrefix)
+            var res = CheckPrefix(canonicalHash, tx.RefBlockPrefix)
                 ? TxValidation.TxInsertionAndBroadcastingError.Valid
                 : TxValidation.TxInsertionAndBroadcastingError.InvalidReferenceBlock;
             return res;
         }
 
-        public List<Transaction> RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Hash blockProducerAddress, Round currentRoundInfo)
+        public List<Transaction> RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Address blockProducerAddress, Round currentRoundInfo)
         {
-            if (Globals.BlockProducerNumber == 1 && readyTxs.Count == 1 && readyTxs.Any(tx => tx.MethodName == "UpdateAElfDPoS"))
+            if (GlobalConfig.BlockProducerNumber == 1 && readyTxs.Count == 1 && readyTxs.Any(tx => tx.MethodName == "UpdateAElfDPoS"))
             {
                 return null;
             }
@@ -204,8 +215,8 @@ namespace AElf.ChainController.TxMemPoolBM
                     }
                     var inValue = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
                         new[] {typeof(UInt64Value), typeof(StringValue), typeof(Hash)})[2] as Hash;
-                    var outValue = currentRoundInfo.BlockProducers[transaction.From.ToHex().RemoveHexPrefix()].OutValue;
-                    if (outValue == inValue.CalculateHash())
+                    var outValue = currentRoundInfo.BlockProducers[transaction.From.DumpHex().RemoveHexPrefix()].OutValue;
+                    if (outValue == Hash.FromMessage(inValue))
                     {
                         toRemove.Add(transaction);
                     }
@@ -250,7 +261,7 @@ namespace AElf.ChainController.TxMemPoolBM
             _logger?.Trace("Txs list:");
             foreach (var transaction in txs)
             {
-                _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName}");
+                _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName}");
             }
         }
     }

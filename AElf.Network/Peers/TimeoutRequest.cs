@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Kernel;
+using AElf.Common;
 using AElf.Network.Connection;
 
 namespace AElf.Network.Peers

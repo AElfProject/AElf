@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Google.Protobuf;
+using AElf.Common;
 
 namespace AElf.Kernel.Storages
 {

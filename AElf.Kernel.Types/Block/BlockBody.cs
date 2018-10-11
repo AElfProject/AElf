@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -16,10 +17,13 @@ namespace AElf.Kernel
 
         private Hash CalculateBodyHash()
         {
-            _blockBodyHash = BlockHeader.CalculateHashWith(
-                HashExtensions.CalculateHashOfHashList(BinaryMerkleTree.Root,
-                    SideChainBlockHeadersRoot ?? CalculateSideChainBlockHeadersRoot(),
-                    SideChainTransactionsRoot ?? CalculateSideChainTransactionsRoot()));
+            _blockBodyHash = new List<Hash>()
+            {
+                BlockHeader,
+                BinaryMerkleTree.Root,
+                SideChainBlockHeadersRoot ?? CalculateSideChainBlockHeadersRoot(),
+                SideChainTransactionsRoot ?? CalculateSideChainTransactionsRoot()
+            }.Aggregate(Hash.FromTwoHashes);
             return _blockBodyHash;
         }
         

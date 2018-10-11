@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
@@ -23,22 +24,22 @@ namespace AElf.Contracts.Genesis
 
     public class ContractHasBeenDeployed : Event
     {
-        [Indexed] public Hash Creator;
-        [Indexed] public Hash Address;
+        [Indexed] public Address Creator;
+        [Indexed] public Address Address;
         [Indexed] public Hash CodeHash;
     }
 
     public class SideChainCreationRequested : Event
     {
-        public Hash Creator;
+        public Address Creator;
         public Hash ChainId;
     }
 
     public class OwnerHasBeenChanged : Event
     {
-        [Indexed] public Hash Address;
-        [Indexed] public Hash OldOwner;
-        [Indexed] public Hash NewOwner;
+        [Indexed] public Address Address;
+        [Indexed] public Address OldOwner;
+        [Indexed] public Address NewOwner;
     }
 
     #endregion Events
@@ -68,6 +69,10 @@ namespace AElf.Contracts.Genesis
                     _value = GetValue();
                 }
 
+                if (GlobalConfig.BasicContractZeroSerialNumber > _value)
+                {
+                    _value = GlobalConfig.BasicContractZeroSerialNumber;
+                }
                 return _value;
             }
             private set => _value = value;
@@ -77,10 +82,10 @@ namespace AElf.Contracts.Genesis
         {
             Value = Value + 1;
             SetValue(Value);
+            GlobalConfig.BasicContractZeroSerialNumber = Value;
             return this;
         }
     }
-
 
     #endregion Customized Field Types
 
@@ -89,7 +94,9 @@ namespace AElf.Contracts.Genesis
         #region Fields
 
         private readonly ContractSerialNumber _contractSerialNumber = ContractSerialNumber.Instance;
-        private readonly Map<Hash, ContractInfo> _contractInfos = new Map<Hash, ContractInfo>(FieldNames.ContractInfos);
+
+        private readonly Map<Address, ContractInfo> _contractInfos =
+            new Map<Address, ContractInfo>(FieldNames.ContractInfos);
 
         #endregion Fields
 
@@ -100,28 +107,27 @@ namespace AElf.Contracts.Genesis
         }
 
         [View]
-        public string GetContractInfoFor(Hash contractAddress)
+        public string GetContractInfoFor(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
             if (info == null)
             {
-                return String.Empty;
+                return string.Empty;
             }
 
             return info.ToString();
         }
 
-
         public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
             ulong serialNumber = _contractSerialNumber.Increment().Value;
 
-            Hash creator = Api.GetTransaction().From;
+            Address creator = Api.GetTransaction().From;
 
             var info = new ContractInfo
             {
                 Owner = creator,
-                SerialNumer = serialNumber
+                SerialNumber = serialNumber
             };
 
             var address = info.Address;
@@ -132,7 +138,7 @@ namespace AElf.Contracts.Genesis
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = SHA256.Create().ComputeHash(code)
+                ContractHash = Hash.FromRawBytes(code)
             };
 
             await Api.DeployContractAsync(address, reg);
@@ -148,12 +154,12 @@ namespace AElf.Contracts.Genesis
             }.Fire();
             */
 
-            Console.WriteLine("Deployment success: " + address.ToHex());
-            return address.GetHashBytes();
+            Console.WriteLine($"SerialNumber: {info.SerialNumber}");
+            Console.WriteLine("BasicContractZero - Deployment success: " + address.DumpHex());
+            return address.DumpByteArray();
         }
 
-        
-        public void ChangeContractOwner(Hash contractAddress, Hash newOwner)
+        public void ChangeContractOwner(Address contractAddress, Address newOwner)
         {
             var info = _contractInfos[contractAddress];
             Api.Assert(info.Owner.Equals(Api.GetTransaction().From));
@@ -168,10 +174,10 @@ namespace AElf.Contracts.Genesis
             }.Fire();
         }
 
-        public Hash GetContractOwner(Hash contractAddress)
+        public Address GetContractOwner(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
-            return info.Owner;
+            return info?.Owner;
         }
     }
 }

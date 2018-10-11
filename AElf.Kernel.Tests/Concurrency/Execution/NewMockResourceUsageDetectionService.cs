@@ -7,6 +7,7 @@ using AElf.Execution;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
@@ -15,7 +16,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         public async Task<IEnumerable<string>> GetResources(Hash chainId, Transaction transaction)
         {
             //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
-            List<Hash> hashes = new List<Hash>();
+            List<Address> hashes = new List<Address>();
             using (MemoryStream mm = new MemoryStream(transaction.Params.ToByteArray()))
             using (CodedInputStream input = new CodedInputStream(mm))
             {
@@ -33,7 +34,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                             // accept both so that we don't have to fix tests
                             if (bytes.Length == 34 || bytes.Length == 20)
                             {
-                                var h = new Hash();
+                                var h = new Address();
                                 ((IMessage)h).MergeFrom(bytes);
                                 hashes.Add(h);
                             }
@@ -45,7 +46,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 
             hashes.Add(transaction.From);
 
-            return await Task.FromResult(hashes.Select(a => a.ToHex()));
+            return await Task.FromResult(hashes.Select(a => a.DumpHex()));
         }
     }
 }

@@ -1,4 +1,4 @@
-using AElf.Common.Extensions;
+using AElf.Common;
 using AElf.Kernel;
 using Newtonsoft.Json.Linq;
 
@@ -12,9 +12,9 @@ namespace AElf.Node.AElfChain
             {
                 ["tx"] = new JObject
                 {
-                    {"TxId", tx.GetHash().ToHex()},
-                    {"From", tx.From.ToHex()},
-                    {"To", tx.To.ToHex()},
+                    {"TxId", tx.GetHash().DumpHex()},
+                    {"From", tx.From.DumpHex()},
+                    {"To", tx.To.DumpHex()},
                     {"Method", tx.MethodName},
                     {"IncrementId", tx.IncrementId},
                     {"RefBlockNumber", tx.RefBlockNumber},

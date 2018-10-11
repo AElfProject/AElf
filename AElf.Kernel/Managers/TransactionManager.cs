@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common.Extensions;
 using AElf.Kernel.Storages;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Kernel.Managers
 {
@@ -42,7 +42,9 @@ namespace AElf.Kernel.Managers
                     await _dataStore.GetAsync<Hash>(
                         DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, i));
                 var header = await _dataStore.GetAsync<BlockHeader>(rollBackBlockHash);
-                var body = await _dataStore.GetAsync<BlockBody>(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
+                var body = await _dataStore.GetAsync<BlockBody>(
+                    Hash.Xor(
+                    header.GetHash(),header.MerkleTreeRootOfTransactions));
                 foreach (var txId in body.Transactions)
                 {
                     var tx = await _dataStore.GetAsync<Transaction>(txId);

@@ -1,13 +1,34 @@
 ﻿using System;
 using System.Linq;
 
-namespace AElf.Common.ByteArrayHelpers
+namespace AElf.Common
 {
     public static class ByteArrayHelpers
     {
         private static bool IsWithPrefix(string value)
         {
             return value.Length >= 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X');
+        }
+
+        public static string ToHex(this byte[] bytes)
+        {
+            char[] c = new char[bytes.Length * 2 + 2];
+
+            byte b;
+
+            c[0] = '0';
+            c[1] = 'x';
+
+            for (int bx = 0, cx = 2; bx < bytes.Length; ++bx, ++cx)
+            {
+                b = ((byte) (bytes[bx] >> 4));
+                c[cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
+
+                b = ((byte) (bytes[bx] & 0x0F));
+                c[++cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
+            }
+
+            return new string(c);
         }
 
         public static byte[] FromHexString(string hex)

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Network;
@@ -85,7 +87,7 @@ namespace AElf.Node
 
                 args.Peer.EnqueueOutgoing(req);
 
-                _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
+                _logger?.Trace("Send block " + block.GetHash().DumpHex() + " to " + args.Peer);
             }
             catch (Exception e)
             {
@@ -95,23 +97,46 @@ namespace AElf.Node
 
         private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
         {
+            if (message.Payload == null || message.Payload.Length <= 0)
+            {
+                _logger?.Warn("Payload null or empty, cannot process transaction request.");
+                return;
+            }
+                
             try
             {
                 TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
+
+                if (!breq.TxHashes.Any())
+                {
+                    _logger?.Warn("Received transaction request with empty hash list.");
+                    return;
+                }
 
                 TransactionList txList = new TransactionList();
                 foreach (var txHash in breq.TxHashes)
                 {
                     var hash = txHash.ToByteArray();
-                    var tx = await _handler.GetTransaction(hash);
+                    var tx = await _handler.GetTransaction(Hash.LoadByteArray(hash));
                 
                     if(tx != null)
                         txList.Transactions.Add(tx);
+                    else
+                    {
+                        _logger?.Trace("wanna get tx: " + txHash.ToByteArray().ToHex());
+                    }
+                }
+
+                if (!txList.Transactions.Any())
+                {
+                    _logger?.Warn("None of the transactions where found.");
+                    return;
                 }
 
                 byte[] serializedTxList = txList.ToByteArray();
                 Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Transactions, serializedTxList);
-                
+                _logger?.Trace("payload length: " + req.Length);
+
                 if (message.HasId)
                 {
                     req.HasId = true;
@@ -119,13 +144,12 @@ namespace AElf.Node
                 }
                 
                 args.Peer.EnqueueOutgoing(req);
-
-//todo                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + serializedTxList.Length +
-//                               " bytes)");
+                
+                _logger?.Trace("Send " + txList.Transactions.Count + " to " + args.Peer);
             }
             catch (Exception e)
             {
-                //_logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
+                _logger?.Error(e, $"Transaction request failed.");
             }
         }
 
@@ -147,7 +171,7 @@ namespace AElf.Node
             var serializedBlock = b.ToByteArray();
             await _netManager.BroadcastBlock(block.GetHash().Value.ToByteArray(), serializedBlock);
 
-            var bh = block.GetHash().ToHex();
+            var bh = block.GetHash().DumpHex();
             _logger?.Trace(
                 $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
 

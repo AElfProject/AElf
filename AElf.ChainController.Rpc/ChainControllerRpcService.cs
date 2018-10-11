@@ -4,10 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Common.Extensions;
 using AElf.Configuration;
 using AElf.Kernel;
+using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Node.AElfChain;
 using AElf.Node.CrossChain;
@@ -18,7 +17,6 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
-using Mono.Cecil;
 using NLog;
 
 namespace AElf.ChainController.Rpc
@@ -91,8 +89,8 @@ namespace AElf.ChainController.Rpc
                     ["result"] =
                         new JObject
                         {
-                            [SmartContractType.BasicContractZero.ToString()] = basicContractZero.ToHex(),
-                            [SmartContractType.SideChainContract.ToString()] = sideChainContract.ToHex(),
+                            [SmartContractType.BasicContractZero.ToString()] = basicContractZero.DumpHex(),
+                            [SmartContractType.SideChainContract.ToString()] = sideChainContract.DumpHex(),
                             ["chain_id"] = chainId
                         }
                 };
@@ -115,10 +113,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var addrHash = new Hash
-                {
-                    Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(address))
-                };
+                var addrHash =Address.LoadHex(address);
 
                 var abi = await this.GetContractAbi(addrHash);
 
@@ -143,10 +138,10 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("get_increment", "address")]
         public async Task<JObject> ProcessGetIncrementId(string address)
         {
-            Hash addr;
+            Address addr;
             try
             {
-                addr = new Hash(ByteArrayHelpers.FromHexString(address));
+                addr = Address.LoadHex(address);
             }
             catch (Exception e)
             {
@@ -200,7 +195,7 @@ namespace AElf.ChainController.Rpc
             var hexString = ByteArrayHelpers.FromHexString(raw64);
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
-            var res = new JObject {["hash"] = transaction.GetHash().ToHex()};
+            var res = new JObject {["hash"] = transaction.GetHash().DumpHex()};
             try
             {
                 var valRes = await TxPoolService.AddTxAsync(transaction);
@@ -248,7 +243,7 @@ namespace AElf.ChainController.Rpc
                 Hash txHash;
                 try
                 {
-                    txHash = ByteArrayHelpers.FromHexString(txid);
+                    txHash = Hash.LoadHex(txid);
                 }
                 catch (Exception)
                 {
@@ -312,8 +307,8 @@ namespace AElf.ChainController.Rpc
                 }
                 return new JObject
                 {
-                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.ToHex(),
-                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
+                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpHex(),
+                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.DumpHex(),
                     ["parent_height"] = merklePathInParentChain.Height
                 };
             }
@@ -332,7 +327,7 @@ namespace AElf.ChainController.Rpc
             Hash txHash;
             try
             {
-                txHash = ByteArrayHelpers.FromHexString(txhash);
+                txHash = Hash.LoadHex(txhash);
             }
             catch (Exception e)
             {
@@ -370,7 +365,7 @@ namespace AElf.ChainController.Rpc
                 if (txResult.Status == Status.Mined)
                 {
                     response["block_number"] = txResult.BlockNumber;
-                    response["block_hash"] = txResult.BlockHash.ToHex();
+                    response["block_hash"] = txResult.BlockHash.DumpHex();
                     response["return"] = txResult.RetVal.ToByteArray().ToHex();
                 }
                 // Todo: it should be deserialized to obj ion cli, 
@@ -424,16 +419,16 @@ namespace AElf.ChainController.Rpc
             {
                 ["result"] = new JObject
                 {
-                    ["Blockhash"] = blockinfo.GetHash().ToHex(),
+                    ["Blockhash"] = blockinfo.GetHash().DumpHex(),
                     ["Header"] = new JObject
                     {
-                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.ToHex(),
-                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.ToHex(),
-                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.ToHex(),
+                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.DumpHex(),
+                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.DumpHex(),
+                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.DumpHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.DumpHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
-                        ["ChainId"] = blockinfo.Header.ChainId.ToHex(),
+                        ["ChainId"] = blockinfo.Header.ChainId.DumpHex(),
                         //["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                     },
                     ["Body"] = new JObject
@@ -451,7 +446,7 @@ namespace AElf.ChainController.Rpc
                 var txs = new List<string>();
                 foreach (var txHash in transactions)
                 {
-                    txs.Add(txHash.ToHex());
+                    txs.Add(txHash.DumpHex());
                 }
 
                 response["result"]["Body"]["Transactions"] = JArray.FromObject(txs);

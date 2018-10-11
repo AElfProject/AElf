@@ -12,6 +12,7 @@ using AElf.Execution;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using ServiceStack;
+using AElf.Common;
 
 namespace AElf.Contracts.Token.Tests
 {
@@ -31,7 +32,7 @@ namespace AElf.Contracts.Token.Tests
         public ISmartContractService SmartContractService { get; }
         private IFunctionMetadataService _functionMetadataService;
 
-        public Hash TokenContractAddress { get; private set; }
+        public Address TokenContractAddress { get; private set; }
         
         public IChainContextService ChainContextService;
 
@@ -100,14 +101,14 @@ namespace AElf.Contracts.Token.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(TokenCode),
-                ContractHash = TokenCode.CalculateHash(),
+                ContractHash = Hash.FromRawBytes(TokenCode),
                 Type = (int)SmartContractType.TokenContract
             };
             var reg0 = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SCZeroContractCode),
-                ContractHash = SCZeroContractCode.CalculateHash(),
+                ContractHash = Hash.FromRawBytes(SCZeroContractCode),
                 Type = (int)SmartContractType.BasicContractZero
             };
 
@@ -115,10 +116,10 @@ namespace AElf.Contracts.Token.Tests
                 await _chainCreationService.CreateNewChainAsync(ChainId1,
                     new List<SmartContractRegistration> {reg0});
             StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
+            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
         }
         
-        public async Task<IExecutive> GetExecutiveAsync(Hash address)
+        public async Task<IExecutive> GetExecutiveAsync(Address address)
         {
             var executive = await SmartContractService.GetExecutiveAsync(address, ChainId1);
             return executive;
