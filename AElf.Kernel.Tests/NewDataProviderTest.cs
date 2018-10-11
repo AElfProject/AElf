@@ -7,12 +7,13 @@ using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
+using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
-namespace AElf.SmartContract.Tests
+namespace AElf.Kernel.Tests
 {
     public class NewDataProviderTest
     {
