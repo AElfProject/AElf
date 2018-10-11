@@ -52,5 +52,64 @@ namespace AElf.Management.Services
 
             return result;
         }
+
+        public void RecordBlockInfo(string chainId)
+        {
+            ulong currentHeight;
+            var currentRecord = InfluxDBHelper.Get(chainId, "select last(height) from block_info");
+            if (currentRecord.Count==0)
+            {
+                currentHeight = GetCurrentChainHeight(chainId);
+            }
+            else
+            {
+                var record = currentRecord.First().Values.First();
+                var time = Convert.ToDateTime(record[0]);
+
+                if (time < DateTime.Now.AddHours(-1))
+                {
+                    currentHeight = GetCurrentChainHeight(chainId);
+                }
+                else
+                {
+                    currentHeight = Convert.ToUInt64(record[1]) + 1;
+                }
+            }
+
+            var blockInfo = GetBlockInfo(chainId,currentHeight);
+            while (blockInfo.Result != null && blockInfo.Result.Body!=null && blockInfo.Result.Header !=null)
+            {
+                var fields = new Dictionary<string, object> {{"height", currentHeight}, {"tx_count", blockInfo.Result.Body.TransactionsCount}};
+                InfluxDBHelper.Set(chainId, "block_info", fields, null, blockInfo.Result.Header.Time);
+
+                currentHeight++;
+                blockInfo = GetBlockInfo(chainId,currentHeight);
+            }
+        }
+
+        private BlockInfoResult GetBlockInfo(string chainId, ulong height)
+        {
+            var jsonRpcArg = new JsonRpcArg<BlockInfoArg>();
+            jsonRpcArg.Method = "get_block_info";
+            jsonRpcArg.Params = new BlockInfoArg
+            {
+                BlockHeight = height,
+                IncludeTxs = false
+            };
+
+            var blockInfo = HttpRequestHelper.Request<JsonRpcResult<BlockInfoResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/chain", jsonRpcArg);
+            
+            return blockInfo.Result;
+        }
+
+        private ulong GetCurrentChainHeight(string chainId)
+        {
+            var jsonRpcArg = new JsonRpcArg();
+            jsonRpcArg.Method = "get_block_height";
+
+            var height = HttpRequestHelper.Request<JsonRpcResult<ChainHeightResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/chain", jsonRpcArg);
+
+            return Convert.ToUInt64(height.Result.Result.ChainHeight);
+        }
     }
 }
