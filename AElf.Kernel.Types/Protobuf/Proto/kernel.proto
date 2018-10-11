@@ -20,6 +20,17 @@ message Transaction {
     TransactionType type = 12;
 }
 
+message StatePath {
+    repeated string Path = 1;
+    Address ContractAddress = 2;
+    Hash ChainId = 3;
+}
+
+message StateChange {
+    bytes CurrentValue = 1;
+    bytes OriginalValue = 2;
+}
+
 message TransactionList {
     repeated Transaction Transactions = 1;
 }

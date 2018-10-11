@@ -55,5 +55,11 @@ namespace AElf.Common
         #endregion
 
         public static ulong BasicContractZeroSerialNumber = 0;
+
+        #region data key prefixes
+
+        public const string StatePrefix = "st";
+
+        #endregion data key prefixes
     }
 }
