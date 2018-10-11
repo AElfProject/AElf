@@ -12,6 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using ServiceStack;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
     [LoggerName(nameof(ConsensusBlockValidationFilter))]
@@ -64,7 +65,7 @@ namespace AElf.ChainController
 
             return BoolValue.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value
                 ? ValidationError.Success
-                : ValidationError.InvalidTimeslot;
+                : ValidationError.InvalidTimeSlot;
         }
 
         private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)

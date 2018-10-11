@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
     public class BlockValidationService: IBlockValidationService

@@ -1,7 +1,10 @@
 ﻿namespace AElf.ChainController.EventMessages
 {
-    public class ChainInitialized
+    public sealed class ChainInitialized
     {
-        
+        public ChainInitialized()
+        {
+            
+        }
     }
 }

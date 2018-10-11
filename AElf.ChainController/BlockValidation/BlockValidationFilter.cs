@@ -5,6 +5,7 @@ using AElf.ChainController;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
     /// <summary>
