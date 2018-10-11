@@ -18,6 +18,8 @@ namespace AElf.Miner.Rpc.Client
         private ulong _next;
         private readonly Hash _targetChainId;
         private int _interval;
+        private int _realInterval;
+        private const int UnavailableConnectionInterval = 4_000;
 
         private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } =
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
@@ -27,11 +29,13 @@ namespace AElf.Miner.Rpc.Client
             _logger = logger;
             _targetChainId = targetChainId;
             _interval = interval;
+            _realInterval = _interval;
         }
 
         public void UpdateRequestInterval(int interval)
         {
             _interval = interval;
+            _realInterval = _interval;
         }
         
         /// <summary>
@@ -48,18 +52,27 @@ namespace AElf.Miner.Rpc.Client
                     var response = call.ResponseStream.Current;
 
                     // request failed or useless response
-                    if (!response.Success || response.Height != _next)
-                        continue;
-                    if (IndexedInfoQueue.TryAdd(response.BlockInfoResult))
+                    if (!response.Success)
                     {
-                        _next++;
-                        _logger.Trace(
-                            $"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
+                        _realInterval = AdjustInterval();
+                        continue;
                     }
+                    if(response.Height != _next || !IndexedInfoQueue.TryAdd(response.BlockInfoResult))
+                        continue;
+                    
+                    _next++;
+                    _realInterval = _interval;
+                    _logger.Trace(
+                        $"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
                 }
             });
 
             return responseReaderTask;
+        }
+
+        private int AdjustInterval()
+        {
+            return Math.Max(_realInterval * 2, UnavailableConnectionInterval);
         }
 
         /// <summary>
@@ -80,7 +93,7 @@ namespace AElf.Miner.Rpc.Client
                 };
                 _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
-                await Task.Delay(_interval);
+                await Task.Delay(_realInterval);
             }
         }
 
@@ -113,6 +126,7 @@ namespace AElf.Miner.Rpc.Client
                 {
                     var detail = e.Status.Detail;
                     _logger.Error(detail + $" exception during request to chain {_targetChainId.DumpHex()}.");
+                    await Task.Delay(UnavailableConnectionInterval);
                     StartDuplexStreamingCall(cancellationToken, _next);
                     return;
                 }
