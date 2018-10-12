@@ -214,7 +214,8 @@ namespace AElf.ChainController.Rpc
         {
             var trace = new TransactionTrace
             {
-                TransactionId = tx.GetHash()
+                TransactionId = tx.GetHash(),
+                Transaction = tx
             };
 
             var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));

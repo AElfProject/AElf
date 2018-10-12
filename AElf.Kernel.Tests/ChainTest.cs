@@ -92,10 +92,10 @@ namespace AElf.Kernel.Tests
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
             var block = new Block(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
+            block.AddTransaction(new Transaction());
+            block.AddTransaction(new Transaction());
+            block.AddTransaction(new Transaction());
+            block.AddTransaction(new Transaction());
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;

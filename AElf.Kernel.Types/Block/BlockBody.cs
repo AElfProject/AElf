@@ -61,16 +61,18 @@ namespace AElf.Kernel
             return res;
         }
         
-        public bool AddTransaction(Hash tx)
+        public bool AddTransaction(Transaction tx)
         {
-            Transactions.Add(tx);
+            Transactions.Add(tx.GetHash());
+            TransactionList.Add(tx);
             return true;
         }
 
-        public bool AddTransactions(IEnumerable<Hash> hashes)
+        public bool AddTransactions(IEnumerable<Transaction> txs)
         {
-            var collection = hashes.ToList();
-            Transactions.Add(collection.Distinct());
+            var collection = txs.ToList();
+            Transactions.Add(collection.Select(tx => tx.GetHash()).Distinct());
+            TransactionList.Add(collection);
             return true;
         }
         
