@@ -186,7 +186,10 @@ namespace AElf.Node
             
             if (_branchedChains.Count > 0)
             {
-                var num = _branchedChains.RemoveWhere(bc => bc.GetPendingBlocks()[0].Block.GetHash() == pendingBlock.Block.GetHash());
+                _logger?.Trace($"11111111");
+                var num = _branchedChains.RemoveWhere(bc =>
+                    bc.GetPendingBlocks().Select(pd => pd.Block.GetHash())
+                        .Any(hash => hash == pendingBlock.Block.GetHash())); 
                 if (num > 0)
                 {
                     _logger?.Trace($"Removed {num} redundant branched chain.");
@@ -216,7 +219,7 @@ namespace AElf.Node
 
             if (PendingBlocks.IsEmpty() && BranchedChainsCount > 0)
             {
-                PendingBlocks = _branchedChains.FirstOrDefault(c => c.CanCheckout(PendingBlockHeight))
+                PendingBlocks = _branchedChains.FirstOrDefault(c => c.CanCheckout(SyncedHeight))
                                     ?.GetPendingBlocks() ??
                                 _branchedChains.FirstOrDefault()?.GetPendingBlocks();
                 _logger?.Trace($"Branch switched! pending count {PendingBlocks?.Count}");

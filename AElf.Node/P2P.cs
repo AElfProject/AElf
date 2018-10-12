@@ -87,7 +87,7 @@ namespace AElf.Node
 
                 args.Peer.EnqueueOutgoing(req);
 
-                _logger?.Trace("Send block " + block.GetHash().DumpHex() + " to " + args.Peer);
+                //_logger?.Trace("Send block " + block.GetHash().DumpHex() + " to " + args.Peer);
             }
             catch (Exception e)
             {
