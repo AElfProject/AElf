@@ -168,8 +168,7 @@ namespace AElf.Node.Protocol
                     }
                     else
                     {
-                        _logger?.Warn($"Failed to add the following transaction to the pool (reason: {result}): "
-                                      + $"{tx.GetTransactionInfo()}");
+                        //_logger?.Warn($"Failed to add the following transaction to the pool (reason: {result}): " + $"{tx.GetTransactionInfo()}");
 
                         foreach (var pendingBlock in PendingBlocks)
                         {
