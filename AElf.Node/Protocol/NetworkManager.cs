@@ -95,7 +95,7 @@ namespace AElf.Node.Protocol
                     _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
-            MessageHub.Instance.Subscribe<BlockMinedMessage>(async inBlock => 
+            MessageHub.Instance.Subscribe<BlockMined>(async inBlock => 
                 {
                     if (inBlock?.Block == null)
                     {
@@ -117,7 +117,7 @@ namespace AElf.Node.Protocol
                     _localAcceptHeight++;
                 });
             
-            MessageHub.Instance.Subscribe<BlockAccepted>(async inBlock => 
+            MessageHub.Instance.Subscribe<BlockExecuted>(async inBlock => 
             {
                 if (inBlock?.Block == null)
                 {
@@ -312,7 +312,7 @@ namespace AElf.Node.Protocol
                 {
                     _logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
 
-                    te MessageHub.Instance.Publish(new TxReceived(tx));
+                    MessageHub.Instance.Publish(new TxReceived(tx));
                     
                     //foreach (var p in _peers.Where(p => !p.Equals(peer)))
                     //    p.EnqueueOutgoing(msg);

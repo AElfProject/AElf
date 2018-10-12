@@ -49,6 +49,8 @@ message TransactionResult {
     
     // Merkle proof path for this transaction
     MerklePath MerklePath = 9;
+    
+    Transaction Transaction = 10;
 }
 
 message StateValueChange{
@@ -98,7 +100,8 @@ message BlockHeader {
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
-    repeated SideChainBlockInfo IndexedInfo = 3;
+    repeated Transaction TransactionList = 3;
+    repeated SideChainBlockInfo IndexedInfo = 4;
 }
 
 message Block {

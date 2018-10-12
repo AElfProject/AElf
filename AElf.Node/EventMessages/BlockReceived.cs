@@ -4,11 +4,12 @@ namespace AElf.Node.EventMessages
 {
     public class BlockReceived
     {
-        public Block Block { get; private set; }
 
-        public BlockReceived(Block _block)
+        public BlockReceived(IBlock block)
         {
-            _block = Block;
+            Block = block;
         }
+
+        public IBlock Block { get; }
     }
 }

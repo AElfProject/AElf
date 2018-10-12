@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -22,7 +21,7 @@ namespace AElf.ChainController
             _logger = logger;
         }
 
-        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
+        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
             try
             {
@@ -47,19 +46,19 @@ namespace AElf.ChainController
                     _logger?.Trace("Received block index:" + index);
                     _logger?.Trace("Current chain height:" + currentChainHeight);
                     
-                    return ValidationError.Pending;
+                    return BlockValidationResult.Pending;
                 }
                 
                 // can be added to chain
                 if (previousBlockHash == Hash.Genesis ||  index == currentChainHeight + 1)
                 {
                     if (currentPreviousBlockHash.Equals(previousBlockHash))
-                        return ValidationError.Success;
+                        return BlockValidationResult.Success;
 
                     _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.DumpHex());
                     _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.DumpHex());
 
-                    return ValidationError.IncorrectPreBlockHash;
+                    return BlockValidationResult.IncorrectPreBlockHash;
                 }
                 
                 if (index <= currentChainHeight)
@@ -68,20 +67,20 @@ namespace AElf.ChainController
                     var b = await blockchain.GetBlockByHeightAsync(index);
                     if (b == null)
                     {
-                        return ValidationError.FailedToGetBlockByHeight;
+                        return BlockValidationResult.FailedToGetBlockByHeight;
                     }
                     return b.Header.GetHash().Equals(block.Header.GetHash())
-                        ? ValidationError.AlreadyExecuted
-                        : ValidationError.OrphanBlock;
+                        ? BlockValidationResult.AlreadyExecuted
+                        : BlockValidationResult.OrphanBlock;
                 }
                 
                 _logger?.Error("Incomplete validation scheme.");
-                return ValidationError.DontKnowReason;
+                return BlockValidationResult.UnknownReason;
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while validating blocks.");
-                return ValidationError.FailedToCheckChainContextInvalidation;
+                return BlockValidationResult.FailedToCheckChainContextInvalidation;
             }
         }
     }

@@ -21,6 +21,8 @@ using Google.Protobuf;
 using NLog;
 using ServiceStack;
 using AElf.Common;
+using AElf.Node.EventMessages;
+using Easy.MessageHub;
 
 namespace AElf.Node.AElfChain
 {
@@ -39,6 +41,7 @@ namespace AElf.Node.AElfChain
         private readonly IChainCreationService _chainCreationService;
         private readonly IStateDictator _stateDictator;
         private readonly IBlockSynchronizer _synchronizer;
+        private readonly AElf.ChainController.IBlockCollection _blockCollection;
         private readonly IBlockExecutor _blockExecutor;
 
         private IBlockChain _blockChain;
@@ -57,6 +60,7 @@ namespace AElf.Node.AElfChain
             IStateDictator stateDictator,
             IChainService chainService,
             IBlockExecutor blockExecutor,
+            AElf.ChainController.IBlockCollection blockCollection,
             IBlockSynchronizer synchronizer,
             IMiner miner,
             IP2P p2p,
@@ -75,6 +79,12 @@ namespace AElf.Node.AElfChain
             _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
+            _blockCollection = blockCollection;
+            
+            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
+                {
+                    await _blockCollection.AddBlock(inBlock.Block);
+                });
         }
 
         #region Genesis Contracts
@@ -382,23 +392,23 @@ namespace AElf.Node.AElfChain
                 var context = await _chainContextService.GetChainContextAsync(chainId);
                 var error = await _blockValidationService.ValidateBlockAsync(block, context, _nodeKeyPair);
 
-                if (error != ValidationError.Success)
+                if (error != BlockValidationResult.Success)
                 {
                     var blockchain =
                         _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
                     var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
-                    if (error == ValidationError.OrphanBlock)
+                    if (error == BlockValidationResult.OrphanBlock)
                     {
                         if (block.Header.Index > localCorrespondingBlock.Header.Index)
                         {
                             var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
                             await _txPoolService.Revert(txs);
                             await _stateDictator.RollbackToPreviousBlock();
-                            error = ValidationError.AnotherBranch;
+                            error = BlockValidationResult.AnotherBranch;
                         }
                         else
                         {
-                            return new BlockExecutionResult(false, ValidationError.OrphanBlock);
+                            return new BlockExecutionResult(false, BlockValidationResult.OrphanBlock);
                         }
                     }
                     else
