@@ -72,7 +72,7 @@ namespace AElf.Kernel
         {
             var collection = txs.ToList();
             Transactions.Add(collection.Select(tx => tx.GetHash()).Distinct());
-            TransactionList.Add(collection);
+            TransactionList.Add(collection.Distinct());
             return true;
         }
         
