@@ -61,49 +61,83 @@ namespace AElf.Miner.Miner
             }
             _logger?.Trace($"Executing block {block.GetHash()}");
 
+            try
+            {
+                UpdataBPInfo(block);
+                // get txn from pool
+                var readyTxns = await CollectTransactions(block);
+                var txnRes = await ExecuteTransactions(readyTxns, block);
+
+                await UpdateWorldState(block);
+                await AppendBlock(block);
+                await InsertTxs(readyTxns, txnRes, block);
+                await UpdateSideChainInfo(block);
+                return true;
+            }
+            catch (Exception e)
+            {
+                if(e is InvalidBlockException)
+                    await Interrupt(e.Message, block);
+                else 
+                    await Interrupt(e, block);
+                return false;
+            }
+        }
+        
+        
+        /// <summary>
+        /// Execute transactions.
+        /// </summary>
+        /// <param name="readyTxs"></param>
+        /// <param name="block"></param>
+        /// <returns></returns>
+        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, IBlock block)
+        {
+            var traces = readyTxs.Count == 0
+                ? new List<TransactionTrace>()
+                : await _executingService.ExecuteAsync(readyTxs, block.Header.ChainId, Cts.Token);
+            
+            var results = new List<TransactionResult>();
+            foreach (var trace in traces)
+            {
+                var res = new TransactionResult
+                {
+                    TransactionId = trace.TransactionId,
+                };
+                if (string.IsNullOrEmpty(trace.StdErr))
+                {
+                    res.Logs.AddRange(trace.FlattenedLogs);
+                    res.Status = Status.Mined;
+                    res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
+                }
+                else
+                {
+                    res.Status = Status.Failed;
+                    res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
+                }
+                results.Add(res);
+            }
+
+            return results;
+            
+        }
+
+        #region Before transaction execution
+
+        /// <summary>
+        /// Update BP info before execution
+        /// </summary>
+        /// <param name="block"></param>
+        private void UpdataBPInfo(IBlock block)
+        {
             var uncompressedPrivateKey = block.Header.P.ToByteArray();
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
             var blockProducerAddress = recipientKeyPair.GetAddress();
             _stateDictator.ChainId = block.Header.ChainId;
             _stateDictator.BlockHeight = block.Header.Index - 1;
             _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
-            var readyTxs = new List<Transaction>();
-            try
-            {
-                readyTxs= await CollectTransactions(block);
-                if (readyTxs == null)
-                    return false;
-            
-                var results = await ExecuteTransactions(readyTxs, block.Header.ChainId);
-                if (results == null)
-                {
-                    return false;
-                }
-                await InsertTxs(readyTxs, results, block);
-                var res = await UpdateState(block);
-                var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
-                if (!res)
-                {
-                    var txToRevert = await blockchain.RollbackOneBlock();
-                    await _txPoolService.Revert(txToRevert);
-                    return false;
-                }
-                await blockchain.AddBlocksAsync(new List<IBlock> {block});
-                await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, block.Header.ChainId,
-                    block.Header.Index);
-                await _binaryMerkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
-                    block.Body.BinaryMerkleTreeForSideChainTransactionRoots, block.Header.ChainId, block.Header.Index);
-            }
-            catch (Exception e)
-            {
-                string errlog = $"ExecuteBlock - Execution failed with exception {e}";
-                await Interrupt(errlog, readyTxs, e);
-                return false;
-            }
-
-            return true;
         }
-
+        
         /// <summary>
         /// Verify block components and validate side chain info if needed
         /// </summary>
@@ -133,53 +167,22 @@ namespace AElf.Miner.Miner
 
             if (!res)
                 await Interrupt(errlog);
+                        
             return res;
         }
         
         /// <summary>
-        /// Execute transactions.
+        /// Check side chain info.
         /// </summary>
-        /// <param name="readyTxs"></param>
-        /// <param name="chainId"></param>
-        /// <returns></returns>
-        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId)
+        /// <param name="block"></param>
+        /// <returns>
+        /// Return true if side chain info is consistent with local node, else return false;
+        /// </returns>
+        private async Task<bool> ValidateSideChainBlockInfo(IBlock block)
         {
-            try
-            {
-                var traces = readyTxs.Count == 0
-                    ? new List<TransactionTrace>()
-                    : await _executingService.ExecuteAsync(readyTxs, chainId, Cts.Token);
-                
-                var results = new List<TransactionResult>();
-                foreach (var trace in traces)
-                {
-                    var res = new TransactionResult
-                    {
-                        TransactionId = trace.TransactionId,
-                    };
-                    if (string.IsNullOrEmpty(trace.StdErr))
-                    {
-                        res.Logs.AddRange(trace.FlattenedLogs);
-                        res.Status = Status.Mined;
-                        res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
-                    }
-                    else
-                    {
-                        res.Status = Status.Failed;
-                        res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
-                    }
-                    results.Add(res);
-                }
-
-                return results;
-            }
-            catch (Exception e)
-            {
-                await Interrupt(e.ToString(), readyTxs, e);
-                return null;
-            }
+            return block.Body.IndexedInfo.All(_clientManager.CheckSideChainBlockInfo);
         }
-
+        
         /// <summary>
         /// Get txs from tx pool
         /// </summary>
@@ -201,13 +204,14 @@ namespace AElf.Miner.Miner
                     break;
                 }
 
-                if (tx.Type == TransactionType.CrossChainBlockInfoTransaction 
+                if (tx.Type == TransactionType.CrossChainBlockInfoTransaction
                     && !await ValidateParentChainBlockInfoTransaction(tx))
                 {
                     errlog = "Invalid parent chain block info.";
                     res = false;
                     break;
                 }
+
                 readyTxs.Add(tx);
             }
 
@@ -216,18 +220,47 @@ namespace AElf.Miner.Miner
                 res = false;
                 errlog = "More than one transaction to record parent chain block info.";
             }
-            
+
             if (!res)
-                await Interrupt(errlog, readyTxs);
-            return res ? readyTxs : null;
+                throw new InvalidBlockException(errlog);
+
+            return readyTxs;
         }
+        
+        /// <summary>
+        /// Validate parent chain block info.
+        /// </summary>
+        /// <param name="transaction">System transaction with parent chain block info.</param>
+        /// <returns>
+        /// Return false if validation failed and then that block execution would fail.
+        /// </returns>
+        private async Task<bool> ValidateParentChainBlockInfoTransaction(Transaction transaction)
+        {
+            try
+            {
+                var parentBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(transaction.Params.ToByteArray());
+                var cached = await _clientManager.CollectParentChainBlockInfo();
+                return cached != null && cached.Equals(parentBlockInfo);
+            }
+            catch (Exception e)
+            {
+                if (e is ClientShutDownException)
+                    return true;
+                _logger.Error(e, "Parent chain block info validation failed.");
+                return false;
+            }
+        }
+
+        #endregion
+        
+        #region After transaction execution
 
         /// <summary>
         /// Update system state.
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        private async Task<bool> UpdateState(IBlock block)
+        private async Task UpdateWorldState(IBlock block)
         {
             await _stateDictator.SetBlockHashAsync(block.GetHash());
             await _stateDictator.SetStateHashAsync(block.GetHash());
@@ -246,59 +279,33 @@ namespace AElf.Miner.Miner
                 res = false;
             }
             if(!res)
-                await Interrupt(errlog);
-            return res;
+                throw new InvalidBlockException(errlog);
         }
         
         /// <summary>
-        /// Check side chain info.
+        /// Append block
         /// </summary>
         /// <param name="block"></param>
-        /// <returns>
-        /// Return true if side chain info is consistent with local node, else return false;
-        /// </returns>
-        private async Task<bool> ValidateSideChainBlockInfo(IBlock block)
+        /// <returns></returns>
+        private async Task AppendBlock(IBlock block)
         {
-            if (!block.Body.IndexedInfo.All(_clientManager.CheckSideChainBlockInfo))
-                return false;
-            /*var sideChainBlockIndexedInfo = block.Body.IndexedInfo.Aggregate(
-                new Dictionary<Hash, SortedList<ulong, SideChainBlockInfo>>(),
-                (m, cur) =>
-                {
-                    if (!m.TryGetValue(cur.ChainId, out var sortedList))
-                    {
-                        sortedList = m[cur.ChainId] = new SortedList<ulong, SideChainBlockInfo>();
-                    }
-                    sortedList.Add(cur.Height, cur);
-                    return m;
-                });*/
-            
-            // Todo : no need to sort as height for now, since at maximal one block from one side chain.
-            // all block info should be removed successfully because having been checked.
-            foreach (var blockInfo in block.Body.IndexedInfo)
-            {
-                if (!await _clientManager.TryUpdateAndRemoveSideChainBlockInfo(blockInfo))
-                    // Todo: _clientManager would be chaos if this happened.
-                    return false;
-            }
-            return true;
+            var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
+            await blockchain.AddBlocksAsync(new List<IBlock> {block});
         }
-
+        
         /// <summary>
         /// Update database
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
         /// <param name="block"></param>
-        private async Task<HashSet<Address>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
+        private async Task InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-            var addrs = new HashSet<Address>();
             Transaction pcbTx = null;
             foreach (var t in executedTxs)
             {
-                addrs.Add(t.From);
                 await _transactionManager.AddTransactionAsync(t);
                 _txPoolService.RemoveAsync(t.GetHash());
                 
@@ -312,60 +319,57 @@ namespace AElf.Miner.Miner
                 r.BlockNumber = bn;
                 r.BlockHash = bh;
                 await _transactionResultManager.AddTransactionResultAsync(r);
-                if (pcbTx != null && pcbTx.GetHash().Equals(r.TransactionId))
-                {
-                    var parentChainBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(pcbTx.Params.ToByteArray());
-                    await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
-                }
+                if (pcbTx == null || !pcbTx.GetHash().Equals(r.TransactionId)) 
+                    return;
+                var parentChainBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(pcbTx.Params.ToByteArray());
+                await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
             });
-            return addrs;
-        }
-
-        /// <summary>
-        /// Withdraw txs in tx pool
-        /// </summary>
-        /// <param name="readyTxs"></param>
-        /// <returns></returns>
-        private async Task Rollback(List<Transaction> readyTxs)
-        {
-            await _stateDictator.RollbackToPreviousBlock();
-            if (readyTxs == null)
-                return;
-            await _txPoolService.Revert(readyTxs);
-        }
-
-        private async Task Interrupt(string log, List<Transaction> readyTxs = null, Exception e = null)
-        {
-            if(e == null)
-                _logger.Debug(log);
-            else 
-                _logger.Error(e, log);
-            await Rollback(readyTxs);
         }
         
-        /// <summary>
-        /// Validate parent chain block info.
-        /// </summary>
-        /// <param name="transaction">System transaction with parent chain block info.</param>
-        /// <returns>
-        /// Return false if validation failed and then that block execution would fail.
-        /// </returns>
-        private async Task<bool> ValidateParentChainBlockInfoTransaction(Transaction transaction)
+        private async Task UpdateSideChainInfo(IBlock block)
         {
-            try
+            await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
+                block.Header.ChainId, block.Header.Index);
+            await _binaryMerkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
+                block.Body.BinaryMerkleTreeForSideChainTransactionRoots, block.Header.ChainId, block.Header.Index);
+            
+            // update side chain block info if execution succeed
+            foreach (var blockInfo in block.Body.IndexedInfo)
             {
-                var parentBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(transaction.Params.ToByteArray());
-                return (await _clientManager.CollectParentChainBlockInfo()).Equals(parentBlockInfo);
-            }
-            catch (Exception e)
-            {
-                if (e is ClientShutDownException)
-                    return true;
-                _logger.Error(e, "Parent chain block info validation failed.");
-                return false;
+                if (!await _clientManager.TryUpdateAndRemoveSideChainBlockInfo(blockInfo))
+                    // Todo: _clientManager would be chaos if this happened.
+                    throw new InvalidBlockException(
+                        "Inconsistent side chain info. Something about side chain would be chaos if you see this. ");
             }
         }
+        
+        #endregion
+        
+        #region Rollback
 
+        private async Task Interrupt(Exception e, IBlock block = null)
+        {
+            _logger.Error(e);
+            await Rollback(block);
+        }
+        
+        private async Task Interrupt(string log, IBlock block = null)
+        {
+            _logger.Warn(log);
+            await Rollback(block);
+        }
+
+        private async Task Rollback(IBlock block)
+        {
+            if(block == null)
+                return;
+            var blockChain = _chainService.GetBlockChain(block.Header.ChainId);
+            var txToRevert = await blockChain.RollbackToHeight(block.Header.Index - 1);
+            await _txPoolService.Revert(txToRevert);
+        }
+
+        #endregion
+        
         /// <summary>
         /// Finish initial synchronization process.
         /// </summary>
@@ -377,6 +381,14 @@ namespace AElf.Miner.Miner
         public void Init()
         {
             Cts = new CancellationTokenSource();
+        }
+    }
+
+    internal class InvalidBlockException : Exception
+    {
+        public InvalidBlockException(string message) : base(message)
+        {
+            
         }
     }
 }
