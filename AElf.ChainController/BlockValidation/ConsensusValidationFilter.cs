@@ -34,8 +34,8 @@ namespace AElf.ChainController
             }
             
             // Get block producer's address from block header
-            var uncompressedPrivKey = block.Header.P.ToByteArray();
-            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+            var uncompressedPrivateKey = block.Header.P.ToByteArray();
+            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
             
             // Get the address of consensus contract
             var contractAccountHash = AddressHelpers.GetSystemContractAddress(context.ChainId, SmartContractType.AElfDPoS.ToString());

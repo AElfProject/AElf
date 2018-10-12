@@ -21,6 +21,8 @@ using Google.Protobuf;
 using NLog;
 using ServiceStack;
 using AElf.Common;
+using AElf.Node.EventMessages;
+using Easy.MessageHub;
 
 namespace AElf.Node.AElfChain
 {
@@ -75,6 +77,11 @@ namespace AElf.Node.AElfChain
             _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
+
+            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
+                {
+                    await ChainController.BlockCollection.Instance.AddBlock(inBlock.Block);
+                });
         }
 
         #region Genesis Contracts

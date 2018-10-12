@@ -12,7 +12,7 @@ namespace AElf.ChainController
         FailedToCheckConsensusInvalidation = 8,
         FailedToGetBlockByHeight = 9,
         FailedToCheckChainContextInvalidation = 10,
-        DontKnowReason = 11,
+        UnknownReason = 11,
         IncorrectTxMerkleTreeRoot = 12,
         IncorrectPreBlockHash = 13,
         IncorrectSideChainInfo =16,

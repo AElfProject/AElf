@@ -75,7 +75,7 @@ namespace AElf.ChainController
                 }
                 
                 _logger?.Error("Incomplete validation scheme.");
-                return BlockValidationResult.DontKnowReason;
+                return BlockValidationResult.UnknownReason;
             }
             catch (Exception e)
             {

@@ -6,6 +6,7 @@ using AElf.Kernel;
 namespace AElf.ChainController
 {
     /// <summary>
+    /// Some basic validations:
     /// Validate the tx merkle tree root.
     /// </summary>
     public class BlockValidationFilter : IBlockValidationFilter

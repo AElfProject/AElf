@@ -34,7 +34,7 @@ namespace AElf.Node
         public void Initialize(NodeConfiguration conf)
         {
             _startRpc = conf.WithRpc;
-            
+
             foreach (var service in _services)
             {
                 service.Initialize(conf);
@@ -45,14 +45,14 @@ namespace AElf.Node
         {
             if (_startRpc)
                 StartRpc();
-            
+
             Task.Run(() => _netManager.Start());
 
             foreach (var service in _services)
             {
                 service.Start();
             }
-            
+
             return true;
         }
 
