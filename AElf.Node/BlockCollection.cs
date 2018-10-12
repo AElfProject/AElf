@@ -191,9 +191,12 @@ namespace AElf.Node
         /// <param name="pendingBlock"></param>
         public void RemovePendingBlock(PendingBlock pendingBlock)
         {
+            _logger.Trace($"Removing pending Block at {pendingBlock.Block.Header.Index}, hash {pendingBlock.Block.Header.GetHash()}");
             if (pendingBlock.ValidationError == ValidationError.Success)
             {
                 PendingBlocks.Remove(pendingBlock);
+                _logger.Trace($"Removed pending Block at {pendingBlock.Block.Header.Index}, hash {pendingBlock.Block.Header.GetHash()}");
+
             }
             else
             {
