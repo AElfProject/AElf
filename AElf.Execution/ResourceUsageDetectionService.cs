@@ -73,7 +73,7 @@ namespace AElf.Execution
                             {
                                 // TODO: Ignore if parsing failed, which means our guess is wrong - the bytes is not an address
                                 var h = new Address();
-                                h.MergeFrom(bytes.ToArray());
+                                h.MergeFrom(bytes);
                                 addresses.Add(h);
                             }
                             break;
