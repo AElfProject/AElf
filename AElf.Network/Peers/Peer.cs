@@ -161,8 +161,10 @@ namespace AElf.Network.Peers
                 return DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort)0;
             }
         }
+
+        public readonly int CurrentHeight = 0;
         
-        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey)
+        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey, int currentHeight)
         {
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
@@ -177,6 +179,8 @@ namespace AElf.Network.Peers
             
             _messageReader = reader;
             _messageWriter = writer;
+
+            CurrentHeight = currentHeight;
         }
 
         private void SetupHeartbeat()
@@ -248,18 +252,16 @@ namespace AElf.Network.Peers
                     return;
                 }
 
-                if (a.Message.Type == (int) MessageType.Ping)
+                switch (a.Message.Type)
                 {
-                    HandlePingMessage(a.Message);
-                    return;
+                    case (int) MessageType.Ping:
+                        HandlePingMessage(a.Message);
+                        return;
+                    case (int) MessageType.Pong:
+                        HandlePongMessage(a.Message);
+                        return;
                 }
 
-                if (a.Message.Type == (int) MessageType.Pong)
-                {
-                    HandlePongMessage(a.Message);
-                    return;
-                }
-                
                 PacketsReceivedCount++;
             
                 FireMessageReceived(a.Message);
@@ -279,7 +281,6 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         private void StartAuthentification()
         {
-
             var nodeInfo = new NodeData {Port = _port};
             
             ECSigner signer = new ECSigner();
@@ -289,6 +290,7 @@ namespace AElf.Network.Peers
             {
                 NodeInfo = nodeInfo,
                 PublicKey = ByteString.CopyFrom(_nodeKey.GetEncodedPublicKey()),
+                Height = CurrentHeight,
                 R = ByteString.CopyFrom(sig.R),
                 S = ByteString.CopyFrom(sig.S),
             };
@@ -341,6 +343,8 @@ namespace AElf.Network.Peers
                 // Update with the real IP address
                 IPEndPoint remoteEndPoint = (IPEndPoint)_client.Client.RemoteEndPoint;
                 handshk.NodeInfo.IpAddress = remoteEndPoint.Address.ToString();
+
+                _peerAcceptHeight = handshk.Height;
                 
                 _pingPongTimer.Start();
             }

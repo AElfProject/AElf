@@ -14,6 +14,7 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;
+using AElf.Node.EventMessages;
 using AElf.Node.Protocol.Events;
 using Easy.MessageHub;
 using Google.Protobuf;
@@ -59,6 +60,11 @@ namespace AElf.Node.Protocol
         private BoundedByteArrayQueue _lastTxReceived;
 
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
+        
+        private IPeer CurrentSyncSource { get; set; }
+        private int _peerAcceptHeight = 0;
+        private int _localAcceptHeight = 0;
+        private int _lastRequested = 0;
 
         public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, ILogger logger)
         {
@@ -106,7 +112,31 @@ namespace AElf.Node.Protocol
                     
                     _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
                                    $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
+                    
+                    
+                    _localAcceptHeight++;
                 });
+            
+            MessageHub.Instance.Subscribe<BlockAccepted>(async inBlock => 
+            {
+                if (inBlock?.Block == null)
+                {
+                    _logger?.Warn("[event] Block null.");
+                    return;
+                }
+
+                byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
+
+                if (blockHash != null)
+                    _lastBlocksReceived.Enqueue(blockHash);
+                    
+                await BroadcastBlock(blockHash, inBlock.Block.Serialize());
+                    
+                _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
+                               $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
+                
+                _localAcceptHeight++;
+            });
         }
 
         #region Eventing
@@ -115,10 +145,18 @@ namespace AElf.Node.Protocol
         {
             if (eventArgs is PeerEventArgs peer && peer.Peer != null && peer.Actiontype == PeerEventType.Added)
             {
+                if (CurrentSyncSource != null)
+                    return;
+                    
                 _peers.Add(peer.Peer);
 
                 peer.Peer.MessageReceived += HandleNewMessage;
                 peer.Peer.PeerDisconnected += ProcessClientDisconnection;
+                
+                CurrentSyncSource = peer.Peer;
+                _peerAcceptHeight = peer.Peer.KnownHeight;
+                
+                _logger?.Trace($"Added peer with height {_peerAcceptHeight}");
             }
         }
         
@@ -212,8 +250,22 @@ namespace AElf.Node.Protocol
                     break;
             }
             
+            Sync();
+            
             // Re-fire the event for higher levels if needed.
             BubbleMessageReceivedEvent(args);
+        }
+        
+        private void Sync()
+        {
+            int nextBlockNum = _localAcceptHeight + 1;
+            if (_localAcceptHeight < _peerAcceptHeight && _lastRequested != nextBlockNum)
+            {
+                // request block
+                QueueBlockRequestByIndex(nextBlockNum);
+                _lastRequested = nextBlockNum;
+                _logger?.Trace($"Requested block {nextBlockNum}");
+            }
         }
         
         private void BubbleMessageReceivedEvent(PeerMessageReceivedArgs args)
@@ -230,7 +282,9 @@ namespace AElf.Node.Protocol
                 
                 TransactionList txList = TransactionList.Parser.ParseFrom(msg.Payload);
                 // The sync should subscribe to this and add to pool
-                TransactionsReceived?.Invoke(this, new TransactionsReceivedEventArgs(txList, peer, msgType));
+                //TransactionsReceived?.Invoke(this, new TransactionsReceivedEventArgs(txList, peer, msgType));
+                
+                // todo launch tx event
             }
             catch (Exception e)
             {
@@ -258,8 +312,10 @@ namespace AElf.Node.Protocol
                 {
                     _logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
 
-                    foreach (var p in _peers.Where(p => !p.Equals(peer)))
-                        p.EnqueueOutgoing(msg);
+                    te MessageHub.Instance.Publish(new TxReceived(tx));
+                    
+                    //foreach (var p in _peers.Where(p => !p.Equals(peer)))
+                    //    p.EnqueueOutgoing(msg);
                 }
                 else
                 {
@@ -286,13 +342,19 @@ namespace AElf.Node.Protocol
                 _lastBlocksReceived.Enqueue(blockHash);
                     
                 // Rebroadcast to peers - note that the block has not been validated
-                if (msgType != AElfProtocolMsgType.Block)
-                {
-                    foreach (var p in _peers.Where(p => !p.Equals(peer)))
-                        p.EnqueueOutgoing(msg);
-                }
+//                if (msgType != AElfProtocolMsgType.Block)
+//                {
+//                    foreach (var p in _peers.Where(p => !p.Equals(peer)))
+//                        p.EnqueueOutgoing(msg);
+//                }
+
+                // update last know block from peer
+                if ((int)block.Header.Index > _peerAcceptHeight)
+                    _peerAcceptHeight = (int)block.Header.Index;
                 
-                BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer, msgType));
+                MessageHub.Instance.Publish(new BlockReceived(block));
+
+                //BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer, msgType));
             }
             catch (Exception e)
             {

@@ -5,11 +5,13 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
@@ -39,7 +41,9 @@ namespace AElf.Network.Peers
         
         private readonly ILogger _logger;
         private readonly IConnectionListener _connectionListener;
-        
+        private readonly IChainService _chainService;
+        //private readonly IBlockChain _blockChain;
+
         private System.Threading.Timer _maintenanceTimer;
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(10);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
@@ -61,13 +65,15 @@ namespace AElf.Network.Peers
         private ECKeyPair _nodeKey;
         private string _nodeName;
 
-        public PeerManager(IConnectionListener connectionListener, ILogger logger)
+        public PeerManager(IConnectionListener connectionListener, IChainService chainService, ILogger logger)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
             _bpAddresses = new List<byte[]>();
             _whiteList = new List<byte[]>();
             
             _connectionListener = connectionListener;
+            _chainService = chainService;
+            //_blockChain = blockChain;
             _logger = logger;
             
             _nodeName = NodeConfig.Instance.NodeName;
@@ -263,8 +269,10 @@ namespace AElf.Network.Peers
             
             MessageReader reader = new MessageReader(nsStream);
             MessageWriter writer = new MessageWriter(nsStream);
+
+            int height = (int) _chainService.GetBlockChain(Hash.Default).GetCurrentBlockHeightAsync().Result;
             
-            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort, _nodeKey);
+            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort, _nodeKey, height);
             
             return peer;
         }
