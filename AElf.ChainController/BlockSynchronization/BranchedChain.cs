@@ -1,7 +1,7 @@
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
-    public class BranchedChains
+    public class BranchedChain
     {
         
     }

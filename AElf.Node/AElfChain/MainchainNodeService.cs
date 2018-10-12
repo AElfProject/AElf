@@ -41,6 +41,7 @@ namespace AElf.Node.AElfChain
         private readonly IChainCreationService _chainCreationService;
         private readonly IStateDictator _stateDictator;
         private readonly IBlockSynchronizer _synchronizer;
+        private readonly AElf.ChainController.IBlockCollection _blockCollection;
         private readonly IBlockExecutor _blockExecutor;
 
         private IBlockChain _blockChain;
@@ -59,6 +60,7 @@ namespace AElf.Node.AElfChain
             IStateDictator stateDictator,
             IChainService chainService,
             IBlockExecutor blockExecutor,
+            AElf.ChainController.IBlockCollection blockCollection,
             IBlockSynchronizer synchronizer,
             IMiner miner,
             IP2P p2p,
@@ -77,10 +79,11 @@ namespace AElf.Node.AElfChain
             _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
-
+            _blockCollection = blockCollection;
+            
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
                 {
-                    await ChainController.BlockCollection.Instance.AddBlock(inBlock.Block);
+                    await _blockCollection.AddBlock(inBlock.Block);
                 });
         }
 
