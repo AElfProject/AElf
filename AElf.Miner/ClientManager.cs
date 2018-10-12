@@ -333,6 +333,8 @@ namespace AElf.Miner
         /// <returns></returns>
         public async Task<bool> UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
         {
+            if (_clientToParentChain == null)
+                return true;
             if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(parentChainBlockInfo))
                 return false;
             _clientToParentChain.Take();

@@ -116,7 +116,6 @@ namespace AElf.Miner.Tests.Grpc
                 // create client, main chain is client-side
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
-                GrpcLocalConfig.Instance.ClientToParentChain = true;
                 // for client
                 
                 GrpcRemoteConfig.Instance.ParentChain = new Dictionary<string, Uri>
@@ -132,6 +131,7 @@ namespace AElf.Miner.Tests.Grpc
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
                 Thread.Sleep(t/2);
+                GrpcLocalConfig.Instance.ClientToParentChain = true;
                 var result = await manager.CollectParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)0, result.Height);

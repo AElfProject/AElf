@@ -240,6 +240,10 @@ namespace AElf.Miner.Miner
             {
                 var parentBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(transaction.Params.ToByteArray());
                 var cached = await _clientManager.CollectParentChainBlockInfo();
+                if(cached == null)
+                    _logger.Trace("Not found cached parent block info");
+                if(!cached.Equals(parentBlockInfo))
+                    _logger.Trace($"Found cached parent block info at {cached.Height}, not {parentBlockInfo.Height}");
                 return cached != null && cached.Equals(parentBlockInfo);
             }
             catch (Exception e)
