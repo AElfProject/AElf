@@ -183,6 +183,15 @@ namespace AElf.Node
             PrintPendingBlocks(PendingBlocks);
             PendingBlocks.Add(pendingBlock);
             PendingBlocks.SortByBlockIndex();
+            
+            if (_branchedChains.Count > 0)
+            {
+                var num = _branchedChains.RemoveWhere(bc => bc.GetPendingBlocks()[0].Block.GetHash() == pendingBlock.Block.GetHash());
+                if (num > 0)
+                {
+                    _logger?.Trace($"Removed {num} redundant branched chain.");
+                }
+            }
         }
 
         /// <summary>
@@ -210,6 +219,8 @@ namespace AElf.Node
                 PendingBlocks = _branchedChains.FirstOrDefault(c => c.CanCheckout(PendingBlockHeight))
                                     ?.GetPendingBlocks() ??
                                 _branchedChains.FirstOrDefault()?.GetPendingBlocks();
+                _logger?.Trace($"Branch switched! pending count {PendingBlocks?.Count}");
+
             }
         }
 
