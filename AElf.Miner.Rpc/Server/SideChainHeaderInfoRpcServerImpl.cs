@@ -60,7 +60,7 @@ namespace AElf.Miner.Rpc.Server
                             ChainId = blockHeader.ChainId
                         }
                     };
-                    _logger?.Log(LogLevel.Debug,
+                    //_logger?.Log(LogLevel.Debug,
                         $"Side Chain Server responsed IndexedInfo message of height {requestedHeight}");
                     await responseStream.WriteAsync(res);
                 }
@@ -102,7 +102,7 @@ namespace AElf.Miner.Rpc.Server
                             ChainId = blockHeader.ChainId
                         }
                     };
-                    _logger?.Log(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {height}");
+                    //_logger?.Log(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {height}");
                     await responseStream.WriteAsync(res);
                     height++;
                 }

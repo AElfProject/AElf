@@ -281,8 +281,10 @@ namespace AElf.Miner
                 return false;
             // TODO: this could be changed.
             await UpdateSideChainInfo(blockInfo);
+            client.Take();
             _logger.Trace($"Remove side chain Info from {blockInfo.ChainId} at height {blockInfo.Height}");
-            return client.Take() != null;
+            return  true;
+
         }
         
         /// <summary>
