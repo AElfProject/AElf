@@ -71,8 +71,9 @@ namespace AElf.Execution
                             var bytes = input.ReadBytes();
                             if (bytes.Length == GlobalConfig.AddressLength + 2)
                             {
+                                // TODO: Ignore if parsing failed, which means our guess is wrong - the bytes is not an address
                                 var h = new Address();
-                                h.MergeFrom(bytes.Skip(2).ToArray());
+                                h.MergeFrom(bytes.ToArray());
                                 addresses.Add(h);
                             }
                             break;
