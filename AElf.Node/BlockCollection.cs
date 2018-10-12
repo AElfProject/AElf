@@ -153,6 +153,7 @@ namespace AElf.Node
             switch (pendingBlock.MsgType)
             {
                 case AElfProtocolMsgType.Block:
+                    _logger.Trace(AElfProtocolMsgType.Block);
                     return false;
                 case AElfProtocolMsgType.NewBlock:
                     if (PendingBlocks.IsEmpty())
@@ -163,9 +164,14 @@ namespace AElf.Node
                     }
 
                     var lastPendingBlock = PendingBlocks.Last().Block;
+                    if(pendingBlock.Block.Header.Index != lastPendingBlock.Header.Index + 1)
+                        _logger.Trace($"Wrong Index {pendingBlock.Block.Header.Index} != {lastPendingBlock.Header.Index + 1}");
+                    if(pendingBlock.Block.Header.PreviousBlockHash != lastPendingBlock.Header.GetHash())       
+                        _logger.Trace($"Wrong previousBlockHash {pendingBlock.Block.Header.PreviousBlockHash.DumpHex()} != {lastPendingBlock.Header.GetHash().DumpHex()}");
                     return pendingBlock.Block.Header.Index == lastPendingBlock.Header.Index + 1
                            && pendingBlock.Block.Header.PreviousBlockHash == lastPendingBlock.Header.GetHash();
                 default:
+                    _logger.Trace("Unknown reason");
                     return false;
             }
         }
