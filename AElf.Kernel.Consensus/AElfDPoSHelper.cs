@@ -28,9 +28,10 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var miners = Miners.Parser.ParseFrom(_dataProvider
-                        .GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)).Result);
-                    
+                    // TODO: Check why this doesn't work
+//                    var miners = Miners.Parser.ParseFrom(_dataProvider
+//                        .GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)).Result);
+                    var miners = Miners.Parser.ParseFrom(GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)));
                     return miners;
                 }
                 catch (Exception)
@@ -192,7 +193,7 @@ namespace AElf.Kernel.Consensus
         public async Task<bool> HasGenerated()
         {
             var bytes = await _dataProvider.GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString));
-            return bytes != null;
+            return bytes != null && bytes.Length > 0;
         }
 
         public AElfDPoSInformation GenerateInfoForFirstTwoRounds()
