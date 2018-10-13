@@ -59,7 +59,8 @@ namespace AElf.Kernel.Storages
 
                 var key = GetKey(path);
                 var res = await _keyValueDatabase.GetAsync(key);
-                return res ?? new byte[0];
+//                return res ?? new byte[0];
+                return res;
             }
             catch (Exception e)
             {

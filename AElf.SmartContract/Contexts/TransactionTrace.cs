@@ -54,7 +54,7 @@ namespace AElf.SmartContract
             {
                 foreach (var vc in ValueChanges)
                 {
-                    await stateDictator.ApplyStateValueChangeAsync(vc.Clone());
+//                    await stateDictator.ApplyStateValueChangeAsync(vc.Clone());
 
                     //add changes
                     var valueCache = new StateCache(vc.CurrentValue.ToByteArray());

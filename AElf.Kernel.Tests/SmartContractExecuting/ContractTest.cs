@@ -10,6 +10,7 @@ using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
@@ -39,7 +40,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
         private Hash ChainId { get; } = Hash.Generate();
 
-        public ContractTest(IStateDictator stateDictator,
+        public ContractTest(IStateDictator stateDictator, IStateStore stateStore,
             IChainCreationService chainCreationService, IChainService chainService,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
@@ -54,7 +55,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, stateStore, _functionMetadataService);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;

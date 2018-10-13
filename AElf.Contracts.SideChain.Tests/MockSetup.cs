@@ -35,7 +35,7 @@ using    AElf.Common;
     
             private ISmartContractRunnerFactory _smartContractRunnerFactory;
     
-            public MockSetup(IStateDictator stateDictator, IChainCreationService chainCreationService, DataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+            public MockSetup(IStateDictator stateDictator, IStateStore stateStore, IChainCreationService chainCreationService, DataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
             {
                 StateDictator = stateDictator;
                 _chainCreationService = chainCreationService;
@@ -46,7 +46,7 @@ using    AElf.Common;
                 {
                     await Init();
                 }).Unwrap().Wait();
-                SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, _functionMetadataService);
+                SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, stateStore, _functionMetadataService);
     
                 new ServicePack()
                 {

@@ -40,18 +40,21 @@ namespace AElf.Miner.Tests
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IDataStore _dataStore;
+        private readonly IStateStore _stateStore;
         
-        public MockSetup(ILogger logger, IDataStore dataStore)
+        public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore)
         {
             _logger = logger;
             _dataStore = dataStore;
+            _stateStore = stateStore;
             Initialize();
         }
         
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_dataStore, _logger);
-            _stateDictator = new StateDictator(new HashManager(_dataStore), _transactionManager, _dataStore, _logger);
+            _stateDictator =
+                new StateDictator(new HashManager(_dataStore), _transactionManager, _dataStore, _stateStore, _logger);
             _smartContractManager = new SmartContractManager(_dataStore);
             _accountContextService = new AccountContextService(_stateDictator);
             _transactionResultManager = new TransactionResultManager(_dataStore);
@@ -65,12 +68,12 @@ namespace AElf.Miner.Tests
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator,
+                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator,_stateStore,
                     _functionMetadataService), _stateDictator, new ChainContextService(_chainService));
             
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
-                    _stateDictator, _functionMetadataService), _logger);
+                    _stateDictator,_stateStore, _functionMetadataService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
         }

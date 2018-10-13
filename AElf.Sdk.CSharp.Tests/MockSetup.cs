@@ -40,7 +40,7 @@ namespace AElf.Sdk.CSharp.Tests
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IStateDictator stateDictator, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IStateDictator stateDictator, IStateStore stateStore, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             StateDictator = stateDictator;
             _chainCreationService = chainCreationService;
@@ -52,7 +52,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, stateStore, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {

@@ -37,6 +37,7 @@ namespace AElf.ChainController
                 {
                     //Console.WriteLine($"tx executed successfully: {transaction.GetHash().ToHex()}");
                     var bufferedStateUpdates = await trace.CommitChangesAsync(_stateDictator);
+                    await _stateDictator.ApplyCachedDataAction(bufferedStateUpdates);
                     foreach (var kv in bufferedStateUpdates)
                     {
                         stateCache[kv.Key] = kv.Value;
@@ -46,7 +47,7 @@ namespace AElf.ChainController
                 traces.Add(trace);
             }
 
-            await _stateDictator.ApplyCachedDataAction(stateCache);
+//            await _stateDictator.ApplyCachedDataAction(stateCache);
             return traces;
         }
 

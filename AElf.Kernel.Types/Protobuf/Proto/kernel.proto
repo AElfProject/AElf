@@ -243,6 +243,7 @@ message DataPath {
     Address ContractAddress = 4;
     Hash DataProviderHash = 5;
     Hash KeyHash = 6;
+    StatePath StatePath = 7;
 }
 
 message BinaryMerkleTree{

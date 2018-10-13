@@ -9,16 +9,19 @@ namespace AElf.Kernel
 
         public static StateChange Create(byte[] value)
         {
-            return new StateChange()
+            var sc = new StateChange();
+            if (value != null)
             {
-                OriginalValue = ByteString.CopyFrom(value),
-                CurrentValue = ByteString.CopyFrom(value)
-            };
+                sc.OriginalValue = ByteString.CopyFrom(value);
+                sc.CurrentValue = ByteString.CopyFrom(value);
+            }
+
+            return sc;
         }
 
         public byte[] Get()
         {
-            return CurrentValue.ToByteArray();
+            return CurrentValue?.ToByteArray();
         }
 
         public void Set(byte[] value)

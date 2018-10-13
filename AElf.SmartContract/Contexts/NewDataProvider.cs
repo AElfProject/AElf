@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -11,16 +12,13 @@ using AElf.Kernel.Storages;
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
-    public class NewDataProvider
+    public class NewDataProvider : IDataProvider
     {
         private IStateStore _stateStore;
 
         public IStateStore StateStore
         {
-            get
-            {
-                return _stateStore;
-            }
+            get { return _stateStore; }
             set
             {
                 _stateStore = value;
@@ -49,7 +47,7 @@ namespace AElf.SmartContract
             return new NewDataProvider(chainId, contractAddress, new string[0]);
         }
 
-        private StatePath GetStatePathFor(string key, bool full=false)
+        private StatePath GetStatePathFor(string key, bool full = false)
         {
             var sp = new StatePath();
             if (full)
@@ -57,12 +55,13 @@ namespace AElf.SmartContract
                 sp.ChainId = ChainId;
                 sp.ContractAddress = ContractAddress;
             }
+
             sp.Path.AddRange(Path);
             sp.Path.Add("");
             sp.Path.Add(key);
             return sp;
         }
-        
+
         public NewDataProvider GetChild(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -83,6 +82,7 @@ namespace AElf.SmartContract
             {
                 child.ClearCache();
             }
+            StateCache = new Dictionary<DataPath, StateCache>();
         }
 
         public async Task<byte[]> GetAsync(string key)
@@ -154,5 +154,69 @@ namespace AElf.SmartContract
         {
             return $"/{ChainId.DumpHex()}/{ContractAddress.DumpHex()}/{string.Join("/", Path)}";
         }
+
+        #region temporary conform to interface
+
+        public async Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new()
+        {
+            Console.WriteLine($"Setting data {keyHash.DumpHex()}");
+            var sp = GetStatePathFor(keyHash.DumpHex(), true);
+            await _stateStore.SetAsync(sp, obj.ToByteArray());
+        }
+
+        public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
+        {
+            return await GetAsync(keyHash.DumpHex());
+        }
+
+        public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
+        {
+            Console.WriteLine($"Setting {keyHash.DumpHex()}");
+            await SetAsync(keyHash.DumpHex(), obj);
+        }
+
+        public IDataProvider GetDataProvider(string dataProviderKey)
+        {
+            return GetChild(dataProviderKey);
+        }
+
+        public IEnumerable<StateValueChange> GetValueChanges()
+        {
+            var changes = new List<StateValueChange>();
+            foreach (var kv in GetChanges())
+            {
+                var c = new StateValueChange()
+                {
+                    CurrentValue = kv.Value.CurrentValue,
+                    Path = new DataPath()
+                    {
+                        ChainId = ChainId,
+                        ContractAddress = ContractAddress,
+                        KeyHash = Hash.FromMessage(kv.Key),
+                        StatePath = kv.Key
+                    }
+                };
+                changes.Add(c);
+            }
+
+            return changes;
+        }
+
+        private Dictionary<DataPath, StateCache> _stateCache = new Dictionary<DataPath, StateCache>();
+
+        public Dictionary<DataPath, StateCache> StateCache
+        {
+            get => _stateCache;
+            set
+            {
+                _stateCache = value;
+                foreach (var c in _children)
+                {
+                    c.StateCache = value;
+                }
+            }
+        }
+
+        #endregion
     }
 }

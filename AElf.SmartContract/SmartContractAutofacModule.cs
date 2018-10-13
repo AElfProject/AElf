@@ -1,4 +1,5 @@
-﻿using AElf.SmartContract.Metadata;
+﻿using AElf.Kernel.Storages;
+using AElf.SmartContract.Metadata;
 using Autofac;
 
 namespace AElf.SmartContract
@@ -16,6 +17,7 @@ namespace AElf.SmartContract
             builder.RegisterType<SmartContractService>().As<ISmartContractService>();
             builder.RegisterType<FunctionMetadataService>().As<IFunctionMetadataService>().SingleInstance();
             builder.RegisterType<StateDictator>().As<IStateDictator>().SingleInstance();
+            builder.RegisterType<StateStore>().As<IStateStore>().SingleInstance();
         }
     }
 }

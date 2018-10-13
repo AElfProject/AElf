@@ -20,6 +20,7 @@ namespace AElf.SmartContract
     public class StateDictator: IStateDictator
     {
         private readonly IDataStore _dataStore;
+        private readonly IStateStore _stateStore;
         private readonly ILogger _logger;
         private readonly IHashManager _hashManager;
         private readonly ITransactionManager _transactionManager;
@@ -30,9 +31,10 @@ namespace AElf.SmartContract
         public Address BlockProducerAccountAddress { get; set; } = Address.Zero;
         public ulong BlockHeight { get; set; }
 
-        public StateDictator(IHashManager hashManager, ITransactionManager transactionManager, IDataStore dataStore, ILogger logger = null)
+        public StateDictator(IHashManager hashManager, ITransactionManager transactionManager, IDataStore dataStore, IStateStore stateStore, ILogger logger = null)
         {
             _dataStore = dataStore;
+            _stateStore = stateStore;
             _logger = logger;
 
             _hashManager = hashManager;
@@ -47,7 +49,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public IAccountDataProvider GetAccountDataProvider(Address accountAddress)
         {
-            return new AccountDataProvider(accountAddress, this);
+            return new AccountDataProvider(accountAddress, this, _stateStore);
         }
 
         /// <summary>
@@ -189,12 +191,20 @@ namespace AElf.SmartContract
         public async Task<bool> ApplyCachedDataAction(Dictionary<DataPath, StateCache> cachedActions)
         {
             _logger?.Debug($"Pipeline set {cachedActions.Count} data item");
-
-            var pipelineSet = cachedActions.ToDictionary(kv => kv.Key.Key, kv => kv.Value.CurrentValue);
-            if (pipelineSet.Count > 0)
+            var d = new Dictionary<StatePath, byte[]>();
+            foreach (var kv in cachedActions)
             {
-                return await _dataStore.PipelineSetDataAsync(pipelineSet);
+                var sp = kv.Key.StatePath;
+                sp.ChainId = kv.Key.ChainId;
+                sp.ContractAddress = kv.Key.ContractAddress;
+                d.Add(sp, kv.Value.CurrentValue);
             }
+            await _stateStore.PipelineSetDataAsync(d);
+//            var pipelineSet = cachedActions.ToDictionary(kv => kv.Key.Key, kv => kv.Value.CurrentValue);
+//            if (pipelineSet.Count > 0)
+//            {
+//                return await _dataStore.PipelineSetDataAsync(pipelineSet);
+//            }
 
             //return true for read-only
             return true;

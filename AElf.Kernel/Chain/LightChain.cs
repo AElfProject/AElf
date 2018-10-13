@@ -130,7 +130,7 @@ namespace AElf.Kernel
             var prevHeader = await GetHeaderByHashAsync(blockHeader.PreviousBlockHash);
             if (prevHeader == null)
             {
-                throw new InvalidOperationException("Parent is unknown.");
+                throw new InvalidOperationException($"Parent is unknown for {blockHeader}.");
             }
 
             var expected = ((BlockHeader) prevHeader).Index + 1;

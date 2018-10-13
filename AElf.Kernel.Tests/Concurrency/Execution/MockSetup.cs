@@ -74,7 +74,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger,
-            IStateDictator stateDictator,
+            IStateDictator stateDictator, IStateStore stateStore,
             HashManager hashManager, TransactionManager transactionManager)
         {
             _logger = logger;
@@ -94,7 +94,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator,
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, stateStore,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
@@ -157,13 +157,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            Console.WriteLine(trace);
-            Console.WriteLine(
-                string.Join(
-                    "\r\n",
-                    trace.ValueChanges.Select(x => $"\r\n{x.Path} => {x.Path.ResourcePathHash} => {x.Path.ResourcePointerHash}\r\n")
-                )
-            );
             var changesDict = await trace.CommitChangesAsync(StateDictator);
             await StateDictator.ApplyCachedDataAction(changesDict);
         }

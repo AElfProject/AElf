@@ -13,6 +13,7 @@ using AElf.Configuration;
 using AElf.Types.CSharp;
 using Type = System.Type;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 namespace AElf.SmartContract
 {
@@ -22,13 +23,16 @@ namespace AElf.SmartContract
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
         private readonly IStateDictator _stateDictator;
+        private readonly IStateStore _stateStore;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IStateDictator stateDictator, IFunctionMetadataService functionMetadataService)
+        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IStateDictator stateDictator, IStateStore stateStore,
+            IFunctionMetadataService functionMetadataService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerFactory = smartContractRunnerFactory;
             _stateDictator = stateDictator;
+            _stateStore = stateStore;
             _functionMetadataService = functionMetadataService;
         }
 
@@ -69,6 +73,7 @@ namespace AElf.SmartContract
             executive = await runner.RunAsync(reg);
 
             executive.SetStateDictator(_stateDictator);
+            executive.SetStateStore(_stateStore);
             
             executive.SetSmartContractContext(new SmartContractContext()
             {

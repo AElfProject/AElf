@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Type = System.Type;
@@ -67,6 +68,7 @@ namespace AElf.Runtime.CSharp
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
         private IStateDictator _stateDictator;
+        private IStateStore _stateStore;
         private int _maxCallDepth = 4;
 
         public Executive(Module abiModule)
@@ -89,9 +91,16 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
+        public IExecutive SetStateStore(IStateStore stateStore)
+        {
+            _stateStore = stateStore;
+            return this;
+        }
+
         public void SetDataCache(Dictionary<DataPath, StateCache> cache)
         {
             _currentSmartContractContext.DataProvider.StateCache = cache;
+            _currentSmartContractContext.DataProvider.ClearCache();
         }
 
         // ReSharper disable once InconsistentNaming
