@@ -137,6 +137,39 @@ namespace AElf.Node.Protocol
                 
                 _localAcceptHeight++;
             });
+            
+            MessageHub.Instance.Subscribe<BlockAccepted>(async inBlock => 
+            {
+                if (inBlock?.Block == null)
+                {
+                    _logger?.Warn("[event] Block null.");
+                    return;
+                }
+
+                byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
+
+                if (blockHash != null)
+                    _lastBlocksReceived.Enqueue(blockHash);
+                    
+                // todo send annoucement
+                    
+                _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
+                               $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
+                
+                _localAcceptHeight++;
+                
+                // Stop sync: if we have a sync source and our height is equal to 
+                // his and no other peer has higher blocks, we stop sync
+                if (CurrentSyncSource != null)
+                {
+                    if (_localAcceptHeight >= CurrentSyncSource.KnownHeight)
+                    {
+                        MessageHub.Instance.Publish(new SyncStateChanged(false));
+                    }
+                    
+                    // todo 
+                }
+            });
         }
 
         #region Eventing
