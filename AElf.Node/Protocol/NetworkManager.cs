@@ -145,16 +145,19 @@ namespace AElf.Node.Protocol
         {
             if (eventArgs is PeerEventArgs peer && peer.Peer != null && peer.Actiontype == PeerEventType.Added)
             {
-                if (CurrentSyncSource != null)
-                    return;
+                // If this peer is higher start sync
+                if (peer.Peer.KnownHeight > _localAcceptHeight && CurrentSyncSource == null)
+                {
+                    MessageHub.Instance.Publish(new SyncStateChanged(true));
+                    
+                    CurrentSyncSource = peer.Peer;
+                    _peerAcceptHeight = peer.Peer.KnownHeight;
+                }
                     
                 _peers.Add(peer.Peer);
 
                 peer.Peer.MessageReceived += HandleNewMessage;
                 peer.Peer.PeerDisconnected += ProcessClientDisconnection;
-                
-                CurrentSyncSource = peer.Peer;
-                _peerAcceptHeight = peer.Peer.KnownHeight;
                 
                 _logger?.Trace($"Added peer with height {_peerAcceptHeight}");
             }
