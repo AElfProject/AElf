@@ -31,6 +31,10 @@ message BlockRequest {
     int32 Height = 1;
 }
 
+message Announce {
+    int32 Height = 1;
+}
+
 message TxRequest {
     repeated bytes TxHashes = 1;
 }

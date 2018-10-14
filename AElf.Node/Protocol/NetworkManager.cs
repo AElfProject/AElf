@@ -19,6 +19,7 @@ using AElf.Node.Protocol.Events;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
+using QuickGraph;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Node.Protocol
@@ -62,7 +63,6 @@ namespace AElf.Node.Protocol
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
         
         private IPeer CurrentSyncSource { get; set; }
-        private int _peerAcceptHeight = 0;
         private int _localAcceptHeight = 0;
         private int _lastRequested = 0;
 
@@ -135,6 +135,8 @@ namespace AElf.Node.Protocol
                 _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
                                $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
                 
+                Announce((Block)inBlock.Block);
+                
                 _localAcceptHeight++;
             });
             
@@ -151,12 +153,12 @@ namespace AElf.Node.Protocol
                 if (blockHash != null)
                     _lastBlocksReceived.Enqueue(blockHash);
                     
-                // todo send annoucement
-                    
                 _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
                                $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
                 
                 _localAcceptHeight++;
+
+                Announce(inBlock.Block);
                 
                 // Stop sync: if we have a sync source and our height is equal to 
                 // his and no other peer has higher blocks, we stop sync
@@ -172,27 +174,32 @@ namespace AElf.Node.Protocol
             });
         }
 
+        private void Announce(Block block)
+        {
+            Announce anc = new Announce();
+            anc.Height = (int)block.Header.Index;
+
+            BroadcastMessage(AElfProtocolMsgType.Announcement, anc.ToByteArray());
+        }
+
         #region Eventing
 
         private void PeerManagerOnPeerAdded(object sender, EventArgs eventArgs)
         {
             if (eventArgs is PeerEventArgs peer && peer.Peer != null && peer.Actiontype == PeerEventType.Added)
             {
-                // If this peer is higher start sync
+                // If this peer is higher than us and we're not syncing: sync.
                 if (peer.Peer.KnownHeight > _localAcceptHeight && CurrentSyncSource == null)
                 {
                     MessageHub.Instance.Publish(new SyncStateChanged(true));
-                    
                     CurrentSyncSource = peer.Peer;
-                    _peerAcceptHeight = peer.Peer.KnownHeight;
+                    _logger?.Trace($"Sync started from peer {CurrentSyncSource}.");
                 }
                     
                 _peers.Add(peer.Peer);
 
                 peer.Peer.MessageReceived += HandleNewMessage;
                 peer.Peer.PeerDisconnected += ProcessClientDisconnection;
-                
-                _logger?.Trace($"Added peer with height {_peerAcceptHeight}");
             }
         }
         
@@ -270,6 +277,9 @@ namespace AElf.Node.Protocol
             
             switch (msgType)
             {
+                case AElfProtocolMsgType.Announcement:
+                    HandleAnnoucement(msgType, args.Message, args.Peer);
+                    break;
                 // New blocks and requested blocks will be added to the sync
                 // Subscribe to the BlockReceived event.
                 case AElfProtocolMsgType.NewBlock:
@@ -286,22 +296,8 @@ namespace AElf.Node.Protocol
                     break;
             }
             
-            Sync();
-            
             // Re-fire the event for higher levels if needed.
             BubbleMessageReceivedEvent(args);
-        }
-        
-        private void Sync()
-        {
-            int nextBlockNum = _localAcceptHeight + 1;
-            if (_localAcceptHeight < _peerAcceptHeight && _lastRequested != nextBlockNum)
-            {
-                // request block
-                QueueBlockRequestByIndex(nextBlockNum);
-                _lastRequested = nextBlockNum;
-                _logger?.Trace($"Requested block {nextBlockNum}");
-            }
         }
         
         private void BubbleMessageReceivedEvent(PeerMessageReceivedArgs args)
@@ -326,6 +322,11 @@ namespace AElf.Node.Protocol
             {
                 _logger?.Error(e, "Error while deserializing transaction list.");
             }
+        }
+        
+        private void HandleAnnoucement(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        {
+            // todo start sync if needed
         }
 
         private void HandleNewTransaction(AElfProtocolMsgType msgType, Message msg, Peer peer)
@@ -376,21 +377,8 @@ namespace AElf.Node.Protocol
                     return;
                 
                 _lastBlocksReceived.Enqueue(blockHash);
-                    
-                // Rebroadcast to peers - note that the block has not been validated
-//                if (msgType != AElfProtocolMsgType.Block)
-//                {
-//                    foreach (var p in _peers.Where(p => !p.Equals(peer)))
-//                        p.EnqueueOutgoing(msg);
-//                }
-
-                // update last know block from peer
-                if ((int)block.Header.Index > _peerAcceptHeight)
-                    _peerAcceptHeight = (int)block.Header.Index;
                 
                 MessageHub.Instance.Publish(new BlockReceived(block));
-
-                //BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer, msgType));
             }
             catch (Exception e)
             {
