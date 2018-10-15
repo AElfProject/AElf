@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Configuration;
 using AElf.Common;
+using AElf.Kernel.Managers;
 
 namespace AElf.Kernel
 {
     public class TxHub
     {
+        private ITransactionManager _transactionManager;
         private ConcurrentDictionary<Hash, TransactionHolder> _allTxns =
             new ConcurrentDictionary<Hash, TransactionHolder>();
 
@@ -37,15 +39,38 @@ namespace AElf.Kernel
         private ConcurrentDictionary<Hash, TransactionHolder> _executed =
             new ConcurrentDictionary<Hash, TransactionHolder>();
 
+        private ConcurrentDictionary<ulong, ConcurrentBag<TransactionHolder>>  _executedByBlock =
+            new ConcurrentDictionary<ulong, ConcurrentBag<TransactionHolder>>();
+
         private ConcurrentDictionary<Hash, TransactionHolder> _expired =
             new ConcurrentDictionary<Hash, TransactionHolder>();
 
         private ConcurrentDictionary<ulong, ConcurrentBag<TransactionHolder>> _expiredByRefBlockNumber =
             new ConcurrentDictionary<ulong, ConcurrentBag<TransactionHolder>>();
-        
+
+        public Func<ulong> CurrentHeightGetter;
+
         private Hash _chainId;
 
-        public ulong CurHeight { get; }
+        private ulong _curHeight;
+
+        public ulong CurHeight
+        {
+            get
+            {
+                if (_curHeight == 0)
+                {
+                    _curHeight = CurrentHeightGetter();
+                }
+
+                return _curHeight;
+            }
+        }
+
+        public TxHub(ITransactionManager transactionManager)
+        {
+            _transactionManager = transactionManager;
+        }
 
         public void AddNewTransaction(Transaction transaction)
         {
@@ -54,9 +79,15 @@ namespace AElf.Kernel
 //                throw new Exception("Reference block is too old.");
 //            }
 
-            if (!_allTxns.TryAdd(transaction.GetHash(), new TransactionHolder(transaction)))
+            var holder = new TransactionHolder(transaction);
+            if (!_allTxns.TryAdd(transaction.GetHash(), holder))
             {
-                throw new Exception("Transaction already exists.");
+                var txn = _transactionManager.GetTransaction(holder.TxId).Result; 
+                if (txn == null || txn.Equals(new Transaction()))
+                {
+                    throw new Exception("Transaction already exists.");
+                }
+
             }
         }
 
@@ -69,7 +100,7 @@ namespace AElf.Kernel
 
             return null;
         }
-        
+
         public Transaction GetTxForValidation()
         {
             foreach (var kv in _waiting)
@@ -104,15 +135,15 @@ namespace AElf.Kernel
                 _executing.TryAdd(holder.TxId, holder);
                 _validated.TryRemove(holder.TxId, out _);
             }
-            
-            return txhs.Select(x=>x.Transaction).ToList();
+
+            return txhs.Select(x => x.Transaction).ToList();
         }
 
         public int ValidatedCount
         {
             get => _validated.Count;
         }
-        
+
         public void ValidatingTx(Hash txHash)
         {
             var holder = GetTransactionHolder(txHash);
@@ -145,7 +176,7 @@ namespace AElf.Kernel
                 _validating.TryRemove(txHash, out _);
             }
         }
-        
+
 //        public void ExecutingTx(Hash txHash)
 //        {
 //            var holder = GetTransactionHolder(txHash);
@@ -166,7 +197,7 @@ namespace AElf.Kernel
                 _validated.TryAdd(txHash, holder);
                 _executing.TryRemove(txHash, out _);
             }
-        }        
+        }
 
         public void ExecutedTx(Hash txHash)
         {
@@ -175,13 +206,22 @@ namespace AElf.Kernel
             if (holder.ToExecuted())
             {
                 _executed.TryAdd(txHash, holder);
+                var d = _executedByBlock.GetOrAdd(CurHeight + 1, new ConcurrentBag<TransactionHolder>());
+                d.Add(holder);
                 _executing.TryRemove(txHash, out _);
             }
         }
 
-        
+
         public void OnNewBlockHeader(BlockHeader blockHeader)
         {
+            if (blockHeader.Index != (CurHeight + 1) && CurHeight != 0)
+            {
+                throw new Exception("Invalid block index.");
+            }
+
+            _curHeight = blockHeader.Index;
+            
             var expiredBns = new List<ulong>();
             if (blockHeader.Index > GlobalConfig.ReferenceBlockValidPeriod)
             {
@@ -191,7 +231,7 @@ namespace AElf.Kernel
                     {
                         expiredBns.Add(kv.Key);
                     }
-                }   
+                }
             }
 
             foreach (var bn in expiredBns)
@@ -207,6 +247,33 @@ namespace AElf.Kernel
 
                         _expired.TryAdd(holder.TxId, holder);
                         _validated.TryRemove(holder.TxId, out _);
+                        _allTxns.TryRemove(holder.TxId, out _);
+                    }
+                }
+            }
+
+            // Temporarily remove executed old transactions
+            var toRemoveBns = new List<ulong>();
+            var keepNBlocks = (ulong) 4;
+            if (blockHeader.Index > keepNBlocks)
+            {
+                foreach (var kv in _executedByBlock)
+                {
+                    if (kv.Key < blockHeader.Index - keepNBlocks)
+                    {
+                        toRemoveBns.Add(kv.Key);
+                    }
+                }
+            }
+
+            foreach (var bn in toRemoveBns)
+            {
+                if (_executedByBlock.TryRemove(bn, out var holders))
+                {
+                    foreach (var holder in holders)
+                    {
+                        _executed.TryRemove(holder.TxId, out _);
+                        _allTxns.TryRemove(holder.TxId, out _);
                     }
                 }
             }
@@ -220,9 +287,10 @@ namespace AElf.Kernel
                 kv.Value.NeedRevalidating();
                 _waiting.TryAdd(kv.Key, kv.Value);
             }
+
             _validated.Clear();
         }
-        
+
 //        public void GroupingTx(Hash txHash)
 //        {
 //            var holder = GetTransactionHolder(txHash);

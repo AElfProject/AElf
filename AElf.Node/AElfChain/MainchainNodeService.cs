@@ -21,6 +21,7 @@ using Google.Protobuf;
 using NLog;
 using ServiceStack;
 using AElf.Common;
+using Easy.MessageHub;
 
 namespace AElf.Node.AElfChain
 {
@@ -40,6 +41,7 @@ namespace AElf.Node.AElfChain
         private readonly IStateDictator _stateDictator;
         private readonly IBlockSynchronizer _synchronizer;
         private readonly IBlockExecutor _blockExecutor;
+        private readonly TxHub _txHub;
 
         private IBlockChain _blockChain;
         private IConsensus _consensus;
@@ -59,6 +61,7 @@ namespace AElf.Node.AElfChain
             IBlockExecutor blockExecutor,
             IBlockSynchronizer synchronizer,
             IMiner miner,
+            TxHub txHub,
             IP2P p2p,
             ILogger logger)
         {
@@ -68,6 +71,7 @@ namespace AElf.Node.AElfChain
             _txPoolService = poolService;
             _logger = logger;
             _miner = miner;
+            _txHub = txHub;
             _p2p = p2p;
             _accountContextService = accountContextService;
             _blockValidationService = blockValidationService;
@@ -154,7 +158,8 @@ namespace AElf.Node.AElfChain
             _nodeKeyPair = conf.KeyPair;
             _assemblyDir = conf.LauncherAssemblyLocation;
             _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
-
+            _txHub.CurrentHeightGetter = ()=> _blockChain.GetCurrentBlockHeightAsync().Result;
+            MessageHub.Instance.Subscribe<BlockHeader>((bh)=>_txHub.OnNewBlockHeader(bh));
             SetupConsensus();
         }
 

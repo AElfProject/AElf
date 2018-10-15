@@ -5,5 +5,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
 </Project>
