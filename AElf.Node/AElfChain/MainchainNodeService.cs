@@ -216,7 +216,7 @@ namespace AElf.Node.AElfChain
             #region start
 
             _txPoolService.Start();
-            Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
+            //Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
 
             _blockExecutor.Start();
 

@@ -15,11 +15,13 @@ namespace AElf.Network.Peers
 
         bool IsAuthentified { get; }
         bool IsBp { get; }
+        int KnownHeight { get; }
 
         bool Start();
         
         NodeData DistantNodeData { get; }
         byte[] DistantNodeAddress { get; }
         void EnqueueOutgoing(Message msg);
+        void Sync();
     }
 }
