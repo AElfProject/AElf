@@ -213,11 +213,23 @@ namespace AElf.Node.Protocol
 
         private void PeerOnSyncFinished(object sender, EventArgs e)
         {
-            // sync has finished
-            // todo check to se if any others are above us.
+            // sync has finished            
             CurrentSyncSource = null;
             
-            MessageHub.Instance.Publish(new SyncStateChanged(false));
+            // Check to see if any more catching up has to be done
+            foreach (var peer in _peers)
+            {
+                if (_localHeight < peer.KnownHeight)
+                {
+                    CurrentSyncSource = peer;
+                    StartSync(peer, _localHeight+1, peer.KnownHeight);
+                    _logger?.Trace("Switched sync source.");
+                    break;
+                }
+            }
+            
+            if(CurrentSyncSource == null)
+                MessageHub.Instance.Publish(new SyncStateChanged(false));
         }
 
         /// <summary>
@@ -234,6 +246,7 @@ namespace AElf.Node.Protocol
                 
                 peer.MessageReceived -= HandleNewMessage;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
+                peer.SyncFinished -= PeerOnSyncFinished;
                 
                 _peers.Remove(args.Peer);
             }
