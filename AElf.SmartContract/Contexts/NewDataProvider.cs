@@ -57,7 +57,6 @@ namespace AElf.SmartContract
             }
 
             sp.Path.AddRange(Path);
-            sp.Path.Add("");
             sp.Path.Add(key);
             return sp;
         }
@@ -69,7 +68,7 @@ namespace AElf.SmartContract
                 throw new ArgumentException("String is null or empty.", nameof(name));
             }
 
-            var path = new List<string>(Path) {name};
+            var path = new List<string>(Path) {"", name};
             var child = new NewDataProvider(ChainId, ContractAddress, path) {StateStore = _stateStore};
             _children.Add(child);
             return child;

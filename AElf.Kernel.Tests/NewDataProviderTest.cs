@@ -32,7 +32,7 @@ namespace AElf.Kernel.Tests
 // ChainId and ContractAddress is not needed in DataProvider
 //                ChainId = chainId,
 //                ContractAddress = address,
-                Path = {"", s}
+                Path = {s}
             };
             await root.SetAsync(s, sb);
 
@@ -63,7 +63,7 @@ namespace AElf.Kernel.Tests
             var sub = root.GetChild("sub");
             await sub.SetAsync("dummy", new byte[]{0x01});
             var subPath = sub.GetChanges().Keys.First();
-            var path = new [] {"sub", "", "dummy"};
+            var path = new [] {"", "sub", "dummy"};
             Assert.Equal(subPath.Path, path);
         }
     }
