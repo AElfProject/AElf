@@ -4,7 +4,6 @@ using System.Timers;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
-using NServiceKit.Common;
 
 namespace AElf.Network.Peers
 {
@@ -79,11 +78,6 @@ namespace AElf.Network.Peers
         public int KnownHeight
         {
             get { return _peerHeight; }
-        }
-        
-        private void OnBlockReceived(Block block)
-        {
-            TimeoutRequest p;
         }
 
         /// <summary>

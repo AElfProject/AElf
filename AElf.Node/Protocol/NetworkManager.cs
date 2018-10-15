@@ -66,7 +66,7 @@ namespace AElf.Node.Protocol
         
         private IPeer CurrentSyncSource { get; set; }
         private int _localHeight = 0;
-        private int _lastRequested = 0;
+        
         private Hash _chainId;
 
         public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, IChainService chainService, ILogger logger)
@@ -116,10 +116,7 @@ namespace AElf.Node.Protocol
                     
                     AnnounceBlock((Block)inBlock.Block);
                     
-                    //await BroadcastBlock(blockHash, inBlock.Block.Serialize());
-                    
-//                    _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
-//                                   $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
+                    _logger?.Trace($"Block produced, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
                     
                     _localHeight++;
                 });
@@ -136,12 +133,8 @@ namespace AElf.Node.Protocol
 
                 if (blockHash != null)
                     _lastBlocksReceived.Enqueue(blockHash);
-                  
-                // todo announce
-                //await BroadcastBlock(blockHash, inBlock.Block.Serialize());
                     
-//                _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
-//                               $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
+                _logger?.Trace($"Block executed, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
                 
                 AnnounceBlock((Block)inBlock.Block);
                 
@@ -161,8 +154,7 @@ namespace AElf.Node.Protocol
                 if (blockHash != null)
                     _lastBlocksReceived.Enqueue(blockHash);
                     
-//                _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
-//                               $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
+                _logger?.Trace($"Block accepted, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
                 
                 _localHeight++;
 
