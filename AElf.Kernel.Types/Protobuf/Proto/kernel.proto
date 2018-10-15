@@ -26,9 +26,14 @@ message StatePath {
     Hash ChainId = 3;
 }
 
-message StateChange {
+message StateValue {
     bytes CurrentValue = 1;
     bytes OriginalValue = 2;
+}
+
+message StateChange {
+    StatePath StatePath = 1;
+    StateValue StateValue = 2;
 }
 
 message TransactionList {

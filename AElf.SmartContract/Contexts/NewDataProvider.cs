@@ -32,7 +32,7 @@ namespace AElf.SmartContract
         public Hash ChainId { get; }
         public Address ContractAddress { get; }
         public IReadOnlyList<string> Path { get; }
-        private Dictionary<string, StateChange> _cache = new Dictionary<string, StateChange>();
+        private Dictionary<string, StateValue> _cache = new Dictionary<string, StateValue>();
         private readonly List<NewDataProvider> _children = new List<NewDataProvider>();
 
         private NewDataProvider(Hash chainId, Address contractAddress, IReadOnlyList<string> path)
@@ -76,7 +76,7 @@ namespace AElf.SmartContract
 
         public void ClearCache()
         {
-            _cache = new Dictionary<string, StateChange>();
+            _cache = new Dictionary<string, StateValue>();
             foreach (var child in _children)
             {
                 child.ClearCache();
@@ -97,7 +97,7 @@ namespace AElf.SmartContract
             }
 
             var bytes = await _stateStore.GetAsync(GetStatePathFor(key, true));
-            _cache[key] = StateChange.Create(bytes);
+            _cache[key] = StateValue.Create(bytes);
             return bytes;
         }
 
@@ -126,9 +126,9 @@ namespace AElf.SmartContract
             await Task.CompletedTask;
         }
 
-        public Dictionary<StatePath, StateChange> GetChanges()
+        public Dictionary<StatePath, StateValue> GetChanges()
         {
-            var d = new Dictionary<StatePath, StateChange>();
+            var d = new Dictionary<StatePath, StateValue>();
             foreach (var kv in _cache)
             {
                 if (kv.Value.IsDirty)

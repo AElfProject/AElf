@@ -3,13 +3,13 @@ using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public partial class StateChange
+    public partial class StateValue
     {
         public bool IsDirty => OriginalValue != CurrentValue;
 
-        public static StateChange Create(byte[] value)
+        public static StateValue Create(byte[] value)
         {
-            var sc = new StateChange();
+            var sc = new StateValue();
             if (value != null)
             {
                 sc.OriginalValue = ByteString.CopyFrom(value);
