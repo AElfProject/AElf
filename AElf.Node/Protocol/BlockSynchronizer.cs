@@ -244,7 +244,7 @@ namespace AElf.Node.Protocol
                     if (!_currentBlockRequests.Contains(i))
                     {
                         _currentBlockRequests.Add(i);
-                        _networkManager.QueueBlockRequestByIndex(i);
+                        //_networkManager.QueueBlockRequestByIndex(i);
 
                         Thread.Sleep(5);
 
@@ -534,7 +534,7 @@ namespace AElf.Node.Protocol
                         // The current blocks index is higher than the current height so we're missing
                         if (!ShouldDoInitialSync && (int) block.Header.Index > CurrentExecHeight)
                         {
-                            _networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
+                            //_networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
                             _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }} is pending, " +
                                           $"requesting block with index {CurrentExecHeight}.");
                             break;
