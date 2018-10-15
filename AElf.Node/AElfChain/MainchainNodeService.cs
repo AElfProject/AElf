@@ -47,8 +47,6 @@ namespace AElf.Node.AElfChain
         private IBlockChain _blockChain;
         private IConsensus _consensus;
 
-        private ECKeyPair _nodeKeyPair;
-
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
 
@@ -80,7 +78,7 @@ namespace AElf.Node.AElfChain
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
             _blockSynchronizationService = blockSynchronizationService;
-
+            
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
                 await _blockSynchronizationService.ReceiveBlock(inBlock.Block);
@@ -166,7 +164,6 @@ namespace AElf.Node.AElfChain
 
         public void Initialize(NodeConfiguration conf)
         {
-            _nodeKeyPair = conf.KeyPair;
             _assemblyDir = conf.LauncherAssemblyLocation;
             _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
@@ -340,20 +337,17 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
-                    var dpos = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer, _logger);
-                    var genesisContractHash =
-                        _chainCreationService.GenesisContractHash(chainId, SmartContractType.AElfDPoS);
-                    dpos.Initialize(genesisContractHash, _nodeKeyPair);
-                    _consensus = dpos;
+                    _consensus = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer);
                     break;
 
+                //TODO: Invalid for now, will be removed if useless.
                 case ConsensusType.PoTC:
-                    _consensus = new PoTC(_logger, _miner, _accountContextService, _txPoolService, _p2p);
+                    _consensus = new PoTC(_miner, _txPoolService);
                     break;
 
+                //TODO: Invalid for now, will be removed if useless.
                 case ConsensusType.SingleNode:
-                    _consensus = new StandaloneNodeConsensusPlaceHolder(_logger, _p2p);
+                    _consensus = new StandaloneNodeConsensusPlaceHolder();
                     break;
             }
         }

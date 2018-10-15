@@ -50,8 +50,11 @@ namespace AElf.Kernel.Node
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
-        private NodeKeyPair _nodeKeyPair;
-        private Address _contractAccountAddressHash;
+        private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
+
+        public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
+            Hash.LoadHex(NodeConfig.Instance.ChainId),
+            SmartContractType.AElfDPoS.ToString());
 
         private int _flag;
 
@@ -63,8 +66,7 @@ namespace AElf.Kernel.Node
             ITxPoolService txPoolService,
             IMiner miner,
             IBlockChain blockchain,
-            IBlockSynchronizer synchronizer,
-            ILogger logger = null
+            IBlockSynchronizer synchronizer
         )
         {
             _stateDictator = stateDictator;
@@ -72,15 +74,11 @@ namespace AElf.Kernel.Node
             _miner = miner;
             _blockchain = blockchain;
             _synchronizer = synchronizer;
-            _logger = logger;
-        }
-        
-        public void Initialize(Address contractAccountHash, ECKeyPair nodeKeyPair)
-        {
-            Helper = new AElfDPoSHelper(_stateDictator,
-                Hash.LoadHex(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
-            _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
-            _contractAccountAddressHash = contractAccountHash;
+            
+            _logger = LogManager.GetLogger(nameof(DPoS));
+            
+            Helper = new AElfDPoSHelper(_stateDictator, Hash.LoadHex(NodeConfig.Instance.ChainId), Miners,
+                ContractAddress);
 
             var count = MinersConfig.Instance.Producers.Count;
 
@@ -89,6 +87,7 @@ namespace AElf.Kernel.Node
 
             _logger?.Trace("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
             _logger?.Trace("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
+            
             if (GlobalConfig.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
             {
                 AElfDPoSObserver.RecoverMining();
@@ -197,7 +196,7 @@ namespace AElf.Kernel.Node
             var tx = new Transaction
             {
                 From = _nodeKeyPair.Address,
-                To = _contractAccountAddressHash,
+                To = ContractAddress,
                 RefBlockNumber = bn,
                 RefBlockPrefix = ByteString.CopyFrom(bhPref),
                 MethodName = methodName,
