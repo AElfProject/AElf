@@ -98,7 +98,7 @@ namespace AElf.Node.Protocol
                     
                     await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
                     
-                    _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
+                    // _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
             MessageHub.Instance.Subscribe<BlockMined>(async inBlock => 
