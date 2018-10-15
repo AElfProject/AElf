@@ -344,7 +344,7 @@ namespace AElf.Network.Peers
                 IPEndPoint remoteEndPoint = (IPEndPoint)_client.Client.RemoteEndPoint;
                 handshk.NodeInfo.IpAddress = remoteEndPoint.Address.ToString();
 
-                _peerAcceptHeight = handshk.Height;
+                _peerHeight = handshk.Height;
                 
                 _pingPongTimer.Start();
             }
