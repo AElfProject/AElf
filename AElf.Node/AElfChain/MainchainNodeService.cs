@@ -20,12 +20,12 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
-using AElf.Common;
 using AElf.Node.EventMessages;
 using Easy.MessageHub;
 
 namespace AElf.Node.AElfChain
 {
+    // ReSharper disable InconsistentNaming
     [LoggerName("Node")]
     public class MainchainNodeService : INodeService
     {
@@ -80,11 +80,16 @@ namespace AElf.Node.AElfChain
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
             _blockSynchronizationService = blockSynchronizationService;
-            
+
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
-                {
-                    await _blockSynchronizationService.ReceiveBlock(inBlock.Block);
-                });
+            {
+                await _blockSynchronizationService.ReceiveBlock(inBlock.Block);
+            });
+
+            MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
+            {
+                await _txPoolService.AddTxAsync(inTx.Transaction);
+            });
         }
 
         #region Genesis Contracts
@@ -223,7 +228,7 @@ namespace AElf.Node.AElfChain
 
             if (NodeConfig.Instance.IsMiner)
             {
-                _miner.Init(_nodeKeyPair);
+                _miner.Init();
 
                 _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.DumpHex());
             }

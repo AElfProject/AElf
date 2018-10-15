@@ -23,10 +23,10 @@ namespace AElf.ChainController
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(NodeConfig.Instance.ChainId)));
 
-        public BlockCollection(IChainService chainService, ILogger logger = null)
+        public BlockCollection(IChainService chainService)
         {
             _chainService = chainService;
-            _logger = logger;
+            _logger = LogManager.GetLogger(nameof(BlockCollection));
         }
         
         public async Task AddBlock(IBlock block)

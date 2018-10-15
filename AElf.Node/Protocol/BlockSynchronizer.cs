@@ -139,7 +139,6 @@ namespace AElf.Node.Protocol
         /// Handles a list of transactions sent by another node, these transactions are either
         /// issues from a broadcast or a request.
         /// </summary>
-        /// <param name="msg"></param>
         /// <returns></returns>
         private async Task HandleTransactionMessage(TransactionsReceivedEventArgs txsEventArgs)
         {

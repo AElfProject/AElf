@@ -393,9 +393,7 @@ namespace AElf.Miner.Miner
             // TODO: Generic IBlockHeader
             var lastHeader = (BlockHeader) await blockChain.GetHeaderByHashAsync(lastBlockHash);
             var index = lastHeader.Index;
-            var block = new Block(lastBlockHash);
-            block.Header.Index = index + 1;
-            block.Header.ChainId = chainId;
+            var block = new Block(lastBlockHash) {Header = {Index = index + 1, ChainId = chainId}};
 
             var ws = await _stateDictator.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
@@ -436,10 +434,10 @@ namespace AElf.Miner.Miner
         /// Start mining
         /// init clients to side chain node 
         /// </summary>
-        public void Init(ECKeyPair nodeKeyPair)
+        public void Init()
         {
             _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
-            _keyPair = nodeKeyPair;
+            _keyPair = NodeConfig.Instance.ECKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
             
             // start clients and server
