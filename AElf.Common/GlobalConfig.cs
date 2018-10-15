@@ -3,6 +3,7 @@ namespace AElf.Common
  public static class GlobalConfig
     {
         public static int AddressLength = 18;
+        public const ulong GenesisBlockHeight = 1;
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
         public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";

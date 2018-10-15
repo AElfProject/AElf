@@ -116,7 +116,7 @@ namespace AElf.Kernel
 
             #region genesis
             // TODO: more strict genesis
-            if (blockHeader.Index == 0)
+            if (blockHeader.Index == GlobalConfig.GenesisBlockHeight)
             {
                 var curHash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
                 if (curHash.IsNull())

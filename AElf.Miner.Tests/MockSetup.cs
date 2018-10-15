@@ -140,7 +140,7 @@ namespace AElf.Miner.Tests
         private Mock<ILightChain> MockLightChain()
         {
             Mock<ILightChain> mock = new Mock<ILightChain>();
-            mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1));
+            mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1 - GlobalConfig.GenesisBlockHeight));
             mock.Setup(lc => lc.GetHeaderByHeightAsync(It.IsAny<ulong>()))
                 .Returns<ulong>(p => Task.FromResult(_sideChainHeaders[(int) p]));
 
@@ -295,9 +295,9 @@ namespace AElf.Miner.Tests
             //IBlockHeader blockHeader = Headers[0];
             _blocks = new List<IBlock>
             {
-                MockBlock(_headers[0], MockBlockBody(0, chainId)).Object,
-                MockBlock(_headers[1], MockBlockBody(1, chainId)).Object,
-                MockBlock(_headers[2], MockBlockBody(2, chainId)).Object
+                MockBlock(_headers[0], MockBlockBody(GlobalConfig.GenesisBlockHeight, chainId)).Object,
+                MockBlock(_headers[1], MockBlockBody(GlobalConfig.GenesisBlockHeight + 1, chainId)).Object,
+                MockBlock(_headers[2], MockBlockBody(GlobalConfig.GenesisBlockHeight + 2, chainId)).Object
             };
 
             MockKeyPair(chainId, dir);

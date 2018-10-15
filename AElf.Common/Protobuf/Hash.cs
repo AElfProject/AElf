@@ -101,11 +101,11 @@ namespace AElf.Common
 
         #region Predefined
 
-        public static readonly Hash Zero = Hash.FromRawBytes(new byte[] { });
+        public static readonly Hash Zero = Hash.FromString("AElf");
 
-        public static readonly Hash Default = Hash.FromString("AElf");
+        public static readonly Hash Default = Hash.FromRawBytes(new byte[0]);
 
-        public static readonly Hash Genesis = Hash.FromString("Genesis");        
+        public static readonly Hash Genesis = Hash.LoadByteArray(Enumerable.Range(0, 32).Select(x=>(byte)0).ToArray());
 
         #endregion
 

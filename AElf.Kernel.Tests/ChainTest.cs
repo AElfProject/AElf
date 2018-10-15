@@ -46,7 +46,7 @@ namespace AElf.Kernel.Tests
                 var indx = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
                 return indx + 1;
             });
-            Assert.Equal(await getNextHeight(), (ulong)1);
+            Assert.Equal(await getNextHeight(), GlobalConfig.GenesisBlockHeight + 1);
             return chain;
         }
 
@@ -77,14 +77,14 @@ namespace AElf.Kernel.Tests
                 var indx = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
                 return indx + 1;
             });
-            Assert.Equal(await getNextHeight(), (ulong)1);
+            Assert.Equal(await getNextHeight(), GlobalConfig.GenesisBlockHeight + 1);
 
-            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, GlobalConfig.GenesisBlockHeight + 1);
             await blockchain.AddBlocksAsync(new List<IBlock> {block});
             
-            Assert.Equal(await getNextHeight(), (ulong)2);
+            Assert.Equal(await getNextHeight(), GlobalConfig.GenesisBlockHeight + 2);
             Assert.Equal((await blockchain.GetCurrentBlockHashAsync()).DumpHex(), block.GetHash().DumpHex());
-            Assert.Equal(block.Header.Index, (ulong)1);
+            Assert.Equal(block.Header.Index, GlobalConfig.GenesisBlockHeight + 1);
         }
         
         private static Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)

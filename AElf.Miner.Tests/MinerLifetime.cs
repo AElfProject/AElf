@@ -266,7 +266,7 @@ namespace AElf.Kernel.Tests.Miner
             var block = await miner.Mine();
             
             Assert.NotNull(block);
-            Assert.Equal((ulong)1, block.Header.Index);
+            Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
 //            Hash addr = uncompressedPrivKey.Take(Common.Globals.AddressLength).ToArray();
@@ -297,7 +297,7 @@ namespace AElf.Kernel.Tests.Miner
             var block = await miner.Mine();
             
             Assert.NotNull(block);
-            Assert.Equal((ulong)1, block.Header.Index);
+            Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
 //            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
@@ -352,7 +352,7 @@ namespace AElf.Kernel.Tests.Miner
             var blockchain = _mock.GetBlockChain(chain.Id); 
             var curHash = await blockchain.GetCurrentBlockHashAsync();
             var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
-            Assert.Equal((ulong)0, index);
+            Assert.Equal(GlobalConfig.GenesisBlockHeight, index);
             Assert.Equal(chain.GenesisBlockHash.DumpHex(), curHash.DumpHex());
         }
     }
