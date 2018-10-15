@@ -136,8 +136,6 @@ namespace AElf.Node.Protocol
                     
                 _logger?.Trace($"Block executed, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
                 
-                AnnounceBlock((Block)inBlock.Block);
-                
                 _localHeight++;
             });
             
@@ -175,6 +173,8 @@ namespace AElf.Node.Protocol
             _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
                 
             _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
+            
+            _logger?.Trace($"Network initialize at height {_localHeight}.");
             
             _peerManager.Start();
             
