@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Collections;
+using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Network;
 using AElf.Network.Connection;
@@ -49,6 +51,7 @@ namespace AElf.Node.Protocol
 
         private readonly ITxPoolService _transactionPoolService;
         private readonly IPeerManager _peerManager;
+        private readonly IChainService _chainService;
         private readonly ILogger _logger;
         
         private readonly List<IPeer> _peers = new List<IPeer>();
@@ -64,15 +67,19 @@ namespace AElf.Node.Protocol
         private IPeer CurrentSyncSource { get; set; }
         private int _localHeight = 0;
         private int _lastRequested = 0;
+        private Hash _chainId;
 
-        public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, ILogger logger)
+        public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, IChainService chainService, ILogger logger)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _pendingRequests = new List<TimeoutRequest>();
 
             _transactionPoolService = transactionPoolService;
             _peerManager = peerManager;
+            _chainService = chainService;
             _logger = logger;
+            
+            _chainId = new Hash { Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)) };
             
             peerManager.PeerEvent += OnPeerAdded;
 
@@ -162,15 +169,24 @@ namespace AElf.Node.Protocol
                 CurrentSyncSource?.OnNewBlockAccepted(inBlock.Block);
 
                 AnnounceBlock(inBlock.Block);
-                
-                // Stop sync: if we have a sync source and our height is equal to 
-                // his and no other peer has higher blocks, we stop sync
-                if (CurrentSyncSource != null)
-                {
-                    
-                    // todo 
-                }
             });
+        }
+        
+        /// <summary>
+        /// This method start the server that listens for incoming
+        /// connections and sets up the manager.
+        /// </summary>
+        public void Start()
+        {
+            // init the queue
+            _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
+            _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
+                
+            _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
+            
+            _peerManager.Start();
+            
+            Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
         }
         
         private void AnnounceBlock(Block block)
@@ -261,21 +277,6 @@ namespace AElf.Node.Protocol
         }
 
         #endregion
-
-        /// <summary>
-        /// This method start the server that listens for incoming
-        /// connections and sets up the manager.
-        /// </summary>
-        public void Start()
-        {
-            // init the queue
-            _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
-            _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
-            
-            _peerManager.Start();
-            
-            Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
-        }
         
         #region Message processing
 
@@ -467,47 +468,47 @@ namespace AElf.Node.Protocol
             }
         }
         
-        public void QueueBlockRequestByIndex(int index)
-        {
-            if (index <= 0)
-            {
-                _logger?.Warn($"Cannot request block because height {index} is not valid.");
-                return;
-            }
-            
-            try
-            {
-                IPeer selectedPeer = _peers.FirstOrDefault();
-            
-                if(selectedPeer == null)
-                    return;
-                
-                // Create the request object
-                BlockRequest br = new BlockRequest { Height = index };
-                Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
-
-                if (message.Payload == null)
-                {
-                    _logger?.Warn($"Request for block at height {index} failed because payload is null.");
-                    return;   
-                }
-                
-                // Select peer for request
-                TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
-                request.MaxRetryCount = RequestMaxRetry;
-                
-                lock (_pendingRequestsLock)
-                {
-                    _pendingRequests.Add(request);
-                }
-
-                request.TryPeer(selectedPeer);
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, $"Error while requesting block for index {index}.");
-            }
-        }
+//        public void QueueBlockRequestByIndex(int index)
+//        {
+//            if (index <= 0)
+//            {
+//                _logger?.Warn($"Cannot request block because height {index} is not valid.");
+//                return;
+//            }
+//            
+//            try
+//            {
+//                IPeer selectedPeer = _peers.FirstOrDefault();
+//            
+//                if(selectedPeer == null)
+//                    return;
+//                
+//                // Create the request object
+//                BlockRequest br = new BlockRequest { Height = index };
+//                Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
+//
+//                if (message.Payload == null)
+//                {
+//                    _logger?.Warn($"Request for block at height {index} failed because payload is null.");
+//                    return;   
+//                }
+//                
+//                // Select peer for request
+//                TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
+//                request.MaxRetryCount = RequestMaxRetry;
+//                
+//                lock (_pendingRequestsLock)
+//                {
+//                    _pendingRequests.Add(request);
+//                }
+//
+//                request.TryPeer(selectedPeer);
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Error(e, $"Error while requesting block for index {index}.");
+//            }
+//        }
 
         /// <summary>
         /// Callback called when the requests internal timer has executed.
