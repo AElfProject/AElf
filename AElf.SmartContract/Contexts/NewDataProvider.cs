@@ -158,7 +158,6 @@ namespace AElf.SmartContract
 
         public async Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new()
         {
-            Console.WriteLine($"Setting data {keyHash.DumpHex()}");
             var sp = GetStatePathFor(keyHash.DumpHex(), true);
             await _stateStore.SetAsync(sp, obj.ToByteArray());
         }
@@ -170,7 +169,6 @@ namespace AElf.SmartContract
 
         public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
         {
-            Console.WriteLine($"Setting {keyHash.DumpHex()}");
             await SetAsync(keyHash.DumpHex(), obj);
         }
 
