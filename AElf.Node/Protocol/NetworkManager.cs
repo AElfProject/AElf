@@ -62,7 +62,7 @@ namespace AElf.Node.Protocol
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
         
         private IPeer CurrentSyncSource { get; set; }
-        private int _localHeight = 1;
+        private int _localHeight = 0;
         private int _lastRequested = 0;
 
         public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, ILogger logger)
@@ -107,12 +107,12 @@ namespace AElf.Node.Protocol
                     if (blockHash != null)
                         _lastBlocksReceived.Enqueue(blockHash);
                     
-                    // todo announce
+                    AnnounceBlock((Block)inBlock.Block);
+                    
                     //await BroadcastBlock(blockHash, inBlock.Block.Serialize());
                     
 //                    _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
 //                                   $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
-                    
                     
                     _localHeight++;
                 });
@@ -191,14 +191,7 @@ namespace AElf.Node.Protocol
                 
                 // If this peer is higher than us and we're not syncing: sync.
                 if (peerHeight > _localHeight && CurrentSyncSource == null)
-                {
-                    CurrentSyncSource = peer.Peer;
-                    peer.Peer.Sync(_localHeight, peerHeight);
-                    
-                    _logger?.Trace($"Sync started from peer {CurrentSyncSource}, from {_localHeight} to {peerHeight}.");
-                    
-                    MessageHub.Instance.Publish(new SyncStateChanged(true));
-                }
+                    StartSync(peer.Peer, _localHeight+1, peerHeight);
                     
                 _peers.Add(peer.Peer);
 
@@ -206,6 +199,16 @@ namespace AElf.Node.Protocol
                 peer.Peer.MessageReceived += HandleNewMessage;
                 peer.Peer.PeerDisconnected += ProcessClientDisconnection;
             }
+        }
+
+        private void StartSync(IPeer peer, int start, int target)
+        {
+            CurrentSyncSource = peer;
+            peer.Sync(start, target);
+                    
+            _logger?.Trace($"Sync started from peer {CurrentSyncSource}, from {start} to {target}.");
+                    
+            MessageHub.Instance.Publish(new SyncStateChanged(true));
         }
 
         private void PeerOnSyncFinished(object sender, EventArgs e)
@@ -342,11 +345,13 @@ namespace AElf.Node.Protocol
         {
             try
             {
-                // todo start sync if needed
-
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
-                
                 peer.OnAnnoucementMessage(a);
+
+                if (CurrentSyncSource == null && _localHeight < peer.KnownHeight)
+                {
+                    StartSync(peer, _localHeight+1, peer.KnownHeight);
+                }
             }
             catch (Exception e)
             {

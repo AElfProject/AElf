@@ -109,6 +109,7 @@ namespace AElf.Network.Peers
         public void OnAnnoucementMessage(Announce a)
         {
             _peerHeight = a.Height;
+            _logger?.Trace($"[{this}] peer height increased : {_peerHeight}.");
         }
         
         public void OnNewBlockAccepted(Block block)
