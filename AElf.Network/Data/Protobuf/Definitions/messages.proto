@@ -33,6 +33,7 @@ message BlockRequest {
 
 message Announce {
     int32 Height = 1;
+    bytes Id = 2;
 }
 
 message TxRequest {

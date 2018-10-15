@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Kernel;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 
@@ -9,6 +10,7 @@ namespace AElf.Network.Peers
         event EventHandler MessageReceived;
         event EventHandler PeerDisconnected;
         event EventHandler AuthFinished;
+        event EventHandler SyncFinished;
         
         string IpAddress { get; }
         ushort Port { get; }
@@ -22,6 +24,7 @@ namespace AElf.Network.Peers
         NodeData DistantNodeData { get; }
         byte[] DistantNodeAddress { get; }
         void EnqueueOutgoing(Message msg);
-        void Sync();
+        void Sync(int start, int target);
+        void OnNewBlockAccepted(Block block);
     }
 }
