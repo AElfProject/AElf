@@ -475,8 +475,8 @@ namespace AElf.Node.Protocol
             var toRemove = new List<PendingBlock>();
             var executed = new List<PendingBlock>();
 
-            var blcks = pendingBlocks.ToList();
-            foreach (var pendingBlock in blcks)
+            var blocks = pendingBlocks.ToList();
+            foreach (var pendingBlock in blocks)
             {
                 var block = pendingBlock.Block;
 
@@ -572,7 +572,7 @@ namespace AElf.Node.Protocol
 
         /// <summary>
         /// This adds a transaction to one of the blocks. Typically this happens when
-        /// a transaction has been received throught the network (requested by this
+        /// a transaction has been received through the network (requested by this
         /// synchronizer).
         /// It removes the transaction from the corresponding missing block.
         /// </summary>

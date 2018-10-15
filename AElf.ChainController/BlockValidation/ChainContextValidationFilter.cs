@@ -21,7 +21,7 @@ namespace AElf.ChainController
             _logger = logger;
         }
 
-        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
+        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
             try
             {

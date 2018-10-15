@@ -41,7 +41,7 @@ namespace AElf.Node.AElfChain
         private readonly IChainCreationService _chainCreationService;
         private readonly IStateDictator _stateDictator;
         private readonly IBlockSynchronizer _synchronizer;
-        private readonly AElf.ChainController.IBlockCollection _blockCollection;
+        private readonly IBlockSynchronizationService _blockSynchronizationService;
         private readonly IBlockExecutor _blockExecutor;
 
         private IBlockChain _blockChain;
@@ -57,10 +57,10 @@ namespace AElf.Node.AElfChain
             IBlockValidationService blockValidationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService,
+            IBlockSynchronizationService blockSynchronizationService,
             IStateDictator stateDictator,
             IChainService chainService,
             IBlockExecutor blockExecutor,
-            AElf.ChainController.IBlockCollection blockCollection,
             IBlockSynchronizer synchronizer,
             IMiner miner,
             IP2P p2p,
@@ -79,11 +79,11 @@ namespace AElf.Node.AElfChain
             _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
-            _blockCollection = blockCollection;
+            _blockSynchronizationService = blockSynchronizationService;
             
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
                 {
-                    await _blockCollection.AddBlock(inBlock.Block);
+                    await _blockSynchronizationService.ReceiveBlock(inBlock.Block);
                 });
         }
 
@@ -164,6 +164,7 @@ namespace AElf.Node.AElfChain
             _nodeKeyPair = conf.KeyPair;
             _assemblyDir = conf.LauncherAssemblyLocation;
             _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
+            NodeConfig.Instance.ECKeyPair = conf.KeyPair;
 
             SetupConsensus();
         }
@@ -390,7 +391,7 @@ namespace AElf.Node.AElfChain
             {
                 var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
                 var context = await _chainContextService.GetChainContextAsync(chainId);
-                var error = await _blockValidationService.ValidateBlockAsync(block, context, _nodeKeyPair);
+                var error = await _blockValidationService.ValidateBlockAsync(block, context);
 
                 if (error != BlockValidationResult.Success)
                 {

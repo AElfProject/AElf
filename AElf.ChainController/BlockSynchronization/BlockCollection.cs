@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
+using Easy.MessageHub;
 using NLog;
 
 // ReSharper disable once CheckNamespace

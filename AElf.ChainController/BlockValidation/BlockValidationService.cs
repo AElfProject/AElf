@@ -16,12 +16,12 @@ namespace AElf.ChainController
             _filters = filters;
         }
 
-        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
+        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
             int error = (int) BlockValidationResult.Success; 
             foreach (var filter in _filters)
             {
-                error = Math.Max((int)await filter.ValidateBlockAsync(block, context, keyPair), error);
+                error = Math.Max((int)await filter.ValidateBlockAsync(block, context), error);
                 if (error == 3)
                     return BlockValidationResult.InvalidBlock;
             }
@@ -32,6 +32,6 @@ namespace AElf.ChainController
 
     public interface IBlockValidationFilter
     {
-        Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair);
+        Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context);
     }
 }

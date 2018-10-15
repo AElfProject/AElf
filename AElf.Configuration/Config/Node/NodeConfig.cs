@@ -1,4 +1,6 @@
-﻿namespace AElf.Configuration
+﻿using AElf.Cryptography.ECDSA;
+
+namespace AElf.Configuration
 {
     public class NodeConfig : ConfigBase<NodeConfig>
     {
@@ -13,5 +15,6 @@
         public string NodeName { get; set; }
         public string NodeAccount { get; set; }
         public string NodeAccountPassword { get; set; }
+        public ECKeyPair ECKeyPair { get; set; }
     }
 }

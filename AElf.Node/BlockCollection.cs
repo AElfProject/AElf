@@ -180,9 +180,7 @@ namespace AElf.Node
 
             if (_branchedChains.Count > 0)
             {
-                var num = _branchedChains.RemoveWhere(bc =>
-                    bc.GetPendingBlocks().Select(pd => pd.Block.GetHash())
-                        .Any(hash => hash == pendingBlock.Block.GetHash()));
+                var num = _branchedChains.RemoveWhere(bc => bc.StartHeight < SyncedHeight);
                 if (num > 0)
                 {
                     _logger?.Trace($"Removed {num} redundant branched chain.");

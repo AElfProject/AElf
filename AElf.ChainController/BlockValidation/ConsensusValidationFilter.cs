@@ -3,6 +3,7 @@ using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -25,7 +26,7 @@ namespace AElf.ChainController
             _logger = logger;
         }
 
-        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
+        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
             // If the height of chain is 1, no need to check consensus validation
             if (block.Header.Index < 2)
@@ -43,7 +44,7 @@ namespace AElf.ChainController
             
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
-            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().DumpHex(), timestampOfBlock);
+            var tx = GetTxToVerifyBlockProducer(contractAccountHash, NodeConfig.Instance.ECKeyPair, recipientKeyPair.GetAddress().DumpHex(), timestampOfBlock);
             if (tx == null)
             {
                 return BlockValidationResult.FailedToCheckConsensusInvalidation;
