@@ -1,10 +1,12 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
-    public interface IBlockSynchronizationService
+    public interface IBlockSyncService
     {
         Task ReceiveBlock(IBlock block);
+        Task AddMinedBlock(IBlock block);
     }
 }

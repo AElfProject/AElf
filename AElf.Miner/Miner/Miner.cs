@@ -86,9 +86,8 @@ namespace AElf.Miner.Miner
                         return null;
 
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
-                    Transaction genTx= await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
+                    var genTx= await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
                     var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
-                    var bn = await _blockChain.GetCurrentBlockHeightAsync();
                     
                     // remove invalid CrossChainBlockInfoTransaction, only that from local can be executed)
                     /*readyTxs.RemoveAll(t =>

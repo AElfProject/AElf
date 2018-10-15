@@ -12,26 +12,33 @@ namespace AElf.ChainController
     public class BlockCollection : IBlockCollection
     {
         private readonly ILogger _logger;
-        private readonly IChainService _chainService;
-        
-        private readonly PendingBlocks _pendingBlocks = new PendingBlocks();
-        private readonly List<BranchedChain> _branchedChains = new List<BranchedChain>();
-        
-        private IBlockChain _blockChain;
 
-        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
-                                              _chainService.GetBlockChain(
-                                                  Hash.LoadHex(NodeConfig.Instance.ChainId)));
-
-        public BlockCollection(IChainService chainService)
+        private readonly HashSet<IBlock> _blocks = new HashSet<IBlock>();
+        
+        public BlockCollection()
         {
-            _chainService = chainService;
             _logger = LogManager.GetLogger(nameof(BlockCollection));
         }
         
         public async Task AddBlock(IBlock block)
         {
-            await _pendingBlocks.AddBlock(block);
+            _blocks.Add(block);
+            // TODO: Need a way to organize branched chains (using indexes)
+        }
+
+        /// <summary>
+        /// Tell the block collection the height of block just successfully executed.
+        /// </summary>
+        /// <param name="currentHeight"></param>
+        /// <returns></returns>
+        public async Task Tell(ulong currentHeight)
+        {
+            RemoveOldBlocks(currentHeight - (ulong) GlobalConfig.BlockNumberOfEachRound);
+        }
+
+        private void RemoveOldBlocks(ulong targetHeight)
+        {
+            _blocks.RemoveWhere(b => b.Header.Index < targetHeight);
         }
     }
 }

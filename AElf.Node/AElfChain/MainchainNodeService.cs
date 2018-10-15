@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Miner.Miner;
@@ -41,8 +40,9 @@ namespace AElf.Node.AElfChain
         private readonly IChainCreationService _chainCreationService;
         private readonly IStateDictator _stateDictator;
         private readonly IBlockSynchronizer _synchronizer;
-        private readonly IBlockSynchronizationService _blockSynchronizationService;
+        private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockExecutor _blockExecutor;
+        private readonly IBlockExecutionService _blockExecutionService;
 
         private IBlockChain _blockChain;
         private IConsensus _consensus;
@@ -55,13 +55,14 @@ namespace AElf.Node.AElfChain
             IBlockValidationService blockValidationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService,
-            IBlockSynchronizationService blockSynchronizationService,
+            IBlockSyncService blockSyncService,
             IStateDictator stateDictator,
             IChainService chainService,
             IBlockExecutor blockExecutor,
             IBlockSynchronizer synchronizer,
             IMiner miner,
             IP2P p2p,
+            IBlockExecutionService blockExecutionService,
             ILogger logger)
         {
             _chainCreationService = chainCreationService;
@@ -69,6 +70,7 @@ namespace AElf.Node.AElfChain
             _stateDictator = stateDictator;
             _txPoolService = poolService;
             _logger = logger;
+            _blockExecutionService = blockExecutionService;
             _miner = miner;
             _p2p = p2p;
             _accountContextService = accountContextService;
@@ -77,11 +79,16 @@ namespace AElf.Node.AElfChain
             _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
-            _blockSynchronizationService = blockSynchronizationService;
+            _blockSyncService = blockSyncService;
             
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
-                await _blockSynchronizationService.ReceiveBlock(inBlock.Block);
+                await _blockSyncService.ReceiveBlock(inBlock.Block);
+            });
+
+            MessageHub.Instance.Subscribe<BlockMined>(async inBlock =>
+            {
+                await _blockSyncService.AddMinedBlock(inBlock.Block);
             });
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
@@ -222,6 +229,7 @@ namespace AElf.Node.AElfChain
             //Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
 
             _blockExecutor.Start();
+            _blockExecutionService.Start();
 
             if (NodeConfig.Instance.IsMiner)
             {
@@ -235,7 +243,7 @@ namespace AElf.Node.AElfChain
 
             Thread.Sleep(1000);
 
-            if (!NodeConfig.Instance.ConsensusInfoGenerater)
+            if (!NodeConfig.Instance.ConsensusInfoGenerator)
             {
                 _synchronizer.SyncFinished += (s, e) => { StartMining(); };
             }
@@ -351,14 +359,16 @@ namespace AElf.Node.AElfChain
                     break;
             }
         }
+        
         private void StartMining()
         {
-            if (NodeConfig.Instance.IsMiner)
-            {
-                SetupConsensus();
-                _consensus?.Start();
-            }
+            if (!NodeConfig.Instance.IsMiner) 
+                return;
+            
+            SetupConsensus();
+            _consensus?.Start();
         }
+        
         #endregion private methods
 
         public int GetCurrentHeight()
@@ -376,6 +386,7 @@ namespace AElf.Node.AElfChain
 
             return height;
         }
+        
         #region Legacy Methods
 
         /// <summary>

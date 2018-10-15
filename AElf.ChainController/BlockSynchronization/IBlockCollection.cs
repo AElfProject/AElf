@@ -7,5 +7,6 @@ namespace AElf.ChainController
     public interface IBlockCollection
     {
         Task AddBlock(IBlock block);
+        Task Tell(ulong currentHeight);
     }
 }

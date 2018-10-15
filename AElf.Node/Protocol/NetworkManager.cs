@@ -139,7 +139,7 @@ namespace AElf.Node.Protocol
                 _localHeight++;
             });
             
-            MessageHub.Instance.Subscribe<BlockAccepted>(async inBlock => 
+            MessageHub.Instance.Subscribe<BlockAccepted>(inBlock => 
             {
                 if (inBlock?.Block == null)
                 {
@@ -147,7 +147,7 @@ namespace AElf.Node.Protocol
                     return;
                 }
 
-                byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
+                var blockHash = inBlock.Block.GetHash().DumpByteArray();
 
                 if (blockHash != null)
                     _lastBlocksReceived.Enqueue(blockHash);
@@ -181,7 +181,7 @@ namespace AElf.Node.Protocol
             Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
         }
         
-        private void AnnounceBlock(Block block)
+        private void AnnounceBlock(IBlock block)
         {
             Announce anc = new Announce();
             anc.Height = (int)block.Header.Index;
@@ -352,7 +352,7 @@ namespace AElf.Node.Protocol
             try
             {
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
-                peer.OnAnnoucementMessage(a);
+                peer.OnAnnouncementMessage(a);
 
                 if (CurrentSyncSource == null && _localHeight < peer.KnownHeight)
                 {

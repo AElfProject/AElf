@@ -118,12 +118,13 @@ namespace AElf.Kernel.Node
 
             isMining = true;
 
+            // Check whether this node contained BP list.
             if (!Miners.Nodes.Contains(_nodeKeyPair.Address.DumpHex().RemoveHexPrefix()))
             {
                 return;
             }
 
-            if (NodeConfig.Instance.ConsensusInfoGenerater && !await Helper.HasGenerated())
+            if (NodeConfig.Instance.ConsensusInfoGenerator && !await Helper.HasGenerated())
             {
                 GlobalConfig.IsConsensusGenerator = true;
                 AElfDPoSObserver.Initialization();
@@ -132,7 +133,6 @@ namespace AElf.Kernel.Node
 
             Helper.SyncMiningInterval();
             _logger?.Trace($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
-
 
             if (Helper.CanRecoverDPoSInformation())
             {
@@ -148,30 +148,29 @@ namespace AElf.Kernel.Node
             try
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
+                
+                // Prepare the state of new block.
                 _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
                 _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
                 _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
 
                 var block = await _miner.Mine(Helper.GetCurrentRoundInfo());
 
-                await _stateDictator.SetBlockHashAsync(block.GetHash());
-                await _stateDictator.SetStateHashAsync(block.GetHash());
+                await _stateDictator.SetMap(block.GetHash());
 
                 _synchronizer.IncrementChainHeight();
 
-                //Update DPoS observables.
                 try
                 {
+                    // Update DPoS observables.
                     await Update();
                 }
                 catch (Exception e)
                 {
                     _logger?.Error(e, "Somehow failed to update DPoS observables. Will recover soon.");
-                    //In case just config one node to produce blocks.
+                    // In case of standalone miner.
                     await RecoverMining();
                 }
-                /*if(!block.Header.IndexedInfo.IsEmpty())
-                    _logger?.Debug($"Indexed side chain info in main block {block.Header.Index}:\n{block.Header.GetIndexedSideChainBlcokInfo()}");*/
                 return block;
             }
             catch (Exception e)
@@ -384,7 +383,6 @@ namespace AElf.Kernel.Node
             await Task.CompletedTask;
         }
 
-        //TODO: improve
         public bool IsAlive()
         {
             var currentTime = DateTime.UtcNow;
@@ -395,7 +393,7 @@ namespace AElf.Kernel.Node
                 startTimeSlot.AddMilliseconds(GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval * 2);
 
             return currentTime >
-                   startTimeSlot.AddMilliseconds(-GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval) &&
+                   startTimeSlot.AddMilliseconds(-GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval) ||
                    currentTime < endTimeSlot.AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval);
         }
 
@@ -413,7 +411,9 @@ namespace AElf.Kernel.Node
             {
                 var result = await _txPoolService.AddTxAsync(tx);
                 if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
+                {
                     MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
+                }
                 else
                 {
                     _logger?.Trace("Failed to insert tx: " + result);

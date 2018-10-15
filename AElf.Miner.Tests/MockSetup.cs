@@ -51,7 +51,7 @@ namespace AElf.Miner.Tests
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_dataStore, _logger);
-            _stateDictator = new StateDictator(new HashManager(_dataStore), _transactionManager, _dataStore, _logger);
+            _stateDictator = new StateDictator(new HashManager(_dataStore), _dataStore);
             _smartContractManager = new SmartContractManager(_dataStore);
             _accountContextService = new AccountContextService(_stateDictator);
             _transactionResultManager = new TransactionResultManager(_dataStore);

@@ -2,6 +2,7 @@
 
 namespace AElf.Configuration
 {
+    // ReSharper disable InconsistentNaming
     public class NodeConfig : ConfigBase<NodeConfig>
     {
         public bool FullNode { get; set; }
@@ -10,7 +11,7 @@ namespace AElf.Configuration
         //public string Coinbase { get; set; }
         public string DataDir { get; set; }
         public bool IsChainCreator { get; set; }
-        public bool ConsensusInfoGenerater { get; set; }
+        public bool ConsensusInfoGenerator { get; set; }
         public string ExecutorType { get; set; }
         public string NodeName { get; set; }
         public string NodeAccount { get; set; }

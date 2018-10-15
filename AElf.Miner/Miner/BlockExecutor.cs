@@ -228,24 +228,23 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         private async Task<bool> UpdateState(IBlock block)
         {
-            await _stateDictator.SetBlockHashAsync(block.GetHash());
-            await _stateDictator.SetStateHashAsync(block.GetHash());
+            await _stateDictator.SetMap(block.GetHash());
             await _stateDictator.SetWorldStateAsync();
             var ws = await _stateDictator.GetLatestWorldStateAsync();
-            string errlog = null;
-            bool res = true;
+            string errLog = null;
+            var res = true;
             if (ws == null)
             {
-                errlog = "ExecuteBlock - Could not get world state.";
+                errLog = "ExecuteBlock - Could not get world state.";
                 res = false;
             }
             else if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
             {
-                errlog = "ExecuteBlock - Incorrect merkle trees.";
+                errLog = "ExecuteBlock - Incorrect merkle trees.";
                 res = false;
             }
             if(!res)
-                await Interrupt(errlog);
+                await Interrupt(errLog);
             return res;
         }
         
