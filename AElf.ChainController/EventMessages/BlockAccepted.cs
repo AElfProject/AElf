@@ -5,7 +5,7 @@ namespace AElf.ChainController.EventMessages
 {
     public sealed class BlockAccepted
     {
-        public BlockAccepted(BlockValidationResult blockValidationResult)
+        public BlockAccepted(BlockHeader blockHeader, BlockValidationResult blockValidationResult)
         {
             BlockValidationResult = blockValidationResult;
         }

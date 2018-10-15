@@ -58,6 +58,11 @@ namespace AElf.Common
 //            return new Address(keyPair.GetEncodedPublicKey());
 //        }
 
+        public static Address Generate()
+        {
+            return FromRawBytes(Guid.NewGuid().ToByteArray().CalculateHash());
+        }
+        
         #region Predefined
 
         public static readonly Address AElf = FromString("AElf");
