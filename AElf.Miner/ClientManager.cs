@@ -296,15 +296,15 @@ namespace AElf.Miner
         /// <param name="blockInfo"></param>
         /// <returns>
         /// Return true and remove the first cached one as <param name="blockInfo"></param>.
-        /// Return true if client for that chain is not existed which means the parent chain is not available.
+        /// Return true if client for that parent chain is not existed which means the parent chain is not available.
         /// Return false if it is not same or client for that chain is not existed.
         /// </returns>
         private bool TryRemoveParentChainBlockInfo(ParentChainBlockInfo blockInfo)
         {
-            _logger.Trace($"To remove parent chain info at height {blockInfo?.Height}");
-            if (_clientToParentChain == null || blockInfo == null)
-                // TODO: this could be changed
+            if (_clientToParentChain == null)
                 return true;
+            _logger.Trace($"To remove parent chain info at height {blockInfo?.Height}");
+            
             if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(blockInfo))
                 return false;
             var pcb = _clientToParentChain.Take();
@@ -341,6 +341,9 @@ namespace AElf.Miner
         /// <returns></returns>
         public async Task<bool> UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
         {
+            if (parentChainBlockInfo == null)
+                // TODO: this could be changed
+                return true;
             if (!TryRemoveParentChainBlockInfo(parentChainBlockInfo))
                 return false;
             await _chainManagerBasic.UpdateCurrentBlockHeightAsync(parentChainBlockInfo.ChainId,

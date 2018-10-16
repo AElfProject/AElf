@@ -19,7 +19,7 @@ namespace AElf.Miner.Rpc.Client
         private readonly Hash _targetChainId;
         private int _interval;
         private int _realInterval;
-        private const int UnavailableConnectionInterval = 4_000;
+        private const int UnavailableConnectionInterval = 1_000;
 
         private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } =
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());

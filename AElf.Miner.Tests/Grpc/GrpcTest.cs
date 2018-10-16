@@ -132,7 +132,7 @@ namespace AElf.Miner.Tests.Grpc
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
                 Thread.Sleep(t/2);
                 GrpcLocalConfig.Instance.ClientToParentChain = true;
-                var result = await manager.CollectParentChainBlockInfo();
+                var result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)0, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
@@ -140,7 +140,7 @@ namespace AElf.Miner.Tests.Grpc
                 Assert.True(await manager.UpdateParentChainBlockInfo(result));
                 
                 Thread.Sleep(t);
-                result = await manager.CollectParentChainBlockInfo();
+                result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)1, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
@@ -148,7 +148,7 @@ namespace AElf.Miner.Tests.Grpc
                 Assert.True(await manager.UpdateParentChainBlockInfo(result));
 
                 Thread.Sleep(t);
-                result = await manager.CollectParentChainBlockInfo();
+                result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)2, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
