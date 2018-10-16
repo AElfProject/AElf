@@ -32,6 +32,8 @@ namespace AElf.SmartContract
         /// <returns></returns>
         Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new();
 
+        Dictionary<StatePath, StateValue> GetChanges();
+
         IEnumerable<StateValueChange> GetValueChanges();
         
         /// <summary>

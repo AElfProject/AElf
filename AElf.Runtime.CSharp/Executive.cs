@@ -227,9 +227,12 @@ namespace AElf.Runtime.CSharp
                 if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() &&
                     _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
-                    var changes = _currentSmartContractContext.DataProvider.GetValueChanges();
-                    var stateValueChanges = changes as StateValueChange[] ?? changes.ToArray();
-                    _currentTransactionContext.Trace.ValueChanges.AddRange(stateValueChanges);
+                    var changes = _currentSmartContractContext.DataProvider.GetChanges().Select(kv=>new StateChange()
+                    {
+                        StatePath = kv.Key,
+                        StateValue = kv.Value
+                    });
+                    _currentTransactionContext.Trace.StateChanges.AddRange(changes);
                 }
             }
             catch (Exception ex)

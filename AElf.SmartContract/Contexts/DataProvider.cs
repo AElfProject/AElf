@@ -15,7 +15,11 @@ namespace AElf.SmartContract
         private readonly DataPath _dataPath;
         private readonly IStateDictator _stateDictator;
         private readonly List<IDataProvider> _children = new List<IDataProvider>();
-
+        public Dictionary<StatePath, StateValue> GetChanges()
+        {
+            // placeholder
+            return new Dictionary<StatePath, StateValue>();
+        }
         public IEnumerable<StateValueChange> GetValueChanges()
         {
             var changes = new List<StateValueChange>();

@@ -36,14 +36,13 @@ namespace AElf.ChainController
                 if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
                     //Console.WriteLine($"tx executed successfully: {transaction.GetHash().ToHex()}");
-                    var bufferedStateUpdates = await trace.CommitChangesAsync(_stateDictator);
-                    await _stateDictator.ApplyCachedDataAction(bufferedStateUpdates);
-                    foreach (var kv in bufferedStateUpdates)
-                    {
-                        stateCache[kv.Key] = kv.Value;
-                    }
+                    await trace.CommitChangesAsync1(_stateDictator.StateStore);
+//                    await _stateDictator.ApplyCachedDataAction(bufferedStateUpdates);
+//                    foreach (var kv in bufferedStateUpdates)
+//                    {
+//                        stateCache[kv.Key] = kv.Value;
+//                    }
                 }
-
                 traces.Add(trace);
             }
 

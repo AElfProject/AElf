@@ -20,7 +20,7 @@ namespace AElf.SmartContract
     public class StateDictator: IStateDictator
     {
         private readonly IDataStore _dataStore;
-        private readonly IStateStore _stateStore;
+        public IStateStore StateStore { get; }
         private readonly ILogger _logger;
         private readonly IHashManager _hashManager;
         private readonly ITransactionManager _transactionManager;
@@ -34,7 +34,7 @@ namespace AElf.SmartContract
         public StateDictator(IHashManager hashManager, ITransactionManager transactionManager, IDataStore dataStore, IStateStore stateStore, ILogger logger = null)
         {
             _dataStore = dataStore;
-            _stateStore = stateStore;
+            StateStore = stateStore;
             _logger = logger;
 
             _hashManager = hashManager;
@@ -49,7 +49,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public IAccountDataProvider GetAccountDataProvider(Address accountAddress)
         {
-            return new AccountDataProvider(accountAddress, this, _stateStore);
+            return new AccountDataProvider(accountAddress, this, StateStore);
         }
 
         /// <summary>
@@ -199,7 +199,7 @@ namespace AElf.SmartContract
                 sp.ContractAddress = kv.Key.ContractAddress;
                 d.Add(sp, kv.Value.CurrentValue);
             }
-            await _stateStore.PipelineSetDataAsync(d);
+            await StateStore.PipelineSetDataAsync(d);
 //            var pipelineSet = cachedActions.ToDictionary(kv => kv.Key.Key, kv => kv.Value.CurrentValue);
 //            if (pipelineSet.Count > 0)
 //            {

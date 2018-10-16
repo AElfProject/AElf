@@ -133,7 +133,7 @@ namespace AElf.SmartContract
             {
                 if (kv.Value.IsDirty)
                 {
-                    var sp = GetStatePathFor(kv.Key);
+                    var sp = GetStatePathFor(kv.Key, true);
                     d[sp] = kv.Value;
                 }
             }

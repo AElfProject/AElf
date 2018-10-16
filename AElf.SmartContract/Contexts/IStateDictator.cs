@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -20,6 +21,7 @@ namespace AElf.SmartContract
     {
         IAccountDataProvider GetAccountDataProvider(Address accountAddress);
 
+        IStateStore StateStore { get; }
         /*
          * WorldState
          */
