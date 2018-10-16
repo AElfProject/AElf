@@ -142,9 +142,8 @@ namespace AElf.Node
                     req.HasId = true;
                     req.Id = message.Id;
                 }
-                
+
                 args.Peer.EnqueueOutgoing(req);
-                
                 //_logger?.Trace("Send " + txList.Transactions.Count + " to " + args.Peer);
             }
             catch (Exception e)
