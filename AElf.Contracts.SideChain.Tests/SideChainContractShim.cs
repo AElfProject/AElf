@@ -64,7 +64,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await CommitChangesAsync(TransactionContext.Trace);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToInt32();
         }
 
@@ -83,7 +83,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await CommitChangesAsync(TransactionContext.Trace);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
         }
 
@@ -102,7 +102,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await CommitChangesAsync(TransactionContext.Trace);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
@@ -120,7 +120,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
+            await CommitChangesAsync(TransactionContext.Trace);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
         }
 
@@ -129,6 +129,11 @@ namespace AElf.Contracts.SideChain.Tests
 
         #region Actions
 
+        private async Task CommitChangesAsync(TransactionTrace trace)
+        {
+            await trace.CommitChangesAsync1(_mock.StateDictator.StateStore);
+        }
+        
         public async Task<byte[]> CreateSideChain(Hash chainId, Address lockedAddress, ulong lockedToken)
         {
             var tx = new Transaction
@@ -144,8 +149,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
-            await _mock.StateDictator.ApplyCachedDataAction(changes);
+            await CommitChangesAsync(TransactionContext.Trace);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
@@ -165,8 +169,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
-            await _mock.StateDictator.ApplyCachedDataAction(changes);
+            await CommitChangesAsync(TransactionContext.Trace);
         }
 
         public async Task DisposeSideChain(Hash chainId)
@@ -184,8 +187,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
-            await _mock.StateDictator.ApplyCachedDataAction(changes);
+            await CommitChangesAsync(TransactionContext.Trace);
         }
 
         public async Task WriteParentChainBLockInfo(ParentChainBlockInfo parentChainBlockInfo)
@@ -203,8 +205,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
-            await _mock.StateDictator.ApplyCachedDataAction(changes);
+            await CommitChangesAsync(TransactionContext.Trace);
         }
 
         public async Task<bool?> VerifyTransaction(Hash txHash, MerklePath path, ulong height)
@@ -222,8 +223,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
-            await _mock.StateDictator.ApplyCachedDataAction(changes);
+            await CommitChangesAsync(TransactionContext.Trace);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBool();
         }
 
@@ -242,8 +242,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
-            var changes = await TransactionContext.Trace.CommitChangesAsync(_mock.StateDictator);
-            await _mock.StateDictator.ApplyCachedDataAction(changes);
+            await CommitChangesAsync(TransactionContext.Trace);
         }
 
         #endregion Actions

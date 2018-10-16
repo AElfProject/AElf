@@ -29,9 +29,8 @@ namespace AElf.Kernel.Tests
             var sb = Encoding.UTF8.GetBytes(s);
             var statePath = new StatePath()
             {
-// ChainId and ContractAddress is not needed in DataProvider
-//                ChainId = chainId,
-//                ContractAddress = address,
+                ChainId = chainId,
+                ContractAddress = address,
                 Path = {s}
             };
             await root.SetAsync(s, sb);

@@ -157,8 +157,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            var changesDict = await trace.CommitChangesAsync(StateDictator);
-            await StateDictator.ApplyCachedDataAction(changesDict);
+            await trace.CommitChangesAsync1(StateDictator.StateStore);
+//            await StateDictator.ApplyCachedDataAction(changesDict);
         }
 
         public void Initialize1(Address account, ulong qty)

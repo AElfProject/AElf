@@ -62,8 +62,8 @@ namespace AElf.Contracts.Token.Tests
 
         private async Task CommitChangesAsync(TransactionTrace trace)
         {
-            var changes = await trace.CommitChangesAsync(_mock.StateDictator);
-            await _mock.StateDictator.ApplyCachedDataAction(changes);
+            await trace.CommitChangesAsync1(_mock.StateDictator.StateStore);
+//            await _mock.StateDictator.ApplyCachedDataAction(changes);
         }
 
         private async Task DeployTokenContractAsync()
