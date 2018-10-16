@@ -53,7 +53,7 @@ namespace AElf.Kernel
                 SideChainBlockHeadersRoot = SideChainBlockHeadersRoot?.Clone(),
                 SideChainTransactionsRoot = MerkleTreeRootOfTransactions?.Clone()
             };
-            if (Index != 0)
+            if (Index != GlobalConfig.GenesisBlockHeight)
                 rawBlock.Time = Time.Clone();
             
             return rawBlock.ToByteArray();
