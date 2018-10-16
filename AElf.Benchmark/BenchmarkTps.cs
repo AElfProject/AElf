@@ -271,8 +271,7 @@ namespace AElf.Benchmark
             try
             {
                 await executive.SetTransactionContext(txnCtxt).Apply();
-                var changesDict = await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
-                await _stateDictator.ApplyCachedDataAction(changesDict);
+                await txnCtxt.Trace.CommitChangesAsync1(_stateDictator.StateStore);
             }
             finally
             {
@@ -309,8 +308,7 @@ namespace AElf.Benchmark
             try
             {
                 await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-                var changesDict = await txnInitCtxt.Trace.CommitChangesAsync(_stateDictator);
-                await _stateDictator.ApplyCachedDataAction(changesDict);
+                await txnInitCtxt.Trace.CommitChangesAsync1(_stateDictator.StateStore);
             }
             finally
             {
