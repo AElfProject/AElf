@@ -104,7 +104,6 @@ namespace AElf.Node
                                 _logger?.Trace("Disposed previous consensus observables list.");
                             }
 
-                            _logger?.Trace("111111");
                             AddToPendingBlocks(pendingBlock);
                             PendingBlocks.SortByBlockIndex();
                             _initialSyncBlocksIndexes.Add(_targetHeight);
@@ -120,7 +119,6 @@ namespace AElf.Node
                         if (!_initialSyncBlocksIndexes.Contains(pendingBlock.Block.Header.Index) &&
                             !ReceivedAllTheBlocksBeforeTargetBlock)
                         {
-                            _logger?.Trace("22222");
                             AddToPendingBlocks(pendingBlock);
                             _initialSyncBlocksIndexes.Add(pendingBlock.Block.Header.Index);
                             if (ReceivedAllTheBlocksBeforeTargetBlock)

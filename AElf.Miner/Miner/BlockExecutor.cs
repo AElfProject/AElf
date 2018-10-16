@@ -209,13 +209,16 @@ namespace AElf.Miner.Miner
                 if (tx.Type == TransactionType.CrossChainBlockInfoTransaction)
                 {
                     // todo: verify transaction from address
-                    
-                    if (!await ValidateParentChainBlockInfoTransaction(tx))
+                    var parentBlockInfo = (ParentChainBlockInfo) ParamsPacker.Unpack(tx.Params.ToByteArray(),
+                        new[] {typeof(ParentChainBlockInfo)})[0];
+                    if (!await ValidateParentChainBlockInfoTransaction(parentBlockInfo))
                     {
                         errlog = "Invalid parent chain block info.";
                         res = false;
                         break;
                     }
+                    // for update
+                    block.ParentChainBlockInfo = parentBlockInfo;
                 }
                 
                 readyTxs.Add(tx);
@@ -240,12 +243,10 @@ namespace AElf.Miner.Miner
         /// <returns>
         /// Return false if validation failed and then that block execution would fail.
         /// </returns>
-        private async Task<bool> ValidateParentChainBlockInfoTransaction(Transaction transaction)
+        private async Task<bool> ValidateParentChainBlockInfoTransaction(ParentChainBlockInfo parentBlockInfo)
         {
             try
             {
-                var parentBlockInfo = (ParentChainBlockInfo) ParamsPacker.Unpack(transaction.Params.ToByteArray(),
-                    new[] {typeof(ParentChainBlockInfo)})[0];
                 var cached = await _clientManager.CollectParentChainBlockInfo();
                 if (cached == null)
                 {
@@ -253,8 +254,9 @@ namespace AElf.Miner.Miner
                     return false;
                 }
 
-                if (cached.Equals(parentBlockInfo)) 
+                if (cached.Equals(parentBlockInfo))
                     return true;
+                
                 _logger.Warn($"Cached parent block info is {cached}");
                 _logger.Warn($"Parent block info in transaction is {parentBlockInfo}");
                 return false;
@@ -343,6 +345,12 @@ namespace AElf.Miner.Miner
             });
         }
         
+        /// <summary>
+        /// Update cross chain block info, side chain block and parent block info if needed
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidBlockException"></exception>
         private async Task UpdateSideChainInfo(IBlock block)
         {
             await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
@@ -358,6 +366,8 @@ namespace AElf.Miner.Miner
                     throw new InvalidBlockException(
                         "Inconsistent side chain info. Something about side chain would be chaos if you see this. ");
             }
+            // update parent chain info
+            _clientManager.TryRemoveParentChainBlockInfo(block.ParentChainBlockInfo);
         }
         
         #endregion

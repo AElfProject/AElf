@@ -272,6 +272,9 @@ namespace AElf.Miner
         /// </returns>
         public async Task<bool> TryUpdateAndRemoveSideChainBlockInfo(SideChainBlockInfo blockInfo)
         {
+            if (blockInfo == null)
+                return true;
+            
             if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId.DumpHex(), out var client))
             {
                 await UpdateSideChainInfo(blockInfo);
@@ -298,7 +301,7 @@ namespace AElf.Miner
         /// </returns>
         public bool TryRemoveParentChainBlockInfo(ParentChainBlockInfo blockInfo)
         {
-            if (_clientToParentChain == null)
+            if (_clientToParentChain == null || blockInfo == null)
                 // TODO: this could be changed
                 return true;
             if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(blockInfo))
