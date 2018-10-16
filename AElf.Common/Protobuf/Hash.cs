@@ -159,23 +159,9 @@ namespace AElf.Common
             {
                 throw new InvalidOperationException("Cannot compare hash when hash is null");
             }
-            
-            var xValue = x.Value;
-            var yValue = y.Value;
-            for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
-            {
-                if (xValue[i] > yValue[i])
-                {
-                    return 1;
-                }
 
-                if (xValue[i] < yValue[i])
-                {
-                    return -1;
-                }
-            }
+            return ByteStringHelpers.Compare(x.Value, y.Value);
 
-            return 0;
         }
         
         public int CompareTo(Hash that)
