@@ -126,8 +126,13 @@ namespace AElf.ChainController.TxMemPoolBM
             _logger = LogManager.GetLogger(nameof(DPoSTxFilter));
         }
 
-        public void Execute(List<Transaction> txs)
+        public List<Transaction> Execute(List<Transaction> txs)
         {
+            _logger?.Trace("Before");
+            PrintTxList(txs);
+            
+            var removeFromTxPool = new List<Transaction>();
+
             var filterList = _txFilter.GetInvocationList();
             foreach (var @delegate in filterList)
             {
@@ -135,6 +140,7 @@ namespace AElf.ChainController.TxMemPoolBM
                 try
                 {
                     var toRemove = filter(txs);
+                    removeFromTxPool.AddRange(toRemove);
                     foreach (var transaction in toRemove)
                     {
                         txs.Remove(transaction);
@@ -146,7 +152,20 @@ namespace AElf.ChainController.TxMemPoolBM
                     throw;
                 }
             }
+
+            _logger?.Trace("After");
+            PrintTxList(txs);
+
+            return removeFromTxPool;
         }
         
+        private void PrintTxList(IEnumerable<Transaction> txs)
+        {
+            _logger?.Trace("Txs list:");
+            foreach (var transaction in txs)
+            {
+                _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName}");
+            }
+        }
     }
 }

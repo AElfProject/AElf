@@ -161,8 +161,6 @@ namespace AElf.ChainController.TxMemPoolBM
             }
             
             const string inValueTxName = "PublishInValue";
-            Console.WriteLine(11111);
-            PrintTxList(readyTxs);
 
             var toRemove = new List<Transaction>();
             
@@ -199,9 +197,6 @@ namespace AElf.ChainController.TxMemPoolBM
                     }
                 }
 
-                Console.WriteLine(222222);
-                PrintTxList(readyTxs);
-
                 if (transaction.From == blockProducerAddress)
                 {
                     continue;
@@ -227,9 +222,6 @@ namespace AElf.ChainController.TxMemPoolBM
                     }
                 }
 
-                Console.WriteLine(33333);
-                PrintTxList(readyTxs);
-
             }
 
             // No one will publish in value if I won't do this in current block.
@@ -244,9 +236,6 @@ namespace AElf.ChainController.TxMemPoolBM
                     .Where(g => g.Count() > 1).SelectMany(g => g));
             }
 
-            Console.WriteLine(44444);
-            PrintTxList(readyTxs);
-
             if (readyTxs.Any(tx => tx.MethodName == "UpdateAElfDPoS"))
             {
                 toRemove.AddRange(readyTxs.Where(tx => tx.Type != TransactionType.CrossChainBlockInfoTransaction && tx.MethodName != inValueTxName && tx.MethodName != "UpdateAElfDPoS"));
@@ -257,9 +246,6 @@ namespace AElf.ChainController.TxMemPoolBM
             {
                 toRemove.AddRange(readyTxs.Where(tx => tx.MethodName == "UpdateAElfDPoS").Take(count - 1));
             }
-
-            Console.WriteLine(55555);
-            PrintTxList(readyTxs);
 
             foreach (var transaction in toRemove)
             {

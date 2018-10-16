@@ -229,9 +229,12 @@ namespace AElf.ChainController.TxMemPoolBM
 
             if (currentRoundInfo != null)
             {
-                _dpoSTxFilter.Execute(txs);
+                foreach (var hash in _dpoSTxFilter.Execute(txs).Select(tx => tx.GetHash()))
+                {
+                    _systemTxs.TryRemove(hash, out _);
+                }
             }
-            
+
             _logger.Debug($"Got {txs.Count} System tx");
 
             var count = _txHub.ValidatedCount;
