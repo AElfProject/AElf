@@ -101,7 +101,7 @@ namespace AElf.Node.Protocol
                     // _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
-            MessageHub.Instance.Subscribe<BlockMined>(async inBlock => 
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock => 
                 {
                     if (inBlock?.Block == null)
                     {
@@ -121,7 +121,7 @@ namespace AElf.Node.Protocol
                     _localHeight++;
                 });
             
-            MessageHub.Instance.Subscribe<BlockExecuted>(async inBlock => 
+            MessageHub.Instance.Subscribe<BlockExecuted>(inBlock => 
             {
                 if (inBlock?.Block == null)
                 {

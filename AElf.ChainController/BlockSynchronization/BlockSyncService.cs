@@ -52,6 +52,7 @@ namespace AElf.ChainController
         public async Task AddMinedBlock(IBlock block)
         {
             await _blockSet.Tell(block.Header.Index);
+            MessageHub.Instance.Publish(UpdateConsensus.Update);
         }
 
         private async Task HandleValidBlock(BlockAccepted message)

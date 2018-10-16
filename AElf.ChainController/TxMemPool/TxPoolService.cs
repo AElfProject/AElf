@@ -152,8 +152,7 @@ namespace AElf.ChainController.TxMemPool
             throw new NotImplementedException();
         }
 
-        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Address myAddress,
-            double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, double intervals = 150)
         {
             // get prior tx
             var prior = await PriorTxLock.WriteLock(() =>

@@ -168,22 +168,13 @@ namespace AElf.Kernel.Node
 
                 _synchronizer.IncrementChainHeight();
 
-                try
-                {
-                    // Update DPoS observables.
-                    MessageHub.Instance.Publish(UpdateConsensus.Update);
-                }
-                catch (Exception e)
-                {
-                    _logger?.Error(e, "Somehow failed to update DPoS observables. Will recover soon.");
-                    // In case of standalone miner.
-                    await RecoverMining();
-                }
+                MessageHub.Instance.Publish(new BlockMined(block));
+
                 return block;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger?.Trace(e.Message);
                 return null;
             }
             finally
@@ -249,6 +240,8 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithInitializingAElfDPoSInformation()
         {
+            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.InitializeAElfDPoS));
+            
             var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
             var parameters = new List<byte[]>
             {
@@ -274,6 +267,8 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithPublishingOutValueAndSignature()
         {
+            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.PublishOutValueAndSignature));
+
             var inValue = Hash.Generate();
             if (_consensusData.Count <= 0)
             {
@@ -339,6 +334,8 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithUpdatingAElfDPoSInformation()
         {
+            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.UpdateAElfDPoS));
+
             var extraBlockResult = Helper.ExecuteTxsForExtraBlock();
 
             var parameters = new List<byte[]>
@@ -367,7 +364,7 @@ namespace AElf.Kernel.Node
             if (ConsensusDisposable != null)
             {
                 ConsensusDisposable.Dispose();
-                _logger?.Trace("Disposed previous consensus observables list.");
+                _logger?.Trace("Disposed previous consensus observables list. Will update DPoS information.");
             }
 
             // Update observer.
@@ -420,6 +417,7 @@ namespace AElf.Kernel.Node
                 var result = await _txPoolService.AddTxAsync(tx);
                 if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
+                    _logger?.Trace("Tx added to the pool");
                     MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
                 }
                 else

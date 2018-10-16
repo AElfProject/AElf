@@ -114,6 +114,8 @@ namespace AElf.ChainController
             }
             else if (block?.Header == null || block.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
             {
+                _logger?.Trace("Latest Block txs count:");
+                _logger?.Trace(block?.Body?.TransactionsCount);
                 errLog = "ExecuteBlock - Null block or no transactions.";
                 res = false;
             }

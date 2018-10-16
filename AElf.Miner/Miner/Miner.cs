@@ -86,8 +86,7 @@ namespace AElf.Miner.Miner
 
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
                     var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo,
-                        _stateDictator.BlockProducerAccountAddress);
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo);
 
                     // remove invalid CrossChainBlockInfoTransaction, only that from local can be executed)
                     /*readyTxs.RemoveAll(t =>
@@ -106,9 +105,6 @@ namespace AElf.Miner.Miner
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
                     _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index}");
-
-                    // broadcast
-                    BroadcastBlock(block);
 
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
@@ -131,11 +127,6 @@ namespace AElf.Miner.Miner
         private async Task UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
         {
             await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
-        }
-
-        private void BroadcastBlock(IBlock block)
-        {
-            MessageHub.Instance.Publish(new BlockMined(block));
         }
 
         /// <summary>
