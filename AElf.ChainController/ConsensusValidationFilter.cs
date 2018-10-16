@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
@@ -30,7 +29,7 @@ namespace AElf.ChainController
         public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
             // If the height of chain is 1, no need to check consensus validation
-            if (block.Header.Index < GlobalConfig.GenesisBlockHeight + 2)
+            if (block.Header.Index < 2)
             {
                 return ValidationError.Success;
             }
