@@ -15,6 +15,7 @@ using NLog;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using AElf.Common;
+using AElf.Types.CSharp;
 using NServiceKit.Common.Web;
 
 namespace AElf.Miner.Miner
@@ -205,14 +206,18 @@ namespace AElf.Miner.Miner
                     break;
                 }
 
-                if (tx.Type == TransactionType.CrossChainBlockInfoTransaction
-                    && !await ValidateParentChainBlockInfoTransaction(tx))
+                if (tx.Type == TransactionType.CrossChainBlockInfoTransaction)
                 {
-                    errlog = "Invalid parent chain block info.";
-                    res = false;
-                    break;
+                    // todo: verify transaction from address
+                    
+                    if (!await ValidateParentChainBlockInfoTransaction(tx))
+                    {
+                        errlog = "Invalid parent chain block info.";
+                        res = false;
+                        break;
+                    }
                 }
-
+                
                 readyTxs.Add(tx);
             }
 
@@ -239,7 +244,8 @@ namespace AElf.Miner.Miner
         {
             try
             {
-                var parentBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(transaction.Params.ToByteArray());
+                var parentBlockInfo = (ParentChainBlockInfo) ParamsPacker.Unpack(transaction.Params.ToByteArray(),
+                    new[] {typeof(ParentChainBlockInfo)})[0];
                 var cached = await _clientManager.CollectParentChainBlockInfo();
                 if (cached == null)
                 {
@@ -249,11 +255,8 @@ namespace AElf.Miner.Miner
 
                 if (cached.Equals(parentBlockInfo)) 
                     return true;
-                _logger.Trace($"Found cached parent block info at {cached}, not {parentBlockInfo}");
-                _logger.Trace($"cached height {cached.Height}, receieved height {parentBlockInfo.Height}");
-                _logger.Trace($"cached chainId {cached.ChainId}, receieved chainId {parentBlockInfo.ChainId}");
-                _logger.Trace($"cached SideChainTransactionsRoot {cached.Root.SideChainTransactionsRoot}, receieved SideChainTransactionsRoot {parentBlockInfo.Root.SideChainTransactionsRoot}");
-                _logger.Trace($"cached SideChainBlockHeadersRoot {cached.Root.SideChainBlockHeadersRoot}, receieved SideChainBlockHeadersRoot {parentBlockInfo.Root.SideChainBlockHeadersRoot}");
+                _logger.Warn($"Cached parent block info is {cached}");
+                _logger.Warn($"Parent block info in transaction is {parentBlockInfo}");
                 return false;
             }
             catch (Exception e)

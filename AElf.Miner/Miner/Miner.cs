@@ -161,7 +161,6 @@ namespace AElf.Miner.Miner
                     Type = TransactionType.CrossChainBlockInfoTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo))
                 };
-                _logger?.Trace($"Generated cross chain transaction containing {ParentChainBlockInfo.Parser.ParseFrom(tx.Params.ToByteArray())}");
                 // sign tx
                 var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
                 tx.R = ByteString.CopyFrom(signature.R);
