@@ -415,7 +415,7 @@ namespace AElf.Miner.Miner
         {
             try
             {
-                var blocInfo = await _clientManager.CollectParentChainBlockInfo();
+                var blocInfo = await _clientManager.TryGetParentChainBlockInfo();
                 return blocInfo;
             }
             catch (Exception e)

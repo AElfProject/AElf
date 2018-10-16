@@ -247,7 +247,7 @@ namespace AElf.Miner.Miner
         {
             try
             {
-                var cached = await _clientManager.CollectParentChainBlockInfo();
+                var cached = await _clientManager.TryGetParentChainBlockInfo();
                 if (cached == null)
                 {
                     _logger.Trace("Not found cached parent block info");
@@ -322,15 +322,10 @@ namespace AElf.Miner.Miner
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-            Transaction pcbTx = null;
             foreach (var t in executedTxs)
             {
                 await _transactionManager.AddTransactionAsync(t);
                 _txPoolService.RemoveAsync(t.GetHash());
-                
-                // this could be improved
-                if (t.Type == TransactionType.CrossChainBlockInfoTransaction)
-                    pcbTx = t;
             }
             
             txResults.AsParallel().ForEach(async r =>
@@ -338,10 +333,6 @@ namespace AElf.Miner.Miner
                 r.BlockNumber = bn;
                 r.BlockHash = bh;
                 await _transactionResultManager.AddTransactionResultAsync(r);
-                if (pcbTx == null || !pcbTx.GetHash().Equals(r.TransactionId)) 
-                    return;
-                var parentChainBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(pcbTx.Params.ToByteArray());
-                await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
             });
         }
         
@@ -367,7 +358,9 @@ namespace AElf.Miner.Miner
                         "Inconsistent side chain info. Something about side chain would be chaos if you see this. ");
             }
             // update parent chain info
-            _clientManager.TryRemoveParentChainBlockInfo(block.ParentChainBlockInfo);
+            if(!await _clientManager.UpdateParentChainBlockInfo(block.ParentChainBlockInfo))
+                throw new InvalidBlockException(
+                "Inconsistent parent chain info. Something about parent chain would be chaos if you see this. ");
         }
         
         #endregion

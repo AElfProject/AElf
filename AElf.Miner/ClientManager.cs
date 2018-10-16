@@ -284,9 +284,9 @@ namespace AElf.Miner
                 return false;
             // TODO: this could be changed.
             await UpdateSideChainInfo(blockInfo);
-            client.Take();
-            _logger.Trace($"Remove side chain Info from {blockInfo.ChainId} at height {blockInfo.Height}");
-            return  true;
+            var scb = client.Take();
+            _logger.Trace($"Remove side chain Info from {scb.ChainId} at height {scb.Height}");
+            return scb.Equals(blockInfo);
 
         }
         
@@ -299,14 +299,17 @@ namespace AElf.Miner
         /// Return true if client for that chain is not existed which means the parent chain is not available.
         /// Return false if it is not same or client for that chain is not existed.
         /// </returns>
-        public bool TryRemoveParentChainBlockInfo(ParentChainBlockInfo blockInfo)
+        private bool TryRemoveParentChainBlockInfo(ParentChainBlockInfo blockInfo)
         {
+            _logger.Trace($"To remove parent chain info at height {blockInfo?.Height}");
             if (_clientToParentChain == null || blockInfo == null)
                 // TODO: this could be changed
                 return true;
             if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(blockInfo))
                 return false;
-            return _clientToParentChain.Take() != null;
+            var pcb = _clientToParentChain.Take();
+            _logger.Trace($"Remove parent chain info at height {pcb.Height}");
+            return pcb.Equals(blockInfo);
         }
 
         /// <summary>
@@ -315,7 +318,7 @@ namespace AElf.Miner
         /// <returns>
         /// return the first one cached by <see cref="ClientToParentChain"/>
         /// </returns>
-        public async Task<ParentChainBlockInfo> CollectParentChainBlockInfo()
+        public async Task<ParentChainBlockInfo> TryGetParentChainBlockInfo()
         {
             if (!GrpcLocalConfig.Instance.ClientToParentChain)
                 throw new ClientShutDownException("Client to parent chain is shut down");
@@ -338,11 +341,8 @@ namespace AElf.Miner
         /// <returns></returns>
         public async Task<bool> UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
         {
-            if (_clientToParentChain == null)
-                return true;
-            if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(parentChainBlockInfo))
+            if (!TryRemoveParentChainBlockInfo(parentChainBlockInfo))
                 return false;
-            _clientToParentChain.Take();
             await _chainManagerBasic.UpdateCurrentBlockHeightAsync(parentChainBlockInfo.ChainId,
                 parentChainBlockInfo.Height + 1);
             return true;
