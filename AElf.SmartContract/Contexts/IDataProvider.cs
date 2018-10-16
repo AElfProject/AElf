@@ -34,8 +34,6 @@ namespace AElf.SmartContract
 
         Dictionary<StatePath, StateValue> GetChanges();
 
-        IEnumerable<StateValueChange> GetValueChanges();
-        
         /// <summary>
         /// Injected from outside for entry data provider of the executive (in worker actor)
         /// </summary>

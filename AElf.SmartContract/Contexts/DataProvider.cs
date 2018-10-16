@@ -20,20 +20,6 @@ namespace AElf.SmartContract
             // placeholder
             return new Dictionary<StatePath, StateValue>();
         }
-        public IEnumerable<StateValueChange> GetValueChanges()
-        {
-            var changes = new List<StateValueChange>();
-            foreach (var keyState in StateCache)
-            {
-                changes.Add(new StateValueChange
-                {
-                    Path = keyState.Key,
-                    CurrentValue = ByteString.CopyFrom(keyState.Value.CurrentValue ?? new byte[0])
-                });
-            }
-
-            return changes;
-        }
 
         private int Layer { get; }
 

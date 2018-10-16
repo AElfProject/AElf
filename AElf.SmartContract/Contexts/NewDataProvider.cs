@@ -177,28 +177,6 @@ namespace AElf.SmartContract
             return GetChild(dataProviderKey);
         }
 
-        public IEnumerable<StateValueChange> GetValueChanges()
-        {
-            var changes = new List<StateValueChange>();
-            foreach (var kv in GetChanges())
-            {
-                var c = new StateValueChange()
-                {
-                    CurrentValue = kv.Value.CurrentValue,
-                    Path = new DataPath()
-                    {
-                        ChainId = ChainId,
-                        ContractAddress = ContractAddress,
-                        KeyHash = Hash.FromMessage(kv.Key),
-                        StatePath = kv.Key
-                    }
-                };
-                changes.Add(c);
-            }
-
-            return changes;
-        }
-
         private Dictionary<DataPath, StateCache> _stateCache = new Dictionary<DataPath, StateCache>();
 
         public Dictionary<DataPath, StateCache> StateCache
