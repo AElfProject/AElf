@@ -72,7 +72,7 @@ namespace AElf.Miner.Rpc.Client
 
         private int AdjustInterval()
         {
-            return Math.Max(_realInterval * 2, UnavailableConnectionInterval);
+            return Math.Min(_realInterval * 2, UnavailableConnectionInterval);
         }
 
         /// <summary>
