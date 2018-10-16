@@ -67,11 +67,6 @@ message TransactionResult {
     MerklePath MerklePath = 9;
 }
 
-message StateValueChange{
-    DataPath Path = 1;
-    bytes CurrentValue = 2;
-}
-
 message LogEvent {
     Address Address = 1;
     repeated bytes Topics = 2;
