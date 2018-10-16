@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -54,14 +56,15 @@ namespace AElf.ChainController
                 Hash.FromTwoHashes(accountDataContext.ChainId, Hash.FromMessage(accountDataContext.Address)),
                 accountDataContext, (hash, context) => accountDataContext);
 
-            var adp = _stateDictator.GetAccountDataProvider(accountDataContext.Address);
+            var dp = _stateDictator.GetAccountDataProvider(accountDataContext.Address).GetDataProvider();
 
             //await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
-            await adp.GetDataProvider().SetDataAsync(GetKeyForIncrementId(), new UInt64Value
+            await dp.SetAsync<UInt64Value>(GetKeyForIncrementId(), new UInt64Value
             {
                 Value = accountDataContext.IncrementId
-            });
-
+            }.ToByteArray());
+            var state = dp.GetChanges().ToDictionary(kv=>kv.Key, kv=>kv.Value.CurrentValue.ToByteArray());
+            await _stateDictator.StateStore.PipelineSetDataAsync(state);
         }
 
         private Hash GetKeyForIncrementId()

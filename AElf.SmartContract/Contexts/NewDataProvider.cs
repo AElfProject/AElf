@@ -156,12 +156,6 @@ namespace AElf.SmartContract
 
         #region temporary conform to interface
 
-        public async Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new()
-        {
-            var sp = GetStatePathFor(keyHash.DumpHex(), true);
-            await _stateStore.SetAsync(sp, obj.ToByteArray());
-        }
-
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
             return await GetAsync(keyHash.DumpHex());

@@ -164,7 +164,7 @@ namespace AElf.SmartContract
         /// </summary>
         /// <param name="keyHash"></param>
         /// <returns></returns>
-        public async Task<T> GetDataAsync<T>(Hash keyHash) where T : IMessage, new()
+        private async Task<T> GetDataAsync<T>(Hash keyHash) where T : IMessage, new()
         {
             var dataPath = _dataPath.Clone();
             dataPath.SetDataKey(keyHash);

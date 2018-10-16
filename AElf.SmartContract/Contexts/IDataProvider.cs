@@ -23,15 +23,6 @@ namespace AElf.SmartContract
 
         Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new();
 
-        /// <summary>
-        /// Set data to database.
-        /// </summary>
-        /// <param name="keyHash"></param>
-        /// <param name="obj"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new();
-
         Dictionary<StatePath, StateValue> GetChanges();
 
         /// <summary>
