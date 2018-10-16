@@ -15,6 +15,7 @@ using NLog;
 using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using AElf.Common;
+using NServiceKit.Common.Web;
 
 namespace AElf.Miner.Miner
 {
@@ -240,11 +241,20 @@ namespace AElf.Miner.Miner
             {
                 var parentBlockInfo = ParentChainBlockInfo.Parser.ParseFrom(transaction.Params.ToByteArray());
                 var cached = await _clientManager.CollectParentChainBlockInfo();
-                if(cached == null)
+                if (cached == null)
+                {
                     _logger.Trace("Not found cached parent block info");
-                if(!cached.Equals(parentBlockInfo))
-                    _logger.Trace($"Found cached parent block info at {cached.Height}, not {parentBlockInfo.Height}");
-                return cached != null && cached.Equals(parentBlockInfo);
+                    return false;
+                }
+
+                if (cached.Equals(parentBlockInfo)) 
+                    return true;
+                _logger.Trace($"Found cached parent block info at {cached}, not {parentBlockInfo}");
+                _logger.Trace($"cached height {cached.Height}, receieved height {parentBlockInfo.Height}");
+                _logger.Trace($"cached chainId {cached.ChainId}, receieved chainId {parentBlockInfo.ChainId}");
+                _logger.Trace($"cached SideChainTransactionsRoot {cached.Root.SideChainTransactionsRoot}, receieved SideChainTransactionsRoot {parentBlockInfo.Root.SideChainTransactionsRoot}");
+                _logger.Trace($"cached SideChainBlockHeadersRoot {cached.Root.SideChainBlockHeadersRoot}, receieved SideChainBlockHeadersRoot {parentBlockInfo.Root.SideChainBlockHeadersRoot}");
+                return false;
             }
             catch (Exception e)
             {
