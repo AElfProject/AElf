@@ -21,6 +21,7 @@ namespace AElf.ChainController
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
             builder.RegisterType<BlockSyncService>().As<IBlockSyncService>().SingleInstance();
             builder.RegisterType<BlockExecutionService>().As<IBlockExecutionService>().SingleInstance();
+            builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
         }
     }
 }

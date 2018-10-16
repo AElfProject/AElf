@@ -43,7 +43,6 @@ namespace AElf.Miner.Miner
         private IBlockChain _blockChain;
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
-        private readonly ServerManager _serverManager;
 
         private IMinerConfig Config { get; }
 
@@ -52,7 +51,7 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
             ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, 
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -64,11 +63,11 @@ namespace AElf.Miner.Miner
             _logger = logger;
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
-            _serverManager = serverManager;
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Mine process.
         /// </summary>
@@ -86,21 +85,15 @@ namespace AElf.Miner.Miner
                         return null;
 
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
-                    var genTx= await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
-                    
+                    var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo,
+                        _stateDictator.BlockProducerAccountAddress);
+
                     // remove invalid CrossChainBlockInfoTransaction, only that from local can be executed)
                     /*readyTxs.RemoveAll(t =>
                         t.Type == TransactionType.CrossChainBlockInfoTransaction &&
                         !t.GetHash().Equals(genTx.GetHash()));*/
-                    
-                    var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
-                    _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
-                    foreach (var transaction in dposTxs)
-                    {
-                        _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName} from {transaction.From.DumpHex()}");
-                    }
-                    
+
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
@@ -116,7 +109,7 @@ namespace AElf.Miner.Miner
 
                     // broadcast
                     BroadcastBlock(block);
-                    
+
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
                     // put back canceled transactions
@@ -124,7 +117,7 @@ namespace AElf.Miner.Miner
                     _txPoolService.Revert(rollback);
                     // insert to db
                     Update(executed, results, block, parentChainBlockInfo, genTx);
-                    
+
                     return block;
                 }
                 catch (Exception e)

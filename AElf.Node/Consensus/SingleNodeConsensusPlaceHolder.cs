@@ -23,6 +23,11 @@ namespace AElf.Kernel.Node
             await Task.CompletedTask;
         }
 
+        public void Stop()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task Update()
         {
             await Task.CompletedTask;

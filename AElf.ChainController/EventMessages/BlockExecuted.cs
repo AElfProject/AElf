@@ -2,7 +2,7 @@ using AElf.Kernel;
 
 namespace AElf.ChainController.EventMessages
 {
-    public class BlockExecuted
+    public sealed class BlockExecuted
     {
         public BlockExecuted(IBlock block)
         {

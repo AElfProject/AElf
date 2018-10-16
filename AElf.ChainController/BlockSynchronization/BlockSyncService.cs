@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Easy.MessageHub;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
     public class BlockSyncService : IBlockSyncService
@@ -14,9 +15,8 @@ namespace AElf.ChainController
         private readonly IChainService _chainService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockExecutionService _blockExecutionService;
-        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
 
-        private readonly IBlockCollection _blockCollection = new BlockCollection();
+        private readonly IBlockSet _blockSet = new BlockSet();
 
         private IBlockChain _blockChain;
 
@@ -25,12 +25,11 @@ namespace AElf.ChainController
                                                   Hash.LoadHex(NodeConfig.Instance.ChainId)));
 
         public BlockSyncService(IChainService chainService, IBlockValidationService blockValidationService,
-            IBlockExecutionService blockExecutionService, IBinaryMerkleTreeManager binaryMerkleTreeManager)
+            IBlockExecutionService blockExecutionService)
         {
             _chainService = chainService;
             _blockValidationService = blockValidationService;
             _blockExecutionService = blockExecutionService;
-            _binaryMerkleTreeManager = binaryMerkleTreeManager;
         }
 
         public async Task ReceiveBlock(IBlock block)
@@ -39,11 +38,10 @@ namespace AElf.ChainController
                 await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
 
             var message = new BlockAccepted(block, blockValidationResult);
-            MessageHub.Instance.Publish(message);
 
             if (blockValidationResult == BlockValidationResult.Success)
             {
-                await HandleValidBlock(block);
+                await HandleValidBlock(message);
             }
             else
             {
@@ -53,24 +51,21 @@ namespace AElf.ChainController
 
         public async Task AddMinedBlock(IBlock block)
         {
-            await _blockCollection.Tell(block.Header.Index);
+            await _blockSet.Tell(block.Header.Index);
         }
 
-        private async Task HandleValidBlock(IBlock block)
+        private async Task HandleValidBlock(BlockAccepted message)
         {
-            var executionResult = await _blockExecutionService.ExecuteBlock(block);
+            var executionResult = await _blockExecutionService.ExecuteBlock(message.Block);
             if (executionResult == BlockExecutionResultCC.Success)
             {
-                await _blockCollection.Tell(block.Header.Index);
+                await _blockSet.Tell(message.Block.Header.Index);
+                MessageHub.Instance.Publish(message);
+                MessageHub.Instance.Publish(UpdateConsensus.Update);
             }
             else
             {
-                await BlockChain.AddBlocksAsync(new List<IBlock> {block});
-                await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
-                    block.Header.ChainId,
-                    block.Header.Index);
-                await _binaryMerkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
-                    block.Body.BinaryMerkleTreeForSideChainTransactionRoots, block.Header.ChainId, block.Header.Index);
+                // rollback
             }
         }
 

@@ -95,6 +95,31 @@ namespace AElf.Node.AElfChain
             {
                 await _txPoolService.AddTxAsync(inTx.Transaction);
             });
+            
+            MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
+            {
+                if (option == UpdateConsensus.Update)
+                {
+                    _consensus?.Update();
+                }
+
+                if (option == UpdateConsensus.Dispose)
+                {
+                    _consensus?.Stop();
+                }
+            });
+
+            MessageHub.Instance.Subscribe<SyncStateChanged>(inState =>
+            {
+                if (!inState.IsSyncing)
+                {
+                    _consensus?.Start();
+                }
+                else
+                {
+                    _consensus?.Stop();
+                }
+            });
         }
 
         #region Genesis Contracts
@@ -250,6 +275,8 @@ namespace AElf.Node.AElfChain
             else
             {
                 StartMining();
+                // Start directly.
+                _consensus?.Start();
             }
 
             #endregion start
@@ -348,12 +375,10 @@ namespace AElf.Node.AElfChain
                     _consensus = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer);
                     break;
 
-                //TODO: Invalid for now, will be removed if useless.
                 case ConsensusType.PoTC:
                     _consensus = new PoTC(_miner, _txPoolService);
                     break;
 
-                //TODO: Invalid for now, will be removed if useless.
                 case ConsensusType.SingleNode:
                     _consensus = new StandaloneNodeConsensusPlaceHolder();
                     break;
@@ -366,7 +391,6 @@ namespace AElf.Node.AElfChain
                 return;
             
             SetupConsensus();
-            _consensus?.Start();
         }
         
         #endregion private methods
@@ -397,7 +421,8 @@ namespace AElf.Node.AElfChain
         /// <returns></returns>
         public async Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block)
         {
-            try
+            throw new NotImplementedException();
+            /*try
             {
                 var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
                 var context = await _chainContextService.GetChainContextAsync(chainId);
@@ -450,7 +475,7 @@ namespace AElf.Node.AElfChain
             {
                 _logger?.Error(e, "Block synchronzing failed");
                 return new BlockExecutionResult(e);
-            }
+            }*/
         }
 
         #endregion Legacy Methods

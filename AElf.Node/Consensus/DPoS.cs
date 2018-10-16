@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common;
@@ -20,6 +21,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Common;
+using AElf.Node.EventMessages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -140,6 +142,12 @@ namespace AElf.Kernel.Node
             }
         }
 
+        public void Stop()
+        {
+            ConsensusDisposable?.Dispose();
+            _logger?.Trace("Mining stopped. Disposed previous consensus observables list.");
+        }
+
         private async Task<IBlock> Mine()
         {
             var res = Interlocked.CompareExchange(ref _flag, 1, 0);
@@ -163,7 +171,7 @@ namespace AElf.Kernel.Node
                 try
                 {
                     // Update DPoS observables.
-                    await Update();
+                    MessageHub.Instance.Publish(UpdateConsensus.Update);
                 }
                 catch (Exception e)
                 {

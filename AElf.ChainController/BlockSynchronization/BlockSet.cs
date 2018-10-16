@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -9,15 +10,21 @@ using NLog;
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
-    public class BlockCollection : IBlockCollection
+    public class BlockSet : IBlockSet
     {
         private readonly ILogger _logger;
 
         private readonly HashSet<IBlock> _blocks = new HashSet<IBlock>();
+
+        /// <summary>
+        /// (Block height, Block hash) - 
+        /// </summary>
+        private readonly Dictionary<Tuple<ulong, string>, IBlock> _blockDict =
+            new Dictionary<Tuple<ulong, string>, IBlock>();
         
-        public BlockCollection()
+        public BlockSet()
         {
-            _logger = LogManager.GetLogger(nameof(BlockCollection));
+            _logger = LogManager.GetLogger(nameof(BlockSet));
         }
         
         public async Task AddBlock(IBlock block)

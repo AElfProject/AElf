@@ -27,6 +27,11 @@ namespace AElf.Kernel.Node
             //await Node.Mine();
         }
 
+        public void Stop()
+        {
+            throw new System.NotImplementedException();
+        }
+
         // ReSharper disable once InconsistentNaming
         public async Task Update()
         {
