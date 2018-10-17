@@ -1,4 +1,5 @@
-﻿using AElf.Common.Enums;
+﻿using AElf.ChainController;
+using AElf.Common.Enums;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Node;
 using AElf.Network;
@@ -18,7 +19,7 @@ namespace AElf.Node
             builder.RegisterType<P2PHandler>().PropertiesAutowired();
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
-            builder.RegisterType<ChainController.BlockSet>().As<ChainController.IBlockSet>().SingleInstance();
+            builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {

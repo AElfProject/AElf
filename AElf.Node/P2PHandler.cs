@@ -22,6 +22,11 @@ namespace AElf.Kernel.Node
             return (Block) await ChainService.GetBlockChain(Hash.Default).GetBlockByHeightAsync((ulong)height);
         }
 
+        public async Task<Block> GetBlockFromHash(Hash hash)
+        {
+            return await Task.Run(() => (Block) ChainService.GetBlockByHash(hash));
+        }
+
         public async Task<Transaction> GetTransaction(Hash txId)
         {
             if (TxPoolService.TryGetTx(txId, out var tx))

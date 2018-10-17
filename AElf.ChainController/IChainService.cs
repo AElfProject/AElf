@@ -9,6 +9,6 @@ namespace AElf.ChainController
         IBlockChain GetBlockChain(Hash chainId);
         ILightChain GetLightChain(Hash chainId);
         bool IsBlockReceived(Hash blockHash, ulong height);
-        IBlock GetBlockByHashAsync(Hash blockHash);
+        IBlock GetBlockByHash(Hash blockHash);
     }
 }

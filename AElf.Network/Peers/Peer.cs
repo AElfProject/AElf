@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Timers;
@@ -181,6 +182,8 @@ namespace AElf.Network.Peers
             _messageWriter = writer;
 
             CurrentHeight = currentHeight;
+            
+            _blocks = new List<ValidatingBlock>();
         }
 
         private void SetupHeartbeat()

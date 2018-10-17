@@ -26,5 +26,7 @@ namespace AElf.Network.Peers
         void EnqueueOutgoing(Message msg);
         void Sync(int start, int target);
         void OnNewBlockAccepted(IBlock block);
+
+        bool AnySyncing();
     }
 }
