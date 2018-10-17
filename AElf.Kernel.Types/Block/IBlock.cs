@@ -14,5 +14,6 @@ namespace AElf.Kernel
         bool AddTransactions(IEnumerable<Transaction> txHashes);
         void Sign(ECKeyPair keyPair);
         byte[] GetHashBytes();
+        ParentChainBlockInfo ParentChainBlockInfo { get; set; }
     }
 }

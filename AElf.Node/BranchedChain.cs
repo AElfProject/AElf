@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +8,7 @@ using AElf.Node.Protocol;
 // ReSharper disable once CheckNamespace
 namespace AElf.Node
 {
-    public class BranchedChain
+    public class BranchedChain : IComparable<BranchedChain>
     {
         public BranchedChain(PendingBlock first, IReadOnlyCollection<PendingBlock> list)
         {
@@ -100,6 +101,7 @@ namespace AElf.Node
                 return true;
             }
         }
+        public int CompareTo(BranchedChain other) { return EndHeight.CompareTo(other.EndHeight); }
 
         public ulong EndHeight { get; set; }
 

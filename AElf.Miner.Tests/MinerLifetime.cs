@@ -259,7 +259,8 @@ namespace AElf.Kernel.Tests.Miner
             var manager = _mock.MinerClientManager();
             var miner = _mock.GetMiner(minerconfig, poolService, manager);
 
-            GrpcLocalConfig.Instance.Client = false;
+            //GrpcLocalConfig.Instance.ClientToParentChain = false;
+            GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
             //GrpcRemoteConfig.Instance.ParentChain = null;
             NodeConfig.Instance.ECKeyPair = keypair;
@@ -292,7 +293,8 @@ namespace AElf.Kernel.Tests.Miner
             var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
             var manager = _mock.MinerClientManager();
             var miner = _mock.GetMiner(minerconfig, poolService, manager);
-            GrpcLocalConfig.Instance.Client = false;
+            //GrpcLocalConfig.Instance.ClientToParentChain = false;
+            GrpcLocalConfig.Instance.ClientToSideChain = false;
             //GrpcRemoteConfig.Instance.ParentChain = null;
             NodeConfig.Instance.ECKeyPair = keypair;
             miner.Init();
@@ -343,7 +345,7 @@ namespace AElf.Kernel.Tests.Miner
             var manager = _mock.MinerClientManager();
             var synchronizer = _mock.GetBlockExecutor(poolService, manager);
 
-            synchronizer.Start();
+            synchronizer.Init();
             var res = await synchronizer.ExecuteBlock(block);
             Assert.False(res);
 

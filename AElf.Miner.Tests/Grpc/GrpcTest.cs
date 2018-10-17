@@ -63,7 +63,7 @@ namespace AElf.Miner.Tests.Grpc
                         }
                     }
                 };
-                GrpcLocalConfig.Instance.Client = true;
+                GrpcLocalConfig.Instance.ClientToSideChain = true;
                 manager.Init(dir, t);
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
@@ -117,7 +117,6 @@ namespace AElf.Miner.Tests.Grpc
                 // create client, main chain is client-side
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
-                GrpcLocalConfig.Instance.Client = true;
                 // for client
                 
                 GrpcRemoteConfig.Instance.ParentChain = new Dictionary<string, Uri>
@@ -129,11 +128,12 @@ namespace AElf.Miner.Tests.Grpc
                         }
                     }
                 };
+                GrpcLocalConfig.Instance.ClientToParentChain = true;
                 manager.Init(dir, t);
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
                 Thread.Sleep(t/2);
-                var result = await manager.CollectParentChainBlockInfo();
+                var result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)0, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
@@ -141,7 +141,7 @@ namespace AElf.Miner.Tests.Grpc
                 Assert.True(await manager.UpdateParentChainBlockInfo(result));
                 
                 Thread.Sleep(t);
-                result = await manager.CollectParentChainBlockInfo();
+                result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)1, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
@@ -149,7 +149,7 @@ namespace AElf.Miner.Tests.Grpc
                 Assert.True(await manager.UpdateParentChainBlockInfo(result));
 
                 Thread.Sleep(t);
-                result = await manager.CollectParentChainBlockInfo();
+                result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)2, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
@@ -200,7 +200,7 @@ namespace AElf.Miner.Tests.Grpc
                     }
                 };
                 
-                GrpcLocalConfig.Instance.Client = true;
+                GrpcLocalConfig.Instance.ClientToSideChain = true;
                 manager.Init(dir, t);
                 var miner = _mock.GetMiner(minerConfig, poolService, manager);
                 miner.Init();

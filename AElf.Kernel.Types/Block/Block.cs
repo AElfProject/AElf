@@ -62,6 +62,8 @@ namespace AElf.Kernel
             Header.S = ByteString.CopyFrom(signature.S);
         }
 
+        public ParentChainBlockInfo ParentChainBlockInfo { get; set; }
+
         public void FillTxsMerkleTreeRootInHeader()
         {
             Header.MerkleTreeRootOfTransactions = Body.CalculateMerkleTreeRoots();

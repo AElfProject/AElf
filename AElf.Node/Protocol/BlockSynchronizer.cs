@@ -139,6 +139,7 @@ namespace AElf.Node.Protocol
         /// Handles a list of transactions sent by another node, these transactions are either
         /// issues from a broadcast or a request.
         /// </summary>
+        /// <param name="msg"></param>
         /// <returns></returns>
         private async Task HandleTransactionMessage(TransactionsReceivedEventArgs txsEventArgs)
         {
@@ -167,8 +168,7 @@ namespace AElf.Node.Protocol
                     }
                     else
                     {
-                        _logger?.Warn($"Failed to add the following transaction to the pool (reason: {result}): "
-                                      + $"{tx.GetTransactionInfo()}");
+                        //_logger?.Warn($"Failed to add the following transaction to the pool (reason: {result}): " + $"{tx.GetTransactionInfo()}");
 
                         foreach (var pendingBlock in PendingBlocks)
                         {
@@ -243,7 +243,7 @@ namespace AElf.Node.Protocol
                     if (!_currentBlockRequests.Contains(i))
                     {
                         _currentBlockRequests.Add(i);
-                        //_networkManager.QueueBlockRequestByIndex(i);
+                        _networkManager.QueueBlockRequestByIndex(i);
 
                         Thread.Sleep(5);
 
@@ -474,18 +474,18 @@ namespace AElf.Node.Protocol
             var toRemove = new List<PendingBlock>();
             var executed = new List<PendingBlock>();
 
-            var blocks = pendingBlocks.ToList();
-            foreach (var pendingBlock in blocks)
+            var blcks = pendingBlocks.ToList();
+            foreach (var pendingBlock in blcks)
             {
                 var block = pendingBlock.Block;
 
                 var res = await _mainChainNode.ExecuteAndAddBlock(block);
-                pendingBlock.BlockValidationResult = res.BlockValidationResult;
+                pendingBlock.ValidationError = res.ValidationError;
 
                 var blockHexHash = block.GetHash().Value.ToByteArray().ToHex();
                 int blockIndex = (int) block.Header.Index;
 
-                if (res.BlockValidationResult == BlockValidationResult.Success)
+                if (res.ValidationError == ValidationError.Success)
                 {
                     if (res.Executed)
                     {
@@ -512,8 +512,8 @@ namespace AElf.Node.Protocol
                 else
                 {
                     // The blocks validation failed
-                    if (res.BlockValidationResult == BlockValidationResult.AlreadyExecuted
-                        || res.BlockValidationResult == BlockValidationResult.OrphanBlock)
+                    if (res.ValidationError == ValidationError.AlreadyExecuted
+                        || res.ValidationError == ValidationError.OrphanBlock)
                     {
                         // The block is an earlier block and one with the same
                         // height as already been executed so it can safely be
@@ -526,14 +526,14 @@ namespace AElf.Node.Protocol
                         }
 
                         _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }} " +
-                                      $"ignored because validation returned {res.BlockValidationResult}.");
+                                      $"ignored because validation returned {res.ValidationError}.");
                     }
-                    else if (res.BlockValidationResult == BlockValidationResult.Pending)
+                    else if (res.ValidationError == ValidationError.Pending)
                     {
                         // The current blocks index is higher than the current height so we're missing
                         if (!ShouldDoInitialSync && (int) block.Header.Index > CurrentExecHeight)
                         {
-                            //_networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
+                            _networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
                             _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }} is pending, " +
                                           $"requesting block with index {CurrentExecHeight}.");
                             break;
@@ -542,7 +542,7 @@ namespace AElf.Node.Protocol
                     else
                     {
                         _logger?.Warn(
-                            $"Block execution failed: {res.Executed}, {res.BlockValidationResult} - {{ id : {blockHexHash}, index: {blockIndex} }}");
+                            $"Block execution failed: {res.Executed}, {res.ValidationError} - {{ id : {blockHexHash}, index: {blockIndex} }}");
                     }
                 }
             }
@@ -556,7 +556,7 @@ namespace AElf.Node.Protocol
                 }
             }
 
-            if (ShouldDoInitialSync && CurrentExecHeight > SyncTargetHeight && (ulong) CurrentExecHeight >= BlockCollection.PendingBlockHeight)
+            if (ShouldDoInitialSync && CurrentExecHeight > SyncTargetHeight && BlockCollection.PendingBlocks.Count == 0)
             {
                 ShouldDoInitialSync = false;
                 IsInitialSyncInProgress = false;
@@ -571,7 +571,7 @@ namespace AElf.Node.Protocol
 
         /// <summary>
         /// This adds a transaction to one of the blocks. Typically this happens when
-        /// a transaction has been received through the network (requested by this
+        /// a transaction has been received throught the network (requested by this
         /// synchronizer).
         /// It removes the transaction from the corresponding missing block.
         /// </summary>

@@ -150,7 +150,8 @@ namespace AElf.Management.Commands
             {
                 LocalServerIP = "0.0.0.0",//arg.LauncherArg.ClusterIp,
                 LocalSideChainServerPort = GlobalSetting.GrpcPort,
-                Client = true,
+                ClientToParentChain = true,
+                ClientToSideChain = true,
                 WaitingIntervalInMillisecond = 10,
                 SideChainServer = true
             };

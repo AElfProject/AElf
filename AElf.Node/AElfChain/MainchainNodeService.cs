@@ -43,6 +43,7 @@ namespace AElf.Node.AElfChain
         private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockExecutor _blockExecutor;
         private readonly IBlockExecutionService _blockExecutionService;
+        private readonly TxHub _txHub;
 
         private IBlockChain _blockChain;
         private IConsensus _consensus;
@@ -61,6 +62,7 @@ namespace AElf.Node.AElfChain
             IBlockExecutor blockExecutor,
             IBlockSynchronizer synchronizer,
             IMiner miner,
+            TxHub txHub,
             IP2P p2p,
             IBlockExecutionService blockExecutionService,
             ILogger logger)
@@ -72,6 +74,7 @@ namespace AElf.Node.AElfChain
             _logger = logger;
             _blockExecutionService = blockExecutionService;
             _miner = miner;
+            _txHub = txHub;
             _p2p = p2p;
             _accountContextService = accountContextService;
             _blockValidationService = blockValidationService;
@@ -204,6 +207,8 @@ namespace AElf.Node.AElfChain
             _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
 
+            _txHub.CurrentHeightGetter = ()=> _blockChain.GetCurrentBlockHeightAsync().Result;
+            MessageHub.Instance.Subscribe<BlockHeader>((bh)=>_txHub.OnNewBlockHeader(bh));
             SetupConsensus();
         }
 
@@ -255,9 +260,9 @@ namespace AElf.Node.AElfChain
             #region start
 
             _txPoolService.Start();
-            //Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
-
-            _blockExecutor.Start();
+            Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerator));
+            
+            _blockExecutor.Init();
             _blockExecutionService.Start();
 
             if (NodeConfig.Instance.IsMiner)
@@ -391,10 +396,20 @@ namespace AElf.Node.AElfChain
         
         private void StartMining()
         {
-            if (!NodeConfig.Instance.IsMiner) 
-                return;
+            if (NodeConfig.Instance.IsMiner)
+            {
+                SetupConsensus();
+                _consensus?.Start();
+            }
             
-            SetupConsensus();
+//            if (NodeConfig.Instance.IsMiner)
+//            {
+//                _miner.Init(_nodeKeyPair);
+//                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.DumpHex());
+//                SetupConsensus();
+//                _consensus?.Start();
+//            }
+//            _blockExecutor.FinishInitialSync();
         }
         
         #endregion private methods
@@ -414,74 +429,5 @@ namespace AElf.Node.AElfChain
 
             return height;
         }
-        
-        #region Legacy Methods
-
-        /// <summary>
-        /// Add a new block received from network by first validating it and then
-        /// executing it.
-        /// </summary>
-        /// <param name="block"></param>
-        /// <returns></returns>
-        public async Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block)
-        {
-            throw new NotImplementedException();
-            /*try
-            {
-                var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
-                var context = await _chainContextService.GetChainContextAsync(chainId);
-                var error = await _blockValidationService.ValidateBlockAsync(block, context);
-
-                if (error != BlockValidationResult.Success)
-                {
-                    var blockchain =
-                        _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
-                    var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
-                    if (error == BlockValidationResult.OrphanBlock)
-                    {
-                        if (block.Header.Index > localCorrespondingBlock.Header.Index)
-                        {
-                            var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
-                            await _txPoolService.Revert(txs);
-                            await _stateDictator.RollbackToPreviousBlock();
-                            error = BlockValidationResult.AnotherBranch;
-                        }
-                        else
-                        {
-                            return new BlockExecutionResult(false, BlockValidationResult.OrphanBlock);
-                        }
-                    }
-                    else
-                    {
-                        _logger?.Trace("Invalid block received from network: " + error);
-                        return new BlockExecutionResult(false, error);
-                    }
-                }
-
-                var executed = await _blockExecutor.ExecuteBlock(block);
-
-                if (executed)
-                {
-                    await _consensus.Update();
-                }
-                else
-                {
-                    if (DPoS.ConsensusDisposable != null)
-                    {
-                        DPoS.ConsensusDisposable.Dispose();
-                        _logger?.Trace("Disposed previous consensus observables list.");
-                    }
-                }
-
-                return new BlockExecutionResult(executed, error);
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Block synchronzing failed");
-                return new BlockExecutionResult(e);
-            }*/
-        }
-
-        #endregion Legacy Methods
     }
 }

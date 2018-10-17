@@ -90,8 +90,7 @@ namespace AElf.Miner.Rpc.Server
                         }
                     }
 
-                    _logger?.Log(LogLevel.Debug,
-                        $"Parent Chain Server responsed IndexedInfo message of height {requestedHeight}");
+                    //_logger?.Log(LogLevel.Debug, $"Parent Chain Server responsed IndexedInfo message of height {requestedHeight}");
                     await responseStream.WriteAsync(res);
                 }
             }
@@ -150,7 +149,7 @@ namespace AElf.Miner.Rpc.Server
                             .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
                     }
                 
-                    _logger?.Log(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");
+                    //_logger?.Log(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");
                     await responseStream.WriteAsync(res);
 
                     height++;

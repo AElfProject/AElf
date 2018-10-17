@@ -15,11 +15,12 @@ namespace AElf.Cryptography.Tests.SSL
             string dir = @"/tmp/";
             if(Directory.Exists(Path.Combine(dir, "certs")))
                 Directory.Delete(Path.Combine(dir, "certs"), true);
+            string chainIdStr = "0xb84fe09f32ac58fccf8946c42d81532370621acb000554b0e15a0affc6b4502d";
             var certificateStore = new CertificateStore(dir);
                 var keyPair =
-                    certificateStore.WriteKeyAndCertificate("0x32796e95ae7152aa7a554c181d3653c188f1", "192.168.197.11");
+                    certificateStore.WriteKeyAndCertificate(chainIdStr, "192.168.197.39");
             
-            using (StreamReader streamReader = new StreamReader(Path.Combine(dir, "certs", "0x32796e95ae7152aa7a554c181d3653c188f1" + ".cert.pem")))
+            using (StreamReader streamReader = new StreamReader(Path.Combine(dir, "certs", chainIdStr + ".cert.pem")))
             {
                 PemReader pr = new PemReader(streamReader);
                 X509Certificate certificate = (X509Certificate) pr.ReadObject();

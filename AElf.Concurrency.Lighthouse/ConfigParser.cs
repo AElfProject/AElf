@@ -27,6 +27,7 @@ namespace AElf.Concurrency.Lighthouse
 
         private void MapOptions(CliOptions opts)
         {   
+            ApplicationHelpers.SetDataDir(opts.DataDir);
             // Actor
             if (opts.ActorIsCluster.HasValue)
                 ActorConfig.Instance.IsCluster = opts.ActorIsCluster.Value;
@@ -43,10 +44,6 @@ namespace AElf.Concurrency.Lighthouse
             {
                 ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
             }
-
-            NodeConfig.Instance.DataDir = string.IsNullOrEmpty(opts.DataDir)
-                ? ApplicationHelpers.GetDefaultDataDir()
-                : opts.DataDir;
         }
     }
 }

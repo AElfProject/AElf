@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Security;
+using AElf.Common.Application;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
@@ -23,8 +24,8 @@ namespace AElf.Node
             {
                 try
                 {
-                    var ks = new AElfKeyStore(NodeConfig.Instance.DataDir);
-
+                    var ks = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
+                    
                     var pass = string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccountPassword)
                         ? AskInvisible(NodeConfig.Instance.NodeAccount)
                         : NodeConfig.Instance.NodeAccountPassword;

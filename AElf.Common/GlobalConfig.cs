@@ -37,12 +37,12 @@ namespace AElf.Common
 
         #endregion
 
-        #region AElf Side Chain
-
+        #region AElf Cross Chain
         public const string AElfTxRootMerklePathInParentChain = "__TxRootMerklePathInParentChain__";
         public const string AElfParentChainBlockInfo = "__ParentChainBlockInfo__";
         public const string AElfBoundParentChainHeight = "__BoundParentChainHeight__";
-
+        public static readonly int AElfInitCrossChainRequestInterval = AElfDPoSMiningInterval / 1000;
+        
         #endregion
 
         #region PoTC

@@ -17,7 +17,9 @@ namespace AElf.Miner.Rpc.Client
         private readonly ILogger _logger;
         private ulong _next;
         private readonly Hash _targetChainId;
-        private readonly int _interval;
+        private int _interval;
+        private int _realInterval;
+        private const int UnavailableConnectionInterval = 1_000;
 
         private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } =
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
@@ -27,8 +29,15 @@ namespace AElf.Miner.Rpc.Client
             _logger = logger;
             _targetChainId = targetChainId;
             _interval = interval;
+            _realInterval = _interval;
         }
 
+        public void UpdateRequestInterval(int interval)
+        {
+            _interval = interval;
+            _realInterval = _interval;
+        }
+        
         /// <summary>
         /// Task to read response in loop.
         /// </summary>
@@ -43,18 +52,27 @@ namespace AElf.Miner.Rpc.Client
                     var response = call.ResponseStream.Current;
 
                     // request failed or useless response
-                    if (!response.Success || response.Height != _next)
-                        continue;
-                    if (IndexedInfoQueue.TryAdd(response.BlockInfoResult))
+                    if (!response.Success)
                     {
-                        _next++;
-                        _logger.Debug(
-                            $"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
+                        _realInterval = AdjustInterval();
+                        continue;
                     }
+                    if(response.Height != _next || !IndexedInfoQueue.TryAdd(response.BlockInfoResult))
+                        continue;
+                    
+                    _next++;
+                    _realInterval = _interval;
+                    _logger.Trace(
+                        $"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
                 }
             });
 
             return responseReaderTask;
+        }
+
+        private int AdjustInterval()
+        {
+            return Math.Min(_realInterval * 2, UnavailableConnectionInterval);
         }
 
         /// <summary>
@@ -66,10 +84,8 @@ namespace AElf.Miner.Rpc.Client
         private async Task RequestLoop(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, 
             CancellationToken cancellationToken)
         {
-            // send request every second until cancellation
             while (!cancellationToken.IsCancellationRequested)
             {
-                
                 var request = new RequestBlockInfo
                 {
                     ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
@@ -77,7 +93,7 @@ namespace AElf.Miner.Rpc.Client
                 };
                 _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
-                await Task.Delay(_interval);
+                await Task.Delay(_realInterval);
             }
         }
 
@@ -110,6 +126,7 @@ namespace AElf.Miner.Rpc.Client
                 {
                     var detail = e.Status.Detail;
                     _logger.Error(detail + $" exception during request to chain {_targetChainId.DumpHex()}.");
+                    await Task.Delay(UnavailableConnectionInterval);
                     StartDuplexStreamingCall(cancellationToken, _next);
                     return;
                 }
@@ -195,7 +212,7 @@ namespace AElf.Miner.Rpc.Client
         /// <summary>
         /// Get cached count.
         /// </summary>
-        public int IndexedInfoQueueCount => IndexedInfoQueue.Count;
+        private int IndexedInfoQueueCount => IndexedInfoQueue.Count;
 
         protected abstract AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> Call();
         protected abstract AsyncServerStreamingCall<TResponse> Call(RequestBlockInfo requestBlockInfo);
