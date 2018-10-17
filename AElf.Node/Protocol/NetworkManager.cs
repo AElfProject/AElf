@@ -185,6 +185,7 @@ namespace AElf.Node.Protocol
         {
             Announce anc = new Announce();
             anc.Height = (int)block.Header.Index;
+            anc.Id = ByteString.CopyFrom(block.GetHashBytes());
 
             BroadcastMessage(AElfProtocolMsgType.Announcement, anc.ToByteArray());
         }
@@ -221,7 +222,7 @@ namespace AElf.Node.Protocol
 
         private void PeerOnSyncFinished(object sender, EventArgs e)
         {
-            // sync has finished            
+            // sync has finished
             CurrentSyncSource = null;
             
             // Check to see if any more catching up has to be done

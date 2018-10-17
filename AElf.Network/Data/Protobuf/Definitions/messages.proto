@@ -29,6 +29,7 @@ message ReqPeerListData {
 
 message BlockRequest {
     int32 Height = 1;
+    bytes Id = 2;
 }
 
 message Announce {
