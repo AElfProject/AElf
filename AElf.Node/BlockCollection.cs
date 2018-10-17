@@ -35,7 +35,7 @@ namespace AElf.Node
         /// <summary>
         /// To track the latest block height of local chain.
         /// </summary>
-        public ulong PendingBlockHeight { get; set; }
+        public static ulong PendingBlockHeight { get; set; }
 
         public ulong SyncedHeight =>
             _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId))
