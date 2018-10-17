@@ -281,8 +281,7 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         private async Task UpdateWorldState(IBlock block)
         {
-            await _stateDictator.SetBlockHashAsync(block.GetHash());
-            await _stateDictator.SetStateHashAsync(block.GetHash());
+            await _stateDictator.SetMap(block.GetHash());
             await _stateDictator.SetWorldStateAsync();
             var ws = await _stateDictator.GetLatestWorldStateAsync();
             string errlog = null;

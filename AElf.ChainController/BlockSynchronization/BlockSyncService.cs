@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
@@ -52,6 +53,7 @@ namespace AElf.ChainController
         public async Task AddMinedBlock(IBlock block)
         {
             await _blockSet.Tell(block.Header.Index);
+            await _blockSet.AddBlock(block);
             MessageHub.Instance.Publish(UpdateConsensus.Update);
         }
 

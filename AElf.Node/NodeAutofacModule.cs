@@ -18,9 +18,7 @@ namespace AElf.Node
             builder.RegisterType<P2PHandler>().PropertiesAutowired();
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
-            builder.RegisterType<BlockSynchronizer>().As<IBlockSynchronizer>().SingleInstance();
-            builder.RegisterType<AElf.ChainController.BlockSet>().As<AElf.ChainController.IBlockSet>()
-                .SingleInstance();
+            builder.RegisterType<ChainController.BlockSet>().As<ChainController.IBlockSet>().SingleInstance();
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {

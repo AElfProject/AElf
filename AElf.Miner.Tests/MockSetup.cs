@@ -40,11 +40,13 @@ namespace AElf.Miner.Tests
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IDataStore _dataStore;
+        private readonly ServerManager _serverManager;
         
-        public MockSetup(ILogger logger, IDataStore dataStore)
+        public MockSetup(ILogger logger, IDataStore dataStore, ServerManager serverManager)
         {
             _logger = logger;
             _dataStore = dataStore;
+            _serverManager = serverManager;
             Initialize();
         }
         
@@ -97,7 +99,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
-                clientManager, _binaryMerkleTreeManager);
+                clientManager, _binaryMerkleTreeManager, _serverManager);
 
             return miner;
         }

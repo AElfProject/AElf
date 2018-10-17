@@ -42,7 +42,6 @@ namespace AElf.Kernel.Node
         private readonly ITxPoolService _txPoolService;
         private readonly IMiner _miner;
         private readonly IBlockChain _blockchain;
-        private readonly IBlockSynchronizer _synchronizer;
         private readonly ILogger _logger;
 
         public static AElfDPoSHelper Helper;
@@ -66,15 +65,13 @@ namespace AElf.Kernel.Node
         public DPoS(IStateDictator stateDictator,
             ITxPoolService txPoolService,
             IMiner miner,
-            IBlockChain blockchain,
-            IBlockSynchronizer synchronizer
+            IBlockChain blockchain
         )
         {
             _stateDictator = stateDictator;
             _txPoolService = txPoolService;
             _miner = miner;
             _blockchain = blockchain;
-            _synchronizer = synchronizer;
             
             _logger = LogManager.GetLogger(nameof(DPoS));
             
@@ -180,8 +177,6 @@ namespace AElf.Kernel.Node
                 var block = await _miner.Mine(Helper.GetCurrentRoundInfo());
 
                 await _stateDictator.SetMap(block.GetHash());
-
-                _synchronizer.IncrementChainHeight();
 
                 MessageHub.Instance.Publish(new BlockMined(block));
 

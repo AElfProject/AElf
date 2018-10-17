@@ -39,9 +39,7 @@ namespace AElf.Node.AElfChain
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IStateDictator _stateDictator;
-        private readonly IBlockSynchronizer _synchronizer;
         private readonly IBlockSyncService _blockSyncService;
-        private readonly IBlockExecutor _blockExecutor;
         private readonly IBlockExecutionService _blockExecutionService;
         private readonly TxHub _txHub;
 
@@ -60,7 +58,6 @@ namespace AElf.Node.AElfChain
             IStateDictator stateDictator,
             IChainService chainService,
             IBlockExecutor blockExecutor,
-            IBlockSynchronizer synchronizer,
             IMiner miner,
             TxHub txHub,
             IP2P p2p,
@@ -80,8 +77,6 @@ namespace AElf.Node.AElfChain
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
             _stateDictator = stateDictator;
-            _blockExecutor = blockExecutor;
-            _synchronizer = synchronizer;
             _blockSyncService = blockSyncService;
             
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
@@ -260,10 +255,7 @@ namespace AElf.Node.AElfChain
             #region start
 
             _txPoolService.Start();
-            Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerator));
-            
-            _blockExecutor.Init();
-            _blockExecutionService.Start();
+            _blockExecutionService.Init();
 
             if (NodeConfig.Instance.IsMiner)
             {
@@ -277,11 +269,7 @@ namespace AElf.Node.AElfChain
 
             Thread.Sleep(1000);
 
-            if (!NodeConfig.Instance.ConsensusInfoGenerator)
-            {
-                _synchronizer.SyncFinished += (s, e) => { StartMining(); };
-            }
-            else
+            if (NodeConfig.Instance.ConsensusInfoGenerator)
             {
                 StartMining();
                 // Start directly.
@@ -303,9 +291,10 @@ namespace AElf.Node.AElfChain
             return _consensus.IsAlive();
         }
 
+        // TODO: 
         public bool IsForked()
         {
-            return _synchronizer.IsForked();
+            return false;
         }
 
         #region private methods
@@ -381,7 +370,7 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer);
+                    _consensus = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain);
                     break;
 
                 case ConsensusType.PoTC:

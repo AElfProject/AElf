@@ -244,7 +244,7 @@ namespace AElf.ChainController
             return res;
         }
 
-        public void Start()
+        public void Init()
         {
             Cts = new CancellationTokenSource();
         }

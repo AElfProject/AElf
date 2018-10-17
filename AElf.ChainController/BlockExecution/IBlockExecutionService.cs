@@ -8,6 +8,6 @@ namespace AElf.ChainController
     public interface IBlockExecutionService
     {
         Task<BlockExecutionResultCC> ExecuteBlock(IBlock block);
-        void Start();
+        void Init();
     }
 }
