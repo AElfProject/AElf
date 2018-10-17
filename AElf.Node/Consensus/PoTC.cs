@@ -4,6 +4,7 @@ using AElf.Miner.Miner;
 using NLog;
 using AElf.Common;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
 {
     // ReSharper disable InconsistentNaming
@@ -28,6 +29,16 @@ namespace AElf.Kernel.Node
         }
 
         public void Stop()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Hang()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Recover()
         {
             throw new System.NotImplementedException();
         }

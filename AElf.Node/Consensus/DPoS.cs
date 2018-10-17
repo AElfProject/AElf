@@ -60,8 +60,7 @@ namespace AElf.Kernel.Node
 
         private int _flag;
 
-        private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(_logger,
-            MiningWithInitializingAElfDPoSInformation,
+        private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
         public DPoS(IStateDictator stateDictator,
@@ -115,6 +114,12 @@ namespace AElf.Kernel.Node
 
         public async Task Start()
         {
+            if (ConsensusDisposable != null)
+            {
+                Recover();
+                return;
+            }
+            
             if (isMining)
                 return;
 
@@ -146,6 +151,16 @@ namespace AElf.Kernel.Node
         {
             ConsensusDisposable?.Dispose();
             _logger?.Trace("Mining stopped. Disposed previous consensus observables list.");
+        }
+
+        public void Hang()
+        {
+            Interlocked.CompareExchange(ref _flag, 1, 0);
+        }
+
+        public void Recover()
+        {
+            Interlocked.CompareExchange(ref _flag, 0, 1);
         }
 
         private async Task<IBlock> Mine()
@@ -240,8 +255,6 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithInitializingAElfDPoSInformation()
         {
-            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.InitializeAElfDPoS));
-            
             var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
             var parameters = new List<byte[]>
             {
@@ -252,6 +265,8 @@ namespace AElf.Kernel.Node
             };
             var txToInitializeAElfDPoS = await GenerateTransactionAsync("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);
+            
+            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.InitializeAElfDPoS));
 
             await Mine();
         }
@@ -267,8 +282,6 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithPublishingOutValueAndSignature()
         {
-            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.PublishOutValueAndSignature));
-
             var inValue = Hash.Generate();
             if (_consensusData.Count <= 0)
             {
@@ -297,6 +310,8 @@ namespace AElf.Kernel.Node
                 await GenerateTransactionAsync("PublishOutValueAndSignature", parameters);
 
             await BroadcastTransaction(txToPublishOutValueAndSignature);
+            
+            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.PublishOutValueAndSignature));
 
             await Mine();
         }
@@ -334,8 +349,6 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithUpdatingAElfDPoSInformation()
         {
-            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.UpdateAElfDPoS));
-
             var extraBlockResult = Helper.ExecuteTxsForExtraBlock();
 
             var parameters = new List<byte[]>
@@ -349,6 +362,8 @@ namespace AElf.Kernel.Node
             var txForExtraBlock = await GenerateTransactionAsync("UpdateAElfDPoS", parameters);
 
             await BroadcastTransaction(txForExtraBlock);
+
+            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.UpdateAElfDPoS));
 
             await Mine();
         }

@@ -235,9 +235,11 @@ namespace AElf.Node.Protocol
                     break;
                 }
             }
-            
-            if(CurrentSyncSource == null)
+
+            if (CurrentSyncSource == null)
+            {
                 MessageHub.Instance.Publish(new SyncStateChanged(false));
+            }
         }
 
         /// <summary>

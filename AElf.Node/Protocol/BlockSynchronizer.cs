@@ -556,7 +556,7 @@ namespace AElf.Node.Protocol
                 }
             }
 
-            if (ShouldDoInitialSync && CurrentExecHeight > SyncTargetHeight)
+            if (ShouldDoInitialSync && CurrentExecHeight > SyncTargetHeight && (ulong) CurrentExecHeight >= BlockCollection.PendingBlockHeight)
             {
                 ShouldDoInitialSync = false;
                 IsInitialSyncInProgress = false;
