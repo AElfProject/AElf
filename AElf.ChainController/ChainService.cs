@@ -16,6 +16,7 @@ namespace AElf.ChainController
         private readonly IBlockManagerBasic _blockManager;
         private readonly ITransactionManager _transactionManager;
         private readonly IDataStore _dataStore;
+        private readonly IBlockSet _blockSet;
 
         private readonly Dictionary<Hash, BlockChain> _blockchains = new Dictionary<Hash, BlockChain>();
 
@@ -49,6 +50,11 @@ namespace AElf.ChainController
         public ILightChain GetLightChain(Hash chainId)
         {
             return new LightChain(chainId, _chainManager, _blockManager, _dataStore);
+        }
+
+        public bool IsBlockReceived(Hash blockHash, ulong height)
+        {
+            return _blockSet.IsBlockReceived(blockHash, height);
         }
     }
 }

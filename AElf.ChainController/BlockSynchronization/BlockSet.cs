@@ -14,8 +14,6 @@ namespace AElf.ChainController
     {
         private readonly ILogger _logger;
 
-        private readonly HashSet<IBlock> _blocks = new HashSet<IBlock>();
-
         /// <summary>
         /// (Block height, Block hash) - 
         /// </summary>
@@ -29,7 +27,7 @@ namespace AElf.ChainController
         
         public async Task AddBlock(IBlock block)
         {
-            _blocks.Add(block);
+            throw new NotImplementedException();
             // TODO: Need a way to organize branched chains (using indexes)
         }
 
@@ -43,9 +41,14 @@ namespace AElf.ChainController
             RemoveOldBlocks(currentHeight - (ulong) GlobalConfig.BlockNumberOfEachRound);
         }
 
+        public bool IsBlockReceived(Hash blockHash, ulong height)
+        {
+            return _blockDict.ContainsKey(Tuple.Create(height, blockHash.DumpHex()));
+        }
+
         private void RemoveOldBlocks(ulong targetHeight)
         {
-            _blocks.RemoveWhere(b => b.Header.Index < targetHeight);
+            throw new NotImplementedException();
         }
     }
 }

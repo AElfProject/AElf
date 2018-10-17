@@ -59,8 +59,9 @@ namespace AElf.ChainController
             {
                 return BlockExecutionResultCC.Failed;
             }
+
             _logger?.Trace($"Executing block {block.GetHash()}");
-            
+
             var uncompressedPrivateKey = block.Header.P.ToByteArray();
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
             var blockProducerAddress = recipientKeyPair.GetAddress();
@@ -76,16 +77,17 @@ namespace AElf.ChainController
                 await InsertTxs(txs, txResults, block);
                 var res = await UpdateState(block);
                 var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
-                
+
                 if (!res)
                 {
                     var txToRevert = await blockchain.RollbackOneBlock();
                     await _txPoolService.Revert(txToRevert);
                     return BlockExecutionResultCC.Failed;
                 }
-                
+
                 await blockchain.AddBlocksAsync(new List<IBlock> {block});
-                await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, block.Header.ChainId,
+                await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
+                    block.Header.ChainId,
                     block.Header.Index);
                 await _binaryMerkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
                     block.Body.BinaryMerkleTreeForSideChainTransactionRoots, block.Header.ChainId, block.Header.Index);
@@ -95,9 +97,10 @@ namespace AElf.ChainController
                 await Interrupt($"ExecuteBlock - Execution failed with exception {e}", txs, e);
                 return BlockExecutionResultCC.Failed;
             }
+
             return BlockExecutionResultCC.Success;
         }
-        
+
         /// <summary>
         /// Verify block components and validate side chain info if needed
         /// </summary>
@@ -132,7 +135,7 @@ namespace AElf.ChainController
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
                     : await _executingService.ExecuteAsync(txs, chainId, Cts.Token);
-                
+
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
                 {
@@ -151,6 +154,7 @@ namespace AElf.ChainController
                         res.Status = Status.Failed;
                         res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     }
+
                     results.Add(res);
                 }
 
@@ -162,14 +166,14 @@ namespace AElf.ChainController
                 return null;
             }
         }
-        
-        private async Task Interrupt(string log, List<Transaction> readyTxs = null, Exception e = null)
+
+        private async Task Interrupt(string log, List<Transaction> txs = null, Exception e = null)
         {
-            if(e == null)
+            if (e == null)
                 _logger.Debug(log);
-            else 
+            else
                 _logger.Error(e, log);
-            await Rollback(readyTxs);
+            await Rollback(txs);
         }
 
         /// <summary>
@@ -184,14 +188,15 @@ namespace AElf.ChainController
                 return;
             await _txPoolService.Revert(readyTxs);
         }
-        
+
         /// <summary>
         /// Update database
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
         /// <param name="block"></param>
-        private async Task<HashSet<Address>> InsertTxs(IEnumerable<Transaction> executedTxs, IEnumerable<TransactionResult> txResults, IBlock block)
+        private async Task<HashSet<Address>> InsertTxs(IEnumerable<Transaction> executedTxs,
+            IEnumerable<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
@@ -201,7 +206,7 @@ namespace AElf.ChainController
                 address.Add(t.From);
                 await _transactionManager.AddTransactionAsync(t);
             }
-            
+
             txResults.AsParallel().ForEach(async r =>
             {
                 r.BlockNumber = bn;
@@ -210,7 +215,7 @@ namespace AElf.ChainController
             });
             return address;
         }
-        
+
         /// <summary>
         /// Update system state.
         /// </summary>
@@ -233,11 +238,12 @@ namespace AElf.ChainController
                 errLog = "ExecuteBlock - Incorrect merkle trees.";
                 res = false;
             }
-            if(!res)
+
+            if (!res)
                 await Interrupt(errLog);
             return res;
         }
-        
+
         public void Start()
         {
             Cts = new CancellationTokenSource();
