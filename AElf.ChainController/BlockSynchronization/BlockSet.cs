@@ -59,7 +59,7 @@ namespace AElf.ChainController
 
         private void RemoveOldBlocks(ulong targetHeight)
         {
-            throw new NotImplementedException();
+            
         }
     }
 }
