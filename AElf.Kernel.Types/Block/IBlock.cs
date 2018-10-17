@@ -6,6 +6,7 @@ namespace AElf.Kernel
 {
     public interface IBlock : IHashProvider, ISerializable
     {
+        byte[] GetHashBytes();
         bool AddTransaction(Transaction tx);
         BlockHeader Header { get; set; }
         BlockBody Body { get; set; }

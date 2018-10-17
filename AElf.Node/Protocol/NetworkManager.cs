@@ -156,9 +156,21 @@ namespace AElf.Node.Protocol
                 
                 _localHeight++;
 
-                CurrentSyncSource?.OnNewBlockAccepted(inBlock.Block);
+                //CurrentSyncSource?.OnNewBlockAccepted(inBlock.Block);
+
+                bool syncFinished = true;
+                foreach (var peer in _peers)
+                {
+                    peer.OnNewBlockAccepted(inBlock.Block);
+
+                    if (peer.AnySyncing())
+                        syncFinished = false;
+                }
 
                 AnnounceBlock(inBlock.Block);
+
+                if (syncFinished)
+                    MessageHub.Instance.Publish(new SyncStateChanged(false));
             });
         }
         
@@ -198,13 +210,13 @@ namespace AElf.Node.Protocol
             {
                 int peerHeight = peer.Peer.KnownHeight;
                 
-                // If this peer is higher than us and we're not syncing: sync.
-                if (peerHeight > _localHeight && CurrentSyncSource == null)
+                // If we haven't sync the historical blocks, start a sync session
+                if (CurrentSyncSource == null)
                     StartSync(peer.Peer, _localHeight+1, peerHeight);
                     
                 _peers.Add(peer.Peer);
 
-                peer.Peer.SyncFinished += PeerOnSyncFinished ;
+                //peer.Peer.SyncFinished += PeerOnSyncFinished ;
                 peer.Peer.MessageReceived += HandleNewMessage;
                 peer.Peer.PeerDisconnected += ProcessClientDisconnection;
             }
@@ -220,26 +232,26 @@ namespace AElf.Node.Protocol
             MessageHub.Instance.Publish(new SyncStateChanged(true));
         }
 
-        private void PeerOnSyncFinished(object sender, EventArgs e)
-        {
-            // sync has finished
-            CurrentSyncSource = null;
-            
-            // Check to see if any more catching up has to be done
-            foreach (var peer in _peers)
-            {
-                if (_localHeight < peer.KnownHeight)
-                {
-                    CurrentSyncSource = peer;
-                    StartSync(peer, _localHeight+1, peer.KnownHeight);
-                    _logger?.Trace("Switched sync source.");
-                    break;
-                }
-            }
-            
-            if(CurrentSyncSource == null)
-                MessageHub.Instance.Publish(new SyncStateChanged(false));
-        }
+//        private void PeerOnSyncFinished(object sender, EventArgs e)
+//        {
+//            // sync has finished
+//            CurrentSyncSource = null;
+//            
+//            // Check to see if any more catching up has to be done
+//            foreach (var peer in _peers)
+//            {
+//                if (_localHeight < peer.KnownHeight)
+//                {
+//                    CurrentSyncSource = peer;
+//                    StartSync(peer, _localHeight+1, peer.KnownHeight);
+//                    _logger?.Trace("Switched sync source.");
+//                    break;
+//                }
+//            }
+//            
+//            if(CurrentSyncSource == null)
+//                MessageHub.Instance.Publish(new SyncStateChanged(false));
+//        }
 
         /// <summary>
         /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
@@ -255,7 +267,7 @@ namespace AElf.Node.Protocol
                 
                 peer.MessageReceived -= HandleNewMessage;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
-                peer.SyncFinished -= PeerOnSyncFinished;
+                //peer.SyncFinished -= PeerOnSyncFinished;
                 
                 _peers.Remove(args.Peer);
             }
@@ -355,10 +367,10 @@ namespace AElf.Node.Protocol
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
                 peer.OnAnnouncementMessage(a);
 
-                if (CurrentSyncSource == null && _localHeight < peer.KnownHeight)
-                {
-                    StartSync(peer, _localHeight+1, peer.KnownHeight);
-                }
+//                if (CurrentSyncSource == null)
+//                {
+//                    StartSync(peer, _localHeight+1, peer.KnownHeight);
+//                }
             }
             catch (Exception e)
             {
@@ -414,6 +426,8 @@ namespace AElf.Node.Protocol
                     return;
                 
                 _lastBlocksReceived.Enqueue(blockHash);
+
+                peer.OnBlockReceived(block);
                               
                 MessageHub.Instance.Publish(new BlockReceived(block));
             }
