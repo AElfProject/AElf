@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using AElf.SmartContract;
+using AElf.Kernel;
 
 namespace AElf.Execution
 {

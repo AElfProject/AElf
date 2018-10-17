@@ -7,7 +7,7 @@ using Akka.Actor;
 using Akka.Routing;
 using Google.Protobuf;
 using AElf.Common;
-using AElf.SmartContract;
+using AElf.Kernel;
 
 namespace AElf.Execution
 {
