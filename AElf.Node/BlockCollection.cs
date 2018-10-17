@@ -35,13 +35,13 @@ namespace AElf.Node
         /// <summary>
         /// To track the latest block height of local chain.
         /// </summary>
-        public static ulong PendingBlockHeight { get; set; }
+        public ulong PendingBlockHeight { get; set; }
 
         public ulong SyncedHeight =>
             _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId))
                 .GetCurrentBlockHeightAsync().Result;
 
-        public List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
+        public static List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
 
         public int Count => PendingBlocks.Count;
         public int BranchedChainsCount => _branchedChains.Count;
