@@ -30,7 +30,7 @@ namespace AElf.Concurrency.Worker
 
         private void MapOptions(CliOptions opts)
         {   
-            
+            ApplicationHelpers.SetDataDir(opts.DataDir);
             // Database
             if (!string.IsNullOrWhiteSpace(opts.DBType))
             {
@@ -65,10 +65,6 @@ namespace AElf.Concurrency.Worker
             {
                 ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
             }
-
-            NodeConfig.Instance.DataDir = string.IsNullOrEmpty(opts.DataDir)
-                ? ApplicationHelpers.GetDefaultDataDir()
-                : opts.DataDir;
             
             // runner config
 //            RunnerConfig = new RunnerConfig

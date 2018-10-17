@@ -17,8 +17,8 @@ namespace AElf.Node
         
         public List<PendingBlock> PendingBlocks
         {
-            get => _blockCollection.PendingBlocks;
-            set => _blockCollection.PendingBlocks = value;
+            get => BlockCollection.PendingBlocks;
+            set => BlockCollection.PendingBlocks = value;
         }
         
         public List<Transaction> AddPendingBlock(PendingBlock pendingBlock)
