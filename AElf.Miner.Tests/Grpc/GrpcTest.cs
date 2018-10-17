@@ -127,11 +127,11 @@ namespace AElf.Miner.Tests.Grpc
                         }
                     }
                 };
+                GrpcLocalConfig.Instance.ClientToParentChain = true;
                 manager.Init(dir, t);
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
                 Thread.Sleep(t/2);
-                GrpcLocalConfig.Instance.ClientToParentChain = true;
                 var result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal((ulong)0, result.Height);
