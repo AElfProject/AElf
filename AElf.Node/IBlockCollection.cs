@@ -7,7 +7,7 @@ namespace AElf.Node
 {
     public interface IBlockCollection
     {
-        List<PendingBlock> PendingBlocks { get; set; }
+        //List<PendingBlock> PendingBlocks { get; set; }
         List<Transaction> AddPendingBlock(PendingBlock pendingBlock);
         void RemovePendingBlock(PendingBlock pendingBlock);
         int Count { get; }

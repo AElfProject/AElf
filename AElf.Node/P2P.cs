@@ -87,7 +87,7 @@ namespace AElf.Node
 
                 args.Peer.EnqueueOutgoing(req);
 
-                _logger?.Trace("Send block " + block.GetHash().DumpHex() + " to " + args.Peer);
+                //_logger?.Trace("Send block " + block.GetHash().DumpHex() + " to " + args.Peer);
             }
             catch (Exception e)
             {
@@ -135,17 +135,16 @@ namespace AElf.Node
 
                 byte[] serializedTxList = txList.ToByteArray();
                 Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Transactions, serializedTxList);
-                _logger?.Trace("payload length: " + req.Length);
+                //_logger?.Trace("payload length: " + req.Length);
 
                 if (message.HasId)
                 {
                     req.HasId = true;
                     req.Id = message.Id;
                 }
-                
+
                 args.Peer.EnqueueOutgoing(req);
-                
-                _logger?.Trace("Send " + txList.Transactions.Count + " to " + args.Peer);
+                //_logger?.Trace("Send " + txList.Transactions.Count + " to " + args.Peer);
             }
             catch (Exception e)
             {

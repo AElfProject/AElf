@@ -44,7 +44,7 @@ message TransactionResult {
     bytes Bloom = 4;
     bytes RetVal = 5;
     uint64 BlockNumber = 6;
-    Hash BlockHash = 7;
+    Hash BlockHash = 7;;
     int32 Index = 8;
     
     // Merkle proof path for this transaction

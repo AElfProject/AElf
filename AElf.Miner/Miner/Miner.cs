@@ -12,6 +12,7 @@ using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Miner.Rpc.Exceptions;
 using AElf.Miner.Rpc.Server;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
@@ -88,12 +89,6 @@ namespace AElf.Miner.Miner
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
                     Transaction genTx= await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
                     var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
-                    var bn = await _blockChain.GetCurrentBlockHeightAsync();
-                    
-                    // remove invalid CrossChainBlockInfoTransaction, only that from local can be executed)
-                    /*readyTxs.RemoveAll(t =>
-                        t.Type == TransactionType.CrossChainBlockInfoTransaction &&
-                        !t.GetHash().Equals(genTx.GetHash()));*/
                     
                     var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
                     _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
@@ -136,11 +131,6 @@ namespace AElf.Miner.Miner
             }
         }
 
-        private async Task UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
-        {
-            await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
-        }
-
         private void BroadcastBlock(IBlock block)
         {
             MessageHub.Instance.Publish(new BlockMinedMessage(block));
@@ -163,9 +153,7 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
-                    To=Address.FromRawBytes(Hash.Xor(Config.ChainId,
-                        Hash.FromString(SmartContractType.SideChainContract.ToString())).ToByteArray()),
-//                    To = new Hash(Config.ChainId.CalculateHashWith(SmartContractType.SideChainContract.ToString())).ToAccount(),
+                    To = AddressHelpers.GetSystemContractAddress(Config.ChainId, SmartContractType.SideChainContract.ToString()),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
@@ -173,7 +161,6 @@ namespace AElf.Miner.Miner
                     Type = TransactionType.CrossChainBlockInfoTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo))
                 };
-                
                 // sign tx
                 var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
                 tx.R = ByteString.CopyFrom(signature.R);
@@ -319,7 +306,7 @@ namespace AElf.Miner.Miner
                 // update parent chain block info
                 if (pcbTransaction != null && r.TransactionId.Equals(pcbTransaction.GetHash()) && r.Status.Equals(Status.Mined))
                 {
-                    await UpdateParentChainBlockInfo(parentChainBlockInfo);
+                    await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
                 }
             });
             // update merkle tree
@@ -426,8 +413,17 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         private async Task<ParentChainBlockInfo> GetParentChainBlockInfo()
         {
-            var blocInfo = await _clientManager.CollectParentChainBlockInfo();
-            return blocInfo;
+            try
+            {
+                var blocInfo = await _clientManager.TryGetParentChainBlockInfo();
+                return blocInfo;
+            }
+            catch (Exception e)
+            {
+                if (e is ClientShutDownException)
+                    return null;
+                throw;
+            }
         }
         
         /// <summary>
@@ -439,10 +435,6 @@ namespace AElf.Miner.Miner
             _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
             _keyPair = nodeKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
-            
-            // start clients and server
-            //_clientManager.CreateClientsToSideChain().Wait();
-            //_sideChainServer.StartUp();
         }
 
         /// <summary>
@@ -451,6 +443,7 @@ namespace AElf.Miner.Miner
         public void Close()
         {
             _clientManager.CloseClientsToSideChain();
+            _serverManager.Close();
         }
     }
 }

@@ -212,8 +212,8 @@ namespace AElf.Node.AElfChain
 
             _txPoolService.Start();
             Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
-
-            _blockExecutor.Start();
+            
+            _blockExecutor.Init();
 
             if (NodeConfig.Instance.IsMiner)
             {
@@ -350,9 +350,12 @@ namespace AElf.Node.AElfChain
         {
             if (NodeConfig.Instance.IsMiner)
             {
+                _miner.Init(_nodeKeyPair);
+                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.DumpHex());
                 SetupConsensus();
                 _consensus?.Start();
             }
+            _blockExecutor.FinishInitialSync();
         }
         #endregion private methods
 
