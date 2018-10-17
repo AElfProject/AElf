@@ -16,7 +16,7 @@ namespace AElf.Kernel
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {
                 GlobalConfig.AElfDPoSMiningInterval = ConsensusConfig.Instance.DPoSMiningInterval;
-                if (NodeConfig.Instance.ConsensusInfoGenerater)
+                if (NodeConfig.Instance.ConsensusInfoGenerator)
                 {
                     Console.WriteLine($"Mining interval: {GlobalConfig.AElfDPoSMiningInterval} ms");
                 }

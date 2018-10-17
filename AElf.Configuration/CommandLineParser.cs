@@ -70,7 +70,7 @@ namespace AElf.Configuration
             NodeConfig.Instance.NodeName = opts.NodeName;
             NodeConfig.Instance.NodeAccount = opts.NodeAccount;
             NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
-            NodeConfig.Instance.ConsensusInfoGenerater = opts.IsConsensusInfoGenerator;
+            NodeConfig.Instance.ConsensusInfoGenerator = opts.IsConsensusInfoGenerator;
 
             // Actor
             if (opts.ActorIsCluster.HasValue)

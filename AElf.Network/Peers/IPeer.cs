@@ -25,6 +25,6 @@ namespace AElf.Network.Peers
         byte[] DistantNodeAddress { get; }
         void EnqueueOutgoing(Message msg);
         void Sync(int start, int target);
-        void OnNewBlockAccepted(Block block);
+        void OnNewBlockAccepted(IBlock block);
     }
 }

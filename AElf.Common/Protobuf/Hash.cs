@@ -29,8 +29,10 @@ namespace AElf.Common
         {
             if (bytes.Length != ByteArrayLength)
             {
-                throw new ArgumentOutOfRangeException($"Hash bytes has to be {ByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
+                throw new ArgumentOutOfRangeException(
+                    $"Hash bytes has to be {ByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
             }
+
             Value = ByteString.CopyFrom(bytes.ToArray());
         }
 
@@ -82,20 +84,21 @@ namespace AElf.Common
             using (var mm = new MemoryStream())
             using (var stream = new CodedOutputStream(mm))
             {
-                foreach (var hash in hashes.OrderBy(x=>x))
+                foreach (var hash in hashes.OrderBy(x => x))
                 {
                     hash.WriteTo(stream);
                 }
+
                 stream.Flush();
                 mm.Flush();
                 return FromRawBytes(mm.ToArray());
             }
         }
-        
+
         public static Hash Generate()
         {
             return FromRawBytes(Guid.NewGuid().ToByteArray());
-        }        
+        }
 
         #endregion
 
@@ -105,7 +108,7 @@ namespace AElf.Common
 
         public static readonly Hash Default = Hash.FromString("AElf");
 
-        public static readonly Hash Genesis = Hash.FromString("Genesis");        
+        public static readonly Hash Genesis = Hash.FromString("Genesis");
 
         #endregion
 
@@ -144,22 +147,22 @@ namespace AElf.Common
             {
                 return hash2 == null ? 1 : Compare(hash1, hash2);
             }
-            
+
             if (hash2 == null)
             {
                 return 0;
             }
-            
+
             return -1;
         }
-        
+
         private static int Compare(Hash x, Hash y)
         {
             if (x == null || y == null)
             {
                 throw new InvalidOperationException("Cannot compare hash when hash is null");
             }
-            
+
             var xValue = x.Value;
             var yValue = y.Value;
             for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
@@ -177,11 +180,11 @@ namespace AElf.Common
 
             return 0;
         }
-        
+
         public int CompareTo(Hash that)
         {
             return Compare(this, that);
-        }        
+        }
 
         #endregion
 
@@ -196,10 +199,11 @@ namespace AElf.Common
         public static Hash Xor(Hash h1, Hash h2)
         {
             var newHashBytes = new byte[h1.Value.Length];
-            for (int i= 0; i < newHashBytes.Length; i++)
+            for (int i = 0; i < newHashBytes.Length; i++)
             {
                 newHashBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
             }
+
             return new Hash()
             {
                 Value = ByteString.CopyFrom(newHashBytes)
@@ -207,8 +211,9 @@ namespace AElf.Common
         }
 
         #endregion
-        
+
         #region Load and dump
+
         /// <summary>
         /// Dumps the content value to byte array.
         /// </summary>
@@ -239,10 +244,11 @@ namespace AElf.Common
             {
                 throw new ArgumentOutOfRangeException(nameof(bytes));
             }
+
             return new Hash
             {
                 Value = ByteString.CopyFrom(bytes)
-            };            
+            };
         }
 
         /// <summary>
@@ -256,6 +262,7 @@ namespace AElf.Common
             var bytes = ByteArrayHelpers.FromHexString(hex);
             return LoadByteArray(bytes);
         }
+
         #endregion Load and dump
     }
 }

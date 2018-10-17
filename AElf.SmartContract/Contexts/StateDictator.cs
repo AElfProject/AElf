@@ -22,7 +22,6 @@ namespace AElf.SmartContract
         private readonly IDataStore _dataStore;
         private readonly ILogger _logger;
         private readonly IHashManager _hashManager;
-        private readonly ITransactionManager _transactionManager;
 
         private WorldState _worldState = new WorldState();
 
@@ -30,15 +29,13 @@ namespace AElf.SmartContract
         public Address BlockProducerAccountAddress { get; set; } = Address.Zero;
         public ulong BlockHeight { get; set; }
 
-        public StateDictator(IHashManager hashManager, ITransactionManager transactionManager, IDataStore dataStore, ILogger logger = null)
+        public StateDictator(IHashManager hashManager, IDataStore dataStore)
         {
-            _dataStore = dataStore;
-            _logger = logger;
-
             _hashManager = hashManager;
-            _transactionManager = transactionManager;
+            _dataStore = dataStore;
+            
+            _logger = LogManager.GetLogger(nameof(StateDictator));
         }
-
         
         /// <summary>
         /// Get an AccountDataProvider instance
@@ -80,7 +77,6 @@ namespace AElf.SmartContract
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _dataStore.InsertAsync(dataPath.StateHash, _worldState);
-//            await _dataStore.InsertBytesAsync<IMessage>(dataPath.StateHash, _worldState.ToByteArray());
             _worldState = new WorldState();
         }
         
@@ -99,7 +95,17 @@ namespace AElf.SmartContract
             return await _hashManager.GetHash(stateHash.OfType(HashType.StateHash));
         }
 
-        public async Task SetBlockHashAsync(Hash blockHash)
+        public async Task<Hash> GetStateHashAsync(Hash blockHash)
+        {
+            return await _hashManager.GetHash(blockHash.OfType(HashType.BlockHash));
+        }
+
+        /// <summary>
+        /// Set the map of Block Hash - State Hash
+        /// </summary>
+        /// <param name="blockHash"></param>
+        /// <returns></returns>
+        public async Task SetMap(Hash blockHash)
         {
             var dataPath = new DataPath
             {
@@ -108,21 +114,6 @@ namespace AElf.SmartContract
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _hashManager.SetHash(dataPath.StateHash, blockHash.OfType(HashType.BlockHash));
-        }
-
-        public async Task<Hash> GetStateHashAsync(Hash blockHash)
-        {
-            return await _hashManager.GetHash(blockHash.OfType(HashType.BlockHash));
-        }
-
-        public async Task SetStateHashAsync(Hash blockHash)
-        {
-            var dataPath = new DataPath
-            {
-                ChainId = ChainId,
-                BlockHeight = BlockHeight,
-                BlockProducerAddress = BlockProducerAccountAddress
-            };
             await _hashManager.SetHash(blockHash.OfType(HashType.BlockHash), dataPath.StateHash.OfType(HashType.StateHash));
         }
 

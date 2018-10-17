@@ -1,8 +1,9 @@
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
-    public class BranchedChain
+    public enum UpdateConsensus
     {
-        
+        Update,
+        Dispose
     }
 }

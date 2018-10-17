@@ -24,12 +24,12 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns><c>true</c>, if the hash was added, <c>false</c> otherwise.</returns>
         /// <param name="txHash">the transactions hash</param>
-        public bool AddTransaction(Transaction txHash)
+        public bool AddTransaction(Transaction tx)
         {
             if (Body == null)
                 Body = new BlockBody();
             
-            return Body.AddTransaction(txHash);
+            return Body.AddTransaction(tx);
         }
         
         /// <summary>
@@ -37,12 +37,12 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns><c>true</c>, if the hash was added, <c>false</c> otherwise.</returns>
         /// <param name="txHashes">the transactions hash</param>
-        public bool AddTransactions(IEnumerable<Transaction> txHashes)
+        public bool AddTransactions(IEnumerable<Transaction> txs)
         {
             if (Body == null)
                 Body = new BlockBody();
             
-            return Body.AddTransactions(txHashes);
+            return Body.AddTransactions(txs);
         }
 
         /// <summary>

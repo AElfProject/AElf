@@ -138,11 +138,11 @@ namespace AElf.Kernel.Consensus
                     .GetAsync<T>(keyHash).Result;
         }
 
-        public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners, Address contractAddressHash, ILogger logger)
+        public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners, Address contractAddressHash)
         {
             stateDictator.ChainId = chainId;
             _miners = miners;
-            _logger = logger;
+            _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
 
             _contractAddressHash = contractAddressHash;
             _stateDictator = stateDictator;

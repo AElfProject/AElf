@@ -100,13 +100,13 @@ namespace AElf.Network.Peers
             _requestedHeight = start;
         }
 
-        public void OnAnnoucementMessage(Announce a)
+        public void OnAnnouncementMessage(Announce a)
         {
             _peerHeight = a.Height;
             _logger?.Trace($"[{this}] peer height increased : {_peerHeight}.");
         }
         
-        public void OnNewBlockAccepted(Block block)
+        public void OnNewBlockAccepted(IBlock block)
         {
             // if we're syncing and one of the block we requested has been 
             // accepted, we request the next.

@@ -41,14 +41,6 @@ namespace AElf.Sdk.CSharp.Types
             var bytes = await Api.GetDataProvider("").GetAsync<T>(Hash.FromString(_name));
             return bytes == null ? default(T) : Api.Serializer.Deserialize<T>(bytes);
         }
-
-        public async Task SetDataAsync(T value)
-        {
-            if (value != null)
-            {
-                await Api.GetDataProvider("").SetDataAsync(Hash.FromString(_name), value);
-            }
-        }
     }
 
     public class BoolField

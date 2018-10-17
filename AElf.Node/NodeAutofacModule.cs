@@ -19,6 +19,8 @@ namespace AElf.Node
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
             builder.RegisterType<BlockSynchronizer>().As<IBlockSynchronizer>().SingleInstance();
+            builder.RegisterType<AElf.ChainController.BlockSet>().As<AElf.ChainController.IBlockSet>()
+                .SingleInstance();
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {

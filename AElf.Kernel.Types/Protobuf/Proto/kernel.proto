@@ -18,6 +18,7 @@ message Transaction {
     bytes S = 10;
     bytes P = 11;
     TransactionType type = 12;
+    google.protobuf.Timestamp Time = 13;
 }
 
 message TransactionList {
@@ -51,6 +52,7 @@ message TransactionResult {
     MerklePath MerklePath = 9;
     
     Transaction Transaction = 10;
+    
 }
 
 message StateValueChange{

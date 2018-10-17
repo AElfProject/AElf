@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Miner.Miner;
@@ -20,12 +19,12 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
-using AElf.Common;
 using AElf.Node.EventMessages;
 using Easy.MessageHub;
 
 namespace AElf.Node.AElfChain
 {
+    // ReSharper disable InconsistentNaming
     [LoggerName("Node")]
     public class MainchainNodeService : INodeService
     {
@@ -41,13 +40,12 @@ namespace AElf.Node.AElfChain
         private readonly IChainCreationService _chainCreationService;
         private readonly IStateDictator _stateDictator;
         private readonly IBlockSynchronizer _synchronizer;
-        private readonly AElf.ChainController.IBlockCollection _blockCollection;
+        private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockExecutor _blockExecutor;
+        private readonly IBlockExecutionService _blockExecutionService;
 
         private IBlockChain _blockChain;
         private IConsensus _consensus;
-
-        private ECKeyPair _nodeKeyPair;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
@@ -57,13 +55,14 @@ namespace AElf.Node.AElfChain
             IBlockValidationService blockValidationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService,
+            IBlockSyncService blockSyncService,
             IStateDictator stateDictator,
             IChainService chainService,
             IBlockExecutor blockExecutor,
-            AElf.ChainController.IBlockCollection blockCollection,
             IBlockSynchronizer synchronizer,
             IMiner miner,
             IP2P p2p,
+            IBlockExecutionService blockExecutionService,
             ILogger logger)
         {
             _chainCreationService = chainCreationService;
@@ -71,6 +70,7 @@ namespace AElf.Node.AElfChain
             _stateDictator = stateDictator;
             _txPoolService = poolService;
             _logger = logger;
+            _blockExecutionService = blockExecutionService;
             _miner = miner;
             _p2p = p2p;
             _accountContextService = accountContextService;
@@ -79,12 +79,47 @@ namespace AElf.Node.AElfChain
             _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
-            _blockCollection = blockCollection;
+            _blockSyncService = blockSyncService;
             
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
+            {
+                await _blockSyncService.ReceiveBlock(inBlock.Block);
+            });
+
+            MessageHub.Instance.Subscribe<BlockMined>(async inBlock =>
+            {
+                await _blockSyncService.AddMinedBlock(inBlock.Block);
+            });
+
+            MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
+            {
+                await _txPoolService.AddTxAsync(inTx.Transaction);
+            });
+            
+            MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
+            {
+                if (option == UpdateConsensus.Update)
                 {
-                    await _blockCollection.AddBlock(inBlock.Block);
-                });
+                    _consensus?.Update();
+                }
+
+                if (option == UpdateConsensus.Dispose)
+                {
+                    _consensus?.Stop();
+                }
+            });
+
+            MessageHub.Instance.Subscribe<SyncStateChanged>(inState =>
+            {
+                if (!inState.IsSyncing)
+                {
+                    _consensus?.Start();
+                }
+                else
+                {
+                    _consensus?.Stop();
+                }
+            });
         }
 
         #region Genesis Contracts
@@ -161,9 +196,9 @@ namespace AElf.Node.AElfChain
 
         public void Initialize(NodeConfiguration conf)
         {
-            _nodeKeyPair = conf.KeyPair;
             _assemblyDir = conf.LauncherAssemblyLocation;
             _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
+            NodeConfig.Instance.ECKeyPair = conf.KeyPair;
 
             SetupConsensus();
         }
@@ -219,10 +254,11 @@ namespace AElf.Node.AElfChain
             //Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
 
             _blockExecutor.Start();
+            _blockExecutionService.Start();
 
             if (NodeConfig.Instance.IsMiner)
             {
-                _miner.Init(_nodeKeyPair);
+                _miner.Init();
 
                 _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.DumpHex());
             }
@@ -232,13 +268,15 @@ namespace AElf.Node.AElfChain
 
             Thread.Sleep(1000);
 
-            if (!NodeConfig.Instance.ConsensusInfoGenerater)
+            if (!NodeConfig.Instance.ConsensusInfoGenerator)
             {
                 _synchronizer.SyncFinished += (s, e) => { StartMining(); };
             }
             else
             {
                 StartMining();
+                // Start directly.
+                _consensus?.Start();
             }
 
             #endregion start
@@ -334,31 +372,27 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
-                    var dpos = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer, _logger);
-                    var genesisContractHash =
-                        _chainCreationService.GenesisContractHash(chainId, SmartContractType.AElfDPoS);
-                    dpos.Initialize(genesisContractHash, _nodeKeyPair);
-                    _consensus = dpos;
+                    _consensus = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer);
                     break;
 
                 case ConsensusType.PoTC:
-                    _consensus = new PoTC(_logger, _miner, _accountContextService, _txPoolService, _p2p);
+                    _consensus = new PoTC(_miner, _txPoolService);
                     break;
 
                 case ConsensusType.SingleNode:
-                    _consensus = new StandaloneNodeConsensusPlaceHolder(_logger, _p2p);
+                    _consensus = new StandaloneNodeConsensusPlaceHolder();
                     break;
             }
         }
+        
         private void StartMining()
         {
-            if (NodeConfig.Instance.IsMiner)
-            {
-                SetupConsensus();
-                _consensus?.Start();
-            }
+            if (!NodeConfig.Instance.IsMiner) 
+                return;
+            
+            SetupConsensus();
         }
+        
         #endregion private methods
 
         public int GetCurrentHeight()
@@ -376,6 +410,7 @@ namespace AElf.Node.AElfChain
 
             return height;
         }
+        
         #region Legacy Methods
 
         /// <summary>
@@ -386,11 +421,12 @@ namespace AElf.Node.AElfChain
         /// <returns></returns>
         public async Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block)
         {
-            try
+            throw new NotImplementedException();
+            /*try
             {
                 var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
                 var context = await _chainContextService.GetChainContextAsync(chainId);
-                var error = await _blockValidationService.ValidateBlockAsync(block, context, _nodeKeyPair);
+                var error = await _blockValidationService.ValidateBlockAsync(block, context);
 
                 if (error != BlockValidationResult.Success)
                 {
@@ -439,7 +475,7 @@ namespace AElf.Node.AElfChain
             {
                 _logger?.Error(e, "Block synchronzing failed");
                 return new BlockExecutionResult(e);
-            }
+            }*/
         }
 
         #endregion Legacy Methods

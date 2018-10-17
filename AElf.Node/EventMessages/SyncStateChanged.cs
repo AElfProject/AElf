@@ -2,7 +2,7 @@
 {
     public class SyncStateChanged
     {
-        public bool IsSyncing { get; private set; }
+        public bool IsSyncing { get; }
 
         public SyncStateChanged(bool value)
         {

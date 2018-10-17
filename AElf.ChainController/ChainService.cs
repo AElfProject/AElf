@@ -17,7 +17,7 @@ namespace AElf.ChainController
         private readonly ITransactionManager _transactionManager;
         private readonly IDataStore _dataStore;
 
-        private readonly Dictionary<Hash, BlockChain> _blockChains = new Dictionary<Hash, BlockChain>();
+        private readonly Dictionary<Hash, BlockChain> _blockchains = new Dictionary<Hash, BlockChain>();
 
         public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
             ITransactionManager transactionManager, IDataStore dataStore)
@@ -31,18 +31,18 @@ namespace AElf.ChainController
         public IBlockChain GetBlockChain(Hash chainId)
         {
             // To prevent some weird situations.
-            if (chainId == Hash.Default && _blockChains.Any())
+            if (chainId == Hash.Default && _blockchains.Any())
             {
-                return _blockChains.First().Value;
+                return _blockchains.First().Value;
             }
             
-            if (_blockChains.TryGetValue(chainId, out var blockChain))
+            if (_blockchains.TryGetValue(chainId, out var blockChain))
             {
                 return blockChain;
             }
             
             blockChain = new BlockChain(chainId, _chainManager, _blockManager, _transactionManager, _dataStore);
-            _blockChains.Add(chainId, blockChain);
+            _blockchains.Add(chainId, blockChain);
             return blockChain;
         }
 

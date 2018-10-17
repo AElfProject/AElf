@@ -4,7 +4,7 @@ namespace AElf.Node.EventMessages
 {
     public class TxReceived
     {
-        public Transaction Transaction { get; private set; }
+        public Transaction Transaction { get; }
 
         public TxReceived(Transaction transaction)
         {
