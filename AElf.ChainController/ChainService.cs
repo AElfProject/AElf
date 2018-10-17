@@ -56,5 +56,10 @@ namespace AElf.ChainController
         {
             return _blockSet.IsBlockReceived(blockHash, height);
         }
+
+        public IBlock GetBlockByHashAsync(Hash blockHash)
+        {
+            return _blockSet.GetBlockByHash(blockHash);
+        }
     }
 }

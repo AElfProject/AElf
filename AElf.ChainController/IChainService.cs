@@ -1,4 +1,5 @@
-﻿using AElf.Kernel;
+﻿using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Common;
 
 namespace AElf.ChainController
@@ -8,5 +9,6 @@ namespace AElf.ChainController
         IBlockChain GetBlockChain(Hash chainId);
         ILightChain GetLightChain(Hash chainId);
         bool IsBlockReceived(Hash blockHash, ulong height);
+        IBlock GetBlockByHashAsync(Hash blockHash);
     }
 }
