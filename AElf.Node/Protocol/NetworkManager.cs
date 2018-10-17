@@ -211,7 +211,7 @@ namespace AElf.Node.Protocol
                 int peerHeight = peer.Peer.KnownHeight;
                 
                 // If we haven't sync the historical blocks, start a sync session
-                if (CurrentSyncSource == null)
+                if (CurrentSyncSource == null && _localHeight < peerHeight)
                     StartSync(peer.Peer, _localHeight+1, peerHeight);
                     
                 _peers.Add(peer.Peer);
@@ -365,6 +365,12 @@ namespace AElf.Node.Protocol
             try
             {
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
+
+                IBlock bbh = _chainService.GetBlockByHash(Hash.FromRawBytes(a.ToByteArray()));
+
+                if (bbh != null)
+                    return;
+                
                 peer.OnAnnouncementMessage(a);
 
 //                if (CurrentSyncSource == null)

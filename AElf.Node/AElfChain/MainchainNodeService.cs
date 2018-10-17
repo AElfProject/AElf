@@ -100,24 +100,28 @@ namespace AElf.Node.AElfChain
             {
                 if (option == UpdateConsensus.Update)
                 {
+                    _logger?.Trace("Will update consensus.");
                     _consensus?.Update();
                 }
 
                 if (option == UpdateConsensus.Dispose)
                 {
+                    _logger?.Trace("Will stop mining.");
                     _consensus?.Stop();
                 }
             });
 
             MessageHub.Instance.Subscribe<SyncStateChanged>(inState =>
             {
-                if (!inState.IsSyncing)
+                if (inState.IsSyncing)
                 {
-                    _consensus?.Start();
+                    _logger?.Trace("Will hang on mining due to syncing.");
+                    _consensus?.Hang();
                 }
                 else
                 {
-                    _consensus?.Stop();
+                    _logger?.Trace("Will start / recover mining.");
+                    _consensus?.Start();
                 }
             });
         }

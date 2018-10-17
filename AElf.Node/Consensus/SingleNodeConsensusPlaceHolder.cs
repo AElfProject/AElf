@@ -28,6 +28,16 @@ namespace AElf.Kernel.Node
             throw new NotImplementedException();
         }
 
+        public void Hang()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Recover()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task Update()
         {
             await Task.CompletedTask;

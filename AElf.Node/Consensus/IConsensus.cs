@@ -7,6 +7,8 @@ namespace AElf.Kernel.Node
     {
         Task Start();
         void Stop();
+        void Hang();
+        void Recover();
         Task Update();
         Task RecoverMining();
         bool IsAlive();
