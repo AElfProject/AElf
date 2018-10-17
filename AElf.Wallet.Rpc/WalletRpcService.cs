@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Common.Application;
 using AElf.Configuration;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -24,7 +25,7 @@ namespace AElf.Wallet.Rpc
                 if (_ks == null)
                 {
                     _ks = new AElfKeyStore(
-                        Path.Combine(NodeConfig.Instance.DataDir, "rpc-managed-wallet")
+                        Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "rpc-managed-wallet")
                     );
                 }
 

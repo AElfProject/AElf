@@ -19,27 +19,34 @@ namespace AElf.CLI
             HelpText = "The address of AElf server.",
             Default = "http://localhost:1234")]
         public string ServerAddr { get; set; }
+        
+        [Value(1,
+            MetaName = "AElf data directory",
+            HelpText = "The directory the node uses to store data.",
+            Default = "")]
+        public string DataDir { get; set; }
     }
 
     class Program
     {
         public static void Main(string[] args)
-        {
-            ScreenManager screenManager = new ScreenManager();
+        {            
             CommandParser parser = new CommandParser();
-
-            AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
-            AccountManager accountManager = new AccountManager(kstore, screenManager);
-            CertificatManager certificatManager = new CertificatManager(screenManager);
-
             var cmdOptions = new CommandLineOptions();
-
             Parser.Default.ParseArguments<CommandLineOptions>(args).WithNotParsed(err =>
                 {
                     Environment.Exit(1);
                 }
             ).WithParsed(
                 result => { cmdOptions = result; });
+            
+            ApplicationHelpers.SetDataDir(cmdOptions.DataDir);
+            
+            ScreenManager screenManager = new ScreenManager();
+
+            AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
+            AccountManager accountManager = new AccountManager(kstore, screenManager);
+            CertificatManager certificatManager = new CertificatManager(screenManager);
 
             AElfCliProgram program = new AElfCliProgram(screenManager, parser, accountManager, certificatManager,
                 cmdOptions.ServerAddr);
