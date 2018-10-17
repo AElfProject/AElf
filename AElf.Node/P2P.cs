@@ -12,6 +12,7 @@ using AElf.Network.Peers;
 using AElf.Node.Protocol.Events;
 using Google.Protobuf;
 using NLog;
+using NServiceKit.Common;
 
 namespace AElf.Node
 {
@@ -75,7 +76,7 @@ namespace AElf.Node
         
         internal async Task<Block> HandleBlockRequestByHash(byte[] hash)
         {
-            return await _handler.GetBlockFromHash(Hash.FromRawBytes(hash));
+            return await _handler.GetBlockFromHash(Hash.LoadByteArray(hash));
         }
         
         internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
@@ -102,7 +103,11 @@ namespace AElf.Node
                 }
 
                 if (b == null)
+                {
+                    _logger?.Trace($"Block not found {breq.Id.ToByteArray().ToHex()}");
                     return;
+                }
+                    
                 
                 Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Block, b.ToByteArray());
                 

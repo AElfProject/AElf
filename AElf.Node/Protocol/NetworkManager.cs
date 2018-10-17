@@ -21,6 +21,7 @@ using AElf.Node.Protocol.Events;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
+using Org.BouncyCastle.Crypto.Engines;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Node.Protocol
@@ -66,8 +67,13 @@ namespace AElf.Node.Protocol
         
         private IPeer CurrentSyncSource { get; set; }
         private int _localHeight = 0;
+
+        private bool _isSyncing = false;
         
         private Hash _chainId;
+        
+        
+        private List<byte[]> _minedBlocks = new List<byte[]>();
 
         public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, IChainService chainService, ILogger logger)
         {
@@ -115,6 +121,8 @@ namespace AElf.Node.Protocol
                         _lastBlocksReceived.Enqueue(blockHash);
                     
                     AnnounceBlock((Block)inBlock.Block);
+                    
+                    _minedBlocks.Add(blockHash);
                     
                     _logger?.Trace($"Block produced, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
                     
@@ -164,14 +172,27 @@ namespace AElf.Node.Protocol
                     peer.OnNewBlockAccepted(inBlock.Block);
 
                     if (peer.AnySyncing())
+                    {
                         syncFinished = false;
+                    }
                 }
 
                 AnnounceBlock(inBlock.Block);
 
                 if (syncFinished)
-                    MessageHub.Instance.Publish(new SyncStateChanged(false));
+                    SetSyncState(false);
             });
+        }
+
+        private void SetSyncState(bool newState)
+        {
+            if (_isSyncing == newState)
+                return;
+            
+            _isSyncing = newState;
+            MessageHub.Instance.Publish(new SyncStateChanged(newState));
+            
+            _logger?.Trace($"Sync state changed {_isSyncing}.");
         }
         
         /// <summary>
@@ -186,7 +207,7 @@ namespace AElf.Node.Protocol
                 
             _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
             
-            _logger?.Trace($"Network initialize at height {_localHeight}.");
+            _logger?.Trace($"Network initialized at height {_localHeight}.");
             
             _peerManager.Start();
             
@@ -216,10 +237,25 @@ namespace AElf.Node.Protocol
                     
                 _peers.Add(peer.Peer);
 
-                //peer.Peer.SyncFinished += PeerOnSyncFinished ;
+                peer.Peer.SyncFinished += PeerOnSyncFinished ;
                 peer.Peer.MessageReceived += HandleNewMessage;
                 peer.Peer.PeerDisconnected += ProcessClientDisconnection;
             }
+        }
+
+        private void PeerOnSyncFinished(object sender, EventArgs e)
+        {
+            bool syncFinished = true;
+            foreach (var peer in _peers)
+            {
+                if (peer.AnySyncing())
+                {
+                    syncFinished = false;
+                }
+            }
+            
+            if (syncFinished)
+                SetSyncState(false);
         }
 
         private void StartSync(IPeer peer, int start, int target)
@@ -229,29 +265,8 @@ namespace AElf.Node.Protocol
                     
             _logger?.Trace($"Sync started from peer {CurrentSyncSource}, from {start} to {target}.");
                     
-            MessageHub.Instance.Publish(new SyncStateChanged(true));
+            SetSyncState(true);
         }
-
-//        private void PeerOnSyncFinished(object sender, EventArgs e)
-//        {
-//            // sync has finished
-//            CurrentSyncSource = null;
-//            
-//            // Check to see if any more catching up has to be done
-//            foreach (var peer in _peers)
-//            {
-//                if (_localHeight < peer.KnownHeight)
-//                {
-//                    CurrentSyncSource = peer;
-//                    StartSync(peer, _localHeight+1, peer.KnownHeight);
-//                    _logger?.Trace("Switched sync source.");
-//                    break;
-//                }
-//            }
-//            
-//            if(CurrentSyncSource == null)
-//                MessageHub.Instance.Publish(new SyncStateChanged(false));
-//        }
 
         /// <summary>
         /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
@@ -366,17 +381,19 @@ namespace AElf.Node.Protocol
             {
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
 
-                IBlock bbh = _chainService.GetBlockByHash(Hash.FromRawBytes(a.ToByteArray()));
+                byte[] blockHash = a.Id.ToByteArray();
+                IBlock bbh = _chainService.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
+                
+                _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
+
+                if (bbh == null && _minedBlocks.Any(m => m.BytesEqual(blockHash)))
+                    ;
 
                 if (bbh != null)
                     return;
                 
+                SetSyncState(true);
                 peer.OnAnnouncementMessage(a);
-
-//                if (CurrentSyncSource == null)
-//                {
-//                    StartSync(peer, _localHeight+1, peer.KnownHeight);
-//                }
             }
             catch (Exception e)
             {

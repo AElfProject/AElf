@@ -1,4 +1,5 @@
-﻿using AElf.Common.Enums;
+﻿using AElf.ChainController;
+using AElf.Common.Enums;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Node;
 using AElf.Network;
@@ -19,8 +20,7 @@ namespace AElf.Node
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
             builder.RegisterType<BlockSynchronizer>().As<IBlockSynchronizer>().SingleInstance();
-            builder.RegisterType<AElf.ChainController.BlockSet>().As<AElf.ChainController.IBlockSet>()
-                .SingleInstance();
+            builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {

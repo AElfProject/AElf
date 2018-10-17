@@ -183,8 +183,7 @@ namespace AElf.Network.Peers
                 if (_blocks.Count == 0)
                     return;
                 
-                ValidatingBlock vBlock = _blocks.Where(b => b.IsRequesting).FirstOrDefault(b => b.BlockId.BytesEqual(blockHash));
-                _blocks.Remove(vBlock);
+                _blocks.RemoveAll(b => b.BlockId.BytesEqual(blockHash));
             }
         }
 
@@ -212,7 +211,7 @@ namespace AElf.Network.Peers
             
             EnqueueOutgoing(message);
             
-            _logger?.Trace($"[{this}] sync {_isSyncing}, requested block at index {index}.");
+            _logger?.Trace($"[{this}] requested block at index {index}.");
         }
         
         private void RequestBlockById(byte[] id)
@@ -223,13 +222,13 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                _logger?.Warn($"Request for block at height {id.ToHex()} failed because payload is null.");
+                _logger?.Warn($"Request for block with id {id.ToHex()} failed because payload is null.");
                 return;
             }
             
             EnqueueOutgoing(message);
             
-            _logger?.Trace($"[{this}] sync {_isSyncing}, requested block at index {id.ToHex()}.");
+            _logger?.Trace($"[{this}] requested block with id {id.ToHex()}.");
         }
     }
 }

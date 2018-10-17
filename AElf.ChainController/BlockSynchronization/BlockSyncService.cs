@@ -16,7 +16,7 @@ namespace AElf.ChainController
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockExecutionService _blockExecutionService;
 
-        private readonly IBlockSet _blockSet = new BlockSet();
+        private readonly IBlockSet _blockSet;
 
         private IBlockChain _blockChain;
 
@@ -25,11 +25,12 @@ namespace AElf.ChainController
                                                   Hash.LoadHex(NodeConfig.Instance.ChainId)));
 
         public BlockSyncService(IChainService chainService, IBlockValidationService blockValidationService,
-            IBlockExecutionService blockExecutionService)
+            IBlockExecutionService blockExecutionService, IBlockSet blockSet)
         {
             _chainService = chainService;
             _blockValidationService = blockValidationService;
             _blockExecutionService = blockExecutionService;
+            _blockSet = blockSet;
         }
 
         public async Task ReceiveBlock(IBlock block)
@@ -52,6 +53,7 @@ namespace AElf.ChainController
         public async Task AddMinedBlock(IBlock block)
         {
             await _blockSet.Tell(block.Header.Index);
+            await _blockSet.AddBlock(block);
             MessageHub.Instance.Publish(UpdateConsensus.Update);
         }
 
