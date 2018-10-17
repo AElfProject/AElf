@@ -9,6 +9,6 @@ namespace AElf.ChainController
 {
     public interface IExecutingService
     {
-        Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId, CancellationToken cancellationToken);
+        Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId, CancellationToken cancellationToken, Hash disambiguationHash=null);
     }
 }

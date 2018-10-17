@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Common;
+using AElf.Kernel.Managers;
 
 namespace AElf.ChainController
 {
@@ -12,19 +13,21 @@ namespace AElf.ChainController
     {
         private ISmartContractService _smartContractService;
         private IStateDictator _stateDictator;
+        private ITransactionTraceManager _transactionTraceManager;
         private IChainContextService _chainContextService;
 
         public SimpleExecutingService(ISmartContractService smartContractService,
-            IStateDictator stateDictator,
+            IStateDictator stateDictator, ITransactionTraceManager transactionTraceManager,
             IChainContextService chainContextService)
         {
             _smartContractService = smartContractService;
             _stateDictator = stateDictator;
+            _transactionTraceManager = transactionTraceManager;
             _chainContextService = chainContextService;
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken, Hash disambiguationHash=null)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<DataPath, StateCache>();
@@ -43,6 +46,13 @@ namespace AElf.ChainController
 //                        stateCache[kv.Key] = kv.Value;
 //                    }
                 }
+
+                if (_transactionTraceManager != null)
+                {
+                    // Will be null only in tests
+                    await _transactionTraceManager.AddTransactionTraceAsync(trace, disambiguationHash);    
+                }
+
                 traces.Add(trace);
             }
 

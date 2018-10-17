@@ -135,16 +135,18 @@ namespace AElf.Execution
     /// </summary>
     public sealed class LocalExecuteTransactionsMessage
     {
-        public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource)
+        public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource, Hash disambiguationHash=null)
         {
             ChainId = chainId;
             Transactions = transactions;
             TaskCompletionSource = taskCompletionSource;
+            DisambiguationHash = disambiguationHash;
         }
 
         public Hash ChainId { get; }
         public List<Transaction> Transactions { get; }
         public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
+        public Hash DisambiguationHash { get; }
     }
 
 //    public sealed class TransactionResultMessage
@@ -234,17 +236,19 @@ namespace AElf.Execution
 
     public class JobExecutionRequest
     {
-        public JobExecutionRequest(long requestId, Hash chainId, List<Transaction> transactions, IActorRef resultCollector, IActorRef router)
+        public JobExecutionRequest(long requestId, Hash chainId, List<Transaction> transactions, IActorRef resultCollector, IActorRef router, Hash disambiguationHash=null)
         {
             RequestId = requestId;
             ChainId = chainId;
             Transactions = transactions;
             ResultCollector = resultCollector;
             Router = router;
+            DisambiguationHash = disambiguationHash;
         }
 
         public long RequestId { get; set; }
         public Hash ChainId { get; set; }
+        public Hash DisambiguationHash { get; set; }
         public List<Transaction> Transactions { get; set; }
         public IActorRef ResultCollector { get; set; }
         public IActorRef Router { get; set; }

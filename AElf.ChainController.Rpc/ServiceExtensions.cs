@@ -178,6 +178,20 @@ namespace AElf.ChainController.Rpc
             return res;
         }
 
+        internal static async Task<TransactionTrace> GetTransactionTrace(this Svc s, Hash txHash, ulong height)
+        {
+            var b = await s.GetBlockAtHeight(height);
+            if (b == null)
+            {
+                return null;
+            }
+
+            var prodAddr = Address.FromRawBytes(b.Header.P.ToByteArray());
+            var res = await s.TransactionTraceManager.GetTransactionTraceAsync(txHash,
+                HashHelpers.GetDisambiguationHash(height, prodAddr));
+            return res;
+        }
+
         internal static Address GetGenesisContractHash(this Svc s, SmartContractType contractType)
         {
             return s.ChainCreationService.GenesisContractHash(Hash.LoadHex(NodeConfig.Instance.ChainId), contractType);

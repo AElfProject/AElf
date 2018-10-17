@@ -35,6 +35,7 @@ namespace AElf.Miner.Tests
         private IAccountContextService _accountContextService;
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
+        private ITransactionTraceManager _transactionTraceManager;
         private IExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
@@ -58,6 +59,7 @@ namespace AElf.Miner.Tests
             _smartContractManager = new SmartContractManager(_dataStore);
             _accountContextService = new AccountContextService(_stateDictator);
             _transactionResultManager = new TransactionResultManager(_dataStore);
+            _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainService = new ChainService(new ChainManagerBasic(_dataStore),
                 new BlockManagerBasic(_dataStore, _logger),
@@ -69,7 +71,8 @@ namespace AElf.Miner.Tests
             _smartContractRunnerFactory.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator,_stateStore,
-                    _functionMetadataService), _stateDictator, new ChainContextService(_chainService));
+                    _functionMetadataService), _stateDictator, _transactionTraceManager,
+                new ChainContextService(_chainService));
             
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,

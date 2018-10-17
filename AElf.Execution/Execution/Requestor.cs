@@ -59,7 +59,7 @@ namespace AElf.Execution
                     }
 
 //                    _requestIdToPendingTransactionIds.Add(reqId, hashes);
-                    _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router));
+                    _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router, req.DisambiguationHash));
                     break;
                 case TransactionTraceMessage msg:
                     if (!_requestIdToTraces.TryGetValue(msg.RequestId, out var traces))

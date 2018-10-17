@@ -103,9 +103,11 @@ namespace AElf.Common
 
         public static readonly Hash Zero = Hash.FromString("AElf");
 
+        public static readonly Hash Ones = Hash.LoadByteArray(Enumerable.Range(0, 32).Select(x=>byte.MaxValue).ToArray());
+
         public static readonly Hash Default = Hash.FromRawBytes(new byte[0]);
 
-        public static readonly Hash Genesis = Hash.LoadByteArray(Enumerable.Range(0, 32).Select(x=>(byte)0).ToArray());
+        public static readonly Hash Genesis = Hash.LoadByteArray(Enumerable.Range(0, 32).Select(x=>byte.MinValue).ToArray());
 
         #endregion
 

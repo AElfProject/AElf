@@ -72,8 +72,9 @@ namespace AElf.Miner.Miner
                 readyTxs= await CollectTransactions(block);
                 if (readyTxs == null)
                     return false;
-            
-                var results = await ExecuteTransactions(readyTxs, block.Header.ChainId);
+                var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index,
+                    Address.FromRawBytes(block.Header.P.ToByteArray()));
+                var results = await ExecuteTransactions(readyTxs, block.Header.ChainId, disambiguationHash);
                 if (results == null)
                 {
                     return false;
@@ -141,13 +142,13 @@ namespace AElf.Miner.Miner
         /// <param name="readyTxs"></param>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId)
+        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId, Hash disambiguationHash)
         {
             try
             {
                 var traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _executingService.ExecuteAsync(readyTxs, chainId, Cts.Token);
+                    : await _executingService.ExecuteAsync(readyTxs, chainId, Cts.Token, disambiguationHash);
                 
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)

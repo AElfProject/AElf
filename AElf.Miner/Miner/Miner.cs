@@ -44,6 +44,7 @@ namespace AElf.Miner.Miner
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ServerManager _serverManager;
+        private Address _producerAddress;
 
         private IMinerConfig Config { get; }
 
@@ -101,11 +102,13 @@ namespace AElf.Miner.Miner
                     {
                         _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName} from {transaction.From.DumpHex()}");
                     }
+
+                    var disambiguationHash = HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
                     
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
-                        : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token);
+                        : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token, disambiguationHash);
                     _logger?.Log(LogLevel.Debug, "Executed Transactions.");
 
                     // transaction results
@@ -134,6 +137,13 @@ namespace AElf.Miner.Miner
                     return null;
                 }
             }
+        }
+
+        private async Task<ulong> GetNewBlockIndexAsync()
+        {
+            var blockChain = _chainService.GetBlockChain(Config.ChainId);
+            var index = await blockChain.GetCurrentBlockHeightAsync() + 1;
+            return index;
         }
 
         private async Task UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
@@ -438,6 +448,7 @@ namespace AElf.Miner.Miner
         {
             _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
             _keyPair = nodeKeyPair;
+            _producerAddress = Address.FromRawBytes(nodeKeyPair.GetEncodedPublicKey());
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
             
             // start clients and server
