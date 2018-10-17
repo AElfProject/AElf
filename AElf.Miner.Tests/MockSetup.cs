@@ -41,12 +41,14 @@ namespace AElf.Miner.Tests
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IDataStore _dataStore;
         private readonly ServerManager _serverManager;
+        private readonly IBlockSet _blockSet;
         
-        public MockSetup(ILogger logger, IDataStore dataStore, ServerManager serverManager)
+        public MockSetup(ILogger logger, IDataStore dataStore, ServerManager serverManager, IBlockSet blockSet)
         {
             _logger = logger;
             _dataStore = dataStore;
             _serverManager = serverManager;
+            _blockSet = blockSet;
             Initialize();
         }
         
@@ -60,7 +62,7 @@ namespace AElf.Miner.Tests
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainService = new ChainService(new ChainManagerBasic(_dataStore),
                 new BlockManagerBasic(_dataStore, _logger),
-                _transactionManager, _dataStore);
+                _transactionManager, _dataStore, _blockSet);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);*/
