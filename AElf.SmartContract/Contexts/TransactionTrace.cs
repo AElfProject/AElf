@@ -45,7 +45,7 @@ namespace AElf.SmartContract
         }
 
 
-        public async Task CommitChangesAsync1(IStateStore stateStore)
+        public async Task CommitChangesAsync(IStateStore stateStore)
         {
             if (ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
@@ -61,46 +61,9 @@ namespace AElf.SmartContract
                 ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
                 foreach (var trc in InlineTraces)
                 {
-                    await trc.CommitChangesAsync1(stateStore);
+                    await trc.CommitChangesAsync(stateStore);
                 }
             }
-        }
-
-        public async Task<Dictionary<DataPath, StateCache>> CommitChangesAsync(IStateDictator stateDictator)
-        {
-            Dictionary<DataPath, StateCache> changedDict = new Dictionary<DataPath, StateCache>();
-            if (ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
-            {
-                throw new InvalidOperationException(
-                    $"Attempting to commit a trace with a wrong status {ExecutionStatus}.");
-            }
-//
-//            if (!_alreadyCommitted)
-//            {
-//                foreach (var vc in ValueChanges)
-//                {
-////                    await stateDictator.ApplyStateValueChangeAsync(vc.Clone());
-//
-//                    //add changes
-//                    var valueCache = new StateCache(vc.CurrentValue.ToByteArray());
-//                    changedDict[vc.Path] = valueCache;
-//                }
-//
-//                //TODO: Question: should inline trace commit to tentative cache once the calling func return? In other word, does inlineTraces overwrite the original content in changeDict?
-//                foreach (var trc in InlineTraces)
-//                {
-//                    var inlineCacheDict = await trc.CommitChangesAsync(stateDictator);
-//                    foreach (var kv in inlineCacheDict)
-//                    {
-//                        changedDict[kv.Key] = kv.Value;
-//                    }
-//                }
-//
-//                ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
-//            }
-
-            _alreadyCommitted = true;
-            return changedDict;
         }
     }
 }
