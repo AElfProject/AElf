@@ -1,10 +1,7 @@
-using System;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Common
 {
     public static class HashExtensions

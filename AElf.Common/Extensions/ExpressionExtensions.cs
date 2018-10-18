@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Common
 {
     internal static class ExpressionExtensions
@@ -142,8 +143,8 @@ namespace AElf.Common
         private static Func<T, TField> CreateGetter<T, TField>(FieldInfo field)
         {
             var getterMethod = new DynamicMethod(
-                string.Empty, typeof(TField), new Type[1] { typeof(T) },
-                typeof(ExpressionExtensions), skipVisibility: true);
+                string.Empty, typeof(TField), new[] { typeof(T) },
+                typeof(ExpressionExtensions), true);
 
             var il = getterMethod.GetILGenerator();
 

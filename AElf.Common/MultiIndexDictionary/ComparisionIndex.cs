@@ -372,9 +372,7 @@ namespace AElf.Common.MultiIndexDictionary
 
         bool ILookup<TProperty, T>.Contains(TProperty key)
         {
-            return key == null
-                ? _nullBucket != null
-                : Contains(new KeyValuePair<TProperty, object>(key, null));
+            return Contains(new KeyValuePair<TProperty, object>(key, null));
         }
 
         IEnumerator<IGrouping<TProperty, T>> IEnumerable<IGrouping<TProperty, T>>.GetEnumerator()

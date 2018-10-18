@@ -1,5 +1,6 @@
 ﻿using AElf.ChainController;
 using AElf.Common.Enums;
+using AElf.Common.MultiIndexDictionary;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Node;
 using AElf.Network;
@@ -9,7 +10,7 @@ using Autofac;
 
 namespace AElf.Node
 {
-    public class NodeAutofacModule: Module
+    public class NodeAutofacModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {            
@@ -20,6 +21,7 @@ namespace AElf.Node
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
             builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
+
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {

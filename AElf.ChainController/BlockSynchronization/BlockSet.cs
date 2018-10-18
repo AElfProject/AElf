@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Common.Extensions;
+using AElf.Common.MultiIndexDictionary;
 using AElf.Configuration;
 using AElf.Kernel;
 using Akka.Util.Internal;
@@ -16,21 +18,17 @@ namespace AElf.ChainController
     {
         private readonly ILogger _logger;
 
-        private readonly Queue<IBlock> _validBlock = new Queue<IBlock>();
-
-        private readonly Dictionary<string, IBlock> _dict = new Dictionary<string, IBlock>();
-
-        /// <summary>
-        /// (Block height, Block hash) - 
-        /// </summary>
-        private readonly Dictionary<Tuple<ulong, string>, IBlock> _blockDict =
-            new Dictionary<Tuple<ulong, string>, IBlock>();
+        private readonly IndexedDictionary<IBlock> _dict;
 
         private object _ = new object();
         
         public BlockSet()
         {
             _logger = LogManager.GetLogger(nameof(BlockSet));
+
+            _dict = new List<IBlock>()
+                .IndexBy(b => b.Header.Index, true)
+                .IndexBy(b => b.GetHash());
         }
         
         public void AddBlock(IBlock block)
@@ -39,7 +37,7 @@ namespace AElf.ChainController
             _logger?.Trace($"Added block {hash} to BlockSet.");
             lock (_)
             {
-                _dict.TryAdd(hash, block);
+                _dict.Add(block);
             }
             
             // TODO: Need a way to organize branched chains (using indexes)
@@ -57,14 +55,17 @@ namespace AElf.ChainController
 
         public bool IsBlockReceived(Hash blockHash, ulong height)
         {
-            return _blockDict.ContainsKey(Tuple.Create(height, blockHash.DumpHex()));
+            lock (_)
+            {
+                return _dict.Any(b => b.Header.Index == height && b.GetHash() == blockHash);
+            }
         }
 
         public IBlock GetBlockByHash(Hash blockHash)
         {
             lock (_)
             {
-                return _dict.TryGetValue(blockHash.DumpHex(), out var block) ? block : null;
+                return _dict.FirstOrDefault(b => b.GetHash() == blockHash);
             }
         }
 
@@ -72,7 +73,7 @@ namespace AElf.ChainController
         {
             lock (_)
             {
-                return _dict.Values.Where(b => b.Header.Index == height).ToList();
+                return _dict.Where(b => b.Header.Index == height).ToList();
             }
         }
 
