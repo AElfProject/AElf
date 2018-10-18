@@ -383,12 +383,12 @@ namespace AElf.Node.Protocol
                 byte[] blockHash = a.Id.ToByteArray();
                 IBlock bbh = _chainService.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
                 
-                _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
+                _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh.Header == null ? "(unknown)" : "(known)"));
 
-                if (bbh == null && _minedBlocks.Any(m => m.BytesEqual(blockHash)))
+                if (bbh.Header == null && _minedBlocks.Any(m => m.BytesEqual(blockHash)))
                     ;
 
-                if (bbh != null)
+                if (bbh.Header != null)
                     return;
                 
                 SetSyncState(true);

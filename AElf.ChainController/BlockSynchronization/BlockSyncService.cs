@@ -46,7 +46,6 @@ namespace AElf.ChainController
                 ulong i = 0;
                 while (blocks.Any())
                 {
-                    _logger?.Trace($"Will get block of height {inHeight.TargetHeight + i} from block set to execute.");
                     i++;
                     foreach (var block in blocks)
                     {
@@ -56,6 +55,7 @@ namespace AElf.ChainController
                             {
                                 return;
                             }
+                            _logger?.Trace($"Executed block of height {inHeight.TargetHeight + i - 1}.");
                             blocks = _blockSet.GetBlockByHeight(inHeight.TargetHeight + i);
                         }
                         else

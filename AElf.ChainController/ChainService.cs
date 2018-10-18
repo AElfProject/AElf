@@ -56,7 +56,8 @@ namespace AElf.ChainController
 
         public bool IsBlockReceived(Hash blockHash, ulong height)
         {
-            return _blockSet.IsBlockReceived(blockHash, height);
+            return _blockSet.IsBlockReceived(blockHash, height) ||
+                   GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId)).HasBlock(blockHash).Result;
         }
 
         public IBlock GetBlockByHash(Hash blockHash)
@@ -67,7 +68,11 @@ namespace AElf.ChainController
 
         public List<IBlock> GetBlockByHeight(ulong height)
         {
-            return _blockSet.GetBlockByHeight(height);
+            return _blockSet.GetBlockByHeight(height) ?? new List<IBlock>
+            {
+                GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId))
+                    .GetBlockByHeightAsync(height).Result
+            };
         }
     }
 }

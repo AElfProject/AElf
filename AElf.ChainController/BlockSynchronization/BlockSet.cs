@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
@@ -16,6 +17,8 @@ namespace AElf.ChainController
 
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private object _ = new object();
+
+        private const ulong KeepHeight = 20;
 
         public BlockSet()
         {
@@ -43,12 +46,12 @@ namespace AElf.ChainController
         /// <returns></returns>
         public void Tell(ulong currentHeight)
         {
-            if (currentHeight <= (ulong) GlobalConfig.BlockNumberOfEachRound)
+            if (currentHeight <= KeepHeight)
             {
                 return;
             }
             
-            RemoveOldBlocks(currentHeight - (ulong) GlobalConfig.BlockNumberOfEachRound);
+            RemoveOldBlocks(currentHeight - KeepHeight);
         }
 
         public bool IsBlockReceived(Hash blockHash, ulong height)
@@ -77,12 +80,19 @@ namespace AElf.ChainController
 
         private void RemoveOldBlocks(ulong targetHeight)
         {
-            lock (_)
+            try
             {
-                if (_dict.Any(b => b.Index <= targetHeight))
+                lock (_)
                 {
-                    _dict.RemoveWhere(b => b.Index <= targetHeight);
+                    if (_dict.Any(b => b.Index <= targetHeight))
+                    {
+                        _dict.RemoveWhere(b => b.Index <= targetHeight);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
             }
         }
     }
