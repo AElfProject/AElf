@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common;
@@ -12,14 +13,11 @@ using AElf.Kernel.Consensus;
 using AElf.Miner.Miner;
 using AElf.Node;
 using AElf.Node.AElfChain;
-using AElf.Node.Protocol;
-using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using AElf.Common;
 using AElf.Kernel.Storages;
 
 // ReSharper disable once CheckNamespace
@@ -40,8 +38,13 @@ namespace AElf.Kernel.Node
         private readonly IStateStore _stateStore;
         private readonly ITxPoolService _txPoolService;
         private readonly IMiner _miner;
-        private readonly IBlockChain _blockchain;
-        private readonly IBlockSynchronizer _synchronizer;
+        private readonly IChainService _chainService;
+        
+        private IBlockChain _blockChain;
+        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
+                                              _chainService.GetBlockChain(
+                                                  Hash.LoadHex(NodeConfig.Instance.ChainId)));
+        
         private readonly ILogger _logger;
 
         public static AElfDPoSHelper Helper;
@@ -51,38 +54,29 @@ namespace AElf.Kernel.Node
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
-        private NodeKeyPair _nodeKeyPair;
-        private Address _contractAccountAddressHash;
+        private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
+
+        public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
+            Hash.LoadHex(NodeConfig.Instance.ChainId),
+            SmartContractType.AElfDPoS.ToString());
 
         private int _flag;
 
-        private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(_logger,
-            MiningWithInitializingAElfDPoSInformation,
+        private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(
-            IStateStore stateStore,
-            ITxPoolService txPoolService,
-            IMiner miner,
-            IBlockChain blockchain,
-            IBlockSynchronizer synchronizer,
-            ILogger logger = null
-        )
+        public DPoS(IStateStore stateStore, ITxPoolService txPoolService, IMiner miner,
+            IChainService chainService)
         {
             _stateStore = stateStore;
             _txPoolService = txPoolService;
             _miner = miner;
-            _blockchain = blockchain;
-            _synchronizer = synchronizer;
-            _logger = logger;
-        }
-        
-        public void Initialize(Address contractAccountHash, ECKeyPair nodeKeyPair)
-        {
-            Helper = new AElfDPoSHelper(
-                Hash.LoadHex(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _stateStore, _logger);
-            _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
-            _contractAccountAddressHash = contractAccountHash;
+            _chainService = chainService;
+
+            _logger = LogManager.GetLogger(nameof(DPoS));
+
+            Helper = new AElfDPoSHelper(Hash.LoadHex(NodeConfig.Instance.ChainId), Miners,
+                ContractAddress, _stateStore);
 
             var count = MinersConfig.Instance.Producers.Count;
 
@@ -91,6 +85,7 @@ namespace AElf.Kernel.Node
 
             _logger?.Trace("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
             _logger?.Trace("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
+
             if (GlobalConfig.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
             {
                 AElfDPoSObserver.RecoverMining();
@@ -116,17 +111,24 @@ namespace AElf.Kernel.Node
 
         public async Task Start()
         {
+            if (ConsensusDisposable != null)
+            {
+                Recover();
+                return;
+            }
+            
             if (isMining)
                 return;
 
             isMining = true;
 
+            // Check whether this node contained BP list.
             if (!Miners.Nodes.Contains(_nodeKeyPair.Address.DumpHex().RemoveHexPrefix()))
             {
                 return;
             }
 
-            if (NodeConfig.Instance.ConsensusInfoGenerater && !await Helper.HasGenerated())
+            if (NodeConfig.Instance.ConsensusInfoGenerator && !await Helper.HasGenerated())
             {
                 GlobalConfig.IsConsensusGenerator = true;
                 AElfDPoSObserver.Initialization();
@@ -136,11 +138,26 @@ namespace AElf.Kernel.Node
             Helper.SyncMiningInterval();
             _logger?.Trace($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
 
-
             if (Helper.CanRecoverDPoSInformation())
             {
                 AElfDPoSObserver.RecoverMining();
             }
+        }
+
+        public void Stop()
+        {
+            ConsensusDisposable?.Dispose();
+            _logger?.Trace("Mining stopped. Disposed previous consensus observables list.");
+        }
+
+        public void Hang()
+        {
+            Interlocked.CompareExchange(ref _flag, 1, 0);
+        }
+
+        public void Recover()
+        {
+            Interlocked.CompareExchange(ref _flag, 0, 1);
         }
 
         private async Task<IBlock> Mine()
@@ -150,30 +167,16 @@ namespace AElf.Kernel.Node
                 return null;
             try
             {
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(await BlockChain.GetCurrentBlockHeightAsync()));                
                 _logger?.Trace($"Mine - Entered mining {res}");
 
                 var block = await _miner.Mine(Helper.GetCurrentRoundInfo());
 
-                _synchronizer.IncrementChainHeight();
-
-                //Update DPoS observables.
-                try
-                {
-                    await Update();
-                }
-                catch (Exception e)
-                {
-                    _logger?.Error(e, "Somehow failed to update DPoS observables. Will recover soon.");
-                    //In case just config one node to produce blocks.
-                    await RecoverMining();
-                }
-                /*if(!block.Header.IndexedInfo.IsEmpty())
-                    _logger?.Debug($"Indexed side chain info in main block {block.Header.Index}:\n{block.Header.GetIndexedSideChainBlcokInfo()}");*/
                 return block;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger?.Trace(e.Message);
                 return null;
             }
             finally
@@ -186,14 +189,14 @@ namespace AElf.Kernel.Node
 
         private async Task<Transaction> GenerateTransactionAsync(string methodName, IReadOnlyList<byte[]> parameters)
         {
-            var bn = await _blockchain.GetCurrentBlockHeightAsync();
+            var bn = await BlockChain.GetCurrentBlockHeightAsync();
             bn = bn > 4 ? bn - 4 : 0;
-            var bh = bn == 0 ? Hash.Genesis : (await _blockchain.GetHeaderByHeightAsync(bn)).GetHash();
+            var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
             var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
             var tx = new Transaction
             {
                 From = _nodeKeyPair.Address,
-                To = _contractAccountAddressHash,
+                To = ContractAddress,
                 RefBlockNumber = bn,
                 RefBlockPrefix = ByteString.CopyFrom(bhPref),
                 MethodName = methodName,
@@ -249,6 +252,8 @@ namespace AElf.Kernel.Node
             };
             var txToInitializeAElfDPoS = await GenerateTransactionAsync("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);
+            
+            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.InitializeAElfDPoS));
 
             await Mine();
         }
@@ -292,6 +297,8 @@ namespace AElf.Kernel.Node
                 await GenerateTransactionAsync("PublishOutValueAndSignature", parameters);
 
             await BroadcastTransaction(txToPublishOutValueAndSignature);
+            
+            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.PublishOutValueAndSignature));
 
             await Mine();
         }
@@ -343,12 +350,14 @@ namespace AElf.Kernel.Node
 
             await BroadcastTransaction(txForExtraBlock);
 
+            MessageHub.Instance.Publish(new ConsensusStateChanged(ConsensusBehavior.UpdateAElfDPoS));
+
             await Mine();
         }
 
         public async Task Update()
         {
-            Helper.LogDPoSInformation(await _blockchain.GetCurrentBlockHeightAsync());
+            Helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
             if (ConsensusMemory == Helper.CurrentRoundNumber.Value)
                 return;
@@ -357,7 +366,7 @@ namespace AElf.Kernel.Node
             if (ConsensusDisposable != null)
             {
                 ConsensusDisposable.Dispose();
-                _logger?.Trace("Disposed previous consensus observables list.");
+                _logger?.Trace("Disposed previous consensus observables list. Will update DPoS information.");
             }
 
             // Update observer.
@@ -381,7 +390,6 @@ namespace AElf.Kernel.Node
             await Task.CompletedTask;
         }
 
-        //TODO: improve
         public bool IsAlive()
         {
             var currentTime = DateTime.UtcNow;
@@ -392,7 +400,7 @@ namespace AElf.Kernel.Node
                 startTimeSlot.AddMilliseconds(GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval * 2);
 
             return currentTime >
-                   startTimeSlot.AddMilliseconds(-GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval) &&
+                   startTimeSlot.AddMilliseconds(-GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval) ||
                    currentTime < endTimeSlot.AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval);
         }
 
@@ -410,7 +418,10 @@ namespace AElf.Kernel.Node
             {
                 var result = await _txPoolService.AddTxAsync(tx);
                 if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
+                {
+                    _logger?.Trace("Tx added to the pool");
                     MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
+                }
                 else
                 {
                     _logger?.Trace("Failed to insert tx: " + result);

@@ -100,11 +100,20 @@ namespace AElf.Miner.Rpc.Server
             if(!GrpcLocalConfig.Instance.SideChainServer)
                 return;
 
-            // for safety, process all request before shutdown 
-            await StopSideChainServer();
-            _sideChainServer = CreateNewSideChainServer();
-            _sideChainServer.Start();
-            _logger.Debug("Started Side chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
+            try
+            {
+                // for safety, process all request before shutdown 
+                await StopSideChainServer();
+                _sideChainServer = CreateNewSideChainServer();
+                _sideChainServer.Start();
+                _logger.Debug("Started Side chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                throw;
+            }
+            
         }
 
         /// <summary>
@@ -129,11 +138,20 @@ namespace AElf.Miner.Rpc.Server
             if(!GrpcLocalConfig.Instance.ParentChainServer)
                 return;
             
-            // for safety, process all request before shutdown 
-            await StopParentChainServer();
-            _parentChainServer = CreateNewParentChainServer();
-            _parentChainServer.Start();
-            _logger.Debug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
+            try
+            {
+                // for safety, process all request before shutdown 
+                await StopParentChainServer();
+                _parentChainServer = CreateNewParentChainServer();
+                _parentChainServer.Start();
+                _logger.Debug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalParentChainServerPort);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                throw;
+            }
+            
         }
 
         /// <summary>
@@ -157,10 +175,19 @@ namespace AElf.Miner.Rpc.Server
         {
             if (!GrpcLocalConfig.Instance.ParentChainServer && !GrpcLocalConfig.Instance.SideChainServer)
                 return;
-            _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
-            var keyCertificatePair = GenerateKeyCertificatePair();
-            // create credentials 
-            _sslServerCredentials = new SslServerCredentials(new List<KeyCertificatePair> {keyCertificatePair});
+            try
+            {
+                _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
+                var keyCertificatePair = GenerateKeyCertificatePair();
+                // create credentials 
+                _sslServerCredentials = new SslServerCredentials(new List<KeyCertificatePair> {keyCertificatePair});
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                throw;
+            }
+            
             // start servers if possible 
             StartSideChainServer();
             StartParentChainServer();

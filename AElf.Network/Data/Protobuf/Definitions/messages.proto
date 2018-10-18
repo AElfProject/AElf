@@ -8,7 +8,7 @@ message Handshake {
     
     NodeData NodeInfo = 1;
     bytes PublicKey = 2;
-    
+    int32 Height = 3;
     // sig NodeData
     bytes R = 9;
     bytes S = 10;
@@ -29,6 +29,12 @@ message ReqPeerListData {
 
 message BlockRequest {
     int32 Height = 1;
+    bytes Id = 2;
+}
+
+message Announce {
+    int32 Height = 1;
+    bytes Id = 2;
 }
 
 message TxRequest {

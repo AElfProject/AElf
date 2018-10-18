@@ -8,9 +8,9 @@ namespace AElf.Kernel
     {
         RepeatedField<Hash> Transactions { get; }
 
-        bool AddTransaction(Hash tx);
+        bool AddTransaction(Transaction tx);
 
-        bool AddTransactions(IEnumerable<Hash> hashes);
+        bool AddTransactions(IEnumerable<Transaction> txs);
         
         void Complete(Hash blockHeaderHash);
         

@@ -92,10 +92,10 @@ namespace AElf.Kernel.Tests
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
             var block = new Block(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
+            block.AddTransaction(FakeTransaction());
+            block.AddTransaction(FakeTransaction());
+            block.AddTransaction(FakeTransaction());
+            block.AddTransaction(FakeTransaction());
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
@@ -104,6 +104,15 @@ namespace AElf.Kernel.Tests
             block.Header.MerkleTreeRootOfWorldState = Hash.Default;
 
             return block;
+        }
+        
+        private static Transaction FakeTransaction()
+        {
+            return new Transaction
+            {
+                From = Address.Generate(),
+                To = Address.Generate()
+            };
         }
     }
 }

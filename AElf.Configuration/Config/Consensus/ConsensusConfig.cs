@@ -1,5 +1,6 @@
 ﻿using AElf.Common.Enums;
 
+// ReSharper disable InconsistentNaming
 namespace AElf.Configuration.Config.Consensus
 {
     public class ConsensusConfig : ConfigBase<ConsensusConfig>
@@ -8,7 +9,7 @@ namespace AElf.Configuration.Config.Consensus
 
         public int DPoSMiningInterval { get; set; }
 
-        public ulong ExpectedTransanctionCount { get; set; }
+        public ulong ExpectedTransactionCount { get; set; }
 
         public int SingleNodeTestMiningInterval { get; set; }
 
@@ -16,7 +17,7 @@ namespace AElf.Configuration.Config.Consensus
         {
             ConsensusType = ConsensusType.AElfDPoS;
             DPoSMiningInterval = 4000;
-            ExpectedTransanctionCount = 8000;
+            ExpectedTransactionCount = 8000;
             SingleNodeTestMiningInterval = 4000;
         }
     }

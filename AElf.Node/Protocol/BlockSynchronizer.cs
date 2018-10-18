@@ -139,7 +139,6 @@ namespace AElf.Node.Protocol
         /// Handles a list of transactions sent by another node, these transactions are either
         /// issues from a broadcast or a request.
         /// </summary>
-        /// <param name="msg"></param>
         /// <returns></returns>
         private async Task HandleTransactionMessage(TransactionsReceivedEventArgs txsEventArgs)
         {
@@ -244,7 +243,7 @@ namespace AElf.Node.Protocol
                     if (!_currentBlockRequests.Contains(i))
                     {
                         _currentBlockRequests.Add(i);
-                        _networkManager.QueueBlockRequestByIndex(i);
+                        //_networkManager.QueueBlockRequestByIndex(i);
 
                         Thread.Sleep(5);
 
@@ -481,12 +480,12 @@ namespace AElf.Node.Protocol
                 var block = pendingBlock.Block;
 
                 var res = await _mainChainNode.ExecuteAndAddBlock(block);
-                pendingBlock.ValidationError = res.ValidationError;
+                pendingBlock.BlockValidationResult = res.BlockValidationResult;
 
                 var blockHexHash = block.GetHash().Value.ToByteArray().ToHex();
                 int blockIndex = (int) block.Header.Index;
 
-                if (res.ValidationError == ValidationError.Success)
+                if (res.ValidationError == BlockValidationResult.Success)
                 {
                     if (res.Executed)
                     {
@@ -513,8 +512,8 @@ namespace AElf.Node.Protocol
                 else
                 {
                     // The blocks validation failed
-                    if (res.ValidationError == ValidationError.AlreadyExecuted
-                        || res.ValidationError == ValidationError.OrphanBlock)
+                    if (res.BlockValidationResult == BlockValidationResult.AlreadyExecuted
+                        || res.BlockValidationResult == BlockValidationResult.OrphanBlock)
                     {
                         // The block is an earlier block and one with the same
                         // height as already been executed so it can safely be
@@ -527,14 +526,14 @@ namespace AElf.Node.Protocol
                         }
 
                         _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }} " +
-                                      $"ignored because validation returned {res.ValidationError}.");
+                                      $"ignored because validation returned {res.BlockValidationResult}.");
                     }
-                    else if (res.ValidationError == ValidationError.Pending)
+                    else if (res.BlockValidationResult == BlockValidationResult.Pending)
                     {
                         // The current blocks index is higher than the current height so we're missing
                         if (!ShouldDoInitialSync && (int) block.Header.Index > CurrentExecHeight)
                         {
-                            _networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
+                            //_networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
                             _logger?.Warn($"Block {{ id : {blockHexHash}, index: {blockIndex} }} is pending, " +
                                           $"requesting block with index {CurrentExecHeight}.");
                             break;
@@ -543,7 +542,7 @@ namespace AElf.Node.Protocol
                     else
                     {
                         _logger?.Warn(
-                            $"Block execution failed: {res.Executed}, {res.ValidationError} - {{ id : {blockHexHash}, index: {blockIndex} }}");
+                            $"Block execution failed: {res.Executed}, {res.BlockValidationResult} - {{ id : {blockHexHash}, index: {blockIndex} }}");
                     }
                 }
             }
@@ -557,7 +556,7 @@ namespace AElf.Node.Protocol
                 }
             }
 
-            if (ShouldDoInitialSync && CurrentExecHeight > SyncTargetHeight)
+            if (ShouldDoInitialSync && CurrentExecHeight > SyncTargetHeight && BlockCollection.PendingBlocks.Count == 0)
             {
                 ShouldDoInitialSync = false;
                 IsInitialSyncInProgress = false;

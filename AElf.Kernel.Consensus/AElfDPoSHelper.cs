@@ -150,11 +150,11 @@ namespace AElf.Kernel.Consensus
                 : DataProvider.GetAsync<T>(keyHash).Result;
         }
 
-        public AElfDPoSHelper(Hash chainId, Miners miners, Address contractAddressHash, IStateStore stateStore, ILogger logger)
+        public AElfDPoSHelper(Hash chainId, Miners miners, Address contractAddressHash, IStateStore stateStore)
         {
             _chainId = chainId;
             _miners = miners;
-            _logger = logger;
+            _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
             _contractAddressHash = contractAddressHash;
             _stateStore = stateStore;
         }

@@ -29,8 +29,7 @@ namespace AElf.ChainController.TxMemPool
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo = null, Address myAddress = null,
-            double intervals = 150);
+        Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo = null, double intervals = 150);
 
         List<Transaction> GetSystemTxs();
 

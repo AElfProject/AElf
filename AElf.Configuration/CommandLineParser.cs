@@ -18,6 +18,7 @@ namespace AElf.Configuration
 
         private void MapOptions(CommandLineOptions opts)
         {
+            ApplicationHelpers.SetDataDir(opts.DataDir);
             // Rpc
             RpcConfig.Instance.UseRpc = !opts.NoRpc;
             RpcConfig.Instance.Port = opts.RpcPort;
@@ -70,7 +71,7 @@ namespace AElf.Configuration
             NodeConfig.Instance.NodeName = opts.NodeName;
             NodeConfig.Instance.NodeAccount = opts.NodeAccount;
             NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
-            NodeConfig.Instance.ConsensusInfoGenerater = opts.IsConsensusInfoGenerator;
+            NodeConfig.Instance.ConsensusInfoGenerator = opts.IsConsensusInfoGenerator;
 
             // Actor
             if (opts.ActorIsCluster.HasValue)
@@ -88,10 +89,6 @@ namespace AElf.Configuration
             {
                 ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
             }
-
-            NodeConfig.Instance.DataDir = string.IsNullOrEmpty(opts.DataDir)
-                ? ApplicationHelpers.GetDefaultDataDir()
-                : opts.DataDir;
 
             // management config
             if (!string.IsNullOrWhiteSpace(opts.ManagementUrl))

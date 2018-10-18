@@ -14,7 +14,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Frameworks.Autofac;
 
-[assembly: TestFramework("AElf.Miner.Tests.ConfigureTestFramework", "AElf.MIner.Tests")]
+[assembly: TestFramework("AElf.Miner.Tests.ConfigureTestFramework", "AElf.Miner.Tests")]
 
 namespace AElf.Miner.Tests
 {

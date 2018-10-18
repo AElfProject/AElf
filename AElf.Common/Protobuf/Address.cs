@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using AElf.Common.Extensions;
 using Google.Protobuf;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
@@ -55,12 +54,17 @@ namespace AElf.Common
             return new Address(name.CalculateHash());
         }
 
-//        // ReSharper disable once InconsistentNaming
-//        public static Address FromECKeyPair(ECKeyPair keyPair)
-//        {
-//            return new Address(keyPair.GetEncodedPublicKey());
-//        }
+        // ReSharper disable once InconsistentNaming
+        // public static Address FromECKeyPair(ECKeyPair keyPair)
+        // {
+        //    return new Address(keyPair.GetEncodedPublicKey());
+        // }
 
+        public static Address Generate()
+        {
+            return FromRawBytes(Guid.NewGuid().ToByteArray().CalculateHash());
+        }
+        
         #region Predefined
 
         public static readonly Address AElf = FromString("AElf");
@@ -68,7 +72,6 @@ namespace AElf.Common
         public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
 
         public static readonly Address Genesis = FromString("Genesis");
-
         #endregion
 
         #region Comparing

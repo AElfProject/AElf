@@ -18,6 +18,7 @@ message Transaction {
     bytes S = 10;
     bytes P = 11;
     TransactionType type = 12;
+    google.protobuf.Timestamp Time = 13;
 }
 
 message StatePath {
@@ -65,6 +66,7 @@ message TransactionResult {
     Hash StateHash = 9;
     // Merkle proof path for this transaction
     MerklePath MerklePath = 10;
+    Transaction Transaction = 11;
 }
 
 
@@ -90,6 +92,7 @@ message TransactionTrace {
     repeated StateChange StateChanges = 9;
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
+    Transaction Transaction = 12;
 }
 
 message LogEvent {
@@ -134,7 +137,8 @@ message BlockHeader {
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
-    repeated SideChainBlockInfo IndexedInfo = 3;
+    repeated Transaction TransactionList = 3;
+    repeated SideChainBlockInfo IndexedInfo = 4;
 }
 
 message Block {

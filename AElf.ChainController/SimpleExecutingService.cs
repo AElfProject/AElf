@@ -71,13 +71,15 @@ namespace AElf.ChainController
                 {
                     TransactionId = transaction.GetHash(),
                     StdErr = "Execution Canceled",
-                    ExecutionStatus = ExecutionStatus.Canceled
+                    ExecutionStatus = ExecutionStatus.Canceled,
+                    Transaction = transaction
                 };
             }
 
             var trace = new TransactionTrace()
             {
-                TransactionId = transaction.GetHash()
+                TransactionId = transaction.GetHash(),
+                Transaction = transaction
             };
 
             var txCtxt = new TransactionContext()

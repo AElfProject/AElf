@@ -60,7 +60,7 @@ namespace AElf.Miner.Tests
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainService = new ChainService(new ChainManagerBasic(_dataStore),
                 new BlockManagerBasic(_dataStore, _logger),
-                _transactionManager, _dataStore);
+                _transactionManager, _dataStore, new BlockSet());
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);*/

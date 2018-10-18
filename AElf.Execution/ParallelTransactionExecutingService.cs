@@ -61,7 +61,8 @@ namespace AElf.Execution
                 {
                     StdErr = "Transaction with ID/hash " + failed.Key.GetHash().DumpHex() +
                              " failed, detail message: \n" + failed.Value.Dump(),
-                    TransactionId = failed.Key.GetHash()
+                    TransactionId = failed.Key.GetHash(),
+                    Transaction = failed.Key
                 };
                 results.Add(failedTrace);
             }
@@ -90,6 +91,7 @@ namespace AElf.Execution
             return transactions.Select(tx => new TransactionTrace()
             {
                 TransactionId = tx.GetHash(),
+                Transaction = tx,
                 ExecutionStatus = ExecutionStatus.Canceled,
                 StdErr = "Execution Canceled"
             }).ToList();

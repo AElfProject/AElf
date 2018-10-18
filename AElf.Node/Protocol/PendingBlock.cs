@@ -16,7 +16,7 @@ namespace AElf.Node.Protocol
         public IPeer Peer { get; set; }
         public AElfProtocolMsgType MsgType { get; set; }
         
-        public ValidationError ValidationError { get; set; }
+        public BlockValidationResult BlockValidationResult { get; set; }
 
         public List<PendingTx> MissingTxs { get; private set; }
 

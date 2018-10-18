@@ -6,12 +6,14 @@ namespace AElf.Kernel
 {
     public interface IBlock : IHashProvider, ISerializable
     {
-        bool AddTransaction(Hash tx);
+        byte[] GetHashBytes();
+        bool AddTransaction(Transaction tx);
         BlockHeader Header { get; set; }
         BlockBody Body { get; set; }
         void FillTxsMerkleTreeRootInHeader();
         Block Complete();
-        bool AddTransactions(IEnumerable<Hash> txHashes);
+        bool AddTransactions(IEnumerable<Transaction> txHashes);
         void Sign(ECKeyPair keyPair);
+        ParentChainBlockInfo ParentChainBlockInfo { get; set; }
     }
 }

@@ -13,5 +13,7 @@ namespace AElf.Management.Interfaces
         void RecordPoolState(string chainId, DateTime time, bool isAlive, bool isForked);
 
         List<NodeStateHistory> GetHistoryState(string chainId);
+
+        void RecordBlockInfo(string chainId);
     }
 }

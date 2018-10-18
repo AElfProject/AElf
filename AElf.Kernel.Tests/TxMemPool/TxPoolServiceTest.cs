@@ -102,7 +102,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx2 = BuildTransaction(nonce: 1, keyPair:keyPair);
             await poolService.AddTxAsync(tx1);
             await poolService.AddTxAsync(tx2);
-            var txs1 = await poolService.GetReadyTxsAsync(null, null);
+            var txs1 = await poolService.GetReadyTxsAsync(null);
             Assert.Equal(2, txs1.Count);
 
             var txResults1 = txs1.Select(t => new TransactionResult
@@ -123,7 +123,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             await poolService.AddTxAsync(tx3);
             await poolService.AddTxAsync(tx4);
             
-            var txs2 = await poolService.GetReadyTxsAsync(null, null, 3000);
+            var txs2 = await poolService.GetReadyTxsAsync(null, 3000);
             Assert.Equal(2, txs2.Count);
 
             var txResults2 = txs2.Select(t => new TransactionResult
@@ -243,7 +243,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal((ulong) 1,
                 (await _accountContextService.GetAccountDataContext(kp4.GetAddress(), pool.ChainId)).IncrementId);
 
-            await poolService.GetReadyTxsAsync(null, null, 3000);
+            await poolService.GetReadyTxsAsync(null, 3000);
             Assert.Equal((ulong)4, pool.GetNonce(kp1.GetAddress()).Value);
             Assert.Equal((ulong)1, pool.GetNonce(kp2.GetAddress()).Value);
             Assert.Equal((ulong)2, pool.GetNonce(kp3.GetAddress()).Value);

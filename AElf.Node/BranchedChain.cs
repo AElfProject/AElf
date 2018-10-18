@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +8,7 @@ using AElf.Node.Protocol;
 // ReSharper disable once CheckNamespace
 namespace AElf.Node
 {
-    public class BranchedChain
+    public class BranchedChain : IComparable<BranchedChain>
     {
         public BranchedChain(PendingBlock first, IReadOnlyCollection<PendingBlock> list)
         {
@@ -19,7 +20,6 @@ namespace AElf.Node
             }
 
             PendingBlocks.SortByBlockIndex();
-            StartHeight = PendingBlocks.First().Block.Header.Index;
             EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
 
@@ -33,7 +33,6 @@ namespace AElf.Node
             PendingBlocks.Add(last);
 
             PendingBlocks.SortByBlockIndex();
-            StartHeight = PendingBlocks.First().Block.Header.Index;
             EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
 
@@ -50,7 +49,6 @@ namespace AElf.Node
             }
 
             PendingBlocks.SortByBlockIndex();
-            StartHeight = PendingBlocks.First().Block.Header.Index;
             EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
 
@@ -59,7 +57,6 @@ namespace AElf.Node
             PendingBlocks.Add(first);
 
             PendingBlocks.SortByBlockIndex();
-            StartHeight = PendingBlocks.First().Block.Header.Index;
             EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
 
@@ -68,7 +65,6 @@ namespace AElf.Node
             PendingBlocks = list;
 
             PendingBlocks.SortByBlockIndex(); 
-            StartHeight = PendingBlocks.First().Block.Header.Index;
             EndHeight = PendingBlocks.Last().Block.Header.Index;
         }
 
@@ -105,10 +101,11 @@ namespace AElf.Node
                 return true;
             }
         }
+        public int CompareTo(BranchedChain other) { return EndHeight.CompareTo(other.EndHeight); }
 
         public ulong EndHeight { get; set; }
 
-        public ulong StartHeight { get; set; }
+        public ulong StartHeight => PendingBlocks.Any() ? PendingBlocks[0].Block.Header.Index : 1;
 
         private List<PendingBlock> PendingBlocks { get; set; } = new List<PendingBlock>();
 

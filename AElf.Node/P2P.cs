@@ -12,6 +12,7 @@ using AElf.Network.Peers;
 using AElf.Node.Protocol.Events;
 using Google.Protobuf;
 using NLog;
+using NServiceKit.Common;
 
 namespace AElf.Node
 {
@@ -60,6 +61,24 @@ namespace AElf.Node
             }
         }
 
+        internal async Task<Block> HandleBlockRequestByHeight(int height)
+        {
+            if (height <= 0)
+            {
+                _logger?.Warn($"Cannot handle request for block because height {height} is not valid.");
+                return null;
+            }
+                
+            var block = await _handler.GetBlockAtHeight(height);
+
+            return block;
+        }
+        
+        internal async Task<Block> HandleBlockRequestByHash(byte[] hash)
+        {
+            return await _handler.GetBlockFromHash(Hash.LoadByteArray(hash));
+        }
+        
         internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
         {
             if (message?.Payload == null)
@@ -72,22 +91,32 @@ namespace AElf.Node
             {
                 var breq = BlockRequest.Parser.ParseFrom(message.Payload);
 
-                if (breq.Height <= 0)
+                Block b;
+                
+                if (breq.Id != null && breq.Id.Length > 0)
                 {
-                    _logger?.Warn($"Cannot handle request for block because height {breq.Height} is not valid.");
+                    b = await HandleBlockRequestByHash(breq.Id.ToByteArray());
+                }
+                else
+                {
+                    b = await HandleBlockRequestByHeight(breq.Height);
+                }
+
+                if (b == null)
+                {
+                    _logger?.Trace($"Block not found {breq.Id.ToByteArray().ToHex()}");
                     return;
                 }
+                    
                 
-                var block = await _handler.GetBlockAtHeight(breq.Height);
-                
-                Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Block, block.ToByteArray());
+                Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Block, b.ToByteArray());
                 
                 if (message.HasId)
                     req.Id = message.Id;
 
                 args.Peer.EnqueueOutgoing(req);
 
-                _logger?.Trace("Send block " + block.GetHash().DumpHex() + " to " + args.Peer);
+                _logger?.Trace("Send block " + b.GetHash().DumpHex() + " to " + args.Peer);
             }
             catch (Exception e)
             {
