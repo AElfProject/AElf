@@ -72,7 +72,6 @@ namespace AElf.Node.Protocol
         
         private Hash _chainId;
         
-        
         private List<byte[]> _minedBlocks = new List<byte[]>();
 
         public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, IChainService chainService, ILogger logger)
@@ -428,7 +427,7 @@ namespace AElf.Node.Protocol
                 }
                 else
                 {
-                    _logger?.Debug($"New transaction from {peer} not added to the pool: {addResult}");
+                    _logger?.Debug($"New transaction {tx.GetHash()} from {peer} not added to the pool: {addResult}");
                 }
             }
             catch (Exception e)

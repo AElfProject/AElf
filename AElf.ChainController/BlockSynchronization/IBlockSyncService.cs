@@ -6,7 +6,7 @@ namespace AElf.ChainController
 {
     public interface IBlockSyncService
     {
-        Task ReceiveBlock(IBlock block);
+        Task<BlockValidationResult> ReceiveBlock(IBlock block);
         Task AddMinedBlock(IBlock block);
     }
 }

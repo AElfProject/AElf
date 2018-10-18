@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
+using Akka.Util.Internal;
 using Easy.MessageHub;
 using NLog;
 
@@ -32,8 +34,8 @@ namespace AElf.ChainController
         public async Task AddBlock(IBlock block)
         {
             _logger?.Trace($"Added block {block.GetHash().DumpHex()} to BlockSet.");
-            _dict.Add(block.GetHash().DumpHex(), block);
-
+            _dict.TryAdd(block.GetHash().DumpHex(), block);
+            
             // TODO: Need a way to organize branched chains (using indexes)
         }
 
@@ -55,6 +57,11 @@ namespace AElf.ChainController
         public IBlock GetBlockByHash(Hash blockHash)
         {
             return _dict.TryGetValue(blockHash.DumpHex(), out var block) ? block : null;
+        }
+
+        public List<IBlock> GetBlockByHeight(ulong height)
+        {
+            return _dict.Values.Where(b => b.Header.Index == height).ToList();
         }
 
         private void RemoveOldBlocks(ulong targetHeight)
