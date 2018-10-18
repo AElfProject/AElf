@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
@@ -42,14 +43,24 @@ namespace AElf.ChainController
             {
                 // Find new blocks from block set to execute
                 var blocks = _blockSet.GetBlockByHeight(inHeight.TargetHeight);
-                if (blocks.Count > 0)
+                ulong i = 0;
+                while (blocks.Any())
                 {
-                    _logger?.Trace("Will get block from block set to execute.");
+                    _logger?.Trace($"Will get block of height {inHeight.TargetHeight + i} from block set to execute.");
+                    i++;
                     foreach (var block in blocks)
                     {
                         if (await ReceiveBlock(block) == BlockValidationResult.Success)
                         {
-                            break;
+                            if (await BlockChain.HasBlock(block.GetHash()))
+                            {
+                                return;
+                            }
+                            blocks = _blockSet.GetBlockByHeight(inHeight.TargetHeight + i);
+                        }
+                        else
+                        {
+                            return;
                         }
                     }
                 }
@@ -99,10 +110,16 @@ namespace AElf.ChainController
             // TODO: else
         }
 
-        // TODO: Very important. Need to redesign the validation results.
         private async Task HandleInvalidBlock(BlockAccepted message)
         {
             _blockSet.AddBlock(message.Block);
+
+            var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
+            if (message.Block.Header.Index > currentHeight)
+            {
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight));
+            }
+            
             switch (message.BlockValidationResult)
             {
                 case BlockValidationResult.Pending: break;
