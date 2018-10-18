@@ -117,7 +117,7 @@ namespace AElf.ChainController
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
             if (message.Block.Header.Index > currentHeight)
             {
-                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight));
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
             }
             
             switch (message.BlockValidationResult)
