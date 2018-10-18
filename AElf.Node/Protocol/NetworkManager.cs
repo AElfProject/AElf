@@ -123,7 +123,7 @@ namespace AElf.Node.Protocol
                     
                     _minedBlocks.Add(blockHash);
                     
-                    _logger?.Trace($"Block produced, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
+                    _logger?.Trace($"Block produced, announcing \"{blockHash.ToHex()}\" to peers with {inBlock.Block.Body.TransactionsCount} txs. Block height: [{inBlock.Block.Header.Index}].");
                     
                     _localHeight++;
                 });
@@ -418,7 +418,7 @@ namespace AElf.Node.Protocol
                 
                 if (addResult == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
+                    //_logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
 
                     MessageHub.Instance.Publish(new TxReceived(tx));
                     
