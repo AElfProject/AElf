@@ -23,6 +23,7 @@ using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using Status = AElf.Kernel.Status;
 using AElf.Common;
+using Org.BouncyCastle.Asn1.X9;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -245,6 +246,7 @@ namespace AElf.Miner.Miner
                             TransactionId = trace.TransactionId,
                             Status = Status.Mined,
                             RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                            StateHash=trace.GetSummarizedStateHash(),
                             Index = index++
                         };
                         txRes.UpdateBloom();
@@ -371,14 +373,9 @@ namespace AElf.Miner.Miner
             block.AddTransactions(results.Select(r => r.TransactionId));
 
             // set ws merkle tree root
-            await _stateDictator.SetWorldStateAsync();
-            var ws = await _stateDictator.GetLatestWorldStateAsync();
-            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
 
-            if (ws != null)
-            {
-                block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
-            }
+            block.Header.MerkleTreeRootOfWorldState = new BinaryMerkleTree().AddNodes(results.Select(x=>x.StateHash)).ComputeRootHash();
+            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
 
             // calculate and set tx merkle tree root 
             block.Complete();

@@ -80,7 +80,7 @@ namespace AElf.Miner.Miner
                     return false;
                 }
                 await InsertTxs(readyTxs, results, block);
-                var res = await UpdateState(block);
+                var res = await UpdateState(block, results);
                 var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
                 if (!res)
                 {
@@ -162,6 +162,7 @@ namespace AElf.Miner.Miner
                         res.Logs.AddRange(trace.FlattenedLogs);
                         res.Status = Status.Mined;
                         res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
+                        res.StateHash = trace.GetSummarizedStateHash();
                     }
                     else
                     {
@@ -227,20 +228,12 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        private async Task<bool> UpdateState(IBlock block)
+        private async Task<bool> UpdateState(IBlock block, IEnumerable<TransactionResult> results)
         {
-            await _stateDictator.SetBlockHashAsync(block.GetHash());
-            await _stateDictator.SetStateHashAsync(block.GetHash());
-            await _stateDictator.SetWorldStateAsync();
-            var ws = await _stateDictator.GetLatestWorldStateAsync();
+            var root = new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
             string errlog = null;
             bool res = true;
-            if (ws == null)
-            {
-                errlog = "ExecuteBlock - Could not get world state.";
-                res = false;
-            }
-            else if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
+            if (root != block.Header.MerkleTreeRootOfWorldState)
             {
                 errlog = "ExecuteBlock - Incorrect merkle trees.";
                 res = false;

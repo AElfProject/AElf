@@ -62,9 +62,9 @@ message TransactionResult {
     uint64 BlockNumber = 6;
     Hash BlockHash = 7;
     int32 Index = 8;
-    
+    Hash StateHash = 9;
     // Merkle proof path for this transaction
-    MerklePath MerklePath = 9;
+    MerklePath MerklePath = 10;
 }
 
 

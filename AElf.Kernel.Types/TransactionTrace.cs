@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using AElf.Kernel;
+using System.Linq;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -33,6 +34,18 @@ namespace AElf.Kernel
             }
 
             return successful;
+        }
+        
+        public Hash GetSummarizedStateHash()
+        {
+            if (InlineTraces.Count == 0)
+            {
+                return StateHash;
+            }
+
+            var hashes = new List<Hash>() {StateHash};
+            hashes.AddRange(InlineTraces.Select(x=>x.GetSummarizedStateHash()));
+            return Hash.FromRawBytes(ByteArrayHelpers.Combine(hashes.Select(x=>x.DumpByteArray()).ToArray()));
         }
     }
 }
