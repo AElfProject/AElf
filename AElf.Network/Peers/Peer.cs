@@ -167,6 +167,8 @@ namespace AElf.Network.Peers
         
         public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey, int currentHeight)
         {
+            _blockRequests = new List<TimedRequest>();
+                
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
             
@@ -425,7 +427,7 @@ namespace AElf.Network.Peers
         /// <param name="data"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public void EnqueueOutgoing(Message msg)
+        public void EnqueueOutgoing(Message msg, ITimedRequest associatedRequest = null)
         {
             try
             {
@@ -441,6 +443,9 @@ namespace AElf.Network.Peers
                 }
                 
                 _messageWriter.EnqueueMessage(msg);
+                
+                // todo should be propagated lower, after the real write
+                associatedRequest?.Start();
             }
             catch (Exception e)
             {
