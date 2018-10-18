@@ -20,7 +20,7 @@ namespace AElf.ChainController
 
         private readonly IndexedDictionary<IBlock> _dict;
 
-        private object _ = new object();
+        private readonly object _ = new object();
 
         public BlockSet()
         {
@@ -39,8 +39,6 @@ namespace AElf.ChainController
             {
                 _dict.Add(block);
             }
-            
-            // TODO: Need a way to organize branched chains (using indexes)
         }
 
         /// <summary>
@@ -79,7 +77,10 @@ namespace AElf.ChainController
 
         private void RemoveOldBlocks(ulong targetHeight)
         {
-            
+            lock (_)
+            {
+                _dict.RemoveWhere(b => b.Index < targetHeight);
+            }
         }
     }
 }

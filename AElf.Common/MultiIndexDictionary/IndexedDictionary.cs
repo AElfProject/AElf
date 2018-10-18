@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 
 namespace AElf.Common.MultiIndexDictionary
 {
+    // ReSharper disable AssignNullToNotNullAttribute
     /// <summary>
     /// Inspired by https://github.com/gnaeus/MultiIndexCollection
     /// </summary>
@@ -96,7 +97,7 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="InvalidOperationException" />
         private ILookup<TProperty, T> FindLookup<TProperty>(Expression memberExpression)
         {
-            string memberName = memberExpression.GetMemberName();
+            var memberName = memberExpression.GetMemberName();
             
             var lookup = (ILookup<TProperty, T>)_indexes
                 .Find(i => i.MemberName == memberName && i is ILookup<TProperty, T>);
@@ -113,7 +114,7 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="InvalidOperationException" />
         private ILookup<TProperty, T> FindEqualityLookup<TProperty>(Expression memberExpression)
         {
-            string memberName = memberExpression.GetMemberName();
+            var memberName = memberExpression.GetMemberName();
 
             var lookup = (ILookup<TProperty, T>)_indexes
                 .Find(i => i.MemberName == memberName && i is EqualityIndex<T, TProperty>);
@@ -324,6 +325,20 @@ namespace AElf.Common.MultiIndexDictionary
             if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
             return Filter(predicate.Body);
+        }
+        
+        public IEnumerable<T> RemoveWhere(Expression<Func<T, bool>> predicate)
+        {
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+
+            var toRemove = Filter(predicate.Body).ToList();
+
+            foreach (var item in toRemove)
+            {
+                Remove(item);
+            }
+
+            return toRemove;
         }
 
         #endregion
@@ -538,14 +553,15 @@ namespace AElf.Common.MultiIndexDictionary
 
         #region Updating
 
+        /// <inheritdoc />
         /// <summary>
-        /// Adds an element to the <see cref="IndexedDictionary{T}"/>.
+        /// Adds an element to the <see cref="T:AElf.Common.MultiIndexDictionary.IndexedDictionary`1" />.
         /// </summary>
-        /// <param name="item"> The element to add to the <see cref="IndexedDictionary{T}"/>. </param>
-        /// <exception cref="ArgumentNullException"> <paramref name="item"/> is null. </exception>
+        /// <param name="item"> The element to add to the <see cref="T:AElf.Common.MultiIndexDictionary.IndexedDictionary`1" />. </param>
+        /// <exception cref="T:System.ArgumentNullException"> <paramref name="item" /> is null. </exception>
         public void Add(T item)
         {
-            if (item == null) throw new ArgumentNullException(nameof(item));
+            EnsureNotNull(item);
 
             AddOrUpdate(item);
         }
@@ -558,16 +574,16 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="ArgumentNullException"> <paramref name="item"/> is null. </exception>
         public void Update(T item)
         {
-            if (item == null) throw new ArgumentNullException(nameof(item));
+            EnsureNotNull(item);
 
             AddOrUpdate(item);
         }
 
         private void AddOrUpdate(T item)
         {
-            if (_storage.TryGetValue(item, out List<object> indexKeys))
+            if (_storage.TryGetValue(item, out var indexKeys))
             {
-                for (int i = 0; i < _indexes.Count; i++)
+                for (var i = 0; i < _indexes.Count; i++)
                 {
                     var index = _indexes[i];
                     var currentKey = index.GetKey(item);
@@ -609,7 +625,7 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="T:System.ArgumentNullException"> <paramref name="item" /> is null. </exception>
         public bool Remove(T item)
         {
-            if (item == null) throw new ArgumentNullException(nameof(item));
+            EnsureNotNull(item);
 
             if (_storage.TryGetValue(item, out var indexKeys))
             {
@@ -628,7 +644,7 @@ namespace AElf.Common.MultiIndexDictionary
 
             return false;
         }
-
+        
         /// <inheritdoc />
         /// <summary>
         /// Removes all items from the <see cref="T:AElf.Common.MultiIndexDictionary.IndexedDictionary`1" />.

@@ -15,7 +15,7 @@ namespace AElf.Common.MultiIndexDictionary
 
         private object _nullBucket;
 
-        const int MaxListBucketCount = 16;
+        private const int MaxListBucketCount = 16;
 
         /// <exception cref="NotSupportedException" />
         private ComparisionIndex(Expression<Func<T, TProperty>> lambda, KeyValueComparer comparer)
