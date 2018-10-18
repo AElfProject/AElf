@@ -35,7 +35,7 @@ namespace AElf.Common.MultiIndexDictionary
         
         public IndexedDictionary<T> IndexBy<TProperty>(Expression<Func<T, TProperty>> property, bool isSorted = false)
         {
-            if (property == null) throw new ArgumentNullException(nameof(property));
+            EnsureNotNull(property);
 
             if (isSorted)
             {
@@ -51,7 +51,7 @@ namespace AElf.Common.MultiIndexDictionary
         
         public IndexedDictionary<T> IndexByIgnoreCase(Expression<Func<T, string>> property)
         {
-            if (property == null) throw new ArgumentNullException(nameof(property));
+            EnsureNotNull(property);
             
             IndexBy(new ComparisionIndex<T, string>(property, StringComparer.OrdinalIgnoreCase));
 
@@ -137,7 +137,7 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="InvalidOperationException" />
         public T First(Expression<Func<T, bool>> predicate)
         {
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            EnsureNotNull(predicate);
 
             return Filter(predicate.Body).First();
         }
@@ -146,7 +146,7 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="InvalidOperationException" />
         public T FirstOrDefault(Expression<Func<T, bool>> predicate)
         {
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            EnsureNotNull(predicate);
 
             return Filter(predicate.Body).FirstOrDefault();
         }
@@ -155,7 +155,7 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="InvalidOperationException" />
         public ILookup<TProperty, T> GroupBy<TProperty>(Expression<Func<T, TProperty>> property)
         {
-            if (property == null) throw new ArgumentNullException(nameof(property));
+            EnsureNotNull(property);
 
             return FindLookup<TProperty>(property.Body);
         }
@@ -168,10 +168,7 @@ namespace AElf.Common.MultiIndexDictionary
             Func<TOuter, TKey> outerKeySelector,
             Func<IEnumerable<T>, TOuter, TResult> resultSelector)
         {
-            if (outerEnumerable == null) throw new ArgumentNullException(nameof(outerEnumerable));
-            if (innerKeySelector == null) throw new ArgumentNullException(nameof(innerKeySelector));
-            if (outerKeySelector == null) throw new ArgumentNullException(nameof(outerKeySelector));
-            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+            EnsureNotNull(outerEnumerable, innerKeySelector, outerKeySelector, resultSelector);
 
             var lookup = FindEqualityLookup<TKey>(innerKeySelector.Body);
 
@@ -191,10 +188,7 @@ namespace AElf.Common.MultiIndexDictionary
             Func<TOuter, TKey> outerKeySelector,
             Func<T, TOuter, TResult> resultSelector)
         {
-            if (outerEnumerable == null) throw new ArgumentNullException(nameof(outerEnumerable));
-            if (innerKeySelector == null) throw new ArgumentNullException(nameof(innerKeySelector));
-            if (outerKeySelector == null) throw new ArgumentNullException(nameof(outerKeySelector));
-            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+            EnsureNotNull(outerEnumerable, innerKeySelector, outerKeySelector, resultSelector);
 
             var lookup = FindEqualityLookup<TKey>(innerKeySelector.Body);
 
@@ -211,7 +205,7 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="InvalidOperationException" />
         public IEnumerable<T> HavingMax<TProperty>(Expression<Func<T, TProperty>> property)
         {
-            if (property == null) throw new ArgumentNullException(nameof(property));
+            EnsureNotNull(property);
 
             var index = FindComparisionIndex(property.Body);
 
@@ -222,9 +216,9 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="InvalidOperationException" />
         public IEnumerable<T> HavingMin<TProperty>(Expression<Func<T, TProperty>> property)
         {
-            if (property == null) throw new ArgumentNullException(nameof(property));
+            EnsureNotNull(property);
 
-            IComparisionIndex<T> index = FindComparisionIndex(property.Body);
+            var index = FindComparisionIndex(property.Body);
 
             return index.HavingMin();
         }
@@ -380,9 +374,9 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="InvalidOperationException" />
         private IEnumerable<T> FilterEquality(Expression memberExpression, Expression keyExpression)
         {
-            string memberName = memberExpression.GetMemberName();
+            var memberName = memberExpression.GetMemberName();
 
-            IEqualityIndex<T> index = _indexes.Find(i => i.MemberName == memberName);
+            var index = _indexes.Find(i => i.MemberName == memberName);
 
             if (index == null)
             {
@@ -397,9 +391,9 @@ namespace AElf.Common.MultiIndexDictionary
         private IEnumerable<T> FilterComparision(
             Expression memberExpression, Expression keyExpression, ExpressionType type)
         {
-            IComparisionIndex<T> index = FindComparisionIndex(memberExpression);
+            var index = FindComparisionIndex(memberExpression);
 
-            object key = keyExpression.GetValue();
+            var key = keyExpression.GetValue();
 
             switch (type)
             {
@@ -430,9 +424,7 @@ namespace AElf.Common.MultiIndexDictionary
                     $"Predicate body {left} should be Binary Expression");
             }
 
-            var rightOperation = right as BinaryExpression;
-
-            if (rightOperation == null)
+            if (!(right is BinaryExpression rightOperation))
             {
                 throw new NotSupportedException(
                     $"Predicate body {right} should be Binary Expression");
@@ -520,21 +512,20 @@ namespace AElf.Common.MultiIndexDictionary
         /// <exception cref="InvalidOperationException" />
         private IEnumerable<T> FilterStringStartsWith(MethodCallExpression methodCall)
         {
-            if (methodCall.Method.DeclaringType == typeof(String) &&
+            var index = FindComparisionIndex(methodCall.Object);
+            if (methodCall.Method.DeclaringType == typeof(string) &&
                 methodCall.Method.Name == nameof(string.StartsWith))
             {
-                IComparisionIndex<T> index = FindComparisionIndex(methodCall.Object);
+                var keyFrom = (string)methodCall.Arguments.First().GetValue();
 
-                string keyFrom = (string)methodCall.Arguments.First().GetValue();
-
-                if (String.IsNullOrEmpty(keyFrom))
+                if (string.IsNullOrEmpty(keyFrom))
                 {
                     return index.GreaterThan(keyFrom, false);
                 }
 
-                char lastChar = keyFrom[keyFrom.Length - 1];
+                var lastChar = keyFrom[keyFrom.Length - 1];
 
-                string keyTo = keyFrom.Substring(0, keyFrom.Length - 1) + (char)(lastChar + 1);
+                var keyTo = keyFrom.Substring(0, keyFrom.Length - 1) + (char)(lastChar + 1);
 
                 return index.Between(keyFrom, false, keyTo, true);
             }
@@ -578,9 +569,9 @@ namespace AElf.Common.MultiIndexDictionary
             {
                 for (int i = 0; i < _indexes.Count; i++)
                 {
-                    IEqualityIndex<T> index = _indexes[i];
-                    object currentKey = index.GetKey(item);
-                    object lastKey = indexKeys[i];
+                    var index = _indexes[i];
+                    var currentKey = index.GetKey(item);
+                    var lastKey = indexKeys[i];
 
                     if (!Equals(lastKey, currentKey))
                     {
@@ -596,7 +587,7 @@ namespace AElf.Common.MultiIndexDictionary
 
                 foreach (var index in _indexes)
                 {
-                    object key = index.GetKey(item);
+                    var key = index.GetKey(item);
 
                     indexKeys.Add(key);
                     index.Add(key, item);
@@ -749,6 +740,18 @@ namespace AElf.Common.MultiIndexDictionary
             if (obj == null)
             {
                 throw new NullReferenceException(nameof(obj));
+            }
+        }
+        
+        [DebuggerStepThrough]
+        private void EnsureNotNull(params object[] obj)
+        {
+            foreach (var o in obj)
+            {
+                if (o == null)
+                {
+                    throw new NullReferenceException(nameof(o));
+                }
             }
         }
     }
