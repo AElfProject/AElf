@@ -8,8 +8,8 @@ namespace AElf.ChainController
 {
     public interface IBlockSet
     {
-        Task AddBlock(IBlock block);
-        Task Tell(ulong currentHeight);
+        void AddBlock(IBlock block);
+        void Tell(ulong currentHeight);
         bool IsBlockReceived(Hash blockHash, ulong height);
         IBlock GetBlockByHash(Hash blockHash);
         List<IBlock> GetBlockByHeight(ulong height);

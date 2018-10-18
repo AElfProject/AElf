@@ -25,16 +25,21 @@ namespace AElf.ChainController
         /// </summary>
         private readonly Dictionary<Tuple<ulong, string>, IBlock> _blockDict =
             new Dictionary<Tuple<ulong, string>, IBlock>();
+
+        private object _ = new object();
         
         public BlockSet()
         {
             _logger = LogManager.GetLogger(nameof(BlockSet));
         }
         
-        public async Task AddBlock(IBlock block)
+        public void AddBlock(IBlock block)
         {
-            _logger?.Trace($"Added block {block.GetHash().DumpHex()} to BlockSet.");
-            _dict.TryAdd(block.GetHash().DumpHex(), block);
+            lock (_)
+            {
+                _logger?.Trace($"Added block {block.GetHash().DumpHex()} to BlockSet.");
+                _dict.TryAdd(block.GetHash().DumpHex(), block);
+            }
             
             // TODO: Need a way to organize branched chains (using indexes)
         }
@@ -44,7 +49,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="currentHeight"></param>
         /// <returns></returns>
-        public async Task Tell(ulong currentHeight)
+        public void Tell(ulong currentHeight)
         {
             RemoveOldBlocks(currentHeight - (ulong) GlobalConfig.BlockNumberOfEachRound);
         }
@@ -56,12 +61,18 @@ namespace AElf.ChainController
 
         public IBlock GetBlockByHash(Hash blockHash)
         {
-            return _dict.TryGetValue(blockHash.DumpHex(), out var block) ? block : null;
+            lock (_)
+            {
+                return _dict.TryGetValue(blockHash.DumpHex(), out var block) ? block : null;
+            }
         }
 
         public List<IBlock> GetBlockByHeight(ulong height)
         {
-            return _dict.Values.Where(b => b.Header.Index == height).ToList();
+            lock (_)
+            {
+                return _dict.Values.Where(b => b.Header.Index == height).ToList();
+            }
         }
 
         private void RemoveOldBlocks(ulong targetHeight)

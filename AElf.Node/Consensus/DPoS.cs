@@ -178,8 +178,6 @@ namespace AElf.Kernel.Node
 
                 await _stateDictator.SetMap(block.GetHash());
 
-                MessageHub.Instance.Publish(new BlockMined(block));
-
                 return block;
             }
             catch (Exception e)

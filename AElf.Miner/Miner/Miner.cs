@@ -113,6 +113,8 @@ namespace AElf.Miner.Miner
                     // insert to db
                     Update(executed, results, block, parentChainBlockInfo, genTx);
 
+                    MessageHub.Instance.Publish(new BlockMined(block));
+
                     return block;
                 }
                 catch (Exception e)

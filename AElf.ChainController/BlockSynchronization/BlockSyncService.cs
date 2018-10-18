@@ -62,18 +62,19 @@ namespace AElf.ChainController
 
         public async Task AddMinedBlock(IBlock block)
         {
-            await _blockSet.Tell(block.Header.Index);
-            await _blockSet.AddBlock(block);
+            _blockSet.AddBlock(block);
+            _blockSet.Tell(block.Header.Index);
             MessageHub.Instance.Publish(UpdateConsensus.Update);
+            
         }
 
         private async Task HandleValidBlock(BlockAccepted message)
         {
-            await _blockSet.AddBlock(message.Block);
+            _blockSet.AddBlock(message.Block);
             var executionResult = await _blockExecutionService.ExecuteBlock(message.Block);
             if (executionResult == BlockExecutionResultCC.Success)
             {
-                await _blockSet.Tell(message.Block.Header.Index);
+                _blockSet.Tell(message.Block.Header.Index);
                 MessageHub.Instance.Publish(message);
                 MessageHub.Instance.Publish(UpdateConsensus.Update);
                 
@@ -97,7 +98,7 @@ namespace AElf.ChainController
         // TODO: Very important. Need to redesign the validation results.
         private async Task HandleInvalidBlock(BlockAccepted message)
         {
-            await _blockSet.AddBlock(message.Block);
+            _blockSet.AddBlock(message.Block);
             switch (message.BlockValidationResult)
             {
                 case BlockValidationResult.Pending: break;
