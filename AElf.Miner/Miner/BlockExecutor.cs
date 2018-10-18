@@ -24,20 +24,18 @@ namespace AElf.Miner.Miner
         private readonly IChainService _chainService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
-            IStateDictator stateDictator, IExecutingService executingService, 
+            IExecutingService executingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             ClientManager clientManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             _txPoolService = txPoolService;
             _chainService = chainService;
-            _stateDictator = stateDictator;
             _executingService = executingService;
             _logger = logger;
             _transactionManager = transactionManager;
@@ -60,12 +58,6 @@ namespace AElf.Miner.Miner
             }
             _logger?.Trace($"Executing block {block.GetHash()}");
 
-            var uncompressedPrivateKey = block.Header.P.ToByteArray();
-            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
-            var blockProducerAddress = recipientKeyPair.GetAddress();
-            _stateDictator.ChainId = block.Header.ChainId;
-            _stateDictator.BlockHeight = block.Header.Index - 1;
-            _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
             var readyTxs = new List<Transaction>();
             try
             {
@@ -242,7 +234,7 @@ namespace AElf.Miner.Miner
                 await Interrupt(errlog);
             return res;
         }
-        
+
         /// <summary>
         /// Check side chain info.
         /// </summary>
@@ -318,7 +310,6 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         private async Task Rollback(List<Transaction> readyTxs)
         {
-            await _stateDictator.RollbackToPreviousBlock();
             if (readyTxs == null)
                 return;
             await _txPoolService.Revert(readyTxs);

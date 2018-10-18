@@ -131,7 +131,7 @@ namespace AElf.Contracts.SideChain.Tests
 
         private async Task CommitChangesAsync(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_mock.StateDictator.StateStore);
+            await trace.CommitChangesAsync(_mock.StateStore);
         }
         
         public async Task<byte[]> CreateSideChain(Hash chainId, Address lockedAddress, ulong lockedToken)

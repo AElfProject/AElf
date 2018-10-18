@@ -57,12 +57,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public ServicePack ServicePack;
 
-        public IStateDictator StateDictator { get; }
         private IChainCreationService _chainCreationService;
         private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;
         private ILogger _logger;
 
+        private IStateStore _stateStore;
         public IActorEnvironment ActorEnvironment { get; private set; }
 
         private readonly HashManager _hashManager;
@@ -74,10 +74,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger,
-            IStateDictator stateDictator, IStateStore stateStore,
+            IStateStore stateStore,
             HashManager hashManager, TransactionManager transactionManager)
         {
             _logger = logger;
+            _stateStore = stateStore;
             ActorEnvironment = actorEnvironment;
             if (!ActorEnvironment.Initialized)
             {
@@ -85,7 +86,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             }
             _hashManager = hashManager;
             _transactionManager = transactionManager;
-            StateDictator = stateDictator;//new StateDictator(_hashManager,transactionManager, dataStore, _logger);
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             ChainContextService = chainContextService;
@@ -94,15 +94,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, stateStore,
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                StateDictator = StateDictator
+                ResourceDetectionService = new NewMockResourceUsageDetectionService()
             };
 
             // These are only required for workertest
@@ -128,14 +127,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 Type = (int) SmartContractType.BasicContractZero
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
-
-            StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
-
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
-            
-            StateDictator.ChainId = ChainId2;
-            DataProvider2 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId2.OfType(HashType.AccountZero).ToByteArray()));
         }
 
         private async Task DeploySampleContracts()
@@ -157,14 +149,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(StateDictator.StateStore);
+            await trace.CommitChangesAsync(_stateStore);
 //            await StateDictator.ApplyCachedDataAction(changesDict);
         }
 
         public void Initialize1(Address account, ulong qty)
         {
             var tc = GetInitializeTxnCtxt(SampleContractAddress1, account, qty);
-            StateDictator.ChainId = ChainId1;
             Executive1.SetTransactionContext(tc).Apply()
                 .Wait();
             CommitTrace(tc.Trace).Wait();

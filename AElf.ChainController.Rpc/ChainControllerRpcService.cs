@@ -34,7 +34,7 @@ namespace AElf.ChainController.Rpc
         public ITransactionResultService TransactionResultService { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractService SmartContractService { get; set; }
-        public IAccountContextService AccountContextService { get; set; }
+//        public IAccountContextService AccountContextService { get; set; }
         public TxHub TxHub { get; set; }
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfo CrossChainInfo { get; set; }

@@ -1,5 +1,6 @@
 ﻿using AElf.ChainController;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 using AElf.SmartContract;
 
 namespace AElf.Execution
@@ -10,7 +11,7 @@ namespace AElf.Execution
         public ISmartContractService SmartContractService { get; set; }
         public IChainContextService ChainContextService { get; set; }
         public IAccountContextService AccountContextService { get; set; }
-        public IStateDictator StateDictator { get; set; }
+        public IStateStore StateStore { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
     }
 }

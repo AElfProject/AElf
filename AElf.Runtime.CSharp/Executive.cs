@@ -67,7 +67,6 @@ namespace AElf.Runtime.CSharp
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
-        private IStateDictator _stateDictator;
         private IStateStore _stateStore;
         private int _maxCallDepth = 4;
 
@@ -82,12 +81,6 @@ namespace AElf.Runtime.CSharp
         public IExecutive SetMaxCallDepth(int maxCallDepth)
         {
             _maxCallDepth = maxCallDepth;
-            return this;
-        }
-
-        public IExecutive SetStateDictator(IStateDictator stateDictator)
-        {
-            _stateDictator = stateDictator;
             return this;
         }
 
@@ -162,9 +155,7 @@ namespace AElf.Runtime.CSharp
                 _currentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
                 return;
             }
-            _stateDictator.BlockHeight = _currentTransactionContext.BlockHeight;
-            _stateDictator.BlockProducerAccountAddress = _currentTransactionContext.Transaction.From;
-            
+
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = _currentTransactionContext.Transaction.MethodName;
 

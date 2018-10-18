@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -16,11 +17,11 @@ namespace AElf.ChainController
         private readonly ConcurrentDictionary<Hash, IAccountDataContext> _accountDataContexts =
             new ConcurrentDictionary<Hash, IAccountDataContext>();
 
-        private readonly IStateDictator _stateDictator;
+        private readonly IStateStore _stateStore;
 
-        public AccountContextService(IStateDictator stateDictator)
+        public AccountContextService(IStateStore stateStore)
         {   
-            _stateDictator = stateDictator;
+            _stateStore = stateStore;
         }
         
         /// <inheritdoc/>
@@ -32,9 +33,9 @@ namespace AElf.ChainController
                 return ctx;
             }
 
-            _stateDictator.ChainId = chainId;
-            var adp = _stateDictator.GetAccountDataProvider(accountAddress);
-            var idBytes = await adp.GetDataProvider().GetAsync<UInt64Value>(GetKeyForIncrementId());
+            var dp = NewDataProvider.GetRootDataProvider(chainId, accountAddress);
+            dp.StateStore = _stateStore;
+            var idBytes = await dp.GetAsync<UInt64Value>(GetKeyForIncrementId());
             var id = idBytes == null ? 0 : UInt64Value.Parser.ParseFrom(idBytes).Value;
             
             var accountDataContext = new AccountDataContext
@@ -56,15 +57,15 @@ namespace AElf.ChainController
                 Hash.FromTwoHashes(accountDataContext.ChainId, Hash.FromMessage(accountDataContext.Address)),
                 accountDataContext, (hash, context) => accountDataContext);
 
-            var dp = _stateDictator.GetAccountDataProvider(accountDataContext.Address).GetDataProvider();
-
+            var dp = NewDataProvider.GetRootDataProvider(accountDataContext.ChainId, accountDataContext.Address);
+            dp.StateStore = _stateStore;
             //await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
             await dp.SetAsync<UInt64Value>(GetKeyForIncrementId(), new UInt64Value
             {
                 Value = accountDataContext.IncrementId
             }.ToByteArray());
             var state = dp.GetChanges().ToDictionary(kv=>kv.Key, kv=>kv.Value.CurrentValue.ToByteArray());
-            await _stateDictator.StateStore.PipelineSetDataAsync(state);
+            await _stateStore.PipelineSetDataAsync(state);
         }
 
         private Hash GetKeyForIncrementId()

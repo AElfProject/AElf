@@ -6,24 +6,25 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Common;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 
 namespace AElf.ChainController
 {
     public class SimpleExecutingService : IExecutingService
     {
         private ISmartContractService _smartContractService;
-        private IStateDictator _stateDictator;
         private ITransactionTraceManager _transactionTraceManager;
         private IChainContextService _chainContextService;
+        private IStateStore _stateStore;
 
         public SimpleExecutingService(ISmartContractService smartContractService,
-            IStateDictator stateDictator, ITransactionTraceManager transactionTraceManager,
+            ITransactionTraceManager transactionTraceManager, IStateStore stateStore,
             IChainContextService chainContextService)
         {
             _smartContractService = smartContractService;
-            _stateDictator = stateDictator;
             _transactionTraceManager = transactionTraceManager;
             _chainContextService = chainContextService;
+            _stateStore = stateStore;
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
@@ -39,7 +40,7 @@ namespace AElf.ChainController
                 if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
                     //Console.WriteLine($"tx executed successfully: {transaction.GetHash().ToHex()}");
-                    await trace.CommitChangesAsync(_stateDictator.StateStore);
+                    await trace.CommitChangesAsync(_stateStore);
 //                    await _stateDictator.ApplyCachedDataAction(bufferedStateUpdates);
 //                    foreach (var kv in bufferedStateUpdates)
 //                    {

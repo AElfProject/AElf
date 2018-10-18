@@ -29,7 +29,6 @@ namespace AElf.Miner.Tests
         private readonly ILogger _logger;
         private ulong _i;
         private IChainCreationService _chainCreationService;
-        private IStateDictator _stateDictator;
         private ISmartContractManager _smartContractManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private IAccountContextService _accountContextService;
@@ -54,10 +53,7 @@ namespace AElf.Miner.Tests
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_dataStore, _logger);
-            _stateDictator =
-                new StateDictator(new HashManager(_dataStore), _transactionManager, _dataStore, _stateStore, _logger);
             _smartContractManager = new SmartContractManager(_dataStore);
-            _accountContextService = new AccountContextService(_stateDictator);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
@@ -70,13 +66,13 @@ namespace AElf.Miner.Tests
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator,_stateStore,
-                    _functionMetadataService), _stateDictator, _transactionTraceManager,
+                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateStore,
+                    _functionMetadataService), _transactionTraceManager, _stateStore,
                 new ChainContextService(_chainService));
             
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
-                    _stateDictator,_stateStore, _functionMetadataService), _logger);
+                    _stateStore, _functionMetadataService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
         }
@@ -95,13 +91,12 @@ namespace AElf.Miner.Tests
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId,
                 new List<SmartContractRegistration> {reg});
-            _stateDictator.ChainId = chainId;
             return chain;
         }
         
         internal IMiner GetMiner(IMinerConfig config, TxPoolService poolService, ClientManager clientManager = null)
         {
-            var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
+            var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
                 clientManager, _binaryMerkleTreeManager, null);
 
@@ -110,7 +105,7 @@ namespace AElf.Miner.Tests
         
         internal IBlockExecutor GetBlockExecutor(TxPoolService poolService, ClientManager clientManager = null)
         {
-            var blockExecutor = new BlockExecutor(poolService, _chainService, _stateDictator,
+            var blockExecutor = new BlockExecutor(poolService, _chainService,
                 _concurrencyExecutingService, _logger, _transactionManager, _transactionResultManager,
                 clientManager, _binaryMerkleTreeManager);
 

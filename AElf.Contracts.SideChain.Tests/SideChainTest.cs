@@ -87,7 +87,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
-            var crossChainInfo = new CrossChainInfo(_mock.StateDictator);
+            var crossChainInfo = new CrossChainInfo(_mock.StateStore);
             var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(_contract.SideChainContractAddress, 0);
             Assert.NotNull(merklepath);
             Assert.Equal(parentChainBlockInfo.IndexedBlockInfo[0], merklepath);

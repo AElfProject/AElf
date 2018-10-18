@@ -21,6 +21,7 @@ using Google.Protobuf;
 using NLog;
 using ServiceStack;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 namespace AElf.Node.AElfChain
 {
@@ -29,6 +30,7 @@ namespace AElf.Node.AElfChain
     {
         private readonly ILogger _logger;
 
+        private readonly IStateStore _stateStore;
         private readonly ITxPoolService _txPoolService;
         private readonly IMiner _miner;
         private readonly IP2P _p2p;
@@ -37,7 +39,6 @@ namespace AElf.Node.AElfChain
         private readonly IChainContextService _chainContextService;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
-        private readonly IStateDictator _stateDictator;
         private readonly IBlockSynchronizer _synchronizer;
         private readonly IBlockExecutor _blockExecutor;
 
@@ -49,12 +50,13 @@ namespace AElf.Node.AElfChain
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
 
-        public MainchainNodeService(ITxPoolService poolService,
+        public MainchainNodeService(
+            IStateStore stateStore,
+            ITxPoolService poolService,
             IAccountContextService accountContextService,
             IBlockValidationService blockValidationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService,
-            IStateDictator stateDictator,
             IChainService chainService,
             IBlockExecutor blockExecutor,
             IBlockSynchronizer synchronizer,
@@ -62,9 +64,9 @@ namespace AElf.Node.AElfChain
             IP2P p2p,
             ILogger logger)
         {
+            _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
-            _stateDictator = stateDictator;
             _txPoolService = poolService;
             _logger = logger;
             _miner = miner;
@@ -72,7 +74,6 @@ namespace AElf.Node.AElfChain
             _accountContextService = accountContextService;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
-            _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _synchronizer = synchronizer;
         }
@@ -184,22 +185,11 @@ namespace AElf.Node.AElfChain
                     CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero,
                         SideChainGenesisContractZero);
                 }
-                else
-                {
-                    _stateDictator.BlockHeight = _blockChain.CurrentBlock.Header.Index;
-                    _stateDictator.BlockProducerAccountAddress = Address.Zero;
-                    _stateDictator.SetWorldStateAsync();
-
-                    _stateDictator.RollbackToPreviousBlock();
-                }
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Could not create the chain : " + NodeConfig.Instance.ChainId);
             }
-
-            // set world state
-            _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
 
             #endregion setup
 
@@ -325,7 +315,7 @@ namespace AElf.Node.AElfChain
             {
                 case ConsensusType.AElfDPoS:
                     var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
-                    var dpos = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain, _synchronizer, _logger);
+                    var dpos = new DPoS(_stateStore, _txPoolService, _miner, _blockChain, _synchronizer, _logger);
                     var genesisContractHash =
                         _chainCreationService.GenesisContractHash(chainId, SmartContractType.AElfDPoS);
                     dpos.Initialize(genesisContractHash, _nodeKeyPair);
@@ -393,7 +383,6 @@ namespace AElf.Node.AElfChain
                         {
                             var txs = await _blockChain.RollbackToHeight(block.Header.Index - 1);
                             await _txPoolService.Revert(txs);
-                            await _stateDictator.RollbackToPreviousBlock();
                             error = ValidationError.AnotherBranch;
                         }
                         else

@@ -20,6 +20,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -36,7 +37,7 @@ namespace AElf.Kernel.Node
 
         private bool isMining;
 
-        private readonly IStateDictator _stateDictator;
+        private readonly IStateStore _stateStore;
         private readonly ITxPoolService _txPoolService;
         private readonly IMiner _miner;
         private readonly IBlockChain _blockchain;
@@ -59,7 +60,8 @@ namespace AElf.Kernel.Node
             MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateDictator stateDictator,
+        public DPoS(
+            IStateStore stateStore,
             ITxPoolService txPoolService,
             IMiner miner,
             IBlockChain blockchain,
@@ -67,7 +69,7 @@ namespace AElf.Kernel.Node
             ILogger logger = null
         )
         {
-            _stateDictator = stateDictator;
+            _stateStore = stateStore;
             _txPoolService = txPoolService;
             _miner = miner;
             _blockchain = blockchain;
@@ -77,8 +79,8 @@ namespace AElf.Kernel.Node
         
         public void Initialize(Address contractAccountHash, ECKeyPair nodeKeyPair)
         {
-            Helper = new AElfDPoSHelper(_stateDictator,
-                Hash.LoadHex(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _logger);
+            Helper = new AElfDPoSHelper(
+                Hash.LoadHex(NodeConfig.Instance.ChainId), Miners, contractAccountHash, _stateStore, _logger);
             _nodeKeyPair = new NodeKeyPair(nodeKeyPair);
             _contractAccountAddressHash = contractAccountHash;
 
@@ -149,14 +151,8 @@ namespace AElf.Kernel.Node
             try
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
-                _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
-                _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
-                _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
 
                 var block = await _miner.Mine(Helper.GetCurrentRoundInfo());
-
-                await _stateDictator.SetBlockHashAsync(block.GetHash());
-                await _stateDictator.SetStateHashAsync(block.GetHash());
 
                 _synchronizer.IncrementChainHeight();
 
