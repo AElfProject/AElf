@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
@@ -60,7 +61,8 @@ namespace AElf.ChainController
 
         public IBlock GetBlockByHash(Hash blockHash)
         {
-            return _blockSet.GetBlockByHash(blockHash);
+            return _blockSet.GetBlockByHash(blockHash) ?? GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId))
+                       .GetBlockByHashAsync(blockHash).Result;
         }
 
         public List<IBlock> GetBlockByHeight(ulong height)

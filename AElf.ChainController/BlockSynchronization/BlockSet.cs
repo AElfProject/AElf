@@ -1,15 +1,8 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Common.Extensions;
 using AElf.Common.MultiIndexDictionary;
-using AElf.Configuration;
 using AElf.Kernel;
-using Akka.Util.Internal;
-using Easy.MessageHub;
 using NLog;
 
 // ReSharper disable once CheckNamespace
@@ -21,7 +14,8 @@ namespace AElf.ChainController
 
         private readonly IndexedDictionary<IBlock> _dict;
 
-        private readonly object _ = new object();
+        // ReSharper disable once FieldCanBeMadeReadOnly.Local
+        private object _ = new object();
 
         public BlockSet()
         {
@@ -83,15 +77,12 @@ namespace AElf.ChainController
 
         private void RemoveOldBlocks(ulong targetHeight)
         {
-            IEnumerable<IBlock> removed;
             lock (_)
             {
-                removed = _dict.RemoveWhere(b => b.Index <= targetHeight);
-            }
-
-            if (removed != null)
-            {
-                _logger?.Trace($"Removed {removed.Count()} blocks whose index lower than {targetHeight}");
+                if (_dict.Any(b => b.Index <= targetHeight))
+                {
+                    _dict.RemoveWhere(b => b.Index <= targetHeight);
+                }
             }
         }
     }
