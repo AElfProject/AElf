@@ -12,6 +12,8 @@
         NewBlock,
         
         RequestBlock,
-        Block
+        Block,
+        
+        Announcement
     }
 }

@@ -10,7 +10,6 @@ using AElf.Common;
 namespace AElf.Kernel.Consensus
 {
     // ReSharper disable once InconsistentNaming
-    [LoggerName(nameof(AElfDPoSObserver))]
     public class AElfDPoSObserver : IObserver<ConsensusBehavior>
     {
         private readonly ILogger _logger;
@@ -22,14 +21,14 @@ namespace AElf.Kernel.Consensus
         // ReSharper disable once InconsistentNaming
         private readonly Func<Task> _miningWithUpdatingAElfDPoSInformation;
 
-        public AElfDPoSObserver(ILogger logger, params Func<Task>[] miningFunctions)
+        public AElfDPoSObserver(params Func<Task>[] miningFunctions)
         {
             if (miningFunctions.Length < 4)
             {
                 throw new ArgumentException("Incorrect functions count.", nameof(miningFunctions));
             }
 
-            _logger = logger;
+            _logger = LogManager.GetLogger(nameof(AElfDPoSObserver));
 
             _miningWithInitializingAElfDPoSInformation = miningFunctions[0]; 
             _miningWithPublishingOutValueAndSignature = miningFunctions[1];

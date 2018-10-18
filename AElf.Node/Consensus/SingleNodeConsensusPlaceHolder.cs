@@ -3,25 +3,39 @@ using System.Threading.Tasks;
 using AElf.Kernel.Consensus;
 using NLog;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
 {
     public class StandaloneNodeConsensusPlaceHolder : IConsensus
     {
         public IDisposable ConsensusDisposable { get; set; }
         private readonly ILogger _logger;
-        private readonly IP2P _p2p;
         private SingleNodeTestObserver SingleNodeTestObserver => new SingleNodeTestObserver(_logger, SingleNodeMining);
         
-        public StandaloneNodeConsensusPlaceHolder(ILogger logger, IP2P p2p)
+        public StandaloneNodeConsensusPlaceHolder()
         {
-            _logger = logger;
-            _p2p = p2p;
+            _logger = LogManager.GetLogger(nameof(StandaloneNodeConsensusPlaceHolder));
         }
         
         public async Task Start()
         {
             ConsensusDisposable = SingleNodeTestObserver.SubscribeSingleNodeTestProcess();
             await Task.CompletedTask;
+        }
+
+        public void Stop()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Hang()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Recover()
+        {
+            throw new NotImplementedException();
         }
 
         public async Task Update()

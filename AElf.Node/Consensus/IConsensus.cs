@@ -6,6 +6,9 @@ namespace AElf.Kernel.Node
     public interface IConsensus
     {
         Task Start();
+        void Stop();
+        void Hang();
+        void Recover();
         Task Update();
         Task RecoverMining();
         bool IsAlive();

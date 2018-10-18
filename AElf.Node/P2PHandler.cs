@@ -16,8 +16,15 @@ namespace AElf.Kernel.Node
 
         public async Task<Block> GetBlockAtHeight(int height)
         {
-            var blockchain = ChainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
-            return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
+            //var blockchain = ChainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
+            //return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
+
+            return (Block) await ChainService.GetBlockChain(Hash.Default).GetBlockByHeightAsync((ulong)height);
+        }
+
+        public async Task<Block> GetBlockFromHash(Hash hash)
+        {
+            return await Task.Run(() => (Block) ChainService.GetBlockByHash(hash));
         }
 
         public async Task<Transaction> GetTransaction(Hash txId)

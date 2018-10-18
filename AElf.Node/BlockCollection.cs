@@ -183,6 +183,15 @@ namespace AElf.Node
             PrintPendingBlocks(PendingBlocks);
             PendingBlocks.Add(pendingBlock);
             PendingBlocks.SortByBlockIndex();
+
+            if (_branchedChains.Count > 0)
+            {
+                var num = _branchedChains.RemoveWhere(bc => bc.StartHeight < SyncedHeight);
+                if (num > 0)
+                {
+                    _logger?.Trace($"Removed {num} redundant branched chain.");
+                }
+            }
         }
 
         /// <summary>
@@ -192,7 +201,7 @@ namespace AElf.Node
         public void RemovePendingBlock(PendingBlock pendingBlock)
         {
             _logger.Trace($"Removing pending Block at {pendingBlock.Block.Header.Index}, hash {pendingBlock.Block.Header.GetHash()}");
-            if (pendingBlock.ValidationError == ValidationError.Success)
+            if (pendingBlock.BlockValidationResult == BlockValidationResult.Success)
             {
                 PendingBlocks.Remove(pendingBlock);
                 _logger.Trace($"Removed pending Block at {pendingBlock.Block.Header.Index}, hash {pendingBlock.Block.Header.GetHash()}");
@@ -200,7 +209,7 @@ namespace AElf.Node
             }
             else
             {
-                _logger?.Trace("ValidationError: " + pendingBlock.ValidationError);
+                _logger?.Trace("ValidationError: " + pendingBlock.BlockValidationResult);
                 PendingBlocks.Remove(pendingBlock);
                 AddBlockToBranchedChains(pendingBlock);
             }

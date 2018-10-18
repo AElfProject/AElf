@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Common.Attributes;
-using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -12,6 +11,7 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using ServiceStack;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
     [LoggerName(nameof(ConsensusBlockValidationFilter))]
@@ -26,17 +26,17 @@ namespace AElf.ChainController
             _logger = logger;
         }
 
-        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
+        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
             // If the height of chain is 1, no need to check consensus validation
             if (block.Header.Index < 2)
             {
-                return ValidationError.Success;
+                return BlockValidationResult.Success;
             }
             
             // Get block producer's address from block header
-            var uncompressedPrivKey = block.Header.P.ToByteArray();
-            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+            var uncompressedPrivateKey = block.Header.P.ToByteArray();
+            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
             
             // Get the address of consensus contract
             var contractAccountHash = AddressHelpers.GetSystemContractAddress(context.ChainId, SmartContractType.AElfDPoS.ToString());
@@ -44,10 +44,10 @@ namespace AElf.ChainController
             
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
-            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().DumpHex(), timestampOfBlock);
+            var tx = GetTxToVerifyBlockProducer(contractAccountHash, NodeConfig.Instance.ECKeyPair, recipientKeyPair.GetAddress().DumpHex(), timestampOfBlock);
             if (tx == null)
             {
-                return ValidationError.FailedToCheckConsensusInvalidation;
+                return BlockValidationResult.FailedToCheckConsensusInvalidation;
             }
             var tc = new TransactionContext
             {
@@ -59,12 +59,12 @@ namespace AElf.ChainController
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())
             {
-                return ValidationError.FailedToCheckConsensusInvalidation;
+                return BlockValidationResult.FailedToCheckConsensusInvalidation;
             }
 
             return BoolValue.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value
-                ? ValidationError.Success
-                : ValidationError.InvalidTimeslot;
+                ? BlockValidationResult.Success
+                : BlockValidationResult.InvalidTimeSlot;
         }
 
         private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)

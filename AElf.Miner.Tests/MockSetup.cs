@@ -51,14 +51,14 @@ namespace AElf.Miner.Tests
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_dataStore, _logger);
-            _stateDictator = new StateDictator(new HashManager(_dataStore), _transactionManager, _dataStore, _logger);
+            _stateDictator = new StateDictator(new HashManager(_dataStore), _dataStore);
             _smartContractManager = new SmartContractManager(_dataStore);
             _accountContextService = new AccountContextService(_stateDictator);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainService = new ChainService(new ChainManagerBasic(_dataStore),
                 new BlockManagerBasic(_dataStore, _logger),
-                _transactionManager, _dataStore);
+                _transactionManager, _dataStore, new BlockSet());
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);*/

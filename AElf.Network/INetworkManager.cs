@@ -16,7 +16,7 @@ namespace AElf.Network
         void Start();
         
         void QueueTransactionRequest(List<byte[]> transactionHashes, IPeer hint);
-        void QueueBlockRequestByIndex(int index);
+        //void QueueBlockRequestByIndex(int index);
 
         //void QueueRequest(Message message, IPeer hint);
 

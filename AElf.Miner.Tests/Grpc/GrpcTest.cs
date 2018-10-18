@@ -21,6 +21,7 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 using AElf.Common;
+using AElf.Configuration;
 
 namespace AElf.Miner.Tests.Grpc
 {
@@ -184,8 +185,9 @@ namespace AElf.Miner.Tests.Grpc
                 sideimpl.Init(sideChainId);
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
                 serverManager.Init(dir);
-                var keypair = new KeyPairGenerator().Generate();
-                var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
+                var keyPair = new KeyPairGenerator().Generate();
+                var minerConfig = _mock.GetMinerConfig(chain.Id, 10, keyPair.GetAddress().DumpByteArray());
+                NodeConfig.Instance.ECKeyPair = keyPair;
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
@@ -200,8 +202,8 @@ namespace AElf.Miner.Tests.Grpc
                 
                 GrpcLocalConfig.Instance.ClientToSideChain = true;
                 manager.Init(dir, t);
-                var miner = _mock.GetMiner(minerconfig, poolService, manager);
-                miner.Init(keypair);
+                var miner = _mock.GetMiner(minerConfig, poolService, manager);
+                miner.Init();
             
                 Thread.Sleep(t/2);
                 var block = await miner.Mine();

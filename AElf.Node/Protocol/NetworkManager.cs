@@ -3,21 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Collections;
+using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;
+using AElf.Node.EventMessages;
 using AElf.Node.Protocol.Events;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
+using Org.BouncyCastle.Crypto.Engines;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Node.Protocol
@@ -48,6 +52,7 @@ namespace AElf.Node.Protocol
 
         private readonly ITxPoolService _transactionPoolService;
         private readonly IPeerManager _peerManager;
+        private readonly IChainService _chainService;
         private readonly ILogger _logger;
         
         private readonly List<IPeer> _peers = new List<IPeer>();
@@ -59,17 +64,29 @@ namespace AElf.Node.Protocol
         private BoundedByteArrayQueue _lastTxReceived;
 
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
+        
+        private IPeer CurrentSyncSource { get; set; }
+        private int _localHeight = 0;
 
-        public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, ILogger logger)
+        private bool _isSyncing = false;
+        
+        private Hash _chainId;
+        
+        private List<byte[]> _minedBlocks = new List<byte[]>();
+
+        public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, IChainService chainService, ILogger logger)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _pendingRequests = new List<TimeoutRequest>();
 
             _transactionPoolService = transactionPoolService;
             _peerManager = peerManager;
+            _chainService = chainService;
             _logger = logger;
             
-            peerManager.PeerEvent += PeerManagerOnPeerAdded;
+            _chainId = new Hash { Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)) };
+            
+            peerManager.PeerEvent += OnPeerAdded;
 
             MessageHub.Instance.Subscribe<TransactionAddedToPool>(async inTx =>
                 {
@@ -89,7 +106,7 @@ namespace AElf.Node.Protocol
                     // _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
-            MessageHub.Instance.Subscribe<BlockMinedMessage>(async inBlock => 
+            MessageHub.Instance.Subscribe<BlockAddedToSet>(inBlock => 
                 {
                     if (inBlock?.Block == null)
                     {
@@ -102,26 +119,154 @@ namespace AElf.Node.Protocol
                     if (blockHash != null)
                         _lastBlocksReceived.Enqueue(blockHash);
                     
-                    await BroadcastBlock(blockHash, inBlock.Block.Serialize());
+                    AnnounceBlock((Block)inBlock.Block);
                     
-                    _logger?.Trace($"Broadcasted block \"{blockHash.ToHex()}\" to peers " +
-                                   $"with {inBlock.Block.Body.TransactionsCount} tx(s). Block height: [{inBlock.Block.Header.Index}].");
+                    _minedBlocks.Add(blockHash);
+                    
+                    _logger?.Trace($"Block produced, announcing \"{blockHash.ToHex()}\" to peers with {inBlock.Block.Body.TransactionsCount} txs. Block height: [{inBlock.Block.Header.Index}].");
+                    
+                    _localHeight++;
                 });
+            
+            MessageHub.Instance.Subscribe<BlockExecuted>(inBlock => 
+            {
+                if (inBlock?.Block == null)
+                {
+                    _logger?.Warn("[event] Block null.");
+                    return;
+                }
+
+                byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
+
+                if (blockHash != null)
+                    _lastBlocksReceived.Enqueue(blockHash);
+                    
+                _logger?.Trace($"Block executed, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
+                
+                _localHeight++;
+            });
+            
+            MessageHub.Instance.Subscribe<BlockAccepted>(inBlock => 
+            {
+                if (inBlock?.Block == null)
+                {
+                    _logger?.Warn("[event] Block null.");
+                    return;
+                }
+
+                var blockHash = inBlock.Block.GetHash().DumpByteArray();
+
+                if (blockHash != null)
+                    _lastBlocksReceived.Enqueue(blockHash);
+                    
+                _logger?.Trace($"Block accepted, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
+                
+                _localHeight++;
+
+                //CurrentSyncSource?.OnNewBlockAccepted(inBlock.Block);
+
+                bool syncFinished = true;
+                foreach (var peer in _peers)
+                {
+                    peer.OnNewBlockAccepted(inBlock.Block);
+
+                    if (peer.AnySyncing())
+                    {
+                        syncFinished = false;
+                    }
+                }
+
+                AnnounceBlock(inBlock.Block);
+
+                if (syncFinished)
+                    SetSyncState(false);
+            });
         }
 
+        private void SetSyncState(bool newState)
+        {
+            if (_isSyncing == newState)
+                return;
+            
+            _isSyncing = newState;
+            MessageHub.Instance.Publish(new SyncStateChanged(newState));
+            
+            _logger?.Trace($"Sync state changed {_isSyncing}.");
+        }
+        
+        /// <summary>
+        /// This method start the server that listens for incoming
+        /// connections and sets up the manager.
+        /// </summary>
+        public void Start()
+        {
+            // init the queue
+            _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
+            _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
+                
+            _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
+            
+            _logger?.Trace($"Network initialized at height {_localHeight}.");
+            
+            _peerManager.Start();
+            
+            Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
+        }
+        
+        private void AnnounceBlock(IBlock block)
+        {
+            Announce anc = new Announce();
+            anc.Height = (int)block.Header.Index;
+            anc.Id = ByteString.CopyFrom(block.GetHashBytes());
+
+            BroadcastMessage(AElfProtocolMsgType.Announcement, anc.ToByteArray());
+        }
+        
         #region Eventing
 
-        private void PeerManagerOnPeerAdded(object sender, EventArgs eventArgs)
+        private void OnPeerAdded(object sender, EventArgs eventArgs)
         {
             if (eventArgs is PeerEventArgs peer && peer.Peer != null && peer.Actiontype == PeerEventType.Added)
             {
+                int peerHeight = peer.Peer.KnownHeight;
+                
+                // If we haven't sync the historical blocks, start a sync session
+                if (CurrentSyncSource == null && _localHeight < peerHeight)
+                    StartSync(peer.Peer, _localHeight+1, peerHeight);
+                    
                 _peers.Add(peer.Peer);
 
+                peer.Peer.SyncFinished += PeerOnSyncFinished ;
                 peer.Peer.MessageReceived += HandleNewMessage;
                 peer.Peer.PeerDisconnected += ProcessClientDisconnection;
             }
         }
-        
+
+        private void PeerOnSyncFinished(object sender, EventArgs e)
+        {
+            bool syncFinished = true;
+            foreach (var peer in _peers)
+            {
+                if (peer.AnySyncing())
+                {
+                    syncFinished = false;
+                }
+            }
+            
+            if (syncFinished)
+                SetSyncState(false);
+        }
+
+        private void StartSync(IPeer peer, int start, int target)
+        {
+            CurrentSyncSource = peer;
+            peer.Sync(start, target);
+                    
+            _logger?.Trace($"Sync started from peer {CurrentSyncSource}, from {start} to {target}.");
+                    
+            SetSyncState(true);
+        }
+
         /// <summary>
         /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
         /// the manager from the events and removes it from the list.
@@ -136,6 +281,7 @@ namespace AElf.Node.Protocol
                 
                 peer.MessageReceived -= HandleNewMessage;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
+                //peer.SyncFinished -= PeerOnSyncFinished;
                 
                 _peers.Remove(args.Peer);
             }
@@ -150,21 +296,6 @@ namespace AElf.Node.Protocol
         }
 
         #endregion
-
-        /// <summary>
-        /// This method start the server that listens for incoming
-        /// connections and sets up the manager.
-        /// </summary>
-        public void Start()
-        {
-            // init the queue
-            _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
-            _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
-            
-            _peerManager.Start();
-            
-            Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
-        }
         
         #region Message processing
 
@@ -196,6 +327,9 @@ namespace AElf.Node.Protocol
             
             switch (msgType)
             {
+                case AElfProtocolMsgType.Announcement:
+                    HandleAnnoucement(msgType, args.Message, args.Peer);
+                    break;
                 // New blocks and requested blocks will be added to the sync
                 // Subscribe to the BlockReceived event.
                 case AElfProtocolMsgType.NewBlock:
@@ -230,11 +364,39 @@ namespace AElf.Node.Protocol
                 
                 TransactionList txList = TransactionList.Parser.ParseFrom(msg.Payload);
                 // The sync should subscribe to this and add to pool
-                TransactionsReceived?.Invoke(this, new TransactionsReceivedEventArgs(txList, peer, msgType));
+                //TransactionsReceived?.Invoke(this, new TransactionsReceivedEventArgs(txList, peer, msgType));
+                
+                // todo launch tx event
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while deserializing transaction list.");
+            }
+        }
+        
+        private void HandleAnnoucement(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        {
+            try
+            {
+                Announce a = Announce.Parser.ParseFrom(msg.Payload);
+
+                byte[] blockHash = a.Id.ToByteArray();
+                IBlock bbh = _chainService.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
+                
+                _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
+
+                if (bbh == null && _minedBlocks.Any(m => m.BytesEqual(blockHash)))
+                    ;
+
+                if (bbh != null)
+                    return;
+                
+                SetSyncState(true);
+                peer.OnAnnouncementMessage(a);
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while handling annoucement.");
             }
         }
 
@@ -256,14 +418,16 @@ namespace AElf.Node.Protocol
                 
                 if (addResult == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
+                    //_logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
 
-                    foreach (var p in _peers.Where(p => !p.Equals(peer)))
-                        p.EnqueueOutgoing(msg);
+                    MessageHub.Instance.Publish(new TxReceived(tx));
+                    
+                    //foreach (var p in _peers.Where(p => !p.Equals(peer)))
+                    //    p.EnqueueOutgoing(msg);
                 }
                 else
                 {
-                    _logger?.Debug($"New transaction from {peer} not added to the pool: {addResult}");
+                    _logger?.Debug($"New transaction {tx.GetHash()} from {peer} not added to the pool: {addResult}");
                 }
             }
             catch (Exception e)
@@ -284,15 +448,10 @@ namespace AElf.Node.Protocol
                     return;
                 
                 _lastBlocksReceived.Enqueue(blockHash);
-                    
-                // Rebroadcast to peers - note that the block has not been validated
-                if (msgType != AElfProtocolMsgType.Block)
-                {
-                    foreach (var p in _peers.Where(p => !p.Equals(peer)))
-                        p.EnqueueOutgoing(msg);
-                }
-                
-                BlockReceived?.Invoke(this, new BlockReceivedEventArgs(block, peer, msgType));
+
+                peer.OnBlockReceived(block);
+                              
+                MessageHub.Instance.Publish(new BlockReceived(block));
             }
             catch (Exception e)
             {
@@ -338,47 +497,47 @@ namespace AElf.Node.Protocol
             }
         }
         
-        public void QueueBlockRequestByIndex(int index)
-        {
-            if (index <= 0)
-            {
-                _logger?.Warn($"Cannot request block because height {index} is not valid.");
-                return;
-            }
-            
-            try
-            {
-                IPeer selectedPeer = _peers.FirstOrDefault();
-            
-                if(selectedPeer == null)
-                    return;
-                
-                // Create the request object
-                BlockRequest br = new BlockRequest { Height = index };
-                Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
-
-                if (message.Payload == null)
-                {
-                    _logger?.Warn($"Request for block at height {index} failed because payload is null.");
-                    return;   
-                }
-                
-                // Select peer for request
-                TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
-                request.MaxRetryCount = RequestMaxRetry;
-                
-                lock (_pendingRequestsLock)
-                {
-                    _pendingRequests.Add(request);
-                }
-
-                request.TryPeer(selectedPeer);
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, $"Error while requesting block for index {index}.");
-            }
-        }
+//        public void QueueBlockRequestByIndex(int index)
+//        {
+//            if (index <= 0)
+//            {
+//                _logger?.Warn($"Cannot request block because height {index} is not valid.");
+//                return;
+//            }
+//            
+//            try
+//            {
+//                IPeer selectedPeer = _peers.FirstOrDefault();
+//            
+//                if(selectedPeer == null)
+//                    return;
+//                
+//                // Create the request object
+//                BlockRequest br = new BlockRequest { Height = index };
+//                Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
+//
+//                if (message.Payload == null)
+//                {
+//                    _logger?.Warn($"Request for block at height {index} failed because payload is null.");
+//                    return;   
+//                }
+//                
+//                // Select peer for request
+//                TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
+//                request.MaxRetryCount = RequestMaxRetry;
+//                
+//                lock (_pendingRequestsLock)
+//                {
+//                    _pendingRequests.Add(request);
+//                }
+//
+//                request.TryPeer(selectedPeer);
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Error(e, $"Error while requesting block for index {index}.");
+//            }
+//        }
 
         /// <summary>
         /// Callback called when the requests internal timer has executed.

@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
                     t.IncrementId = j;
                     
                     txList.Add(t);
-                    b.AddTransaction(t.GetHash());
+                    b.AddTransaction(t);
                 }
             }
         }

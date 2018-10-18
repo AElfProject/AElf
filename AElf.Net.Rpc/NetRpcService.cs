@@ -15,7 +15,7 @@ namespace AElf.Net.Rpc
     public class NetRpcService : IJsonRpcService
     {
         public IPeerManager Manager { get; set; }
-        public IBlockSynchronizer BlockSynchronizer { get; set; }
+        //public IBlockSynchronizer BlockSynchronizer { get; set; }
         public INetworkManager NetworkManager { get; set; }
 
         [JsonRpcMethod("get_peers")]
@@ -66,7 +66,8 @@ namespace AElf.Net.Rpc
             return new JObject { ["result"] = true };
         }
 
-        [JsonRpcMethod("get_pool_state")]
+        //TODO:
+/*        [JsonRpcMethod("get_pool_state")]
         public async Task<JObject> GetPoolState()
         {
             var pendingRequestCount = NetworkManager.GetPendingRequestCount();
@@ -79,6 +80,6 @@ namespace AElf.Net.Rpc
             };
 
             return JObject.FromObject(response);
-        }
+        }*/
     }
 }
