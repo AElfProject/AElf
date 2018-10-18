@@ -9,7 +9,7 @@ namespace AElf.Common.MultiIndexDictionary
     public class ComparisionIndex<T, TProperty> : SortedSet<KeyValuePair<TProperty, object>>,
         IComparisionIndex<T>, ILookup<TProperty, T>
     {
-         public string MemberName { get; }
+        public string MemberName { get; }
 
         readonly Func<T, TProperty> _getKey;
 
@@ -25,7 +25,7 @@ namespace AElf.Common.MultiIndexDictionary
 
             _getKey = lambda.Body.CreateGetter<T, TProperty>();
         }
-        
+
         /// <exception cref="NotSupportedException" />
         public ComparisionIndex(Expression<Func<T, TProperty>> lambda)
             : this(lambda, DefaultComparer)
@@ -42,7 +42,7 @@ namespace AElf.Common.MultiIndexDictionary
         {
             return _getKey.Invoke(item);
         }
-        
+
         public IEnumerable<T> Filter(object key)
         {
             if (key == null)
@@ -50,27 +50,27 @@ namespace AElf.Common.MultiIndexDictionary
                 if (_nullBucket != null)
                 {
                     return _nullBucket is T element
-                        ? new[] { element }
-                        : (IEnumerable<T>)_nullBucket;
+                        ? new[] {element}
+                        : (IEnumerable<T>) _nullBucket;
                 }
             }
             else
             {
-                var pairKey = new KeyValuePair<TProperty, object>((TProperty)key, null);
+                var pairKey = new KeyValuePair<TProperty, object>((TProperty) key, null);
 
                 object bucket = GetViewBetween(pairKey, pairKey).FirstOrDefault().Value;
 
                 if (bucket != null)
                 {
                     return bucket is T element
-                        ? new[] { element }
-                        : (IEnumerable<T>)bucket;
+                        ? new[] {element}
+                        : (IEnumerable<T>) bucket;
                 }
             }
 
             return Enumerable.Empty<T>();
         }
-        
+
         public IEnumerable<T> GreaterThan(object key, bool exclusive)
         {
             return Between(key, exclusive, Max.Key, false);
@@ -83,8 +83,8 @@ namespace AElf.Common.MultiIndexDictionary
 
         public IEnumerable<T> Between(object keyFrom, bool excludeFrom, object keyTo, bool excludeTo)
         {
-            var pairFrom = new KeyValuePair<TProperty, object>((TProperty)keyFrom, null);
-            var pairTo = new KeyValuePair<TProperty, object>((TProperty)keyTo, null);
+            var pairFrom = new KeyValuePair<TProperty, object>((TProperty) keyFrom, null);
+            var pairTo = new KeyValuePair<TProperty, object>((TProperty) keyTo, null);
 
             IEnumerable<KeyValuePair<TProperty, object>> range = GetViewBetween(pairFrom, pairTo);
 
@@ -106,14 +106,14 @@ namespace AElf.Common.MultiIndexDictionary
                 }
                 else
                 {
-                    foreach (T item in (IEnumerable<T>)pair.Value)
+                    foreach (T item in (IEnumerable<T>) pair.Value)
                     {
                         yield return item;
                     }
                 }
             }
         }
-        
+
         public IEnumerable<T> HavingMin()
         {
             object bucket = Min.Value;
@@ -121,8 +121,8 @@ namespace AElf.Common.MultiIndexDictionary
             if (bucket != null)
             {
                 return bucket is T element
-                    ? new[] { element }
-                    : (IEnumerable<T>)bucket;
+                    ? new[] {element}
+                    : (IEnumerable<T>) bucket;
             }
 
             return Enumerable.Empty<T>();
@@ -135,8 +135,8 @@ namespace AElf.Common.MultiIndexDictionary
             if (bucket != null)
             {
                 return bucket is T element
-                    ? new[] { element }
-                    : (IEnumerable<T>)bucket;
+                    ? new[] {element}
+                    : (IEnumerable<T>) bucket;
             }
 
             return Enumerable.Empty<T>();
@@ -180,12 +180,12 @@ namespace AElf.Common.MultiIndexDictionary
                     }
                     else
                     {
-                        _nullBucket = new HashSet<T>(list) { item };
+                        _nullBucket = new HashSet<T>(list) {item};
                     }
                 }
                 else if (_nullBucket is T element)
                 {
-                    _nullBucket = new List<T>(2) { element, item };
+                    _nullBucket = new List<T>(2) {element, item};
                 }
                 else
                 {
@@ -195,10 +195,10 @@ namespace AElf.Common.MultiIndexDictionary
                 return;
             }
 
-            var propKey = (TProperty)key;
+            var propKey = (TProperty) key;
 
             var pairKey = new KeyValuePair<TProperty, object>(propKey, null);
-            
+
             if (Contains(pairKey))
             {
                 object bucket = GetViewBetween(pairKey, pairKey).FirstOrDefault().Value;
@@ -206,7 +206,7 @@ namespace AElf.Common.MultiIndexDictionary
                 if (bucket is T element)
                 {
                     Remove(pairKey);
-                    Add(new KeyValuePair<TProperty, object>(propKey, new List<T>(2) { element, item }));
+                    Add(new KeyValuePair<TProperty, object>(propKey, new List<T>(2) {element, item}));
                 }
                 else if (bucket is List<T> list)
                 {
@@ -217,7 +217,7 @@ namespace AElf.Common.MultiIndexDictionary
                     else
                     {
                         Remove(pairKey);
-                        Add(new KeyValuePair<TProperty, object>(propKey, new HashSet<T>(list) { item }));
+                        Add(new KeyValuePair<TProperty, object>(propKey, new HashSet<T>(list) {item}));
                     }
                 }
                 else if (bucket is HashSet<T> hashSet)
@@ -261,7 +261,7 @@ namespace AElf.Common.MultiIndexDictionary
                 return;
             }
 
-            var propKey = (TProperty)key;
+            var propKey = (TProperty) key;
 
             var pairKey = new KeyValuePair<TProperty, object>(propKey, null);
 
@@ -313,7 +313,7 @@ namespace AElf.Common.MultiIndexDictionary
                 }
                 else
                 {
-                    foreach (T item in (IEnumerable<T>)pair.Value)
+                    foreach (T item in (IEnumerable<T>) pair.Value)
                     {
                         yield return item;
                     }
@@ -331,7 +331,7 @@ namespace AElf.Common.MultiIndexDictionary
                 }
                 else
                 {
-                    foreach (T item in (IEnumerable<T>)pair.Value)
+                    foreach (T item in (IEnumerable<T>) pair.Value)
                     {
                         yield return item;
                     }
@@ -348,8 +348,8 @@ namespace AElf.Common.MultiIndexDictionary
                     if (_nullBucket != null)
                     {
                         return _nullBucket is T element
-                            ? new[] { element }
-                            : (IEnumerable<T>)_nullBucket;
+                            ? new[] {element}
+                            : (IEnumerable<T>) _nullBucket;
                     }
                 }
                 else
@@ -361,8 +361,8 @@ namespace AElf.Common.MultiIndexDictionary
                     if (bucket != null)
                     {
                         return bucket is T element
-                            ? new[] { element }
-                            : (IEnumerable<T>)bucket;
+                            ? new[] {element}
+                            : (IEnumerable<T>) bucket;
                     }
                 }
 
@@ -384,7 +384,7 @@ namespace AElf.Common.MultiIndexDictionary
 
             if (_nullBucket != null)
             {
-                yield return new BucketGrouping<TProperty, T>((TProperty)(object)null, _nullBucket);
+                yield return new BucketGrouping<TProperty, T>((TProperty) (object) null, _nullBucket);
             }
         }
 

@@ -62,10 +62,10 @@ namespace AElf.Common.MultiIndexDictionary
         {
             foreach (var pair in _storage)
             {
-                T item = pair.Key;
-                List<object> indexKeys = pair.Value;
+                var item = pair.Key;
+                var indexKeys = pair.Value;
 
-                object key = index.GetKey(item);
+                var key = index.GetKey(item);
 
                 indexKeys.Add(key);
                 index.Add(key, item);
@@ -126,7 +126,7 @@ namespace AElf.Common.MultiIndexDictionary
             return lookup;
         }
         
-         #region LINQ Methods
+        #region LINQ Methods
 
         public IEnumerable<T> AsEnumerable()
         {

@@ -13,7 +13,7 @@ namespace AElf.Node
     public class NodeAutofacModule : Module
     {
         protected override void Load(ContainerBuilder builder)
-        {            
+        {
             var assembly = typeof(Node).Assembly;
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
             builder.RegisterType<Node>().As<INode>();
@@ -21,7 +21,8 @@ namespace AElf.Node
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
             builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
-
+            builder.RegisterGeneric(typeof(EqualityIndex<,>)).As(typeof(IEqualityIndex<>));
+            builder.RegisterGeneric(typeof(ComparisionIndex<,>)).As(typeof(IComparisionIndex<>));
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {

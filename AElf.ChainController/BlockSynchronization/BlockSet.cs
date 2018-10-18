@@ -21,16 +21,16 @@ namespace AElf.ChainController
         private readonly IndexedDictionary<IBlock> _dict;
 
         private object _ = new object();
-        
+
         public BlockSet()
         {
             _logger = LogManager.GetLogger(nameof(BlockSet));
 
-            _dict = new List<IBlock>()
-                .IndexBy(b => b.Header.Index, true)
-                .IndexBy(b => b.GetHash());
+            _dict = new IndexedDictionary<IBlock>();
+            _dict.IndexBy(b => b.Index)
+                .IndexBy(b => b.BlockHashToHex);
         }
-        
+
         public void AddBlock(IBlock block)
         {
             var hash = block.GetHash().DumpHex();
@@ -57,7 +57,7 @@ namespace AElf.ChainController
         {
             lock (_)
             {
-                return _dict.Any(b => b.Header.Index == height && b.GetHash() == blockHash);
+                return _dict.Any(b => b.Index == height && b.BlockHashToHex == blockHash.DumpHex());
             }
         }
 
@@ -65,7 +65,7 @@ namespace AElf.ChainController
         {
             lock (_)
             {
-                return _dict.FirstOrDefault(b => b.GetHash() == blockHash);
+                return _dict.FirstOrDefault(b => b.BlockHashToHex == blockHash.DumpHex());
             }
         }
 
@@ -73,7 +73,7 @@ namespace AElf.ChainController
         {
             lock (_)
             {
-                return _dict.Where(b => b.Header.Index == height).ToList();
+                return _dict.Where(b => b.Index == height).ToList();
             }
         }
 
