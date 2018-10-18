@@ -158,7 +158,7 @@ namespace AElf.ChainController.TxMemPool
             }
             
             const string inValueTxName = "PublishInValue";
-            
+
             var toRemove = new List<Transaction>();
             
             var roundId = currentRoundInfo?.RoundId;
@@ -193,7 +193,7 @@ namespace AElf.ChainController.TxMemPool
                         }
                     }
                 }
-                
+
                 if (transaction.From == blockProducerAddress)
                 {
                     continue;
@@ -218,6 +218,7 @@ namespace AElf.ChainController.TxMemPool
                         toRemove.Add(transaction);
                     }
                 }
+
             }
 
             // No one will publish in value if I won't do this in current block.
@@ -231,7 +232,7 @@ namespace AElf.ChainController.TxMemPool
                 toRemove.AddRange(readyTxs.FindAll(tx => tx.MethodName == inValueTxName).GroupBy(tx => tx.From)
                     .Where(g => g.Count() > 1).SelectMany(g => g));
             }
-            
+
             if (readyTxs.Any(tx => tx.MethodName == "UpdateAElfDPoS"))
             {
                 toRemove.AddRange(readyTxs.Where(tx => tx.Type != TransactionType.CrossChainBlockInfoTransaction && tx.MethodName != inValueTxName && tx.MethodName != "UpdateAElfDPoS"));

@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Contracts.Consensus\AElf.Contracts.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
@@ -15,5 +16,15 @@
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Protocol\IBlockSynchronizer.cs" />
+    <Compile Remove="Protocol\BlockSynchronizer.cs" />
+    <Compile Remove="BlockCollection.cs" />
+    <Compile Remove="BranchedChain.cs" />
+    <Compile Remove="IBlockCollection.cs" />
+    <Compile Remove="SyncService.cs" />
+    <Compile Remove="PendingBlockExtensions.cs" />
+    <Compile Remove="ISyncService.cs" />
   </ItemGroup>
 </Project>

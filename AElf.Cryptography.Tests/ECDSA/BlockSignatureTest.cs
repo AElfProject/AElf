@@ -23,7 +23,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             tx.To = Address.FromRawBytes(CryptoHelpers.RandomFill(ADR_LENGTH));
             
             Block block = new Block();
-            block.AddTransaction(tx.GetHash());
+            block.AddTransaction(tx);
             
             // Serialize and hash the transaction
             Hash hash = tx.GetHash();

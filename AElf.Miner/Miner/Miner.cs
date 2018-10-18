@@ -24,6 +24,7 @@ using NServiceKit.Common.Extensions;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using Status = AElf.Kernel.Status;
 using AElf.Common;
+using AElf.Miner.Rpc.Exceptions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -70,6 +71,7 @@ namespace AElf.Miner.Miner
             _stateDictator.ChainId = chainId;
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Mine process.
         /// </summary>
@@ -87,16 +89,9 @@ namespace AElf.Miner.Miner
                         return null;
 
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
-                    Transaction genTx= await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo, _stateDictator.BlockProducerAccountAddress);
-                    
-                    var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
-                    _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
-                    foreach (var transaction in dposTxs)
-                    {
-                        _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName} from {transaction.From.DumpHex()}");
-                    }
-                    
+                    var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo);
+
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
@@ -110,9 +105,6 @@ namespace AElf.Miner.Miner
                     var block = await GenerateBlockAsync(Config.ChainId, results);
                     _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index}");
 
-                    // broadcast
-                    BroadcastBlock(block);
-                    
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
                     // put back canceled transactions
@@ -120,7 +112,9 @@ namespace AElf.Miner.Miner
                     _txPoolService.Revert(rollback);
                     // insert to db
                     Update(executed, results, block, parentChainBlockInfo, genTx);
-                    
+
+                    MessageHub.Instance.Publish(new BlockMined(block));
+
                     return block;
                 }
                 catch (Exception e)
@@ -130,12 +124,7 @@ namespace AElf.Miner.Miner
                 }
             }
         }
-
-        private void BroadcastBlock(IBlock block)
-        {
-            MessageHub.Instance.Publish(new BlockMinedMessage(block));
-        }
-
+        
         /// <summary>
         /// Generate a system tx for parent chain block info and broadcast it.
         /// </summary>
@@ -222,7 +211,8 @@ namespace AElf.Miner.Miner
                             TransactionId = trace.TransactionId,
                             Status = Status.Mined,
                             RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
-                            Index = index++
+                            Index = index++,
+                            Transaction = trace.Transaction
                         };
                         txRes.UpdateBloom();
                         results.Add(txRes);
@@ -233,7 +223,8 @@ namespace AElf.Miner.Miner
                             TransactionId = trace.TransactionId,
                             RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
                             Status = Status.Failed,
-                            Index = index++
+                            Index = index++,
+                            Transaction = trace.Transaction
                         };
                         results.Add(txResF);
                         break;
@@ -345,7 +336,7 @@ namespace AElf.Miner.Miner
             // side chain info
             await CollectSideChainIndexedInfo(block);
             // add tx hash
-            block.AddTransactions(results.Select(r => r.TransactionId));
+            block.AddTransactions(results.Select(r => r.Transaction));
 
             // set ws merkle tree root
             await _stateDictator.SetWorldStateAsync();
@@ -378,9 +369,7 @@ namespace AElf.Miner.Miner
             // TODO: Generic IBlockHeader
             var lastHeader = (BlockHeader) await blockChain.GetHeaderByHashAsync(lastBlockHash);
             var index = lastHeader.Index;
-            var block = new Block(lastBlockHash);
-            block.Header.Index = index + 1;
-            block.Header.ChainId = chainId;
+            var block = new Block(lastBlockHash) {Header = {Index = index + 1, ChainId = chainId}};
 
             var ws = await _stateDictator.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
@@ -430,10 +419,10 @@ namespace AElf.Miner.Miner
         /// Start mining
         /// init clients to side chain node 
         /// </summary>
-        public void Init(ECKeyPair nodeKeyPair)
+        public void Init()
         {
             _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
-            _keyPair = nodeKeyPair;
+            _keyPair = NodeConfig.Instance.ECKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
         }
 

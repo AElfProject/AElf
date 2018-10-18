@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using System.Timers;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using NLog;
 
@@ -64,7 +61,7 @@ namespace AElf.Network.Peers
     /// This class handles a basic form of authentification as well as ping messages.
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    public class Peer : IPeer
+    public partial class Peer : IPeer
     {
         private const string LoggerName = "Peer";
         
@@ -74,8 +71,7 @@ namespace AElf.Network.Peers
         private readonly ILogger _logger;
         private readonly IMessageReader _messageReader;
         private readonly IMessageWriter _messageWriter;
-        
-        private readonly Timer _pingPongTimer;
+
         private readonly Timer _authTimer;
         
         /// <summary>
@@ -119,16 +115,6 @@ namespace AElf.Network.Peers
         private readonly TcpClient _client;
         
         public int PacketsReceivedCount { get; private set; }
-        
-        /// <summary>
-        /// List of currently pending ping requests.
-        /// </summary>
-        private readonly List<Ping> _pings = new List<Ping>();
-        private object pingLock = new Object();
-        
-        private TimeSpan pingWaitTime = TimeSpan.FromSeconds(2);
-
-        private int _droppedPings = 0;
 
         public double AuthTimeout { get; set; } = DefaultAuthTimeout;
 
@@ -176,8 +162,10 @@ namespace AElf.Network.Peers
                 return DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort)0;
             }
         }
+
+        public readonly int CurrentHeight = 0;
         
-        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey)
+        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey, int currentHeight)
         {
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
@@ -192,6 +180,10 @@ namespace AElf.Network.Peers
             
             _messageReader = reader;
             _messageWriter = writer;
+
+            CurrentHeight = currentHeight;
+            
+            _blocks = new List<ValidatingBlock>();
         }
 
         private void SetupHeartbeat()
@@ -263,18 +255,16 @@ namespace AElf.Network.Peers
                     return;
                 }
 
-                if (a.Message.Type == (int) MessageType.Ping)
+                switch (a.Message.Type)
                 {
-                    HandlePingMessage(a.Message);
-                    return;
+                    case (int) MessageType.Ping:
+                        HandlePingMessage(a.Message);
+                        return;
+                    case (int) MessageType.Pong:
+                        HandlePongMessage(a.Message);
+                        return;
                 }
 
-                if (a.Message.Type == (int) MessageType.Pong)
-                {
-                    HandlePongMessage(a.Message);
-                    return;
-                }
-                
                 PacketsReceivedCount++;
             
                 FireMessageReceived(a.Message);
@@ -285,103 +275,6 @@ namespace AElf.Network.Peers
             }
         }
 
-        #region Heartbeat
-        
-        private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
-        {
-            if (IsDisposed)
-                return;
-
-            lock (pingLock)
-            {
-                DateTime lowerThreshold = DateTime.Now - pingWaitTime;
-                var pings = _pings.Where(p => p.Time.ToDateTime() < lowerThreshold).ToList();
-
-                if (pings.Count > 0)
-                {
-                    _droppedPings += pings.Count;
-                    _logger?.Trace($"{DistantNodeData} - Current failed count {_droppedPings}.");
-                    
-                    var peerStr = _pings.Select(c => c.Id).Aggregate((a, b) => a.ToString() + ", " + b);
-                    
-                    _logger?.Trace($"{DistantNodeData} - {pings.Count} pings where dropped [ {peerStr} ].");
-                    
-                    foreach (var p in pings)
-                        _pings.Remove(p);
-                }
-            }
-            
-            // Create a new ping
-            try
-            {
-                Guid id = Guid.NewGuid();
-                Ping ping = new Ping { Id = id.ToString(), Time = Timestamp.FromDateTime(DateTime.UtcNow)};
-            
-                byte[] payload = ping.ToByteArray();
-            
-                var pingMsg = new Message { Type = (int)MessageType.Ping, Length = payload.Length, Payload = payload };
-
-                lock (pingLock)
-                {
-                    _pings.Add(ping);
-                }
-
-                Task.Run(() => EnqueueOutgoing(pingMsg));
-            }
-            catch (Exception exception)
-            {
-                _logger?.Trace(exception, "Error while sending ping message.");
-            }
-        }
-
-        private void HandlePingMessage(Message pingMsg)
-        {
-            try
-            {
-                Ping ping = Ping.Parser.ParseFrom(pingMsg.Payload);
-                Pong pong = new Pong { Id = ping.Id, Time = Timestamp.FromDateTime(DateTime.UtcNow) };
-                        
-                byte[] payload = pong.ToByteArray();
-            
-                var pongMsg = new Message
-                {
-                    Type = (int)MessageType.Pong,
-                    Length = payload.Length,
-                    Payload = payload
-                };
-
-                EnqueueOutgoing(pongMsg);
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, $"Failed to process ping message from {DistantNodeData}.");
-            }
-        }
-
-        private void HandlePongMessage(Message pongMsg)
-        {
-            try
-            {
-                Pong pong = Pong.Parser.ParseFrom(pongMsg.Payload);
-                
-                lock (pingLock)
-                {
-                    Ping ping = _pings.FirstOrDefault(p => p.Id == pong.Id);
-                            
-                    if (ping != null)
-                        _pings.Remove(ping);
-                    else
-                        _logger?.Trace($"Could not match pong reply {pong.Id}.");
-                }
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, $"Failed to handle pong message from {DistantNodeData}.");
-            }
-        }
-
-        #endregion Heartbeat
-
         #region Authentification
         
         /// <summary>
@@ -391,7 +284,6 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         private void StartAuthentification()
         {
-
             var nodeInfo = new NodeData {Port = _port};
             
             ECSigner signer = new ECSigner();
@@ -401,6 +293,7 @@ namespace AElf.Network.Peers
             {
                 NodeInfo = nodeInfo,
                 PublicKey = ByteString.CopyFrom(_nodeKey.GetEncodedPublicKey()),
+                Height = CurrentHeight,
                 R = ByteString.CopyFrom(sig.R),
                 S = ByteString.CopyFrom(sig.S),
             };
@@ -453,6 +346,8 @@ namespace AElf.Network.Peers
                 // Update with the real IP address
                 IPEndPoint remoteEndPoint = (IPEndPoint)_client.Client.RemoteEndPoint;
                 handshk.NodeInfo.IpAddress = remoteEndPoint.Address.ToString();
+
+                _peerHeight = handshk.Height;
                 
                 _pingPongTimer.Start();
             }

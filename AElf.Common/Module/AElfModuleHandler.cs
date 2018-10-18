@@ -11,22 +11,22 @@ namespace AElf.Common.Module
         private readonly ContainerBuilder _builder;
         private IContainer _container;
 
-        private List<IAElfModule> _modlules;
+        private readonly List<IAElfModule> _modules;
 
         public AElfModuleHandler()
         {
             _builder = new ContainerBuilder();
-            _modlules = new List<IAElfModule>();
+            _modules = new List<IAElfModule>();
         }
 
         public void Register(IAElfModule module)
         {
-            _modlules.Add(module);
+            _modules.Add(module);
         }
 
         public void Build()
         {
-            _modlules.ForEach(m => m.Init(_builder));
+            _modules.ForEach(m => m.Init(_builder));
 
             _container = _builder.Build();
             if (_container == null)
@@ -34,9 +34,9 @@ namespace AElf.Common.Module
                 throw new Exception("IoC setup failed");
             }
 
-             using (var scope = _container.BeginLifetimeScope())
+            using (var scope = _container.BeginLifetimeScope())
             {
-                _modlules.ForEach(m => m.Run(scope));
+                _modules.ForEach(m => m.Run(scope));
             }
         }
     }

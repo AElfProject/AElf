@@ -22,6 +22,8 @@ namespace AElf.ChainController.TxMemPool
             _logger = logger;
             _txValidator = txValidator;
             _txHub = txHub;
+
+            _dpoSTxFilter = new DPoSTxFilter();
         }
 
         public void Start()
@@ -34,6 +36,8 @@ namespace AElf.ChainController.TxMemPool
         }
 
         private TxHub _txHub;
+
+        private readonly DPoSTxFilter _dpoSTxFilter;
 
         private readonly ConcurrentDictionary<Hash, Transaction> _systemTxs =
             new ConcurrentDictionary<Hash, Transaction>();
@@ -215,25 +219,20 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, Address myAddress, double intervals = 150)
+        public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, double intervals = 150)
         {
-            // TODO: Improve performance
             var txs = _systemTxs.Values.ToList();
 
             if (currentRoundInfo != null)
             {
-                //var toRemove = new DPoSTxFilter(currentRoundInfo, myAddress).Execute(txs);//_txValidator.RemoveDirtyDPoSTxs(txs, blockProducerAddress, currentRoundInfo);
-                var toRemove = _txValidator.RemoveDirtyDPoSTxs(txs, myAddress, currentRoundInfo);
-                if (toRemove != null)
+                foreach (var hash in _dpoSTxFilter.Execute(txs).Select(tx => tx.GetHash()))
                 {
-                    foreach (var tx in toRemove)
-                    {
-                        _systemTxs.TryRemove(tx.GetHash(), out _);
-                    }
+                    _systemTxs.TryRemove(hash, out _);
                 }
             }
-            
+
             _logger.Debug($"Got {txs.Count} System tx");
+
             var count = _txHub.ValidatedCount;
             if (count < Least)
             {

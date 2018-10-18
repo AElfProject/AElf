@@ -1,35 +1,46 @@
-﻿using System;
 using System.Threading.Tasks;
 using AElf.ChainController.TxMemPool;
 using AElf.Miner.Miner;
 using NLog;
 using AElf.Common;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
 {
+    // ReSharper disable InconsistentNaming
     public class PoTC : IConsensus
     {
-        public IDisposable ConsensusDisposable { get; set; }
-        public ulong ConsensusMemory { get; set; }
-        private ILogger _logger;
-        private ITxPoolService _txPoolService;
-        private IMiner _miner;
-        private IP2P _p2p;
+        private ulong ConsensusMemory { get; set; }
+        private readonly ILogger _logger;
+        private readonly ITxPoolService _txPoolService;
+        private readonly IMiner _miner;
 
-        public PoTC(ILogger logger,
-            IMiner miner,
-            ITxPoolService txPoolService,
-            IP2P p2p)
+        public PoTC(IMiner miner, ITxPoolService txPoolService)
         {
-            _logger = logger;
             _miner = miner;
-            _p2p = p2p;
             _txPoolService = txPoolService;
+
+            _logger = LogManager.GetLogger(nameof(PoTC));
         }
 
         public async Task Start()
         {
             //await Node.Mine();
+        }
+
+        public void Stop()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Hang()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Recover()
+        {
+            throw new System.NotImplementedException();
         }
 
         // ReSharper disable once InconsistentNaming

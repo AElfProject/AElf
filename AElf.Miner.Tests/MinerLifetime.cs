@@ -109,7 +109,7 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             var mock = new Mock<ITxPoolService>();
-            mock.Setup((s) => s.GetReadyTxsAsync(null, Address.FromRawBytes(Hash.Generate().ToByteArray()), 3000)).Returns(Task.FromResult(txs));
+            mock.Setup((s) => s.GetReadyTxsAsync(null, 3000)).Returns(Task.FromResult(txs));
             return mock;
         }
         
@@ -263,7 +263,8 @@ namespace AElf.Kernel.Tests.Miner
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
             //GrpcRemoteConfig.Instance.ParentChain = null;
-            miner.Init(keypair);
+            NodeConfig.Instance.ECKeyPair = keypair;
+            miner.Init();
             
             var block = await miner.Mine();
             
@@ -296,7 +297,8 @@ namespace AElf.Kernel.Tests.Miner
             //GrpcLocalConfig.Instance.ClientToParentChain = false;
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             //GrpcRemoteConfig.Instance.ParentChain = null;
-            miner.Init(keypair);
+            NodeConfig.Instance.ECKeyPair = keypair;
+            miner.Init();
 
             var block = await miner.Mine();
             

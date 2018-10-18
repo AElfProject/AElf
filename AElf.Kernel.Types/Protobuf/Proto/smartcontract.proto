@@ -51,4 +51,5 @@ message TransactionTrace {
     repeated StateValueChange ValueChanges = 8;
     int64 Elapsed = 9;
     ExecutionStatus ExecutionStatus = 10;
+    Transaction Transaction = 11;
 }
