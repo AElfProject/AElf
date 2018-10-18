@@ -62,7 +62,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = null
+                ResourceDetectionService = null,
+                StateStore = StateStore
             };
         }
 

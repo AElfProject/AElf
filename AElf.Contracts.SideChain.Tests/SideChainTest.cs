@@ -8,6 +8,7 @@ using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.Configuration;
 
 namespace AElf.Contracts.SideChain.Tests
 {
@@ -87,6 +88,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
+            NodeConfig.Instance.ChainId = _mock.ChainId1.DumpHex();
             var crossChainInfo = new CrossChainInfo(_mock.StateStore);
             var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(_contract.SideChainContractAddress, 0);
             Assert.NotNull(merklepath);

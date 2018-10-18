@@ -64,7 +64,8 @@ namespace AElf.Contracts.Genesis.Tests
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = null
+                ResourceDetectionService = null,
+                StateStore = stateStore
             };
          }
 

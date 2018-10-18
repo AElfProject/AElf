@@ -42,8 +42,9 @@ namespace AElf.Miner.Tests
         private readonly IDataStore _dataStore;
         private readonly IStateStore _stateStore;
         
-        public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore)
+        public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore, IAccountContextService accountContextService)
         {
+            _accountContextService = accountContextService;
             _logger = logger;
             _dataStore = dataStore;
             _stateStore = stateStore;

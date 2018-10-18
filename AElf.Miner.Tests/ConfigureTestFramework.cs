@@ -31,6 +31,7 @@ namespace AElf.Miner.Tests
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterType<DataStore>().As<IDataStore>();
             builder.RegisterType<StateStore>().As<IStateStore>();
+            builder.RegisterType<AccountContextService>().As<IAccountContextService>();
         }
     }
 }

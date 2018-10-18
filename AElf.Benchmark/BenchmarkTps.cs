@@ -71,6 +71,7 @@ namespace AElf.Benchmark
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
                 AccountContextService = accountContextService,
+                StateStore = _stateStore
             };
 
             _dataGenerater = new TransactionDataGenerator(options);

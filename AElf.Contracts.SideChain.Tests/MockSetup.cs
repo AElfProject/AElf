@@ -37,7 +37,7 @@ using    AElf.Common;
             
             public MockSetup(IStateStore stateStore, IChainCreationService chainCreationService, DataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
             {
-                StateStore = StateStore;
+                StateStore = stateStore;
                 _chainCreationService = chainCreationService;
                 _functionMetadataService = functionMetadataService;
                 _smartContractRunnerFactory = smartContractRunnerFactory;
@@ -52,7 +52,8 @@ using    AElf.Common;
                 {
                     ChainContextService = chainContextService,
                     SmartContractService = SmartContractService,
-                    ResourceDetectionService = null
+                    ResourceDetectionService = null,
+                    StateStore = StateStore
                 };
             }
     

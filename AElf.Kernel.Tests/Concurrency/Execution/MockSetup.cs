@@ -101,7 +101,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService()
+                ResourceDetectionService = new NewMockResourceUsageDetectionService(),
+                StateStore = _stateStore
             };
 
             // These are only required for workertest
