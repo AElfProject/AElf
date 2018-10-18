@@ -8,6 +8,7 @@ using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using AElf.Execution;
+using AElf.Execution.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {

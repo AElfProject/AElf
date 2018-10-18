@@ -7,7 +7,6 @@ using AElf.Kernel.Storages;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
@@ -17,6 +16,7 @@ using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using NLog;
 using AElf.Common;
+using AElf.Execution.Execution;
 using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
@@ -113,7 +113,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
             Worker1.Tell(new LocalSerivcePack(ServicePack));
             Worker2.Tell(new LocalSerivcePack(ServicePack));
-            Requestor = Sys.ActorOf(AElf.Execution.Requestor.Props(Router));
+            Requestor = Sys.ActorOf(AElf.Execution.Execution.Requestor.Props(Router));
         }
 
         public byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;

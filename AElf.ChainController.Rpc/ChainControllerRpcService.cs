@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
-using AElf.ChainController.TxMemPool;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Kernel.Managers;
+using AElf.Miner.EventMessages;
+using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.Node.CrossChain;
 using AElf.RPC;
@@ -29,7 +30,7 @@ namespace AElf.ChainController.Rpc
         public IChainService ChainService { get; set; }
         public IChainContextService ChainContextService { get; set; }
         public IChainCreationService ChainCreationService { get; set; }
-        public ITxPoolService TxPoolService { get; set; }
+        public ITxPool TxPool { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ITransactionResultService TransactionResultService { get; set; }
         public ISmartContractService SmartContractService { get; set; }
@@ -197,7 +198,7 @@ namespace AElf.ChainController.Rpc
             var res = new JObject {["hash"] = transaction.GetHash().DumpHex()};
             try
             {
-                var valRes = await TxPoolService.AddTxAsync(transaction);
+                var valRes = await TxPool.AddTxAsync(transaction);
                 if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
                     MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));

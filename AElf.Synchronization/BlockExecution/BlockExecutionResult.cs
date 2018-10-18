@@ -2,7 +2,7 @@
 namespace AElf.ChainController
 {
     // ReSharper disable InconsistentNaming
-    public enum BlockExecutionResultCC
+    public enum BlockExecutionResult
     {
         Success = 1,
         Failed = 2

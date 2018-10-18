@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
@@ -21,7 +20,10 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Common;
+using AElf.Miner.EventMessages;
+using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
+using AElf.Synchronization.EventMessages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -39,7 +41,7 @@ namespace AElf.Kernel.Node
         private bool isMining;
 
         private readonly IStateDictator _stateDictator;
-        private readonly ITxPoolService _txPoolService;
+        private readonly ITxPool _txPool;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
         
@@ -68,11 +70,11 @@ namespace AElf.Kernel.Node
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateDictator stateDictator, ITxPoolService txPoolService, IMiner miner,
+        public DPoS(IStateDictator stateDictator, ITxPool txPool, IMiner miner,
             IChainService chainService)
         {
             _stateDictator = stateDictator;
-            _txPoolService = txPoolService;
+            _txPool = txPool;
             _miner = miner;
             _chainService = chainService;
 
@@ -427,7 +429,7 @@ namespace AElf.Kernel.Node
                                Thread.CurrentThread.ManagedThreadId);
             try
             {
-                var result = await _txPoolService.AddTxAsync(tx);
+                var result = await _txPool.AddTxAsync(tx);
                 if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
                     _logger?.Trace("Tx added to the pool");

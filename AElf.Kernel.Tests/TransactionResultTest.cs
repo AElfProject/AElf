@@ -1,11 +1,12 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
+using AElf.ChainController.Rpc;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Miner.TxMemPool;
 using NLog;
 
 namespace AElf.Kernel.Tests
@@ -20,9 +21,10 @@ namespace AElf.Kernel.Tests
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
         {
             NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
+            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
             _transactionResultManager = transactionResultManager;
             _transactionResultService = new TransactionResultService(
-                new TxPoolService(logger, new TxValidator(txPoolConfig, chainService, logger),
+                new TxPool(logger, new TxValidator(txPoolConfig, chainService, logger),
                     new TxHub(transactionManager)), transactionResultManager);
         }
 

@@ -11,8 +11,9 @@
     using Google.Protobuf;
     using ServiceStack;
 using    AElf.Common;
+    using AElf.Execution.Execution;
 
-    namespace AElf.Contracts.SideChain.Tests
+namespace AElf.Contracts.SideChain.Tests
     {
         public class MockSetup
         {

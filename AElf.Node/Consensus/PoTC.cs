@@ -1,8 +1,8 @@
-using System.Threading.Tasks;
-using AElf.ChainController.TxMemPool;
+﻿using System.Threading.Tasks;
 using AElf.Miner.Miner;
 using NLog;
 using AElf.Common;
+using AElf.Miner.TxMemPool;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -12,13 +12,13 @@ namespace AElf.Kernel.Node
     {
         private ulong ConsensusMemory { get; set; }
         private readonly ILogger _logger;
-        private readonly ITxPoolService _txPoolService;
+        private readonly ITxPool _txPool;
         private readonly IMiner _miner;
 
-        public PoTC(IMiner miner, ITxPoolService txPoolService)
+        public PoTC(IMiner miner, ITxPool txPool)
         {
             _miner = miner;
-            _txPoolService = txPoolService;
+            _txPool = txPool;
 
             _logger = LogManager.GetLogger(nameof(PoTC));
         }
@@ -48,7 +48,7 @@ namespace AElf.Kernel.Node
         {
             while (true)
             {
-                var count = await _txPoolService.GetPoolSize();
+                var count = await _txPool.GetPoolSize();
                 if (ConsensusMemory != count)
                 {
                     _logger?.Trace($"Current tx pool size: {count} / {GlobalConfig.ExpectedTransactionCount}");

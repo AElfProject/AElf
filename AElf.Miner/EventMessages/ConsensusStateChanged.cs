@@ -1,7 +1,7 @@
 using AElf.Kernel.Consensus;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.ChainController
+namespace AElf.Miner.EventMessages
 {
     public class ConsensusStateChanged
     {

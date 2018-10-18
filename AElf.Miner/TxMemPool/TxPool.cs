@@ -7,17 +7,17 @@ using AElf.Common;
 using AElf.Kernel;
 using NLog;
 
-namespace AElf.ChainController.TxMemPool
+namespace AElf.Miner.TxMemPool
 {
     // ReSharper disable InconsistentNaming
-    public class TxPoolService : ITxPoolService
+    public class TxPool : ITxPool
     {
         private readonly ILogger _logger;
         private readonly ITxValidator _txValidator;
         private int Least { get; set; }
         private int Limit { get; set; }
 
-        public TxPoolService(ILogger logger, ITxValidator txValidator, TxHub txHub)
+        public TxPool(ILogger logger, ITxValidator txValidator, TxHub txHub)
         {
             _logger = logger;
             _txValidator = txValidator;

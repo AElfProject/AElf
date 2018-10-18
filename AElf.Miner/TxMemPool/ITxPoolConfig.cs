@@ -1,6 +1,6 @@
 ﻿using AElf.Cryptography.ECDSA;
 
-namespace AElf.ChainController.TxMemPool
+namespace AElf.Miner.TxMemPool
 {
     public interface ITxPoolConfig
     {

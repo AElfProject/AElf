@@ -3,24 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Miner.Rpc;
-using AElf.Miner.Rpc.Client;
-using AElf.Miner.Rpc.Server;
-using Moq;
-using NLog;
-using NServiceKit.Common.Extensions;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
-using AElf.Common;
 using AElf.Configuration;
 
 namespace AElf.Miner.Tests.Grpc
@@ -167,8 +156,13 @@ namespace AElf.Miner.Tests.Grpc
         {
             string dir = @"/tmp/minerpems";
             var chain = await _mock.CreateChain();
-            var poolService = _mock.CreateTxPoolService(chain.Id);
-            poolService.Start();
+            var keyPair = new KeyPairGenerator().Generate();
+            var minerConfig = _mock.GetMinerConfig(chain.Id, 10, keyPair.GetAddress().DumpByteArray());
+            NodeConfig.Instance.ECKeyPair = keyPair;
+            NodeConfig.Instance.NodeAccount = keyPair.GetAddressHex();
+            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            var pool = _mock.CreateTxPool();
+            pool.Start();
 
             try
             {
@@ -185,9 +179,7 @@ namespace AElf.Miner.Tests.Grpc
                 sideimpl.Init(sideChainId);
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
                 serverManager.Init(dir);
-                var keyPair = new KeyPairGenerator().Generate();
-                var minerConfig = _mock.GetMinerConfig(chain.Id, 10, keyPair.GetAddress().DumpByteArray());
-                NodeConfig.Instance.ECKeyPair = keyPair;
+                
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
@@ -202,7 +194,7 @@ namespace AElf.Miner.Tests.Grpc
                 
                 GrpcLocalConfig.Instance.ClientToSideChain = true;
                 manager.Init(dir, t);
-                var miner = _mock.GetMiner(minerConfig, poolService, manager);
+                var miner = _mock.GetMiner(minerConfig, pool, manager);
                 miner.Init();
             
                 Thread.Sleep(t/2);

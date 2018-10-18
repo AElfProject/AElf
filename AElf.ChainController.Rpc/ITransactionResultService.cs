@@ -1,9 +1,8 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Types;
-using AElf.Kernel;
 using AElf.Common;
+using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.ChainController.Rpc
  {
      public interface ITransactionResultService
      {

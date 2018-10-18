@@ -1,22 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Miner.TxMemPool;
 
-namespace AElf.ChainController
+namespace AElf.ChainController.Rpc
 {
     public class TransactionResultService : ITransactionResultService
     {
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly ITxPoolService _txPoolService;
+        private readonly ITxPool _txPool;
         private readonly Dictionary<Hash, TransactionResult> _cacheResults = new Dictionary<Hash, TransactionResult>();
 
-        public TransactionResultService(ITxPoolService txPoolService, ITransactionResultManager transactionResultManager)
+        public TransactionResultService(ITxPool txPool, ITransactionResultManager transactionResultManager)
         {
-            _txPoolService = txPoolService;
+            _txPool = txPool;
             _transactionResultManager = transactionResultManager;
         }
 
@@ -39,7 +38,7 @@ namespace AElf.ChainController
             }
 
             // in tx pool
-            if (_txPoolService.TryGetTx(txId, out var tx))
+            if (_txPool.TryGetTx(txId, out var tx))
             {
                 return new TransactionResult
                 {

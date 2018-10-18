@@ -10,6 +10,7 @@ using AElf.Execution;
 using Google.Protobuf;
 using AElf.Kernel.Tests;
 using AElf.Common;
+using AElf.Execution.Execution;
 
 namespace AElf.Sdk.CSharp.Tests
 {

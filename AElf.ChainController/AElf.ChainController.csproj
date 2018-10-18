@@ -12,7 +12,4 @@
     <ProjectReference Include="..\AElf.Kernel.TxHub\AElf.Kernel.TxHub.csproj" />
     <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TxMemPoolBM" />
-  </ItemGroup>
 </Project>

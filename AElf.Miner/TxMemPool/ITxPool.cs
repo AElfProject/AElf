@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Common;
+using AElf.Kernel;
 
-namespace AElf.ChainController.TxMemPool
+namespace AElf.Miner.TxMemPool
 {
-    public interface ITxPoolService
+    public interface ITxPool
     {
         ///<summary>
         /// add tx to tmp pool

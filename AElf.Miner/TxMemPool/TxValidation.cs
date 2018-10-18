@@ -1,10 +1,9 @@
-﻿using System.Linq;
+﻿using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Common;
 using GlobalConfig = AElf.Common.GlobalConfig;
 
-namespace AElf.ChainController.TxMemPool
+namespace AElf.Miner.TxMemPool
 {
     public static class TxValidation
     {
@@ -27,54 +26,7 @@ namespace AElf.ChainController.TxMemPool
             ExpiredReferenceBlock,
             KnownTx
         }
-        /// <summary>
-        /// validate a tx size, signature, account format
-        /// </summary>
-        /// <param name="pool"></param>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        public static TxInsertionAndBroadcastingError ValidateTx(this IPool pool, Transaction tx)
-        {
-            if (tx.Type != pool.Type)
-            {
-                // TODO: verifiy corrrectness of dpos 
-                return TxInsertionAndBroadcastingError.WrongTransactionType;
-            }
-            
-            if (tx.From == Address.Zero || tx.MethodName == "" || tx.IncrementId < 0)
-            {
-                return TxInsertionAndBroadcastingError.InvalidTxFormat;
-            }
-            
-            // size validation
-            var size = GetTxSize(tx);
-            if (size > pool.TxLimitSize)
-            {
-                return TxInsertionAndBroadcastingError.TooBigSize;
-            }
-            
-            // TODO: signature validation
-            if (!tx.VerifySignature())
-            {
-                return TxInsertionAndBroadcastingError.InvalidSignature;
-            }
-            
-            if(!tx.CheckAccountAddress())
-            {
-                return TxInsertionAndBroadcastingError.WrongAddress;
-            }
-            
-            /*// fee validation
-            if (tx.Fee < pool.MinimalFee)
-            {
-                // TODO: log errors, not enough Fee error 
-                return false;
-            }*/
-            
-            // TODO : more validations
-            return TxInsertionAndBroadcastingError.Valid;
-        }
-
+        
         
         /// <summary>
         /// verify signature in tx

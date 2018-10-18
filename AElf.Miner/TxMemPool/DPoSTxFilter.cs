@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
-using AElf.Kernel;
-using AElf.Kernel.Consensus;
+using AElf.ChainController;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Kernel;
+using AElf.Kernel.Consensus;
+using AElf.Miner.EventMessages;
 using Easy.MessageHub;
 using NLog;
 
-namespace AElf.ChainController.TxMemPool
+namespace AElf.Miner.TxMemPool
 {
     // ReSharper disable InconsistentNaming
     public class DPoSTxFilter

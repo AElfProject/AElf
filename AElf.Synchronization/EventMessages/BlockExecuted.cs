@@ -1,6 +1,6 @@
 using AElf.Kernel;
 
-namespace AElf.ChainController.EventMessages
+namespace AElf.Synchronization.EventMessages
 {
     public sealed class BlockExecuted
     {

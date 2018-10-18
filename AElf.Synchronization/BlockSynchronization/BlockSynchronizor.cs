@@ -7,17 +7,19 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Synchronization.BlockExecution;
+using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using NLog;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
-    public class BlockSyncService : IBlockSyncService
+    public class BlockSynchronizor : IBlockSynchronizor
     {
         private readonly IChainService _chainService;
         private readonly IBlockValidationService _blockValidationService;
-        private readonly IBlockExecutionService _blockExecutionService;
+        private readonly IBlockExecutor _blockExecutor;
 
         private readonly IBlockSet _blockSet;
 
@@ -29,15 +31,15 @@ namespace AElf.ChainController
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(NodeConfig.Instance.ChainId)));
 
-        public BlockSyncService(IChainService chainService, IBlockValidationService blockValidationService,
-            IBlockExecutionService blockExecutionService, IBlockSet blockSet)
+        public BlockSynchronizor(IChainService chainService, IBlockValidationService blockValidationService,
+            IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
             _chainService = chainService;
             _blockValidationService = blockValidationService;
-            _blockExecutionService = blockExecutionService;
+            _blockExecutor = blockExecutor;
             _blockSet = blockSet;
 
-            _logger = LogManager.GetLogger(nameof(BlockSyncService));
+            _logger = LogManager.GetLogger(nameof(BlockSynchronizor));
 
             MessageHub.Instance.Subscribe<SyncUnfinishedBlock>(async inHeight =>
             {
@@ -99,8 +101,8 @@ namespace AElf.ChainController
         private async Task HandleValidBlock(BlockAccepted message)
         {
             _blockSet.AddBlock(message.Block);
-            var executionResult = await _blockExecutionService.ExecuteBlock(message.Block);
-            if (executionResult == BlockExecutionResultCC.Success)
+            var executionResult = await _blockExecutor.ExecuteBlock(message.Block);
+            if (executionResult == BlockExecutionResult.Success)
             {
                 _blockSet.Tell(message.Block.Header.Index);
                 MessageHub.Instance.Publish(message);
@@ -143,6 +145,21 @@ namespace AElf.ChainController
             }
 
             return chainContext;
+        }
+        
+        public bool IsBlockReceived(Hash blockHash, ulong height)
+        {
+            return _blockSet.IsBlockReceived(blockHash, height);
+        }
+
+        public IBlock GetBlockByHash(Hash blockHash)
+        {
+            return _blockSet.GetBlockByHash(blockHash);
+        }
+
+        public List<IBlock> GetBlockByHeight(ulong height)
+        {
+            return _blockSet.GetBlockByHeight(height);
         }
     }
 }

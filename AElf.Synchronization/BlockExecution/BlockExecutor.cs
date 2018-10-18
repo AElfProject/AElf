@@ -6,24 +6,22 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Miner;
 using AElf.Miner.Rpc.Exceptions;
 using AElf.SmartContract;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
-using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
-using AElf.Common;
-using AElf.Types.CSharp;
-using NServiceKit.Common.Web;
 
-namespace AElf.Miner.Miner
+namespace AElf.Synchronization.BlockExecution
 {
     [LoggerName(nameof(BlockExecutor))]
     public class BlockExecutor : IBlockExecutor
     {
-        private readonly ITxPoolService _txPoolService;
         private readonly IChainService _chainService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
@@ -33,12 +31,11 @@ namespace AElf.Miner.Miner
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
 
-        public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
+        public BlockExecutor(IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             ClientManager clientManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
-            _txPoolService = txPoolService;
             _chainService = chainService;
             _stateDictator = stateDictator;
             _executingService = executingService;
@@ -55,11 +52,11 @@ namespace AElf.Miner.Miner
         private CancellationTokenSource Cts { get; set; }
 
         /// <inheritdoc/>
-        public async Task<bool> ExecuteBlock(IBlock block)
+        public async Task<BlockExecutionResult> ExecuteBlock(IBlock block)
         {
             if (!await Prepare(block))
             {
-                return false;
+                return BlockExecutionResult.Failed;
             }
             _logger?.Trace($"Executing block {block.GetHash()}");
 
@@ -74,7 +71,7 @@ namespace AElf.Miner.Miner
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
                 await UpdateSideChainInfo(block);
-                return true;
+                return BlockExecutionResult.Success;
             }
             catch (Exception e)
             {
@@ -82,7 +79,7 @@ namespace AElf.Miner.Miner
                     await Interrupt(e.Message, block);
                 else 
                     await Interrupt(e, block);
-                return false;
+                return BlockExecutionResult.Failed;
             }
         }
         
@@ -194,18 +191,10 @@ namespace AElf.Miner.Miner
         {
             string errlog = null;
             bool res = true;
-            var txs = block.Body.Transactions;
+            var txs = block.Body.TransactionList.ToList();
             var readyTxs = new List<Transaction>();
-            foreach (var id in txs)
+            foreach (var tx in txs)
             {
-                if (!_txPoolService.TryGetTx(id, out var tx))
-                {
-                    tx = await _transactionManager.GetTransaction(id);
-                    errlog = tx != null ? $"Transaction {id} already executed." : $"Cannot find transaction {id}";
-                    res = false;
-                    break;
-                }
-
                 if (tx.Type == TransactionType.CrossChainBlockInfoTransaction)
                 {
                     // todo: verify transaction from address
@@ -324,7 +313,6 @@ namespace AElf.Miner.Miner
             foreach (var t in executedTxs)
             {
                 await _transactionManager.AddTransactionAsync(t);
-                _txPoolService.RemoveAsync(t.GetHash());
             }
             
             txResults.AsParallel().ForEach(async r =>
@@ -384,7 +372,6 @@ namespace AElf.Miner.Miner
                 return;
             var blockChain = _chainService.GetBlockChain(block.Header.ChainId);
             var txToRevert = await blockChain.RollbackToHeight(block.Header.Index - 1);
-            await _txPoolService.Revert(txToRevert);
         }
 
         #endregion

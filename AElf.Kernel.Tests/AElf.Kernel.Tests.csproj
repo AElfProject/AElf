@@ -19,6 +19,7 @@
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests.TestContractZero\AElf.Kernel.Tests.TestContractZero.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests.TestContract\AElf.Kernel.Tests.TestContract.csproj" />

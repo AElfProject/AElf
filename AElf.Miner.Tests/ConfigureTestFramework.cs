@@ -1,5 +1,4 @@
 ﻿using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Database;
 using AElf.Execution;

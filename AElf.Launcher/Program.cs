@@ -16,6 +16,7 @@ using AElf.RPC;
 using AElf.Runtime.CSharp;
 using AElf.SideChain.Creation;
 using AElf.SmartContract;
+using AElf.Synchronization;
 using AElf.Wallet.Rpc;
 
 namespace AElf.Launcher
@@ -45,6 +46,7 @@ namespace AElf.Launcher
             handler.Register(new NodeAElfModule());
             handler.Register(new SideChainAElfModule());
             handler.Register(new LauncherAElfModule());
+            handler.Register(new SyncAElfModule());
             handler.Build();
         }
     }

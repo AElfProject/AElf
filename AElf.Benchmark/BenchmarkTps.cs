@@ -17,6 +17,7 @@ using NLog;
 using ServiceStack;
 using ServiceStack.Text;
 using AElf.Common;
+using AElf.Execution.Execution;
 
 namespace AElf.Benchmark
 {

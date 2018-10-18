@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
@@ -11,7 +12,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 
-namespace AElf.ChainController.TxMemPool
+namespace AElf.Miner.TxMemPool
 {
     public class TxValidator : ITxValidator
     {
@@ -22,6 +23,7 @@ namespace AElf.ChainController.TxMemPool
 
         private readonly CanonicalBlockHashCache _canonicalBlockHashCache;
 
+        
         private IBlockChain BlockChain
         {
             get

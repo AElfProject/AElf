@@ -13,6 +13,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
+using AElf.Execution.Execution;
 
 namespace AElf.Contracts.Token.Tests
 {

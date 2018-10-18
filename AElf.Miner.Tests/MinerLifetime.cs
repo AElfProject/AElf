@@ -5,18 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
-using AElf.SmartContract;
-using AElf.Kernel.Managers;
-using AElf.Miner.Miner;
-using AElf.Miner.Rpc.Client;
 using AElf.Miner.Tests;
-using AElf.Miner.Tests.Grpc;
-using Akka.Actor;
-using Akka.TestKit;
-using Akka.TestKit.Xunit;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -24,12 +15,10 @@ using AElf.Runtime.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Moq;
-using NLog;
-using MinerConfig = AElf.Miner.Miner.MinerConfig;
 using AElf.Common;
 using Address = AElf.Common.Address;
-using AElf.Common;
 using AElf.Configuration;
+using AElf.Miner.TxMemPool;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -62,7 +51,7 @@ namespace AElf.Kernel.Tests.Miner
             }
         }
 
-        public Mock<ITxPoolService> MockTxPoolService(Hash chainId)
+        public Mock<ITxPool> MockTxPool(Hash chainId)
         {
             var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
 
@@ -108,7 +97,7 @@ namespace AElf.Kernel.Tests.Miner
                 txnDep
             };
             
-            var mock = new Mock<ITxPoolService>();
+            var mock = new Mock<ITxPool>();
             mock.Setup((s) => s.GetReadyTxsAsync(null, 3000)).Returns(Task.FromResult(txs));
             return mock;
         }
@@ -244,20 +233,22 @@ namespace AElf.Kernel.Tests.Miner
         public async Task Mine()
         {
             var chain = await _mock.CreateChain();
-            var poolService = _mock.CreateTxPoolService(chain.Id);
-            poolService.Start();
+            // create miner
+            var keypair = new KeyPairGenerator().Generate();
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
+            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            NodeConfig.Instance.NodeAccount = keypair.GetAddressHex();
+            var txPool = _mock.CreateTxPool();
+            txPool.Start();
 
             var txs = CreateTx(chain.Id);
             foreach (var tx in txs)
             {
-                await poolService.AddTxAsync(tx);
+                await txPool.AddTxAsync(tx);
             }
             
-            // create miner
-            var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
             var manager = _mock.MinerClientManager();
-            var miner = _mock.GetMiner(minerconfig, poolService, manager);
+            var miner = _mock.GetMiner(minerconfig, txPool, manager);
 
             //GrpcLocalConfig.Instance.ClientToParentChain = false;
             GrpcLocalConfig.Instance.ClientToSideChain = false;
@@ -285,15 +276,16 @@ namespace AElf.Kernel.Tests.Miner
         public async Task ExecuteWithoutTransaction()
         {
             var chain = await _mock.CreateChain();
-            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
-            var poolService = _mock.CreateTxPoolService(chain.Id);
-            poolService.Start();
-
             // create miner
             var keypair = new KeyPairGenerator().Generate();
             var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
+            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            NodeConfig.Instance.NodeAccount = keypair.GetAddressHex();
+            var txPool = _mock.CreateTxPool();
+            txPool.Start();
+            
             var manager = _mock.MinerClientManager();
-            var miner = _mock.GetMiner(minerconfig, poolService, manager);
+            var miner = _mock.GetMiner(minerconfig, txPool, manager);
             //GrpcLocalConfig.Instance.ClientToParentChain = false;
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             //GrpcRemoteConfig.Instance.ParentChain = null;
@@ -318,21 +310,21 @@ namespace AElf.Kernel.Tests.Miner
         [Fact]
         public async Task SyncGenesisBlock_False_Rollback()
         {
-            var poolconfig = TxPoolConfig.Default;
             var chain = await _mock.CreateChain();
             NodeConfig.Instance.ChainId = chain.Id.DumpHex();
-
-            var poolService = _mock.CreateTxPoolService(chain.Id);
-            poolService.Start();
+            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
+            var txPool = _mock.CreateTxPool();
+            txPool.Start();
+            
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, 1);
             
             var txs = CreateTxs(chain.Id);
             foreach (var transaction in txs)
             {
-                await poolService.AddTxAsync(transaction);
+                await txPool.AddTxAsync(transaction);
             }
             
-            Assert.True(poolService.TryGetTx(txs[2].GetHash(), out var tx));
+            Assert.True(txPool.TryGetTx(txs[2].GetHash(), out var tx));
             
             block.Body.Transactions.Add(txs[0].GetHash());
             block.Body.Transactions.Add(txs[2].GetHash());
@@ -342,15 +334,15 @@ namespace AElf.Kernel.Tests.Miner
             block.Sign(new KeyPairGenerator().Generate());
 
             var manager = _mock.MinerClientManager();
-            var synchronizer = _mock.GetBlockExecutor(poolService, manager);
+            var blockExecutor = _mock.GetBlockExecutor(manager);
 
-            synchronizer.Init();
-            var res = await synchronizer.ExecuteBlock(block);
-            Assert.False(res);
+            blockExecutor.Init();
+            var res = await blockExecutor.ExecuteBlock(block);
+            Assert.Equal(BlockExecutionResult.Failed, res);
 
             
-            //Assert.False(poolService.TryGetTx(txs[2].GetHash(), out tx));
-            Assert.True(poolService.TryGetTx(txs[1].GetHash(), out tx));
+            //Assert.False(pool.TryGetTx(txs[2].GetHash(), out tx));
+            Assert.True(txPool.TryGetTx(txs[1].GetHash(), out tx));
 
             var blockchain = _mock.GetBlockChain(chain.Id); 
             var curHash = await blockchain.GetCurrentBlockHashAsync();

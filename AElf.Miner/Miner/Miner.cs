@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
-using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Common;
 using AElf.Configuration;
@@ -21,10 +20,11 @@ using Google.Protobuf.WellKnownTypes;
 using Easy.MessageHub;
 using NLog;
 using NServiceKit.Common.Extensions;
-using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using Status = AElf.Kernel.Status;
 using AElf.Common;
-using AElf.Miner.Rpc.Exceptions;
+using AElf.Execution.Execution;
+using AElf.Miner.EventMessages;
+using AElf.Miner.TxMemPool;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -33,7 +33,7 @@ namespace AElf.Miner.Miner
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
-        private readonly ITxPoolService _txPoolService;
+        private readonly ITxPool _txPool;
         private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
         private readonly IStateDictator _stateDictator;
@@ -51,13 +51,13 @@ namespace AElf.Miner.Miner
 
         public Address Coinbase => Config.CoinBase;
 
-        public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
+        public Miner(IMinerConfig config, ITxPool txPool, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
             ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, 
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager)
         {
             Config = config;
-            _txPoolService = txPoolService;
+            _txPool = txPool;
             _chainService = chainService;
             _stateDictator = stateDictator;
             _executingService = executingService;
@@ -90,7 +90,7 @@ namespace AElf.Miner.Miner
 
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
                     var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
-                    var readyTxs = await _txPoolService.GetReadyTxsAsync(currentRoundInfo);
+                    var readyTxs = await _txPool.GetReadyTxsAsync(currentRoundInfo);
 
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
@@ -109,7 +109,7 @@ namespace AElf.Miner.Miner
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
                     // put back canceled transactions
                     // No await so that it won't affect Consensus
-                    _txPoolService.Revert(rollback);
+                    _txPool.Revert(rollback);
                     // insert to db
                     Update(executed, results, block, parentChainBlockInfo, genTx);
 
@@ -171,7 +171,7 @@ namespace AElf.Miner.Miner
                 return false;
             
             // insert to tx pool and broadcast
-            var insertion = await _txPoolService.AddTxAsync(tx);
+            var insertion = await _txPool.AddTxAsync(tx);
             if (insertion == TxValidation.TxInsertionAndBroadcastingError.Success)
             {
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
@@ -285,7 +285,7 @@ namespace AElf.Miner.Miner
             executedTxs.AsParallel().ForEach(async tx =>
                 {
                     await _transactionManager.AddTransactionAsync(tx);
-                    _txPoolService.RemoveAsync(tx.GetHash());
+                    _txPool.RemoveAsync(tx.GetHash());
                 });
             txResults.AsParallel().ForEach(async r =>
             {

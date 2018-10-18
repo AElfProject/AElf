@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Common;
+using AElf.Kernel;
 
 // ReSharper once InconsistentNaming
-namespace AElf.ChainController.TxMemPool
+namespace AElf.Miner.TxMemPool
 {
 //    public enum TxInsertionAndBroadcastingError
 //    {

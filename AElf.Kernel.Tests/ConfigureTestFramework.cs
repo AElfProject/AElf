@@ -1,10 +1,11 @@
 ﻿using AElf.SmartContract;
 using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Database;
 using AElf.Execution;
+using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
+using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using Autofac;
 using Xunit;

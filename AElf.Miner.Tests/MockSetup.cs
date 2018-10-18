@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
@@ -18,6 +17,9 @@ using Google.Protobuf;
 using Moq;
 using NLog;
 using AElf.Common;
+using AElf.Execution.Execution;
+using AElf.Miner.TxMemPool;
+using AElf.Synchronization.BlockExecution;
 
 namespace AElf.Miner.Tests
 {
@@ -55,9 +57,8 @@ namespace AElf.Miner.Tests
             _smartContractManager = new SmartContractManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            _chainService = new ChainService(new ChainManagerBasic(_dataStore),
-                new BlockManagerBasic(_dataStore, _logger),
-                _transactionManager, _dataStore, new BlockSet());
+            _chainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore, _logger),
+                _transactionManager, _dataStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);*/
@@ -79,7 +80,8 @@ namespace AElf.Miner.Tests
 
 
         public async Task<IChain> CreateChain()
-        {            var chainId = Hash.Generate();
+        {            
+            var chainId = Hash.Generate();
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -93,18 +95,18 @@ namespace AElf.Miner.Tests
             return chain;
         }
         
-        internal IMiner GetMiner(IMinerConfig config, ITxPoolService poolService, ClientManager clientManager = null)
+        internal IMiner GetMiner(IMinerConfig config, ITxPool pool, ClientManager clientManager = null)
         {
-            var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
+            var miner = new AElf.Miner.Miner.Miner(config, pool, _chainService, _stateDictator,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
                 clientManager, _binaryMerkleTreeManager, null);
 
             return miner;
         }
         
-        internal IBlockExecutor GetBlockExecutor(ITxPoolService poolService, ClientManager clientManager = null)
+        internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
-            var blockExecutor = new BlockExecutor(poolService, _chainService, _stateDictator,
+            var blockExecutor = new BlockExecutor(_chainService, _stateDictator,
                 _concurrencyExecutingService, _logger, _transactionManager, _transactionResultManager,
                 clientManager, _binaryMerkleTreeManager);
 
@@ -116,11 +118,10 @@ namespace AElf.Miner.Tests
             return _chainService.GetBlockChain(chainId);
         }
         
-        internal ITxPoolService CreateTxPoolService(Hash chainId)
+        internal ITxPool CreateTxPool()
         {
-            var poolconfig = TxPoolConfig.Default;
             var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
-            return new TxPoolService(_logger, validator, _txHub);
+            return new TxPool(_logger, validator, _txHub);
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)

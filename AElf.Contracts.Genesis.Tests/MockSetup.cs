@@ -16,6 +16,7 @@ using AElf.Execution;
 using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
+using AElf.Execution.Execution;
 
 namespace AElf.Contracts.Genesis.Tests
 {
