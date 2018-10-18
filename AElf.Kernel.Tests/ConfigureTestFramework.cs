@@ -46,8 +46,6 @@ namespace AElf.Kernel.Tests
             builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterInstance(new TxPoolConfig()).As<ITxPoolConfig>();
-            builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
-            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<Grouper>().As<IGrouper>();
             builder.RegisterType<ServicePack>().PropertiesAutowired();
@@ -59,6 +57,7 @@ namespace AElf.Kernel.Tests
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
+            builder.RegisterType<TxValidator>().As<ITxValidator>();
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();
         }

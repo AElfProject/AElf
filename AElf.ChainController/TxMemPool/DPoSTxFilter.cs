@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Common;
 
-namespace AElf.ChainController.TxMemPoolBM
+namespace AElf.ChainController.TxMemPool
 {
     // ReSharper disable InconsistentNaming
     public class DPoSTxFilter

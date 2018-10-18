@@ -1,9 +1,12 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.Configuration;
+using NLog;
 
 namespace AElf.Kernel.Tests
 {
@@ -13,10 +16,14 @@ namespace AElf.Kernel.Tests
         private readonly ITransactionResultService _transactionResultService;
         private readonly ITransactionResultManager _transactionResultManager;
 
-        public TransactionResultTest(ITransactionResultService transactionResultService, ITransactionResultManager transactionResultManager)
+        public TransactionResultTest(ITxPoolConfig txPoolConfig, IChainService chainService,
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
         {
-            _transactionResultService = transactionResultService;
+            NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
             _transactionResultManager = transactionResultManager;
+            _transactionResultService = new TransactionResultService(
+                new TxPoolService(logger, new TxValidator(txPoolConfig, chainService, logger),
+                    new TxHub(transactionManager)), transactionResultManager);
         }
 
         private TransactionResult CreateResult(Hash txId, Status status)

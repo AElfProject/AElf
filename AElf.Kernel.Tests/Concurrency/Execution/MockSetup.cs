@@ -73,7 +73,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger,
+            ISmartContractRunnerFactory smartContractRunnerFactory, ILogger logger,
             IStateDictator stateDictator,
             HashManager hashManager, TransactionManager transactionManager)
         {

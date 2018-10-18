@@ -10,14 +10,11 @@ namespace AElf.ChainController.TxMemPool
          {
              PoolLimitSize = 1024 * 1024,
              TxLimitSize = 1024 * 20,
-             ChainId = Hash.Generate(),
              Minimal = 1,
              Maximal = 1024,
              FeeThreshold = 0
          };
-         
-         public Hash ChainId { get; set; } 
- 
+
          public ulong PoolLimitSize { get; set; }
  
          public uint TxLimitSize { get; set; }

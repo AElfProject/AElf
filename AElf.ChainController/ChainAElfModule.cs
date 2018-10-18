@@ -66,7 +66,6 @@ namespace AElf.ChainController
             txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;
             txPoolConfig.Maximal = TransactionPoolConfig.Instance.Maximal;
             txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;
-            txPoolConfig.ChainId = chainIdHash;
             builder.RegisterInstance(txPoolConfig).As<ITxPoolConfig>();
         }
 

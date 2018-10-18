@@ -1,5 +1,4 @@
 ﻿using AElf.Cryptography.ECDSA;
-using AElf.Common;
 
 namespace AElf.ChainController.TxMemPool
 {
@@ -19,11 +18,6 @@ namespace AElf.ChainController.TxMemPool
         /// minimal tx fee 
         /// </summary>
         ulong FeeThreshold { get; set; }
-
-        /// <summary>
-        /// chain id 
-        /// </summary>
-        Hash ChainId { get; set; } 
 
         /*
         /// <summary>

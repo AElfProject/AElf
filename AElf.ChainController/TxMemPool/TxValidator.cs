@@ -2,19 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.ChainController.TxMemPool;
-using AElf.Configuration;
-using AElf.Cryptography.ECDSA;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Types.CSharp;
-using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 
-namespace AElf.ChainController.TxMemPoolBM
+namespace AElf.ChainController.TxMemPool
 {
     public class TxValidator : ITxValidator
     {

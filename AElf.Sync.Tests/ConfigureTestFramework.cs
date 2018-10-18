@@ -1,6 +1,5 @@
 ﻿using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
-using AElf.ChainController.TxMemPoolBM;
 using AElf.Common;
 using AElf.Database;
 using AElf.Execution;
@@ -51,8 +50,7 @@ namespace AElf.Sync.Tests
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
             builder.RegisterInstance(new TxPoolConfig()).As<ITxPoolConfig>();
-            builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
-            builder.RegisterType<TxPoolServiceBM>().As<ITxPoolService>().SingleInstance();
+            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<Grouper>().As<IGrouper>();
             builder.RegisterType<ServicePack>().PropertiesAutowired();

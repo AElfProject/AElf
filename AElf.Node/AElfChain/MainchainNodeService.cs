@@ -33,7 +33,6 @@ namespace AElf.Node.AElfChain
         private readonly ITxPoolService _txPoolService;
         private readonly IMiner _miner;
         private readonly IP2P _p2p;
-        private readonly IAccountContextService _accountContextService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
         private readonly IChainService _chainService;
@@ -52,7 +51,6 @@ namespace AElf.Node.AElfChain
         private string _assemblyDir;
 
         public MainchainNodeService(ITxPoolService poolService,
-            IAccountContextService accountContextService,
             IBlockValidationService blockValidationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService,
@@ -73,7 +71,6 @@ namespace AElf.Node.AElfChain
             _miner = miner;
             _txHub = txHub;
             _p2p = p2p;
-            _accountContextService = accountContextService;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
             _stateDictator = stateDictator;
@@ -338,7 +335,7 @@ namespace AElf.Node.AElfChain
                     break;
 
                 case ConsensusType.PoTC:
-                    _consensus = new PoTC(_logger, _miner, _accountContextService, _txPoolService, _p2p);
+                    _consensus = new PoTC(_logger, _miner, _txPoolService, _p2p);
                     break;
 
                 case ConsensusType.SingleNode:

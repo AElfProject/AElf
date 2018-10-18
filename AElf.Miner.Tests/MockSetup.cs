@@ -32,7 +32,6 @@ namespace AElf.Miner.Tests
         private IStateDictator _stateDictator;
         private ISmartContractManager _smartContractManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
-        private IAccountContextService _accountContextService;
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
         private IExecutingService _concurrencyExecutingService;
@@ -40,6 +39,7 @@ namespace AElf.Miner.Tests
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IDataStore _dataStore;
+        private TxHub _txHub;
         
         public MockSetup(ILogger logger, IDataStore dataStore)
         {
@@ -53,7 +53,6 @@ namespace AElf.Miner.Tests
             _transactionManager = new TransactionManager(_dataStore, _logger);
             _stateDictator = new StateDictator(new HashManager(_dataStore), _transactionManager, _dataStore, _logger);
             _smartContractManager = new SmartContractManager(_dataStore);
-            _accountContextService = new AccountContextService(_stateDictator);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainService = new ChainService(new ChainManagerBasic(_dataStore),
@@ -73,6 +72,7 @@ namespace AElf.Miner.Tests
                     _stateDictator, _functionMetadataService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
+            _txHub = new TxHub(_transactionManager);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -93,7 +93,7 @@ namespace AElf.Miner.Tests
             return chain;
         }
         
-        internal IMiner GetMiner(IMinerConfig config, TxPoolService poolService, ClientManager clientManager = null)
+        internal IMiner GetMiner(IMinerConfig config, ITxPoolService poolService, ClientManager clientManager = null)
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
@@ -102,7 +102,7 @@ namespace AElf.Miner.Tests
             return miner;
         }
         
-        internal IBlockExecutor GetBlockExecutor(TxPoolService poolService, ClientManager clientManager = null)
+        internal IBlockExecutor GetBlockExecutor(ITxPoolService poolService, ClientManager clientManager = null)
         {
             var blockExecutor = new BlockExecutor(poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _logger, _transactionManager, _transactionResultManager,
@@ -116,13 +116,11 @@ namespace AElf.Miner.Tests
             return _chainService.GetBlockChain(chainId);
         }
         
-        internal TxPoolService CreateTxPoolService(Hash chainId)
+        internal ITxPoolService CreateTxPoolService(Hash chainId)
         {
             var poolconfig = TxPoolConfig.Default;
-            poolconfig.ChainId = chainId;
-            var contract = new ContractTxPool(poolconfig, _logger);
-            var prior = new PriorTxPool(poolconfig, _logger);
-            return new TxPoolService(contract, _accountContextService, _logger, prior);
+            var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
+            return new TxPoolService(_logger, validator, _txHub);
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)

@@ -29,6 +29,7 @@ using MinerConfig = AElf.Miner.Miner.MinerConfig;
 using AElf.Common;
 using Address = AElf.Common.Address;
 using AElf.Common;
+using AElf.Configuration;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -283,6 +284,7 @@ namespace AElf.Kernel.Tests.Miner
         public async Task ExecuteWithoutTransaction()
         {
             var chain = await _mock.CreateChain();
+            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
             var poolService = _mock.CreateTxPoolService(chain.Id);
             poolService.Start();
 
@@ -316,8 +318,8 @@ namespace AElf.Kernel.Tests.Miner
         {
             var poolconfig = TxPoolConfig.Default;
             var chain = await _mock.CreateChain();
-            poolconfig.ChainId = chain.Id;
-            
+            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+
             var poolService = _mock.CreateTxPoolService(chain.Id);
             poolService.Start();
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, 1);
@@ -328,8 +330,6 @@ namespace AElf.Kernel.Tests.Miner
                 await poolService.AddTxAsync(transaction);
             }
             
-            Assert.Equal((ulong)0, await poolService.GetWaitingSizeAsync());
-            Assert.Equal((ulong)2, await poolService.GetExecutableSizeAsync());
             Assert.True(poolService.TryGetTx(txs[2].GetHash(), out var tx));
             
             block.Body.Transactions.Add(txs[0].GetHash());
@@ -346,8 +346,7 @@ namespace AElf.Kernel.Tests.Miner
             var res = await synchronizer.ExecuteBlock(block);
             Assert.False(res);
 
-            Assert.Equal((ulong)0, await poolService.GetWaitingSizeAsync());
-            Assert.Equal((ulong)2, await poolService.GetExecutableSizeAsync());
+            
             //Assert.False(poolService.TryGetTx(txs[2].GetHash(), out tx));
             Assert.True(poolService.TryGetTx(txs[1].GetHash(), out tx));
 
