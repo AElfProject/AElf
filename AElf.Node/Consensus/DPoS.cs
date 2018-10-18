@@ -41,7 +41,13 @@ namespace AElf.Kernel.Node
         private readonly IStateDictator _stateDictator;
         private readonly ITxPoolService _txPoolService;
         private readonly IMiner _miner;
-        private readonly IBlockChain _blockchain;
+        private readonly IChainService _chainService;
+        
+        private IBlockChain _blockChain;
+        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
+                                              _chainService.GetBlockChain(
+                                                  Hash.LoadHex(NodeConfig.Instance.ChainId)));
+        
         private readonly ILogger _logger;
 
         public static AElfDPoSHelper Helper;
@@ -62,19 +68,16 @@ namespace AElf.Kernel.Node
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateDictator stateDictator,
-            ITxPoolService txPoolService,
-            IMiner miner,
-            IBlockChain blockchain
-        )
+        public DPoS(IStateDictator stateDictator, ITxPoolService txPoolService, IMiner miner,
+            IChainService chainService)
         {
             _stateDictator = stateDictator;
             _txPoolService = txPoolService;
             _miner = miner;
-            _blockchain = blockchain;
-            
+            _chainService = chainService;
+
             _logger = LogManager.GetLogger(nameof(DPoS));
-            
+
             Helper = new AElfDPoSHelper(_stateDictator, Hash.LoadHex(NodeConfig.Instance.ChainId), Miners,
                 ContractAddress);
 
@@ -85,7 +88,7 @@ namespace AElf.Kernel.Node
 
             _logger?.Trace("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
             _logger?.Trace("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
-            
+
             if (GlobalConfig.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
             {
                 AElfDPoSObserver.RecoverMining();
@@ -167,12 +170,14 @@ namespace AElf.Kernel.Node
                 return null;
             try
             {
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(await BlockChain.GetCurrentBlockHeightAsync()));
+                
                 _logger?.Trace($"Mine - Entered mining {res}");
                 
                 // Prepare the state of new block.
                 _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
                 _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
-                _stateDictator.BlockHeight = await _blockchain.GetCurrentBlockHeightAsync();
+                _stateDictator.BlockHeight = await BlockChain.GetCurrentBlockHeightAsync();
 
                 var block = await _miner.Mine(Helper.GetCurrentRoundInfo());
 
@@ -195,9 +200,9 @@ namespace AElf.Kernel.Node
 
         private async Task<Transaction> GenerateTransactionAsync(string methodName, IReadOnlyList<byte[]> parameters)
         {
-            var bn = await _blockchain.GetCurrentBlockHeightAsync();
+            var bn = await BlockChain.GetCurrentBlockHeightAsync();
             bn = bn > 4 ? bn - 4 : 0;
-            var bh = bn == 0 ? Hash.Genesis : (await _blockchain.GetHeaderByHeightAsync(bn)).GetHash();
+            var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
             var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
             var tx = new Transaction
             {
@@ -363,7 +368,7 @@ namespace AElf.Kernel.Node
 
         public async Task Update()
         {
-            Helper.LogDPoSInformation(await _blockchain.GetCurrentBlockHeightAsync());
+            Helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
             if (ConsensusMemory == Helper.CurrentRoundNumber.Value)
                 return;

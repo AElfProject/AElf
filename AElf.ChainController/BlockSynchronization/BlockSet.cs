@@ -35,10 +35,11 @@ namespace AElf.ChainController
         
         public void AddBlock(IBlock block)
         {
+            var hash = block.GetHash().DumpHex();
+            _logger?.Trace($"Added block {hash} to BlockSet.");
             lock (_)
             {
-                _logger?.Trace($"Added block {block.GetHash().DumpHex()} to BlockSet.");
-                _dict.TryAdd(block.GetHash().DumpHex(), block);
+                _dict.TryAdd(hash, block);
             }
             
             // TODO: Need a way to organize branched chains (using indexes)

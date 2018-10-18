@@ -84,9 +84,9 @@ namespace AElf.Node.AElfChain
                 await _blockSyncService.ReceiveBlock(inBlock.Block);
             });
 
-            MessageHub.Instance.Subscribe<BlockMined>(async inBlock =>
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
             {
-                await _blockSyncService.AddMinedBlock(inBlock.Block);
+                _blockSyncService.AddMinedBlock(inBlock.Block);
             });
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
@@ -370,7 +370,7 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_stateDictator, _txPoolService, _miner, _blockChain);
+                    _consensus = new DPoS(_stateDictator, _txPoolService, _miner, _chainService);
                     break;
 
                 case ConsensusType.PoTC:

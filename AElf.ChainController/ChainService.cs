@@ -62,5 +62,10 @@ namespace AElf.ChainController
         {
             return _blockSet.GetBlockByHash(blockHash);
         }
+
+        public List<IBlock> GetBlockByHeight(ulong height)
+        {
+            return _blockSet.GetBlockByHeight(height);
+        }
     }
 }

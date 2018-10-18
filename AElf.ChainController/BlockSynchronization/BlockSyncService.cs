@@ -37,6 +37,23 @@ namespace AElf.ChainController
             _blockSet = blockSet;
 
             _logger = LogManager.GetLogger(nameof(BlockSyncService));
+
+            MessageHub.Instance.Subscribe<SyncUnfinishedBlock>(async inHeight =>
+            {
+                // Find new blocks from block set to execute
+                var blocks = _blockSet.GetBlockByHeight(inHeight.TargetHeight);
+                if (blocks.Count > 0)
+                {
+                    _logger?.Trace("Will get block from block set to execute.");
+                    foreach (var block in blocks)
+                    {
+                        if (await ReceiveBlock(block) == BlockValidationResult.Success)
+                        {
+                            break;
+                        }
+                    }
+                }
+            });
         }
 
         public async Task<BlockValidationResult> ReceiveBlock(IBlock block)
@@ -53,14 +70,14 @@ namespace AElf.ChainController
             }
             else
             {
-                _logger?.Trace($"Block {block.GetHash().DumpHex()} is a invalid block.");
+                _logger?.Trace($"Block {block.GetHash().DumpHex()} is an invalid block.");
                 await HandleInvalidBlock(message);
             }
 
             return blockValidationResult;
         }
 
-        public async Task AddMinedBlock(IBlock block)
+        public void AddMinedBlock(IBlock block)
         {
             _blockSet.AddBlock(block);
             _blockSet.Tell(block.Header.Index);
@@ -77,20 +94,7 @@ namespace AElf.ChainController
                 _blockSet.Tell(message.Block.Header.Index);
                 MessageHub.Instance.Publish(message);
                 MessageHub.Instance.Publish(UpdateConsensus.Update);
-                
-                // Find new blocks from block set to execute
-                var blocks = _blockSet.GetBlockByHeight(message.Block.Header.Index + 1);
-                if (blocks.Count > 0)
-                {
-                    _logger?.Trace("Will get block from block set to execute.");
-                    foreach (var block in blocks)
-                    {
-                        if (await ReceiveBlock(block) == BlockValidationResult.Success)
-                        {
-                            break;
-                        }
-                    }
-                }
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Header.Index + 1));
             }
             // TODO: else
         }
