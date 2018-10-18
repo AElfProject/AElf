@@ -12,7 +12,7 @@ using AElf.Kernel.Storages;
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
-    public class NewDataProvider : IDataProvider
+    public class DataProvider : IDataProvider
     {
         private IStateStore _stateStore;
 
@@ -33,18 +33,18 @@ namespace AElf.SmartContract
         public Address ContractAddress { get; }
         public IReadOnlyList<string> Path { get; }
         private Dictionary<string, StateValue> _cache = new Dictionary<string, StateValue>();
-        private readonly List<NewDataProvider> _children = new List<NewDataProvider>();
+        private readonly List<DataProvider> _children = new List<DataProvider>();
 
-        private NewDataProvider(Hash chainId, Address contractAddress, IReadOnlyList<string> path)
+        private DataProvider(Hash chainId, Address contractAddress, IReadOnlyList<string> path)
         {
             ChainId = chainId;
             ContractAddress = contractAddress;
             Path = path;
         }
 
-        public static NewDataProvider GetRootDataProvider(Hash chainId, Address contractAddress)
+        public static DataProvider GetRootDataProvider(Hash chainId, Address contractAddress)
         {
-            return new NewDataProvider(chainId, contractAddress, new string[0]);
+            return new DataProvider(chainId, contractAddress, new string[0]);
         }
 
         private StatePath GetStatePathFor(string key, bool full = false)
@@ -61,7 +61,7 @@ namespace AElf.SmartContract
             return sp;
         }
 
-        public NewDataProvider GetChild(string name)
+        public DataProvider GetChild(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -69,7 +69,7 @@ namespace AElf.SmartContract
             }
 
             var path = new List<string>(Path) {"", name};
-            var child = new NewDataProvider(ChainId, ContractAddress, path) {StateStore = _stateStore};
+            var child = new DataProvider(ChainId, ContractAddress, path) {StateStore = _stateStore};
             _children.Add(child);
             return child;
         }

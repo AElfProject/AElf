@@ -26,7 +26,7 @@ namespace AElf.Sdk.CSharp.Tests
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
             var assembly2 = typeof(ISerializer<>).Assembly;
             builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
-            var assembly3 = typeof(NewDataProvider).Assembly;
+            var assembly3 = typeof(DataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
             var assembly4 = typeof(BlockValidationService).Assembly;
             builder.RegisterAssemblyTypes(assembly4).AsImplementedInterfaces();

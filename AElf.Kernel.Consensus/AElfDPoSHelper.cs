@@ -24,11 +24,11 @@ namespace AElf.Kernel.Consensus
         private readonly IStateStore _stateStore;
 
         
-        private NewDataProvider DataProvider
+        private DataProvider DataProvider
         {
             get
             {
-                var dp = NewDataProvider.GetRootDataProvider(_chainId, _contractAddressHash);
+                var dp = DataProvider.GetRootDataProvider(_chainId, _contractAddressHash);
                 dp.StateStore = _stateStore;
                 return dp;
             }

@@ -32,7 +32,7 @@ namespace AElf.Sdk.CSharp.Tests
         public IChainContextService ChainContextService;
 
         public IStateStore StateStore;
-        public NewDataProvider DataProvider1;
+        public DataProvider DataProvider1;
 
         public ServicePack ServicePack;
 
@@ -81,7 +81,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
 
-            DataProvider1 = NewDataProvider.GetRootDataProvider(
+            DataProvider1 = DataProvider.GetRootDataProvider(
                 chain1.Id,
                 Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
             );

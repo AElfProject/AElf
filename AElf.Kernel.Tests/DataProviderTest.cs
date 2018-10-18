@@ -1,45 +1,69 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Threading.Tasks;
-using AElf.SmartContract;
-using AElf.ChainController;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
-using NLog;
-using Xunit;
-using Xunit.Frameworks.Autofac;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using AElf.Common;
+using AElf.Database;
+using AElf.Kernel;
+using AElf.Kernel.Storages;
+using AElf.SmartContract;
+using Google.Protobuf;
+using Google.Protobuf.Collections;
+using Google.Protobuf.WellKnownTypes;
+using Xunit;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
     public class DataProviderTest
     {
-        private readonly IDataStore _dataStore;
-        private readonly BlockTest _blockTest;
-        private readonly ILogger _logger;
-
-        public DataProviderTest(IDataStore dataStore, BlockTest blockTest, ILogger logger)
+        [Fact]
+        public async Task Test()
         {
-            _dataStore = dataStore;
-            _blockTest = blockTest;
-            _logger = logger;
-        }
-
-        private IEnumerable<byte[]> CreateSet(int count)
-        {
-            var list = new List<byte[]>(count);
-            for (var i = 0; i < count; i++)
+            var db = new InMemoryDatabase();
+            var chainId = Hash.FromString("chain1");
+            var address = Address.FromRawBytes(Hash.FromString("contract1").ToByteArray());
+            var root = DataProvider.GetRootDataProvider(chainId, address);
+            root.StateStore = new StateStore(db);
+            var s = "test";
+            var sb = Encoding.UTF8.GetBytes(s);
+            var statePath = new StatePath()
             {
-                list.Add(Hash.Generate().DumpByteArray());
+                ChainId = chainId,
+                ContractAddress = address,
+                Path = {s}
+            };
+            await root.SetAsync(s, sb);
+
+            // Value correctly set
+            var retrievedChanges = root.GetChanges();
+            Assert.Equal(1, retrievedChanges.Count);
+
+            var bytes = retrievedChanges[statePath].CurrentValue.ToByteArray();
+            Assert.Equal(s, Encoding.UTF8.GetString(bytes));
+
+            // Commit changes to store
+            var toCommit = retrievedChanges.ToDictionary(kv => kv.Key, kv => kv.Value.CurrentValue.ToByteArray());
+            foreach (var kv in toCommit)
+            {
+                kv.Key.ChainId = chainId;
+                kv.Key.ContractAddress = address;
             }
+            await root.StateStore.PipelineSetDataAsync(toCommit);
 
-            return list;
-        }
+            // Setting the same value again in another DataProvider, no change will be returned
+            var root2 = DataProvider.GetRootDataProvider(chainId, address);
+            root2.StateStore = new StateStore(db);
+            await root2.SetAsync(s, sb);
+            var changes2 = root2.GetChanges();
+            Assert.Equal(0, changes2.Count);
 
-        private IEnumerable<Hash> GenerateKeys(IEnumerable<byte[]> set)
-        {
-           return set.Select(Hash.FromRawBytes).ToList();
+            // Test path
+            var sub = root.GetChild("sub");
+            await sub.SetAsync("dummy", new byte[]{0x01});
+            var subPath = sub.GetChanges().Keys.First();
+            var path = new [] {"", "sub", "dummy"};
+            Assert.Equal(subPath.Path, path);
         }
     }
 }

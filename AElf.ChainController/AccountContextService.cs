@@ -33,7 +33,7 @@ namespace AElf.ChainController
                 return ctx;
             }
 
-            var dp = NewDataProvider.GetRootDataProvider(chainId, accountAddress);
+            var dp = DataProvider.GetRootDataProvider(chainId, accountAddress);
             dp.StateStore = _stateStore;
             var idBytes = await dp.GetAsync<UInt64Value>(GetKeyForIncrementId());
             var id = idBytes == null ? 0 : UInt64Value.Parser.ParseFrom(idBytes).Value;
@@ -57,7 +57,7 @@ namespace AElf.ChainController
                 Hash.FromTwoHashes(accountDataContext.ChainId, Hash.FromMessage(accountDataContext.Address)),
                 accountDataContext, (hash, context) => accountDataContext);
 
-            var dp = NewDataProvider.GetRootDataProvider(accountDataContext.ChainId, accountDataContext.Address);
+            var dp = DataProvider.GetRootDataProvider(accountDataContext.ChainId, accountDataContext.Address);
             dp.StateStore = _stateStore;
             //await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
             await dp.SetAsync<UInt64Value>(GetKeyForIncrementId(), new UInt64Value

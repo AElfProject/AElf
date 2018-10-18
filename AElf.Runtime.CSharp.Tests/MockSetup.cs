@@ -36,8 +36,8 @@ namespace AElf.Runtime.CSharp.Tests
         public ISmartContractService SmartContractService;
 
         public IStateStore StateStore;
-        public NewDataProvider DataProvider1;
-        public NewDataProvider DataProvider2;
+        public DataProvider DataProvider1;
+        public DataProvider DataProvider2;
 
         public Address ContractAddress1 { get; } = Address.FromRawBytes(Hash.Generate().ToByteArray());
         public Address ContractAddress2 { get; } = Address.FromRawBytes(Hash.Generate().ToByteArray());
@@ -85,14 +85,14 @@ namespace AElf.Runtime.CSharp.Tests
             };
 
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
-            DataProvider1 = NewDataProvider.GetRootDataProvider(
+            DataProvider1 = DataProvider.GetRootDataProvider(
                 chain1.Id,
                 Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
             );
             DataProvider1.StateStore = StateStore;
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
-            DataProvider2 = NewDataProvider.GetRootDataProvider(
+            DataProvider2 = DataProvider.GetRootDataProvider(
                 chain2.Id,
                 Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
             );

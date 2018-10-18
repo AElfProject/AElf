@@ -62,7 +62,7 @@ namespace AElf.SmartContract
             }
 
             // get account dataprovider
-            var dataProvider = NewDataProvider.GetRootDataProvider(chainId, contractAddress);
+            var dataProvider = DataProvider.GetRootDataProvider(chainId, contractAddress);
             dataProvider.StateStore = _stateStore;
             // run smartcontract executive info and return executive
 

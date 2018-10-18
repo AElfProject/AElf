@@ -43,7 +43,7 @@ namespace AElf.Node.CrossChain
         private byte[] GetBytes<T>(Hash keyHash, Address contractAddressHash, string resourceStr = "") where T : IMessage, new()
         {
             //Console.WriteLine("resourceStr: {0}", dataPath.ResourcePathHash.ToHex());
-            var dp = NewDataProvider.GetRootDataProvider(_chainId, contractAddressHash);
+            var dp = DataProvider.GetRootDataProvider(_chainId, contractAddressHash);
             dp.StateStore = _stateStore;
             return resourceStr != ""
                 ? dp.GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
