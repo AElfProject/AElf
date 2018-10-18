@@ -82,7 +82,7 @@ namespace AElf.ChainController
             _blockSet.AddBlock(block);
             _blockSet.Tell(block.Header.Index);
             MessageHub.Instance.Publish(UpdateConsensus.Update);
-            
+            MessageHub.Instance.Publish(new BlockAddedToSet(block));
         }
 
         private async Task HandleValidBlock(BlockAccepted message)
