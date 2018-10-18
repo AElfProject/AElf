@@ -141,6 +141,7 @@ namespace AElf.ChainController
                         res.Logs.AddRange(trace.FlattenedLogs);
                         res.Status = Status.Mined;
                         res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
+                        res.StateHash = trace.GetSummarizedStateHash();
                     }
                     else
                     {
