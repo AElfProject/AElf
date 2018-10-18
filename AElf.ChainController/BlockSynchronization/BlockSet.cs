@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,7 +28,7 @@ namespace AElf.ChainController
             _logger = LogManager.GetLogger(nameof(BlockSet));
 
             _dict = new IndexedDictionary<IBlock>();
-            _dict.IndexBy(b => b.Index)
+            _dict.IndexBy(b => b.Index, true)
                 .IndexBy(b => b.BlockHashToHex);
         }
 
@@ -48,6 +49,11 @@ namespace AElf.ChainController
         /// <returns></returns>
         public void Tell(ulong currentHeight)
         {
+            if (currentHeight <= (ulong) GlobalConfig.BlockNumberOfEachRound)
+            {
+                return;
+            }
+            
             RemoveOldBlocks(currentHeight - (ulong) GlobalConfig.BlockNumberOfEachRound);
         }
 
@@ -77,9 +83,15 @@ namespace AElf.ChainController
 
         private void RemoveOldBlocks(ulong targetHeight)
         {
+            IEnumerable<IBlock> removed;
             lock (_)
             {
-                _dict.RemoveWhere(b => b.Index < targetHeight);
+                removed = _dict.RemoveWhere(b => b.Index <= targetHeight);
+            }
+
+            if (removed != null)
+            {
+                _logger?.Trace($"Removed {removed.Count()} blocks whose index lower than {targetHeight}");
             }
         }
     }

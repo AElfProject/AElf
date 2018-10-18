@@ -329,9 +329,14 @@ namespace AElf.Common.MultiIndexDictionary
         
         public IEnumerable<T> RemoveWhere(Expression<Func<T, bool>> predicate)
         {
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            EnsureNotNull(predicate);
 
-            var toRemove = Filter(predicate.Body).ToList();
+            var toRemove = Filter(predicate.Body)?.ToList();
+
+            if (toRemove == null)
+            {
+                return null;
+            }
 
             foreach (var item in toRemove)
             {
