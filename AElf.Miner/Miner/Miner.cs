@@ -136,7 +136,6 @@ namespace AElf.Miner.Miner
                 }
             }
         }
-//<<<<<<< HEAD
 
         private async Task<ulong> GetNewBlockIndexAsync()
         {
@@ -150,14 +149,6 @@ namespace AElf.Miner.Miner
             await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
         }
 
-//        private void BroadcastBlock(IBlock block)
-//        {
-//            MessageHub.Instance.Publish(new BlockMinedMessage(block));
-//        }
-
-//=======
-//        
-//>>>>>>> dev
         /// <summary>
         /// Generate a system tx for parent chain block info and broadcast it.
         /// </summary>
