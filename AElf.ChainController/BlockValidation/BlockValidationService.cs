@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -7,7 +8,7 @@ using AElf.Kernel;
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
-    public class BlockValidationService: IBlockValidationService
+    public class BlockValidationService : IBlockValidationService
     {
         private readonly IEnumerable<IBlockValidationFilter> _filters;
 
@@ -18,20 +19,8 @@ namespace AElf.ChainController
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
-            int error = (int) BlockValidationResult.Success; 
-            foreach (var filter in _filters)
-            {
-                error = Math.Max((int)await filter.ValidateBlockAsync(block, context), error);
-                if (error == 3)
-                    return BlockValidationResult.InvalidBlock;
-            }
-            
-            return (BlockValidationResult) error;
+            return (BlockValidationResult) _filters
+                .Select(filter => (int) filter.ValidateBlockAsync(block, context).Result).Concat(new[] {0}).Max();
         }
-    }
-
-    public interface IBlockValidationFilter
-    {
-        Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context);
     }
 }

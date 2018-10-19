@@ -34,9 +34,10 @@ namespace AElf.ChainController
                 return BlockValidationResult.Success;
             }
 
-            // Get block producer's address from block header
+            // Get BP address
             var uncompressedPrivateKey = block.Header.P.ToByteArray();
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
+            var address = recipientKeyPair.GetAddress().DumpHex();
             
             // Get the address of consensus contract
             var contractAccountHash = AddressHelpers.GetSystemContractAddress(context.ChainId, SmartContractType.AElfDPoS.ToString());
@@ -44,7 +45,7 @@ namespace AElf.ChainController
             
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
-            var tx = GetTxToVerifyBlockProducer(contractAccountHash, NodeConfig.Instance.ECKeyPair, recipientKeyPair.GetAddress().DumpHex(), timestampOfBlock);
+            var tx = GetTxToVerifyBlockProducer(contractAccountHash, NodeConfig.Instance.ECKeyPair, address, timestampOfBlock);
             if (tx == null)
             {
                 return BlockValidationResult.FailedToCheckConsensusInvalidation;
@@ -64,12 +65,12 @@ namespace AElf.ChainController
 
             return BoolValue.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value
                 ? BlockValidationResult.Success
-                : BlockValidationResult.InvalidTimeSlot;
+                : BlockValidationResult.InvalidDPoSInformation;
         }
 
-        private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)
+        private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair, string recipientAddress, Timestamp timestamp)
         {
-            if (contractAccountHash == null || keyPair == null || recepientAddress == null)
+            if (contractAccountHash == null || keyPair == null || recipientAddress == null)
             {
                 _logger?.Error("Something wrong happened to consensus verification filter.");
                 return null;
@@ -83,7 +84,7 @@ namespace AElf.ChainController
                 MethodName = "Validation",
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(
-                    new StringValue {Value = recepientAddress.RemoveHexPrefix()}.ToByteArray(), 
+                    new StringValue {Value = recipientAddress.RemoveHexPrefix()}.ToByteArray(), 
                     timestamp.ToByteArray()))
             };
             

@@ -186,7 +186,7 @@ namespace AElf.Node.AElfChain
             {
                 if (inState.IsSyncing)
                 {
-                    _logger?.Trace("Will hang on mining due to syncing.");
+                    _logger?.Warn("Will hang on mining due to starting syncing.");
                     _consensus?.Hang();
                 }
                 else

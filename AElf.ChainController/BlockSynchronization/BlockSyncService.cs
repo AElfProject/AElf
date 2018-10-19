@@ -76,12 +76,12 @@ namespace AElf.ChainController
 
             if (blockValidationResult == BlockValidationResult.Success)
             {
-                _logger?.Trace($"Block {block.GetHash().DumpHex()} is a valid block.");
+                _logger?.Trace($"Valid Block {block.GetHash().DumpHex()}.");
                 await HandleValidBlock(message);
             }
             else
             {
-                _logger?.Trace($"Block {block.GetHash().DumpHex()} is an invalid block.");
+                _logger?.Warn($"Invalid Block {block.GetHash().DumpHex()} : {message.BlockValidationResult.ToString()}.");
                 await HandleInvalidBlock(message);
             }
 
@@ -115,8 +115,17 @@ namespace AElf.ChainController
 
         private async Task HandleInvalidBlock(BlockAccepted message)
         {
-            _blockSet.AddBlock(message.Block);
+            // Handle the invalid block according their validation result.
+            if ((int) message.BlockValidationResult < 100)
+            {
+                _blockSet.AddBlock(message.Block);
+            }
 
+            await ReviewBlockSet(message);
+        }
+        
+        private async Task ReviewBlockSet(BlockAccepted message)
+        {
             // In case of the block set exists blocks that should be valid but didn't executed yet.
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
             if (message.Block.Header.Index > currentHeight)
@@ -125,11 +134,13 @@ namespace AElf.ChainController
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
             }
             
-            // Handle the invalid block according their validation result.
-            switch (message.BlockValidationResult)
+            // Detect longest chain and switch.
+            var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
+            if (forkHeight != 0)
             {
-                case BlockValidationResult.Pending: break;
-                case BlockValidationResult.AlreadyExecuted: break;
+                _logger?.Trace("Will rollback to height: " + forkHeight);
+                await BlockChain.RollbackToHeight(forkHeight);
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(forkHeight + 1));
             }
         }
 

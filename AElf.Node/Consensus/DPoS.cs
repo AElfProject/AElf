@@ -34,7 +34,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         private ulong ConsensusMemory { get; set; }
 
-        public static IDisposable ConsensusDisposable { get; set; }
+        private static IDisposable ConsensusDisposable { get; set; }
 
         private bool isMining;
 

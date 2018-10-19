@@ -95,5 +95,48 @@ namespace AElf.ChainController
                 throw new Exception(e.Message);
             }
         }
+
+        /// <summary>
+        /// Return the fork height if exists longer chain.
+        /// </summary>
+        /// <param name="currentHeight"></param>
+        /// <returns></returns>
+        public ulong AnyLongerValidChain(ulong currentHeight)
+        {
+            IEnumerable<IBlock> higherBlocks;
+            ulong forkHeight = 0;
+            
+            lock (_)
+            {
+                higherBlocks = _dict.Where(b => b.Index > currentHeight).ToList();
+            }
+
+            if (higherBlocks.Any())
+            {
+                _logger?.Trace("Find higher blocks in block set, will check whether there are longer valid chain.");
+                foreach (var block in higherBlocks)
+                {
+                    var index = block.Index;
+                    var flag = true;
+                    while (flag)
+                    {
+                        lock (_)
+                        {
+                            if (_dict.Any(b => b.Index == index - 1 && b.BlockHashToHex == block.BlockHashToHex))
+                            {
+                                index--;
+                                forkHeight = index;
+                            }
+                            else
+                            {
+                                flag = false;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return forkHeight <= currentHeight ? forkHeight : 0;
+        }
     }
 }
