@@ -19,6 +19,7 @@ using AElf.Network.Eventing;
 using AElf.Network.Peers;
 using AElf.Node.EventMessages;
 using AElf.Node.Protocol.Events;
+using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;

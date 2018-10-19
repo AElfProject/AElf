@@ -4,7 +4,7 @@ using AElf.Common;
 using AElf.Kernel;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.ChainController
+namespace AElf.Synchronization.BlockSynchronization
 {
     public interface IBlockSet
     {

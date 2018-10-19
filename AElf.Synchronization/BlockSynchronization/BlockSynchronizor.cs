@@ -1,19 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using NLog;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.ChainController
+namespace AElf.Synchronization.BlockSynchronization
 {
     public class BlockSynchronizor : IBlockSynchronizor
     {

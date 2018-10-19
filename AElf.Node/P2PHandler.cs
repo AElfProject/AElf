@@ -1,10 +1,12 @@
 ﻿using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Miner.TxMemPool;
+using AElf.Synchronization.BlockSynchronization;
 
-namespace AElf.Kernel.Node
+namespace AElf.Node
 {
     public class P2PHandler
     {

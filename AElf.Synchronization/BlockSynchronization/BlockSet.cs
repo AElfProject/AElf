@@ -10,7 +10,7 @@ using Easy.MessageHub;
 using NLog;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.ChainController
+namespace AElf.Synchronization.BlockSynchronization
 {
     public class BlockSet : IBlockSet
     {

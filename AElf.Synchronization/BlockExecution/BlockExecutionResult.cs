@@ -1,5 +1,5 @@
 // ReSharper disable once CheckNamespace
-namespace AElf.ChainController
+namespace AElf.Synchronization.BlockExecution
 {
     // ReSharper disable InconsistentNaming
     public enum BlockExecutionResult

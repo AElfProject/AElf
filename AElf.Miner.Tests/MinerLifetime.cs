@@ -19,6 +19,7 @@ using AElf.Common;
 using Address = AElf.Common.Address;
 using AElf.Configuration;
 using AElf.Miner.TxMemPool;
+using AElf.Synchronization.BlockExecution;
 
 namespace AElf.Kernel.Tests.Miner
 {

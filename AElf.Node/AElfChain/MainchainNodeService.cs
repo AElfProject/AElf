@@ -20,6 +20,7 @@ using NLog;
 using ServiceStack;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
+using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using DPoS = AElf.Kernel.Node.DPoS;
