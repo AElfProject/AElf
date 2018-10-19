@@ -179,14 +179,14 @@ namespace AElf.ChainController
         /// <summary>
         /// Withdraw txs in tx pool
         /// </summary>
-        /// <param name="readyTxs"></param>
+        /// <param name="txs"></param>
         /// <returns></returns>
-        private async Task Rollback(List<Transaction> readyTxs)
+        public async Task Rollback(List<Transaction> txs)
         {
             await _stateDictator.RollbackToPreviousBlock();
-            if (readyTxs == null)
+            if (txs == null)
                 return;
-            await _txPoolService.Revert(readyTxs);
+            await _txPoolService.Revert(txs);
         }
 
         /// <summary>

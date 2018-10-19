@@ -107,19 +107,24 @@ namespace AElf.ChainController
                 MessageHub.Instance.Publish(UpdateConsensus.Update);
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Header.Index + 1));
             }
-            // TODO: else
+            else
+            {
+                await _blockExecutionService.Rollback(message.Block.Body.TransactionList.ToList());
+            }
         }
 
         private async Task HandleInvalidBlock(BlockAccepted message)
         {
             _blockSet.AddBlock(message.Block);
 
+            // In case of the block set exists blocks that should be valid but didn't executed yet.
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
             if (message.Block.Header.Index > currentHeight)
             {
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
             }
             
+            // Handle the invalid block according their validation result.
             switch (message.BlockValidationResult)
             {
                 case BlockValidationResult.Pending: break;

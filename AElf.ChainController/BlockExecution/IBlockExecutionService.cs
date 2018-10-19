@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 
@@ -9,5 +10,6 @@ namespace AElf.ChainController
     {
         Task<BlockExecutionResultCC> ExecuteBlock(IBlock block);
         void Init();
+        Task Rollback(List<Transaction> txs);
     }
 }
