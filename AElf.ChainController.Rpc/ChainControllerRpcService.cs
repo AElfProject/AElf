@@ -42,9 +42,13 @@ namespace AElf.ChainController.Rpc
 
         private readonly ILogger _logger;
 
+        private bool _canBroadcastTxs = true;
+
         public ChainControllerRpcService(ILogger logger)
         {
             _logger = logger;
+
+            MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
         #region Methods
 
@@ -196,6 +200,13 @@ namespace AElf.ChainController.Rpc
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
             var res = new JObject {["hash"] = transaction.GetHash().DumpHex()};
+
+            if (!_canBroadcastTxs)
+            {
+                res["error"] = "Sync still in progress, cannot send transactions.";
+                return await Task.FromResult(res);
+            }
+            
             try
             {
                 var valRes = await TxPoolService.AddTxAsync(transaction);
@@ -220,6 +231,15 @@ namespace AElf.ChainController.Rpc
         public async Task<JObject> ProcessBroadcastTxs(string rawtxs)
         {
             var response = new List<object>();
+            
+            if (!_canBroadcastTxs)
+            {
+                return new JObject
+                {
+                    ["result"] = JToken.FromObject(string.Empty),
+                    ["error"] = "Sync still in progress, cannot send transactions."
+                };
+            }
 
             foreach (var rawtx in rawtxs.Split(','))
             {

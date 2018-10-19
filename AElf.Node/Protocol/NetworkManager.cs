@@ -103,7 +103,7 @@ namespace AElf.Node.Protocol
                     
                     await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
                     
-                    // _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
+                    _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
             MessageHub.Instance.Subscribe<BlockAddedToSet>(inBlock => 
@@ -205,7 +205,7 @@ namespace AElf.Node.Protocol
             _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
                 
             _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
-            
+                
             _logger?.Trace($"Network initialized at height {_localHeight}.");
             
             _peerManager.Start();
