@@ -22,6 +22,8 @@ namespace AElf.Kernel.Consensus
         private readonly Address _contractAddressHash;
         private readonly IStateDictator _stateDictator;
 
+        public AElfDPoSInformation DpoSInformation { get; private set; }
+
         public Miners Miners
         {
             get
@@ -325,8 +327,7 @@ namespace AElf.Kernel.Consensus
                     add = Hash.FromTwoHashes(add, lastSignature);
                 }
 
-                Hash sig = Hash.FromTwoHashes(inValue, add);
-                _logger?.Trace("Generated signature: " + sig.DumpHex());
+                var sig = Hash.FromTwoHashes(inValue, add);
                 return sig;
             }
             catch (Exception e)

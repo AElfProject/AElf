@@ -104,6 +104,9 @@ namespace AElf.ChainController.TxMemPoolBM
             
             MessageHub.Instance.Subscribe<ConsensusStateChanged>(inState =>
             {
+                _logger?.Trace(
+                    $"Consensus state changed to {inState.ConsensusBehavior.ToString()}, " +
+                    "will reset dpos tx filter.");
                 switch (inState.ConsensusBehavior)
                 {
                     case ConsensusBehavior.InitializeAElfDPoS:
@@ -126,7 +129,7 @@ namespace AElf.ChainController.TxMemPoolBM
             _logger = LogManager.GetLogger(nameof(DPoSTxFilter));
         }
 
-        public List<Transaction> Execute(List<Transaction> txs)
+        public IEnumerable<Transaction> Execute(List<Transaction> txs)
         {
             _logger?.Trace("Before");
             PrintTxList(txs);

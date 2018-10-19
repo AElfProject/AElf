@@ -33,7 +33,7 @@ namespace AElf.ChainController
             {
                 return BlockValidationResult.Success;
             }
-            
+
             // Get block producer's address from block header
             var uncompressedPrivateKey = block.Header.P.ToByteArray();
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);

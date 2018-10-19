@@ -143,7 +143,7 @@ namespace AElf.Kernel.Node
 
             if (Helper.CanRecoverDPoSInformation())
             {
-                AElfDPoSObserver.RecoverMining();
+                ConsensusDisposable = AElfDPoSObserver.RecoverMining();
             }
         }
 
@@ -291,7 +291,6 @@ namespace AElf.Kernel.Node
             var signature = Hash.Default;
             if (currentRoundNumber.Value > 1)
             {
-                _logger?.Trace("In value used for generating signature: " + inValue.DumpHex());
                 signature = Helper.CalculateSignature(inValue);
             }
 
@@ -393,12 +392,6 @@ namespace AElf.Kernel.Node
 
             // Update current round number.
             ConsensusMemory = Helper.CurrentRoundNumber.Value;
-        }
-
-        public async Task RecoverMining()
-        {
-            AElfDPoSObserver.RecoverMining();
-            await Task.CompletedTask;
         }
 
         public bool IsAlive()

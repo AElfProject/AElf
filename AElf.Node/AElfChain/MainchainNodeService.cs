@@ -78,8 +78,6 @@ namespace AElf.Node.AElfChain
             _chainContextService = chainContextService;
             _stateDictator = stateDictator;
             _blockSyncService = blockSyncService;
-            
-           
         }
 
         #region Genesis Contracts
@@ -88,7 +86,7 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath 
+                var contractZeroDllPath
                     = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisTokenContractAssemblyName}.dll");
 
                 byte[] code;
@@ -105,7 +103,7 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath 
+                var contractZeroDllPath
                     = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisConsensusContractAssemblyName}.dll");
 
                 byte[] code;
@@ -160,15 +158,15 @@ namespace AElf.Node.AElfChain
             _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
 
-            _txHub.CurrentHeightGetter = ()=> _blockChain.GetCurrentBlockHeightAsync().Result;
-            MessageHub.Instance.Subscribe<BlockHeader>((bh)=>_txHub.OnNewBlockHeader(bh));
+            _txHub.CurrentHeightGetter = () => _blockChain.GetCurrentBlockHeightAsync().Result;
+            MessageHub.Instance.Subscribe<BlockHeader>((bh) => _txHub.OnNewBlockHeader(bh));
             SetupConsensus();
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
                 await _txPoolService.AddTxAsync(inTx.Transaction);
             });
-            
+
             MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
             {
                 if (option == UpdateConsensus.Update)
@@ -214,11 +212,8 @@ namespace AElf.Node.AElfChain
                 await _blockSyncService.ReceiveBlock(inBlock.Block);
             });
 
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
-            {
-                _blockSyncService.AddMinedBlock(inBlock.Block);
-            });
-            
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock => { _blockSyncService.AddMinedBlock(inBlock.Block); });
+
             #region setup
 
             try
@@ -251,7 +246,7 @@ namespace AElf.Node.AElfChain
 
             // set world state
             _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
-            
+
             #endregion setup
 
             #region start
@@ -384,7 +379,7 @@ namespace AElf.Node.AElfChain
                     break;
             }
         }
-        
+
         private void StartMining()
         {
             if (NodeConfig.Instance.IsMiner)
@@ -392,7 +387,7 @@ namespace AElf.Node.AElfChain
                 SetupConsensus();
                 _consensus?.Start();
             }
-            
+
 //            if (NodeConfig.Instance.IsMiner)
 //            {
 //                _miner.Init(_nodeKeyPair);
@@ -402,7 +397,7 @@ namespace AElf.Node.AElfChain
 //            }
 //            _blockExecutor.FinishInitialSync();
         }
-        
+
         #endregion private methods
 
         public int GetCurrentHeight()
