@@ -30,7 +30,8 @@ namespace AElf.Network.Peers
         public const int DefaultRequestTimeout = 2000;
         
         public int RequestTimeout { get; set; } = DefaultRequestTimeout;
-        
+
+        private object _blockLock = new object();
         private List<ValidatingBlock> _blocks { get; set; }
 
         private object _blockReqLock = new object();
@@ -52,7 +53,10 @@ namespace AElf.Network.Peers
 
         public bool AnySyncing()
         {
-            return _blocks.Any(b => b.IsRequesting);
+            lock (_blockLock)
+            {
+                return _blocks.Any(b => b.IsRequesting);
+            }
         }
 
         /// <summary>
@@ -86,7 +90,11 @@ namespace AElf.Network.Peers
             try
             {
                 byte[] blockId = a.Id.ToByteArray();
-                _blocks.Add(new ValidatingBlock(blockId, true, false));
+
+                lock (_blockLock)
+                {
+                    _blocks.Add(new ValidatingBlock(blockId, true, false));
+                }
             
                 RequestBlockById(blockId);
 
@@ -109,9 +117,12 @@ namespace AElf.Network.Peers
         public void OnBlockReceived(Block block)
         {
             byte[] blockHash = block.GetHashBytes();
-
-            ValidatingBlock vBlock =
-                _blocks.Where(b => b.IsRequesting).FirstOrDefault(b => b.BlockId.BytesEqual(blockHash));
+            
+            ValidatingBlock vBlock;
+            lock (_blockLock)
+            {
+                vBlock = _blocks.Where(b => b.IsRequesting).FirstOrDefault(b => b.BlockId.BytesEqual(blockHash));
+            }
 
             if (vBlock != null)
             {
@@ -160,10 +171,13 @@ namespace AElf.Network.Peers
             }
             else
             {
-                if (_blocks.Count == 0)
-                    return;
+                lock (_blockLock)
+                {
+                    if (_blocks.Count == 0)
+                        return;
                 
-                _blocks.RemoveAll(b => b.BlockId.BytesEqual(blockHash));
+                    _blocks.RemoveAll(b => b.BlockId.BytesEqual(blockHash));
+                }
             }
         }
 
