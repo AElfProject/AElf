@@ -103,8 +103,13 @@ namespace AElf.Miner.Miner
 
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
-                    _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index}");
+                    _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
+                    if (block.Body.TransactionsCount == 0)
+                    {
+                        return null;
+                    }
+                    
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
                     // put back canceled transactions

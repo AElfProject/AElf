@@ -19,6 +19,7 @@ namespace AElf.ChainController
 
         // Unforgivable, discard
         BlockIsNull = 101,
+        NoTransaction,
         IncorrectTxMerkleTreeRoot,
         IncorrectSideChainInfo,
         IncorrectFirstBlock,

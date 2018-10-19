@@ -18,6 +18,11 @@ namespace AElf.ChainController
                 return Task.FromResult(BlockValidationResult.BlockIsNull);
             }
 
+            if (block.Body.TransactionsCount == 0)
+            {
+                return Task.FromResult(BlockValidationResult.NoTransaction);
+            }
+
             if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
             {
                 return Task.FromResult(BlockValidationResult.IncorrectTxMerkleTreeRoot);
