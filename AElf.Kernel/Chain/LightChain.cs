@@ -37,7 +37,7 @@ namespace AElf.Kernel
             var hash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
             if (hash.IsNull())
             {
-                return 0;
+                return GlobalConfig.GenesisBlockHeight;
             }
             var header = (BlockHeader) await GetHeaderByHashAsync(hash);
             return header.Index;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using NLog;
 // ReSharper disable once CheckNamespace
 namespace AElf.Synchronization.BlockSynchronization
 {
-    public class BlockSynchronizor : IBlockSynchronizor
+    public class BlockSynchronizer : IBlockSynchronizer
     {
         private readonly IChainService _chainService;
         private readonly IBlockValidationService _blockValidationService;
@@ -30,7 +31,7 @@ namespace AElf.Synchronization.BlockSynchronization
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(NodeConfig.Instance.ChainId)));
 
-        public BlockSynchronizor(IChainService chainService, IBlockValidationService blockValidationService,
+        public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
             _chainService = chainService;
@@ -38,7 +39,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _blockExecutor = blockExecutor;
             _blockSet = blockSet;
 
-            _logger = LogManager.GetLogger(nameof(BlockSynchronizor));
+            _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
             MessageHub.Instance.Subscribe<SyncUnfinishedBlock>(async inHeight =>
             {
@@ -82,7 +83,8 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             else
             {
-                _logger?.Trace($"Block {block.GetHash().DumpHex()} is an invalid block.");
+                _logger?.Trace(
+                    $"Block {block.GetHash().DumpHex()} at {block.Header.Index} is an invalid block with validation result {blockValidationResult}.");
                 await HandleInvalidBlock(message);
             }
 

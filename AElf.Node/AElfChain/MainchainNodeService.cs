@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Enums;
@@ -41,7 +42,7 @@ namespace AElf.Node.AElfChain
         private readonly IChainContextService _chainContextService;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
-        private readonly IBlockSynchronizor _blockSynchronizor;
+        private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly IBlockExecutor _blockExecutor;
         private readonly TxHub _txHub;
 
@@ -57,7 +58,7 @@ namespace AElf.Node.AElfChain
             IBlockValidationService blockValidationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService,
-            IBlockSynchronizor blockSynchronizor,
+            IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
             TxHub txHub,
@@ -76,7 +77,7 @@ namespace AElf.Node.AElfChain
             _p2p = p2p;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
-            _blockSynchronizor = blockSynchronizor;
+            _blockSynchronizer = blockSynchronizer;
         }
 
         #region Genesis Contracts
@@ -206,15 +207,7 @@ namespace AElf.Node.AElfChain
 
             _logger?.Log(LogLevel.Debug, $"Chain Id = {NodeConfig.Instance.ChainId}");
 
-            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
-            {
-                await _blockSynchronizor.ReceiveBlock(inBlock.Block);
-            });
-
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
-            {
-                _blockSynchronizor.AddMinedBlock(inBlock.Block);
-            });
+            
             #region setup
 
             try
@@ -231,12 +224,14 @@ namespace AElf.Node.AElfChain
                     CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero,
                         SideChainGenesisContractZero);
                 }
+                
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Could not create the chain : " + NodeConfig.Instance.ChainId);
             }
 
+            
             #endregion setup
 
             #region start
@@ -263,7 +258,27 @@ namespace AElf.Node.AElfChain
                 _consensus?.Start();
             }
 
+            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
+            {
+                try
+                {
+                    Console.WriteLine($"Network received block at height {inBlock.Block.Header.Index}");
+                    await _blockSynchronizer.ReceiveBlock(inBlock.Block);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+            });
+
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
+            {
+                _blockSynchronizer.AddMinedBlock(inBlock.Block);
+            });
             #endregion start
+            
+            MessageHub.Instance.Publish(new ChainInitialized(null));
 
             return true;
         }

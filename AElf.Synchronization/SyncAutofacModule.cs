@@ -9,7 +9,7 @@ namespace AElf.Synchronization
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<BlockSynchronizor>().As<IBlockSynchronizor>().SingleInstance();
+            builder.RegisterType<BlockSynchronizer>().As<IBlockSynchronizer>().SingleInstance();
             builder.RegisterType<BlockExecutor>().As<IBlockExecutor>().SingleInstance();
             
         }

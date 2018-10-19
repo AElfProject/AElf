@@ -11,7 +11,7 @@ namespace AElf.Node
     public class P2PHandler
     {
         public IChainService ChainService { get; set; }
-        public IBlockSynchronizor BlockSynchronizor { get; set; }
+        public IBlockSynchronizer BlockSynchronizer { get; set; }
         public ITxPool TxPool { get; set; }
         public ITransactionManager TransactionManager { get; set; }
 
@@ -25,7 +25,7 @@ namespace AElf.Node
 
         public async Task<Block> GetBlockFromHash(Hash hash)
         {
-            return await Task.Run(() => (Block) BlockSynchronizor.GetBlockByHash(hash));
+            return await Task.Run(() => (Block) BlockSynchronizer.GetBlockByHash(hash));
         }
 
         public async Task<Transaction> GetTransaction(Hash txId)

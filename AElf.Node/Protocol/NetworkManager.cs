@@ -57,7 +57,7 @@ namespace AElf.Node.Protocol
         private readonly IPeerManager _peerManager;
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
-        private readonly IBlockSynchronizor _blockSynchronizor;
+        private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly List<IPeer> _peers = new List<IPeer>();
 
         private readonly Object _pendingRequestsLock = new Object();
@@ -77,7 +77,7 @@ namespace AElf.Node.Protocol
         
         private List<byte[]> _minedBlocks = new List<byte[]>();
 
-        public NetworkManager(ITxPool txPool, IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizor blockSynchronizor)
+        public NetworkManager(ITxPool txPool, IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _pendingRequests = new List<TimeoutRequest>();
@@ -86,7 +86,7 @@ namespace AElf.Node.Protocol
             _peerManager = peerManager;
             _chainService = chainService;
             _logger = logger;
-            _blockSynchronizor = blockSynchronizor;
+            _blockSynchronizer = blockSynchronizer;
 
             _chainId = new Hash { Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)) };
             
@@ -185,6 +185,12 @@ namespace AElf.Node.Protocol
                 if (syncFinished)
                     SetSyncState(false);
             });
+
+            MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
+            {
+                _peerManager.Start();
+                Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
+            });
         }
 
         private void SetSyncState(bool newState)
@@ -212,9 +218,9 @@ namespace AElf.Node.Protocol
             
             _logger?.Trace($"Network initialized at height {_localHeight}.");
             
-            _peerManager.Start();
+            //_peerManager.Start();
             
-            Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
+            //Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
         }
         
         private void AnnounceBlock(IBlock block)
@@ -385,7 +391,7 @@ namespace AElf.Node.Protocol
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
 
                 byte[] blockHash = a.Id.ToByteArray();
-                IBlock bbh = _blockSynchronizor.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
+                IBlock bbh = _blockSynchronizer.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
                 
                 _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
 

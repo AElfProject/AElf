@@ -7,7 +7,7 @@ using AElf.Kernel;
 // ReSharper disable once CheckNamespace
 namespace AElf.Synchronization.BlockSynchronization
 {
-    public interface IBlockSynchronizor
+    public interface IBlockSynchronizer
     {
         Task<BlockValidationResult> ReceiveBlock(IBlock block);
         void AddMinedBlock(IBlock block);
