@@ -79,49 +79,7 @@ namespace AElf.Node.AElfChain
             _stateDictator = stateDictator;
             _blockSyncService = blockSyncService;
             
-            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
-            {
-                await _blockSyncService.ReceiveBlock(inBlock.Block);
-            });
-
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
-            {
-                _blockSyncService.AddMinedBlock(inBlock.Block);
-            });
-
-            MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
-            {
-                await _txPoolService.AddTxAsync(inTx.Transaction);
-            });
-            
-            MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
-            {
-                if (option == UpdateConsensus.Update)
-                {
-                    _logger?.Trace("Will update consensus.");
-                    _consensus?.Update();
-                }
-
-                if (option == UpdateConsensus.Dispose)
-                {
-                    _logger?.Trace("Will stop mining.");
-                    _consensus?.Stop();
-                }
-            });
-
-            MessageHub.Instance.Subscribe<SyncStateChanged>(inState =>
-            {
-                if (inState.IsSyncing)
-                {
-                    _logger?.Trace("Will hang on mining due to syncing.");
-                    _consensus?.Hang();
-                }
-                else
-                {
-                    _logger?.Trace("Will start / recover mining.");
-                    _consensus?.Start();
-                }
-            });
+           
         }
 
         #region Genesis Contracts
@@ -205,6 +163,50 @@ namespace AElf.Node.AElfChain
             _txHub.CurrentHeightGetter = ()=> _blockChain.GetCurrentBlockHeightAsync().Result;
             MessageHub.Instance.Subscribe<BlockHeader>((bh)=>_txHub.OnNewBlockHeader(bh));
             SetupConsensus();
+            
+            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
+            {
+                await _blockSyncService.ReceiveBlock(inBlock.Block);
+            });
+
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
+            {
+                _blockSyncService.AddMinedBlock(inBlock.Block);
+            });
+
+            MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
+            {
+                await _txPoolService.AddTxAsync(inTx.Transaction);
+            });
+            
+            MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
+            {
+                if (option == UpdateConsensus.Update)
+                {
+                    _logger?.Trace("Will update consensus.");
+                    _consensus?.Update();
+                }
+
+                if (option == UpdateConsensus.Dispose)
+                {
+                    _logger?.Trace("Will stop mining.");
+                    _consensus?.Stop();
+                }
+            });
+
+            MessageHub.Instance.Subscribe<SyncStateChanged>(inState =>
+            {
+                if (inState.IsSyncing)
+                {
+                    _logger?.Trace("Will hang on mining due to syncing.");
+                    _consensus?.Hang();
+                }
+                else
+                {
+                    _logger?.Trace("Will start / recover mining.");
+                    _consensus?.Start();
+                }
+            });
         }
 
         public bool Start()
