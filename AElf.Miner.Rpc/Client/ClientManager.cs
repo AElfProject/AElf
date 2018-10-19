@@ -18,7 +18,7 @@ using NServiceKit.Common.Extensions;
 using ClientBase = AElf.Miner.Rpc.Client.ClientBase;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
-namespace AElf.Miner
+namespace AElf.Miner.Rpc.Client
 {
     [LoggerName("MinerClient")]
     public class ClientManager

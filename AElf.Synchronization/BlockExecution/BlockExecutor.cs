@@ -5,18 +5,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
-using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.Miner;
 using AElf.Miner.Rpc.Exceptions;
-using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
 using AElf.Common;
+using AElf.Miner.Rpc.Client;
 
 namespace AElf.Synchronization.BlockExecution
 {

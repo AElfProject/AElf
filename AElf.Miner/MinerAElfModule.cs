@@ -4,6 +4,7 @@ using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc;
+using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Server;
 using AElf.Miner.TxMemPool;
 using Autofac;

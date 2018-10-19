@@ -55,7 +55,7 @@ namespace AElf.ChainController
                 }
             }
 
-            NodeConfig.Instance.ChainId = chainIdHash.DumpHex();
+            NodeConfig.Instance.ChainId = chainIdHash.DumpHex(true);
 
             builder.RegisterModule(new ChainAutofacModule());
            

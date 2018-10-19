@@ -18,6 +18,7 @@ using Moq;
 using NLog;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
 

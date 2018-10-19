@@ -43,9 +43,9 @@ namespace AElf.Cryptography.ECDSA
             return Address.FromRawBytes(GetEncodedPublicKey());
         }
 
-        public string GetAddressHex()
+        public string GetAddressHex(bool withPrefix = false)
         {
-            return Address.FromRawBytes(GetEncodedPublicKey()).Value.ToByteArray().ToHex();
+            return Address.FromRawBytes(GetEncodedPublicKey()).Value.ToByteArray().ToHex(withPrefix);
             //"0x" + BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
         }
     }

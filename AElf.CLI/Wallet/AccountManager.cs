@@ -139,7 +139,7 @@ namespace AElf.CLI.Wallet
             if (keypair != null)
             {
                 _screenManager.PrintLine("Account pub key: " + keypair.GetEncodedPublicKey().ToHex());
-                _screenManager.PrintLine("Account address: " + keypair.GetAddressHex());
+                _screenManager.PrintLine("Account address: " + keypair.GetAddressHex(true));
             }
                 
         }
