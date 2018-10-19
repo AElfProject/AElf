@@ -40,11 +40,14 @@ namespace AElf.Miner.Tests
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IDataStore _dataStore;
+        private readonly IBlockValidationService _blockValidationService;
+        private readonly IChainContextService _chainContextService;
         
-        public MockSetup(ILogger logger, IDataStore dataStore)
+        public MockSetup(ILogger logger, IDataStore dataStore, IBlockValidationService blockValidationService)
         {
             _logger = logger;
             _dataStore = dataStore;
+            _blockValidationService = blockValidationService;
             Initialize();
         }
         
@@ -97,7 +100,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
                 _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
-                clientManager, _binaryMerkleTreeManager, null);
+                clientManager, _binaryMerkleTreeManager, null, _blockValidationService, _chainContextService);
 
             return miner;
         }
