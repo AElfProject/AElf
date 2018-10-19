@@ -21,6 +21,22 @@ message Transaction {
     google.protobuf.Timestamp Time = 13;
 }
 
+message StatePath {
+    repeated string Path = 1;
+    Address ContractAddress = 2;
+    Hash ChainId = 3;
+}
+
+message StateValue {
+    bytes CurrentValue = 1;
+    bytes OriginalValue = 2;
+}
+
+message StateChange {
+    StatePath StatePath = 1;
+    StateValue StateValue = 2;
+}
+
 message TransactionList {
     repeated Transaction Transactions = 1;
 }
@@ -45,19 +61,38 @@ message TransactionResult {
     bytes Bloom = 4;
     bytes RetVal = 5;
     uint64 BlockNumber = 6;
-    Hash BlockHash = 7;;
+    Hash BlockHash = 7;
     int32 Index = 8;
-    
+    Hash StateHash = 9;
     // Merkle proof path for this transaction
-    MerklePath MerklePath = 9;
-    
-    Transaction Transaction = 10;
-    
+    MerklePath MerklePath = 10;
+    Transaction Transaction = 11;
 }
 
-message StateValueChange{
-    DataPath Path = 1;
-    bytes CurrentValue = 2;
+
+enum ExecutionStatus {
+    Undefined = 0;
+    ExecutedAndCommitted = 1;
+    ExecutedButNotCommitted = 2;
+    SystemError = -1;
+    ContractError = -2;
+    ExceededMaxCallDepth = -3;
+    Canceled = -4;
+}
+
+message TransactionTrace {
+    Hash TransactionId = 1;
+    RetVal RetVal = 2;
+    string StdOut = 3;
+    string StdErr = 4;
+    Hash StateHash = 5;
+    repeated LogEvent Logs = 6;
+    repeated Transaction InlineTransactions = 7;
+    repeated TransactionTrace InlineTraces = 8;
+    repeated StateChange StateChanges = 9;
+    int64 Elapsed = 10;
+    ExecutionStatus ExecutionStatus = 11;
+    Transaction Transaction = 12;
 }
 
 message LogEvent {
@@ -237,6 +272,7 @@ message DataPath {
     Address ContractAddress = 4;
     Hash DataProviderHash = 5;
     Hash KeyHash = 6;
+    StatePath StatePath = 7;
 }
 
 message BinaryMerkleTree{

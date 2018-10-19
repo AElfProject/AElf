@@ -30,7 +30,7 @@ namespace AElf.Execution
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken token)
+            CancellationToken token, Hash disambiguationHash=null)
         {
             token.Register(() => _actorEnvironment.Requestor.Tell(JobExecutionCancelMessage.Instance));
 
@@ -52,7 +52,7 @@ namespace AElf.Execution
             }
 
             var tasks = groups.Select(
-                txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token), token)
+                txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, disambiguationHash), token)
             ).ToArray();
             var results = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
 
@@ -72,12 +72,12 @@ namespace AElf.Execution
         }
 
         private async Task<List<TransactionTrace>> AttemptToSendExecutionRequest(Hash chainId,
-            List<Transaction> transactions, CancellationToken token)
+            List<Transaction> transactions, CancellationToken token, Hash disambiguationHash)
         {
             while (!token.IsCancellationRequested)
             {
                 var tcs = new TaskCompletionSource<List<TransactionTrace>>();
-                _actorEnvironment.Requestor.Tell(new LocalExecuteTransactionsMessage(chainId, transactions, tcs));
+                _actorEnvironment.Requestor.Tell(new LocalExecuteTransactionsMessage(chainId, transactions, tcs, disambiguationHash));
                 var traces = await tcs.Task;
 
                 if (traces.Count > 0)

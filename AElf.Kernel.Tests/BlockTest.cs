@@ -33,16 +33,16 @@ namespace AElf.Kernel.Tests
             var chain = await CreateChain();
             var blockchain = _chainService.GetBlockChain(chain.Id);
 
-            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, GlobalConfig.GenesisBlockHeight + 1);
             await blockchain.AddBlocksAsync(new List<IBlock> {block1});
             
-            var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
+            var block2 = CreateBlock(block1.GetHash(), chain.Id, GlobalConfig.GenesisBlockHeight + 2);
             await blockchain.AddBlocksAsync(new List<IBlock> {block2});
 
-            var blockOfHeight1 = await blockchain.GetBlockByHeightAsync(1);
+            var blockOfHeight1 = await blockchain.GetBlockByHeightAsync(GlobalConfig.GenesisBlockHeight + 1);
             Assert.Equal(block1, blockOfHeight1);
 
-            var blockOfHeight2 = await blockchain.GetBlockByHeightAsync(2);
+            var blockOfHeight2 = await blockchain.GetBlockByHeightAsync(GlobalConfig.GenesisBlockHeight + 2);
             Assert.Equal(block2, blockOfHeight2);
 
         }
@@ -76,7 +76,7 @@ namespace AElf.Kernel.Tests
         {
             var chain = await CreateChain();
 
-            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, GlobalConfig.GenesisBlockHeight + 1);
             var blockchain = _chainService.GetBlockChain(chain.Id);
             await blockchain.AddBlocksAsync(new List<IBlock>() {block});
             Console.WriteLine("getting " + block.GetHash());

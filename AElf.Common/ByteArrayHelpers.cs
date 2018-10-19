@@ -10,16 +10,21 @@ namespace AElf.Common
             return value.Length >= 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X');
         }
 
-        public static string ToHex(this byte[] bytes)
+        public static string ToHex(this byte[] bytes, bool withPrefix=false)
         {
-            char[] c = new char[bytes.Length * 2 + 2];
+            int offset = withPrefix ? 2 : 0;
+            int length = bytes.Length * 2 + offset;
+            char[] c = new char[length];
 
             byte b;
 
-            c[0] = '0';
-            c[1] = 'x';
+            if (withPrefix)
+            {
+                c[0] = '0';
+                c[1] = 'x';                
+            }
 
-            for (int bx = 0, cx = 2; bx < bytes.Length; ++bx, ++cx)
+            for (int bx = 0, cx = offset; bx < bytes.Length; ++bx, ++cx)
             {
                 b = ((byte) (bytes[bx] >> 4));
                 c[cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);

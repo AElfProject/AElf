@@ -6,26 +6,31 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
+using AElf.Common;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 
 namespace AElf.Execution.Execution
 {
     public class SimpleExecutingService : IExecutingService
     {
         private ISmartContractService _smartContractService;
-        private IStateDictator _stateDictator;
+        private ITransactionTraceManager _transactionTraceManager;
         private IChainContextService _chainContextService;
+        private IStateStore _stateStore;
 
         public SimpleExecutingService(ISmartContractService smartContractService,
-            IStateDictator stateDictator,
+            ITransactionTraceManager transactionTraceManager, IStateStore stateStore,
             IChainContextService chainContextService)
         {
             _smartContractService = smartContractService;
-            _stateDictator = stateDictator;
+            _transactionTraceManager = transactionTraceManager;
             _chainContextService = chainContextService;
+            _stateStore = stateStore;
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken, Hash disambiguationHash=null)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<DataPath, StateCache>();
@@ -37,17 +42,24 @@ namespace AElf.Execution.Execution
                 if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
                     //Console.WriteLine($"tx executed successfully: {transaction.GetHash().ToHex()}");
-                    var bufferedStateUpdates = await trace.CommitChangesAsync(_stateDictator);
-                    foreach (var kv in bufferedStateUpdates)
-                    {
-                        stateCache[kv.Key] = kv.Value;
-                    }
+                    await trace.CommitChangesAsync(_stateStore);
+//                    await _stateDictator.ApplyCachedDataAction(bufferedStateUpdates);
+//                    foreach (var kv in bufferedStateUpdates)
+//                    {
+//                        stateCache[kv.Key] = kv.Value;
+//                    }
+                }
+
+                if (_transactionTraceManager != null)
+                {
+                    // Will be null only in tests
+                    await _transactionTraceManager.AddTransactionTraceAsync(trace, disambiguationHash);    
                 }
 
                 traces.Add(trace);
             }
 
-            await _stateDictator.ApplyCachedDataAction(stateCache);
+//            await _stateDictator.ApplyCachedDataAction(stateCache);
             return traces;
         }
 

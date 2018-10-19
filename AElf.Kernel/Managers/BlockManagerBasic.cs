@@ -35,16 +35,7 @@ namespace AElf.Kernel.Managers
 
         public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
-            try
-            {
-                return await _dataStore.GetAsync<BlockHeader>(blockHash.Clone().OfType(HashType.BlockHeaderHash));
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            return await _dataStore.GetAsync<BlockHeader>(blockHash.Clone().OfType(HashType.BlockHeaderHash));
         }
 
         public async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)

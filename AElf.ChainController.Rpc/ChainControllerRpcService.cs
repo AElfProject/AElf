@@ -33,6 +33,7 @@ namespace AElf.ChainController.Rpc
         public ITxPool TxPool { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ITransactionResultService TransactionResultService { get; set; }
+        public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public TxHub TxHub { get; set; }
         public INodeService MainchainNodeService { get; set; }
@@ -356,7 +357,10 @@ namespace AElf.ChainController.Rpc
                     ["tx_status"] = txResult.Status.ToString(),
                     ["tx_info"] = txInfo["tx"]
                 };
-
+#if DEBUG
+                var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
+                response["tx_trc"] = txtrc?.ToString();
+#endif
                 if (txResult.Status == Status.Failed)
                 {
                     response["tx_error"] = txResult.RetVal.ToStringUtf8();

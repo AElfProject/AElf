@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.SmartContract;
 using Akka.Actor;
 using Akka.Routing;
+using AElf.Kernel;
 
 namespace AElf.Execution.Execution
 {
@@ -57,7 +58,7 @@ namespace AElf.Execution.Execution
                     }
 
 //                    _requestIdToPendingTransactionIds.Add(reqId, hashes);
-                    _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router));
+                    _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router, req.DisambiguationHash));
                     break;
                 case TransactionTraceMessage msg:
                     if (!_requestIdToTraces.TryGetValue(msg.RequestId, out var traces))

@@ -22,11 +22,11 @@ namespace AElf.Contracts.Genesis.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            var assembly1 = typeof(IStateDictator).Assembly;
+            var assembly1 = typeof(IDataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
             var assembly2 = typeof(ISerializer<>).Assembly;
             builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
-            var assembly3 = typeof(StateDictator).Assembly;
+            var assembly3 = typeof(DataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
             var assembly4 = typeof(BlockValidationService).Assembly;
             builder.RegisterAssemblyTypes(assembly4).AsImplementedInterfaces();

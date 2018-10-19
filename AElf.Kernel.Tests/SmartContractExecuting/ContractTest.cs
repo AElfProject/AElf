@@ -10,6 +10,7 @@ using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
@@ -26,11 +27,11 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             return (ulong)n;
         }
 
-        private IStateDictator _stateDictator;
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
         private IChainService _chainService;
         private ITransactionManager _transactionManager;
+        private IStateStore _stateStore;
         private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
         private IFunctionMetadataService _functionMetadataService;
@@ -39,14 +40,12 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
         private Hash ChainId { get; } = Hash.Generate();
 
-        public ContractTest(IStateDictator stateDictator,
+        public ContractTest(IStateStore stateStore,
             IChainCreationService chainCreationService, IChainService chainService,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _stateDictator = stateDictator;
-            _stateDictator.ChainId = Hash.Generate();
-            _stateDictator.BlockProducerAccountAddress = Address.FromRawBytes(Hash.Generate().ToByteArray());
+            _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _transactionManager = transactionManager;
@@ -54,7 +53,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -111,7 +110,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
-            await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
+            await txnCtxt.Trace.CommitChangesAsync(_stateStore);
             
             Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
@@ -161,7 +160,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
-            await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
+            await txnCtxt.Trace.CommitChangesAsync(_stateStore);
 
             var bs = txnCtxt.Trace.RetVal;
             var address = Address.FromRawBytes(bs.Data.DeserializeToBytes());
@@ -182,7 +181,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(address, ChainId);
             await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-            await txnInitCtxt.Trace.CommitChangesAsync(_stateDictator);
+            await txnInitCtxt.Trace.CommitChangesAsync(_stateStore);
             
             #endregion initialize account balance
 
@@ -218,7 +217,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 Transaction = txnBal
             };
             await executiveUser.SetTransactionContext(txnPrintcxt).Apply();
-            await txnPrintcxt.Trace.CommitChangesAsync(_stateDictator);
+            await txnPrintcxt.Trace.CommitChangesAsync(_stateStore);
 
             //Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
             #endregion

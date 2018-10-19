@@ -16,6 +16,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
+using AElf.Common;
 
 namespace AElf.Synchronization.BlockExecution
 {
@@ -25,19 +26,16 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IChainService _chainService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
 
-        public BlockExecutor(IChainService chainService,
-            IStateDictator stateDictator, IExecutingService executingService, 
+        public BlockExecutor(IChainService chainService, IExecutingService executingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             ClientManager clientManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             _chainService = chainService;
-            _stateDictator = stateDictator;
             _executingService = executingService;
             _logger = logger;
             _transactionManager = transactionManager;
@@ -59,15 +57,15 @@ namespace AElf.Synchronization.BlockExecution
                 return BlockExecutionResult.Failed;
             }
             _logger?.Trace($"Executing block {block.GetHash()}");
-
             try
             {
-                UpdataBPInfo(block);
                 // get txn from pool
                 var readyTxns = await CollectTransactions(block);
-                var txnRes = await ExecuteTransactions(readyTxns, block);
+                var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index,
+                Address.FromRawBytes(block.Header.P.ToByteArray()));
+                var txnRes = await ExecuteTransactions(readyTxns, block, disambiguationHash);
 
-                await UpdateWorldState(block);
+                await UpdateWorldState(block, txnRes);
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
                 await UpdateSideChainInfo(block);
@@ -90,11 +88,11 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="readyTxs"></param>
         /// <param name="block"></param>
         /// <returns></returns>
-        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, IBlock block)
+        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, IBlock block, Hash disambiguationHash)
         {
             var traces = readyTxs.Count == 0
                 ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(readyTxs, block.Header.ChainId, Cts.Token);
+                : await _executingService.ExecuteAsync(readyTxs, block.Header.ChainId, Cts.Token, disambiguationHash);
             
             var results = new List<TransactionResult>();
             foreach (var trace in traces)
@@ -108,6 +106,7 @@ namespace AElf.Synchronization.BlockExecution
                     res.Logs.AddRange(trace.FlattenedLogs);
                     res.Status = Status.Mined;
                     res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
+                    res.StateHash = trace.GetSummarizedStateHash();
                 }
                 else
                 {
@@ -122,21 +121,6 @@ namespace AElf.Synchronization.BlockExecution
         }
 
         #region Before transaction execution
-
-        /// <summary>
-        /// Update BP info before execution
-        /// </summary>
-        /// <param name="block"></param>
-        private void UpdataBPInfo(IBlock block)
-        {
-            var uncompressedPrivateKey = block.Header.P.ToByteArray();
-            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
-            var blockProducerAddress = recipientKeyPair.GetAddress();
-            _stateDictator.ChainId = block.Header.ChainId;
-            _stateDictator.BlockHeight = block.Header.Index - 1;
-            _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
-        }
-        
         /// <summary>
         /// Verify block components and validate side chain info if needed
         /// </summary>
@@ -268,19 +252,12 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        private async Task UpdateWorldState(IBlock block)
+        private async Task UpdateWorldState(IBlock block, IEnumerable<TransactionResult> results)
         {
-            await _stateDictator.SetMap(block.GetHash());
-            await _stateDictator.SetWorldStateAsync();
-            var ws = await _stateDictator.GetLatestWorldStateAsync();
+            var root = new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
             string errlog = null;
             bool res = true;
-            if (ws == null)
-            {
-                errlog = "ExecuteBlock - Could not get world state.";
-                res = false;
-            }
-            else if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
+            if (root != block.Header.MerkleTreeRootOfWorldState)
             {
                 errlog = "ExecuteBlock - Incorrect merkle trees.";
                 res = false;
@@ -288,7 +265,7 @@ namespace AElf.Synchronization.BlockExecution
             if(!res)
                 throw new InvalidBlockException(errlog);
         }
-        
+
         /// <summary>
         /// Append block
         /// </summary>
@@ -371,7 +348,7 @@ namespace AElf.Synchronization.BlockExecution
             if(block == null)
                 return;
             var blockChain = _chainService.GetBlockChain(block.Header.ChainId);
-            var txToRevert = await blockChain.RollbackToHeight(block.Header.Index - 1);
+            await blockChain.RollbackToHeight(block.Header.Index - 1);
         }
 
         #endregion

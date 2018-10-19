@@ -21,7 +21,6 @@ using Easy.MessageHub;
 using NLog;
 using NServiceKit.Common.Extensions;
 using Status = AElf.Kernel.Status;
-using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
@@ -36,7 +35,6 @@ namespace AElf.Miner.Miner
         private readonly ITxPool _txPool;
         private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
-        private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
@@ -46,20 +44,20 @@ namespace AElf.Miner.Miner
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ServerManager _serverManager;
+        private Address _producerAddress;
 
         private IMinerConfig Config { get; }
 
         public Address Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPool txPool, IChainService chainService,
-            IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
+            IExecutingService executingService, ITransactionManager transactionManager,
             ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, 
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager)
         {
             Config = config;
             _txPool = txPool;
             _chainService = chainService;
-            _stateDictator = stateDictator;
             _executingService = executingService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
@@ -67,8 +65,6 @@ namespace AElf.Miner.Miner
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _serverManager = serverManager;
-            var chainId = config.ChainId;
-            _stateDictator.ChainId = chainId;
         }
 
         /// <inheritdoc />
@@ -91,11 +87,23 @@ namespace AElf.Miner.Miner
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
                     var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
                     var readyTxs = await _txPool.GetReadyTxsAsync(currentRoundInfo);
+                    // remove invalid CrossChainBlockInfoTransaction, only that from local can be executed)
+                    /*readyTxs.RemoveAll(t =>
+                        t.Type == TransactionType.CrossChainBlockInfoTransaction &&
+                        !t.GetHash().Equals(genTx.GetHash()));*/
+                    
+                    var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
+                    _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
+                    foreach (var transaction in dposTxs)
+                    {
+                        _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName} from {transaction.From.DumpHex()}");
+                    }
 
+                    var disambiguationHash = HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
                     _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
-                        : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token);
+                        : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token, disambiguationHash);
                     _logger?.Log(LogLevel.Debug, "Executed Transactions.");
 
                     // transaction results
@@ -124,7 +132,19 @@ namespace AElf.Miner.Miner
                 }
             }
         }
-        
+
+        private async Task<ulong> GetNewBlockIndexAsync()
+        {
+            var blockChain = _chainService.GetBlockChain(Config.ChainId);
+            var index = await blockChain.GetCurrentBlockHeightAsync() + 1;
+            return index;
+        }
+
+        private async Task UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
+        {
+            await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
+        }
+
         /// <summary>
         /// Generate a system tx for parent chain block info and broadcast it.
         /// </summary>
@@ -211,6 +231,7 @@ namespace AElf.Miner.Miner
                             TransactionId = trace.TransactionId,
                             Status = Status.Mined,
                             RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                            StateHash=trace.GetSummarizedStateHash(),
                             Index = index++,
                             Transaction = trace.Transaction
                         };
@@ -339,14 +360,8 @@ namespace AElf.Miner.Miner
             block.AddTransactions(results.Select(r => r.Transaction));
 
             // set ws merkle tree root
-            await _stateDictator.SetWorldStateAsync();
-            var ws = await _stateDictator.GetLatestWorldStateAsync();
+            block.Header.MerkleTreeRootOfWorldState = new BinaryMerkleTree().AddNodes(results.Select(x=>x.StateHash)).ComputeRootHash();
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-
-            if (ws != null)
-            {
-                block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
-            }
 
             // calculate and set tx merkle tree root 
             block.Complete();
@@ -371,14 +386,14 @@ namespace AElf.Miner.Miner
             var index = lastHeader.Index;
             var block = new Block(lastBlockHash) {Header = {Index = index + 1, ChainId = chainId}};
 
-            var ws = await _stateDictator.GetWorldStateAsync(lastBlockHash);
-            var state = await ws.GetWorldStateMerkleTreeRootAsync();
+//            var ws = await _stateDictator.GetWorldStateAsync(lastBlockHash);
+//            var state = await ws.GetWorldStateMerkleTreeRootAsync();
 
             var header = new BlockHeader
             {
                 Version = 0,
                 PreviousBlockHash = lastBlockHash,
-                MerkleTreeRootOfWorldState = state,
+                MerkleTreeRootOfWorldState = Hash.Default,
                 MerkleTreeRootOfTransactions = merkleTreeRootForTransaction
             };
 
@@ -423,6 +438,7 @@ namespace AElf.Miner.Miner
         {
             _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
             _keyPair = NodeConfig.Instance.ECKeyPair;
+            _producerAddress = Address.FromRawBytes(_keyPair.GetEncodedPublicKey());
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
         }
 

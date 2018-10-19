@@ -27,18 +27,18 @@ namespace AElf.Contracts.SideChain.Tests
             }
     
             public Hash ChainId1 { get; } = Hash.FromString("ChainId1");
+            public IStateStore StateStore { get; }
             public ISmartContractManager SmartContractManager;
             public ISmartContractService SmartContractService;
             private IFunctionMetadataService _functionMetadataService;
     
-            public IStateDictator StateDictator { get; }
             private IChainCreationService _chainCreationService;
     
             private ISmartContractRunnerFactory _smartContractRunnerFactory;
-    
-            public MockSetup(IStateDictator stateDictator, IChainCreationService chainCreationService, DataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+            
+            public MockSetup(IStateStore stateStore, IChainCreationService chainCreationService, DataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
             {
-                StateDictator = stateDictator;
+                StateStore = stateStore;
                 _chainCreationService = chainCreationService;
                 _functionMetadataService = functionMetadataService;
                 _smartContractRunnerFactory = smartContractRunnerFactory;
@@ -47,14 +47,14 @@ namespace AElf.Contracts.SideChain.Tests
                 {
                     await Init();
                 }).Unwrap().Wait();
-                SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, _functionMetadataService);
+                SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
     
                 new ServicePack()
                 {
                     ChainContextService = chainContextService,
                     SmartContractService = SmartContractService,
                     ResourceDetectionService = null,
-                    StateDictator = StateDictator
+                    StateStore = StateStore
                 };
             }
     
@@ -104,8 +104,6 @@ namespace AElf.Contracts.SideChain.Tests
                 var chain1 =
                     await _chainCreationService.CreateNewChainAsync(ChainId1,
                         new List<SmartContractRegistration> {reg0, reg1});
-                StateDictator.ChainId = ChainId1;
-                StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
             }
             
             public async Task<IExecutive> GetExecutiveAsync(Address address)

@@ -12,18 +12,15 @@ using AElf.Kernel.Consensus;
 using AElf.Miner.Miner;
 using AElf.Node;
 using AElf.Node.AElfChain;
-using AElf.Node.Protocol;
-using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using AElf.Common;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
-using AElf.Node.EventMessages;
 using AElf.Synchronization.EventMessages;
+using AElf.Kernel.Storages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -40,7 +37,6 @@ namespace AElf.Kernel.Node
 
         private bool isMining;
 
-        private readonly IStateDictator _stateDictator;
         private readonly ITxPool _txPool;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
@@ -70,18 +66,17 @@ namespace AElf.Kernel.Node
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateDictator stateDictator, ITxPool txPool, IMiner miner,
+        public DPoS(IStateStore stateStore, ITxPool txPool, IMiner miner,
             IChainService chainService)
         {
-            _stateDictator = stateDictator;
             _txPool = txPool;
             _miner = miner;
             _chainService = chainService;
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
-            Helper = new AElfDPoSHelper(_stateDictator, Hash.LoadHex(NodeConfig.Instance.ChainId), Miners,
-                ContractAddress);
+            Helper = new AElfDPoSHelper(Hash.LoadHex(NodeConfig.Instance.ChainId), Miners,
+                ContractAddress, stateStore);
 
             var count = MinersConfig.Instance.Producers.Count;
 
@@ -172,18 +167,10 @@ namespace AElf.Kernel.Node
                 return null;
             try
             {
-                MessageHub.Instance.Publish(new SyncUnfinishedBlock(await BlockChain.GetCurrentBlockHeightAsync()));
-                
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(await BlockChain.GetCurrentBlockHeightAsync()));                
                 _logger?.Trace($"Mine - Entered mining {res}");
-                
-                // Prepare the state of new block.
-                _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
-                _stateDictator.BlockProducerAccountAddress = _nodeKeyPair.Address;
-                _stateDictator.BlockHeight = await BlockChain.GetCurrentBlockHeightAsync();
 
                 var block = await _miner.Mine(Helper.GetCurrentRoundInfo());
-
-                await _stateDictator.SetMap(block.GetHash());
 
                 return block;
             }
