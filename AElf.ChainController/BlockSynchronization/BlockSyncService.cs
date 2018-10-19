@@ -121,6 +121,7 @@ namespace AElf.ChainController
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
             if (message.Block.Header.Index > currentHeight)
             {
+                _logger?.Trace($"Need to execute blocks from {currentHeight + 1}");
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
             }
             

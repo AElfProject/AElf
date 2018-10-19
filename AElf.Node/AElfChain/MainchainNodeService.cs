@@ -163,16 +163,6 @@ namespace AElf.Node.AElfChain
             _txHub.CurrentHeightGetter = ()=> _blockChain.GetCurrentBlockHeightAsync().Result;
             MessageHub.Instance.Subscribe<BlockHeader>((bh)=>_txHub.OnNewBlockHeader(bh));
             SetupConsensus();
-            
-            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
-            {
-                await _blockSyncService.ReceiveBlock(inBlock.Block);
-            });
-
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
-            {
-                _blockSyncService.AddMinedBlock(inBlock.Block);
-            });
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
@@ -219,6 +209,16 @@ namespace AElf.Node.AElfChain
 
             _logger?.Log(LogLevel.Debug, $"Chain Id = {NodeConfig.Instance.ChainId}");
 
+            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
+            {
+                await _blockSyncService.ReceiveBlock(inBlock.Block);
+            });
+
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
+            {
+                _blockSyncService.AddMinedBlock(inBlock.Block);
+            });
+            
             #region setup
 
             try
@@ -251,7 +251,7 @@ namespace AElf.Node.AElfChain
 
             // set world state
             _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
-
+            
             #endregion setup
 
             #region start

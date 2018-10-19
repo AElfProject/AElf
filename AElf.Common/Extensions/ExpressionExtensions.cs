@@ -24,7 +24,7 @@ namespace AElf.Common
                 case ExpressionType.MemberAccess:
                     var memberExpr = (MemberExpression)expression;
                     {
-                        object instance = memberExpr.Expression.GetValue();
+                        var instance = memberExpr.Expression.GetValue();
                         switch (memberExpr.Member)
                         {
                             case FieldInfo field:
@@ -84,14 +84,17 @@ namespace AElf.Common
             var objectMember = Expression.Convert(expression, typeof(object));
             var getterLambda = Expression.Lambda<Func<object>>(objectMember);
 
+            object result;
             try
             {
-                return getterLambda.Compile().Invoke();
+                result = getterLambda.Compile().Invoke();
             }
             catch (InvalidOperationException exception)
             {
                 throw new NotSupportedException($"Value of {expression} can't be commuted.", exception);
             }
+
+            return result;
         }
 
         /// <summary>
