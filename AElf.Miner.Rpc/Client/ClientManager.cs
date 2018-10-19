@@ -111,7 +111,8 @@ namespace AElf.Miner.Rpc.Client
             {
                 var client = CreateClientToSideChain(sideChainId);
                 var height =
-                    await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(sideChainId));
+                    Math.Max(await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(sideChainId)),
+                        GlobalConfig.GenesisBlockHeight);
 
                 // keep-alive
                 client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height);
