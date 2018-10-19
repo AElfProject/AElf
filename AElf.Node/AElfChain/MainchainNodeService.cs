@@ -260,16 +260,7 @@ namespace AElf.Node.AElfChain
 
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
-                try
-                {
-                    Console.WriteLine($"Network received block at height {inBlock.Block.Header.Index}");
-                    await _blockSynchronizer.ReceiveBlock(inBlock.Block);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
+                await _blockSynchronizer.ReceiveBlock(inBlock.Block);
             });
 
             MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
