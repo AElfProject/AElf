@@ -29,9 +29,7 @@ namespace AElf.Kernel.Tests
             var sb = Encoding.UTF8.GetBytes(s);
             var statePath = new StatePath()
             {
-                ChainId = chainId,
-                ContractAddress = address,
-                Path = {s}
+                Path = {ByteString.CopyFrom(address.DumpByteArray()), ByteString.CopyFromUtf8(s)}
             };
             await root.SetAsync(s, sb);
 
@@ -44,11 +42,6 @@ namespace AElf.Kernel.Tests
 
             // Commit changes to store
             var toCommit = retrievedChanges.ToDictionary(kv => kv.Key, kv => kv.Value.CurrentValue.ToByteArray());
-            foreach (var kv in toCommit)
-            {
-                kv.Key.ChainId = chainId;
-                kv.Key.ContractAddress = address;
-            }
             await root.StateStore.PipelineSetDataAsync(toCommit);
 
             // Setting the same value again in another DataProvider, no change will be returned
@@ -60,9 +53,13 @@ namespace AElf.Kernel.Tests
 
             // Test path
             var sub = root.GetChild("sub");
-            await sub.SetAsync("dummy", new byte[]{0x01});
+            await sub.SetAsync("dummy", new byte[] {0x01});
             var subPath = sub.GetChanges().Keys.First();
-            var path = new [] {"", "sub", "dummy"};
+            var path = new RepeatedField<ByteString>
+            {
+                ByteString.CopyFrom(address.DumpByteArray()), ByteString.Empty, ByteString.CopyFromUtf8("sub"),
+                ByteString.CopyFromUtf8("dummy")
+            };
             Assert.Equal(subPath.Path, path);
         }
     }

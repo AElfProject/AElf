@@ -22,9 +22,9 @@ message Transaction {
 }
 
 message StatePath {
-    repeated string Path = 1;
-    Address ContractAddress = 2;
-    Hash ChainId = 3;
+    repeated bytes Path = 1;
+//    Address ContractAddress = 2;
+//    Hash ChainId = 3;
 }
 
 message StateValue {
