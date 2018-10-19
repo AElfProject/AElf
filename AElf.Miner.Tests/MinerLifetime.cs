@@ -308,14 +308,14 @@ namespace AElf.Kernel.Tests.Miner
             Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().DumpByteArray()));
         }
 
-        [Fact(Skip = "Todo")]
+        [Fact]
         public async Task SyncGenesisBlock_False_Rollback()
         {
             var chain = await _mock.CreateChain();
             NodeConfig.Instance.ChainId = chain.Id.DumpHex();
             NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
             
-            var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, 1);
+            var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
             
             var txs = CreateTxs(chain.Id);
             
