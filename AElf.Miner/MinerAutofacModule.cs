@@ -1,4 +1,5 @@
 ﻿using AElf.Miner.Miner;
+using AElf.Miner.TxMemPool;
 using Autofac;
 
 namespace AElf.Miner
@@ -24,7 +25,8 @@ namespace AElf.Miner
             }
             
             builder.RegisterType(typeof(Miner.Miner)).As<IMiner>();
-            builder.RegisterType(typeof(BlockExecutor)).As<IBlockExecutor>();
+            builder.RegisterType<TxPool>().As<ITxPool>().SingleInstance();
+            builder.RegisterType<TxValidator>().As<ITxValidator>().SingleInstance();
         }
     }
 }

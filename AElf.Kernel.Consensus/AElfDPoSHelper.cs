@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Extensions;
 using AElf.Common.Attributes;
+using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -16,23 +17,36 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable InconsistentNaming
     public class AElfDPoSHelper
     {
-        private readonly IDataProvider _dataProvider;
+        private readonly Hash _chainId;
         private readonly Miners _miners;
         private readonly ILogger _logger;
         private readonly Address _contractAddressHash;
-        private readonly IStateDictator _stateDictator;
+        private readonly IStateStore _stateStore;
 
         public AElfDPoSInformation DpoSInformation { get; private set; }
 
+        
+        private DataProvider DataProvider
+        {
+            get
+            {
+                var dp = DataProvider.GetRootDataProvider(_chainId, _contractAddressHash);
+                dp.StateStore = _stateStore;
+                return dp;
+            }
+        }
+        
         public Miners Miners
         {
             get
             {
                 try
                 {
-                    var miners = Miners.Parser.ParseFrom(_dataProvider
-                        .GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)).Result);
-                    
+                    // If reusing DataProvider, the cache has to be cleared first 
+//                    _dataProvider.ClearCache();
+//                    var miners = Miners.Parser.ParseFrom(_dataProvider
+//                        .GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)).Result);
+                    var miners = Miners.Parser.ParseFrom(GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)));
                     return miners;
                 }
                 catch (Exception)
@@ -134,21 +148,17 @@ namespace AElf.Kernel.Consensus
         private byte[] GetBytes<T>(Hash keyHash, string resourceStr = "") where T : IMessage, new()
         {
             return resourceStr != ""
-                ? _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider()
-                    .GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
-                : _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider()
-                    .GetAsync<T>(keyHash).Result;
+                ? DataProvider.GetChild(resourceStr).GetAsync<T>(keyHash).Result
+                : DataProvider.GetAsync<T>(keyHash).Result;
         }
 
-        public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners, Address contractAddressHash)
+        public AElfDPoSHelper(Hash chainId, Miners miners, Address contractAddressHash, IStateStore stateStore)
         {
-            stateDictator.ChainId = chainId;
+            _chainId = chainId;
             _miners = miners;
             _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
-
             _contractAddressHash = contractAddressHash;
-            _stateDictator = stateDictator;
-            _dataProvider = _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider();
+            _stateStore = stateStore;
         }
 
         /// <summary>
@@ -193,8 +203,8 @@ namespace AElf.Kernel.Consensus
 
         public async Task<bool> HasGenerated()
         {
-            var bytes = await _dataProvider.GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString));
-            return bytes != null;
+            var bytes = await DataProvider.GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString));
+            return bytes != null && bytes.Length > 0;
         }
 
         public AElfDPoSInformation GenerateInfoForFirstTwoRounds()

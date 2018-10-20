@@ -104,11 +104,13 @@ namespace AElf.Common
 
         #region Predefined
 
-        public static readonly Hash Zero = Hash.FromRawBytes(new byte[] { });
+        public static readonly Hash Zero = Hash.FromString("AElf");
 
-        public static readonly Hash Default = Hash.FromString("AElf");
+        public static readonly Hash Ones = Hash.LoadByteArray(Enumerable.Range(0, 32).Select(x=>byte.MaxValue).ToArray());
 
-        public static readonly Hash Genesis = Hash.FromString("Genesis");
+        public static readonly Hash Default = Hash.FromRawBytes(new byte[0]);
+
+        public static readonly Hash Genesis = Hash.LoadByteArray(Enumerable.Range(0, 32).Select(x=>byte.MinValue).ToArray());
 
         #endregion
 
@@ -163,22 +165,8 @@ namespace AElf.Common
                 throw new InvalidOperationException("Cannot compare hash when hash is null");
             }
 
-            var xValue = x.Value;
-            var yValue = y.Value;
-            for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
-            {
-                if (xValue[i] > yValue[i])
-                {
-                    return 1;
-                }
+            return ByteStringHelpers.Compare(x.Value, y.Value);
 
-                if (xValue[i] < yValue[i])
-                {
-                    return -1;
-                }
-            }
-
-            return 0;
         }
 
         public int CompareTo(Hash that)

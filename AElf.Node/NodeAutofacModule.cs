@@ -6,6 +6,7 @@ using AElf.Kernel.Node;
 using AElf.Network;
 using AElf.Node.AElfChain;
 using AElf.Node.Protocol;
+using AElf.Synchronization.BlockSynchronization;
 using Autofac;
 
 namespace AElf.Node

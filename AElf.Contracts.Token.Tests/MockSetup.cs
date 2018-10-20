@@ -13,6 +13,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
+using AElf.Execution.Execution;
 
 namespace AElf.Contracts.Token.Tests
 {
@@ -27,6 +28,7 @@ namespace AElf.Contracts.Token.Tests
             return (ulong)n;
         }
 
+        public IStateStore StateStore { get; }
         public Hash ChainId1 { get; } = Hash.Generate();
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService { get; }
@@ -36,20 +38,17 @@ namespace AElf.Contracts.Token.Tests
         
         public IChainContextService ChainContextService;
 
-        public IAccountDataProvider DataProvider1;
-
         public ServicePack ServicePack;
 
-        public IStateDictator StateDictator { get; }
         private IChainCreationService _chainCreationService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IStateDictator stateDictator, ISmartContractService smartContractService,
+        public MockSetup(IStateStore stateStore, ISmartContractService smartContractService,
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            StateDictator = stateDictator;
+            StateStore = stateStore;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
@@ -65,7 +64,7 @@ namespace AElf.Contracts.Token.Tests
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                StateDictator = StateDictator
+                StateStore = StateStore
             };
         }
 
@@ -115,8 +114,6 @@ namespace AElf.Contracts.Token.Tests
             var chain1 =
                 await _chainCreationService.CreateNewChainAsync(ChainId1,
                     new List<SmartContractRegistration> {reg0});
-            StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Address address)

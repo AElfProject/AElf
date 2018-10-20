@@ -113,7 +113,7 @@ namespace AElf.Cryptography.Certificate
             // create directory if not exists
             Directory.CreateDirectory(dir);
             
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(dir, fileName + extension), true)) {
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(dir, fileName + extension), false)) {
                 PemWriter pw = new PemWriter(outputFile);
                 try
                 {

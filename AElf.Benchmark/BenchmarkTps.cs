@@ -17,6 +17,8 @@ using NLog;
 using ServiceStack;
 using ServiceStack.Text;
 using AElf.Common;
+using AElf.Execution.Execution;
+using AElf.Kernel.Storages;
 
 namespace AElf.Benchmark
 {
@@ -27,7 +29,7 @@ namespace AElf.Benchmark
         private readonly ILogger _logger;
         private readonly BenchmarkOptions _options;
         private readonly IExecutingService _executingService;
-        private readonly IStateDictator _stateDictator;
+        private readonly IStateStore _stateStore;
 
         private readonly ServicePack _servicePack;
 
@@ -50,16 +52,12 @@ namespace AElf.Benchmark
             }
         }
 
-        public Benchmarks(IChainCreationService chainCreationService,
+        public Benchmarks(IStateStore stateStore, IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
-            ILogger logger, IFunctionMetadataService functionMetadataService,
-            IAccountContextService accountContextService, IStateDictator stateDictator, BenchmarkOptions options, IExecutingService executingService)
+            ILogger logger, IFunctionMetadataService functionMetadataService,BenchmarkOptions options, IExecutingService executingService)
         {
             ChainId = Hash.Generate();
-            
-            _stateDictator = stateDictator;
-            _stateDictator.ChainId = ChainId;
-                
+            _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;
             _logger = logger;
@@ -72,8 +70,7 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                StateDictator = _stateDictator,
-                AccountContextService = accountContextService,
+                StateStore = _stateStore
             };
 
             _dataGenerater = new TransactionDataGenerator(options);
@@ -271,8 +268,7 @@ namespace AElf.Benchmark
             try
             {
                 await executive.SetTransactionContext(txnCtxt).Apply();
-                var changesDict = await txnCtxt.Trace.CommitChangesAsync(_stateDictator);
-                await _stateDictator.ApplyCachedDataAction(changesDict);
+                await txnCtxt.Trace.CommitChangesAsync(_stateStore);
             }
             finally
             {
@@ -309,8 +305,7 @@ namespace AElf.Benchmark
             try
             {
                 await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-                var changesDict = await txnInitCtxt.Trace.CommitChangesAsync(_stateDictator);
-                await _stateDictator.ApplyCachedDataAction(changesDict);
+                await txnInitCtxt.Trace.CommitChangesAsync(_stateStore);
             }
             finally
             {

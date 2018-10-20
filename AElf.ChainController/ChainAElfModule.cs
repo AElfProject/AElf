@@ -1,6 +1,4 @@
 ﻿using System.IO;
-using AElf.ChainController.EventMessages;
-using AElf.ChainController.TxMemPool;
 using AElf.Common.Application;
 using AElf.Common;
 using AElf.Common.Module;
@@ -60,14 +58,7 @@ namespace AElf.ChainController
             NodeConfig.Instance.ChainId = chainIdHash.DumpHex();
 
             builder.RegisterModule(new ChainAutofacModule());
-
-            var txPoolConfig = TxPoolConfig.Default;
-            txPoolConfig.FeeThreshold = 0;
-            txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;
-            txPoolConfig.Maximal = TransactionPoolConfig.Instance.Maximal;
-            txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;
-            txPoolConfig.ChainId = chainIdHash;
-            builder.RegisterInstance(txPoolConfig).As<ITxPoolConfig>();
+           
         }
 
         public void Run(ILifetimeScope scope)

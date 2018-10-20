@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Type = System.Type;
@@ -66,7 +67,7 @@ namespace AElf.Runtime.CSharp
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
-        private IStateDictator _stateDictator;
+        private IStateStore _stateStore;
         private int _maxCallDepth = 4;
 
         public Executive(Module abiModule)
@@ -83,15 +84,16 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public IExecutive SetStateDictator(IStateDictator stateDictator)
+        public IExecutive SetStateStore(IStateStore stateStore)
         {
-            _stateDictator = stateDictator;
+            _stateStore = stateStore;
             return this;
         }
 
         public void SetDataCache(Dictionary<DataPath, StateCache> cache)
         {
             _currentSmartContractContext.DataProvider.StateCache = cache;
+            _currentSmartContractContext.DataProvider.ClearCache();
         }
 
         // ReSharper disable once InconsistentNaming
@@ -153,9 +155,7 @@ namespace AElf.Runtime.CSharp
                 _currentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
                 return;
             }
-            _stateDictator.BlockHeight = _currentTransactionContext.BlockHeight;
-            _stateDictator.BlockProducerAccountAddress = _currentTransactionContext.Transaction.From;
-            
+
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = _currentTransactionContext.Transaction.MethodName;
 
@@ -218,9 +218,12 @@ namespace AElf.Runtime.CSharp
                 if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() &&
                     _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
-                    var changes = _currentSmartContractContext.DataProvider.GetValueChanges();
-                    var stateValueChanges = changes as StateValueChange[] ?? changes.ToArray();
-                    _currentTransactionContext.Trace.ValueChanges.AddRange(stateValueChanges);
+                    var changes = _currentSmartContractContext.DataProvider.GetChanges().Select(kv=>new StateChange()
+                    {
+                        StatePath = kv.Key,
+                        StateValue = kv.Value
+                    });
+                    _currentTransactionContext.Trace.StateChanges.AddRange(changes);
                 }
             }
             catch (Exception ex)

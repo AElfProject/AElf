@@ -29,27 +29,3 @@ message GraphEdge {
     string Source = 1;
     string Target = 2;
 }
-
-enum ExecutionStatus {
-    Undefined = 0;
-    ExecutedAndCommitted = 1;
-    ExecutedButNotCommitted = 2;
-    SystemError = -1;
-    ContractError = -2;
-    ExceededMaxCallDepth = -3;
-    Canceled = -4;
-}
-
-message TransactionTrace {
-    Hash TransactionId = 1;
-    RetVal RetVal = 2;
-    string StdOut = 3;
-    string StdErr = 4;
-    repeated LogEvent Logs = 5;
-    repeated Transaction InlineTransactions = 6;
-    repeated TransactionTrace InlineTraces = 7;
-    repeated StateValueChange ValueChanges = 8;
-    int64 Elapsed = 9;
-    ExecutionStatus ExecutionStatus = 10;
-    Transaction Transaction = 11;
-}

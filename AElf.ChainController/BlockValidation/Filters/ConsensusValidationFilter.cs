@@ -29,7 +29,7 @@ namespace AElf.ChainController
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
             // If the height of chain is 1, no need to check consensus validation
-            if (block.Header.Index < 2)
+            if (block.Header.Index < GlobalConfig.GenesisBlockHeight + 2)
             {
                 return BlockValidationResult.Success;
             }

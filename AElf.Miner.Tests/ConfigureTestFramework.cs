@@ -1,5 +1,4 @@
 ﻿using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Database;
 using AElf.Execution;
@@ -38,6 +37,7 @@ namespace AElf.Miner.Tests
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>().SingleInstance();
             builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>().SingleInstance();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
+            builder.RegisterType<StateStore>().As<IStateStore>();
         }
     }
 }

@@ -7,7 +7,6 @@ using AElf.Kernel.Storages;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
@@ -17,6 +16,7 @@ using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using NLog;
 using AElf.Common;
+using AElf.Execution.Execution;
 using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
@@ -57,12 +57,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public ServicePack ServicePack;
 
-        public IStateDictator StateDictator { get; }
         private IChainCreationService _chainCreationService;
         private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;
         private ILogger _logger;
 
+        private IStateStore _stateStore;
         public IActorEnvironment ActorEnvironment { get; private set; }
 
         private readonly HashManager _hashManager;
@@ -73,11 +73,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger,
-            IStateDictator stateDictator,
-            HashManager hashManager, TransactionManager transactionManager)
+            ISmartContractRunnerFactory smartContractRunnerFactory, ILogger logger,
+            IStateStore stateStore, HashManager hashManager, TransactionManager transactionManager)
         {
             _logger = logger;
+            _stateStore = stateStore;
             ActorEnvironment = actorEnvironment;
             if (!ActorEnvironment.Initialized)
             {
@@ -85,7 +85,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             }
             _hashManager = hashManager;
             _transactionManager = transactionManager;
-            StateDictator = stateDictator;//new StateDictator(_hashManager,transactionManager, dataStore, _logger);
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             ChainContextService = chainContextService;
@@ -94,7 +93,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator,
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
@@ -102,7 +101,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                StateDictator = StateDictator
+                StateStore = _stateStore
             };
 
             // These are only required for workertest
@@ -113,7 +112,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
             Worker1.Tell(new LocalSerivcePack(ServicePack));
             Worker2.Tell(new LocalSerivcePack(ServicePack));
-            Requestor = Sys.ActorOf(AElf.Execution.Requestor.Props(Router));
+            Requestor = Sys.ActorOf(AElf.Execution.Execution.Requestor.Props(Router));
         }
 
         public byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -128,14 +127,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 Type = (int) SmartContractType.BasicContractZero
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
-
-            StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray()));
-
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
-            
-            StateDictator.ChainId = ChainId2;
-            DataProvider2 = StateDictator.GetAccountDataProvider(Address.FromRawBytes(ChainId2.OfType(HashType.AccountZero).ToByteArray()));
         }
 
         private async Task DeploySampleContracts()
@@ -157,21 +149,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            Console.WriteLine(trace);
-            Console.WriteLine(
-                string.Join(
-                    "\r\n",
-                    trace.ValueChanges.Select(x => $"\r\n{x.Path} => {x.Path.ResourcePathHash} => {x.Path.ResourcePointerHash}\r\n")
-                )
-            );
-            var changesDict = await trace.CommitChangesAsync(StateDictator);
-            await StateDictator.ApplyCachedDataAction(changesDict);
+            await trace.CommitChangesAsync(_stateStore);
+//            await StateDictator.ApplyCachedDataAction(changesDict);
         }
 
         public void Initialize1(Address account, ulong qty)
         {
             var tc = GetInitializeTxnCtxt(SampleContractAddress1, account, qty);
-            StateDictator.ChainId = ChainId1;
             Executive1.SetTransactionContext(tc).Apply()
                 .Wait();
             CommitTrace(tc.Trace).Wait();
