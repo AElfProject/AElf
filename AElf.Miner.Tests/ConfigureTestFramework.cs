@@ -5,6 +5,7 @@ using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
@@ -30,6 +31,13 @@ namespace AElf.Miner.Tests
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterType<DataStore>().As<IDataStore>();
+            builder.RegisterType<BlockValidationService>().As<IBlockValidationService>().SingleInstance();
+            builder.RegisterType<ChainContextService>().As<IChainContextService>().SingleInstance();
+            builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
+            builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
+            builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>().SingleInstance();
+            builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>().SingleInstance();
+            builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
         }
     }
 }

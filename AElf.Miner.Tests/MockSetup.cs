@@ -43,11 +43,12 @@ namespace AElf.Miner.Tests
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
         
-        public MockSetup(ILogger logger, IDataStore dataStore, IBlockValidationService blockValidationService)
+        public MockSetup(ILogger logger, IDataStore dataStore, IBlockValidationService blockValidationService, IChainContextService chainContextService)
         {
             _logger = logger;
             _dataStore = dataStore;
             _blockValidationService = blockValidationService;
+            _chainContextService = chainContextService;
             Initialize();
         }
         
@@ -60,7 +61,7 @@ namespace AElf.Miner.Tests
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainService = new ChainService(new ChainManagerBasic(_dataStore),
-                new BlockManagerBasic(_dataStore, _logger),
+                new BlockManagerBasic(_dataStore),
                 _transactionManager, _dataStore, new BlockSet());
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");

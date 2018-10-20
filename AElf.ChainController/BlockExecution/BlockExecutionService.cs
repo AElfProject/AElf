@@ -44,8 +44,6 @@ namespace AElf.ChainController
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
 
             _logger = LogManager.GetLogger(nameof(BlockExecutionService));
-
-            _logger?.Trace("Using new block execution service.");
         }
 
         /// <summary>

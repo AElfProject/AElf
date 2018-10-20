@@ -56,7 +56,8 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
             IStateDictator stateDictator, IExecutingService executingService, ITransactionManager transactionManager,
             ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, 
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager, IBlockValidationService blockValidationService, IChainContextService chainContextService)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager, 
+            IBlockValidationService blockValidationService, IChainContextService chainContextService)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -71,6 +72,7 @@ namespace AElf.Miner.Miner
             _serverManager = serverManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
+            
             var chainId = config.ChainId;
             _stateDictator.ChainId = chainId;
         }
@@ -83,6 +85,7 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         public async Task<IBlock> Mine(Round currentRoundInfo = null)
         {
+            NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
             using (var cancellationTokenSource = new CancellationTokenSource())
             using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
             {
@@ -109,15 +112,15 @@ namespace AElf.Miner.Miner
                     var block = await GenerateBlockAsync(Config.ChainId, results);
                     _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
-                    //TODO: We need at least check the txs count of this block.
-//                    var chainContext =
-//                        await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
-//                    var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
-//                    if (blockValidationResult != BlockValidationResult.Success)
-//                    {
-//                        _logger?.Trace("Found the block generated before invalid: " + blockValidationResult);
-//                        return null;
-//                    }
+                    // We need at least check the txs count of this block.
+                    var chainContext =
+                        await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                    var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
+                    if (blockValidationResult != BlockValidationResult.Success)
+                    {
+                        _logger?.Trace("Found the block generated before invalid: " + blockValidationResult);
+                        return new Block();
+                    }
                     
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
@@ -134,7 +137,7 @@ namespace AElf.Miner.Miner
                 catch (Exception e)
                 {
                     _logger?.Error(e, "Mining failed with exception.");
-                    return null;
+                    return new Block();
                 }
             }
         }

@@ -162,7 +162,7 @@ namespace AElf.Miner.Tests.Grpc
             }
         }
         
-        [Fact]
+        [Fact(Skip = "")]
         public async Task MineWithIndexingSideChain()
         {
             string dir = @"/tmp/minerpems";
