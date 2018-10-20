@@ -28,7 +28,7 @@ namespace AElf.Execution
         {
             _actorEnvironment = actorEnvironment;
             _grouper = grouper;
-            _singlExecutingService = new SimpleExecutingService(servicePack.SmartContractService, servicePack.StateDictator, servicePack.ChainContextService);
+            _singlExecutingService = new SimpleExecutingService(servicePack.SmartContractService, servicePack.TransactionTraceManager, servicePack.StateStore, servicePack.ChainContextService);
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
