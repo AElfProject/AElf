@@ -231,7 +231,7 @@ namespace AElf.Miner.Miner
                             TransactionId = trace.TransactionId,
                             Status = Status.Mined,
                             RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
-                            StateHash=trace.GetSummarizedStateHash(),
+                            StateHash = trace.GetSummarizedStateHash(),
                             Index = index++,
                             Transaction = trace.Transaction
                         };
@@ -244,6 +244,7 @@ namespace AElf.Miner.Miner
                             TransactionId = trace.TransactionId,
                             RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
                             Status = Status.Failed,
+                            StateHash = trace.GetSummarizedStateHash(),
                             Index = index++,
                             Transaction = trace.Transaction
                         };
