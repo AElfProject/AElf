@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Configuration;
 using AElf.Execution;
+using AElf.Execution.Execution;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Concurrency.Worker

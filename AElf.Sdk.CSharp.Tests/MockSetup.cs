@@ -10,6 +10,7 @@ using AElf.Execution;
 using Google.Protobuf;
 using AElf.Kernel.Tests;
 using AElf.Common;
+using AElf.Execution.Execution;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -31,18 +32,18 @@ namespace AElf.Sdk.CSharp.Tests
 
         public IChainContextService ChainContextService;
 
-        public IAccountDataProvider DataProvider1;
+        public IStateStore StateStore;
+        public DataProvider DataProvider1;
 
         public ServicePack ServicePack;
 
-        public IStateDictator StateDictator { get; set; }
         private IChainCreationService _chainCreationService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IStateDictator stateDictator, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IStateStore stateStore, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            StateDictator = stateDictator;
+            StateStore = stateStore;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
@@ -52,14 +53,14 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateDictator, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                StateDictator = StateDictator
+                StateStore = StateStore
             };
         }
 
@@ -81,10 +82,11 @@ namespace AElf.Sdk.CSharp.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
 
-            StateDictator.ChainId = ChainId1;
-            DataProvider1 = StateDictator.GetAccountDataProvider(
+            DataProvider1 = DataProvider.GetRootDataProvider(
+                chain1.Id,
                 Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
             );
+            DataProvider1.StateStore = StateStore;
         }
 
         public async Task DeployContractAsync(byte[] code, Address address)

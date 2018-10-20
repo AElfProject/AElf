@@ -1,11 +1,12 @@
-﻿using System;
-using AElf.Common;
+﻿using AElf.Common;
 using AElf.Common.Application;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc;
+using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Server;
+using AElf.Miner.TxMemPool;
 using Autofac;
 using Google.Protobuf;
 
@@ -40,6 +41,13 @@ namespace AElf.Miner
                 }
             );
             builder.RegisterModule(new MinerAutofacModule(minerConfig));
+            
+            var txPoolConfig = TxPoolConfig.Default;
+            txPoolConfig.FeeThreshold = 0;
+            txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;
+            txPoolConfig.Maximal = TransactionPoolConfig.Instance.Maximal;
+            txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;
+            builder.RegisterInstance(txPoolConfig).As<ITxPoolConfig>();
         }
 
         public void Run(ILifetimeScope scope)

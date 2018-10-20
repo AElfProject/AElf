@@ -91,7 +91,7 @@ namespace AElf.Miner.Rpc.Client
                     ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
                     NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
                 };
-                _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
+                //_logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_realInterval);
             }

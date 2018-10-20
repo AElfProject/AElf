@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
-using AElf.ChainController.TxMemPool;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Kernel.Managers;
+using AElf.Miner.EventMessages;
+using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.Node.CrossChain;
 using AElf.RPC;
@@ -29,11 +30,11 @@ namespace AElf.ChainController.Rpc
         public IChainService ChainService { get; set; }
         public IChainContextService ChainContextService { get; set; }
         public IChainCreationService ChainCreationService { get; set; }
-        public ITxPoolService TxPoolService { get; set; }
+        public ITxPool TxPool { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ITransactionResultService TransactionResultService { get; set; }
+        public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractService SmartContractService { get; set; }
-        public IAccountContextService AccountContextService { get; set; }
         public TxHub TxHub { get; set; }
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfo CrossChainInfo { get; set; }
@@ -42,9 +43,13 @@ namespace AElf.ChainController.Rpc
 
         private readonly ILogger _logger;
 
+        private bool _canBroadcastTxs = true;
+
         public ChainControllerRpcService(ILogger logger)
         {
             _logger = logger;
+
+            MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
         #region Methods
 
@@ -196,9 +201,16 @@ namespace AElf.ChainController.Rpc
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
             var res = new JObject {["hash"] = transaction.GetHash().DumpHex()};
+
+            if (!_canBroadcastTxs)
+            {
+                res["error"] = "Sync still in progress, cannot send transactions.";
+                return await Task.FromResult(res);
+            }
+            
             try
             {
-                var valRes = await TxPoolService.AddTxAsync(transaction);
+                var valRes = await TxPool.AddTxAsync(transaction);
                 if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
                     MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
@@ -220,6 +232,15 @@ namespace AElf.ChainController.Rpc
         public async Task<JObject> ProcessBroadcastTxs(string rawtxs)
         {
             var response = new List<object>();
+            
+            if (!_canBroadcastTxs)
+            {
+                return new JObject
+                {
+                    ["result"] = JToken.FromObject(string.Empty),
+                    ["error"] = "Sync still in progress, cannot send transactions."
+                };
+            }
 
             foreach (var rawtx in rawtxs.Split(','))
             {
@@ -356,7 +377,10 @@ namespace AElf.ChainController.Rpc
                     ["tx_status"] = txResult.Status.ToString(),
                     ["tx_info"] = txInfo["tx"]
                 };
-
+#if DEBUG
+                var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
+                response["tx_trc"] = txtrc?.ToString();
+#endif
                 if (txResult.Status == Status.Failed)
                 {
                     response["tx_error"] = txResult.RetVal.ToStringUtf8();

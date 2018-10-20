@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
@@ -18,6 +17,10 @@ using Google.Protobuf;
 using Moq;
 using NLog;
 using AElf.Common;
+using AElf.Execution.Execution;
+using AElf.Miner.Rpc.Client;
+using AElf.Miner.TxMemPool;
+using AElf.Synchronization.BlockExecution;
 
 namespace AElf.Miner.Tests
 {
@@ -27,59 +30,62 @@ namespace AElf.Miner.Tests
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
         private readonly ILogger _logger;
-        private ulong _i;
+        private ulong _i = GlobalConfig.GenesisBlockHeight;
         private IChainCreationService _chainCreationService;
-        private IStateDictator _stateDictator;
         private ISmartContractManager _smartContractManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
-        private IAccountContextService _accountContextService;
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
+        private ITransactionTraceManager _transactionTraceManager;
         private IExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IDataStore _dataStore;
-        
-        public MockSetup(ILogger logger, IDataStore dataStore)
+        private readonly IStateStore _stateStore;
+        private TxHub _txHub;
+
+        public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore)
         {
             _logger = logger;
             _dataStore = dataStore;
+            _stateStore = stateStore;
             Initialize();
         }
         
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_dataStore, _logger);
-            _stateDictator = new StateDictator(new HashManager(_dataStore), _dataStore);
             _smartContractManager = new SmartContractManager(_dataStore);
-            _accountContextService = new AccountContextService(_stateDictator);
             _transactionResultManager = new TransactionResultManager(_dataStore);
+            _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            _chainService = new ChainService(new ChainManagerBasic(_dataStore),
-                new BlockManagerBasic(_dataStore, _logger),
-                _transactionManager, _dataStore, new BlockSet());
+            _chainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore, _logger),
+                _transactionManager, _dataStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);*/
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator,
-                    _functionMetadataService), _stateDictator, new ChainContextService(_chainService));
+                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateStore,
+                    _functionMetadataService), _transactionTraceManager, _stateStore,
+                new ChainContextService(_chainService));
             
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
-                    _stateDictator, _functionMetadataService), _logger);
+                    _stateStore, _functionMetadataService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
+            _txHub = new TxHub(_transactionManager);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
 
         public async Task<IChain> CreateChain()
-        {            var chainId = Hash.Generate();
+        {            
+            var chainId = Hash.Generate();
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -89,23 +95,21 @@ namespace AElf.Miner.Tests
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId,
                 new List<SmartContractRegistration> {reg});
-            _stateDictator.ChainId = chainId;
             return chain;
         }
         
-        internal IMiner GetMiner(IMinerConfig config, TxPoolService poolService, ClientManager clientManager = null)
+        internal IMiner GetMiner(IMinerConfig config, ITxPool pool, ClientManager clientManager = null)
         {
-            var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _stateDictator,
-                _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger,
-                clientManager, _binaryMerkleTreeManager, null);
+            var miner = new AElf.Miner.Miner.Miner(config, pool, _chainService,  _concurrencyExecutingService, 
+                _transactionManager, _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null);
 
             return miner;
         }
         
-        internal IBlockExecutor GetBlockExecutor(TxPoolService poolService, ClientManager clientManager = null)
+        internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
-            var blockExecutor = new BlockExecutor(poolService, _chainService, _stateDictator,
-                _concurrencyExecutingService, _logger, _transactionManager, _transactionResultManager,
+            var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, _logger, 
+                _transactionManager, _transactionResultManager,
                 clientManager, _binaryMerkleTreeManager);
 
             return blockExecutor;
@@ -116,13 +120,10 @@ namespace AElf.Miner.Tests
             return _chainService.GetBlockChain(chainId);
         }
         
-        internal TxPoolService CreateTxPoolService(Hash chainId)
+        internal ITxPool CreateTxPool()
         {
-            var poolconfig = TxPoolConfig.Default;
-            poolconfig.ChainId = chainId;
-            var contract = new ContractTxPool(poolconfig, _logger);
-            var prior = new PriorTxPool(poolconfig, _logger);
-            return new TxPoolService(contract, _accountContextService, _logger, prior);
+            var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
+            return new TxPool(_logger, validator, _txHub);
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
@@ -137,9 +138,12 @@ namespace AElf.Miner.Tests
         private Mock<ILightChain> MockLightChain()
         {
             Mock<ILightChain> mock = new Mock<ILightChain>();
-            mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1));
+            mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1 + GlobalConfig.GenesisBlockHeight));
             mock.Setup(lc => lc.GetHeaderByHeightAsync(It.IsAny<ulong>()))
-                .Returns<ulong>(p => Task.FromResult(_sideChainHeaders[(int) p]));
+                .Returns<ulong>(p =>
+                {
+                    return Task.FromResult(_sideChainHeaders[(int) p - 1]);
+                });
 
             return mock;
         }
@@ -148,7 +152,7 @@ namespace AElf.Miner.Tests
         {
             Mock<IBlockChain> mock = new Mock<IBlockChain>();
             mock.Setup(bc => bc.GetBlockByHeightAsync(It.IsAny<ulong>()))
-                .Returns<ulong>(p => Task.FromResult(_blocks[(int) p]));
+                .Returns<ulong>(p => Task.FromResult(_blocks[(int) p - 1]));
             return mock;
         }
 
@@ -206,8 +210,8 @@ namespace AElf.Miner.Tests
             mock.Setup(b => b.GetSideChainTransactionRootsMerkleTreeByHeightAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
                 .Returns<Hash, ulong>((_, u) =>
                 {
-                    _blocks[(int) u].Body.CalculateMerkleTreeRoots();
-                    return Task.FromResult(_blocks[(int) u].Body.BinaryMerkleTreeForSideChainTransactionRoots);
+                    _blocks[(int) u - 1].Body.CalculateMerkleTreeRoots();
+                    return Task.FromResult(_blocks[(int) u - 1].Body.BinaryMerkleTreeForSideChainTransactionRoots);
                 });
             return mock;
         }
@@ -292,9 +296,9 @@ namespace AElf.Miner.Tests
             //IBlockHeader blockHeader = Headers[0];
             _blocks = new List<IBlock>
             {
-                MockBlock(_headers[0], MockBlockBody(0, chainId)).Object,
-                MockBlock(_headers[1], MockBlockBody(1, chainId)).Object,
-                MockBlock(_headers[2], MockBlockBody(2, chainId)).Object
+                MockBlock(_headers[0], MockBlockBody(GlobalConfig.GenesisBlockHeight, chainId)).Object,
+                MockBlock(_headers[1], MockBlockBody(GlobalConfig.GenesisBlockHeight + 1, chainId)).Object,
+                MockBlock(_headers[2], MockBlockBody(GlobalConfig.GenesisBlockHeight + 2, chainId)).Object
             };
 
             MockKeyPair(chainId, dir);

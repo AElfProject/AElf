@@ -146,7 +146,7 @@ namespace AElf.ChainController.Rpc
                 // ReSharper disable once InconsistentNaming
 //                var idInDB = (await s.AccountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
 //                    .IncrementId;
-//                var idInPool = s.TxPoolService.GetIncrementId(addr);
+//                var idInPool = s.TxPool.GetIncrementId(addr);
 //
 //                return Math.Max(idInDB, idInPool);
                 return ulong.MaxValue;
@@ -159,7 +159,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
         {
-            if (s.TxPoolService.TryGetTx(txId, out var tx))
+            if (s.TxPool.TryGetTx(txId, out var tx))
             {
                 return tx;
             }
@@ -175,6 +175,20 @@ namespace AElf.ChainController.Rpc
         internal static async Task<TransactionResult> GetTransactionResult(this Svc s, Hash txHash)
         {
             var res = await s.TransactionResultService.GetResultAsync(txHash);
+            return res;
+        }
+
+        internal static async Task<TransactionTrace> GetTransactionTrace(this Svc s, Hash txHash, ulong height)
+        {
+            var b = await s.GetBlockAtHeight(height);
+            if (b == null)
+            {
+                return null;
+            }
+
+            var prodAddr = Address.FromRawBytes(b.Header.P.ToByteArray());
+            var res = await s.TransactionTraceManager.GetTransactionTraceAsync(txHash,
+                HashHelpers.GetDisambiguationHash(height, prodAddr));
             return res;
         }
 
@@ -202,12 +216,12 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetTransactionPoolSize(this Svc s)
         {
-            return await s.TxPoolService.GetPoolSize();
+            return await s.TxPool.GetPoolSize();
         }
 
         internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
         {
-            s.TxPoolService.SetBlockVolume(minimal, maximal);
+            s.TxPool.SetBlockVolume(minimal, maximal);
         }
 
         internal static async Task<byte[]> CallReadOnly(this Svc s, Transaction tx)
