@@ -5,12 +5,13 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Collections;
 using AElf.Configuration;
 using AElf.Kernel;
+using AElf.Miner.EventMessages;
+using AElf.Miner.TxMemPool;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -18,6 +19,8 @@ using AElf.Network.Eventing;
 using AElf.Network.Peers;
 using AElf.Node.EventMessages;
 using AElf.Node.Protocol.Events;
+using AElf.Synchronization.BlockSynchronization;
+using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
@@ -50,11 +53,11 @@ namespace AElf.Node.Protocol
         public event EventHandler BlockReceived;
         public event EventHandler TransactionsReceived;
 
-        private readonly ITxPoolService _transactionPoolService;
+        private readonly ITxPool _txPool;
         private readonly IPeerManager _peerManager;
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
-        
+        private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly List<IPeer> _peers = new List<IPeer>();
 
         private readonly Object _pendingRequestsLock = new Object();
@@ -74,16 +77,17 @@ namespace AElf.Node.Protocol
         
         private List<byte[]> _minedBlocks = new List<byte[]>();
 
-        public NetworkManager(ITxPoolService transactionPoolService, IPeerManager peerManager, IChainService chainService, ILogger logger)
+        public NetworkManager(ITxPool txPool, IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _pendingRequests = new List<TimeoutRequest>();
 
-            _transactionPoolService = transactionPoolService;
+            _txPool = txPool;
             _peerManager = peerManager;
             _chainService = chainService;
             _logger = logger;
-            
+            _blockSynchronizer = blockSynchronizer;
+
             _chainId = new Hash { Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)) };
             
             peerManager.PeerEvent += OnPeerAdded;
@@ -103,7 +107,7 @@ namespace AElf.Node.Protocol
                     
                     await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
                     
-                    // _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
+                    _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
             MessageHub.Instance.Subscribe<BlockAddedToSet>(inBlock => 
@@ -181,6 +185,12 @@ namespace AElf.Node.Protocol
                 if (syncFinished)
                     SetSyncState(false);
             });
+
+            MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
+            {
+                _peerManager.Start();
+                Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
+            });
         }
 
         private void SetSyncState(bool newState)
@@ -205,12 +215,12 @@ namespace AElf.Node.Protocol
             _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
                 
             _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
-            
+                
             _logger?.Trace($"Network initialized at height {_localHeight}.");
             
-            _peerManager.Start();
+            //_peerManager.Start();
             
-            Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
+            //Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
         }
         
         private void AnnounceBlock(IBlock block)
@@ -381,7 +391,7 @@ namespace AElf.Node.Protocol
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
 
                 byte[] blockHash = a.Id.ToByteArray();
-                IBlock bbh = _chainService.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
+                IBlock bbh = _blockSynchronizer.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
                 
                 _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
 
@@ -414,7 +424,7 @@ namespace AElf.Node.Protocol
                 _lastTxReceived.Enqueue(txHash);
 
                 // Add to the pool; if valid, rebroadcast.
-                var addResult = _transactionPoolService.AddTxAsync(tx).GetAwaiter().GetResult();
+                var addResult = _txPool.AddTxAsync(tx).GetAwaiter().GetResult();
                 
                 if (addResult == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {

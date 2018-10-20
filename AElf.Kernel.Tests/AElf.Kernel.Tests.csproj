@@ -19,6 +19,7 @@
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests.TestContractZero\AElf.Kernel.Tests.TestContractZero.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests.TestContract\AElf.Kernel.Tests.TestContract.csproj" />
@@ -36,6 +37,10 @@
     <Compile Remove="Concurrency\Execution\JobExecutorTest.cs" />
     <Compile Remove="Concurrency\Execution\GroupExecutorTest.cs" />
     <Compile Remove="Concurrency\Execution\BatchExecutorTest.cs" />
+    <Compile Remove="TxMemPool\IntegrationTest.cs" />
+    <Compile Remove="TxMemPool\TxPoolServiceTest.cs" />
+    <Compile Remove="TxMemPool\TxPoolTest.cs" />
+    <Compile Remove="AccountContextTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Concurrency\" />

@@ -18,18 +18,16 @@ namespace AElf.ChainController
         private readonly IBlockManagerBasic _blockManager;
         private readonly ITransactionManager _transactionManager;
         private readonly IDataStore _dataStore;
-        private readonly IBlockSet _blockSet;
 
         private readonly ConcurrentDictionary<Hash, BlockChain> _blockchains = new ConcurrentDictionary<Hash, BlockChain>();
 
         public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
-            ITransactionManager transactionManager, IDataStore dataStore, IBlockSet blockSet)
+            ITransactionManager transactionManager, IDataStore dataStore)
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
             _transactionManager = transactionManager;
             _dataStore = dataStore;
-            _blockSet = blockSet;
         }
 
         public IBlockChain GetBlockChain(Hash chainId)
@@ -54,20 +52,6 @@ namespace AElf.ChainController
         {
             return new LightChain(chainId, _chainManager, _blockManager, _dataStore);
         }
-
-        public bool IsBlockReceived(Hash blockHash, ulong height)
-        {
-            return _blockSet.IsBlockReceived(blockHash, height);
-        }
-
-        public IBlock GetBlockByHash(Hash blockHash)
-        {
-            return _blockSet.GetBlockByHash(blockHash);
-        }
-
-        public List<IBlock> GetBlockByHeight(ulong height)
-        {
-            return _blockSet.GetBlockByHeight(height);
-        }
+       
     }
 }

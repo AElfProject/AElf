@@ -5,18 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
-using AElf.SmartContract;
-using AElf.Kernel.Managers;
-using AElf.Miner.Miner;
-using AElf.Miner.Rpc.Client;
 using AElf.Miner.Tests;
-using AElf.Miner.Tests.Grpc;
-using Akka.Actor;
-using Akka.TestKit;
-using Akka.TestKit.Xunit;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -24,12 +15,12 @@ using AElf.Runtime.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Moq;
-using NLog;
-using MinerConfig = AElf.Miner.Miner.MinerConfig;
 using AElf.Common;
 using Address = AElf.Common.Address;
-using AElf.Common;
 using AElf.Configuration;
+using AElf.Miner.TxMemPool;
+using AElf.Synchronization.BlockExecution;
+using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -62,58 +53,6 @@ namespace AElf.Kernel.Tests.Miner
             }
         }
 
-        public Mock<ITxPoolService> MockTxPoolService(Hash chainId)
-        {
-            var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
-
-            var code = ExampleContractCode;
-
-            var regExample = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.FromRawBytes(code)
-            };
-            
-            
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            ECSigner signer = new ECSigner();
-            var txnDep = new Transaction()
-            {
-                From = keyPair.GetAddress(),
-                To = contractAddressZero,
-                IncrementId = NewIncrementId(),
-                MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            RegisterVal = regExample
-                        }
-                    }
-                }.ToByteArray()),
-                
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
-            };
-            
-            Hash hash = txnDep.GetHash();
-
-            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txnDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txnDep.R = ByteString.CopyFrom(signature.R); 
-            txnDep.S = ByteString.CopyFrom(signature.S);
-            
-            var txs = new List<Transaction>(){
-                txnDep
-            };
-            
-            var mock = new Mock<ITxPoolService>();
-            mock.Setup((s) => s.GetReadyTxsAsync(null, 3000)).Returns(Task.FromResult(txs));
-            return mock;
-        }
-        
-        
         public List<Transaction> CreateTx(Hash chainId)
         {
             var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
@@ -244,20 +183,22 @@ namespace AElf.Kernel.Tests.Miner
         public async Task Mine()
         {
             var chain = await _mock.CreateChain();
-            var poolService = _mock.CreateTxPoolService(chain.Id);
-            poolService.Start();
+            // create miner
+            var keypair = new KeyPairGenerator().Generate();
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
+            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            NodeConfig.Instance.NodeAccount = keypair.GetAddressHex();
+            var txPool = _mock.CreateTxPool();
+            txPool.Start();
 
             var txs = CreateTx(chain.Id);
             foreach (var tx in txs)
             {
-                await poolService.AddTxAsync(tx);
+                await txPool.AddTxAsync(tx);
             }
             
-            // create miner
-            var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
             var manager = _mock.MinerClientManager();
-            var miner = _mock.GetMiner(minerconfig, poolService, manager);
+            var miner = _mock.GetMiner(minerconfig, txPool, manager);
 
             //GrpcLocalConfig.Instance.ClientToParentChain = false;
             GrpcLocalConfig.Instance.ClientToSideChain = false;
@@ -269,7 +210,7 @@ namespace AElf.Kernel.Tests.Miner
             var block = await miner.Mine();
             
             Assert.NotNull(block);
-            Assert.Equal((ulong)1, block.Header.Index);
+            Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
 //            Hash addr = uncompressedPrivKey.Take(Common.Globals.AddressLength).ToArray();
@@ -285,14 +226,16 @@ namespace AElf.Kernel.Tests.Miner
         public async Task ExecuteWithoutTransaction()
         {
             var chain = await _mock.CreateChain();
-            var poolService = _mock.CreateTxPoolService(chain.Id);
-            poolService.Start();
-
             // create miner
             var keypair = new KeyPairGenerator().Generate();
             var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
+            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            NodeConfig.Instance.NodeAccount = keypair.GetAddressHex();
+            var txPool = _mock.CreateTxPool();
+            txPool.Start();
+            
             var manager = _mock.MinerClientManager();
-            var miner = _mock.GetMiner(minerconfig, poolService, manager);
+            var miner = _mock.GetMiner(minerconfig, txPool, manager);
             //GrpcLocalConfig.Instance.ClientToParentChain = false;
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             //GrpcRemoteConfig.Instance.ParentChain = null;
@@ -302,7 +245,7 @@ namespace AElf.Kernel.Tests.Miner
             var block = await miner.Mine();
             
             Assert.NotNull(block);
-            Assert.Equal((ulong)1, block.Header.Index);
+            Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
 //            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
@@ -317,48 +260,251 @@ namespace AElf.Kernel.Tests.Miner
         [Fact]
         public async Task SyncGenesisBlock_False_Rollback()
         {
-            var poolconfig = TxPoolConfig.Default;
             var chain = await _mock.CreateChain();
-            poolconfig.ChainId = chain.Id;
+            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
             
-            var poolService = _mock.CreateTxPoolService(chain.Id);
-            poolService.Start();
-            var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, 1);
+            var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
             
             var txs = CreateTxs(chain.Id);
-            foreach (var transaction in txs)
-            {
-                await poolService.AddTxAsync(transaction);
-            }
-            
-            Assert.Equal((ulong)0, await poolService.GetWaitingSizeAsync());
-            Assert.Equal((ulong)2, await poolService.GetExecutableSizeAsync());
-            Assert.True(poolService.TryGetTx(txs[2].GetHash(), out var tx));
             
             block.Body.Transactions.Add(txs[0].GetHash());
             block.Body.Transactions.Add(txs[2].GetHash());
 
+            block.Body.TransactionList.Add(txs[0]);
+            block.Body.TransactionList.Add(txs[2]);
             block.FillTxsMerkleTreeRootInHeader();
             block.Body.BlockHeader = block.Header.GetHash();
             block.Sign(new KeyPairGenerator().Generate());
 
             var manager = _mock.MinerClientManager();
-            var synchronizer = _mock.GetBlockExecutor(poolService, manager);
+            var blockExecutor = _mock.GetBlockExecutor(manager);
 
-            synchronizer.Init();
-            var res = await synchronizer.ExecuteBlock(block);
-            Assert.False(res);
-
-            Assert.Equal((ulong)0, await poolService.GetWaitingSizeAsync());
-            Assert.Equal((ulong)2, await poolService.GetExecutableSizeAsync());
-            //Assert.False(poolService.TryGetTx(txs[2].GetHash(), out tx));
-            Assert.True(poolService.TryGetTx(txs[1].GetHash(), out tx));
+            blockExecutor.Init();
+            var res = await blockExecutor.ExecuteBlock(block);
+            Assert.Equal(BlockExecutionResult.Failed, res);
 
             var blockchain = _mock.GetBlockChain(chain.Id); 
             var curHash = await blockchain.GetCurrentBlockHashAsync();
             var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
-            Assert.Equal((ulong)0, index);
+            Assert.Equal(GlobalConfig.GenesisBlockHeight, index);
             Assert.Equal(chain.GenesisBlockHash.DumpHex(), curHash.DumpHex());
         }
+
+
+        #region GRPC
+
+        [Fact]
+        public async Task SideChainServerClientsTest()
+        {
+            string dir = @"/tmp/ServerClientsTest";
+            _mock.ClearDirectory(dir);
+            try
+            {
+                var port = 50052;
+                var address = "127.0.0.1";
+                var sideChainId = _mock.MockSideChainServer(port, address, dir);
+                var parimpl = _mock.MockParentChainBlockInfoRpcServerImpl();
+                parimpl.Init(Hash.Generate());
+                var sideimpl = _mock.MockSideChainBlockInfoRpcServerImpl();
+                sideimpl.Init(sideChainId);
+                var serverManager = _mock.ServerManager(parimpl, sideimpl);
+                serverManager.Init(dir);
+                // create client, main chian is client-side
+                var manager = _mock.MinerClientManager();
+                int t = 1000;
+                GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
+                {
+                    {
+                        sideChainId.DumpHex(), new Uri{
+                            Address = address,
+                            Port = port
+                        }
+                    }
+                };
+                GrpcLocalConfig.Instance.ClientToSideChain = true;
+                manager.Init(dir, t);
+
+                GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
+                Thread.Sleep(t/2);
+                var result = await manager.CollectSideChainBlockInfo();
+                int count = result.Count;
+                Assert.Equal(1, count);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight, result[0].Height);
+                
+                Thread.Sleep(t);
+                result = await manager.CollectSideChainBlockInfo();
+                count = result.Count;
+                Assert.Equal(1, count);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result[0].Height);
+                
+                Thread.Sleep(t);
+                result = await manager.CollectSideChainBlockInfo();
+                count = result.Count;
+                Assert.Equal(1, count);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result[0].Height);
+                manager.CloseClientsToSideChain();
+
+                Thread.Sleep(t);
+                result = await manager.CollectSideChainBlockInfo();
+                count = result.Count;
+                Assert.Equal(0, count);
+            }
+            finally
+            {
+                Directory.Delete(Path.Combine(dir), true);
+            }
+        }
+
+        [Fact]
+        public async Task ParentChainServerClientTest()
+        {
+            string dir = @"/tmp/ServerClientsTest";
+            _mock.ClearDirectory(dir);
+            try
+            {
+                var port = 50053;
+                var address = "127.0.0.1";
+                
+                var parentChainId = _mock.MockParentChainServer(port, address, dir);
+                var parimpl = _mock.MockParentChainBlockInfoRpcServerImpl();
+                parimpl.Init(parentChainId);
+                var sideimpl = _mock.MockSideChainBlockInfoRpcServerImpl();
+                sideimpl.Init(Hash.Generate());
+                var serverManager = _mock.ServerManager(parimpl, sideimpl);
+                serverManager.Init(dir);
+                // create client, main chain is client-side
+                var manager = _mock.MinerClientManager();
+                int t = 1000;
+                // for client
+                
+                GrpcRemoteConfig.Instance.ParentChain = new Dictionary<string, Uri>
+                {
+                    {
+                        parentChainId.DumpHex(), new Uri{
+                            Address = address,
+                            Port = port
+                        }
+                    }
+                };
+                GrpcLocalConfig.Instance.ClientToParentChain = true;
+                manager.Init(dir, t);
+
+                GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
+                Thread.Sleep(t/2);
+                var result = await manager.TryGetParentChainBlockInfo();
+                Assert.NotNull(result);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight, result.Height);
+                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight));
+                Assert.True(await manager.UpdateParentChainBlockInfo(result));
+                
+                Thread.Sleep(t);
+                result = await manager.TryGetParentChainBlockInfo();
+                Assert.NotNull(result);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result.Height);
+                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 1));
+                Assert.True(await manager.UpdateParentChainBlockInfo(result));
+
+                Thread.Sleep(t);
+                result = await manager.TryGetParentChainBlockInfo();
+                Assert.NotNull(result);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result.Height);
+                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 2));
+                manager.CloseClientToParentChain();
+            }
+            finally
+            {
+                Directory.Delete(Path.Combine(dir), true);
+            }
+        }
+        
+        [Fact]
+        public async Task MineWithIndexingSideChain()
+        {
+            string dir = @"/tmp/minerpems";
+            var chain = await _mock.CreateChain();
+            var keyPair = new KeyPairGenerator().Generate();
+            var minerConfig = _mock.GetMinerConfig(chain.Id, 10, keyPair.GetAddress().DumpByteArray());
+            NodeConfig.Instance.ECKeyPair = keyPair;
+            NodeConfig.Instance.NodeAccount = keyPair.GetAddressHex();
+            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            var pool = _mock.CreateTxPool();
+            pool.Start();
+
+            try
+            {
+                int sidePort = 50054;
+                int parentPort = 50055;
+                string address = "127.0.0.1";
+                _mock.ClearDirectory(dir);
+                GrpcRemoteConfig.Instance.ParentChain = null;
+                var sideChainId = _mock.MockSideChainServer(sidePort, address, dir);
+                //var parentChainId = _mock.MockParentChainServer(parentPort, address, dir);
+                var parimpl = _mock.MockParentChainBlockInfoRpcServerImpl();
+                //parimpl.Init(parentChainId);
+                var sideimpl = _mock.MockSideChainBlockInfoRpcServerImpl();
+                sideimpl.Init(sideChainId);
+                var serverManager = _mock.ServerManager(parimpl, sideimpl);
+                serverManager.Init(dir);
+                
+                var manager = _mock.MinerClientManager();
+                int t = 1000;
+                GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
+                {
+                    {
+                        sideChainId.DumpHex(), new Uri{
+                            Address = address,
+                            Port = sidePort
+                        }
+                    }
+                };
+                
+                GrpcLocalConfig.Instance.ClientToSideChain = true;
+                GrpcLocalConfig.Instance.ClientToParentChain = false;
+                manager.Init(dir, t);
+                var miner = _mock.GetMiner(minerConfig, pool, manager);
+                miner.Init();
+            
+                //Thread.Sleep(t/2);
+                var block = await miner.Mine();
+                Assert.NotNull(block);
+                Assert.NotNull(block.Body.IndexedInfo);
+                int count = block.Body.IndexedInfo.Count;
+                Assert.Equal(1, count);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight, block.Body.IndexedInfo[0].Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
+            
+                Thread.Sleep(t);
+                block = await miner.Mine();
+                Assert.NotNull(block);
+                Assert.NotNull(block.Body.IndexedInfo);
+                count = block.Body.IndexedInfo.Count;
+                Assert.Equal(1, count);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Body.IndexedInfo[0].Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, block.Header.Index);
+            
+                Thread.Sleep(t);
+                block = await miner.Mine();
+                Assert.NotNull(block);
+                Assert.NotNull(block.Body.IndexedInfo);
+                count = block.Body.IndexedInfo.Count;
+                Assert.Equal(1, count);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, block.Body.IndexedInfo[0].Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 3, block.Header.Index);
+                
+                manager.CloseClientsToSideChain();
+            }
+            finally
+            {
+                Directory.Delete(Path.Combine(dir), true);
+            }
+            
+        }
+        
+
+        #endregion
     }
 }

@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Configuration;
 using AElf.Execution;
+using AElf.Execution.Execution;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Execution
@@ -78,7 +79,7 @@ namespace AElf.Execution
         {
             for (var i = 0; i < ActorConfig.Instance.ActorCount; i++)
             {
-                var worker = _actorSystem.ActorOf(Props.Create<Execution.Worker>(), "worker" + i);
+                var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
                 worker.Tell(new LocalSerivcePack(_servicePack));
             }
         }

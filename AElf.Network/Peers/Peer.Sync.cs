@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
 using System.Timers;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Network.Connection;
 using AElf.Network.Data;
+using Easy.MessageHub;
 using Google.Protobuf;
 
 namespace AElf.Network.Peers
@@ -124,6 +126,8 @@ namespace AElf.Network.Peers
             
             // Update currently requested height.
             _requestedHeight = start;
+            
+            MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(true));
         }
 
         public void OnAnnouncementMessage(Announce a)
@@ -174,7 +178,7 @@ namespace AElf.Network.Peers
                         int next = blockHeight + 1;
                         
                         // request next 
-                        RequestBlockByIndex(next);
+                        RequestBlockByIndex(next);    
                     }
                 }
             }
@@ -195,6 +199,8 @@ namespace AElf.Network.Peers
             _isSyncing = false;
             
             SyncFinished?.Invoke(this, EventArgs.Empty);
+            
+            MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
         }
 
         private void RequestBlockByIndex(int index)

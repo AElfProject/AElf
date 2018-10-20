@@ -8,7 +8,7 @@ using Google.Protobuf;
 
 namespace AElf.Common
 {
-    public partial class Address : ICustomDiagnosticMessage
+    public partial class Address : ICustomDiagnosticMessage, IComparable<Address>
     {
         /// <summary>
         /// Used to override IMessage's default string representation.
@@ -24,7 +24,8 @@ namespace AElf.Common
         {
             if (bytes.Length < GlobalConfig.AddressLength)
             {
-                throw new ArgumentOutOfRangeException($"Address bytes has to be at least {GlobalConfig.AddressLength}. The input is {bytes.Length} bytes long.");
+                throw new ArgumentOutOfRangeException(
+                    $"Address bytes has to be at least {GlobalConfig.AddressLength}. The input is {bytes.Length} bytes long.");
             }
 
             var toTruncate = bytes.Length - GlobalConfig.AddressLength;
@@ -71,6 +72,59 @@ namespace AElf.Common
         public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
 
         public static readonly Address Genesis = FromString("Genesis");
+        #endregion
+
+        #region Comparing
+
+        public static bool operator ==(Address address1, Address address2)
+        {
+            return address1?.Equals(address2) ?? ReferenceEquals(address2, null);
+        }
+
+        public static bool operator !=(Address address1, Address address2)
+        {
+            return !(address1 == address2);
+        }
+
+        public static bool operator <(Address address1, Address address2)
+        {
+            return CompareAddress(address1, address2) < 0;
+        }
+
+        public static bool operator >(Address address1, Address address2)
+        {
+            return CompareAddress(address1, address2) > 0;
+        }
+
+        private static int CompareAddress(Address address1, Address address2)
+        {
+            if (address1 != null)
+            {
+                return address2 == null ? 1 : Compare(address1, address2);
+            }
+
+            if (address2 == null)
+            {
+                return 0;
+            }
+
+            return -1;
+        }
+
+        private static int Compare(Address x, Address y)
+        {
+            if (x == null || y == null)
+            {
+                throw new InvalidOperationException("Cannot compare address when address is null");
+            }
+
+            return ByteStringHelpers.Compare(x.Value, y.Value);
+        }
+
+        public int CompareTo(Address that)
+        {
+            return Compare(this, that);
+        }
 
         #endregion
 
@@ -125,19 +179,5 @@ namespace AElf.Common
         }
 
         #endregion Load and dump
-
-        #region Comparing
-
-        public static bool operator ==(Address address1, Address address2)
-        {
-            return address1?.Equals(address2) ?? ReferenceEquals(address2, null);
-        }
-
-        public static bool operator !=(Address address1, Address address2)
-        {
-            return !(address1 == address2);
-        }
-
-        #endregion
     }
 }

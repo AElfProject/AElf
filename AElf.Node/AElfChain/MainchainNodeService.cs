@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Enums;
@@ -13,14 +12,19 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
 using AElf.Kernel.Node;
+using AElf.Miner.EventMessages;
 using AElf.Miner.Miner;
-using AElf.Node.Protocol;
-using AElf.SmartContract;
+using AElf.Miner.TxMemPool;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
+using AElf.Kernel.Storages;
 using AElf.Node.EventMessages;
+using AElf.Synchronization.BlockExecution;
+using AElf.Synchronization.BlockSynchronization;
+using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
+using DPoS = AElf.Kernel.Node.DPoS;
 
 namespace AElf.Node.AElfChain
 {
@@ -30,17 +34,16 @@ namespace AElf.Node.AElfChain
     {
         private readonly ILogger _logger;
 
-        private readonly ITxPoolService _txPoolService;
+        private readonly ITxPool _txPool;
+        private readonly IStateStore _stateStore;
         private readonly IMiner _miner;
         private readonly IP2P _p2p;
-        private readonly IAccountContextService _accountContextService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
-        private readonly IStateDictator _stateDictator;
-        private readonly IBlockSyncService _blockSyncService;
-        private readonly IBlockExecutionService _blockExecutionService;
+        private readonly IBlockSynchronizer _blockSynchronizer;
+        private readonly IBlockExecutor _blockExecutor;
         private readonly TxHub _txHub;
 
         private IBlockChain _blockChain;
@@ -49,79 +52,32 @@ namespace AElf.Node.AElfChain
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
 
-        public MainchainNodeService(ITxPoolService poolService,
-            IAccountContextService accountContextService,
+        public MainchainNodeService(
+            IStateStore stateStore,
+            ITxPool pool,
             IBlockValidationService blockValidationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService,
-            IBlockSyncService blockSyncService,
-            IStateDictator stateDictator,
+            IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
-            IBlockExecutor blockExecutor,
             IMiner miner,
             TxHub txHub,
             IP2P p2p,
-            IBlockExecutionService blockExecutionService,
+            IBlockExecutor blockExecutor,
             ILogger logger)
         {
+            _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
-            _stateDictator = stateDictator;
-            _txPoolService = poolService;
+            _txPool = pool;
             _logger = logger;
-            _blockExecutionService = blockExecutionService;
+            _blockExecutor = blockExecutor;
             _miner = miner;
             _txHub = txHub;
             _p2p = p2p;
-            _accountContextService = accountContextService;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
-            _stateDictator = stateDictator;
-            _blockSyncService = blockSyncService;
-            
-            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
-            {
-                await _blockSyncService.ReceiveBlock(inBlock.Block);
-            });
-
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
-            {
-                _blockSyncService.AddMinedBlock(inBlock.Block);
-            });
-
-            MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
-            {
-                await _txPoolService.AddTxAsync(inTx.Transaction);
-            });
-            
-            MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
-            {
-                if (option == UpdateConsensus.Update)
-                {
-                    _logger?.Trace("Will update consensus.");
-                    _consensus?.Update();
-                }
-
-                if (option == UpdateConsensus.Dispose)
-                {
-                    _logger?.Trace("Will stop mining.");
-                    _consensus?.Stop();
-                }
-            });
-
-            MessageHub.Instance.Subscribe<SyncStateChanged>(inState =>
-            {
-                if (inState.IsSyncing)
-                {
-                    _logger?.Trace("Will hang on mining due to syncing.");
-                    _consensus?.Hang();
-                }
-                else
-                {
-                    _logger?.Trace("Will start / recover mining.");
-                    _consensus?.Start();
-                }
-            });
+            _blockSynchronizer = blockSynchronizer;
         }
 
         #region Genesis Contracts
@@ -205,6 +161,40 @@ namespace AElf.Node.AElfChain
             _txHub.CurrentHeightGetter = ()=> _blockChain.GetCurrentBlockHeightAsync().Result;
             MessageHub.Instance.Subscribe<BlockHeader>((bh)=>_txHub.OnNewBlockHeader(bh));
             SetupConsensus();
+            
+            MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
+            {
+                await _txPool.AddTxAsync(inTx.Transaction);
+            });
+            
+            MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
+            {
+                if (option == UpdateConsensus.Update)
+                {
+                    _logger?.Trace("Will update consensus.");
+                    _consensus?.Update();
+                }
+
+                if (option == UpdateConsensus.Dispose)
+                {
+                    _logger?.Trace("Will stop mining.");
+                    _consensus?.Stop();
+                }
+            });
+
+            MessageHub.Instance.Subscribe<SyncStateChanged>(inState =>
+            {
+                if (inState.IsSyncing)
+                {
+                    _logger?.Trace("Will hang on mining due to syncing.");
+                    _consensus?.Hang();
+                }
+                else
+                {
+                    _logger?.Trace("Will start / recover mining.");
+                    _consensus?.Start();
+                }
+            });
         }
 
         public bool Start()
@@ -217,6 +207,7 @@ namespace AElf.Node.AElfChain
 
             _logger?.Log(LogLevel.Debug, $"Chain Id = {NodeConfig.Instance.ChainId}");
 
+            
             #region setup
 
             try
@@ -233,29 +224,20 @@ namespace AElf.Node.AElfChain
                     CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero,
                         SideChainGenesisContractZero);
                 }
-                else
-                {
-                    _stateDictator.BlockHeight = _blockChain.CurrentBlock.Header.Index;
-                    _stateDictator.BlockProducerAccountAddress = Address.Zero;
-                    _stateDictator.SetWorldStateAsync();
-
-                    _stateDictator.RollbackToPreviousBlock();
-                }
+                
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Could not create the chain : " + NodeConfig.Instance.ChainId);
             }
 
-            // set world state
-            _stateDictator.ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
-
+            
             #endregion setup
 
             #region start
 
-            _txPoolService.Start();
-            _blockExecutionService.Init();
+            _txPool.Start();
+            _blockExecutor.Init();
 
             if (NodeConfig.Instance.IsMiner)
             {
@@ -276,7 +258,18 @@ namespace AElf.Node.AElfChain
                 _consensus?.Start();
             }
 
+            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
+            {
+                await _blockSynchronizer.ReceiveBlock(inBlock.Block);
+            });
+
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
+            {
+                _blockSynchronizer.AddMinedBlock(inBlock.Block);
+            });
             #endregion start
+            
+            MessageHub.Instance.Publish(new ChainInitialized(null));
 
             return true;
         }
@@ -370,11 +363,11 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_stateDictator, _txPoolService, _miner, _chainService);
+                    _consensus = new DPoS(_stateStore, _txPool, _miner, _chainService);
                     break;
 
                 case ConsensusType.PoTC:
-                    _consensus = new PoTC(_miner, _txPoolService);
+                    _consensus = new PoTC(_miner, _txPool);
                     break;
 
                 case ConsensusType.SingleNode:

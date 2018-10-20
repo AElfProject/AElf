@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
+    <ProjectReference Include="..\AElf.Contracts.Consensus\AElf.Contracts.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
     <ProjectReference Include="..\AElf.Network\AElf.Network.csproj">
@@ -11,6 +11,7 @@
       <Name>AElf.Network</Name>
     </ProjectReference>
     <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
+    <ProjectReference Include="..\AElf.Synchronization\AElf.Synchronization.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
