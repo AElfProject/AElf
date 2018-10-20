@@ -330,19 +330,19 @@ namespace AElf.Kernel.Tests.Miner
                 var result = await manager.CollectSideChainBlockInfo();
                 int count = result.Count;
                 Assert.Equal(1, count);
-                Assert.Equal((ulong)0, result[0].Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight, result[0].Height);
                 
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(1, count);
-                Assert.Equal((ulong)1, result[0].Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result[0].Height);
                 
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(1, count);
-                Assert.Equal((ulong)2, result[0].Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result[0].Height);
                 manager.CloseClientsToSideChain();
 
                 Thread.Sleep(t);
@@ -394,7 +394,7 @@ namespace AElf.Kernel.Tests.Miner
                 Thread.Sleep(t/2);
                 var result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
-                Assert.Equal((ulong)0, result.Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight));
                 Assert.True(await manager.UpdateParentChainBlockInfo(result));
@@ -402,7 +402,7 @@ namespace AElf.Kernel.Tests.Miner
                 Thread.Sleep(t);
                 result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
-                Assert.Equal((ulong)1, result.Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 1));
                 Assert.True(await manager.UpdateParentChainBlockInfo(result));
@@ -410,7 +410,7 @@ namespace AElf.Kernel.Tests.Miner
                 Thread.Sleep(t);
                 result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
-                Assert.Equal((ulong)2, result.Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 2));
                 manager.CloseClientToParentChain();
@@ -463,17 +463,18 @@ namespace AElf.Kernel.Tests.Miner
                 };
                 
                 GrpcLocalConfig.Instance.ClientToSideChain = true;
+                GrpcLocalConfig.Instance.ClientToParentChain = false;
                 manager.Init(dir, t);
                 var miner = _mock.GetMiner(minerConfig, pool, manager);
                 miner.Init();
             
-                Thread.Sleep(t/2);
+                //Thread.Sleep(t/2);
                 var block = await miner.Mine();
                 Assert.NotNull(block);
                 Assert.NotNull(block.Body.IndexedInfo);
                 int count = block.Body.IndexedInfo.Count;
                 Assert.Equal(1, count);
-                Assert.Equal((ulong) 0, block.Body.IndexedInfo[0].Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight, block.Body.IndexedInfo[0].Height);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
                 Thread.Sleep(t);
@@ -482,7 +483,7 @@ namespace AElf.Kernel.Tests.Miner
                 Assert.NotNull(block.Body.IndexedInfo);
                 count = block.Body.IndexedInfo.Count;
                 Assert.Equal(1, count);
-                Assert.Equal((ulong)1, block.Body.IndexedInfo[0].Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Body.IndexedInfo[0].Height);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, block.Header.Index);
             
                 Thread.Sleep(t);
@@ -491,7 +492,7 @@ namespace AElf.Kernel.Tests.Miner
                 Assert.NotNull(block.Body.IndexedInfo);
                 count = block.Body.IndexedInfo.Count;
                 Assert.Equal(1, count);
-                Assert.Equal((ulong)2, block.Body.IndexedInfo[0].Height);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, block.Body.IndexedInfo[0].Height);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 3, block.Header.Index);
                 
                 manager.CloseClientsToSideChain();

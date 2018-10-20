@@ -30,7 +30,7 @@ namespace AElf.Miner.Tests
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
         private readonly ILogger _logger;
-        private ulong _i;
+        private ulong _i = GlobalConfig.GenesisBlockHeight;
         private IChainCreationService _chainCreationService;
         private ISmartContractManager _smartContractManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
@@ -138,9 +138,12 @@ namespace AElf.Miner.Tests
         private Mock<ILightChain> MockLightChain()
         {
             Mock<ILightChain> mock = new Mock<ILightChain>();
-            mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1 - GlobalConfig.GenesisBlockHeight));
+            mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1 + GlobalConfig.GenesisBlockHeight));
             mock.Setup(lc => lc.GetHeaderByHeightAsync(It.IsAny<ulong>()))
-                .Returns<ulong>(p => Task.FromResult(_sideChainHeaders[(int) p]));
+                .Returns<ulong>(p =>
+                {
+                    return Task.FromResult(_sideChainHeaders[(int) p - 1]);
+                });
 
             return mock;
         }
@@ -149,7 +152,7 @@ namespace AElf.Miner.Tests
         {
             Mock<IBlockChain> mock = new Mock<IBlockChain>();
             mock.Setup(bc => bc.GetBlockByHeightAsync(It.IsAny<ulong>()))
-                .Returns<ulong>(p => Task.FromResult(_blocks[(int) p]));
+                .Returns<ulong>(p => Task.FromResult(_blocks[(int) p - 1]));
             return mock;
         }
 
@@ -207,8 +210,8 @@ namespace AElf.Miner.Tests
             mock.Setup(b => b.GetSideChainTransactionRootsMerkleTreeByHeightAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
                 .Returns<Hash, ulong>((_, u) =>
                 {
-                    _blocks[(int) u].Body.CalculateMerkleTreeRoots();
-                    return Task.FromResult(_blocks[(int) u].Body.BinaryMerkleTreeForSideChainTransactionRoots);
+                    _blocks[(int) u - 1].Body.CalculateMerkleTreeRoots();
+                    return Task.FromResult(_blocks[(int) u - 1].Body.BinaryMerkleTreeForSideChainTransactionRoots);
                 });
             return mock;
         }
