@@ -60,7 +60,7 @@ namespace AElf.Kernel.Tests.Concurrency
             };
 
             var service = new ParallelTransactionExecutingService(_mock.ActorEnvironment,
-                new Grouper(_mock.ServicePack.ResourceDetectionService));
+                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack);
 
             var traces = await service.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None);
 
@@ -125,7 +125,7 @@ namespace AElf.Kernel.Tests.Concurrency
             };
 
             var service = new ParallelTransactionExecutingService(_mock.ActorEnvironment,
-                new Grouper(_mock.ServicePack.ResourceDetectionService));
+                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack);
 
             var traces = await service.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None);
 
@@ -176,7 +176,7 @@ namespace AElf.Kernel.Tests.Concurrency
                 return getInnerMostTrace(tr.InlineTraces.First());
             };
             var service = new ParallelTransactionExecutingService(_mock.ActorEnvironment,
-                new Grouper(_mock.ServicePack.ResourceDetectionService));
+                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack);
             var traces = await service.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None);
             Assert.NotEqual(ExecutionStatus.ExceededMaxCallDepth, getInnerMostTrace(traces[0]).ExecutionStatus);
             Assert.Equal(ExecutionStatus.ExceededMaxCallDepth, getInnerMostTrace(traces[1]).ExecutionStatus);
