@@ -29,19 +29,19 @@ namespace AElf.Network.Tests.NetworkManagerTests
         public void TryPeer_ShouldEnqueueMessage()
         {
             Mock<IPeer> fakePeer = new Mock<IPeer>();
-            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
+            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>(), null));
             
             TimeoutRequest request = new TimeoutRequest(0, new Message(), 1000);
             request.TryPeer(fakePeer.Object);
             
-            fakePeer.Verify(mock => mock.EnqueueOutgoing(It.IsAny<Message>()), Times.Once());
+            fakePeer.Verify(mock => mock.EnqueueOutgoing(It.IsAny<Message>(), null), Times.Once());
         }
 
         [Fact]
         public void TryPeer_TimoutEvent_ShouldFire()
         {
             Mock<IPeer> fakePeer = new Mock<IPeer>();
-            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
+            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>(), null));
             
             TimeoutRequest request = new TimeoutRequest(0, new Message(), 1);
 
@@ -60,7 +60,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
         public void TryPeer_WaitLongerThanTimout_ShouldNotFire()
         {
             Mock<IPeer> fakePeer = new Mock<IPeer>();
-            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
+            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>(), null));
             
             TimeoutRequest request = new TimeoutRequest(0, new Message(), 50);
 
@@ -79,7 +79,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
         public void TryPeer_AfterTimeout_HasTimeoutShouldBeTrue()
         {
             Mock<IPeer> fakePeer = new Mock<IPeer>();
-            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
+            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>(), null));
             
             TimeoutRequest request = new TimeoutRequest(0, new Message(), 5);
             request.TryPeer(fakePeer.Object);
@@ -93,7 +93,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
         public void TryPeer_BeforeTimeout_HasTimeoutShouldBeFalse()
         {
             Mock<IPeer> fakePeer = new Mock<IPeer>();
-            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
+            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>(), null));
             
             TimeoutRequest request = new TimeoutRequest(0, new Message(), 20);
             request.TryPeer(fakePeer.Object);
@@ -105,7 +105,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
         public void TryPeer_RetryDuringRequest_ShouldThrowException()
         {
             Mock<IPeer> fakePeer = new Mock<IPeer>();
-            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
+            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>(), null));
             
             TimeoutRequest request = new TimeoutRequest(0, new Message(), 20);
             request.TryPeer(fakePeer.Object);
@@ -118,7 +118,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
         public void TryPeer_ExceedRetry_ShouldThrowException()
         {
             Mock<IPeer> fakePeer = new Mock<IPeer>();
-            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
+            fakePeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>(), null));
             
             TimeoutRequest request = new TimeoutRequest(0, new Message(), 1);
             request.MaxRetryCount = 1;
