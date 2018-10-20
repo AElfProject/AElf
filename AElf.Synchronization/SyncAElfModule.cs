@@ -12,7 +12,6 @@ namespace AElf.Synchronization
 
         public void Run(ILifetimeScope scope)
         {
-            throw new System.NotImplementedException();
         }
     }
 }
