@@ -39,10 +39,10 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             return Task.CompletedTask;
         }
 
-        public Task<bool> Validation(List<byte[]> args)
+        public Task<int> Validation(List<byte[]> args)
         {
             Console.WriteLine($"This message come from Proof of Transactions Count consensus - {nameof(Validation)}");
-            return Task.FromResult(true);
+            return Task.FromResult(0);
         }
     }
 }

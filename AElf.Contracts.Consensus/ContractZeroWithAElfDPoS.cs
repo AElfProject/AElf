@@ -44,9 +44,9 @@ namespace AElf.Contracts.Consensus
             });
         }
 
-        public async Task<BoolValue> Validation(byte[] accountAddress, byte[] timestamp)
+        public async Task<Int32Value> Validation(byte[] accountAddress, byte[] timestamp)
         {
-            return new BoolValue
+            return new Int32Value
             {
                 Value = await _consensus.Validation(new List<byte[]> {accountAddress, timestamp})
             };

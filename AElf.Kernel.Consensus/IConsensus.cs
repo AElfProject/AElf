@@ -66,6 +66,6 @@ namespace AElf.Kernel.Consensus
         /// or not.
         /// </summary>
         /// <returns></returns>
-        Task<bool> Validation(List<byte[]> args);
+        Task<int> Validation(List<byte[]> args);
     }
 }

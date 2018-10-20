@@ -39,7 +39,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             
         }
 
-        public Task<bool> Validation(List<byte[]> args)
+        public Task<int> Validation(List<byte[]> args)
         {
             throw new System.NotImplementedException();
         }

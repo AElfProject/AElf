@@ -8,7 +8,8 @@ namespace AElf.ChainController
         Success = 1,
 
         // Something wrong, can add to block set
-        InvalidDPoSInformation = 11,
+        NotBP = 11,
+        InvalidTimeSlot,
         FailedToCheckConsensusInvalidation,
         IncorrectPreBlockHash,
         FailedToGetBlockByHeight,
@@ -19,6 +20,9 @@ namespace AElf.ChainController
 
         // Unforgivable, discard
         BlockIsNull = 101,
+        SameWithCurrentRound,
+        IncorrectDPoSTxInBlock,
+        ParseProblem,
         NoTransaction,
         IncorrectTxMerkleTreeRoot,
         IncorrectSideChainInfo,

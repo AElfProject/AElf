@@ -1,9 +1,11 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Kernel.Consensus;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -44,10 +46,24 @@ namespace AElf.ChainController
                 AddressHelpers.GetSystemContractAddress(context.ChainId, SmartContractType.AElfDPoS.ToString());
             var timestampOfBlock = block.Header.Time;
 
+            long roundId = 0;
+            var updateTx =
+                block.Body.TransactionList.Where(t => t.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString()).ToList();
+            if (updateTx.Count > 0)
+            {
+                if (updateTx.Count > 1)
+                {
+                    return BlockValidationResult.IncorrectDPoSTxInBlock;
+                }
+
+                roundId = ((Round) ParamsPacker.Unpack(updateTx[0].Params.ToByteArray(),
+                    new[] {typeof(Round), typeof(Round), typeof(StringValue)})[1]).RoundId;
+            }
+            
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
             var tx = GetTxToVerifyBlockProducer(contractAccountHash, NodeConfig.Instance.ECKeyPair, address,
-                timestampOfBlock);
+                timestampOfBlock, roundId);
             if (tx == null)
             {
                 return BlockValidationResult.FailedToCheckConsensusInvalidation;
@@ -66,13 +82,27 @@ namespace AElf.ChainController
                 return BlockValidationResult.FailedToCheckConsensusInvalidation;
             }
 
-            return BoolValue.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value
-                ? BlockValidationResult.Success
-                : BlockValidationResult.InvalidDPoSInformation;
+            var result = Int32Value.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value;
+            
+            switch (result)
+            {
+                case 1:
+                    return BlockValidationResult.NotBP;
+                case 2:
+                    return BlockValidationResult.InvalidTimeSlot;
+                case 3:
+                    return BlockValidationResult.SameWithCurrentRound;
+                case 11:
+                    return BlockValidationResult.ParseProblem;
+                default:
+                    return BlockValidationResult.Success;
+            }
+
+            return BlockValidationResult.Success;
         }
 
         private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair,
-            string recipientAddress, Timestamp timestamp)
+            string recipientAddress, Timestamp timestamp, long roundId)
         {
             if (contractAccountHash == null || keyPair == null || recipientAddress == null)
             {
@@ -89,7 +119,8 @@ namespace AElf.ChainController
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(
                     new StringValue {Value = recipientAddress.RemoveHexPrefix()}.ToByteArray(),
-                    timestamp.ToByteArray()))
+                    timestamp.ToByteArray(),
+                    new Int64Value {Value = roundId}))
             };
 
             var signer = new ECSigner();

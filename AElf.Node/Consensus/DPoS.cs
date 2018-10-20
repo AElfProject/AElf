@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
@@ -49,7 +48,7 @@ namespace AElf.Kernel.Node
         
         private readonly ILogger _logger;
 
-        public static AElfDPoSHelper Helper;
+        private static AElfDPoSHelper Helper;
 
         /// <summary>
         /// In Value and Out Value.
