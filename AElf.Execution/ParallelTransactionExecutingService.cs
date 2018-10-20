@@ -55,12 +55,12 @@ namespace AElf.Execution
                 failedTxs = new Dictionary<Transaction, Exception>();
             }
 
-            var dopsResult = _singlExecutingService.ExecuteAsync(dposTxs, chainId, token);
+            var dposResult = _singlExecutingService.ExecuteAsync(dposTxs, chainId, token);
             var tasks = groups.Select(
                 txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token), token)
             ).ToArray();
             
-            var results = dopsResult.Result;
+            var results = dposResult.Result;
             results.AddRange((await Task.WhenAll(tasks)).SelectMany(x => x).ToList());
 
             foreach (var failed in failedTxs)
