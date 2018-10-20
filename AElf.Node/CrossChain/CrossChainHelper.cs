@@ -4,16 +4,19 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 namespace AElf.Node.CrossChain
 {
     public class CrossChainHelper
     {
-        private readonly IStateDictator _stateDictator;
+        private readonly Hash _chainId;
+        private readonly IStateStore _stateStore;
 
-        public CrossChainHelper(IStateDictator stateDictator)
+        public CrossChainHelper(Hash chainId, IStateStore stateStore)
         {
-            _stateDictator = stateDictator;
+            _chainId = chainId;
+            _stateStore = stateStore;
         }
 
         /// <summary>
@@ -40,12 +43,11 @@ namespace AElf.Node.CrossChain
         private byte[] GetBytes<T>(Hash keyHash, Address contractAddressHash, string resourceStr = "") where T : IMessage, new()
         {
             //Console.WriteLine("resourceStr: {0}", dataPath.ResourcePathHash.ToHex());
-
+            var dp = DataProvider.GetRootDataProvider(_chainId, contractAddressHash);
+            dp.StateStore = _stateStore;
             return resourceStr != ""
-                ? _stateDictator.GetAccountDataProvider(contractAddressHash).GetDataProvider()
-                    .GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
-                : _stateDictator.GetAccountDataProvider(contractAddressHash).GetDataProvider()
-                    .GetAsync<T>(keyHash).Result;
+                ? dp.GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
+                : dp.GetAsync<T>(keyHash).Result;
         }
 
         internal ulong GetBoundParentChainHeight(Address contractAddressHash, ulong height)

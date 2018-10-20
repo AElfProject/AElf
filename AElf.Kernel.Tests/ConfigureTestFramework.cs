@@ -1,10 +1,11 @@
 ﻿using AElf.SmartContract;
 using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Database;
 using AElf.Execution;
+using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
+using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using Autofac;
 using Xunit;
@@ -24,11 +25,11 @@ namespace AElf.Kernel.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            var assembly1 = typeof(IStateDictator).Assembly;
+            var assembly1 = typeof(IDataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
             var assembly2 = typeof(ISerializer<>).Assembly;
             builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
-            var assembly3 = typeof(StateDictator).Assembly;
+            var assembly3 = typeof(DataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
             var assembly4 = typeof(BlockValidationService).Assembly;
             builder.RegisterAssemblyTypes(assembly4).AsImplementedInterfaces();
@@ -46,8 +47,6 @@ namespace AElf.Kernel.Tests
             builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterInstance(new TxPoolConfig()).As<ITxPoolConfig>();
-            builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
-            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<Grouper>().As<IGrouper>();
             builder.RegisterType<ServicePack>().PropertiesAutowired();
@@ -59,6 +58,7 @@ namespace AElf.Kernel.Tests
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
+            builder.RegisterType<TxValidator>().As<ITxValidator>();
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();
         }

@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Akka.Actor;
-using Akka.Routing;
-using Google.Protobuf;
 using AElf.Common;
 using AElf.SmartContract;
+using Akka.Actor;
+using Akka.Routing;
+using AElf.Kernel;
 
-namespace AElf.Execution
+namespace AElf.Execution.Execution
 {
     class TaskNotCompletedProperlyException : Exception
     {
@@ -59,7 +58,7 @@ namespace AElf.Execution
                     }
 
 //                    _requestIdToPendingTransactionIds.Add(reqId, hashes);
-                    _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router));
+                    _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router, req.DisambiguationHash));
                     break;
                 case TransactionTraceMessage msg:
                     if (!_requestIdToTraces.TryGetValue(msg.RequestId, out var traces))

@@ -38,6 +38,7 @@ namespace AElf.Cryptography.Certificate
             // generate certificate
             var cert = certGenerator.Generate(keyPair.PrivateKey);
             var path = Path.Combine(_dataDirectory, FolderName);
+            
             WriteKeyAndCertificate(cert, path, name, CertExtension);
             WriteKeyAndCertificate(keyPair.PrivateKey, path, name, KeyExtension);
             return keyPair;
@@ -52,6 +53,7 @@ namespace AElf.Cryptography.Certificate
         public bool AddCertificate(string name, string certificate)
         {
             Directory.CreateDirectory(Path.Combine(_dataDirectory, FolderName));
+            name = PrefixString(name);
             using (StreamWriter streamWriter = new StreamWriter(Path.Combine(_dataDirectory, FolderName, name + CertExtension)))
             {
                 PemWriter pem = new PemWriter(streamWriter);
@@ -76,6 +78,7 @@ namespace AElf.Cryptography.Certificate
         {
             try
             {
+                name = PrefixString(name);
                 string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + CertExtension));
                 return crt;
             }
@@ -94,6 +97,7 @@ namespace AElf.Cryptography.Certificate
         {
             try
             {
+                name = PrefixString(name);
                 string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + KeyExtension));
                 return crt;
             }
@@ -112,8 +116,8 @@ namespace AElf.Cryptography.Certificate
         {
             // create directory if not exists
             Directory.CreateDirectory(dir);
-            
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(dir, fileName + extension), true)) {
+            fileName = PrefixString(fileName);
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(dir, fileName + extension), false)) {
                 PemWriter pw = new PemWriter(outputFile);
                 try
                 {
@@ -134,6 +138,11 @@ namespace AElf.Cryptography.Certificate
                     pw.Writer.Close();
                 }
             }
+        }
+
+        private string PrefixString(string str)
+        {
+            return str.StartsWith("0x") ? str : "0x" + str;
         }
        
     }

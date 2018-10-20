@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
-using AElf.ChainController.TxMemPool;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.Miner.TxMemPool;
 
 namespace AElf.Kernel.Tests
 {

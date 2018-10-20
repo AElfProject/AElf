@@ -1,5 +1,4 @@
 ﻿using AElf.ChainController;
-using AElf.ChainController.TxMemPool;
 using AElf.Common;
 using AElf.Database;
 using AElf.Execution;
@@ -30,6 +29,7 @@ namespace AElf.Miner.Tests
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterType<DataStore>().As<IDataStore>();
+            builder.RegisterType<StateStore>().As<IStateStore>();
         }
     }
 }

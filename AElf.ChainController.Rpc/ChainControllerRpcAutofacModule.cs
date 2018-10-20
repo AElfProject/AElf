@@ -6,6 +6,7 @@ namespace AElf.ChainController.Rpc
     {
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterType<TransactionResultService>().As<ITransactionResultService>().SingleInstance();
             builder.RegisterType<ChainControllerRpcService>().PropertiesAutowired();
         }
     }
