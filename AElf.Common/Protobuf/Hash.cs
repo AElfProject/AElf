@@ -215,9 +215,9 @@ namespace AElf.Common
         /// Dumps the content value to hex string.
         /// </summary>
         /// <returns></returns>
-        public string DumpHex(bool withPrefix = false)
+        public string DumpHex()
         {
-            return Value.ToByteArray().ToHex(withPrefix);
+            return Value.ToByteArray().ToHex();
         }
 
         /// <summary>

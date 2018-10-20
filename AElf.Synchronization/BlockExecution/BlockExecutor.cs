@@ -110,6 +110,7 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     res.Status = Status.Failed;
                     res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
+                    res.StateHash = trace.GetSummarizedStateHash();
                 }
                 results.Add(res);
             }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
@@ -31,11 +32,11 @@ namespace AElf.SmartContract
 
         public Hash ChainId { get; }
         public Address ContractAddress { get; }
-        public IReadOnlyList<string> Path { get; }
+        public IReadOnlyList<ByteString> Path { get; }
         private Dictionary<string, StateValue> _cache = new Dictionary<string, StateValue>();
         private readonly List<DataProvider> _children = new List<DataProvider>();
 
-        private DataProvider(Hash chainId, Address contractAddress, IReadOnlyList<string> path)
+        private DataProvider(Hash chainId, Address contractAddress, IReadOnlyList<ByteString> path)
         {
             ChainId = chainId;
             ContractAddress = contractAddress;
@@ -44,20 +45,17 @@ namespace AElf.SmartContract
 
         public static DataProvider GetRootDataProvider(Hash chainId, Address contractAddress)
         {
-            return new DataProvider(chainId, contractAddress, new string[0]);
+            return new DataProvider(chainId, contractAddress, new ByteString[]
+            {
+               ByteString.CopyFrom(contractAddress.DumpByteArray())
+            });
         }
 
-        private StatePath GetStatePathFor(string key, bool full = false)
+        private StatePath GetStatePathFor(string key)
         {
             var sp = new StatePath();
-            if (full)
-            {
-                sp.ChainId = ChainId;
-                sp.ContractAddress = ContractAddress;
-            }
-
             sp.Path.AddRange(Path);
-            sp.Path.Add(key);
+            sp.Path.Add(ByteString.CopyFromUtf8(key));
             return sp;
         }
 
@@ -68,7 +66,7 @@ namespace AElf.SmartContract
                 throw new ArgumentException("String is null or empty.", nameof(name));
             }
 
-            var path = new List<string>(Path) {"", name};
+            var path = new List<ByteString>(Path) {ByteString.Empty, ByteString.CopyFromUtf8(name)};
             var child = new DataProvider(ChainId, ContractAddress, path) {StateStore = _stateStore};
             _children.Add(child);
             return child;
@@ -96,7 +94,7 @@ namespace AElf.SmartContract
                 return value.Get();
             }
 
-            var bytes = await _stateStore.GetAsync(GetStatePathFor(key, true));
+            var bytes = await _stateStore.GetAsync(GetStatePathFor(key));
             _cache[key] = StateValue.Create(bytes);
             return bytes;
         }
@@ -133,7 +131,7 @@ namespace AElf.SmartContract
             {
                 if (kv.Value.IsDirty)
                 {
-                    var sp = GetStatePathFor(kv.Key, true);
+                    var sp = GetStatePathFor(kv.Key);
                     d[sp] = kv.Value;
                 }
             }
