@@ -3,5 +3,6 @@
     public interface ITimedRequest
     {
         void Start();
+        bool IsCanceled { get; }
     }
 }

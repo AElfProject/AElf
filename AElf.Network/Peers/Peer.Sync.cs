@@ -6,10 +6,11 @@ using AElf.Common;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
+using ServiceStack;
 
 namespace AElf.Network.Peers
 {
-    public class ValidatingBlock
+    public class PendingBlock
     {
         public int BlockNum { get; set; }
         public byte[] BlockId { get; set; }
@@ -17,7 +18,7 @@ namespace AElf.Network.Peers
         public bool IsValidating { get; set; }
         public bool IsRequesting { get; set; }
 
-        public ValidatingBlock(byte[] blockId, bool isRequesting, bool isValidating)
+        public PendingBlock(byte[] blockId, bool isRequesting, bool isValidating)
         {
             BlockId = blockId;
             IsValidating = isValidating;
@@ -30,14 +31,16 @@ namespace AElf.Network.Peers
         public const int DefaultRequestTimeout = 2000;
         
         public int RequestTimeout { get; set; } = DefaultRequestTimeout;
+        public int MaxRequestRetries { get; set; } = 2;
 
         private object _blockLock = new object();
-        private List<ValidatingBlock> _blocks { get; set; }
+        private List<PendingBlock> _blocks { get; set; }
 
         private object _blockReqLock = new object();
-        private List<TimedRequest> _blockRequests;
+        private List<TimedBlockRequest> _blockRequests;
             
         public event EventHandler SyncFinished;
+        public event EventHandler RequestTimedOut;
         
         private int _peerHeight = 0;
 
@@ -93,14 +96,14 @@ namespace AElf.Network.Peers
 
                 lock (_blockLock)
                 {
-                    _blocks.Add(new ValidatingBlock(blockId, true, false));
+                    _blocks.Add(new PendingBlock(blockId, true, false));
                 }
             
                 RequestBlockById(blockId);
 
                 if (a.Height <= _peerHeight)
                 {
-                    // todo just log for now, but this is probably an error protocol.
+                    // todo just log for now, but this is probably a protocol error.
                     _logger?.Warn($"[{this}] current know heigth: {_peerHeight} announcement height {a.Height}.");
                 }
             
@@ -117,8 +120,9 @@ namespace AElf.Network.Peers
         public void OnBlockReceived(Block block)
         {
             byte[] blockHash = block.GetHashBytes();
+            int blockHeight = (int) block.Header.Index;
             
-            ValidatingBlock vBlock;
+            PendingBlock vBlock;
             lock (_blockLock)
             {
                 vBlock = _blocks.Where(b => b.IsRequesting).FirstOrDefault(b => b.BlockId.BytesEqual(blockHash));
@@ -133,11 +137,11 @@ namespace AElf.Network.Peers
             // todo handle this for "by height" reqs
             lock (_blockReqLock)
             {
-                TimedRequest req = _blockRequests.FirstOrDefault(b => b.IsById && b.Id.BytesEqual(blockHash));
+                TimedBlockRequest req = _blockRequests.FirstOrDefault(b => (b.IsById && b.Id.BytesEqual(blockHash)) || (!b.IsById && b.Height == blockHeight));
 
                 if (req != null)
                 {
-                    req.Stop();
+                    req.Cancel();
                     _blockRequests.Remove(req);
                 }
             }
@@ -203,12 +207,7 @@ namespace AElf.Network.Peers
                 return;   
             }
             
-            //TimedBlockRequest request = new TimedBlockRequest(br, RequestTimeout);
-            //request.RequestTimedOut += TimedRequestOnRequestTimedOut;
-            
-            EnqueueOutgoing(message);
-            
-            _logger?.Trace($"[{this}] requested block at index {index}.");
+            SendTimedRequest(message, br);
         }
         
         private void RequestBlockById(byte[] id)
@@ -223,28 +222,55 @@ namespace AElf.Network.Peers
                 return;
             }
             
-            TimedRequest request = new TimedRequest(br, RequestTimeout);
-            request.RequestTimedOut += TimedRequestOnRequestTimedOut;
+            SendTimedRequest(message, br);
+        }
+
+        private void SendTimedRequest(Message message, BlockRequest br)
+        {
+            TimedBlockRequest blockRequest = new TimedBlockRequest(message, br, RequestTimeout);
+            blockRequest.SetCurrentPeer(this);
+            blockRequest.RequestTimedOut += TimedRequestOnRequestTimedOut;
 
             lock (_blockReqLock)
             {
-                _blockRequests.Add(request);
+                _blockRequests.Add(blockRequest);
             }
             
-            EnqueueOutgoing(message, request);
+            EnqueueOutgoing(message, blockRequest);
             
-            _logger?.Trace($"[{this}] requested block with id {id.ToHex()}.");
+            _logger?.Trace($"[{this}] Block request enqueued {blockRequest}.");
         }
 
         private void TimedRequestOnRequestTimedOut(object sender, EventArgs e)
         {
-            if (sender is TimedRequest req)
+            if (sender is TimedBlockRequest req)
             {
-                _logger?.Warn("Failed to get block with " + 
-                              (req.IsById ? 
-                                  ("hash " + req.Id.ToHex()) 
-                                  : 
-                                  ("height" + req.Height)) );
+                _logger?.Warn($"[{this}] Failed timed request {req}");
+                
+                if (req.CurrentPeerRetries < MaxRequestRetries)
+                {
+                    if (!req.SetCurrentPeer(this))
+                    {
+                        return;
+                    }
+                    
+                    _logger?.Debug($"[{this}] Try again {req}.");
+                    
+                    EnqueueOutgoing(req.Message, req);
+                }
+                else
+                {
+                    // todo RequestTimedOut?.Invoke(this, req)
+                    
+                    lock (_blockReqLock)
+                    {
+                        _blockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
+                    }
+                    
+                    _logger?.Warn($"[{this}] Request failed {req}.");
+                    
+                    req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
+                }
             }
         }
     }

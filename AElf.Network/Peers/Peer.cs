@@ -167,7 +167,7 @@ namespace AElf.Network.Peers
         
         public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey, int currentHeight)
         {
-            _blockRequests = new List<TimedRequest>();
+            _blockRequests = new List<TimedBlockRequest>();
                 
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
@@ -185,7 +185,7 @@ namespace AElf.Network.Peers
 
             CurrentHeight = currentHeight;
             
-            _blocks = new List<ValidatingBlock>();
+            _blocks = new List<PendingBlock>();
         }
 
         private void SetupHeartbeat()
@@ -441,6 +441,10 @@ namespace AElf.Network.Peers
                     _logger?.Trace($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
                     return;
                 }
+                
+                // last check for cancelation
+                if (associatedRequest != null && associatedRequest.IsCanceled)
+                    return;
                 
                 _messageWriter.EnqueueMessage(msg);
                 
