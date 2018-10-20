@@ -18,7 +18,7 @@ using NServiceKit.Common.Extensions;
 using ClientBase = AElf.Miner.Rpc.Client.ClientBase;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
-namespace AElf.Miner
+namespace AElf.Miner.Rpc.Client
 {
     [LoggerName("MinerClient")]
     public class ClientManager
@@ -111,10 +111,12 @@ namespace AElf.Miner
             {
                 var client = CreateClientToSideChain(sideChainId);
                 var height =
-                    await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(sideChainId));
+                    Math.Max(await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(sideChainId)),
+                        GlobalConfig.GenesisBlockHeight);
 
                 // keep-alive
                 client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height);
+                _logger?.Trace($"Created client to side chain {sideChainId}");
             }
         }
 
@@ -163,8 +165,10 @@ namespace AElf.Miner
                     throw new ChainInfoNotFoundException("Unable to get parent chain info.");
                 _clientToParentChain = (ClientToParentChain) CreateClient(parent.ElementAt(0).Value, parent.ElementAt(0).Key, false);
                 var height =
-                    await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(parent.ElementAt(0).Key));
+                    Math.Max(await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(parent.ElementAt(0).Key)),
+                        GlobalConfig.GenesisBlockHeight);
                 _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, height);
+                _logger?.Trace($"Created client to parent chain {parent.ElementAt(0).Key}");
             }
             catch (Exception e)
             {

@@ -23,6 +23,7 @@ using NServiceKit.Common.Extensions;
 using Status = AElf.Kernel.Status;
 using AElf.Execution.Execution;
 using AElf.Miner.EventMessages;
+using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
 
 // ReSharper disable once CheckNamespace
