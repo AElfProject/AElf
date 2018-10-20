@@ -42,8 +42,8 @@ namespace AElf.Management.Services
                     var isForked = _nodeService.IsForked(chainId);
                     _nodeService.RecordPoolState(chainId, time, isAlive, isForked);
 
-                    var networkState = _networkService.GetPoolState(chainId);
-                    _networkService.RecordPoolState(chainId, time, networkState.RequestPoolSize, networkState.ReceivePoolSize);
+//                    var networkState = _networkService.GetPoolState(chainId);
+//                    _networkService.RecordPoolState(chainId, time, networkState.RequestPoolSize, networkState.ReceivePoolSize);
                     
                     _nodeService.RecordBlockInfo(chainId);
                 }

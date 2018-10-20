@@ -19,14 +19,16 @@ namespace AElf.Execution
     {
         private readonly IGrouper _grouper;
         private readonly IActorEnvironment _actorEnvironment;
+        private readonly IExecutingService _singlExecutingService;
 
         // TODO: Move it to config
         public int TimeoutMilliSeconds { get; set; } = int.MaxValue;
 
-        public ParallelTransactionExecutingService(IActorEnvironment actorEnvironment, IGrouper grouper)
+        public ParallelTransactionExecutingService(IActorEnvironment actorEnvironment, IGrouper grouper,ServicePack servicePack)
         {
             _actorEnvironment = actorEnvironment;
             _grouper = grouper;
+            _singlExecutingService = new SimpleExecutingService(servicePack.SmartContractService, servicePack.TransactionTraceManager, servicePack.StateStore, servicePack.ChainContextService);
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
@@ -37,24 +39,30 @@ namespace AElf.Execution
             List<List<Transaction>> groups;
             Dictionary<Transaction, Exception> failedTxs;
 
+            var dposTxs = transactions.Where(tx => tx.Type == TransactionType.DposTransaction).ToList();
+            var normalTxs = transactions.Where(tx => tx.Type != TransactionType.DposTransaction).ToList();
+
             //disable parallel module by default because it doesn't finish yet (don't support contract call)
             if (ParallelConfig.Instance.IsParallelEnable)
             {
                 var groupRes = await _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins,
-                    ActorConfig.Instance.ConcurrencyLevel, chainId, transactions);
+                    ActorConfig.Instance.ConcurrencyLevel, chainId, normalTxs);
                 groups = groupRes.Item1;
                 failedTxs = groupRes.Item2;
             }
             else
             {
-                groups = new List<List<Transaction>> {transactions};
+                groups = new List<List<Transaction>> {normalTxs};
                 failedTxs = new Dictionary<Transaction, Exception>();
             }
 
+            var dposResult = _singlExecutingService.ExecuteAsync(dposTxs, chainId, token);
             var tasks = groups.Select(
                 txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, disambiguationHash), token)
             ).ToArray();
-            var results = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
+            
+            var results = dposResult.Result;
+            results.AddRange((await Task.WhenAll(tasks)).SelectMany(x => x).ToList());
 
             foreach (var failed in failedTxs)
             {
@@ -62,12 +70,12 @@ namespace AElf.Execution
                 {
                     StdErr = "Transaction with ID/hash " + failed.Key.GetHash().DumpHex() +
                              " failed, detail message: \n" + failed.Value.Dump(),
-                    TransactionId = failed.Key.GetHash(),
-                    Transaction = failed.Key
+                    TransactionId = failed.Key.GetHash()
                 };
                 results.Add(failedTrace);
+                Console.WriteLine(failedTrace.StdErr);
             }
-
+            
             return results;
         }
 

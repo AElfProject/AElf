@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Akka.Dispatch;
 using ServiceStack;
 
 namespace AElf.ChainController
@@ -17,7 +19,7 @@ namespace AElf.ChainController
         private readonly ITransactionManager _transactionManager;
         private readonly IDataStore _dataStore;
 
-        private readonly Dictionary<Hash, BlockChain> _blockchains = new Dictionary<Hash, BlockChain>();
+        private readonly ConcurrentDictionary<Hash, BlockChain> _blockchains = new ConcurrentDictionary<Hash, BlockChain>();
 
         public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
             ITransactionManager transactionManager, IDataStore dataStore)
@@ -42,7 +44,7 @@ namespace AElf.ChainController
             }
             
             blockChain = new BlockChain(chainId, _chainManager, _blockManager, _transactionManager, _dataStore);
-            _blockchains.Add(chainId, blockChain);
+            _blockchains.TryAdd(chainId, blockChain);
             return blockChain;
         }
 
