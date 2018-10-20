@@ -294,7 +294,7 @@ namespace AElf.Kernel.Tests.Miner
             NodeConfig.Instance.ECKeyPair = keypair;
             miner.Init();
 
-            await poolService.AddTxAsync(new Transaction
+            await txPool.AddTxAsync(new Transaction
             {
                 From = Address.Generate(),
                 To = Address.Generate(),

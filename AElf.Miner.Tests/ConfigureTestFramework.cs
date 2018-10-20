@@ -8,6 +8,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
+using AElf.Synchronization.BlockSynchronization;
 using Autofac;
 using Autofac.Core;
 using Xunit;

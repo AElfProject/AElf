@@ -150,17 +150,20 @@ namespace AElf.Synchronization.BlockSynchronization
         
         public bool IsBlockReceived(Hash blockHash, ulong height)
         {
-            return _blockSet.IsBlockReceived(blockHash, height);
+            return _blockSet.IsBlockReceived(blockHash, height) || BlockChain.HasBlock(blockHash).Result;
         }
 
         public IBlock GetBlockByHash(Hash blockHash)
         {
-            return _blockSet.GetBlockByHash(blockHash);
+            return _blockSet.GetBlockByHash(blockHash) ?? BlockChain.GetBlockByHashAsync(blockHash).Result;
         }
 
         public List<IBlock> GetBlockByHeight(ulong height)
         {
-            return _blockSet.GetBlockByHeight(height);
+            return _blockSet.GetBlockByHeight(height) ?? new List<IBlock>
+            {
+                BlockChain.GetBlockByHeightAsync(height).Result
+            };
         }
     }
 }

@@ -115,7 +115,7 @@ namespace AElf.Miner.Tests
         
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
-            var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, _logger, 
+            var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
                 _transactionManager, _transactionResultManager,
                 clientManager, _binaryMerkleTreeManager);
 

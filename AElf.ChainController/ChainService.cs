@@ -50,6 +50,5 @@ namespace AElf.ChainController
         {
             return new LightChain(chainId, _chainManager, _blockManager, _dataStore);
         }
-       
     }
 }

@@ -8,7 +8,7 @@ namespace AElf.ChainController
     // ReSharper disable InconsistentNaming
     public interface IBlockExecutionService
     {
-        Task<BlockExecutionResultCC> ExecuteBlock(IBlock block);
+        Task<BlockExecutionResult> ExecuteBlock(IBlock block);
         void Init();
         Task Rollback(List<Transaction> txs);
     }

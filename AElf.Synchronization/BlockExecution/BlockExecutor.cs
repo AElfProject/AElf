@@ -4,7 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Common.Attributes;
+using AElf.Common;
+using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -20,7 +21,6 @@ using AElf.Common;
 
 namespace AElf.Synchronization.BlockExecution
 {
-    [LoggerName(nameof(BlockExecutor))]
     public class BlockExecutor : IBlockExecutor
     {
         private readonly IChainService _chainService;
@@ -32,16 +32,18 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService, 
-            ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             ClientManager clientManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             _chainService = chainService;
             _executingService = executingService;
-            _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
+            
+            _logger = LogManager.GetLogger(nameof(BlockExecutor));
+
         }
 
         /// <summary>
