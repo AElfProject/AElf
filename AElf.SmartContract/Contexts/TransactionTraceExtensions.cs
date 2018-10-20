@@ -21,13 +21,17 @@ namespace AElf.SmartContract
                     $"Attempting to commit a trace with a wrong status {trace.ExecutionStatus}.");
             }
 
+            if (trace.StateChanges.Count > 0)
+            {
                 await stateStore.PipelineSetDataAsync(trace.StateChanges.ToDictionary(x => x.StatePath, x => x.StateValue.CurrentValue.ToByteArray()));
-                trace.StateHash = Hash.FromRawBytes(ByteArrayHelpers.Combine(trace.StateChanges.Select(x=>x.StatePath.GetHash()).OrderBy(x=>x).Select(x=>x.Value.ToByteArray()).ToArray()));
-                trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
-                foreach (var trc in trace.InlineTraces)
-                {
-                    await trc.CommitChangesAsync(stateStore);
-                }
+            }
+
+            trace.StateHash = Hash.FromRawBytes(ByteArrayHelpers.Combine(trace.StateChanges.Select(x=>x.StatePath.GetHash()).OrderBy(x=>x).Select(x=>x.Value.ToByteArray()).ToArray()));
+            trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
+            foreach (var trc in trace.InlineTraces)
+            {
+                await trc.CommitChangesAsync(stateStore);
+            }
         }
     }
 }
