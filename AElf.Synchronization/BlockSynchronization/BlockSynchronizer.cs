@@ -78,13 +78,12 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (blockValidationResult == BlockValidationResult.Success)
             {
-                _logger?.Trace($"Block {block.GetHash().DumpHex()} is a valid block.");
+                _logger?.Trace($"Valid Block {block.GetHash().DumpHex()}.");
                 await HandleValidBlock(message);
             }
             else
             {
-                _logger?.Trace(
-                    $"Block {block.GetHash().DumpHex()} at {block.Header.Index} is an invalid block with validation result {blockValidationResult}.");
+                _logger?.Warn($"Invalid Block {block.GetHash().DumpHex()} : {message.BlockValidationResult.ToString()}.");
                 await HandleInvalidBlock(message);
             }
 
@@ -115,21 +114,31 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task HandleInvalidBlock(BlockAccepted message)
         {
-            _blockSet.AddBlock(message.Block);
-
-            var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
-            if (message.Block.Header.Index > currentHeight)
+            // Handle the invalid block according their validation result.
+            if ((int) message.BlockValidationResult < 100)
             {
-                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
+                _blockSet.AddBlock(message.Block);
             }
-            
-            switch (message.BlockValidationResult)
-            {
-                case BlockValidationResult.Pending: break;
-                case BlockValidationResult.AlreadyExecuted: break;
-            }
+            await ReviewBlockSet(message);
         }
 
+        private async Task ReviewBlockSet(BlockAccepted message)
+        {
+            // In case of the block set exists blocks that should be valid but didn't executed yet.
+            var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
+            if (message.Block.Header.Index > currentHeight)
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
+            
+            // Detect longest chain and switch.
+            var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
+            if (forkHeight != 0)
+            {
+                _logger?.Trace("Will rollback to height: " + forkHeight);
+                await BlockChain.RollbackToHeight(forkHeight);
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(forkHeight + 1));
+            }
+        }
+                
         private async Task<IChainContext> GetChainContextAsync()
         {
             var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
