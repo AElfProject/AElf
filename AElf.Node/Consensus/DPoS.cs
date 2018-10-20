@@ -21,6 +21,7 @@ using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.EventMessages;
 using AElf.Kernel.Storages;
+using AElf.Node.EventMessages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -130,7 +131,6 @@ namespace AElf.Kernel.Node
 
             if (NodeConfig.Instance.ConsensusInfoGenerator && !await Helper.HasGenerated())
             {
-                GlobalConfig.IsConsensusGenerator = true;
                 AElfDPoSObserver.Initialization();
                 return;
             }
@@ -242,6 +242,12 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithInitializingAElfDPoSInformation()
         {
+            if (await Helper.HasGenerated())
+            {
+                MessageHub.Instance.Publish(new SyncStateChanged(true));
+                return;
+            }
+            
             var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
             var parameters = new List<byte[]>
             {

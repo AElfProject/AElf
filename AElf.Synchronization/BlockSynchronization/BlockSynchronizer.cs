@@ -104,12 +104,15 @@ namespace AElf.Synchronization.BlockSynchronization
             var executionResult = await _blockExecutor.ExecuteBlock(message.Block);
             if (executionResult == BlockExecutionResult.Success)
             {
-                _blockSet.Tell(message.Block.Header.Index);
+                _blockSet.Tell(message.Block.Index);
                 MessageHub.Instance.Publish(message);
                 MessageHub.Instance.Publish(UpdateConsensus.Update);
-                MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Header.Index + 1));
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
             }
-            // TODO: else
+            else
+            {
+                
+            }
         }
 
         private async Task HandleInvalidBlock(BlockAccepted message)

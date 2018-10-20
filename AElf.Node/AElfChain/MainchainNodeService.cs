@@ -382,15 +382,6 @@ namespace AElf.Node.AElfChain
                 SetupConsensus();
                 _consensus?.Start();
             }
-
-//            if (NodeConfig.Instance.IsMiner)
-//            {
-//                _miner.Init(_nodeKeyPair);
-//                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.DumpHex());
-//                SetupConsensus();
-//                _consensus?.Start();
-//            }
-//            _blockExecutor.FinishInitialSync();
         }
 
         #endregion private methods

@@ -22,7 +22,6 @@ namespace AElf.Common
 
         #region AElf DPoS
 
-        public static bool IsConsensusGenerator;
         public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 4000;
         public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
