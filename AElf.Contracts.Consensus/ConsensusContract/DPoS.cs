@@ -356,7 +356,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 return 2;
             }
 
-            if (roundId.Value != 0)
+            if (roundId.Value != 1)
             {
                 // 3. Is same with current round.
                 var currentRound = await GetCurrentRoundInfo();

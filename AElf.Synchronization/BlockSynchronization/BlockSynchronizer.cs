@@ -111,7 +111,9 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             else
             {
+                //Rollback
                 
+                //await HandleInvalidBlock(message);
             }
         }
 

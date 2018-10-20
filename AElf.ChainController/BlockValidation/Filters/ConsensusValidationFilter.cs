@@ -46,7 +46,7 @@ namespace AElf.ChainController
                 AddressHelpers.GetSystemContractAddress(context.ChainId, SmartContractType.AElfDPoS.ToString());
             var timestampOfBlock = block.Header.Time;
 
-            long roundId = 0;
+            long roundId = 1;
             var updateTx =
                 block.Body.TransactionList.Where(t => t.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString()).ToList();
             if (updateTx.Count > 0)
@@ -97,8 +97,6 @@ namespace AElf.ChainController
                 default:
                     return BlockValidationResult.Success;
             }
-
-            return BlockValidationResult.Success;
         }
 
         private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair,

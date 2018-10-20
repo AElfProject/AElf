@@ -44,11 +44,11 @@ namespace AElf.Contracts.Consensus
             });
         }
 
-        public async Task<Int32Value> Validation(byte[] accountAddress, byte[] timestamp)
+        public async Task<Int32Value> Validation(byte[] accountAddress, byte[] timestamp, byte[] roundId)
         {
             return new Int32Value
             {
-                Value = await _consensus.Validation(new List<byte[]> {accountAddress, timestamp})
+                Value = await _consensus.Validation(new List<byte[]> {accountAddress, timestamp, roundId})
             };
         }
 
