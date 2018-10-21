@@ -14,8 +14,6 @@ namespace AElf.Common
 
         public static readonly string GenesisBasicContract = "BasicContractZero";
 
-        public static readonly string ConsensusContract = "AElfDPoS";
-
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
         public const int AElfLogInterval = 900;

@@ -54,7 +54,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         #endregion
 
-        public DPoS(AElfDPoSFiledMapCollection collection)
+        public DPoS(AElfDPoSFieldMapCollection collection)
         {
             _currentRoundNumberField = collection.CurrentRoundNumberField;
             _blockProducerField = collection.BlockProducerField;

@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
@@ -16,6 +18,7 @@ using ServiceStack;
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
+    // ReSharper disable InconsistentNaming
     [LoggerName(nameof(ConsensusBlockValidationFilter))]
     public class ConsensusBlockValidationFilter : IBlockValidationFilter
     {
@@ -29,6 +32,21 @@ namespace AElf.ChainController
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
+        {
+            if (NodeConfig.Instance.ConsensusKind == ConsensusKind.AElfDPoS)
+            {
+                return await DPoSValidation(block, context);
+            }
+
+            if (NodeConfig.Instance.ConsensusKind == ConsensusKind.AElfPoW)
+            {
+                return await PoWValidation(block, context);
+            }
+
+            return BlockValidationResult.NotImplementConsensus;
+        }
+
+        private async Task<BlockValidationResult> DPoSValidation(IBlock block, IChainContext context)
         {
             // If the height of chain is 1, no need to check consensus validation
             if (block.Header.Index < GlobalConfig.GenesisBlockHeight + 2)
@@ -48,7 +66,8 @@ namespace AElf.ChainController
 
             long roundId = 1;
             var updateTx =
-                block.Body.TransactionList.Where(t => t.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString()).ToList();
+                block.Body.TransactionList.Where(t => t.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString())
+                    .ToList();
             if (updateTx.Count > 0)
             {
                 if (updateTx.Count > 1)
@@ -59,7 +78,7 @@ namespace AElf.ChainController
                 roundId = ((Round) ParamsPacker.Unpack(updateTx[0].Params.ToByteArray(),
                     new[] {typeof(Round), typeof(Round), typeof(StringValue)})[1]).RoundId;
             }
-            
+
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
             var tx = GetTxToVerifyBlockProducer(contractAccountHash, NodeConfig.Instance.ECKeyPair, address,
@@ -83,7 +102,7 @@ namespace AElf.ChainController
             }
 
             var result = Int32Value.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value;
-            
+
             switch (result)
             {
                 case 1:
@@ -97,6 +116,11 @@ namespace AElf.ChainController
                 default:
                     return BlockValidationResult.Success;
             }
+        }
+
+        private async Task<BlockValidationResult> PoWValidation(IBlock block, IChainContext context)
+        {
+            return BlockValidationResult.IncorrectPoWResult;
         }
 
         private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair,

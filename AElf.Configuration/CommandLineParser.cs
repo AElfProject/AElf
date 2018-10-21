@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using AElf.Common;
 using AElf.Common.Application;
 using AElf.Common.Enums;
 using AElf.Configuration.Config.Consensus;
@@ -72,6 +73,8 @@ namespace AElf.Configuration
             NodeConfig.Instance.NodeAccount = opts.NodeAccount;
             NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
             NodeConfig.Instance.ConsensusInfoGenerator = opts.IsConsensusInfoGenerator;
+            // TODO: 
+            NodeConfig.Instance.ConsensusKind = ConsensusKind.AElfDPoS;
 
             // Actor
             if (opts.ActorIsCluster.HasValue)

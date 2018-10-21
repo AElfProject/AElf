@@ -28,5 +28,7 @@ namespace AElf.ChainController
         IncorrectSideChainInfo,
         IncorrectFirstBlock,
         AlreadyExecuted,
+        IncorrectPoWResult,
+        NotImplementConsensus
     }
 }

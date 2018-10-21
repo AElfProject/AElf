@@ -16,7 +16,7 @@ namespace AElf.Contracts.Consensus
     // ReSharper disable UnusedMember.Global
     public class ContractZeroWithAElfDPoS : CSharpSmartContract
     {
-        private readonly IConsensus _consensus = new DPoS(new AElfDPoSFiledMapCollection
+        private readonly IConsensus _consensus = new DPoS(new AElfDPoSFieldMapCollection
         {
             CurrentRoundNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber),
             BlockProducerField = new PbField<Miners>(GlobalConfig.AElfDPoSBlockProducerString),

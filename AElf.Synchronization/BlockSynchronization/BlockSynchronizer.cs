@@ -119,7 +119,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task HandleInvalidBlock(BlockAccepted message)
         {
-            // Handle the invalid block according their validation result.
+            // Handle the invalid blocks according to their validation results.
             if ((int) message.BlockValidationResult < 100)
             {
                 _blockSet.AddBlock(message.Block);
