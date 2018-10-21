@@ -13,7 +13,7 @@ namespace AElf.Synchronization.BlockSynchronization
     {
         private readonly ILogger _logger;
 
-        private readonly IndexedDictionary<IBlock> _dict;
+        private readonly List<IBlock> _list;
 
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private object _ = new object();
@@ -24,9 +24,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             _logger = LogManager.GetLogger(nameof(BlockSet));
 
-            _dict = new IndexedDictionary<IBlock>();
-            _dict.IndexBy(b => b.Index, true)
-                .IndexBy(b => b.BlockHashToHex);
+            _list = new List<IBlock>();
         }
 
         public void AddBlock(IBlock block)
@@ -35,7 +33,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger?.Trace($"Added block {hash} to BlockSet.");
             lock (_)
             {
-                _dict.Add(block);
+                _list.Add(block);
             }
         }
 
@@ -58,7 +56,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             lock (_)
             {
-                return _dict.Any(b => b.Index == height && b.BlockHashToHex == blockHash.DumpHex());
+                return _list.Any(b => b.Index == height && b.BlockHashToHex == blockHash.DumpHex());
             }
         }
 
@@ -66,7 +64,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             lock (_)
             {
-                return _dict.FirstOrDefault(b => b.BlockHashToHex == blockHash.DumpHex());
+                return _list.FirstOrDefault(b => b.BlockHashToHex == blockHash.DumpHex());
             }
         }
 
@@ -74,7 +72,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             lock (_)
             {
-                return _dict.Where(b => b.Index == height).ToList();
+                return _list.Where(b => b.Index == height).ToList();
             }
         }
 
@@ -84,9 +82,12 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 lock (_)
                 {
-                    if (_dict.Any(b => b.Index <= targetHeight))
+                    var toRemove = _list.Where(b => b.Index <= targetHeight).ToList();
+                    if (!toRemove.Any())
+                        return;
+                    foreach (var block in toRemove)
                     {
-                        _dict.RemoveWhere(b => b.Index <= targetHeight);
+                        _list.Remove(block);
                     }
                 }
             }
@@ -108,7 +109,7 @@ namespace AElf.Synchronization.BlockSynchronization
             
             lock (_)
             {
-                higherBlocks = _dict.Where(b => b.Index > currentHeight).ToList();
+                higherBlocks = _list.Where(b => b.Index > currentHeight).ToList();
             }
 
             if (higherBlocks.Any())
@@ -122,7 +123,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     {
                         lock (_)
                         {
-                            if (_dict.Any(b => b.Index == index - 1 && b.BlockHashToHex == block.BlockHashToHex))
+                            if (_list.Any(b => b.Index == index - 1 && b.BlockHashToHex == block.BlockHashToHex))
                             {
                                 index--;
                                 forkHeight = index;
