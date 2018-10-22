@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
@@ -7,6 +8,7 @@ using AElf.Kernel.Storages;
 using Easy.MessageHub;
 using NLog;
 using AElf.Common;
+using NServiceKit.Common.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -14,14 +16,19 @@ namespace AElf.Kernel
     public class BlockChain : LightChain, IBlockChain
     {    
         private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionTraceManager _transactionTraceManager;
+        private readonly IStateStore _stateStore;
 
         private readonly ILogger _logger;
 
         public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
-            ITransactionManager transactionManager, IDataStore dataStore, ILogger logger = null) : base(
+            ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
+            IStateStore stateStore, IDataStore dataStore, ILogger logger = null) : base(
             chainId, chainManager, blockManager, dataStore)
         {
             _transactionManager = transactionManager;
+            _transactionTraceManager = transactionTraceManager;
+            _stateStore = stateStore;
             _logger = logger;
         }
 
@@ -82,17 +89,17 @@ namespace AElf.Kernel
         }
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
-        {   
+        {
             var currentHash = await GetCurrentBlockHashAsync();
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
-            
+
             var txs = new List<Transaction>();
             if (currentHeight <= height)
             {
                 return txs;
             }
 
-            for (var i = currentHeight - 1; i > height; i--)
+            for (var i = currentHeight; i > height; i--)
             {
                 var block = await GetBlockByHeightAsync(i);
                 var body = block.Body;
@@ -101,20 +108,41 @@ namespace AElf.Kernel
                     var tx = await _transactionManager.GetTransaction(txId);
                     txs.Add(tx);
                 }
-            }
 
-            for (var i = currentHeight - 1; i > height; i--)
-            {
                 var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
-//                h.Height = i;
                 await _dataStore.RemoveAsync<Hash>(h);
+                await RollbackStateForBlock(block);
             }
 
             var hash = await GetCanonicalHashAsync(height);
-            
+
             await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
-            MessageHub.Instance.Publish(new RevertedToBlockHeader(((BlockHeader) await GetHeaderByHashAsync(currentHash))));
+            MessageHub.Instance.Publish(
+                new RevertedToBlockHeader(((BlockHeader) await GetHeaderByHashAsync(currentHash))));
             return txs;
+
+        }
+
+        private async Task RollbackStateForBlock(IBlock block)
+        {
+            var txIds = block.Body.Transactions;
+            var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index, Address.FromRawBytes(block.Header.P.ToByteArray()));
+            await RollbackStateForTransactions(txIds, disambiguationHash);
+        }
+
+        public async Task RollbackStateForTransactions(IEnumerable<Hash> txIds, Hash disambiguationHash)
+        {
+            var origValues = new Dictionary<StatePath, byte[]>();
+            foreach (var txId in txIds.Reverse())
+            {
+                var trace = await _transactionTraceManager.GetTransactionTraceAsync(txId, disambiguationHash);
+                foreach (var kv in trace.StateChanges)
+                {
+                    origValues.Add(kv.StatePath, kv.StateValue.OriginalValue.ToByteArray());
+                }
+            }
+
+            await _stateStore.PipelineSetDataAsync(origValues);
         }
     }
 }
