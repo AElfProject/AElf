@@ -186,11 +186,12 @@ namespace AElf.Kernel
         protected async Task MaybeSwitchBranch(IBlockHeader header)
         {
             var blockHeader = (BlockHeader) header;
-            if (blockHeader.Index == 0)
+            if (blockHeader.Index <= GlobalConfig.GenesisBlockHeight)
             {
                 var hash = GetHeightHash(blockHeader.Index).OfType(HashType.CanonicalHash);
 //                hash.Height = blockHeader.Index;
                 await _dataStore.InsertAsync(hash, header.GetHash());
+                await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 return;
             }
             
