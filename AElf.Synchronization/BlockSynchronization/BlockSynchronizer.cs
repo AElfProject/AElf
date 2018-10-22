@@ -111,9 +111,8 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             else
             {
-                //Rollback
-                
-                //await HandleInvalidBlock(message);
+                await BlockChain.RollbackOneBlock();
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index - 1));
             }
         }
 
