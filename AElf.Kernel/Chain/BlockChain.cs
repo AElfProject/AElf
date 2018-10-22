@@ -90,6 +90,8 @@ namespace AElf.Kernel
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
         {
+            _logger?.Trace("Will rollback to height: " + height);
+
             var currentHash = await GetCurrentBlockHashAsync();
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
 

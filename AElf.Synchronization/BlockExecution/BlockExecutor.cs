@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common.Attributes;
 using AElf.Common;
 using AElf.Execution.Execution;
@@ -16,6 +17,7 @@ using NLog;
 using NServiceKit.Common.Extensions;
 using AElf.Common;
 using AElf.Miner.Rpc.Client;
+using Easy.MessageHub;
 
 namespace AElf.Synchronization.BlockExecution
 {
@@ -52,6 +54,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <inheritdoc/>
         public async Task<BlockExecutionResult> ExecuteBlock(IBlock block)
         {
+            MessageHub.Instance.Publish(new SyncStateChanged(true));
             if (!await Prepare(block))
             {
                 return BlockExecutionResult.Failed;
@@ -82,8 +85,12 @@ namespace AElf.Synchronization.BlockExecution
                 }
 
                 Rollback(block, txnRes);
-                
+
                 return BlockExecutionResult.Failed;
+            }
+            finally
+            {
+                MessageHub.Instance.Publish(new SyncStateChanged(false));
             }
         }
         

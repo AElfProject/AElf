@@ -338,7 +338,7 @@ namespace AElf.Node.Protocol
             switch (msgType)
             {
                 case AElfProtocolMsgType.Announcement:
-                    HandleAnnoucement(msgType, args.Message, args.Peer);
+                    HandleAnnouncement(msgType, args.Message, args.Peer);
                     break;
                 // New blocks and requested blocks will be added to the sync
                 // Subscribe to the BlockReceived event.
@@ -384,7 +384,7 @@ namespace AElf.Node.Protocol
             }
         }
         
-        private void HandleAnnoucement(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        private void HandleAnnouncement(AElfProtocolMsgType msgType, Message msg, Peer peer)
         {
             try
             {
@@ -401,7 +401,7 @@ namespace AElf.Node.Protocol
                 if (bbh.Header != null)
                     return;
                 
-                SetSyncState(true);
+                //SetSyncState(true);
                 peer.OnAnnouncementMessage(a);
             }
             catch (Exception e)

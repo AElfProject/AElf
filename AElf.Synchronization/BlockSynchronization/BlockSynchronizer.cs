@@ -130,14 +130,13 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             // In case of the block set exists blocks that should be valid but didn't executed yet.
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
-            if (message.Block.Header.Index > currentHeight)
-                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
+//            if (message.Block.Header.Index > currentHeight)
+//                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
             
             // Detect longest chain and switch.
             var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
             if (forkHeight != 0)
             {
-                _logger?.Trace("Will rollback to height: " + forkHeight);
                 await BlockChain.RollbackToHeight(forkHeight);
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(forkHeight + 1));
             }
