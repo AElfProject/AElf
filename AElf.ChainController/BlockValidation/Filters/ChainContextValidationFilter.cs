@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
 using NLog;
@@ -9,16 +8,16 @@ using NLog;
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
-    [LoggerName(nameof(ChainContextValidationFilter))]
     public class ChainContextValidationFilter : IBlockValidationFilter
     {
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
 
-        public ChainContextValidationFilter(IChainService chainService, ILogger logger)
+        public ChainContextValidationFilter(IChainService chainService)
         {
             _chainService = chainService;
-            _logger = logger;
+            
+            _logger = LogManager.GetLogger(nameof(ChainContextValidationFilter));
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)

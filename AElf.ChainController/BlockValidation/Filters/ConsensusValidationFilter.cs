@@ -1,6 +1,4 @@
-using System;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
@@ -19,16 +17,16 @@ using ServiceStack;
 namespace AElf.ChainController
 {
     // ReSharper disable InconsistentNaming
-    [LoggerName(nameof(ConsensusBlockValidationFilter))]
     public class ConsensusBlockValidationFilter : IBlockValidationFilter
     {
         private readonly ISmartContractService _smartContractService;
         private readonly ILogger _logger;
 
-        public ConsensusBlockValidationFilter(ISmartContractService smartContractService, ILogger logger)
+        public ConsensusBlockValidationFilter(ISmartContractService smartContractService)
         {
             _smartContractService = smartContractService;
-            _logger = logger;
+            
+            _logger = LogManager.GetLogger(nameof(ConsensusBlockValidationFilter));
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
