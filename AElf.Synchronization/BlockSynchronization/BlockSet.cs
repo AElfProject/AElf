@@ -37,6 +37,18 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
+        public void RemoveExecutedBlock(string blockHashHex)
+        {
+            lock (_)
+            {
+                var toRemove = _list.FirstOrDefault(b => b.BlockHashToHex == blockHashHex);
+                if (toRemove?.Header != null)
+                {
+                    _list.Remove(toRemove);
+                }
+            }
+        }
+
         /// <summary>
         /// Tell the block collection the height of block just successfully executed.
         /// </summary>
@@ -48,7 +60,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 return;
             }
-            
+
             RemoveOldBlocks(currentHeight - KeepHeight);
         }
 
@@ -106,7 +118,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             IEnumerable<IBlock> higherBlocks;
             ulong forkHeight = 0;
-            
+
             lock (_)
             {
                 higherBlocks = _list.Where(b => b.Index > currentHeight).ToList();
@@ -115,28 +127,35 @@ namespace AElf.Synchronization.BlockSynchronization
             if (higherBlocks.Any())
             {
                 _logger?.Trace("Find higher blocks in block set, will check whether there are longer valid chain.");
-                foreach (var block in higherBlocks)
+
+                // Get the index of highest block in block set.
+                var index = higherBlocks.OrderBy(b => b.Index).Last().Index;
+
+                foreach (var block in higherBlocks.OrderByDescending(b => b.Index))
                 {
-                    var index = block.Index;
                     var flag = true;
                     while (flag)
                     {
                         lock (_)
                         {
-                            if (_list.Any(b => b.Index == index - 1 && b.BlockHashToHex == block.BlockHashToHex))
+                            if (_list.All(b => b.Index != index - 1)) continue;
                             {
-                                index--;
-                                forkHeight = index;
-                            }
-                            else
-                            {
-                                flag = false;
+                                if (_list.Where(b => b.Index == index - 1).Any(b =>
+                                    b.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex()))
+                                {
+                                    index--;
+                                    forkHeight = index;
+                                }
+                                else
+                                {
+                                    flag = false;
+                                }
                             }
                         }
                     }
                 }
             }
-            
+
             return forkHeight <= currentHeight ? forkHeight : 0;
         }
     }
