@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -79,7 +80,6 @@ namespace AElf.Synchronization.BlockSynchronization
             if (blockValidationResult == BlockValidationResult.Success)
             {
                 _logger?.Trace($"Valid Block {block.GetHash().DumpHex()}.");
-                MessageHub.Instance.Publish(message);
                 await HandleValidBlock(message);
             }
             else
@@ -93,6 +93,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public async Task ReceiveBlocks(IEnumerable<IBlock> blocks)
         {
+            if (blocks == null)
+            {
+                return;
+            }
+            
             foreach (var block in blocks)
             {
                 await ReceiveBlock(block);
@@ -115,6 +120,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 _blockSet.Tell(message.Block.Index);
                 MessageHub.Instance.Publish(UpdateConsensus.Update);
+                MessageHub.Instance.Publish(message);
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
             }
             else

@@ -30,7 +30,7 @@ namespace AElf.ChainController
                 _logger?.Trace($"Result of {filter.GetType().Name}: {result}");
                 resultCollection.Add(result);
             }
-            
+
             return resultCollection.Max();
         }
     }

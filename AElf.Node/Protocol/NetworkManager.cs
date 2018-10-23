@@ -123,7 +123,7 @@ namespace AElf.Node.Protocol
                     
                     AnnounceBlock((Block)inBlock.Block);
 
-                    _logger?.Trace($"Block produced, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
+                    _logger?.Trace($"Block produced, announcing \"{blockHash.ToHex()}\" to peers with {inBlock.Block.Body.TransactionsCount} txs. Block height: [{inBlock.Block.Header.Index}].");
                     
                     _localHeight++;
                 });
@@ -407,7 +407,7 @@ namespace AElf.Node.Protocol
                 
                 _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
 
-                if (bbh != null)
+                if (bbh?.Header != null)
                     return;
                 
                 SetSyncState(true);
