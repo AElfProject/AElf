@@ -16,10 +16,6 @@ namespace AElf.Kernel
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
             {
                 GlobalConfig.AElfDPoSMiningInterval = ConsensusConfig.Instance.DPoSMiningInterval;
-                if (NodeConfig.Instance.ConsensusInfoGenerator)
-                {
-                    Console.WriteLine($"Mining interval: {GlobalConfig.AElfDPoSMiningInterval} ms");
-                }
             }
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.PoTC)
@@ -32,7 +28,6 @@ namespace AElf.Kernel
             {
                 GlobalConfig.BlockProducerNumber = 1;
                 GlobalConfig.SingleNodeTestMiningInterval = ConsensusConfig.Instance.SingleNodeTestMiningInterval;
-                Console.WriteLine($"Mining interval: {GlobalConfig.SingleNodeTestMiningInterval} ms");
             }
             
             builder.RegisterModule(new KernelAutofacModule());

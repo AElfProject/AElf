@@ -58,7 +58,6 @@ namespace AElf.Kernel.Tests.Miner
             var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
             Console.WriteLine($"zero {contractAddressZero}");
             var code = ExampleContractCode;
-         
             
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
@@ -179,6 +178,7 @@ namespace AElf.Kernel.Tests.Miner
 
             return txs;
         }
+        
         [Fact]
         public async Task Mine()
         {
@@ -200,10 +200,8 @@ namespace AElf.Kernel.Tests.Miner
             var manager = _mock.MinerClientManager();
             var miner = _mock.GetMiner(minerconfig, txPool, manager);
 
-            //GrpcLocalConfig.Instance.ClientToParentChain = false;
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
-            //GrpcRemoteConfig.Instance.ParentChain = null;
             NodeConfig.Instance.ECKeyPair = keypair;
             miner.Init();
             
@@ -213,42 +211,6 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
-//            Hash addr = uncompressedPrivKey.Take(Common.Globals.AddressLength).ToArray();
-            Address addr = Address.FromRawBytes(uncompressedPrivKey);
-            Assert.Equal(minerconfig.CoinBase, addr);
-            
-            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-            ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().DumpByteArray()));
-        }
-        
-        [Fact]
-        public async Task ExecuteWithoutTransaction()
-        {
-            var chain = await _mock.CreateChain();
-            // create miner
-            var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
-            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
-            NodeConfig.Instance.NodeAccount = keypair.GetAddressHex();
-            var txPool = _mock.CreateTxPool();
-            txPool.Start();
-            
-            var manager = _mock.MinerClientManager();
-            var miner = _mock.GetMiner(minerconfig, txPool, manager);
-            //GrpcLocalConfig.Instance.ClientToParentChain = false;
-            GrpcLocalConfig.Instance.ClientToSideChain = false;
-            //GrpcRemoteConfig.Instance.ParentChain = null;
-            NodeConfig.Instance.ECKeyPair = keypair;
-            miner.Init();
-
-            var block = await miner.Mine();
-            
-            Assert.NotNull(block);
-            Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
-            
-            byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
-//            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
             Address addr = Address.FromRawBytes(uncompressedPrivKey);
             Assert.Equal(minerconfig.CoinBase, addr);
             
@@ -290,7 +252,6 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Equal(GlobalConfig.GenesisBlockHeight, index);
             Assert.Equal(chain.GenesisBlockHash.DumpHex(), curHash.DumpHex());
         }
-
 
         #region GRPC
 

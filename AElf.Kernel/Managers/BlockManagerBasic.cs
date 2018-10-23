@@ -14,10 +14,11 @@ namespace AElf.Kernel.Managers
 
         private readonly ILogger _logger;
 
-        public BlockManagerBasic(IDataStore dataStore, ILogger logger)
+        public BlockManagerBasic(IDataStore dataStore)
         {
             _dataStore = dataStore;
-            _logger = logger;
+            
+            _logger = LogManager.GetLogger(nameof(BlockManagerBasic));
         }
 
         public async Task<IBlock> AddBlockAsync(IBlock block)

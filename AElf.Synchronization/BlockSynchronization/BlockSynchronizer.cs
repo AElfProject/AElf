@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -78,17 +79,29 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (blockValidationResult == BlockValidationResult.Success)
             {
-                _logger?.Trace($"Block {block.GetHash().DumpHex()} is a valid block.");
+                _logger?.Trace($"Valid Block {block.GetHash().DumpHex()}.");
                 await HandleValidBlock(message);
             }
             else
             {
-                _logger?.Trace(
-                    $"Block {block.GetHash().DumpHex()} at {block.Header.Index} is an invalid block with validation result {blockValidationResult}.");
+                _logger?.Warn($"Invalid Block {block.GetHash().DumpHex()} : {message.BlockValidationResult.ToString()}.");
                 await HandleInvalidBlock(message);
             }
 
             return blockValidationResult;
+        }
+
+        public async Task ReceiveBlocks(IEnumerable<IBlock> blocks)
+        {
+            if (blocks == null)
+            {
+                return;
+            }
+            
+            foreach (var block in blocks)
+            {
+                await ReceiveBlock(block);
+            }
         }
 
         public void AddMinedBlock(IBlock block)
@@ -105,31 +118,50 @@ namespace AElf.Synchronization.BlockSynchronization
             var executionResult = await _blockExecutor.ExecuteBlock(message.Block);
             if (executionResult == BlockExecutionResult.Success)
             {
-                _blockSet.Tell(message.Block.Header.Index);
-                MessageHub.Instance.Publish(message);
+                _blockSet.Tell(message.Block.Index);
                 MessageHub.Instance.Publish(UpdateConsensus.Update);
-                MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Header.Index + 1));
+                MessageHub.Instance.Publish(message);
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
             }
-            // TODO: else
+            else
+            {
+                await BlockChain.RollbackOneBlock();
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index - 1));
+            }
         }
 
         private async Task HandleInvalidBlock(BlockAccepted message)
         {
-            _blockSet.AddBlock(message.Block);
-
-            var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
-            if (message.Block.Header.Index > currentHeight)
+            // Handle the invalid blocks according to their validation results.
+            if ((int) message.BlockValidationResult < 100)
             {
-                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
+                _blockSet.AddBlock(message.Block);
+            }
+
+            if (message.BlockValidationResult == BlockValidationResult.IncorrectPreBlockHash)
+            {
+                
             }
             
-            switch (message.BlockValidationResult)
-            {
-                case BlockValidationResult.Pending: break;
-                case BlockValidationResult.AlreadyExecuted: break;
-            }
+            await ReviewBlockSet(message);
         }
 
+        private async Task ReviewBlockSet(BlockAccepted message)
+        {
+            // In case of the block set exists blocks that should be valid but didn't executed yet.
+            var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
+//            if (message.Block.Header.Index > currentHeight)
+//                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
+            
+            // Detect longest chain and switch.
+            var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
+            if (forkHeight != 0)
+            {
+                await BlockChain.RollbackToHeight(forkHeight);
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(forkHeight + 1));
+            }
+        }
+                
         private async Task<IChainContext> GetChainContextAsync()
         {
             var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
@@ -150,17 +182,20 @@ namespace AElf.Synchronization.BlockSynchronization
         
         public bool IsBlockReceived(Hash blockHash, ulong height)
         {
-            return _blockSet.IsBlockReceived(blockHash, height);
+            return _blockSet.IsBlockReceived(blockHash, height) || BlockChain.HasBlock(blockHash).Result;
         }
 
         public IBlock GetBlockByHash(Hash blockHash)
         {
-            return _blockSet.GetBlockByHash(blockHash);
+            return _blockSet.GetBlockByHash(blockHash) ?? BlockChain.GetBlockByHashAsync(blockHash).Result;
         }
 
-        public List<IBlock> GetBlockByHeight(ulong height)
+        public List<IBlock> GetBlocksByHeight(ulong height)
         {
-            return _blockSet.GetBlockByHeight(height);
+            return _blockSet.GetBlockByHeight(height) ?? new List<IBlock>
+            {
+                BlockChain.GetBlockByHeightAsync(height).Result
+            };
         }
     }
 }

@@ -13,5 +13,6 @@ namespace AElf.Synchronization.BlockSynchronization
         bool IsBlockReceived(Hash blockHash, ulong height);
         IBlock GetBlockByHash(Hash blockHash);
         List<IBlock> GetBlockByHeight(ulong height);
+        ulong AnyLongerValidChain(ulong currentHeight);
     }
 }

@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using AElf.ChainController;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel;
 
 namespace AElf.Synchronization.BlockExecution

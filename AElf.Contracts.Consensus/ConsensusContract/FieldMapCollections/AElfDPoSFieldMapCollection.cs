@@ -5,7 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
 {
     // ReSharper disable InconsistentNaming
-    public class AElfDPoSFiledMapCollection
+    public class AElfDPoSFieldMapCollection
     {
         /// <summary>
         /// Current round number.

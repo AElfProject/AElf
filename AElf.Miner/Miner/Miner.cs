@@ -45,6 +45,8 @@ namespace AElf.Miner.Miner
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ServerManager _serverManager;
+        private readonly IBlockValidationService _blockValidationService;
+        private readonly IChainContextService _chainContextService;
         private Address _producerAddress;
 
         private IMinerConfig Config { get; }
@@ -54,7 +56,8 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxPool txPool, IChainService chainService,
             IExecutingService executingService, ITransactionManager transactionManager,
             ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, 
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager, 
+            IBlockValidationService blockValidationService, IChainContextService chainContextService)
         {
             Config = config;
             _txPool = txPool;
@@ -66,6 +69,8 @@ namespace AElf.Miner.Miner
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _serverManager = serverManager;
+            _blockValidationService = blockValidationService;
+            _chainContextService = chainContextService;
         }
 
         /// <inheritdoc />
@@ -88,11 +93,7 @@ namespace AElf.Miner.Miner
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
                     var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
                     var readyTxs = await _txPool.GetReadyTxsAsync(currentRoundInfo);
-                    // remove invalid CrossChainBlockInfoTransaction, only that from local can be executed)
-                    /*readyTxs.RemoveAll(t =>
-                        t.Type == TransactionType.CrossChainBlockInfoTransaction &&
-                        !t.GetHash().Equals(genTx.GetHash()));*/
-                    
+
                     var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
                     _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
                     foreach (var transaction in dposTxs)
@@ -112,8 +113,18 @@ namespace AElf.Miner.Miner
 
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
-                    _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index}");
+                    _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
+                    // We need at least check the txs count of this block.
+                    var chainContext =
+                        await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                    var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
+                    if (blockValidationResult != BlockValidationResult.Success)
+                    {
+                        _logger?.Trace("Found the block generated before invalid: " + blockValidationResult);
+                        return null;
+                    }
+                    
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
                     // put back canceled transactions

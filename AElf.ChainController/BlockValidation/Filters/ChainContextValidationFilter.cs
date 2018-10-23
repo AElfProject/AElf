@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
 using NLog;
@@ -9,69 +8,62 @@ using NLog;
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
-    [LoggerName(nameof(ChainContextValidationFilter))]
     public class ChainContextValidationFilter : IBlockValidationFilter
     {
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
 
-        public ChainContextValidationFilter(IChainService chainService, ILogger logger)
+        public ChainContextValidationFilter(IChainService chainService)
         {
             _chainService = chainService;
-            _logger = logger;
+            
+            _logger = LogManager.GetLogger(nameof(ChainContextValidationFilter));
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
             try
             {
-                /*
-                    1' block height
-                    2' previous block hash
-                */
-    
                 var index = block.Header.Index;
                 var previousBlockHash = block.Header.PreviousBlockHash;
-    
-                // return success if genesis block
-                /*if (index == 0 && previousBlockHash.Equals(Hash.Zero))
-                    return TxInsertionAndBroadcastingError.Valid;*/
-    
+                
                 var currentChainHeight = context.BlockHeight;
                 var currentPreviousBlockHash = context.BlockHash;
     
-                // other block needed before this one
+                // Received a higher block.
                 if (index > currentChainHeight + 1)
                 {
-                    _logger?.Trace("Received block index:" + index);
-                    _logger?.Trace("Current chain height:" + currentChainHeight);
-                    
                     return BlockValidationResult.Pending;
                 }
-                
-                // can be added to chain
-                if (previousBlockHash == Hash.Genesis ||  index == currentChainHeight + 1)
+
+                // Basically this block is just after genesis block.
+                if (previousBlockHash == Hash.Genesis)
                 {
-                    if (currentPreviousBlockHash.Equals(previousBlockHash))
-                        return BlockValidationResult.Success;
-
-                    _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.DumpHex());
-                    _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.DumpHex());
-
-                    return BlockValidationResult.IncorrectPreBlockHash;
+                    return currentPreviousBlockHash.Equals(previousBlockHash)
+                        ? BlockValidationResult.Success
+                        : BlockValidationResult.IncorrectFirstBlock;
                 }
-                
+
+                // The index of this block seems right.
+                if (index == currentChainHeight + 1)
+                {
+                    return currentPreviousBlockHash.Equals(previousBlockHash)
+                        ? BlockValidationResult.Success
+                        : BlockValidationResult.IncorrectPreBlockHash;
+                }
+
+                // Check peer block.
                 if (index <= currentChainHeight)
                 {
                     var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
-                    var b = await blockchain.GetBlockByHeightAsync(index);
-                    if (b == null)
+                    var localBlock = await blockchain.GetBlockByHeightAsync(index);
+                    if (localBlock == null)
                     {
                         return BlockValidationResult.FailedToGetBlockByHeight;
                     }
-                    return b.Header.GetHash().Equals(block.Header.GetHash())
+                    return localBlock.Header.GetHash().Equals(block.Header.GetHash())
                         ? BlockValidationResult.AlreadyExecuted
-                        : BlockValidationResult.OrphanBlock;
+                        : BlockValidationResult.BranchedBlock;
                 }
                 
                 _logger?.Error("Incomplete validation scheme.");

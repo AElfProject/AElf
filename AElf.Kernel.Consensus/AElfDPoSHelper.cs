@@ -23,6 +23,8 @@ namespace AElf.Kernel.Consensus
         private readonly Address _contractAddressHash;
         private readonly IStateStore _stateStore;
 
+        public AElfDPoSInformation DpoSInformation { get; private set; }
+
         
         private DataProvider DataProvider
         {
@@ -335,8 +337,7 @@ namespace AElf.Kernel.Consensus
                     add = Hash.FromTwoHashes(add, lastSignature);
                 }
 
-                Hash sig = Hash.FromTwoHashes(inValue, add);
-                _logger?.Trace("Generated signature: " + sig.DumpHex());
+                var sig = Hash.FromTwoHashes(inValue, add);
                 return sig;
             }
             catch (Exception e)

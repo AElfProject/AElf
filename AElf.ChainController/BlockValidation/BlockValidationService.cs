@@ -1,37 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using NLog;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
-    public class BlockValidationService: IBlockValidationService
+    public class BlockValidationService : IBlockValidationService
     {
         private readonly IEnumerable<IBlockValidationFilter> _filters;
+        private readonly ILogger _logger;
 
         public BlockValidationService(IEnumerable<IBlockValidationFilter> filters)
         {
             _filters = filters;
+
+            _logger = LogManager.GetLogger(nameof(BlockValidationService));
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
-            int error = (int) BlockValidationResult.Success; 
+            var resultCollection = new List<BlockValidationResult>();
             foreach (var filter in _filters)
             {
-                error = Math.Max((int)await filter.ValidateBlockAsync(block, context), error);
-                if (error == 3)
-                    return BlockValidationResult.InvalidBlock;
+                var result = await filter.ValidateBlockAsync(block, context);
+                _logger?.Trace($"Result of {filter.GetType().Name}: {result}");
+                resultCollection.Add(result);
             }
-            
-            return (BlockValidationResult) error;
-        }
-    }
 
-    public interface IBlockValidationFilter
-    {
-        Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context);
+            return resultCollection.Max();
+        }
     }
 }

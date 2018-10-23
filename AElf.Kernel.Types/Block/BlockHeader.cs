@@ -42,21 +42,27 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
+
             var rawBlock = new BlockHeader
             {
-                ChainId = ChainId.Clone(),
+                ChainId = ChainId?.Clone(),
                 Index = Index,
-                PreviousBlockHash = PreviousBlockHash.Clone(),
-                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions.Clone(),
-                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone(),
-                Bloom = Bloom, 
+                PreviousBlockHash = PreviousBlockHash?.Clone(),
+                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),
+                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState?.Clone(),
+                Bloom = Bloom,
                 SideChainBlockHeadersRoot = SideChainBlockHeadersRoot?.Clone(),
                 SideChainTransactionsRoot = MerkleTreeRootOfTransactions?.Clone()
             };
             if (Index > GlobalConfig.GenesisBlockHeight)
-                rawBlock.Time = Time.Clone();
-            
+                rawBlock.Time = Time?.Clone();
+
             return rawBlock.ToByteArray();
+        }
+
+        public Hash GetDisambiguationHash()
+        {
+            return HashHelpers.GetDisambiguationHash(Index, Address.FromRawBytes(P.ToByteArray()));
         }
     }
 }

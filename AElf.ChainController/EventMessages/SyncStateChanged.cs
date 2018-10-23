@@ -1,6 +1,6 @@
-﻿namespace AElf.Node.EventMessages
+﻿namespace AElf.ChainController.EventMessages
 {
-    public class SyncStateChanged
+    public sealed class SyncStateChanged
     {
         public bool IsSyncing { get; }
 

@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common.Attributes;
+using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -15,10 +17,10 @@ using NLog;
 using NServiceKit.Common.Extensions;
 using AElf.Common;
 using AElf.Miner.Rpc.Client;
+using Easy.MessageHub;
 
 namespace AElf.Synchronization.BlockExecution
 {
-    [LoggerName(nameof(BlockExecutor))]
     public class BlockExecutor : IBlockExecutor
     {
         private readonly IChainService _chainService;
@@ -30,16 +32,18 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService, 
-            ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             ClientManager clientManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             _chainService = chainService;
             _executingService = executingService;
-            _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
+            
+            _logger = LogManager.GetLogger(nameof(BlockExecutor));
+
         }
 
         /// <summary>
@@ -55,26 +59,32 @@ namespace AElf.Synchronization.BlockExecution
                 return BlockExecutionResult.Failed;
             }
             _logger?.Trace($"Executing block {block.GetHash()}");
+            var txnRes = new List<TransactionResult>();
             try
             {
                 // get txn from pool
                 var readyTxns = await CollectTransactions(block);
-                var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index,
-                Address.FromRawBytes(block.Header.P.ToByteArray()));
-                var txnRes = await ExecuteTransactions(readyTxns, block, disambiguationHash);
+                txnRes = await ExecuteTransactions(readyTxns, block, block.Header.GetDisambiguationHash());
 
                 await UpdateWorldState(block, txnRes);
+                await UpdateSideChainInfo(block);
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
-                await UpdateSideChainInfo(block);
                 return BlockExecutionResult.Success;
             }
             catch (Exception e)
             {
-                if(e is InvalidBlockException)
-                    await Interrupt(e.Message, block);
-                else 
-                    await Interrupt(e, block);
+                if (e is InvalidBlockException)
+                {
+                    _logger?.Warn(e);
+                }
+                else
+                {
+                    _logger?.Error(e);
+                }
+
+                Rollback(block, txnRes);
+
                 return BlockExecutionResult.Failed;
             }
         }
@@ -148,7 +158,7 @@ namespace AElf.Synchronization.BlockExecution
             }
 
             if (!res)
-                await Interrupt(errlog);
+                _logger?.Warn(errlog);
                         
             return res;
         }
@@ -330,24 +340,14 @@ namespace AElf.Synchronization.BlockExecution
         
         #region Rollback
 
-        private async Task Interrupt(Exception e, IBlock block = null)
-        {
-            _logger.Error(e);
-            await Rollback(block);
-        }
-        
-        private async Task Interrupt(string log, IBlock block = null)
-        {
-            _logger.Warn(log);
-            await Rollback(block);
-        }
-
-        private async Task Rollback(IBlock block)
+        private async Task Rollback(IBlock block, IEnumerable<TransactionResult> txRes)
         {
             if(block == null)
                 return;
             var blockChain = _chainService.GetBlockChain(block.Header.ChainId);
-            await blockChain.RollbackToHeight(block.Header.Index - 1);
+            await blockChain.RollbackStateForTransactions(
+                txRes.Where(x=>x.Status==Status.Mined).Select(x=>x.TransactionId), block.Header.GetDisambiguationHash()
+            );
         }
 
         #endregion

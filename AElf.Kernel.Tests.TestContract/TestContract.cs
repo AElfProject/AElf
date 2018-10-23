@@ -58,8 +58,8 @@ namespace AElf.Kernel.Tests.TestContract
             var toBal = Balances.GetValue(to);
             Console.WriteLine("Old To Balance: " + toBal);
 
-            Console.WriteLine("Assertion: " + (fromBal > qty.Value));
-            Api.Assert(fromBal > qty.Value, $"Insufficient balance, {qty.Value} is required but there is only {fromBal}.");
+            Console.WriteLine("Assertion: " + (fromBal >= qty.Value));
+            Api.Assert(fromBal >= qty.Value, $"Insufficient balance, {qty.Value} is required but there is only {fromBal}.");
             
             var newFromBal = fromBal - qty.Value;
             var newToBal = toBal + qty.Value;
