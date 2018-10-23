@@ -104,8 +104,6 @@ namespace AElf.Node.Protocol
                         _lastTxReceived.Enqueue(txHash);
                     
                     await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
-                    
-                    _logger?.Trace($"[event] tx added to the pool {txHash?.ToHex()}.");
                 });
             
             MessageHub.Instance.Subscribe<BlockAddedToSet>(inBlock => 
@@ -431,23 +429,8 @@ namespace AElf.Node.Protocol
                     return;
 
                 _lastTxReceived.Enqueue(txHash);
-
-                // Add to the pool; if valid, rebroadcast.
-                var addResult = _txPool.AddTxAsync(tx).GetAwaiter().GetResult();
                 
-                if (addResult == TxValidation.TxInsertionAndBroadcastingError.Success)
-                {
-                    //_logger?.Debug($"Transaction (new) with hash {txHash.ToHex()} added to the pool.");
-
-                    MessageHub.Instance.Publish(new TxReceived(tx));
-                    
-                    //foreach (var p in _peers.Where(p => !p.Equals(peer)))
-                    //    p.EnqueueOutgoing(msg);
-                }
-                else
-                {
-                    _logger?.Debug($"New transaction {tx.GetHash()} from {peer} not added to the pool: {addResult}");
-                }
+                MessageHub.Instance.Publish(new TxReceived(tx));
             }
             catch (Exception e)
             {
