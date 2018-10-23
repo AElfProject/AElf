@@ -12,6 +12,7 @@ namespace AElf.Management.Request
             var client = new HttpClient();
             client.BaseAddress = new Uri(serverUrl);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.ConnectionClose = true;
 
             return client;
         }

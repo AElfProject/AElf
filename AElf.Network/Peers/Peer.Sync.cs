@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
-using System.Timers;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Network.Connection;
@@ -12,64 +11,7 @@ using Google.Protobuf;
 
 namespace AElf.Network.Peers
 {
-    public class BlockTimeoutRequest
-    {   
-        public event EventHandler RequestTimedOut;
-        
-        private volatile bool _requestCanceled;
-        
-        public double Timeout { get; }
-        
-        private readonly Timer _timeoutTimer;
-
-        public bool IsCanceled 
-        {
-            get { return _requestCanceled; }
-        }
-        
-        public byte[] Id { get; private set; }
-        public int Height { get; private set; }
-        
-        public BlockTimeoutRequest(byte[] id)
-        {
-            Id = id;
-        }
-
-        public BlockTimeoutRequest(int height)
-        {
-            Height = height;
-        }
-        
-        private BlockTimeoutRequest(double timeout)
-        {
-            _timeoutTimer = new Timer();
-            _timeoutTimer.Interval = timeout;
-            _timeoutTimer.Elapsed += TimerTimeoutElapsed;
-            _timeoutTimer.AutoReset = false;
-
-            Timeout = timeout;
-        }
-        
-        private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
-        {
-            if (_requestCanceled) 
-                return;
-            
-            Stop();
-            RequestTimedOut?.Invoke(this, EventArgs.Empty);
-        }
-        
-        /// <summary>
-        /// This method is used to cancel the request and cleanup. Once this
-        /// has been called, you can't use this instance.
-        /// </summary>
-        public void Stop()
-        {
-            _timeoutTimer.Stop();
-        }
-    }
-
-    public class ValidatingBlock
+    public class PendingBlock
     {
         public int BlockNum { get; set; }
         public byte[] BlockId { get; set; }
@@ -77,7 +19,7 @@ namespace AElf.Network.Peers
         public bool IsValidating { get; set; }
         public bool IsRequesting { get; set; }
 
-        public ValidatingBlock(byte[] blockId, bool isRequesting, bool isValidating)
+        public PendingBlock(byte[] blockId, bool isRequesting, bool isValidating)
         {
             BlockId = blockId;
             IsValidating = isValidating;
@@ -87,9 +29,19 @@ namespace AElf.Network.Peers
     
     public partial class Peer
     {
-        private List<ValidatingBlock> _blocks { get; set; } 
+        public const int DefaultRequestTimeout = 2000;
+        
+        public int RequestTimeout { get; set; } = DefaultRequestTimeout;
+        public int MaxRequestRetries { get; set; } = 2;
+
+        private object _blockLock = new object();
+        private List<PendingBlock> _blocks { get; set; }
+
+        private object _blockReqLock = new object();
+        private List<TimedBlockRequest> _blockRequests;
             
         public event EventHandler SyncFinished;
+        public event EventHandler RequestTimedOut;
         
         private int _peerHeight = 0;
 
@@ -105,7 +57,10 @@ namespace AElf.Network.Peers
 
         public bool AnySyncing()
         {
-            return _blocks.Any(b => b.IsRequesting);
+            lock (_blockLock)
+            {
+                return _blocks.Any(b => b.IsRequesting);
+            }
         }
 
         /// <summary>
@@ -132,27 +87,66 @@ namespace AElf.Network.Peers
 
         public void OnAnnouncementMessage(Announce a)
         {
-            byte[] blockId = a.Id.ToByteArray();
-            _blocks.Add(new ValidatingBlock(blockId, true, false));
+            if (a?.Id == null)
+            {
+                _logger?.Error($"[{this}] announcement or its id is null.");
+                return;
+            }
             
-            RequestBlockById(blockId);
+            try
+            {
+                byte[] blockId = a.Id.ToByteArray();
+
+                lock (_blockLock)
+                {
+                    _blocks.Add(new PendingBlock(blockId, true, false));
+                }
             
-            _peerHeight = a.Height;
+                RequestBlockById(blockId);
+
+                if (a.Height <= _peerHeight)
+                {
+                    // todo just log for now, but this is probably a protocol error.
+                    _logger?.Warn($"[{this}] current know heigth: {_peerHeight} announcement height {a.Height}.");
+                }
             
-            _logger?.Trace($"[{this}] peer height increased : {_peerHeight}.");
+                _peerHeight = a.Height;
+            
+                _logger?.Trace($"[{this}] peer height increased: {_peerHeight}.");
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, $"[{this}] error processing announcement.");
+            }
         }
 
         public void OnBlockReceived(Block block)
         {
             byte[] blockHash = block.GetHashBytes();
+            int blockHeight = (int) block.Header.Index;
             
-            ValidatingBlock vBlock =
-                _blocks.Where(b => b.IsRequesting).FirstOrDefault(b => b.BlockId.BytesEqual(blockHash));
+            PendingBlock vBlock;
+            lock (_blockLock)
+            {
+                vBlock = _blocks.Where(b => b.IsRequesting).FirstOrDefault(b => b.BlockId.BytesEqual(blockHash));
+            }
 
             if (vBlock != null)
             {
                 vBlock.IsRequesting = false;
                 vBlock.IsValidating = true;
+            }
+
+            // todo handle this for "by height" reqs
+            lock (_blockReqLock)
+            {
+                TimedBlockRequest req = _blockRequests.FirstOrDefault(b => (b.IsById && b.Id.BytesEqual(blockHash)) || (!b.IsById && b.Height == blockHeight));
+
+                if (req != null)
+                {
+                    req.Cancel();
+                    _blockRequests.Remove(req);
+                }
             }
         }
         
@@ -184,10 +178,13 @@ namespace AElf.Network.Peers
             }
             else
             {
-                if (_blocks.Count == 0)
-                    return;
+                lock (_blockLock)
+                {
+                    if (_blocks.Count == 0)
+                        return;
                 
-                _blocks.RemoveAll(b => b.BlockId.BytesEqual(blockHash));
+                    _blocks.RemoveAll(b => b.BlockId.BytesEqual(blockHash));
+                }
             }
         }
 
@@ -211,13 +208,11 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                _logger?.Warn($"Request for block at height {index} failed because payload is null.");
+                _logger?.Warn($"[{this}] request for block at height {index} failed because payload is null.");
                 return;   
             }
             
-            EnqueueOutgoing(message);
-            
-            _logger?.Trace($"[{this}] requested block at index {index}.");
+            SendTimedRequest(message, br);
         }
         
         private void RequestBlockById(byte[] id)
@@ -228,13 +223,60 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                _logger?.Warn($"Request for block with id {id.ToHex()} failed because payload is null.");
+                _logger?.Warn($"[{this}] request for block with id {id.ToHex()} failed because payload is null.");
                 return;
             }
             
-            EnqueueOutgoing(message);
+            SendTimedRequest(message, br);
+        }
+
+        private void SendTimedRequest(Message message, BlockRequest br)
+        {
+            TimedBlockRequest blockRequest = new TimedBlockRequest(message, br, RequestTimeout);
+            blockRequest.SetCurrentPeer(this);
+            blockRequest.RequestTimedOut += TimedRequestOnRequestTimedOut;
+
+            lock (_blockReqLock)
+            {
+                _blockRequests.Add(blockRequest);
+            }
             
-            _logger?.Trace($"[{this}] requested block with id {id.ToHex()}.");
+            EnqueueOutgoing(message, blockRequest);
+            
+            _logger?.Trace($"[{this}] Block request enqueued {blockRequest}.");
+        }
+
+        private void TimedRequestOnRequestTimedOut(object sender, EventArgs e)
+        {
+            if (sender is TimedBlockRequest req)
+            {
+                _logger?.Warn($"[{this}] Failed timed request {req}");
+                
+                if (req.CurrentPeerRetries < MaxRequestRetries)
+                {
+                    if (!req.SetCurrentPeer(this))
+                    {
+                        return;
+                    }
+                    
+                    _logger?.Debug($"[{this}] Try again {req}.");
+                    
+                    EnqueueOutgoing(req.Message, req);
+                }
+                else
+                {
+                    // todo RequestTimedOut?.Invoke(this, req)
+                    
+                    lock (_blockReqLock)
+                    {
+                        _blockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
+                    }
+                    
+                    _logger?.Warn($"[{this}] Request failed {req}.");
+                    
+                    req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
+                }
+            }
         }
     }
 }

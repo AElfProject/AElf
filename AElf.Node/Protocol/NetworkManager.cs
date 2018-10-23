@@ -74,8 +74,6 @@ namespace AElf.Node.Protocol
         private bool _isSyncing = false;
         
         private Hash _chainId;
-        
-        private List<byte[]> _minedBlocks = new List<byte[]>();
 
         public NetworkManager(ITxPool txPool, IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
         {
@@ -124,10 +122,8 @@ namespace AElf.Node.Protocol
                         _lastBlocksReceived.Enqueue(blockHash);
                     
                     AnnounceBlock((Block)inBlock.Block);
-                    
-                    _minedBlocks.Add(blockHash);
-                    
-                    _logger?.Trace($"Block produced, announcing \"{blockHash.ToHex()}\" to peers with {inBlock.Block.Body.TransactionsCount} txs. Block height: [{inBlock.Block.Header.Index}].");
+
+                    _logger?.Trace($"Block produced, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
                     
                     _localHeight++;
                 });
@@ -225,11 +221,27 @@ namespace AElf.Node.Protocol
         
         private void AnnounceBlock(IBlock block)
         {
-            Announce anc = new Announce();
-            anc.Height = (int)block.Header.Index;
-            anc.Id = ByteString.CopyFrom(block.GetHashBytes());
+            if (block?.Header == null)
+            {
+                _logger?.Error("Block or block header is null.");
+                return;
+            }
+            
+            try
+            {
+                Announce anc = new Announce();
+                anc.Height = (int) block.Header.Index;
+                anc.Id = ByteString.CopyFrom(block.GetHashBytes());
 
-            BroadcastMessage(AElfProtocolMsgType.Announcement, anc.ToByteArray());
+                byte[] serializedMsg = anc.ToByteArray();
+                Message packet = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Announcement, serializedMsg);
+                
+                BroadcastMessage(AElfProtocolMsgType.Announcement, anc.ToByteArray());
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while announcing block.");
+            }
         }
         
         #region Eventing
@@ -393,12 +405,9 @@ namespace AElf.Node.Protocol
                 byte[] blockHash = a.Id.ToByteArray();
                 IBlock bbh = _blockSynchronizer.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
                 
-                _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh.Header == null ? "(unknown)" : "(known)"));
+                _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
 
-                if (bbh.Header == null && _minedBlocks.Any(m => m.BytesEqual(blockHash)))
-                    ;
-
-                if (bbh.Header != null)
+                if (bbh != null)
                     return;
                 
                 SetSyncState(true);
