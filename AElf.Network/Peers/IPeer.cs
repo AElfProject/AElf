@@ -23,7 +23,7 @@ namespace AElf.Network.Peers
         
         NodeData DistantNodeData { get; }
         byte[] DistantNodeAddress { get; }
-        void EnqueueOutgoing(Message msg);
+        void EnqueueOutgoing(Message msg, ITimedRequest associatedRequest = null);
         void Sync(int start, int target);
         void OnNewBlockAccepted(IBlock block);
 
