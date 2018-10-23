@@ -54,7 +54,6 @@ namespace AElf.Synchronization.BlockExecution
         /// <inheritdoc/>
         public async Task<BlockExecutionResult> ExecuteBlock(IBlock block)
         {
-            MessageHub.Instance.Publish(new SyncStateChanged(true));
             if (!await Prepare(block))
             {
                 return BlockExecutionResult.Failed;
@@ -87,10 +86,6 @@ namespace AElf.Synchronization.BlockExecution
                 Rollback(block, txnRes);
 
                 return BlockExecutionResult.Failed;
-            }
-            finally
-            {
-                MessageHub.Instance.Publish(new SyncStateChanged(false));
             }
         }
         

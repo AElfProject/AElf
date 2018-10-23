@@ -240,7 +240,7 @@ namespace AElf.Kernel.Node
 
             if (await Helper.HasGenerated())
             {
-                MessageHub.Instance.Publish(new SyncStateChanged(true));
+                MessageHub.Instance.Publish(new ConsensusGenerated(true));
                 return;
             }
             

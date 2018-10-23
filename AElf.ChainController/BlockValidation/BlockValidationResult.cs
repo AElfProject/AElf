@@ -11,12 +11,13 @@ namespace AElf.ChainController
         NotBP = 11,
         InvalidTimeSlot,
         FailedToCheckConsensusInvalidation,
-        IncorrectPreBlockHash,
         FailedToGetBlockByHeight,
         FailedToCheckChainContextInvalidation,
         BranchedBlock,
         Pending,
         UnknownReason,
+        IncorrectPreBlockHash,
+        Unlinkable,
 
         // Unforgivable, discard
         BlockIsNull = 101,

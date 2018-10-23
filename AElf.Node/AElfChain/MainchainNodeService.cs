@@ -195,6 +195,20 @@ namespace AElf.Node.AElfChain
                     _consensus?.Start();
                 }
             });
+            
+            MessageHub.Instance.Subscribe<ConsensusGenerated>(inState =>
+            {
+                if (inState.IsGenerated)
+                {
+                    _logger?.Warn("Will hang on mining due to starting syncing.");
+                    _consensus?.Hang();
+                }
+                else
+                {
+                    _logger?.Trace("Will start / recover mining.");
+                    _consensus?.Start();
+                }
+            });
         }
 
         public bool Start()

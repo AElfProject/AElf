@@ -79,6 +79,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (blockValidationResult == BlockValidationResult.Success)
             {
                 _logger?.Trace($"Valid Block {block.GetHash().DumpHex()}.");
+                MessageHub.Instance.Publish(message);
                 await HandleValidBlock(message);
             }
             else
@@ -88,6 +89,14 @@ namespace AElf.Synchronization.BlockSynchronization
             }
 
             return blockValidationResult;
+        }
+
+        public async Task ReceiveBlocks(IEnumerable<IBlock> blocks)
+        {
+            foreach (var block in blocks)
+            {
+                await ReceiveBlock(block);
+            }
         }
 
         public void AddMinedBlock(IBlock block)
@@ -105,7 +114,6 @@ namespace AElf.Synchronization.BlockSynchronization
             if (executionResult == BlockExecutionResult.Success)
             {
                 _blockSet.Tell(message.Block.Index);
-                MessageHub.Instance.Publish(message);
                 MessageHub.Instance.Publish(UpdateConsensus.Update);
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
             }
@@ -123,6 +131,12 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 _blockSet.AddBlock(message.Block);
             }
+
+            if (message.BlockValidationResult == BlockValidationResult.IncorrectPreBlockHash)
+            {
+                
+            }
+            
             await ReviewBlockSet(message);
         }
 
@@ -170,7 +184,7 @@ namespace AElf.Synchronization.BlockSynchronization
             return _blockSet.GetBlockByHash(blockHash) ?? BlockChain.GetBlockByHashAsync(blockHash).Result;
         }
 
-        public List<IBlock> GetBlockByHeight(ulong height)
+        public List<IBlock> GetBlocksByHeight(ulong height)
         {
             return _blockSet.GetBlockByHeight(height) ?? new List<IBlock>
             {

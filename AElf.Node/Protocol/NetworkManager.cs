@@ -401,7 +401,7 @@ namespace AElf.Node.Protocol
                 if (bbh.Header != null)
                     return;
                 
-                //SetSyncState(true);
+                SetSyncState(true);
                 peer.OnAnnouncementMessage(a);
             }
             catch (Exception e)
