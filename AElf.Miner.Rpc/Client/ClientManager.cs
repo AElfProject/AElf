@@ -23,8 +23,8 @@ namespace AElf.Miner.Rpc.Client
     [LoggerName("MinerClient")]
     public class ClientManager
     {
-        private readonly Dictionary<string, ClientToSideChain> _clientsToSideChains =
-            new Dictionary<string, ClientToSideChain>();
+        private readonly Dictionary<Hash, ClientToSideChain> _clientsToSideChains =
+            new Dictionary<Hash, ClientToSideChain>();
 
         private ClientToParentChain _clientToParentChain;
 
@@ -136,7 +136,7 @@ namespace AElf.Miner.Rpc.Client
                 if (!ChildChains.TryGetValue(targetChainId, out var chainUri))
                     throw new ChainInfoNotFoundException($"Unable to get chain Info of {targetChainId}.");
                 ClientToSideChain clientToSideChain = (ClientToSideChain) CreateClient(chainUri, targetChainId, true);
-                _clientsToSideChains.Add(targetChainId, clientToSideChain);
+                _clientsToSideChains.Add(Hash.LoadHex(targetChainId), clientToSideChain);
                 return clientToSideChain;
             }
             catch (Exception e)
@@ -147,7 +147,7 @@ namespace AElf.Miner.Rpc.Client
             
         }
 
-
+        
         /// <summary>
         /// Start a new client to the parent chain
         /// </summary>
@@ -234,7 +234,7 @@ namespace AElf.Miner.Rpc.Client
                 // index only one block from one side chain.
                 // this could be changed later.
                 var targetHeight =
-                    await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(_.Key));
+                    await _chainManagerBasic.GetCurrentBlockHeightAsync(_.Key);
                 if (!_.Value.TryTake(Interval, out var blockInfo) || blockInfo.Height != targetHeight)
                     continue;
 
@@ -259,7 +259,7 @@ namespace AElf.Miner.Rpc.Client
 
         public bool CheckSideChainBlockInfo(SideChainBlockInfo blockInfo)
         {
-            if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId.DumpHex(), out var client))
+            if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId, out var client))
                 // TODO: this could be changed.
                 return true;
             return !client.Empty() && client.First().Equals(blockInfo);
@@ -279,7 +279,7 @@ namespace AElf.Miner.Rpc.Client
             if (blockInfo == null)
                 return true;
             
-            if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId.DumpHex(), out var client))
+            if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId, out var client))
             {
                 await UpdateSideChainInfo(blockInfo);
                 return true;
