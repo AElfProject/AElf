@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Miner.EventMessages;
+using Easy.MessageHub;
 using NLog;
 
 namespace AElf.Miner.TxMemPool
@@ -107,6 +109,8 @@ namespace AElf.Miner.TxMemPool
             {
                 _txHub.ValidatedTx(txid);
             }
+            
+            MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
             
             if (!nonSys)
             {
