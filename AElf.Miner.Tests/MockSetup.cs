@@ -21,6 +21,7 @@ using AElf.Execution.Execution;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
+using AElf.Synchronization.BlockSynchronization;
 
 namespace AElf.Miner.Tests
 {
@@ -44,6 +45,7 @@ namespace AElf.Miner.Tests
         private readonly IDataStore _dataStore;
         private readonly IStateStore _stateStore;
         private TxHub _txHub;
+        private IChainContextService _chainContextService;
 
         public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore)
         {
@@ -52,7 +54,7 @@ namespace AElf.Miner.Tests
             _stateStore = stateStore;
             Initialize();
         }
-        
+
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_dataStore, _logger);
@@ -60,8 +62,8 @@ namespace AElf.Miner.Tests
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            _chainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore, _logger),
-                _transactionManager, _dataStore);
+            _chainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore),
+                _transactionManager, _transactionTraceManager, _dataStore, _stateStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);*/
@@ -78,10 +80,10 @@ namespace AElf.Miner.Tests
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
             _txHub = new TxHub(_transactionManager);
+            _chainContextService = new ChainContextService(_chainService);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
-
 
         public async Task<IChain> CreateChain()
         {            
@@ -97,18 +99,19 @@ namespace AElf.Miner.Tests
                 new List<SmartContractRegistration> {reg});
             return chain;
         }
-        
+
         internal IMiner GetMiner(IMinerConfig config, ITxPool pool, ClientManager clientManager = null)
         {
-            var miner = new AElf.Miner.Miner.Miner(config, pool, _chainService,  _concurrencyExecutingService, 
-                _transactionManager, _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null);
+            var miner = new AElf.Miner.Miner.Miner(config, pool, _chainService, _concurrencyExecutingService,
+                _transactionManager, _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
+                MockBlockValidationService().Object, _chainContextService);
 
             return miner;
         }
-        
+
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
-            var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, _logger, 
+            var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
                 _transactionManager, _transactionResultManager,
                 clientManager, _binaryMerkleTreeManager);
 
@@ -309,7 +312,14 @@ namespace AElf.Miner.Tests
             
             return chainId;
         }
-        
+
+        private Mock<IBlockValidationService> MockBlockValidationService()
+        {
+            var mock = new Mock<IBlockValidationService>();
+            mock.Setup(bvs => bvs.ValidateBlockAsync(It.IsAny<IBlock>(), It.IsAny<IChainContext>()))
+                .Returns(() => Task.FromResult(BlockValidationResult.Success));
+            return mock;
+        }
         
         public void ClearDirectory(string dir)
         {

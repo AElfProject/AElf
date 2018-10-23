@@ -54,7 +54,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         #endregion
 
-        public DPoS(AElfDPoSFiledMapCollection collection)
+        public DPoS(AElfDPoSFieldMapCollection collection)
         {
             _currentRoundNumberField = collection.CurrentRoundNumberField;
             _blockProducerField = collection.BlockProducerField;
@@ -303,43 +303,70 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// <summary>
         /// Checking steps:
         /// 1. Contained by BlockProducer.Nodes;
-        /// 2. Timestamp sitting in correct time slot of current round, or later than extra block timeslot
+        /// 2. Timestamp sitting in correct time slot of current round, or later than extra block time slot
         ///     if Extra Block Producer failed to produce extra block.
+        /// 3. Should be different from current round if this block is about to update information of next
+        ///     round.
         /// </summary>
         /// <param name="args">
         /// 2 args:
         /// [0] StringValue
         /// [1] Timestamp
+        /// [2] Int64Value
         /// </param>
-        /// <returns></returns>
-        public async Task<bool> Validation(List<byte[]> args)
+        /// <returns>
+        /// 0: Success
+        /// 1: NotBP
+        /// 2: InvalidTimeSlot
+        /// 3: SameWithCurrentRound
+        /// 11: ParseProblem
+        /// </returns>
+        public async Task<int> Validation(List<byte[]> args)
         {
             StringValue accountAddress;
             Timestamp timestamp;
+            Int64Value roundId;
             try
             {
                 accountAddress = StringValue.Parser.ParseFrom(args[0]);
                 timestamp = Timestamp.Parser.ParseFrom(args[1]);
+                roundId = Int64Value.Parser.ParseFrom(args[2]);
             }
             catch (Exception e)
             {
                 ConsoleWriteLine(nameof(Validation), "Failed to parse from byte array.", e);
-                return false;
+                return 11;
             }
 
             // 1. Contained by BlockProducer.Nodes;
             if (!IsBlockProducer(accountAddress))
             {
-                return false;
+                return 1;
             }
 
             // 2. Timestamp sitting in correct time slot of current round;
             var timeSlotOfBlockProducer = (await GetBPInfoOfCurrentRound(accountAddress)).TimeSlot;
             var endOfTimeSlotOfBlockProducer = GetTimestampWithOffset(timeSlotOfBlockProducer, Interval);
             var timeSlotOfEBP = await _timeForProducingExtraBlockField.GetAsync();
-            return CompareTimestamp(timestamp, timeSlotOfBlockProducer) &&
-                   CompareTimestamp(endOfTimeSlotOfBlockProducer, timestamp) ||
-                   CompareTimestamp(timestamp, timeSlotOfEBP);
+            var validTimeSlot = CompareTimestamp(timestamp, timeSlotOfBlockProducer) &&
+                                CompareTimestamp(endOfTimeSlotOfBlockProducer, timestamp) ||
+                                CompareTimestamp(timestamp, timeSlotOfEBP);
+            if (!validTimeSlot)
+            {
+                return 2;
+            }
+
+            if (roundId.Value != 1)
+            {
+                // 3. Is same with current round.
+                var currentRound = await GetCurrentRoundInfo();
+                if (currentRound.RoundId == roundId.Value)
+                {
+                    return 3;
+                }
+            }
+            
+            return 0;
         }
 
         #region Private Methods

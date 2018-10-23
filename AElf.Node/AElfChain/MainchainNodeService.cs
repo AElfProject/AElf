@@ -86,7 +86,7 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath 
+                var contractZeroDllPath
                     = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisTokenContractAssemblyName}.dll");
 
                 byte[] code;
@@ -103,7 +103,7 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath 
+                var contractZeroDllPath
                     = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisConsensusContractAssemblyName}.dll");
 
                 byte[] code;
@@ -158,15 +158,15 @@ namespace AElf.Node.AElfChain
             _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
 
-            _txHub.CurrentHeightGetter = ()=> _blockChain.GetCurrentBlockHeightAsync().Result;
-            MessageHub.Instance.Subscribe<BlockHeader>((bh)=>_txHub.OnNewBlockHeader(bh));
+            _txHub.CurrentHeightGetter = () => _blockChain.GetCurrentBlockHeightAsync().Result;
+            MessageHub.Instance.Subscribe<BlockHeader>((bh) => _txHub.OnNewBlockHeader(bh));
             SetupConsensus();
-            
+
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
                 await _txPool.AddTxAsync(inTx.Transaction);
             });
-            
+
             MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
             {
                 if (option == UpdateConsensus.Update)
@@ -186,7 +186,21 @@ namespace AElf.Node.AElfChain
             {
                 if (inState.IsSyncing)
                 {
-                    _logger?.Trace("Will hang on mining due to syncing.");
+                    _logger?.Warn("Will hang on mining due to starting syncing.");
+                    _consensus?.Hang();
+                }
+                else
+                {
+                    _logger?.Trace("Will start / recover mining.");
+                    _consensus?.Start();
+                }
+            });
+            
+            MessageHub.Instance.Subscribe<ConsensusGenerated>(inState =>
+            {
+                if (inState.IsGenerated)
+                {
+                    _logger?.Warn("Will hang on mining due to starting syncing.");
                     _consensus?.Hang();
                 }
                 else
@@ -207,7 +221,6 @@ namespace AElf.Node.AElfChain
 
             _logger?.Log(LogLevel.Debug, $"Chain Id = {NodeConfig.Instance.ChainId}");
 
-            
             #region setup
 
             try
@@ -375,7 +388,7 @@ namespace AElf.Node.AElfChain
                     break;
             }
         }
-        
+
         private void StartMining()
         {
             if (NodeConfig.Instance.IsMiner)
@@ -383,17 +396,8 @@ namespace AElf.Node.AElfChain
                 SetupConsensus();
                 _consensus?.Start();
             }
-            
-//            if (NodeConfig.Instance.IsMiner)
-//            {
-//                _miner.Init(_nodeKeyPair);
-//                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.DumpHex());
-//                SetupConsensus();
-//                _consensus?.Start();
-//            }
-//            _blockExecutor.FinishInitialSync();
         }
-        
+
         #endregion private methods
 
         public int GetCurrentHeight()

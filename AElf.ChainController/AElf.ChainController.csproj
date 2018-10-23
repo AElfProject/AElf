@@ -12,4 +12,13 @@
     <ProjectReference Include="..\AElf.Kernel.TxHub\AElf.Kernel.TxHub.csproj" />
     <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="BlockExecution\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="BlockExecution\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="BlockExecution\**" />
+  </ItemGroup>
 </Project>

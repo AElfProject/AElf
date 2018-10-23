@@ -27,6 +27,5 @@ namespace AElf.Miner.TxMemPool
     {
         TxValidation.TxInsertionAndBroadcastingError ValidateTx(Transaction tx);
         Task<TxValidation.TxInsertionAndBroadcastingError> ValidateReferenceBlockAsync(Transaction tx);
-        List<Transaction> RemoveDirtyDPoSTxs(List<Transaction> readyTxs, Address blockProducerAddress, Round currentRoundInfo);
     }
 }

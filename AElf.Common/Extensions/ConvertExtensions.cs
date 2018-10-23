@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Common
 {
     public static class ConvertExtensions

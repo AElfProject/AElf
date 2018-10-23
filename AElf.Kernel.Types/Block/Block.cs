@@ -63,6 +63,8 @@ namespace AElf.Kernel
         }
 
         public ParentChainBlockInfo ParentChainBlockInfo { get; set; }
+        public ulong Index => Header?.Index ?? 0;
+        public string BlockHashToHex => Header?.GetHash().DumpHex() ?? Hash.Default.DumpHex();
 
         public void FillTxsMerkleTreeRootInHeader()
         {

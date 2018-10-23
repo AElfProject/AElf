@@ -14,15 +14,12 @@ namespace AElf.Common
 
         public static readonly string GenesisBasicContract = "BasicContractZero";
 
-        public static readonly string ConsensusContract = "AElfDPoS";
-
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
         public const int AElfLogInterval = 900;
 
         #region AElf DPoS
 
-        public static bool IsConsensusGenerator;
         public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 4000;
         public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
