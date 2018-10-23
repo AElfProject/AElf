@@ -23,8 +23,8 @@ namespace AElf.RPC
                 _host = new WebHostBuilder()
                     .UseKestrel(options =>
                         {
-                            options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(1.0);
-                            options.Limits.MaxConcurrentConnections = 1000;
+                            options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(20);
+                            options.Limits.MaxConcurrentConnections = 200;
                         }
                     )
                     .UseUrls(url)
