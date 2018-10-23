@@ -111,7 +111,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var client = CreateClientToSideChain(sideChainId);
                 var height =
-                    Math.Max(await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(sideChainId)),
+                    Math.Max(await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(sideChainId)) + 1,
                         GlobalConfig.GenesisBlockHeight);
 
                 // keep-alive
@@ -165,7 +165,7 @@ namespace AElf.Miner.Rpc.Client
                     throw new ChainInfoNotFoundException("Unable to get parent chain info.");
                 _clientToParentChain = (ClientToParentChain) CreateClient(parent.ElementAt(0).Value, parent.ElementAt(0).Key, false);
                 var height =
-                    Math.Max(await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(parent.ElementAt(0).Key)),
+                    Math.Max(await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(parent.ElementAt(0).Key)) + 1,
                         GlobalConfig.GenesisBlockHeight);
                 _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, height);
                 _logger?.Trace($"Created client to parent chain {parent.ElementAt(0).Key}");
@@ -233,8 +233,9 @@ namespace AElf.Miner.Rpc.Client
                 // take side chain info
                 // index only one block from one side chain.
                 // this could be changed later.
-                var targetHeight =
+                var height =
                     await _chainManagerBasic.GetCurrentBlockHeightAsync(_.Key);
+                var targetHeight = height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
                 if (!_.Value.TryTake(Interval, out var blockInfo) || blockInfo.Height != targetHeight)
                     continue;
 
@@ -252,7 +253,7 @@ namespace AElf.Miner.Rpc.Client
         /// <returns></returns>
         private async Task UpdateSideChainInfo(IBlockInfo blockInfo)
         {
-            await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height + 1);
+            await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height);
             await _chainManagerBasic.UpdateCurrentBlockHashAsync(blockInfo.ChainId,
                 ((SideChainBlockInfo) blockInfo).BlockHeaderHash);
         }
@@ -332,7 +333,8 @@ namespace AElf.Miner.Rpc.Client
             if (chainId == null)
                 return null;
             Hash parentChainId = Hash.LoadHex(chainId);
-            var targetHeight = await _chainManagerBasic.GetCurrentBlockHeightAsync(parentChainId);
+            var height = await _chainManagerBasic.GetCurrentBlockHeightAsync(parentChainId);
+            var targetHeight = height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
             if (!_clientToParentChain.Empty() &&  _clientToParentChain.First().Height == targetHeight)
                 return (ParentChainBlockInfo) _clientToParentChain.First();
             return null;
@@ -351,7 +353,7 @@ namespace AElf.Miner.Rpc.Client
             if (!TryRemoveParentChainBlockInfo(parentChainBlockInfo))
                 return false;
             await _chainManagerBasic.UpdateCurrentBlockHeightAsync(parentChainBlockInfo.ChainId,
-                parentChainBlockInfo.Height + 1);
+                parentChainBlockInfo.Height);
             return true;
         }
         
