@@ -9,6 +9,7 @@ namespace AElf.Synchronization.BlockSynchronization
     public interface IBlockSet
     {
         void AddBlock(IBlock block);
+        void RemoveExecutedBlock(string blockHashHex);
         void Tell(ulong currentHeight);
         bool IsBlockReceived(Hash blockHash, ulong height);
         IBlock GetBlockByHash(Hash blockHash);
