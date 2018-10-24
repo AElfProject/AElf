@@ -49,7 +49,7 @@ namespace AElf.ChainController
                 {
                     return currentPreviousBlockHash.Equals(previousBlockHash)
                         ? BlockValidationResult.Success
-                        : BlockValidationResult.IncorrectPreBlockHash;
+                        : BlockValidationResult.Unlinkable;
                 }
 
                 // Check peer block.

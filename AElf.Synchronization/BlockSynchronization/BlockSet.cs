@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Common.MultiIndexDictionary;
 using AElf.Kernel;
+using Akka.Util.Internal;
 using NLog;
 
 // ReSharper disable once CheckNamespace
@@ -15,6 +15,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private readonly List<IBlock> _list;
 
+        private readonly Dictionary<ulong, IBlock> _executedBlocks;
+
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private object _ = new object();
 
@@ -25,6 +27,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger = LogManager.GetLogger(nameof(BlockSet));
 
             _list = new List<IBlock>();
+            _executedBlocks = new Dictionary<ulong, IBlock>();
         }
 
         public void AddBlock(IBlock block)
@@ -45,23 +48,22 @@ namespace AElf.Synchronization.BlockSynchronization
                 if (toRemove?.Header != null)
                 {
                     _list.Remove(toRemove);
+                    _executedBlocks.TryAdd(toRemove.Index, toRemove);
                 }
             }
         }
 
         /// <summary>
-        /// Tell the block collection the height of block just successfully executed.
+        /// Tell the block collection the height of block just successfully executed or mined.
         /// </summary>
-        /// <param name="currentHeight"></param>
+        /// <param name="currentExecutedBlock"></param>
         /// <returns></returns>
-        public void Tell(ulong currentHeight)
+        public void Tell(IBlock currentExecutedBlock)
         {
-            if (currentHeight <= KeepHeight)
-            {
-                return;
-            }
+            RemoveExecutedBlock(currentExecutedBlock.BlockHashToHex);
 
-            RemoveOldBlocks(currentHeight - KeepHeight);
+            if (currentExecutedBlock.Index >= KeepHeight)
+                RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
         }
 
         public bool IsBlockReceived(Hash blockHash, ulong height)
@@ -84,7 +86,17 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             lock (_)
             {
-                return _list.Where(b => b.Index == height).ToList();
+                if (_list.Any(b => b.Index == height))
+                {
+                    return _list.Where(b => b.Index == height).ToList();
+                }
+
+                if (_executedBlocks.TryGetValue(height, out var block))
+                {
+                    return new List<IBlock> {block};
+                }
+
+                return null;
             }
         }
 
@@ -101,6 +113,8 @@ namespace AElf.Synchronization.BlockSynchronization
                     {
                         _list.Remove(block);
                     }
+
+                    _executedBlocks.RemoveKey(targetHeight);
                 }
             }
             catch (Exception e)

@@ -85,7 +85,7 @@ namespace AElf.Node.Protocol
             _chainService = chainService;
             _logger = logger;
             _blockSynchronizer = blockSynchronizer;
-
+            
             _chainId = new Hash { Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)) };
             
             peerManager.PeerEvent += OnPeerAdded;

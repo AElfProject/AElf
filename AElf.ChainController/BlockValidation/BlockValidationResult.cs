@@ -32,4 +32,27 @@ namespace AElf.ChainController
         IncorrectPoWResult,
         NotImplementConsensus
     }
+    
+    public static class ValidationResultExtensions
+    {
+        public static bool IsSuccess(this BlockValidationResult result)
+        {
+            return (int) result < 11;
+        }
+        
+        public static bool IsFailed(this BlockValidationResult result)
+        {
+            return (int) result > 10;
+        }
+
+        /// <summary>
+        /// Bad block means we'd like to discard this block immediately.
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public static bool IsBadBlock(this BlockValidationResult result)
+        {
+            return (int) result > 100;
+        }
+    }
 }
