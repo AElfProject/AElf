@@ -13,26 +13,33 @@ using NLog;
 namespace AElf.Miner.TxMemPool
 {
     // ReSharper disable InconsistentNaming
-    public class DPoSTxFilter
+    public class TransactionFilter
     {
         private readonly Round _currentRoundInfo;
         private readonly Address _myAddress;
-        private Func<List<Transaction>, List<Transaction>> _txFilter;
+        private Func<List<Transaction>, ILogger, List<Transaction>> _txFilter;
 
         private readonly ILogger _logger;
         
-        private readonly Func<List<Transaction>, List<Transaction>> _generatedByMe = list =>
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMe = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
             toRemove.AddRange(list.FindAll(tx => tx.From != Address.LoadHex(NodeConfig.Instance.NodeAccount)));
             return toRemove;
         };
         
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMeCrossChain = (list, logger) =>
+        {
+            var toRemove = new List<Transaction>();
+            toRemove.AddRange(list.FindAll(tx => tx.From != Address.LoadHex(NodeConfig.Instance.NodeAccount)));
+            return toRemove.Where(t => t.Type == TransactionType.CrossChainBlockInfoTransaction).ToList();
+        };
+        
         /// <summary>
         /// If tx pool contains more than ore InitializeAElfDPoS tx:
         /// Keep the latest one.
         /// </summary>
-        private readonly Func<List<Transaction>, List<Transaction>> _oneInitialTx = list =>
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneInitialTx = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.InitializeAElfDPoS.ToString());
@@ -48,13 +55,13 @@ namespace AElf.Miner.TxMemPool
 
             if (count == 0)
             {
-                Console.WriteLine("No InitializeAElfDPoS tx in pool.");
+                logger?.Warn("No InitializeAElfDPoS tx in pool.");
             }
 
             return toRemove;
         };
 
-        private readonly Func<List<Transaction>, List<Transaction>> _onePublishOutValueTx = list =>
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _onePublishOutValueTx = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PublishOutValueAndSignature.ToString());
@@ -70,13 +77,13 @@ namespace AElf.Miner.TxMemPool
             
             if (count == 0)
             {
-                Console.WriteLine("No PublishOutValueAndSignature tx in pool.");
+                logger?.Warn("No PublishOutValueAndSignature tx in pool.");
             }
 
-            return toRemove;
+            return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
         
-        private readonly Func<List<Transaction>, List<Transaction>> _oneUpdateAElfDPoSTx = list =>
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneUpdateAElfDPoSTx = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString());
@@ -94,13 +101,13 @@ namespace AElf.Miner.TxMemPool
             
             if (count == 0)
             {
-                Console.WriteLine("No UpdateAElfDPoS tx in pool.");
+                logger?.Warn("No UpdateAElfDPoS tx in pool.");
             }
 
-            return toRemove;
+            return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
 
-        public DPoSTxFilter()
+        public TransactionFilter()
         {
             _myAddress = Address.LoadHex(NodeConfig.Instance.NodeAccount);
             
@@ -124,11 +131,12 @@ namespace AElf.Miner.TxMemPool
                     case ConsensusBehavior.UpdateAElfDPoS:
                         _txFilter = null;
                         _txFilter += _oneUpdateAElfDPoSTx;
+                        _txFilter += _generatedByMeCrossChain;
                         break;
                 }
             });
 
-            _logger = LogManager.GetLogger(nameof(DPoSTxFilter));
+            _logger = LogManager.GetLogger(nameof(TransactionFilter));
         }
 
         public IEnumerable<Transaction> Execute(List<Transaction> txs)
@@ -141,10 +149,10 @@ namespace AElf.Miner.TxMemPool
             var filterList = _txFilter.GetInvocationList();
             foreach (var @delegate in filterList)
             {
-                var filter = (Func<List<Transaction>, List<Transaction>>) @delegate;
+                var filter = (Func<List<Transaction>, ILogger, List<Transaction>>) @delegate;
                 try
                 {
-                    var toRemove = filter(txs);
+                    var toRemove = filter(txs, _logger);
                     removeFromTxPool.AddRange(toRemove);
                     foreach (var transaction in toRemove)
                     {
@@ -157,7 +165,7 @@ namespace AElf.Miner.TxMemPool
                     throw;
                 }
             }
-
+            
             _logger?.Trace("After");
             PrintTxList(txs);
 
