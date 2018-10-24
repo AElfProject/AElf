@@ -21,17 +21,10 @@ namespace AElf.Miner.TxMemPool
         void RemoveAsync(Hash txHash);
 
         /// <summary>
-        /// remove tx with worst price
-        /// </summary>
-        Task RemoveTxWithWorstFeeAsync();
-
-        /// <summary>
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
         Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo = null, double intervals = 150);
-
-        List<Transaction> GetSystemTxs();
 
         /// <summary>
         /// return pool size
@@ -46,22 +39,6 @@ namespace AElf.Miner.TxMemPool
         /// <returns></returns>
         bool TryGetTx(Hash txHash, out Transaction tx);
 
-        /// <summary>
-        /// Given a block this method will return the blocks transactions
-        /// that are not currently in the pool.
-        /// </summary>
-        /// <param name="block"></param>
-        /// <returns></returns>
-        List<Hash> GetMissingTransactions(IBlock block);
-
-        /// <summary>
-        /// Reset Enqueueable to true 
-        /// update account IncrementId,
-        /// which happens a block generated 
-        /// </summary>
-        /// <returns></returns>
-        Task UpdateAccountContext(HashSet<Address> txResultList);
-        
         /// <summary>
         /// open transaction pool
         /// </summary>

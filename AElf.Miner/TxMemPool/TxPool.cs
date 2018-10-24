@@ -198,21 +198,6 @@ namespace AElf.Miner.TxMemPool
             return tx != null;
         }
 
-        public List<Hash> GetMissingTransactions(IBlock block)
-        {
-            var res = new List<Hash>();
-            var txs = block.Body.Transactions;
-            foreach (var id in txs)
-            {
-                if (!TryGetTx(id, out _))
-                {
-                    res.Add(id);
-                }
-            }
-
-            return res;
-        }
-
         /// <inheritdoc/>
         public void RemoveAsync(Hash txHash)
         {
@@ -250,28 +235,10 @@ namespace AElf.Miner.TxMemPool
             return txs;
         }
 
-        public List<Transaction> GetSystemTxs()
-        {
-            return _systemTxs.Values.Where(tx => tx.Type == TransactionType.DposTransaction).ToList();
-        }
-
-        /// <inheritdoc/>
-        public Task UpdateAccountContext(HashSet<Address> addrs)
-        {
-            // todo remove
-            return Task.CompletedTask;
-        }
-
         public void SetBlockVolume(int minimal, int maximal)
         {
             Least = minimal;
             Limit = maximal;
-        }
-
-        /// <inheritdoc/>
-        public Task RemoveTxWithWorstFeeAsync()
-        {
-            throw new NotImplementedException();
         }
 
         public Task<ulong> GetPoolSize()
