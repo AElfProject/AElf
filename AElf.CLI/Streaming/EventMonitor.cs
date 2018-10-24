@@ -50,7 +50,7 @@ namespace AElf.CLI.Streaming
             }
             catch (Exception e)
             {
-                ;
+                Console.WriteLine("Exception while start event monitor: " + e.Message);
             }
         }
     }

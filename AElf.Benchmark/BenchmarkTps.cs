@@ -103,7 +103,7 @@ namespace AElf.Benchmark
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Exception while benchmark event group.");
             }
         }
 

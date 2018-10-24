@@ -41,7 +41,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Exception during connection");
+                _logger?.Error(e, "Exception during connection");
             }
             
             return null;
@@ -65,7 +65,7 @@ namespace AElf.Network.Peers
                 }
                 catch (Exception e)
                 {
-                    _logger.Trace(e, "Error dialing the peer.");
+                    _logger.Error(e, "Error dialing the peer.");
                 }
                 
                 await Task.Delay(TimeSpan.FromMilliseconds(ReconnectInterval)); // retry wait

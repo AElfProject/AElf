@@ -141,7 +141,7 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Exception while create client to side chain.");
                 throw;
             }
             
@@ -172,7 +172,7 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Exception while create client to parent chain.");
                 throw;
             }
         }

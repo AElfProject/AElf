@@ -119,6 +119,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (executionResult == BlockExecutionResult.Success)
             {
                 _blockSet.Tell(message.Block.Index);
+                _blockSet.RemoveExecutedBlock(message.Block.BlockHashToHex);
                 MessageHub.Instance.Publish(UpdateConsensus.Update);
                 MessageHub.Instance.Publish(message);
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
