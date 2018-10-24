@@ -21,7 +21,7 @@ namespace AElf.Network.Peers
             }
         }
 
-        private static bool CheckDbExists()
+        private bool CheckDbExists()
         {
             FileInfo[] dbFile = null;
             try
@@ -29,18 +29,18 @@ namespace AElf.Network.Peers
                 DirectoryInfo di = new DirectoryInfo(_folderPath);
                 dbFile = di.GetFiles(FileName);
             }
-            catch
+            catch (Exception e)
             {
-                ;
+                Console.WriteLine("Exception while check peer db exist: " + e.Message);
             }
 
             return dbFile.Length != 0;
         }
-        
+
         public List<NodeData> ReadPeers()
         {
             List<NodeData> peerList = new List<NodeData>();
-            
+
             if (!CheckDbExists()) return peerList; // Returns empty list for robustness. Do empty check during usage
             try
             {
@@ -59,9 +59,9 @@ namespace AElf.Network.Peers
                     peerList.Add(peer);
                 }
             }
-            catch
+            catch (Exception e)
             {
-                ;
+                Console.WriteLine("Exception while read peers: " + e.Message);
             }
 
             return peerList;
@@ -81,9 +81,9 @@ namespace AElf.Network.Peers
             {
                 File.WriteAllText(_filePath, sb.ToString());
             }
-            catch
+            catch (Exception e)
             {
-                ;
+                Console.WriteLine("Exception while write peers: " + e.Message);
             }
         }
     }

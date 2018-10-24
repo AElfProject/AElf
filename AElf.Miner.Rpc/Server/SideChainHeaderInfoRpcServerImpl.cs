@@ -108,7 +108,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch (Exception e)
             {
-                _logger?.Error(e.ToString());
+                _logger?.Error(e, "Exception while index server streaming.");
             }
         }
     }

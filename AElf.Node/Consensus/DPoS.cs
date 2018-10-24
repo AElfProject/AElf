@@ -172,7 +172,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e.Message);
+                _logger?.Error("Mine got error" + e.Message);
                 return null;
             }
         }
@@ -458,7 +458,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Debug("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
+                _logger?.Error("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
             }
         }
     }

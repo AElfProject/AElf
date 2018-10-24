@@ -34,7 +34,7 @@ namespace AElf.RPC.Hubs.Net
             }
             catch (Exception e)
             {
-                // todo
+                Console.WriteLine("Exception while publish event: " + e.Message);
             }
         }
     }

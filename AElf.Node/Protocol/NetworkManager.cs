@@ -692,7 +692,10 @@ namespace AElf.Node.Protocol
                         peer.EnqueueOutgoing(message); //todo
                         count++;
                     }
-                    catch (Exception e) { }
+                    catch (Exception e)
+                    {
+                        _logger?.Error(e, "Error while enqueue outgoing message.");
+                    }
                 }
             }
             catch (Exception e)

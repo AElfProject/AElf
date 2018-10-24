@@ -110,7 +110,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Exception while start sidechain server.");
                 throw;
             }
             
@@ -148,7 +148,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Exception while start parent chain server.");
                 throw;
             }
             
@@ -184,7 +184,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Exception while init ServerManager.");
                 throw;
             }
             

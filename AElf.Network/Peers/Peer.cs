@@ -273,7 +273,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e);
+                _logger?.Error(e, "Exception while handle received packet.");
             }
         }
 
@@ -355,7 +355,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error processing authentification information.");
+                _logger?.Error(e, "Error processing authentification information.");
                 Dispose();
             }
             
@@ -453,7 +453,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Exception while sending data.");
+                _logger?.Error(e, $"Exception while sending data.");
             }
         }
         

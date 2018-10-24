@@ -410,7 +410,7 @@ namespace AElf.Node.AElfChain
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Exception while getting chain height");
+                _logger?.Error(e, "Exception while getting chain height");
             }
 
             return height;

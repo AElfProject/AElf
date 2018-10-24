@@ -120,7 +120,7 @@ namespace AElf.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error while during HandleBlockRequest.");
+                _logger?.Error(e, "Error while during HandleBlockRequest.");
             }
         }
 
