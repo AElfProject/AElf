@@ -2,9 +2,9 @@ using AElf.Kernel;
 
 namespace AElf.ChainController.EventMessages
 {
-    public sealed class BlockAccepted
+    public sealed class BlockExecuted
     {
-        public BlockAccepted(IBlock block, BlockValidationResult blockValidationResult)
+        public BlockExecuted(IBlock block, BlockValidationResult blockValidationResult)
         {
             BlockValidationResult = blockValidationResult;
             Block = block;

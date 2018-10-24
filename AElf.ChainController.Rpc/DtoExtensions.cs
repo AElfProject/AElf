@@ -22,7 +22,7 @@ namespace AElf.ChainController.Rpc
             };
         }
         
-        internal static JObject GetIndexedSideChainBlcokInfo(this IBlock block)
+        internal static JObject GetIndexedSideChainBlockInfo(this IBlock block)
         {
             var res = new JObject();
             foreach (var sideChainIndexedInfo in block.Body.IndexedInfo)

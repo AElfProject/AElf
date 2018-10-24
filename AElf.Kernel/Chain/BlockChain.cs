@@ -44,7 +44,7 @@ namespace AElf.Kernel
         public async Task<bool> HasBlock(Hash blockId)
         {
             var blk = await _blockManager.GetBlockAsync(blockId);
-            return blk != null;
+            return blk?.Header != null;
         }
 
         public async Task<bool> IsOnCanonical(Hash blockId)

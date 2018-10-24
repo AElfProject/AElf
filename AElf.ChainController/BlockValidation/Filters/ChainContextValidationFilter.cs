@@ -57,7 +57,7 @@ namespace AElf.ChainController
                 {
                     var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
                     var localBlock = await blockchain.GetBlockByHeightAsync(index);
-                    if (localBlock == null)
+                    if (localBlock?.Header == null)
                     {
                         return BlockValidationResult.FailedToGetBlockByHeight;
                     }

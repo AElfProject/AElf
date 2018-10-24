@@ -91,7 +91,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     return _list.Where(b => b.Index == height).ToList();
                 }
 
-                if (_executedBlocks.TryGetValue(height, out var block))
+                if (_executedBlocks.TryGetValue(height, out var block) && block?.Header != null)
                 {
                     return new List<IBlock> {block};
                 }

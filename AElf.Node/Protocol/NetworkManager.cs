@@ -133,24 +133,6 @@ namespace AElf.Node.Protocol
                     return;
                 }
 
-                byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
-
-                if (blockHash != null)
-                    _lastBlocksReceived.Enqueue(blockHash);
-                    
-                _logger?.Trace($"Block executed, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
-                
-                _localHeight++;
-            });
-            
-            MessageHub.Instance.Subscribe<BlockAccepted>(inBlock => 
-            {
-                if (inBlock?.Block == null)
-                {
-                    _logger?.Warn("[event] Block null.");
-                    return;
-                }
-
                 var blockHash = inBlock.Block.GetHash().DumpByteArray();
 
                 if (blockHash != null)

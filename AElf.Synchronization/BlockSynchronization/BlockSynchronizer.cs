@@ -51,11 +51,8 @@ namespace AElf.Synchronization.BlockSynchronization
                     i++;
                     foreach (var block in blocks)
                     {
-                        if ((await ReceiveBlock(block)).IsSuccess())
-                        {
-                            // If this block successfully executed, then get a next one to execute.
-                            blocks = _blockSet.GetBlockByHeight(inHeight.TargetHeight + i);
-                        }
+                        blocks = _blockSet.GetBlockByHeight(inHeight.TargetHeight + i);
+                        await ReceiveBlock(block);
                     }
                 }
             });
@@ -66,12 +63,10 @@ namespace AElf.Synchronization.BlockSynchronization
             var blockValidationResult =
                 await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
 
-            var message = new BlockAccepted(block, blockValidationResult);
+            var message = new BlockExecuted(block, blockValidationResult);
 
             if (blockValidationResult.IsSuccess())
             {
-                // Notify the network layer the block has passed validation.
-                MessageHub.Instance.Publish(message);
                 
                 _logger?.Trace($"Valid Block {block.GetHash().DumpHex()}.");
                 
@@ -109,7 +104,7 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Publish(new BlockAddedToSet(block));
         }
 
-        private async Task<BlockExecutionResult> HandleValidBlock(BlockAccepted message)
+        private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)
         {
             _blockSet.AddBlock(message.Block);
 
@@ -137,16 +132,19 @@ namespace AElf.Synchronization.BlockSynchronization
             
             _blockSet.Tell(message.Block);
             
+            // Notify the network layer the block has been executed.
+            MessageHub.Instance.Publish(message);
+            
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
             
             // Check whether there's linkable pending block in block set. If yes, execute.
-            MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
+            //MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
             
             return BlockExecutionResult.Success;
         }
 
-        private async Task HandleInvalidBlock(BlockAccepted message)
+        private async Task HandleInvalidBlock(BlockExecuted message)
         {
             // Handle the invalid blocks according to their validation results.
             if ((int) message.BlockValidationResult < 100)
@@ -164,6 +162,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
 
                 await ReceiveBlock(linkableBlock);
+            }
+
+            if (message.BlockValidationResult == BlockValidationResult.Pending)
+            {
+                //MessageHub.Instance.Publish(new SyncUnfinishedBlock(await BlockChain.GetCurrentBlockHeightAsync() + 1));
+                return;
             }
 
             await ReviewBlockSet(message);
@@ -195,7 +199,7 @@ namespace AElf.Synchronization.BlockSynchronization
             return null;
         }
 
-        private async Task ReviewBlockSet(BlockAccepted message)
+        private async Task ReviewBlockSet(BlockExecuted message)
         {
             // In case of the block set exists blocks that should be valid but didn't executed yet.
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
