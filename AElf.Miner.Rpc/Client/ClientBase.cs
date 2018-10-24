@@ -62,8 +62,7 @@ namespace AElf.Miner.Rpc.Client
                     
                     _next++;
                     _realInterval = _interval;
-                    _logger.Trace(
-                        $"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
+                    _logger?.Trace($"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
                 }
             });
 
@@ -125,12 +124,12 @@ namespace AElf.Miner.Rpc.Client
                 if (status == StatusCode.Unavailable)
                 {
                     var detail = e.Status.Detail;
-                    _logger.Error(detail + $" exception during request to chain {_targetChainId.DumpHex()}.");
+                    _logger?.Error($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
                     await Task.Delay(UnavailableConnectionInterval);
                     StartDuplexStreamingCall(cancellationToken, _next);
                     return;
                 }
-                _logger.Error(e, "Miner client stooped with exception.");
+                _logger?.Error(e, "Miner client stooped with exception.");
                 throw;
             }
         }
@@ -166,7 +165,6 @@ namespace AElf.Miner.Rpc.Client
                         }
                     }
                 }
-
             }
             catch (RpcException e)
             {
