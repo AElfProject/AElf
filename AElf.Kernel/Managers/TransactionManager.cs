@@ -50,15 +50,13 @@ namespace AElf.Kernel.Managers
                     var tx = await _dataStore.GetAsync<Transaction>(txId);
                     if (tx == null)
                     {
-                        _logger?.Trace($"tx {txId} is null");
+                        _logger?.Trace($"tx {txId} is null.");
                     }
                     txs.Add(tx);
                     await _dataStore.RemoveAsync<Transaction>(txId);
                 }
 
-                _logger?.Trace(
-                    $"Rollback block hash: " +
-                    $"{rollBackBlockHash.Value.ToByteArray().ToHex()}");
+                _logger?.Trace($"Rollback block hash: {rollBackBlockHash.Value.ToByteArray().ToHex()}");
             }
 
             return txs;

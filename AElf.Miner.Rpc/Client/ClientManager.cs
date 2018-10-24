@@ -116,7 +116,7 @@ namespace AElf.Miner.Rpc.Client
 
                 // keep-alive
                 client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height);
-                _logger?.Trace($"Created client to side chain {sideChainId}");
+                _logger?.Info($"Created client to side chain {sideChainId}");
             }
         }
 
@@ -141,10 +141,9 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Exception while create client to side chain.");
+                _logger?.Error(e, "Exception while create client to side chain.");
                 throw;
             }
-            
         }
 
 
@@ -168,11 +167,11 @@ namespace AElf.Miner.Rpc.Client
                     Math.Max(await _chainManagerBasic.GetCurrentBlockHeightAsync(Hash.LoadHex(parent.ElementAt(0).Key)),
                         GlobalConfig.GenesisBlockHeight);
                 _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, height);
-                _logger?.Trace($"Created client to parent chain {parent.ElementAt(0).Key}");
+                _logger?.Info($"Created client to parent chain {parent.ElementAt(0).Key}");
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Exception while create client to parent chain.");
+                _logger?.Error(e, "Exception while create client to parent chain.");
                 throw;
             }
         }
@@ -289,7 +288,7 @@ namespace AElf.Miner.Rpc.Client
             // TODO: this could be changed.
             await UpdateSideChainInfo(blockInfo);
             var scb = client.Take();
-            _logger.Trace($"Remove side chain Info from {scb.ChainId} at height {scb.Height}");
+            _logger?.Info($"Remove side chain Info from {scb.ChainId} at height {scb.Height}");
             return scb.Equals(blockInfo);
 
         }
@@ -307,12 +306,12 @@ namespace AElf.Miner.Rpc.Client
         {
             if (_clientToParentChain == null)
                 return true;
-            _logger.Trace($"To remove parent chain info at height {blockInfo?.Height}");
+            _logger?.Trace($"To remove parent chain info at height {blockInfo?.Height}");
             
             if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(blockInfo))
                 return false;
             var pcb = _clientToParentChain.Take();
-            _logger.Trace($"Remove parent chain info at height {pcb.Height}");
+            _logger?.Trace($"Remove parent chain info at height {pcb.Height}");
             return pcb.Equals(blockInfo);
         }
 

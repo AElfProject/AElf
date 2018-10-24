@@ -70,7 +70,7 @@ namespace AElf.SmartContract
             }
             catch (FunctionMetadataException e)
             {
-                _logger?.Error(e, e.Message);
+                _logger?.Error(e, "Exception while deploy new contract.");
                 throw;
             }
         }

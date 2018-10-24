@@ -44,7 +44,7 @@ namespace AElf.Miner.Rpc.Server
         public override async Task RecordDuplexStreaming(IAsyncStreamReader<RequestBlockInfo> requestStream, 
             IServerStreamWriter<ResponseParentChainBlockInfo> responseStream, ServerCallContext context)
         {
-            _logger?.Log(LogLevel.Debug, "Parent Chain Server received IndexedInfo message.");
+            _logger?.Debug("Parent Chain Server received IndexedInfo message.");
 
             try
             {
@@ -110,7 +110,7 @@ namespace AElf.Miner.Rpc.Server
         /// <returns></returns>
         public override async Task RecordServerStreaming(RequestBlockInfo request, IServerStreamWriter<ResponseParentChainBlockInfo> responseStream, ServerCallContext context)
         {
-            _logger?.Log(LogLevel.Trace, "Parent Chain Server received IndexedInfo message.");
+            _logger?.Trace("Parent Chain Server received IndexedInfo message.");
 
             try
             {

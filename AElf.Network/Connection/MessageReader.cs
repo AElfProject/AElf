@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Network.Data;
 using AElf.Network.Exceptions;
-using Google.Protobuf;
 using NLog;
 
 namespace AElf.Network.Connection
@@ -16,14 +15,14 @@ namespace AElf.Network.Connection
     {
         public Message Message { get; set; }
     }
-    
+
     public class MessageReader : IMessageReader
-    {   
+    {
         private const int IntLength = 4;
         private const int IdLength = 16;
 
         private ILogger _logger;
-        
+
         private readonly NetworkStream _stream;
 
         public event EventHandler PacketReceived;
@@ -32,14 +31,14 @@ namespace AElf.Network.Connection
         private readonly List<PartialPacket> _partialPacketBuffer;
 
         public bool IsConnected { get; private set; }
-        
+
         public MessageReader(NetworkStream stream)
         {
             _partialPacketBuffer = new List<PartialPacket>();
-            
+
             _stream = stream;
         }
-        
+
         public void Start()
         {
             Task.Run(Read).ConfigureAwait(false);
@@ -47,7 +46,7 @@ namespace AElf.Network.Connection
 
             _logger = LogManager.GetLogger(nameof(MessageReader));
         }
-        
+
         /// <summary>
         /// Reads the bytes from the stream.
         /// </summary>
@@ -59,7 +58,7 @@ namespace AElf.Network.Connection
                 {
                     // Read type 
                     int type = await ReadByte();
-                    
+
                     // Read if the message is associated with an id
                     bool hasId = await ReadBoolean();
 
@@ -69,7 +68,7 @@ namespace AElf.Network.Connection
                         // The Id is a 128-bit guid
                         id = await ReadBytesAsync(IdLength);
                     }
-                    
+
                     // Is this a partial reception ?
                     bool isBuffered = await ReadBoolean();
 
@@ -86,7 +85,7 @@ namespace AElf.Network.Connection
                         if (!partialPacket.IsEnd)
                         {
                             _partialPacketBuffer.Add(partialPacket);
-                            _logger.Trace($"Received packet : {(MessageType)type}, length : {length}");
+                            _logger.Trace($"Received packet : {(MessageType) type}, length : {length}.");
                         }
                         else
                         {
@@ -98,11 +97,11 @@ namespace AElf.Network.Connection
                             byte[] allData =
                                 ByteArrayHelpers.Combine(_partialPacketBuffer.Select(pp => pp.Data).ToArray());
 
-                            _logger.Trace($"Received last packet : {_partialPacketBuffer.Count}, total length : {allData.Length}");
+                            _logger.Trace($"Received last packet: {_partialPacketBuffer.Count}, total length: {allData.Length}.");
 
                             // Clear the buffer for the next partial to receive 
                             _partialPacketBuffer.Clear();
-                            
+
                             Message message;
                             if (hasId)
                             {
@@ -112,7 +111,7 @@ namespace AElf.Network.Connection
                             {
                                 message = new Message {Type = type, HasId = false, Length = allData.Length, Payload = allData};
                             }
-                            
+
                             FireMessageReceivedEvent(message);
                         }
                     }
@@ -132,7 +131,7 @@ namespace AElf.Network.Connection
                         {
                             message = new Message {Type = type, HasId = false, Length = length, Payload = packetData};
                         }
-                        
+
                         FireMessageReceivedEvent(message);
                     }
                 }
@@ -158,7 +157,7 @@ namespace AElf.Network.Connection
 
         private void FireMessageReceivedEvent(Message message)
         {
-            PacketReceivedEventArgs args = new PacketReceivedEventArgs { Message = message };
+            PacketReceivedEventArgs args = new PacketReceivedEventArgs {Message = message};
             PacketReceived?.Invoke(this, args);
         }
 
@@ -187,14 +186,14 @@ namespace AElf.Network.Connection
             partialPacket.Position = await ReadInt();
             partialPacket.IsEnd = await ReadBoolean();
             partialPacket.TotalDataSize = await ReadInt();
-            
+
             // Read the data
             byte[] packetData = await ReadBytesAsync(dataLength);
             partialPacket.Data = packetData;
-            
+
             return partialPacket;
         }
-        
+
         /// <summary>
         /// Reads bytes from the stream.
         /// </summary>
@@ -204,23 +203,23 @@ namespace AElf.Network.Connection
         {
             if (amount == 0)
             {
-                _logger.Trace("Read amount is 0");
+                _logger.Trace("Read amount is 0.");
                 return new byte[0];
             }
-            
+
             byte[] requestedBytes = new byte[amount];
-            
+
             int receivedIndex = 0;
             while (receivedIndex < amount)
             {
                 int readAmount = await _stream.ReadAsync(requestedBytes, receivedIndex, amount - receivedIndex);
-                
+
                 if (readAmount == 0)
                     throw new PeerDisconnectedException();
-                
+
                 receivedIndex += readAmount;
             }
-            
+
             return requestedBytes;
         }
 
@@ -230,12 +229,12 @@ namespace AElf.Network.Connection
         {
             Dispose();
         }
-        
+
         public void Dispose()
         {
             // Change logical connection state
             IsConnected = false;
-            
+
             // This will cause an IOException in the read loop
             // but since IsConnected is switched to false, it 
             // will not fire the disconnection exception.

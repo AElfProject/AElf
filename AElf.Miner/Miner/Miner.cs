@@ -95,18 +95,21 @@ namespace AElf.Miner.Miner
                     var readyTxs = await _txPool.GetReadyTxsAsync(currentRoundInfo);
 
                     var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
-                    _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
+
+                    _logger?.Info($"Fetch {readyTxs.Count} txs, {dposTxs.Count()} DPOS txs from tx pool.");
+
                     foreach (var transaction in dposTxs)
                     {
-                        _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName} from {transaction.From.DumpHex()}");
+                        _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName} from {transaction.From.DumpHex()}.");
                     }
 
                     var disambiguationHash = HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
-                    _logger?.Log(LogLevel.Debug, "Executing Transactions..");
+
+                    _logger?.Debug("Start Executing Transactions.");
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
                         : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token, disambiguationHash);
-                    _logger?.Log(LogLevel.Debug, "Executed Transactions.");
+                    _logger?.Debug("Executed Transactions.");
 
                     // transaction results
                     ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
@@ -116,20 +119,21 @@ namespace AElf.Miner.Miner
                     _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                     // We need at least check the txs count of this block.
-                    var chainContext =
-                        await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                    var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
                     var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
                     if (blockValidationResult != BlockValidationResult.Success)
                     {
-                        _logger?.Trace("Found the block generated before invalid: " + blockValidationResult);
+                        _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
                         return null;
                     }
-                    
+
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
+
                     // put back canceled transactions
-                    // No await so that it won't affect Consensus
-                    _txPool.Revert(rollback);
+                    // TODO, no await so that it won't affect Consensus, maybe need improve
+                    _txPool.Revert(rollback).ConfigureAwait(false);
+
                     // insert to db
                     Update(executed, results, block, parentChainBlockInfo, genTx);
 
@@ -207,10 +211,10 @@ namespace AElf.Miner.Miner
             if (insertion == TxValidation.TxInsertionAndBroadcastingError.Success)
             {
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-                _logger.Debug($"Parent chain block info transaction insertion success. {tx.GetHash()}");
+                _logger.Debug($"Parent chain block info transaction insertion success. {tx.GetHash()}.");
                 return true;
             }
-            _logger?.Debug($"Parent chain block info transaction insertion failed. {insertion}");
+            _logger?.Debug($"Parent chain block info transaction insertion failed. {insertion}.");
             return false;
         }
         
