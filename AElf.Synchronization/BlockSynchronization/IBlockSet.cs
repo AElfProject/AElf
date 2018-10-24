@@ -8,6 +8,8 @@ namespace AElf.Synchronization.BlockSynchronization
 {
     public interface IBlockSet
     {
+        int InvalidBlockCount { get; }
+        int ExecutedBlockCount { get; }
         void AddBlock(IBlock block);
         void RemoveExecutedBlock(string blockHashHex);
         void Tell(IBlock currentExecutedBlock);

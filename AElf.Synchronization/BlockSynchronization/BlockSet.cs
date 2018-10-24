@@ -11,11 +11,33 @@ namespace AElf.Synchronization.BlockSynchronization
 {
     public class BlockSet : IBlockSet
     {
+        public int InvalidBlockCount
+        {
+            get
+            {
+                lock (_)
+                {
+                    return _list.Count;
+                }
+            }
+        }
+        
+        public int ExecutedBlockCount
+        {
+            get
+            {
+                lock (_)
+                {
+                    return _executedBlocks.Count;
+                }
+            }
+        }
+        
         private readonly ILogger _logger;
 
-        private readonly List<IBlock> _list;
+        private readonly List<IBlock> _list = new List<IBlock>();
 
-        private readonly Dictionary<ulong, IBlock> _executedBlocks;
+        private readonly Dictionary<ulong, IBlock> _executedBlocks = new Dictionary<ulong, IBlock>();
 
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private object _ = new object();
@@ -25,14 +47,11 @@ namespace AElf.Synchronization.BlockSynchronization
         public BlockSet()
         {
             _logger = LogManager.GetLogger(nameof(BlockSet));
-
-            _list = new List<IBlock>();
-            _executedBlocks = new Dictionary<ulong, IBlock>();
         }
 
         public void AddBlock(IBlock block)
         {
-            var hash = block.GetHash().DumpHex();
+            var hash = block.BlockHashToHex;
             _logger?.Trace($"Added block {hash} to BlockSet.");
             lock (_)
             {
@@ -135,7 +154,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             lock (_)
             {
-                higherBlocks = _list.Where(b => b.Index > currentHeight).ToList();
+                higherBlocks = _list.Where(b => b.Index > currentHeight).OrderByDescending(b => b.Index).ToList();
             }
 
             if (higherBlocks.Any())
@@ -143,27 +162,26 @@ namespace AElf.Synchronization.BlockSynchronization
                 _logger?.Trace("Find higher blocks in block set, will check whether there are longer valid chain.");
 
                 // Get the index of highest block in block set.
-                var index = higherBlocks.OrderBy(b => b.Index).Last().Index;
+                var block = higherBlocks.First();
+                var index = block.Index;
 
-                foreach (var block in higherBlocks.OrderByDescending(b => b.Index))
+                var flag = true;
+                while (flag)
                 {
-                    var flag = true;
-                    while (flag)
+                    lock (_)
                     {
-                        lock (_)
+                        if (_list.Any(b => b.Index == index - 1))
                         {
-                            if (_list.All(b => b.Index != index - 1)) continue;
+                            var lowerBlock = _list.Where(b => b.Index == index - 1);
+                            block = lowerBlock.FirstOrDefault(b => b.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex());
+                            if (block?.Header != null)
                             {
-                                if (_list.Where(b => b.Index == index - 1).Any(b =>
-                                    b.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex()))
-                                {
-                                    index--;
-                                    forkHeight = index;
-                                }
-                                else
-                                {
-                                    flag = false;
-                                }
+                                index--;
+                                forkHeight = index;
+                            }
+                            else
+                            {
+                                flag = false;
                             }
                         }
                     }

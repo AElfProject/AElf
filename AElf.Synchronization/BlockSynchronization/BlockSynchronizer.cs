@@ -30,6 +30,8 @@ namespace AElf.Synchronization.BlockSynchronization
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(NodeConfig.Instance.ChainId)));
 
+        private bool _receivedBranchedBlock;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -152,9 +154,14 @@ namespace AElf.Synchronization.BlockSynchronization
                 _blockSet.AddBlock(message.Block);
             }
 
+            // Received blocks from branched chain.
             if (message.BlockValidationResult == BlockValidationResult.Unlinkable ||
                 message.BlockValidationResult == BlockValidationResult.BranchedBlock)
             {
+                _logger?.Warn("Received block from branched chain.");
+                
+                _receivedBranchedBlock = true;
+                
                 var linkableBlock = CheckLinkabilityOfBlock(message.Block);
                 if (linkableBlock == null)
                 {
@@ -164,9 +171,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 await ReceiveBlock(linkableBlock);
             }
 
+            // Received future blocks.
             if (message.BlockValidationResult == BlockValidationResult.Pending)
             {
-                //MessageHub.Instance.Publish(new SyncUnfinishedBlock(await BlockChain.GetCurrentBlockHeightAsync() + 1));
                 return;
             }
 
@@ -186,6 +193,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // TODO: Launch a event to request missing blocks.
                 
+                return null;
             }
 
             foreach (var checkBlock in checkBlocks)
@@ -201,6 +209,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task ReviewBlockSet(BlockExecuted message)
         {
+            if (!_receivedBranchedBlock)
+            {
+                return;
+            }
+            
             // In case of the block set exists blocks that should be valid but didn't executed yet.
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
             
