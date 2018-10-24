@@ -39,7 +39,8 @@ namespace AElf.Miner.TxMemPool
         private readonly DPoSTxFilter _dpoSTxFilter;
 
         /// <inheritdoc/>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx,
+            bool validateReference = true)
         {
             await _txHub.AddTransactionAsync(tx);
             return TxValidation.TxInsertionAndBroadcastingError.Success;
@@ -55,14 +56,19 @@ namespace AElf.Miner.TxMemPool
         /// <inheritdoc/>
         public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, double intervals = 150)
         {
-            var txs = (await _txHub.GetReadyTxsAsync()).GroupBy(x=>x.IsSystemTxn).ToDictionary(x=>x.Key, x=>x.Select(y=>y.Transaction).ToList());
+            var txs = (await _txHub.GetReadyTxsAsync()).GroupBy(x => x.IsSystemTxn)
+                .ToDictionary(x => x.Key, x => x.Select(y => y.Transaction).ToList());
 
             if (txs.TryGetValue(true, out var sysTxs))
             {
-                _dpoSTxFilter.Execute(sysTxs);
+                if (currentRoundInfo != null)
+                {
+                    _dpoSTxFilter.Execute(sysTxs);
+                }
             }
-            _logger.Debug($"Got {sysTxs?.Count??0} System tx");
-            var totalTxs = txs.Values.SelectMany(x=>x).ToList();
+
+            _logger.Debug($"Got {sysTxs?.Count ?? 0} System tx");
+            var totalTxs = txs.Values.SelectMany(x => x).ToList();
             _logger.Debug($"Got {totalTxs.Count} total tx");
             return totalTxs;
         }
