@@ -113,7 +113,7 @@ namespace AElf.Miner.Miner
 
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
-                    _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
+                    _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                     // We need at least check the txs count of this block.
                     var chainContext =

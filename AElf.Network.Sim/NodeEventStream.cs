@@ -65,7 +65,7 @@ namespace AElf.Network.Sim
             }
             catch (Exception e)
             {
-                ;
+                Console.WriteLine("Exception while start node event stream: " + e);
             }
         }
 

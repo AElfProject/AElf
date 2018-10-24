@@ -24,7 +24,6 @@ using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
-using Org.BouncyCastle.Crypto.Engines;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Node.Protocol
@@ -210,7 +209,7 @@ namespace AElf.Node.Protocol
                 
             _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
                 
-            _logger?.Trace($"Network initialized at height {_localHeight}.");
+            _logger?.Info($"Network initialized at height {_localHeight}.");
             
             //_peerManager.Start();
             
@@ -282,7 +281,7 @@ namespace AElf.Node.Protocol
             CurrentSyncSource = peer;
             peer.Sync(start, target);
                     
-            _logger?.Trace($"Sync started from peer {CurrentSyncSource}, from {start} to {target}.");
+            _logger?.Info($"Sync started from peer {CurrentSyncSource}, from {start} to {target}.");
                     
             SetSyncState(true);
         }
@@ -453,7 +452,7 @@ namespace AElf.Node.Protocol
 
                 peer.OnBlockReceived(block);
                               
-                MessageHub.Instance.Publish(new BlockReceived(block));
+                Task.Run(() => MessageHub.Instance.Publish(new BlockReceived(block))).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -579,13 +578,13 @@ namespace AElf.Node.Protocol
                 
                 if (nextPeer != null)
                 {
-                    _logger?.Trace("Trying another peer : " + req.RequestMessage.RequestLogString + $", next : {nextPeer}.");
+                    _logger?.Warn("Trying another peer : " + req.RequestMessage.RequestLogString + $", next : {nextPeer}.");
                     req.TryPeer(nextPeer);
                 }
             }
             else
             {
-                _logger?.Trace("Request timeout - sender wrong type.");
+                _logger?.Warn("Request timeout - sender wrong type.");
             }
         }
 
@@ -692,7 +691,10 @@ namespace AElf.Node.Protocol
                         peer.EnqueueOutgoing(message); //todo
                         count++;
                     }
-                    catch (Exception e) { }
+                    catch (Exception e)
+                    {
+                        _logger?.Error(e, "Error while enqueue outgoing message.");
+                    }
                 }
             }
             catch (Exception e)

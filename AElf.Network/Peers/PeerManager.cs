@@ -112,7 +112,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Warn(e, "Error while reading mining info.");
+                _logger?.Error(e, "Error while reading mining info.");
             }
 
             _nodeKey = NetworkConfig.Instance.EcKeyPair;
@@ -178,7 +178,7 @@ namespace AElf.Network.Peers
                     }
                     catch (Exception e)
                     {
-                        _logger?.Warn(e, "Error while dequeuing peer manager job: stopping the dequeing loop.");
+                        _logger?.Error(e, "Error while dequeuing peer manager job: stopping the dequeing loop.");
                         break;
                     }
 
@@ -245,7 +245,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Warn(e, "Creation of peer object failed");
+                _logger?.Error(e, "Creation of peer object failed");
                 return;
             }
             
@@ -309,7 +309,7 @@ namespace AElf.Network.Peers
             {
                 case AllowedConnection.BPs when !peer.IsBp:
                 {
-                    _logger?.Trace($"Only producers are allowed to connect. Rejecting {peer}.");
+                    _logger?.Warn($"Only producers are allowed to connect. Rejecting {peer}.");
                     RemovePeer(peer);
                     return;
                 }
@@ -321,14 +321,14 @@ namespace AElf.Network.Peers
 
                     if (_allowedConnections == AllowedConnection.Listed && !inWhiteList)
                     {
-                        _logger?.Trace($"Only listed peers are allowed to connect. Rejecting {peer}.");
+                        _logger?.Warn($"Only listed peers are allowed to connect. Rejecting {peer}.");
                         RemovePeer(peer);
                         return;
                     }
                     
                     if (_allowedConnections == AllowedConnection.BPsAndListed  && !inWhiteList && !peer.IsBp)
                     {
-                        _logger?.Trace($"Only listed peers or bps are allowed to connect. Rejecting {peer}.");
+                        _logger?.Warn($"Only listed peers or bps are allowed to connect. Rejecting {peer}.");
                         RemovePeer(peer);
                         return;
                     }
@@ -379,7 +379,7 @@ namespace AElf.Network.Peers
                 _peers.Add(peer);
             }
                 
-            _logger?.Debug($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress.ToHex() }, bp: {peer.IsBp} }}");
+            _logger?.Info($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress.ToHex() }, bp: {peer.IsBp} }}");
             
             peer.MessageReceived += OnPeerMessageReceived;
                 
@@ -396,9 +396,9 @@ namespace AElf.Network.Peers
                     {
                         _jobQueue.Add(new PeerManagerJob { Type = PeerManagerJobType.ProcessMessage, Message = peerMsgArgs });
                     }
-                    catch (Exception ex)
+                    catch (Exception e)
                     {
-                        _logger?.Warn(ex, "Error while enqueuing job.");
+                        _logger?.Error(e, "Error while enqueuing job.");
                     }
                 }
             }
@@ -507,9 +507,9 @@ namespace AElf.Network.Peers
 
                 Task.Run(() => args.Peer.EnqueueOutgoing(resp));
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                _logger?.Warn(exception, "Error while answering a peer request.");
+                _logger?.Error(e, "Error while answering a peer request.");
             }
         }
         
@@ -547,7 +547,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Warn(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
+                _logger?.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
             }
         }
 
@@ -572,7 +572,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Warn(e, "Error while doing peer maintenance.");
+                _logger?.Error(e, "Error while doing peer maintenance.");
             }
         }
         
@@ -597,7 +597,7 @@ namespace AElf.Network.Peers
                 }
                 catch (Exception e)
                 {
-                    _logger?.Warn(e, "Creation of peer object failed");
+                    _logger?.Error(e, "Creation of peer object failed");
                     return;
                 }
                 
@@ -635,7 +635,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Warn(e, "Error while sending a message to the peers.");
+                _logger?.Error(e, "Error while sending a message to the peers.");
             }
 
             return count;

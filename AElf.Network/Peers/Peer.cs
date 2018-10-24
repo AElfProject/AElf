@@ -218,7 +218,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error while initializing the connection");
+                _logger?.Error(e, "Error while initializing the connection");
                 Dispose();
                 return false;
             }
@@ -230,7 +230,7 @@ namespace AElf.Network.Peers
         {
             Dispose();
             
-            _logger?.Trace($"Peer connection has been terminated : {DistantNodeData}");
+            _logger?.Warn($"Peer connection has been terminated : {DistantNodeData}");
             
             PeerDisconnected?.Invoke(this, new PeerDisconnectedArgs { Peer = this, Reason = DisconnectReason.StreamClosed } );
         }
@@ -273,7 +273,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e);
+                _logger?.Error(e, "Exception while handle received packet.");
             }
         }
 
@@ -324,7 +324,7 @@ namespace AElf.Network.Peers
             if (IsAuthentified)
                 return; 
             
-            _logger?.Trace("Authentification timed out.");
+            _logger?.Warn("Authentification timed out.");
             
             Dispose();
             
@@ -355,7 +355,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error processing authentification information.");
+                _logger?.Error(e, "Error processing authentification information.");
                 Dispose();
             }
             
@@ -433,12 +433,12 @@ namespace AElf.Network.Peers
             {
                 if (!IsAuthentified)
                 {
-                    _logger?.Trace($"Can't write : not identified {DistantNodeData}.");
+                    _logger?.Warn($"Can't write : not identified {DistantNodeData}.");
                 }
                 
                 if (_messageWriter == null)
                 {
-                    _logger?.Trace($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
+                    _logger?.Warn($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
                     return;
                 }
                 
@@ -453,7 +453,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Exception while sending data.");
+                _logger?.Error(e, $"Exception while sending data.");
             }
         }
         
