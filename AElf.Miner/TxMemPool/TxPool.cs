@@ -38,9 +38,6 @@ namespace AElf.Miner.TxMemPool
 
         private readonly DPoSTxFilter _dpoSTxFilter;
 
-        private readonly ConcurrentDictionary<Hash, Transaction> _systemTxs =
-            new ConcurrentDictionary<Hash, Transaction>();
-
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true)
         {
@@ -49,21 +46,10 @@ namespace AElf.Miner.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task Revert(List<Transaction> txsOut)
-        {
-            await Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
         public bool TryGetTx(Hash txHash, out Transaction tx)
         {
             tx = _txHub.GetTxAsync(txHash).Result;
             return tx != null;
-        }
-
-        /// <inheritdoc/>
-        public void RemoveAsync(Hash txHash)
-        {
         }
 
         /// <inheritdoc/>
@@ -90,7 +76,6 @@ namespace AElf.Miner.TxMemPool
         public async Task<ulong> GetPoolSize()
         {
             return (ulong) (await _txHub.GetReadyTxsAsync()).Count();
-//            return Task.FromResult((ulong) _txHub.ValidatedCount);
         }
     }
 }

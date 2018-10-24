@@ -15,12 +15,6 @@ namespace AElf.Miner.TxMemPool
         Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true);
 
         /// <summary>
-        /// remove a tx from collection not pool
-        /// </summary>
-        /// <param name="txHash"></param>
-        void RemoveAsync(Hash txHash);
-
-        /// <summary>
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
@@ -48,22 +42,6 @@ namespace AElf.Miner.TxMemPool
         /// close transaction pool
         /// </summary>
         Task Stop();
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="addr"></param>
-        /// <param name="start"></param>
-        /// <param name="ids"></param>
-        /// <returns></returns>
-//        Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids);
-
-        /// <summary>
-        /// roll back
-        /// </summary>
-        /// <returns></returns>
-        Task Revert(List<Transaction> txsOut);
 
         void SetBlockVolume(int minimal, int maximal);
     }

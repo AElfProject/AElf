@@ -129,9 +129,7 @@ namespace AElf.Miner.Miner
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
                     MessageHub.Instance.Publish(new TransactionExecuted(executed));
-                    // put back canceled transactions
-                    // No await so that it won't affect Consensus
-                    _txPool.Revert(rollback);
+
                     // insert to db
                     Update(executed, results, block, parentChainBlockInfo, genTx);
 
@@ -321,7 +319,6 @@ namespace AElf.Miner.Miner
             executedTxs.AsParallel().ForEach(async tx =>
                 {
                     await _transactionManager.AddTransactionAsync(tx);
-                    _txPool.RemoveAsync(tx.GetHash());
                 });
             txResults.AsParallel().ForEach(async r =>
             {
