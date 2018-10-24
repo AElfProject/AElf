@@ -84,8 +84,8 @@ namespace AElf.Kernel.Node
             GlobalConfig.BlockProducerNumber = count;
             GlobalConfig.BlockNumberOfEachRound = count + 1;
 
-            _logger?.Trace("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
-            _logger?.Trace("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
+            _logger?.Info("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
+            _logger?.Info("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
 
             if (GlobalConfig.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
             {
@@ -136,7 +136,7 @@ namespace AElf.Kernel.Node
             }
 
             Helper.SyncMiningInterval();
-            _logger?.Trace($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
+            _logger?.Info($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
 
             if (Helper.CanRecoverDPoSInformation())
             {
@@ -172,7 +172,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e.Message);
+                _logger?.Error("Mine got error" + e.Message);
                 return null;
             }
         }
@@ -458,7 +458,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Debug("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
+                _logger?.Error("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
             }
         }
     }

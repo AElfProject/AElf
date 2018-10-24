@@ -58,7 +58,6 @@ namespace AElf.Synchronization.BlockExecution
             {
                 return BlockExecutionResult.Failed;
             }
-            _logger?.Trace($"Executing block {block.GetHash()}");
             var txnRes = new List<TransactionResult>();
             try
             {
@@ -70,6 +69,9 @@ namespace AElf.Synchronization.BlockExecution
                 await UpdateSideChainInfo(block);
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
+
+                _logger?.Info($"Execute block {block.BlockHashToHex}.");
+
                 return BlockExecutionResult.Success;
             }
             catch (Exception e)

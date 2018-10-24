@@ -186,7 +186,7 @@ namespace AElf.Node.AElfChain
             {
                 if (inState.IsSyncing)
                 {
-                    _logger?.Warn("Will hang on mining due to starting syncing.");
+                    _logger?.Trace("Will hang on mining due to starting syncing.");
                     _consensus?.Hang();
                 }
                 else
@@ -200,7 +200,7 @@ namespace AElf.Node.AElfChain
             {
                 if (inState.IsGenerated)
                 {
-                    _logger?.Warn("Will hang on mining due to starting syncing.");
+                    _logger?.Trace("Will hang on mining due to starting syncing.");
                     _consensus?.Hang();
                 }
                 else
@@ -410,7 +410,7 @@ namespace AElf.Node.AElfChain
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Exception while getting chain height");
+                _logger?.Error(e, "Exception while getting chain height");
             }
 
             return height;
