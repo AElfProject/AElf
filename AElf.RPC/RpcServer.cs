@@ -59,7 +59,7 @@ namespace AElf.RPC
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Exception while RPC server init");
+                _logger?.Error(e, "Exception while RPC server init.");
                 return false;
             }
 
@@ -70,11 +70,12 @@ namespace AElf.RPC
         {
             try
             {
+                _logger?.Info("RPC server start.");
                 await _host.RunAsync();
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Exception while start RPC server.");
+                _logger?.Error(e, "Exception while start RPC server.");
             }
         }
 

@@ -124,7 +124,9 @@ namespace AElf.Network.Peers
         {
             byte[] blockHash = block.GetHashBytes();
             int blockHeight = (int) block.Header.Index;
-            
+
+            _logger.Info($"Receive block {block.BlockHashToHex} at height {blockHeight}.");
+
             PendingBlock vBlock;
             lock (_blockLock)
             {
@@ -163,7 +165,7 @@ namespace AElf.Network.Peers
                 {
                     if (blockHeight >= _syncTarget)
                     {
-                        _logger?.Trace($"[{this}] sync finished at {_syncTarget}.");
+                        _logger?.Info($"[{this}] sync finished at {_syncTarget}.");
                         
                         EndSync();
                     }

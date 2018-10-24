@@ -210,7 +210,7 @@ namespace AElf.Node.Protocol
                 
             _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
                 
-            _logger?.Trace($"Network initialized at height {_localHeight}.");
+            _logger?.Info($"Network initialized at height {_localHeight}.");
             
             //_peerManager.Start();
             
@@ -282,7 +282,7 @@ namespace AElf.Node.Protocol
             CurrentSyncSource = peer;
             peer.Sync(start, target);
                     
-            _logger?.Trace($"Sync started from peer {CurrentSyncSource}, from {start} to {target}.");
+            _logger?.Info($"Sync started from peer {CurrentSyncSource}, from {start} to {target}.");
                     
             SetSyncState(true);
         }
@@ -579,13 +579,13 @@ namespace AElf.Node.Protocol
                 
                 if (nextPeer != null)
                 {
-                    _logger?.Trace("Trying another peer : " + req.RequestMessage.RequestLogString + $", next : {nextPeer}.");
+                    _logger?.Warn("Trying another peer : " + req.RequestMessage.RequestLogString + $", next : {nextPeer}.");
                     req.TryPeer(nextPeer);
                 }
             }
             else
             {
-                _logger?.Trace("Request timeout - sender wrong type.");
+                _logger?.Warn("Request timeout - sender wrong type.");
             }
         }
 

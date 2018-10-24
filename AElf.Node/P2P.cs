@@ -57,7 +57,7 @@ namespace AElf.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error while dequeuing.");
+                _logger?.Error(e, "Error while dequeuing.");
             }
         }
 
@@ -104,7 +104,7 @@ namespace AElf.Node
 
                 if (b == null)
                 {
-                    _logger?.Trace($"Block not found {breq.Id.ToByteArray().ToHex()}");
+                    _logger?.Warn($"Block not found {breq.Id.ToByteArray().ToHex()}");
                     return;
                 }
                     

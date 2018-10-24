@@ -309,7 +309,7 @@ namespace AElf.Network.Peers
             {
                 case AllowedConnection.BPs when !peer.IsBp:
                 {
-                    _logger?.Trace($"Only producers are allowed to connect. Rejecting {peer}.");
+                    _logger?.Warn($"Only producers are allowed to connect. Rejecting {peer}.");
                     RemovePeer(peer);
                     return;
                 }
@@ -321,14 +321,14 @@ namespace AElf.Network.Peers
 
                     if (_allowedConnections == AllowedConnection.Listed && !inWhiteList)
                     {
-                        _logger?.Trace($"Only listed peers are allowed to connect. Rejecting {peer}.");
+                        _logger?.Warn($"Only listed peers are allowed to connect. Rejecting {peer}.");
                         RemovePeer(peer);
                         return;
                     }
                     
                     if (_allowedConnections == AllowedConnection.BPsAndListed  && !inWhiteList && !peer.IsBp)
                     {
-                        _logger?.Trace($"Only listed peers or bps are allowed to connect. Rejecting {peer}.");
+                        _logger?.Warn($"Only listed peers or bps are allowed to connect. Rejecting {peer}.");
                         RemovePeer(peer);
                         return;
                     }
@@ -379,7 +379,7 @@ namespace AElf.Network.Peers
                 _peers.Add(peer);
             }
                 
-            _logger?.Debug($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress.ToHex() }, bp: {peer.IsBp} }}");
+            _logger?.Info($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress.ToHex() }, bp: {peer.IsBp} }}");
             
             peer.MessageReceived += OnPeerMessageReceived;
                 
