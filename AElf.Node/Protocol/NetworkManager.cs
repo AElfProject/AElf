@@ -24,7 +24,6 @@ using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
-using Org.BouncyCastle.Crypto.Engines;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Node.Protocol
@@ -453,7 +452,7 @@ namespace AElf.Node.Protocol
 
                 peer.OnBlockReceived(block);
                               
-                MessageHub.Instance.Publish(new BlockReceived(block));
+                Task.Run(() => MessageHub.Instance.Publish(new BlockReceived(block))).ConfigureAwait(false);
             }
             catch (Exception e)
             {
