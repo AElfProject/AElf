@@ -45,7 +45,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 // Find new blocks from block set to execute
                 var blocks = _blockSet.GetBlockByHeight(inHeight.TargetHeight);
                 ulong i = 0;
-                while (blocks.Any())
+                while (blocks != null && blocks.Any())
                 {
                     _logger?.Trace($"Will get block of height {inHeight.TargetHeight + i} from block set to execute - {blocks.Count} blocks.");
                     i++;
@@ -158,7 +158,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 message.BlockValidationResult == BlockValidationResult.BranchedBlock)
             {
                 var linkableBlock = CheckLinkabilityOfBlock(message.Block);
-                
+                if (linkableBlock == null)
+                {
+                    return;
+                }
+
+                await ReceiveBlock(linkableBlock);
             }
 
             await ReviewBlockSet(message);
@@ -194,9 +199,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             // In case of the block set exists blocks that should be valid but didn't executed yet.
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
-//            if (message.Block.Header.Index > currentHeight)
-//                MessageHub.Instance.Publish(new SyncUnfinishedBlock(currentHeight + 1));
-
+            
             // Detect longest chain and switch.
             var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
             if (forkHeight != 0)

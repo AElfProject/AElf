@@ -16,7 +16,6 @@ namespace AElf.ChainController
         BranchedBlock,
         Pending,
         UnknownReason,
-        IncorrectPreBlockHash,
         Unlinkable,
 
         // Unforgivable, discard
