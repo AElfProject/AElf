@@ -15,14 +15,14 @@ namespace AElf.Network.Connection
     public class MessageWriter : IMessageWriter
     {
         private const int DefaultMaxOutboundPacketSize = 20148;
-        
+
         private readonly ILogger _logger;
         private readonly NetworkStream _stream;
-        
+
         private BlockingCollection<Message> _outboundMessages;
 
         internal bool IsDisposed { get; private set; }
-        
+
         /// <summary>
         /// This configuration property determines the maximum size an
         /// outgoing messages payload. If the payloads size is larger
@@ -30,15 +30,15 @@ namespace AElf.Network.Connection
         /// packets.
         /// </summary>
         public int MaxOutboundPacketSize { get; set; } = DefaultMaxOutboundPacketSize;
-        
+
         public MessageWriter(NetworkStream stream)
         {
             _outboundMessages = new BlockingCollection<Message>();
             _stream = stream;
-            
+
             _logger = LogManager.GetLogger(nameof(MessageWriter));
         }
-        
+
         /// <summary>
         /// Starts the dequing of outgoing messages.
         /// </summary>
@@ -46,22 +46,22 @@ namespace AElf.Network.Connection
         {
             Task.Run(() => DequeueOutgoingLoop()).ConfigureAwait(false);
         }
-        
+
         public void EnqueueMessage(Message p)
         {
             if (IsDisposed || _outboundMessages == null || _outboundMessages.IsAddingCompleted)
                 return;
-            
+
             try
             {
                 _outboundMessages.Add(p);
             }
             catch (Exception e)
             {
-                _logger.Trace(e);
+                _logger.Trace(e, "Exception while enqueue for outgoing message.");
             }
         }
-        
+
         /// <summary>
         /// The main loop that sends queud up messages from the message queue.
         /// </summary>
@@ -70,7 +70,7 @@ namespace AElf.Network.Connection
             while (!IsDisposed && _outboundMessages != null)
             {
                 Message p = null;
-                
+
                 try
                 {
                     p = _outboundMessages.Take();
@@ -80,7 +80,7 @@ namespace AElf.Network.Connection
                     Dispose(); // if already disposed will do nothing 
                     break;
                 }
-                
+
                 try
                 {
                     if (p.Payload.Length > MaxOutboundPacketSize)
@@ -155,23 +155,23 @@ namespace AElf.Network.Connection
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace(e, "Exception while dequeing message");
+                    _logger?.Trace(e, "Exception while dequeing message.");
                 }
             }
-            
+
             _logger?.Trace("Finished writting messages.");
         }
 
         internal void SendPacketFromMessage(Message p)
         {
-            byte[] type = { (byte)p.Type };
-            byte[] hasId = { p.HasId ? (byte)1 : (byte)0 };
-            byte[] isbuffered = { 0 };
+            byte[] type = {(byte) p.Type};
+            byte[] hasId = {p.HasId ? (byte) 1 : (byte) 0};
+            byte[] isbuffered = {0};
             byte[] length = BitConverter.GetBytes(p.Length);
             byte[] arrData = p.Payload;
 
             byte[] b;
-            
+
             if (p.HasId)
             {
                 b = ByteArrayHelpers.Combine(type, hasId, p.Id, isbuffered, length, arrData);
@@ -180,21 +180,21 @@ namespace AElf.Network.Connection
             {
                 b = ByteArrayHelpers.Combine(type, hasId, isbuffered, length, arrData);
             }
-            
+
             _stream.Write(b, 0, b.Length);
         }
 
         internal void SendPartialPacket(PartialPacket p)
         {
-            byte[] type = { (byte)p.Type };
-            byte[] hasId = { p.HasId ? (byte)1 : (byte)0 };
-            byte[] isbuffered = { 1 };
+            byte[] type = {(byte) p.Type};
+            byte[] hasId = {p.HasId ? (byte) 1 : (byte) 0};
+            byte[] isbuffered = {1};
             byte[] length = BitConverter.GetBytes(p.Data.Length);
 
             byte[] posBytes = BitConverter.GetBytes(p.Position);
-            byte[] isEndBytes = p.IsEnd ? new byte[] { 1 } : new byte[] { 0 };
+            byte[] isEndBytes = p.IsEnd ? new byte[] {1} : new byte[] {0};
             byte[] totalLengthBytes = BitConverter.GetBytes(p.TotalDataSize);
-            
+
             byte[] arrData = p.Data;
 
             byte[] b;
@@ -206,29 +206,29 @@ namespace AElf.Network.Connection
             {
                 b = ByteArrayHelpers.Combine(type, hasId, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
             }
-            
+
             _stream.Write(b, 0, b.Length);
         }
-        
+
         #region Closing and disposing
 
         public void Close()
         {
             Dispose();
         }
-        
+
         public void Dispose()
         {
             if (IsDisposed)
                 return;
-            
+
             // Note that This will cause an IOException in the read loop.
             _stream?.Close();
 
             _outboundMessages?.CompleteAdding();
             _outboundMessages?.Dispose();
             _outboundMessages = null;
-            
+
             IsDisposed = true;
         }
 

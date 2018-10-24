@@ -116,7 +116,7 @@ namespace AElf.Node
 
                 args.Peer.EnqueueOutgoing(req);
 
-                _logger?.Trace("Send block " + b.GetHash().DumpHex() + " to " + args.Peer);
+                _logger?.Debug("Send block " + b.GetHash().DumpHex() + " to " + args.Peer);
             }
             catch (Exception e)
             {
@@ -152,7 +152,7 @@ namespace AElf.Node
                         txList.Transactions.Add(tx);
                     else
                     {
-                        _logger?.Trace("wanna get tx: " + txHash.ToByteArray().ToHex());
+                        _logger?.Trace($"wanna get tx: {txHash.ToByteArray().ToHex()}.");
                     }
                 }
 
@@ -164,7 +164,7 @@ namespace AElf.Node
 
                 byte[] serializedTxList = txList.ToByteArray();
                 Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Transactions, serializedTxList);
-                _logger?.Trace("payload length: " + req.Length);
+                _logger?.Trace($"payload length: {req.Length}.");
 
                 if (message.HasId)
                 {
@@ -174,7 +174,7 @@ namespace AElf.Node
                 
                 args.Peer.EnqueueOutgoing(req);
                 
-                _logger?.Trace("Send " + txList.Transactions.Count + " to " + args.Peer);
+                _logger?.Debug($"Send {txList.Transactions.Count} to {args.Peer}.");
             }
             catch (Exception e)
             {
@@ -201,8 +201,7 @@ namespace AElf.Node
             await _netManager.BroadcastBlock(block.GetHash().Value.ToByteArray(), serializedBlock);
 
             var bh = block.GetHash().DumpHex();
-            _logger?.Trace(
-                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
+            _logger?.Trace($"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
 
             return true;
         }

@@ -84,7 +84,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             else
             {
-                _logger?.Warn($"Invalid Block {block.GetHash().DumpHex()} : {message.BlockValidationResult.ToString()}.");
+                _logger?.Warn($"Invalid Block {block.GetHash().DumpHex()}: {message.BlockValidationResult.ToString()}.");
                 await HandleInvalidBlock(message);
             }
 

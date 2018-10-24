@@ -106,7 +106,7 @@ namespace AElf.SideChain.Creation
 
             foreach (var info in infos)
             {
-                _logger?.Info("Chain creation event: " + info);
+                _logger?.Info($"Chain creation event: {info}");
                 try
                 {
                     var response = await SendChainDeploymentRequestFor(info.ChainId, chainId);
@@ -115,17 +115,17 @@ namespace AElf.SideChain.Creation
                     {
                         _logger?.Error(
                             $"Sending sidechain deployment request for {info.ChainId} failed. " +
-                            $"StatusCode: {response.StatusCode}"
+                            $"StatusCode: {response.StatusCode}."
                         );
                     }
                     else
                     {
                         _logger?.Info(
                             $"Successfully sent sidechain deployment request for {info.ChainId}. " +
-                            "Management API return message: " + await response.Content.ReadAsStringAsync()
+                            $"Management API return message: {await response.Content.ReadAsStringAsync()}."
                         );
                         
-                        // insert 
+                        // insert
                         await _chainManagerBasic.AddSideChainId(info.ChainId);
                     }
                 }

@@ -433,7 +433,7 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while handling new transaction reception");
+                _logger?.Error(e, "Error while handling new transaction reception.");
             }
         }
 
@@ -555,25 +555,25 @@ namespace AElf.Node.Protocol
 
             if (sender is TimeoutRequest req)
             {
-                _logger?.Trace("Request timeout : " + req.IsBlockRequest + $", with {req.Peer} and timeout : {TimeSpan.FromMilliseconds(req.Timeout)}.");
+                _logger?.Warn($"Request timeout: {req.IsBlockRequest}, with {req.Peer} and timeout : {TimeSpan.FromMilliseconds(req.Timeout)}.");
                 
                 if (req.IsTxRequest && req.TransactionHashes != null && req.TransactionHashes.Any())
                 {
-                    _logger?.Trace("Hashes : [" + string.Join(", ", req.TransactionHashes.Select(kvp => kvp.ToHex())) + "]");
+                    _logger?.Trace($"Hashes: [{string.Join(", ", req.TransactionHashes.Select(kvp => kvp.ToHex()))}]");
                 }
-                
+
                 if (req.HasReachedMaxRetry)
                 {
                     lock (_pendingRequestsLock)
                     {
                         _pendingRequests.Remove(req);
                     }
-                    
+
                     req.RequestTimedOut -= RequestOnRequestTimedOut;
                     FireRequestFailed(req);
                     return;
                 }
-                
+
                 IPeer nextPeer = _peers.FirstOrDefault(p => !p.Equals(req.Peer));
                 
                 if (nextPeer != null)

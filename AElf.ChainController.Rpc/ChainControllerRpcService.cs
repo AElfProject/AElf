@@ -536,7 +536,7 @@ namespace AElf.ChainController.Rpc
             }
             catch (Exception e)
             {
-                _logger.Error("ProcSetBlockVolume failed: " + e);
+                _logger.Error(e, "Exception while ProcSetBlockVolume.");
                 return await Task.FromResult(new JObject
                 {
                     ["error"] = "Failed"
