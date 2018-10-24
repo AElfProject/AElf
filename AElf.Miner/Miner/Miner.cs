@@ -25,6 +25,7 @@ using AElf.Execution.Execution;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
+using NLog.Fluent;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -127,6 +128,7 @@ namespace AElf.Miner.Miner
                     
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
+                    MessageHub.Instance.Publish(new TransactionExecuted(executed));
                     // put back canceled transactions
                     // No await so that it won't affect Consensus
                     _txPool.Revert(rollback);

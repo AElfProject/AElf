@@ -21,6 +21,31 @@ message Transaction {
     google.protobuf.Timestamp Time = 13;
 }
 
+message TransactionReceipt {
+    enum TransactionStatus {
+        UnknownTransactionStatus = 0;
+        TransactionExecuting = 1;
+        TransactionExecuted = 2;
+    }
+    enum SignatureStatus {
+        UnknownSignatureStatus = 0;
+        SignatureValid = 1;
+        SignatureInvalid = -1;
+    }
+    enum RefBlockStatus {
+        UnknownRefBlockStatus = 0;
+        RefBlockValid = 1;
+        RefBlockInvalid = -1;
+        RefBlockExpired = -2;
+    }
+    Hash TransactionId = 1;
+    Transaction Transaction = 2;
+    SignatureStatus SignatureSt = 3;
+    RefBlockStatus RefBlockSt = 4;
+    TransactionStatus Status = 5;
+    bool IsSystemTxn = 6; 
+}
+
 message StatePath {
     repeated bytes Path = 1;
 //    Address ContractAddress = 2;

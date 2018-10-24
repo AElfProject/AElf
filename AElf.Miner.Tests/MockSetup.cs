@@ -44,7 +44,7 @@ namespace AElf.Miner.Tests
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IDataStore _dataStore;
         private readonly IStateStore _stateStore;
-        private TxHub _txHub;
+        private NewTxHub _txHub;
         private IChainContextService _chainContextService;
 
         public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore)
@@ -79,7 +79,7 @@ namespace AElf.Miner.Tests
                     _stateStore, _functionMetadataService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
-            _txHub = new TxHub(_transactionManager);
+            _txHub = new NewTxHub(_transactionManager, _chainService);
             _chainContextService = new ChainContextService(_chainService);
         }
 

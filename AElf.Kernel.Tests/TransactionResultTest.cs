@@ -25,7 +25,7 @@ namespace AElf.Kernel.Tests
             _transactionResultManager = transactionResultManager;
             _transactionResultService = new TransactionResultService(
                 new TxPool(logger, new TxValidator(txPoolConfig, chainService, logger),
-                    new TxHub(transactionManager)), transactionResultManager);
+                    new NewTxHub(transactionManager, chainService)), transactionResultManager);
         }
 
         private TransactionResult CreateResult(Hash txId, Status status)

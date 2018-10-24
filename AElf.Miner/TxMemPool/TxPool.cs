@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Miner.EventMessages;
-using Easy.MessageHub;
 using NLog;
 
 namespace AElf.Miner.TxMemPool
@@ -19,7 +16,7 @@ namespace AElf.Miner.TxMemPool
         private int Least { get; set; }
         private int Limit { get; set; }
 
-        public TxPool(ILogger logger, ITxValidator txValidator, TxHub txHub)
+        public TxPool(ILogger logger, ITxValidator txValidator, NewTxHub txHub)
         {
             _logger = logger;
             _txValidator = txValidator;
@@ -37,7 +34,7 @@ namespace AElf.Miner.TxMemPool
             return Task.CompletedTask;
         }
 
-        private TxHub _txHub;
+        private NewTxHub _txHub;
 
         private readonly DPoSTxFilter _dpoSTxFilter;
 
@@ -47,192 +44,41 @@ namespace AElf.Miner.TxMemPool
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true)
         {
-            var txv = _txHub.GetTxHolderView(tx.GetHash());
-            if (txv != null)
-            {
-                return TxValidation.TxInsertionAndBroadcastingError.KnownTx;
-            }
-
-            var res = await AddTransaction(tx, validateReference);
-            return res;
-        }
-
-        /// <summary>
-        /// enqueue tx in pool
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <param name="validateReference"></param>
-        /// <returns></returns>
-        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx, bool validateReference)
-        {
-            var txid = tx.GetHash();
-            var nonSys = tx.Type == TransactionType.ContractTransaction;
-            if (nonSys)
-            {
-                try
-                {
-                    _txHub.AddNewTransaction(tx);
-                }
-                catch (Exception)
-                {
-                    return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
-                }
-                _txHub.ValidatingTx(txid);
-            }
-
-            var res = _txValidator.ValidateTx(tx);
-            if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
-            {
-                if (nonSys)
-                {
-                    _txHub.InvalidatedTx(txid);
-                }
-
-                return res;
-            }
-
-            if (validateReference)
-            {
-                res = await _txValidator.ValidateReferenceBlockAsync(tx);
-                if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
-                {
-                    if (nonSys)
-                    {
-                        _txHub.InvalidatedTx(txid);
-                    }
-
-                    return res;
-                }
-            }
-
-            if (nonSys)
-            {
-                _txHub.ValidatedTx(txid);
-            }
-            
-            MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-            
-            if (!nonSys)
-            {
-                return await Task.FromResult(AddSystemTransaction(tx));
-            }
+            await _txHub.AddTransactionAsync(tx);
             return TxValidation.TxInsertionAndBroadcastingError.Success;
-        }
-
-        /// <summary>
-        /// enqueue system tx
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        private TxValidation.TxInsertionAndBroadcastingError AddSystemTransaction(Transaction tx)
-        {
-            if (tx.Type == TransactionType.ContractTransaction)
-                return TxValidation.TxInsertionAndBroadcastingError.Failed;
-            if (_systemTxs.ContainsKey(tx.GetHash()))
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
-
-            return _systemTxs.TryAdd(tx.GetHash(), tx)
-                ? TxValidation.TxInsertionAndBroadcastingError.Success
-                : TxValidation.TxInsertionAndBroadcastingError.Failed;
-        }
-
-        /// <summary>
-        /// enqueue contract tx
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        private TxValidation.TxInsertionAndBroadcastingError AddContractTransaction(Transaction tx)
-        {
-            if (tx.Type != TransactionType.ContractTransaction)
-                return TxValidation.TxInsertionAndBroadcastingError.Failed;
-
-            try
-            {
-                _txHub.AddNewTransaction(tx);
-            }
-            catch (Exception)
-            {
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
-            }
-//            
-//            if (_contractTxs.ContainsKey(tx.GetHash()))
-//                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
-//
-//            if (_contractTxs.TryAdd(tx.GetHash(), tx))
-//            {
-                return TxValidation.TxInsertionAndBroadcastingError.Success;
-//            }
-
-            return TxValidation.TxInsertionAndBroadcastingError.Failed;
         }
 
         /// <inheritdoc/>
         public async Task Revert(List<Transaction> txsOut)
         {
-            foreach (var tx in txsOut)
-            {
-                if (tx.Type == TransactionType.ContractTransaction)
-                {
-//                    AddContractTransaction(tx);
-                    _txHub.RevertExecutingTx(tx.GetHash());   
-                }
-                else if (tx.Type != TransactionType.DposTransaction)
-                {
-                    AddSystemTransaction(tx);
-                }
-
-                tx.Unclaim();
-            }
-
             await Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public bool TryGetTx(Hash txHash, out Transaction tx)
         {
-            tx = _txHub.GetTxHolderView(txHash)?.Transaction;
-            if (tx == null)
-            {
-                _systemTxs.TryGetValue(txHash, out tx);
-            }
+            tx = _txHub.GetTxAsync(txHash).Result;
             return tx != null;
         }
 
         /// <inheritdoc/>
         public void RemoveAsync(Hash txHash)
         {
-            if (_systemTxs.TryRemove(txHash, out _))
-                return;
-            _txHub.ExecutedTx(txHash);
-//            _contractTxs.TryRemove(txHash, out _);
         }
 
         /// <inheritdoc/>
         public async Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo, double intervals = 150)
         {
-            var txs = _systemTxs.Values.ToList();
+            var txs = (await _txHub.GetReadyTxsAsync()).GroupBy(x=>x.IsSystemTxn).ToDictionary(x=>x.Key, x=>x.Select(y=>y.Transaction).ToList());
 
-            if (currentRoundInfo != null)
+            if (txs.TryGetValue(true, out var sysTxs))
             {
-                foreach (var hash in _dpoSTxFilter.Execute(txs).Select(tx => tx.GetHash()))
-                {
-                    _systemTxs.TryRemove(hash, out _);
-                }
+                _dpoSTxFilter.Execute(sysTxs);
             }
-
-            _logger.Debug($"Got {txs.Count} System tx");
-
-            var count = _txHub.ValidatedCount;
-            if (count < Least)
-            {
-                _logger.Debug($"Regular txs {Least} required, but we only have {count}");
-                return txs;
-            }
-
-            txs.AddRange(_txHub.GetTxsForExecution(Limit));
-
-            _logger.Debug($"Got {txs.Count} total tx");
-            return txs;
+            _logger.Debug($"Got {sysTxs?.Count??0} System tx");
+            var totalTxs = txs.Values.SelectMany(x=>x).ToList();
+            _logger.Debug($"Got {totalTxs.Count} total tx");
+            return totalTxs;
         }
 
         public void SetBlockVolume(int minimal, int maximal)
@@ -241,9 +87,10 @@ namespace AElf.Miner.TxMemPool
             Limit = maximal;
         }
 
-        public Task<ulong> GetPoolSize()
+        public async Task<ulong> GetPoolSize()
         {
-            return Task.FromResult((ulong) _txHub.ValidatedCount);
+            return (ulong) (await _txHub.GetReadyTxsAsync()).Count();
+//            return Task.FromResult((ulong) _txHub.ValidatedCount);
         }
     }
 }
