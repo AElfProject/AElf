@@ -105,6 +105,9 @@ namespace AElf.Synchronization.BlockSynchronization
             // Basically notify the network layer that this node just mined a block
             // and added to executed block list.
             MessageHub.Instance.Publish(new BlockAddedToSet(block));
+            
+            // We can say the "initial sync" is finished, set KeepHeight to a specific number
+            _blockSet.KeepHeight = 256;
         }
 
         private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)
@@ -223,7 +226,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (forkHeight != 0)
             {
                 await RollbackToHeight(forkHeight);
-                MessageHub.Instance.Publish(new SyncUnfinishedBlock(forkHeight + 1));
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(forkHeight));
             }
         }
 

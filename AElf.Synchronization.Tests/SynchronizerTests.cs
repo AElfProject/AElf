@@ -4,6 +4,6 @@ namespace AElf.Synchronization.Tests
 {
     public class SynchronizerTests
     {
-
+        
     }
 }

@@ -10,6 +10,7 @@ namespace AElf.Synchronization.BlockSynchronization
     {
         int InvalidBlockCount { get; }
         int ExecutedBlockCount { get; }
+        ulong KeepHeight { get; set; }
         void AddBlock(IBlock block);
         void RemoveExecutedBlock(string blockHashHex);
         void Tell(IBlock currentExecutedBlock);

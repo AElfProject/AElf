@@ -42,7 +42,7 @@ namespace AElf.Synchronization.BlockSynchronization
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private object _ = new object();
 
-        private const ulong KeepHeight = 20;
+        public ulong KeepHeight { get; set; } = ulong.MaxValue;
 
         public BlockSet()
         {
@@ -190,7 +190,11 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
             }
 
-            return forkHeight <= currentHeight ? forkHeight : 0;
+            if (forkHeight <= currentHeight - 1)
+            {
+                _logger?.Trace($"Find fork height: {forkHeight}");
+            }
+            return forkHeight <= currentHeight - 1 ? forkHeight : 0;
         }
     }
 }
