@@ -64,6 +64,7 @@ namespace AElf.Node.Protocol
 
         private BoundedByteArrayQueue _lastBlocksReceived;
         private BoundedByteArrayQueue _lastTxReceived;
+        private BoundedByteArrayQueue _lastAnnouncementsReceived;
 
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
         
@@ -188,6 +189,7 @@ namespace AElf.Node.Protocol
             // init the queue
             _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
             _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
+            _lastAnnouncementsReceived = new BoundedByteArrayQueue(MaxBlockHistory);
                 
             _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
                 
@@ -382,6 +384,12 @@ namespace AElf.Node.Protocol
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
 
                 byte[] blockHash = a.Id.ToByteArray();
+                
+                if (_lastAnnouncementsReceived.Contains(blockHash))
+                    return;
+
+                _lastAnnouncementsReceived.Enqueue(blockHash);
+                
                 IBlock bbh = _blockSynchronizer.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
                 
                 _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
