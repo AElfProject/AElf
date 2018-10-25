@@ -12,14 +12,12 @@ namespace AElf.Miner.TxMemPool
     public class TxPool : ITxPool
     {
         private readonly ILogger _logger;
-        private readonly ITxValidator _txValidator;
         private int Least { get; set; }
         private int Limit { get; set; }
 
-        public TxPool(ILogger logger, ITxValidator txValidator, NewTxHub txHub)
+        public TxPool(ILogger logger, NewTxHub txHub)
         {
             _logger = logger;
-            _txValidator = txValidator;
             _txHub = txHub;
 
             _dpoSTxFilter = new DPoSTxFilter();

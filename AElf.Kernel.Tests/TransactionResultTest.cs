@@ -24,7 +24,7 @@ namespace AElf.Kernel.Tests
             NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
             _transactionResultManager = transactionResultManager;
             _transactionResultService = new TransactionResultService(
-                new TxPool(logger, new TxValidator(txPoolConfig, chainService, logger),
+                new TxPool(logger,
                     new NewTxHub(transactionManager, chainService)), transactionResultManager);
         }
 

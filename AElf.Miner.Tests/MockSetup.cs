@@ -126,7 +126,7 @@ namespace AElf.Miner.Tests
         internal ITxPool CreateTxPool()
         {
             var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
-            return new TxPool(_logger, validator, _txHub);
+            return new TxPool(_logger, _txHub);
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
