@@ -67,7 +67,7 @@ namespace AElf.Synchronization.BlockSynchronization
         public async Task<BlockExecutionResult> ReceiveBlock(IBlock block)
         {
             var blockValidationResult =
-                await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
+                await _blockValidationService.ValidatingOwnBlock(false).ValidateBlockAsync(block, await GetChainContextAsync());
 
             var message = new BlockExecuted(block, blockValidationResult);
 

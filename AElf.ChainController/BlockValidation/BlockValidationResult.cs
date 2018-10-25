@@ -17,6 +17,7 @@ namespace AElf.ChainController
         Pending,
         UnknownReason,
         Unlinkable,
+        IsMining,
 
         // Unforgivable, discard
         BlockIsNull = 101,
