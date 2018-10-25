@@ -44,10 +44,11 @@ namespace AElf.Synchronization.Tests
         }
 
         [Fact]
-        public void FindLongestChainTest()
+        public void FindFortHeightTest()
         {
             var blockSet = new BlockSet();
 
+            // Generate block from 11 to 15
             var blocks = MockSeveralBlocks(5, 11);
 
             foreach (var block in blocks)
@@ -55,7 +56,7 @@ namespace AElf.Synchronization.Tests
                 blockSet.AddBlock(block);
             }
 
-            var forkHeight = blockSet.AnyLongerValidChain(12);
+            var forkHeight = blockSet.AnyLongerValidChain(14);
             
             Assert.True(forkHeight == 11);
         }
