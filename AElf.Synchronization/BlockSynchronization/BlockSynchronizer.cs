@@ -108,8 +108,11 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Publish(new BlockAddedToSet(block));
             
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
-            _logger?.Trace("Set the limit of the branched blocks cache in block set to " + Limit);
-            _blockSet.KeepHeight = Limit;
+            if (_blockSet.KeepHeight == ulong.MaxValue)
+            {
+                _logger?.Trace("Set the limit of the branched blocks cache in block set to " + Limit);
+                _blockSet.KeepHeight = Limit;
+            }
         }
 
         private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)

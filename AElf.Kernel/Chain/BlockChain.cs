@@ -140,7 +140,7 @@ namespace AElf.Kernel
                 var trace = await _transactionTraceManager.GetTransactionTraceAsync(txId, disambiguationHash);
                 foreach (var kv in trace.StateChanges)
                 {
-                    origValues.Add(kv.StatePath, kv.StateValue.OriginalValue.ToByteArray());
+                    origValues[kv.StatePath] = kv.StateValue.OriginalValue.ToByteArray();
                 }
             }
 
