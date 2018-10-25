@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using AElf.Common;
 using AElf.Kernel;
 using Akka.Util.Internal;
@@ -41,6 +42,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private object _ = new object();
+        
+        private int _flag;
 
         public ulong KeepHeight { get; set; } = ulong.MaxValue;
 
@@ -149,6 +152,10 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <returns></returns>
         public ulong AnyLongerValidChain(ulong currentHeight)
         {
+            var res = Interlocked.CompareExchange(ref _flag, 1, 0);
+            if (res == 1)
+                return 0;
+            
             IEnumerable<IBlock> higherBlocks;
             ulong forkHeight = 0;
 
@@ -200,7 +207,26 @@ namespace AElf.Synchronization.BlockSynchronization
                 _logger?.Trace("Can't find proper fork height.");
             }
 
+            Interlocked.CompareExchange(ref _flag, 0, 1);
+
             return forkHeight <= currentHeight - 1 ? forkHeight : 0;
+        }
+
+        public void InformRollback(ulong targetHeight, ulong currentHeight)
+        {
+            var toRemove = new List<IBlock>();
+            for (var i = targetHeight; i < currentHeight; i++)
+            {
+                if (_executedBlocks.TryGetValue(i, out var block))
+                {
+                    toRemove.Add(block);
+                }
+            }
+
+            foreach (var block in toRemove)
+            {
+                _executedBlocks.Remove(block.Index);
+            }
         }
     }
 }

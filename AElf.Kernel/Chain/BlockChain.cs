@@ -23,13 +23,14 @@ namespace AElf.Kernel
 
         public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
-            IStateStore stateStore, IDataStore dataStore, ILogger logger = null) : base(
+            IStateStore stateStore, IDataStore dataStore) : base(
             chainId, chainManager, blockManager, dataStore)
         {
             _transactionManager = transactionManager;
             _transactionTraceManager = transactionTraceManager;
             _stateStore = stateStore;
-            _logger = logger;
+            
+            _logger = LogManager.GetLogger(nameof(BlockChain));
         }
 
         public IBlock CurrentBlock
@@ -85,11 +86,13 @@ namespace AElf.Kernel
         public async Task<List<Transaction>> RollbackOneBlock()
         {
             var currentHeight = await GetCurrentBlockHeightAsync();
-            return await RollbackToHeight(currentHeight);
+            return await RollbackToHeight(currentHeight - 1);
         }
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
         {
+            _logger?.Trace("Will rollback to " + height);
+
             var currentHash = await GetCurrentBlockHashAsync();
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
 
@@ -119,8 +122,10 @@ namespace AElf.Kernel
             await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
             MessageHub.Instance.Publish(
                 new RevertedToBlockHeader((BlockHeader) await GetHeaderByHashAsync(currentHash)));
-            return txs;
+            
+            _logger?.Trace("Finished rollback to " + height);
 
+            return txs;
         }
 
         private async Task RollbackStateForBlock(IBlock block)

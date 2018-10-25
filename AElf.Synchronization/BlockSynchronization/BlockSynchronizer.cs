@@ -126,6 +126,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // Need to rollback one block:
                 await BlockChain.RollbackOneBlock();
+                _blockSet.InformRollback(message.Block.Index, message.Block.Index);
 
                 // Basically re-sync the block of specific height.
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index));
@@ -172,7 +173,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (message.BlockValidationResult == BlockValidationResult.Unlinkable)
             {
                 _logger?.Warn("Received unlinkable block.");
-
+                
                 _receivedBranchedBlock = true;
 
                 await ReviewBlockSet();
@@ -181,7 +182,7 @@ namespace AElf.Synchronization.BlockSynchronization
             // Received blocks from branched chain.
             if (message.BlockValidationResult == BlockValidationResult.BranchedBlock)
             {
-                _logger?.Warn("Received block from branched chain.");
+                _logger?.Warn("Received a block from branched chain.");
 
                 var linkableBlock = CheckLinkabilityOfBlock(message.Block);
                 if (linkableBlock == null)
@@ -247,15 +248,15 @@ namespace AElf.Synchronization.BlockSynchronization
             var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
             if (forkHeight != 0)
             {
-                RollbackToHeight(forkHeight).ConfigureAwait(false);
+                RollbackToHeight(forkHeight);
+                _blockSet.InformRollback(forkHeight, currentHeight);
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(forkHeight));
             }
         }
 
-        private async Task RollbackToHeight(ulong targetHeight)
+        private void RollbackToHeight(ulong targetHeight)
         {
-            _logger?.Trace("Will rollback to " + targetHeight);
-            await BlockChain.RollbackToHeight(targetHeight);
+            BlockChain.RollbackToHeight(targetHeight - 1).ConfigureAwait(false);
         }
 
         private async Task<IChainContext> GetChainContextAsync()

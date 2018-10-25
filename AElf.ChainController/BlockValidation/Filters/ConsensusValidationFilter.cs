@@ -77,8 +77,6 @@ namespace AElf.ChainController
                     new[] {typeof(Round), typeof(Round), typeof(StringValue)})[1]).RoundId;
             }
 
-            _logger?.Trace("Round Id: " + roundId);
-
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
             var tx = GetTxToVerifyBlockProducer(contractAccountHash, NodeConfig.Instance.ECKeyPair, address,
