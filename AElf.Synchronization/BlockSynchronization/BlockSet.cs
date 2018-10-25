@@ -172,17 +172,18 @@ namespace AElf.Synchronization.BlockSynchronization
                     {
                         if (_list.Any(b => b.Index == index - 1))
                         {
-                            var lowerBlock = _list.Where(b => b.Index == index - 1);
+                            var index1 = index;
+                            var lowerBlock = _list.Where(b => b.Index == index1 - 1);
                             block = lowerBlock.FirstOrDefault(b => b.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex());
                             if (block?.Header != null)
                             {
                                 index--;
                                 forkHeight = index;
                             }
-                            else
-                            {
-                                flag = false;
-                            }
+                        }
+                        else
+                        {
+                            flag = false;
                         }
                     }
                 }
