@@ -23,7 +23,7 @@ namespace AElf.Kernel
         /// Add transaction Hash to the block
         /// </summary>
         /// <returns><c>true</c>, if the hash was added, <c>false</c> otherwise.</returns>
-        /// <param name="txHash">the transactions hash</param>
+        /// <param name="tx">the transactions hash</param>
         public bool AddTransaction(Transaction tx)
         {
             if (Body == null)
@@ -36,7 +36,7 @@ namespace AElf.Kernel
         /// Add transaction Hashes to the block
         /// </summary>
         /// <returns><c>true</c>, if the hash was added, <c>false</c> otherwise.</returns>
-        /// <param name="txHashes">the transactions hash</param>
+        /// <param name="txs">the transactions hash</param>
         public bool AddTransactions(IEnumerable<Transaction> txs)
         {
             if (Body == null)

@@ -21,7 +21,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
             }
         }
-        
+
         public int ExecutedBlockCount
         {
             get
@@ -32,7 +32,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
             }
         }
-        
+
         private readonly ILogger _logger;
 
         private readonly List<IBlock> _list = new List<IBlock>();
@@ -174,7 +174,8 @@ namespace AElf.Synchronization.BlockSynchronization
                         {
                             var index1 = index;
                             var lowerBlock = _list.Where(b => b.Index == index1 - 1);
-                            block = lowerBlock.FirstOrDefault(b => b.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex());
+                            block = lowerBlock.FirstOrDefault(b =>
+                                block != null && b.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex());
                             if (block?.Header != null)
                             {
                                 index--;

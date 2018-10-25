@@ -49,7 +49,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 ulong i = 0;
                 while (blocks != null && blocks.Any())
                 {
-                    _logger?.Trace($"Will get block of height {inHeight.TargetHeight + i} from block set to execute - {blocks.Count} blocks.");
+                    _logger?.Trace(
+                        $"Will get block of height {inHeight.TargetHeight + i} from block set to execute - {blocks.Count} blocks.");
                     i++;
                     foreach (var block in blocks)
                     {
@@ -69,9 +70,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (blockValidationResult.IsSuccess())
             {
-                
+
                 _logger?.Trace($"Valid Block {block.GetHash().DumpHex()}.");
-                
+
                 return await HandleValidBlock(message);
             }
 
@@ -97,10 +98,10 @@ namespace AElf.Synchronization.BlockSynchronization
         public void AddMinedBlock(IBlock block)
         {
             _blockSet.Tell(block);
-            
+
             // Update DPoS process.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
-            
+
             // Basically notify the network layer that this node just mined a block
             // and added to executed block list.
             MessageHub.Instance.Publish(new BlockAddedToSet(block));
@@ -116,10 +117,10 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // Need to rollback one block:
                 await BlockChain.RollbackOneBlock();
-                
+
                 // Basically re-sync the block of specific height.
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index));
-                
+
                 return executionResult;
             }
 
@@ -128,21 +129,21 @@ namespace AElf.Synchronization.BlockSynchronization
                 // No need to rollback:
                 // Receive again to execute the same block.
                 await ReceiveBlock(message.Block);
-                
+
                 return executionResult;
             }
-            
+
             _blockSet.Tell(message.Block);
-            
+
             // Notify the network layer the block has been executed.
             MessageHub.Instance.Publish(message);
-            
+
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
-            
+
             // Check whether there's linkable pending block in block set. If yes, execute.
             //MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
-            
+
             return BlockExecutionResult.Success;
         }
 
@@ -159,9 +160,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 message.BlockValidationResult == BlockValidationResult.BranchedBlock)
             {
                 _logger?.Warn("Received block from branched chain.");
-                
+
                 _receivedBranchedBlock = true;
-                
+
                 var linkableBlock = CheckLinkabilityOfBlock(message.Block);
                 if (linkableBlock == null)
                 {
@@ -179,7 +180,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             await ReviewBlockSet(message);
         }
-        
+
         /// <summary>
         /// Return true if there exists a block in block set is linkable to provided block.
         /// </summary>
@@ -192,7 +193,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (!checkBlocks.Any())
             {
                 // TODO: Launch a event to request missing blocks.
-                
+
                 return null;
             }
 
@@ -213,10 +214,10 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 return;
             }
-            
+
             // In case of the block set exists blocks that should be valid but didn't executed yet.
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
-            
+
             // Detect longest chain and switch.
             var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
             if (forkHeight != 0)
