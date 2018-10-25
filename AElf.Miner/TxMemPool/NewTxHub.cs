@@ -254,6 +254,7 @@ namespace AElf.Miner.TxMemPool
                 {
                     tr.Status = TransactionReceipt.Types.TransactionStatus.TransactionExecuted;
                     tr.ExecutedBlockNumber = transactionsesExecuted.BlockNumber;
+                    _transactionManager.AddTransactionAsync(tr.Transaction);
                 }
             }
         }

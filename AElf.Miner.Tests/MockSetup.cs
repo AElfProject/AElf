@@ -103,7 +103,7 @@ namespace AElf.Miner.Tests
         internal IMiner GetMiner(IMinerConfig config, ITxPool pool, ClientManager clientManager = null)
         {
             var miner = new AElf.Miner.Miner.Miner(config, pool, _chainService, _concurrencyExecutingService,
-                _transactionManager, _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
+                _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
                 MockBlockValidationService().Object, _chainContextService);
 
             return miner;
@@ -112,8 +112,7 @@ namespace AElf.Miner.Tests
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
-                _transactionManager, _transactionResultManager,
-                clientManager, _binaryMerkleTreeManager);
+                _transactionResultManager, clientManager, _binaryMerkleTreeManager);
 
             return blockExecutor;
         }

@@ -38,7 +38,6 @@ namespace AElf.Miner.Miner
         private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
-        private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private int _timeoutMilliseconds;
         private readonly ILogger _logger;
@@ -55,8 +54,8 @@ namespace AElf.Miner.Miner
         public Address Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPool txPool, IChainService chainService,
-            IExecutingService executingService, ITransactionManager transactionManager,
-            ITransactionResultManager transactionResultManager, ILogger logger, ClientManager clientManager, 
+            IExecutingService executingService, ITransactionResultManager transactionResultManager,
+            ILogger logger, ClientManager clientManager, 
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager, 
             IBlockValidationService blockValidationService, IChainContextService chainContextService)
         {
@@ -64,7 +63,6 @@ namespace AElf.Miner.Miner
             _txPool = txPool;
             _chainService = chainService;
             _executingService = executingService;
-            _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
             _clientManager = clientManager;
@@ -316,10 +314,6 @@ namespace AElf.Miner.Miner
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-            executedTxs.AsParallel().ForEach(async tx =>
-                {
-                    await _transactionManager.AddTransactionAsync(tx);
-                });
             txResults.AsParallel().ForEach(async r =>
             {
                 r.BlockNumber = bn;
