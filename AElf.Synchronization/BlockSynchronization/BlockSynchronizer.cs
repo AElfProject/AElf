@@ -191,6 +191,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 //await ReceiveBlock(linkableBlock);
             }
+
+            if (message.BlockValidationResult == BlockValidationResult.Pending)
+            {
+                await ReviewBlockSet();
+            }
         }
 
         /// <summary>
