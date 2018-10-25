@@ -44,7 +44,6 @@ namespace AElf.Miner.Tests
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IDataStore _dataStore;
         private readonly IStateStore _stateStore;
-        private NewTxHub _txHub;
         private IChainContextService _chainContextService;
 
         public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore)
@@ -79,7 +78,6 @@ namespace AElf.Miner.Tests
                     _stateStore, _functionMetadataService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
-            _txHub = new NewTxHub(_transactionManager, _chainService);
             _chainContextService = new ChainContextService(_chainService);
         }
 
@@ -112,7 +110,7 @@ namespace AElf.Miner.Tests
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
-                _transactionResultManager, clientManager, _binaryMerkleTreeManager);
+                _transactionResultManager, clientManager, _binaryMerkleTreeManager, new NewTxHub(_transactionManager, _chainService));
 
             return blockExecutor;
         }
@@ -125,7 +123,7 @@ namespace AElf.Miner.Tests
         internal ITxPool CreateTxPool()
         {
             var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
-            return new TxPool(_logger, _txHub);
+            return new TxPool(_logger, new NewTxHub(_transactionManager, _chainService));
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
