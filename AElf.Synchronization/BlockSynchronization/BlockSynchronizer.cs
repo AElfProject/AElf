@@ -72,13 +72,12 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (blockValidationResult.IsSuccess())
             {
-
-                _logger?.Trace($"Valid Block {block.GetHash().DumpHex()}.");
+                _logger?.Trace($"Valid Block {block.BlockHashToHex}.");
 
                 return await HandleValidBlock(message);
             }
 
-            _logger?.Warn($"Invalid Block {block.GetHash().DumpHex()} : {message.BlockValidationResult.ToString()}.");
+            _logger?.Warn($"Invalid Block {block.BlockHashToHex} : {message.BlockValidationResult.ToString()}.");
             await HandleInvalidBlock(message);
 
             return BlockExecutionResult.NotExecuted;
@@ -130,7 +129,13 @@ namespace AElf.Synchronization.BlockSynchronization
                 return executionResult;
             }
 
-            if (executionResult.IsFailed())
+            if (executionResult.CannotExecute())
+            {
+                _logger?.Trace($"Cannot execute block {message.Block.BlockHashToHex} of height {message.Block.Index}");
+                return executionResult;
+            }
+
+            if (executionResult.CanExecuteAgain())
             {
                 // No need to rollback:
                 // Receive again to execute the same block.
@@ -146,9 +151,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
-
-            // Check whether there's linkable pending block in block set. If yes, execute.
-            //MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
 
             return BlockExecutionResult.Success;
         }
@@ -184,7 +186,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
-            await ReviewBlockSet(message);
+            await ReviewBlockSet();
         }
 
         /// <summary>
@@ -196,7 +198,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             var checkIndex = block.Index - 1;
             var checkBlocks = _blockSet.GetBlockByHeight(checkIndex);
-            if (!checkBlocks.Any())
+            if (checkBlocks == null || !checkBlocks.Any())
             {
                 // TODO: Launch a event to request missing blocks.
 
@@ -214,7 +216,7 @@ namespace AElf.Synchronization.BlockSynchronization
             return null;
         }
 
-        private async Task ReviewBlockSet(BlockExecuted message)
+        private async Task ReviewBlockSet()
         {
             if (!_receivedBranchedBlock)
             {
@@ -247,7 +249,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 ChainId = chainId,
                 BlockHash = await blockchain.GetCurrentBlockHashAsync()
             };
-            if (chainContext.BlockHash != Hash.Genesis)
+            
+            if (chainContext.BlockHash != Hash.Genesis && chainContext.BlockHash != null)
             {
                 chainContext.BlockHeight =
                     ((BlockHeader) await blockchain.GetHeaderByHashAsync(chainContext.BlockHash)).Index;

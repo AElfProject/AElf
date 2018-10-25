@@ -12,17 +12,17 @@ namespace AElf.Synchronization.BlockExecution
         PrepareSuccess,
         CollectTransactionsSuccess,
         UpdateWorldStateSuccess,
-        
+
         // Haven't appended yet
-        ExecutionCancelled = 11,
+        IncorrectStateMerkleTree = 11,
+        ExecutionCancelled = 51,
         BlockIsNull,
         NoTransaction,
         InvalidSideChainInfo,
-        IncorrectStateMerkleTree,
         InvalidParentChainBlockInfo,
         TooManyTxsForParentChainBlock,
         NotExecuted,
-        
+
         // Need to rollback
         Failed = 101
     }
@@ -33,10 +33,20 @@ namespace AElf.Synchronization.BlockExecution
         {
             return (int) result < 11;
         }
-        
+
+        public static bool CanExecuteAgain(this BlockExecutionResult result)
+        {
+            return (int) result > 10;
+        }
+
         public static bool IsFailed(this BlockExecutionResult result)
         {
             return (int) result > 10;
+        }
+        
+        public static bool CannotExecute(this BlockExecutionResult result)
+        {
+            return (int) result > 50;
         }
 
         public static bool NeedToRollback(this BlockExecutionResult result)
