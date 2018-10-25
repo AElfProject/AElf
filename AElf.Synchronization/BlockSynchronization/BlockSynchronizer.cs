@@ -247,13 +247,14 @@ namespace AElf.Synchronization.BlockSynchronization
             var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
             if (forkHeight != 0)
             {
-                await RollbackToHeight(forkHeight);
+                RollbackToHeight(forkHeight).ConfigureAwait(false);
                 MessageHub.Instance.Publish(new SyncUnfinishedBlock(forkHeight));
             }
         }
 
         private async Task RollbackToHeight(ulong targetHeight)
         {
+            _logger?.Trace("Will rollback to " + targetHeight);
             await BlockChain.RollbackToHeight(targetHeight);
         }
 

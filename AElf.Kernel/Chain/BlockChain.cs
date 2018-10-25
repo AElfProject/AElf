@@ -90,8 +90,6 @@ namespace AElf.Kernel
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
         {
-            _logger?.Trace($"Will rollback to height: {height}.");
-
             var currentHash = await GetCurrentBlockHashAsync();
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
 
@@ -120,7 +118,7 @@ namespace AElf.Kernel
 
             await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
             MessageHub.Instance.Publish(
-                new RevertedToBlockHeader(((BlockHeader) await GetHeaderByHashAsync(currentHash))));
+                new RevertedToBlockHeader((BlockHeader) await GetHeaderByHashAsync(currentHash)));
             return txs;
 
         }
