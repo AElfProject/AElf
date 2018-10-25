@@ -115,7 +115,7 @@ namespace AElf.Configuration
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex);
+                    _logger.Error(ex, "Exception while handle config changed.");
                 }
             }
         }

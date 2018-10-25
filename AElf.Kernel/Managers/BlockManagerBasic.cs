@@ -94,12 +94,12 @@ namespace AElf.Kernel.Managers
         
         public async Task<Block> GetBlockByHeight(Hash chainId, ulong height)
         {
-            _logger?.Trace($"Trying to get block by height {height}");
+            _logger?.Trace($"Trying to get block by height {height}.");
 
             var key = DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, height);
             if (key == null)
             {
-                _logger?.Error($"Invalid block height - {height}");
+                _logger?.Error($"Invalid block height - {height}.");
                 return null;
             }
             

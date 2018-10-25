@@ -31,7 +31,7 @@ namespace AElf.Miner.Tests
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
         private readonly ILogger _logger;
-        private ulong _i = GlobalConfig.GenesisBlockHeight;
+        private ulong _i = 0;
         private IChainCreationService _chainCreationService;
         private ISmartContractManager _smartContractManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;

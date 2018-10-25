@@ -30,7 +30,7 @@ namespace AElf.Concurrency.Worker
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Exception while parse config.");
                 throw;
             }
 
@@ -47,13 +47,13 @@ namespace AElf.Concurrency.Worker
             var container = SetupIocContainer(true, smartContractRunnerFactory);
             if (container == null)
             {
-                _logger.Error("IoC setup failed");
+                _logger.Error("IoC setup failed.");
                 return;
             }
 
             if (!CheckDBConnect(container))
             {
-                _logger.Error("Database connection failed");
+                _logger.Error("Database connection failed.");
                 return;
             }
 

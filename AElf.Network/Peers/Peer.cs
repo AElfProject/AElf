@@ -29,7 +29,7 @@ namespace AElf.Network.Peers
             IsAuthentified = false;
             Reason = reason;
         }
-        
+
         public AuthFinishedArgs()
         {
             IsAuthentified = true;
@@ -48,13 +48,13 @@ namespace AElf.Network.Peers
     {
         StreamClosed
     }
-    
+
     public class PeerMessageReceivedArgs : EventArgs
     {
         public Peer Peer { get; set; }
         public Message Message { get; set; }
     }
-    
+
     /// <summary>
     /// This class is essentially a wrapper around the connections underlying stream. Its the entry
     /// point for incoming messages and is also used for sending messages to the peer it represents.
@@ -64,21 +64,21 @@ namespace AElf.Network.Peers
     public partial class Peer : IPeer
     {
         private const string LoggerName = "Peer";
-        
+
         private const double DefaultPingInterval = 1000;
         private const double DefaultAuthTimeout = 2000;
-        
+
         private readonly ILogger _logger;
         private readonly IMessageReader _messageReader;
         private readonly IMessageWriter _messageWriter;
 
         private readonly Timer _authTimer;
-        
+
         /// <summary>
         /// The event that's raised when a message is received from the peer.
         /// </summary>
         public event EventHandler MessageReceived;
-        
+
         /// <summary>
         /// The event that's raised when a peers stream has ended.
         /// </summary>
@@ -93,7 +93,7 @@ namespace AElf.Network.Peers
         /// Indicates if Dispose has been called (once false, never changes back to true).
         /// </summary>
         public bool IsDisposed { get; private set; }
-        
+
         /// <summary>
         /// Indicates if correct authentification information has been received.
         /// </summary>
@@ -103,17 +103,17 @@ namespace AElf.Network.Peers
         /// This nodes listening port.
         /// </summary>
         private readonly int _port;
-        
+
         /// <summary>
         /// This nodes public key.
         /// </summary>
         private ECKeyPair _nodeKey;
-        
+
         /// <summary>
         /// The underlying network client.
         /// </summary>
         private readonly TcpClient _client;
-        
+
         public int PacketsReceivedCount { get; private set; }
 
         public double AuthTimeout { get; set; } = DefaultAuthTimeout;
@@ -128,63 +128,41 @@ namespace AElf.Network.Peers
         }
 
         private Handshake _lastReceivedHandshake;
-        
+
         public ECKeyPair DistantNodeKeyPair { get; private set; }
-        
-        public byte[] DistantNodeAddress
-        {
-            get
-            {
-                return DistantNodeKeyPair?.GetAddress().DumpByteArray();
-            }
-        }
 
-        public byte[] DistantPublicKey
-        {
-            get { return _lastReceivedHandshake?.PublicKey.ToByteArray(); }
-        }
-        
-        [JsonProperty(PropertyName = "isBp")]
-        public bool IsBp { get; internal set; } 
+        public byte[] DistantNodeAddress => DistantNodeKeyPair?.GetAddress().DumpByteArray();
 
-        public string IpAddress
-        {
-            get
-            {
-                return DistantNodeData?.IpAddress;
-            }
-        }
+        public byte[] DistantPublicKey => _lastReceivedHandshake?.PublicKey.ToByteArray();
 
-        public ushort Port
-        {
-            get
-            {
-                return DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort)0;
-            }
-        }
+        [JsonProperty(PropertyName = "isBp")] public bool IsBp { get; internal set; }
+
+        public string IpAddress => DistantNodeData?.IpAddress;
+
+        public ushort Port => DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort) 0;
 
         public readonly int CurrentHeight = 0;
-        
+
         public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey, int currentHeight)
         {
             _blockRequests = new List<TimedBlockRequest>();
-                
+
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
-            
+
             SetupHeartbeat();
-            
+
             _port = port;
             _nodeKey = nodeKey;
             _logger = LogManager.GetLogger(LoggerName);
-            
+
             _client = client;
-            
+
             _messageReader = reader;
             _messageWriter = writer;
 
             CurrentHeight = currentHeight;
-            
+
             _blocks = new List<PendingBlock>();
         }
 
@@ -194,23 +172,23 @@ namespace AElf.Network.Peers
             _pingPongTimer.Elapsed += TimerTimeoutElapsed;
             _pingPongTimer.AutoReset = true;
         }
-        
+
         public bool Start()
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(nameof(Peer), "This peer as already been disposed.");
-            
+
             if (IsAuthentified)
                 throw new InvalidOperationException("Cannot start an already authentified peer.");
-            
+
             if (_messageReader == null || _messageWriter == null || _client == null)
                 throw new InvalidOperationException("Could not initialize, null components.");
-            
+
             try
             {
                 _messageReader.PacketReceived += ClientOnPacketReceived;
                 _messageReader.StreamClosed += MessageReaderOnStreamClosed;
-            
+
                 _messageReader.Start();
                 _messageWriter.Start();
 
@@ -218,7 +196,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while initializing the connection");
+                _logger?.Error(e, "Error while initializing the connection.");
                 Dispose();
                 return false;
             }
@@ -229,17 +207,17 @@ namespace AElf.Network.Peers
         private void MessageReaderOnStreamClosed(object sender, EventArgs eventArgs)
         {
             Dispose();
-            
-            _logger?.Warn($"Peer connection has been terminated : {DistantNodeData}");
-            
-            PeerDisconnected?.Invoke(this, new PeerDisconnectedArgs { Peer = this, Reason = DisconnectReason.StreamClosed } );
+
+            _logger?.Warn($"Peer connection has been terminated : {DistantNodeData}.");
+
+            PeerDisconnected?.Invoke(this, new PeerDisconnectedArgs {Peer = this, Reason = DisconnectReason.StreamClosed});
         }
 
         private void ClientOnPacketReceived(object sender, EventArgs eventArgs)
         {
             if (IsDisposed)
                 return;
-            
+
             try
             {
                 if (!(eventArgs is PacketReceivedEventArgs a) || a.Message == null)
@@ -250,10 +228,10 @@ namespace AElf.Network.Peers
                     HandleAuthResponse(a.Message);
                     return;
                 }
-                
+
                 if (!IsAuthentified)
                 {
-                    _logger?.Trace("Received message while not authentified : " + a.Message);
+                    _logger?.Warn($"Received message while not authentified: {a.Message}.");
                     return;
                 }
 
@@ -268,7 +246,7 @@ namespace AElf.Network.Peers
                 }
 
                 PacketsReceivedCount++;
-            
+
                 FireMessageReceived(a.Message);
             }
             catch (Exception e)
@@ -278,7 +256,7 @@ namespace AElf.Network.Peers
         }
 
         #region Authentification
-        
+
         /// <summary>
         /// This method sends authentification information to the distant peer and
         /// start the authentification timer.
@@ -287,10 +265,10 @@ namespace AElf.Network.Peers
         private void StartAuthentification()
         {
             var nodeInfo = new NodeData {Port = _port};
-            
+
             ECSigner signer = new ECSigner();
             ECSignature sig = signer.Sign(_nodeKey, nodeInfo.ToByteArray());
-                
+
             var nd = new Handshake
             {
                 NodeInfo = nodeInfo,
@@ -299,16 +277,16 @@ namespace AElf.Network.Peers
                 R = ByteString.CopyFrom(sig.R),
                 S = ByteString.CopyFrom(sig.S),
             };
-            
+
             byte[] packet = nd.ToByteArray();
-            
+
             _logger?.Trace($"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
-            
-            _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
-            
+
+            _messageWriter.EnqueueMessage(new Message {Type = (int) MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
+
             StartAuthTimer();
         }
-        
+
         private void StartAuthTimer()
         {
             _authTimer.Interval = AuthTimeout;
@@ -322,12 +300,12 @@ namespace AElf.Network.Peers
             _authTimer.Stop(); // dispose
 
             if (IsAuthentified)
-                return; 
-            
+                return;
+
             _logger?.Warn("Authentification timed out.");
-            
+
             Dispose();
-            
+
             AuthFinished?.Invoke(this, new AuthFinishedArgs(RejectReason.Auth_Timeout));
         }
 
@@ -340,17 +318,17 @@ namespace AElf.Network.Peers
             try
             {
                 _authTimer.Stop();
-                
+
                 Handshake handshk = Handshake.Parser.ParseFrom(aMessage.Payload);
-                
+
                 AuthentifyWith(handshk);
-                
+
                 // Update with the real IP address
-                IPEndPoint remoteEndPoint = (IPEndPoint)_client.Client.RemoteEndPoint;
+                IPEndPoint remoteEndPoint = (IPEndPoint) _client.Client.RemoteEndPoint;
                 handshk.NodeInfo.IpAddress = remoteEndPoint.Address.ToString();
 
                 _peerHeight = handshk.Height;
-                
+
                 _pingPongTimer.Start();
             }
             catch (Exception e)
@@ -358,7 +336,7 @@ namespace AElf.Network.Peers
                 _logger?.Error(e, "Error processing authentification information.");
                 Dispose();
             }
-            
+
             AuthFinished?.Invoke(this, new AuthFinishedArgs());
         }
 
@@ -374,19 +352,19 @@ namespace AElf.Network.Peers
                 FireInvalidAuth(RejectReason.Auth_Invalid_handshake_msg);
                 return;
             }
-            
+
             _lastReceivedHandshake = handshakeMsg;
-            
+
             try
             {
                 DistantNodeKeyPair = ECKeyPair.FromPublicKey(handshakeMsg.PublicKey.ToByteArray());
-                
+
                 if (DistantNodeKeyPair == null)
                 {
                     FireInvalidAuth(RejectReason.Auth_Invalid_Key);
                     return;
                 }
-                
+
                 // verify sig
                 ECVerifier verifier = new ECVerifier(DistantNodeKeyPair);
                 bool sigValid = verifier.Verify(
@@ -398,14 +376,13 @@ namespace AElf.Network.Peers
                     FireInvalidAuth(RejectReason.Auth_Invalid_Sig);
                     return;
                 }
-
             }
             catch (Exception)
             {
                 FireInvalidAuth(RejectReason.Auth_Invalid_Key);
                 return;
             }
-            
+
             IsAuthentified = true;
         }
 
@@ -418,7 +395,7 @@ namespace AElf.Network.Peers
 
         private void FireMessageReceived(Message p)
         {
-            MessageReceived?.Invoke(this, new PeerMessageReceivedArgs { Peer = this, Message = p });
+            MessageReceived?.Invoke(this, new PeerMessageReceivedArgs {Peer = this, Message = p});
         }
 
         /// <summary>
@@ -435,28 +412,28 @@ namespace AElf.Network.Peers
                 {
                     _logger?.Warn($"Can't write : not identified {DistantNodeData}.");
                 }
-                
+
                 if (_messageWriter == null)
                 {
                     _logger?.Warn($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
                     return;
                 }
-                
+
                 // last check for cancelation
                 if (associatedRequest != null && associatedRequest.IsCanceled)
                     return;
-                
+
                 _messageWriter.EnqueueMessage(msg);
-                
+
                 // todo should be propagated lower, after the real write
                 associatedRequest?.Start();
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Exception while sending data.");
+                _logger?.Error(e, "Exception while sending data.");
             }
         }
-        
+
         public override string ToString()
         {
             return DistantNodeData?.IpAddress + ":" + DistantNodeData?.Port;
@@ -475,7 +452,7 @@ namespace AElf.Network.Peers
 
             if (ReferenceEquals(obj, this))
                 return true;
-            
+
             Peer p = obj as Peer;
 
             if (p?.DistantNodeData == null || DistantNodeData == null)
@@ -485,29 +462,29 @@ namespace AElf.Network.Peers
         }
 
         #region Closing and disposing
-        
+
         public void Dispose()
         {
             if (IsDisposed)
                 return;
-            
+
             _pingPongTimer?.Stop();
             _authTimer?.Stop();
-            
+
             if (_messageReader != null)
             {
                 _messageReader.PacketReceived -= ClientOnPacketReceived;
                 _messageReader.StreamClosed -= MessageReaderOnStreamClosed;
             }
-            
+
             _messageReader?.Close();
             _messageWriter?.Close();
-            
+
             _client?.Close();
 
             IsDisposed = true;
         }
-        
+
         #endregion
     }
 }

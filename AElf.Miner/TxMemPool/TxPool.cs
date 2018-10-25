@@ -25,7 +25,7 @@ namespace AElf.Miner.TxMemPool
             _txValidator = txValidator;
             _txHub = txHub;
 
-            _dpoSTxFilter = new DPoSTxFilter();
+            _transactionFilter = new TransactionFilter();
         }
 
         public void Start()
@@ -39,7 +39,7 @@ namespace AElf.Miner.TxMemPool
 
         private TxHub _txHub;
 
-        private readonly DPoSTxFilter _dpoSTxFilter;
+        private readonly TransactionFilter _transactionFilter;
 
         private readonly ConcurrentDictionary<Hash, Transaction> _systemTxs =
             new ConcurrentDictionary<Hash, Transaction>();
@@ -229,7 +229,7 @@ namespace AElf.Miner.TxMemPool
 
             if (currentRoundInfo != null)
             {
-                foreach (var hash in _dpoSTxFilter.Execute(txs).Select(tx => tx.GetHash()))
+                foreach (var hash in _transactionFilter.Execute(txs).Select(tx => tx.GetHash()))
                 {
                     _systemTxs.TryRemove(hash, out _);
                 }

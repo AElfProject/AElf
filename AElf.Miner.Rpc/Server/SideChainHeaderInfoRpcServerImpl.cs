@@ -40,7 +40,7 @@ namespace AElf.Miner.Rpc.Server
             IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
-            _logger?.Log(LogLevel.Debug, "Side Chain Server received IndexedInfo message.");
+            _logger?.Debug("Side Chain Server received IndexedInfo message.");
 
             try
             {
@@ -82,7 +82,7 @@ namespace AElf.Miner.Rpc.Server
             IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
-            _logger?.Log(LogLevel.Debug, "Side Chain Server received IndexedInfo message.");
+            _logger?.Debug("Side Chain Server received IndexedInfo message.");
 
             try
             {

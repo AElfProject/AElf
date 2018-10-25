@@ -172,7 +172,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Error("Mine got error" + e.Message);
+                _logger?.Error(e, "Exception while mining.");
                 return null;
             }
         }
@@ -236,7 +236,7 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
-            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}");
+            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
 
             if (await Helper.HasGenerated())
             {
@@ -260,7 +260,7 @@ namespace AElf.Kernel.Node
             await Mine();
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
-            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}");
+            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
         }
 
         /// <summary>
@@ -278,7 +278,7 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
-            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}");
+            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
             
             var inValue = Hash.Generate();
             if (_consensusData.Count <= 0)
@@ -313,7 +313,7 @@ namespace AElf.Kernel.Node
             await Mine();
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
-            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}");
+            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
         }
 
         /// <summary>
@@ -330,7 +330,7 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
-            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(PublishInValue)}");
+            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(PublishInValue)}.");
             
             var currentRoundNumber = Helper.CurrentRoundNumber;
 
@@ -347,7 +347,7 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txToPublishInValue);
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
-            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(PublishInValue)}");
+            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(PublishInValue)}.");
         }
 
         /// <summary>
@@ -363,7 +363,7 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
-            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}");
+            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
             
             var extraBlockResult = Helper.ExecuteTxsForExtraBlock();
 
@@ -384,7 +384,7 @@ namespace AElf.Kernel.Node
             await Mine();
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
-            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}");
+            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
         }
 
         public async Task Update()
@@ -434,12 +434,11 @@ namespace AElf.Kernel.Node
         {
             if (tx.Type == TransactionType.DposTransaction)
             {
-                _logger?.Trace($"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.DumpHex()}");
+                _logger?.Trace($"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.DumpHex()}.");
             }
             
             if (tx.From.Equals(_nodeKeyPair.Address))
-                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().DumpHex() + ", threadId: " +
-                               Thread.CurrentThread.ManagedThreadId);
+                _logger?.Trace($"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} threadId: {Thread.CurrentThread.ManagedThreadId}");
             try
             {
                 var result = await _txPool.AddTxAsync(tx);
@@ -458,7 +457,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Error("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
+                _logger?.Error(e, $"Transaction insertion failed: {e.Message},\n{tx.GetTransactionInfo()}");
             }
         }
     }

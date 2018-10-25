@@ -59,7 +59,7 @@ namespace AElf.Kernel.Managers
                     var toRemove = height - GlobalConfig.ReferenceBlockValidPeriod - 1;
                     if (_blocks.TryRemove(toRemove, out _))
                     {
-                        _logger?.Trace($"Removing Canonical Hash of height {toRemove}");
+                        _logger?.Trace($"Removing Canonical Hash of height {toRemove}.");
                     }
                 }
             }

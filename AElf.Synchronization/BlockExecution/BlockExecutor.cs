@@ -4,20 +4,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.EventMessages;
-using AElf.Common.Attributes;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
-using AElf.Common;
-using AElf.Miner.Rpc.Client;
-using Easy.MessageHub;
 
 namespace AElf.Synchronization.BlockExecution
 {
@@ -43,7 +39,6 @@ namespace AElf.Synchronization.BlockExecution
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
 
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
-
         }
 
         /// <summary>
@@ -87,7 +82,7 @@ namespace AElf.Synchronization.BlockExecution
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
 
-                _logger?.Trace($"Execute block {block.GetHash()}");
+                _logger?.Info($"Execute block {block.GetHash()}");
 
                 return result;
             }
@@ -95,13 +90,14 @@ namespace AElf.Synchronization.BlockExecution
             {
                 if (e is InvalidBlockException)
                 {
-                    _logger?.Warn(e);
+                    _logger?.Warn(e, "Exception while execute block.");
                 }
                 else
                 {
-                    _logger?.Error(e);
+                    _logger?.Error(e, "Exception while execute block.");
                 }
 
+                // TODO, no wait may need improve
                 Rollback(block, txnRes).ConfigureAwait(false);
 
                 return BlockExecutionResult.Failed;
@@ -260,7 +256,7 @@ namespace AElf.Synchronization.BlockExecution
                 var cached = await _clientManager.TryGetParentChainBlockInfo();
                 if (cached == null)
                 {
-                    _logger.Trace("Not found cached parent block info");
+                    _logger.Warn("Not found cached parent block info");
                     return false;
                 }
 
