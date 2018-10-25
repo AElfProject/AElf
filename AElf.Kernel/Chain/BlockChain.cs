@@ -101,6 +101,7 @@ namespace AElf.Kernel
                 return txs;
             }
 
+            var blocks = new List<Block>();
             for (var i = currentHeight; i > height; i--)
             {
                 var block = await GetBlockByHeightAsync(i);
@@ -114,13 +115,15 @@ namespace AElf.Kernel
                 var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
                 await _dataStore.RemoveAsync<Hash>(h);
                 await RollbackStateForBlock(block);
+                blocks.Add((Block)block);
             }
+
+            blocks.Reverse();
 
             var hash = await GetCanonicalHashAsync(height);
 
             await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
-            MessageHub.Instance.Publish(
-                new RevertedToBlockHeader(((BlockHeader) await GetHeaderByHashAsync(currentHash))));
+            MessageHub.Instance.Publish(new BranchRolledBack(blocks));
             return txs;
 
         }

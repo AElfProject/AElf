@@ -18,6 +18,7 @@ using NServiceKit.Common.Extensions;
 using AElf.Common;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
+using AElf.Miner.TxMemPool;
 using Easy.MessageHub;
 
 namespace AElf.Synchronization.BlockExecution
@@ -30,17 +31,18 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private readonly NewTxHub _txHub;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, NewTxHub txHub)
         {
             _chainService = chainService;
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
-
+            _txHub = txHub;
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
         }
 
@@ -63,6 +65,16 @@ namespace AElf.Synchronization.BlockExecution
             {
                 // get txn from pool
                 var readyTxns = await CollectTransactions(block);
+
+                var trs = await _txHub.ValidateAllTxs(readyTxns);
+                foreach (var tr in trs)
+                {
+                    if (!tr.IsExecutable)
+                    {
+                        throw new InvalidBlockException($"Transaction is not executable. {tr}");
+                    }    
+                }
+                
                 txnRes = await ExecuteTransactions(readyTxns, block, block.Header.GetDisambiguationHash());
 
                 await UpdateWorldState(block, txnRes);

@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Miner.EventMessages;
 using Easy.MessageHub;
@@ -78,7 +79,7 @@ namespace AElf.Miner.TxMemPool
             {
                 tr.RefBlockSt = await hub.ValidateReferenceBlockAsync(tr.Transaction);
                 MaybePublishTransaction(tr);
-            });
+            }).ConfigureAwait(false);
         };
 
         public Action<TransactionReceipt> SystemTxnIdentifier { get; set; } = (tr) =>
@@ -105,6 +106,8 @@ namespace AElf.Miner.TxMemPool
             _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain, LogManager.GetLogger(nameof(NewTxHub)));
             MessageHub.Instance.Subscribe<TransactionsExecuted>(OnTransactionsExecuted);
             MessageHub.Instance.Subscribe<BlockHeader>(OnNewBlockHeader);
+            MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
+                await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
         }
 
         // This may be moved to extension method
@@ -156,6 +159,36 @@ namespace AElf.Miner.TxMemPool
         public Task<IEnumerable<TransactionReceipt>> GetReadyTxsAsync()
         {
             return Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable));
+        }
+
+        public async Task<List<TransactionReceipt>> ValidateAllTxs(IEnumerable<Transaction> transactions)
+        {
+            var trs = new List<TransactionReceipt>();
+            // TODO: Check if parallelization is needed
+            foreach (var txn in transactions)
+            {
+                if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
+                {
+                    tr = new TransactionReceipt(txn);
+                }
+
+                // Verify Signature if it is not already done
+                if (tr.SignatureSt == TransactionReceipt.Types.SignatureStatus.UnknownSignatureStatus)
+                {
+                    tr.SignatureSt = VerifySignature(tr.Transaction)
+                        ? TransactionReceipt.Types.SignatureStatus.SignatureValid
+                        : TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
+                }
+
+                // Verify RefBlock if it is not already done
+                if (tr.RefBlockSt == TransactionReceipt.Types.RefBlockStatus.UnknownRefBlockStatus)
+                {
+                    tr.RefBlockSt = await ValidateReferenceBlockAsync(tr.Transaction);
+                }
+                trs.Add(tr);
+            }
+
+            return trs;
         }
 
         public async Task<TransactionReceipt> GetTxReceiptAsync(Hash txId)
@@ -246,7 +279,8 @@ namespace AElf.Miner.TxMemPool
 
         #region Event Handlers
 
-        public void OnTransactionsExecuted(TransactionsExecuted transactionsesExecuted)
+        // Change transaction status and add transaction into TransactionManager.
+        private void OnTransactionsExecuted(TransactionsExecuted transactionsesExecuted)
         {
             foreach (var tx in transactionsesExecuted.Transactions)
             {
@@ -259,7 +293,8 @@ namespace AElf.Miner.TxMemPool
             }
         }
 
-        public void OnNewBlockHeader(BlockHeader blockHeader)
+        // Render transactions to expire, and purge old transactions (RefBlockValidPeriod + some buffer)
+        private void OnNewBlockHeader(BlockHeader blockHeader)
         {
             // TODO: Handle LIB
             if (blockHeader.Index != (CurHeight + 1) && CurHeight != 0)
@@ -269,6 +304,7 @@ namespace AElf.Miner.TxMemPool
 
             _curHeight = blockHeader.Index;
 
+            // Identify expired transactions
             if (CurHeight > GlobalConfig.ReferenceBlockValidPeriod)
             {
                 var expired = _allTxns.Where(tr =>
@@ -283,21 +319,51 @@ namespace AElf.Miner.TxMemPool
             }
 
             // TODO: Improve
-            var keepNBlocks = (ulong) 4;
-            if (CurHeight - GlobalConfig.GenesisBlockHeight > GlobalConfig.ReferenceBlockValidPeriod + keepNBlocks)
+            // Remove old transactions (executed, invalid and expired)
+            var keepNBlocks = GlobalConfig.ReferenceBlockValidPeriod / 4 * 5;
+            if (CurHeight - GlobalConfig.GenesisBlockHeight > keepNBlocks)
             {
-                var blockNumberThreshold = CurHeight - (GlobalConfig.ReferenceBlockValidPeriod + keepNBlocks);
-                var toRemove = _allTxns.Where(tr =>
-                    (tr.Value.Status == TransactionReceipt.Types.TransactionStatus.TransactionExecuted &&
-                    tr.Value.ExecutedBlockNumber < blockNumberThreshold) ||
-                    (tr.Value.RefBlockSt == TransactionReceipt.Types.RefBlockStatus.RefBlockExpired &&
-                     tr.Value.Transaction.RefBlockNumber < blockNumberThreshold));
+                var blockNumberThreshold = CurHeight - keepNBlocks;
+                var toRemove = _allTxns.Where(tr => tr.Value.Transaction.RefBlockNumber < blockNumberThreshold);
                 foreach (var tr in toRemove)
                 {
                     _allTxns.TryRemove(tr.Key, out _);
                 }
             }
-            
+        }
+
+        private async Task OnBranchRolledBack(List<Block> blocks)
+        {
+            var minBN = blocks.Select(x => x.Header.Index).Min();
+
+            // Invalid RefBlock becomes unknown
+            foreach (var tr in _allTxns.Where(x =>
+                x.Value.Transaction.RefBlockNumber >= minBN &&
+                x.Value.RefBlockSt == TransactionReceipt.Types.RefBlockStatus.RefBlockInvalid))
+            {
+                tr.Value.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.UnknownRefBlockStatus;
+            }
+
+            // Executed transactions added back to pending
+            foreach (var b in blocks.OrderByDescending(b => b.Header.Index))
+            {
+                foreach (var txId in b.Body.Transactions)
+                {
+                    if (!_allTxns.TryGetValue(txId, out var tr))
+                    {
+                        var t = await _transactionManager.GetTransaction(txId);
+                        tr = new TransactionReceipt(t);
+                    }
+
+                    tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
+                    tr.Status = TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus;
+                    tr.ExecutedBlockNumber = 0;
+                    if (tr.Transaction.RefBlockNumber >= minBN)
+                    {
+                        tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.UnknownRefBlockStatus;
+                    }
+                }
+            }
         }
 
         #endregion

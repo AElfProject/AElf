@@ -25,8 +25,8 @@ namespace AElf.Kernel.Managers
             _logger = logger;
             MessageHub.Instance.Subscribe<BlockHeader>(
                 async h => await OnNewBlockHeader(h));
-            MessageHub.Instance.Subscribe<RevertedToBlockHeader>(
-                async r => await OnNewBlockHeader(r.BlockHeader));
+            MessageHub.Instance.Subscribe<BranchRolledBack>(
+                async r => await RecoverCurrent());
         }
 
         public Hash GetHashByHeight(ulong height)
