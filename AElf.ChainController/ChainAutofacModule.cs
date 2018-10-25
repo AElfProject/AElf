@@ -9,7 +9,6 @@ namespace AElf.ChainController
         {
             var assembly = typeof(BlockValidationService).Assembly;
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
-            builder.RegisterType<TxHub>().SingleInstance();
             builder.RegisterType<ChainCreationService>().As<IChainCreationService>();
             builder.RegisterType<ChainContextService>().As<IChainContextService>();
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();

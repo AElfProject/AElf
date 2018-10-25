@@ -167,11 +167,6 @@ namespace AElf.ChainController.Rpc
             return await s.TransactionManager.GetTransaction(txId);
         }
 
-        internal static ITransactionHolderView GetTransactionHolder(this Svc s, Hash txId)
-        {
-            return s.TxHub.GetTxHolderView(txId);
-        }
-
         internal static async Task<TransactionResult> GetTransactionResult(this Svc s, Hash txHash)
         {
             var res = await s.TransactionResultService.GetResultAsync(txHash);

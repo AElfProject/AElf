@@ -44,7 +44,6 @@ namespace AElf.Node.AElfChain
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly IBlockExecutor _blockExecutor;
-        private readonly TxHub _txHub;
 
         private IBlockChain _blockChain;
         private IConsensus _consensus;
@@ -61,7 +60,6 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            TxHub txHub,
             IP2P p2p,
             IBlockExecutor blockExecutor,
             ILogger logger)
@@ -73,7 +71,6 @@ namespace AElf.Node.AElfChain
             _logger = logger;
             _blockExecutor = blockExecutor;
             _miner = miner;
-            _txHub = txHub;
             _p2p = p2p;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
@@ -158,8 +155,6 @@ namespace AElf.Node.AElfChain
             _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
 
-            _txHub.CurrentHeightGetter = () => _blockChain.GetCurrentBlockHeightAsync().Result;
-            MessageHub.Instance.Subscribe<BlockHeader>((bh) => _txHub.OnNewBlockHeader(bh));
             SetupConsensus();
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
