@@ -43,7 +43,8 @@ message TransactionReceipt {
     SignatureStatus SignatureSt = 3;
     RefBlockStatus RefBlockSt = 4;
     TransactionStatus Status = 5;
-    bool IsSystemTxn = 6; 
+    bool IsSystemTxn = 6;
+    uint64 ExecutedBlockNumber = 7;
 }
 
 message StatePath {

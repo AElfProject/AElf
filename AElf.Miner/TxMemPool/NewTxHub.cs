@@ -19,26 +19,13 @@ namespace AElf.Miner.TxMemPool
     public class NewTxHub
     {
         private ITransactionManager _transactionManager;
+
         private ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
 
         private IChainService _chainService;
         private IBlockChain _blockChain;
         private CanonicalBlockHashCache _canonicalBlockHashCache;
-
-        public CanonicalBlockHashCache CanonicalBlockHashCache
-        {
-            get
-            {
-                if (_canonicalBlockHashCache == null)
-                {
-                    _canonicalBlockHashCache= new CanonicalBlockHashCache(BlockChain, LogManager.GetLogger(nameof(NewTxHub))); 
-                }
-
-                return _canonicalBlockHashCache;
-            }
-        }
-
 
         private IBlockChain BlockChain
         {
@@ -51,6 +38,21 @@ namespace AElf.Miner.TxMemPool
                 }
 
                 return _blockChain;
+            }
+        }
+
+        private ulong _curHeight;
+
+        public ulong CurHeight
+        {
+            get
+            {
+                if (_curHeight == 0)
+                {
+                    _curHeight = BlockChain.GetCurrentBlockHeightAsync().Result;
+                }
+
+                return _curHeight;
             }
         }
 
@@ -70,12 +72,13 @@ namespace AElf.Miner.TxMemPool
             }).ConfigureAwait(false);
         };
 
-        public Action<NewTxHub, TransactionReceipt> RefBlockValidator { get; set; } = (hub, tr) => { 
+        public Action<NewTxHub, TransactionReceipt> RefBlockValidator { get; set; } = (hub, tr) =>
+        {
             Task.Run(async () =>
             {
                 tr.RefBlockSt = await hub.ValidateReferenceBlockAsync(tr.Transaction);
                 MaybePublishTransaction(tr);
-            }); 
+            });
         };
 
         public Action<TransactionReceipt> SystemTxnIdentifier { get; set; } = (tr) =>
@@ -99,16 +102,9 @@ namespace AElf.Miner.TxMemPool
         {
             _transactionManager = transactionManager;
             _chainService = chainService;
-            MessageHub.Instance.Subscribe<TransactionExecuted>((te) =>
-            {
-                foreach (var tx in te.Transactions)
-                {
-                    if (_allTxns.TryGetValue(tx.GetHash(), out var tr))
-                    {
-                        tr.Status = TransactionReceipt.Types.TransactionStatus.TransactionExecuted;
-                    }
-                }
-            });
+            _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain, LogManager.GetLogger(nameof(NewTxHub)));
+            MessageHub.Instance.Subscribe<TransactionsExecuted>(OnTransactionsExecuted);
+            MessageHub.Instance.Subscribe<BlockHeader>(OnNewBlockHeader);
         }
 
         // This may be moved to extension method
@@ -128,7 +124,7 @@ namespace AElf.Miner.TxMemPool
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
             return verifier.Verify(tx.GetSignature(), tx.GetHash().DumpByteArray());
         }
-        
+
         public async Task AddTransactionAsync(Transaction transaction)
         {
             var tr = new TransactionReceipt(transaction);
@@ -141,7 +137,6 @@ namespace AElf.Miner.TxMemPool
                 throw new Exception("Transaction already exists.");
             }
 
-            
             if (!_allTxns.TryAdd(tr.TransactionId, tr))
             {
                 // Add failed, transaction exists already
@@ -150,7 +145,7 @@ namespace AElf.Miner.TxMemPool
 
             if (SignatureValidator == null)
             {
-                throw  new Exception($"{nameof(SignatureValidator)} is not set.");
+                throw new Exception($"{nameof(SignatureValidator)} is not set.");
             }
 
             SystemTxnIdentifier.Invoke(tr);
@@ -178,7 +173,7 @@ namespace AElf.Miner.TxMemPool
 
             return await _transactionManager.GetTransaction(txId);
         }
-        
+
         private static bool CheckPrefix(Hash blockHash, ByteString prefix)
         {
             if (prefix.Length > blockHash.Value.Length)
@@ -191,12 +186,12 @@ namespace AElf.Miner.TxMemPool
 
         public async Task<TransactionReceipt.Types.RefBlockStatus> ValidateReferenceBlockAsync(Transaction tx)
         {
-            if (tx.RefBlockNumber <= GlobalConfig.GenesisBlockHeight && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
+            if (tx.RefBlockNumber < GlobalConfig.GenesisBlockHeight && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
             {
                 return TransactionReceipt.Types.RefBlockStatus.RefBlockValid;
             }
 
-            var curHeight = CanonicalBlockHashCache.CurrentHeight;
+            var curHeight = _canonicalBlockHashCache.CurrentHeight;
             if (tx.RefBlockNumber > curHeight && curHeight > GlobalConfig.GenesisBlockHeight)
             {
                 return TransactionReceipt.Types.RefBlockStatus.RefBlockInvalid;
@@ -215,7 +210,7 @@ namespace AElf.Miner.TxMemPool
             }
             else
             {
-                canonicalHash = CanonicalBlockHashCache.GetHashByHeight(tx.RefBlockNumber);
+                canonicalHash = _canonicalBlockHashCache.GetHashByHeight(tx.RefBlockNumber);
             }
 
             if (canonicalHash == null)
@@ -248,5 +243,62 @@ namespace AElf.Miner.TxMemPool
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tr.Transaction));
             }
         }
+
+        #region Event Handlers
+
+        public void OnTransactionsExecuted(TransactionsExecuted transactionsesExecuted)
+        {
+            foreach (var tx in transactionsesExecuted.Transactions)
+            {
+                if (_allTxns.TryGetValue(tx.GetHash(), out var tr))
+                {
+                    tr.Status = TransactionReceipt.Types.TransactionStatus.TransactionExecuted;
+                    tr.ExecutedBlockNumber = transactionsesExecuted.BlockNumber;
+                }
+            }
+        }
+
+        public void OnNewBlockHeader(BlockHeader blockHeader)
+        {
+            // TODO: Handle LIB
+            if (blockHeader.Index != (CurHeight + 1) && CurHeight != 0)
+            {
+                throw new Exception("Invalid block index.");
+            }
+
+            _curHeight = blockHeader.Index;
+
+            if (CurHeight > GlobalConfig.ReferenceBlockValidPeriod)
+            {
+                var expired = _allTxns.Where(tr =>
+                    tr.Value.Status == TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus
+                    && tr.Value.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.RefBlockExpired
+                    && CurHeight - tr.Value.Transaction.RefBlockNumber > GlobalConfig.ReferenceBlockValidPeriod
+                );
+                foreach (var tr in expired)
+                {
+                    tr.Value.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockExpired;
+                }
+            }
+
+            // TODO: Improve
+            var keepNBlocks = (ulong) 4;
+            if (CurHeight - GlobalConfig.GenesisBlockHeight > GlobalConfig.ReferenceBlockValidPeriod + keepNBlocks)
+            {
+                var blockNumberThreshold = CurHeight - (GlobalConfig.ReferenceBlockValidPeriod + keepNBlocks);
+                var toRemove = _allTxns.Where(tr =>
+                    (tr.Value.Status == TransactionReceipt.Types.TransactionStatus.TransactionExecuted &&
+                    tr.Value.ExecutedBlockNumber < blockNumberThreshold) ||
+                    (tr.Value.RefBlockSt == TransactionReceipt.Types.RefBlockStatus.RefBlockExpired &&
+                     tr.Value.Transaction.RefBlockNumber < blockNumberThreshold));
+                foreach (var tr in toRemove)
+                {
+                    _allTxns.TryRemove(tr.Key, out _);
+                }
+            }
+            
+        }
+
+        #endregion
     }
 }

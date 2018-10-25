@@ -3,13 +3,15 @@ using AElf.Kernel;
 
 namespace AElf.Miner.EventMessages
 {
-    public sealed class TransactionExecuted
+    public sealed class TransactionsExecuted
     {
-        public TransactionExecuted(IReadOnlyList<Transaction> transactions)
+        public TransactionsExecuted(IReadOnlyList<Transaction> transactions, ulong blockNumber)
         {
             Transactions = transactions;
+            BlockNumber = blockNumber;
         }
 
         public IReadOnlyList<Transaction> Transactions { get; }
+        public ulong BlockNumber { get; }
     }
 }
