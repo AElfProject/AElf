@@ -16,7 +16,7 @@ namespace AElf.Configuration.Config.Consensus
         public ConsensusConfig()
         {
             ConsensusType = ConsensusType.AElfDPoS;
-            DPoSMiningInterval = 1000;
+            DPoSMiningInterval = 4000;
             ExpectedTransactionCount = 8000;
             SingleNodeTestMiningInterval = 4000;
         }

@@ -34,6 +34,10 @@ namespace AElf.ChainController
             if (_isMining && !_validatingOwnBlock)
             {
                 _logger?.Trace("Mining!");
+                if (context.BlockHash.DumpHex() == block.BlockHashToHex)
+                {
+                    return BlockValidationResult.AlreadyExecuted;
+                }
                 return BlockValidationResult.IsMining;
             }
             
