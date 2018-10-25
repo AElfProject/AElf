@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -154,6 +155,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
+            
+            MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
 
             return BlockExecutionResult.Success;
         }
@@ -166,13 +169,19 @@ namespace AElf.Synchronization.BlockSynchronization
                 _blockSet.AddBlock(message.Block);
             }
 
-            // Received blocks from branched chain.
-            if (message.BlockValidationResult == BlockValidationResult.Unlinkable ||
-                message.BlockValidationResult == BlockValidationResult.BranchedBlock)
+            if (message.BlockValidationResult == BlockValidationResult.Unlinkable)
             {
-                _logger?.Warn("Received block from branched chain.");
+                _logger?.Warn("Received unlinkable block.");
 
                 _receivedBranchedBlock = true;
+
+                await ReviewBlockSet();
+            }
+
+            // Received blocks from branched chain.
+            if (message.BlockValidationResult == BlockValidationResult.BranchedBlock)
+            {
+                _logger?.Warn("Received block from branched chain.");
 
                 var linkableBlock = CheckLinkabilityOfBlock(message.Block);
                 if (linkableBlock == null)
@@ -180,16 +189,8 @@ namespace AElf.Synchronization.BlockSynchronization
                     return;
                 }
 
-                await ReceiveBlock(linkableBlock);
+                //await ReceiveBlock(linkableBlock);
             }
-
-            // Received future blocks.
-            if (message.BlockValidationResult == BlockValidationResult.Pending)
-            {
-                return;
-            }
-
-            await ReviewBlockSet();
         }
 
         /// <summary>
@@ -199,24 +200,32 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <returns></returns>
         private IBlock CheckLinkabilityOfBlock(IBlock block)
         {
-            var checkIndex = block.Index - 1;
-            var checkBlocks = _blockSet.GetBlockByHeight(checkIndex);
-            if (checkBlocks == null || !checkBlocks.Any())
+            try
             {
-                // TODO: Launch a event to request missing blocks.
+                var checkIndex = block.Index - 1;
+                var checkBlocks = _blockSet.GetBlockByHeight(checkIndex);
+                if (checkBlocks == null || !checkBlocks.Any())
+                {
+                    // TODO: Launch a event to request missing blocks.
+
+                    return null;
+                }
+
+                foreach (var checkBlock in checkBlocks)
+                {
+                    if (checkBlock.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex())
+                    {
+                        return checkBlock;
+                    }
+                }
 
                 return null;
             }
-
-            foreach (var checkBlock in checkBlocks)
+            catch (Exception e)
             {
-                if (checkBlock.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex())
-                {
-                    return checkBlock;
-                }
+                _logger?.Error($"Error while checking linkablity of block {block.BlockHashToHex} in height {block.Index}");
+                return null;
             }
-
-            return null;
         }
 
         private async Task ReviewBlockSet()

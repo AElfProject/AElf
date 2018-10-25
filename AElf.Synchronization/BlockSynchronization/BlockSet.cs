@@ -193,6 +193,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (forkHeight <= currentHeight - 1)
             {
                 _logger?.Trace($"Find fork height: {forkHeight}");
+                _logger?.Trace($"Current height - 1: {currentHeight - 1}");
             }
             return forkHeight <= currentHeight - 1 ? forkHeight : 0;
         }
