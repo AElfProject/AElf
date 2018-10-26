@@ -47,22 +47,6 @@ namespace AElf.Synchronization.Tests
             _mockSetup = mockSetup;
         }
 
-        [Fact]
-        public async Task ReceiveBlockTest_NoTransaction()
-        {
-            var blockSynchronizer = _mockSetup.GetBlockSynchronizer();
-
-            var chainId = Hash.Generate().DumpHex();
-            
-            NodeConfig.Instance.ChainId = chainId;
-
-            var block = MockBlock(1, chainId, Hash.Genesis);
-
-            var result = await blockSynchronizer.ReceiveBlock(block);
-            
-            Assert.True(result == BlockExecutionResult.NoTransaction);
-        }
-
         private List<IBlock> MockSeveralBlocks(int number, int firstIndex = 0)
         {
             var list = new List<IBlock>();
