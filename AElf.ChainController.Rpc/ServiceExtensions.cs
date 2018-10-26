@@ -211,12 +211,13 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetTransactionPoolSize(this Svc s)
         {
-            return await s.TxPool.GetPoolSize();
+            return (ulong)(await s.TxPool.GetExecutableTransactionsAsync()).Count;
         }
 
         internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
         {
-            s.TxPool.SetBlockVolume(minimal, maximal);
+            // TODO: Maybe control this in miner
+//            s.TxPool.SetBlockVolume(minimal, maximal);
         }
 
         internal static async Task<byte[]> CallReadOnly(this Svc s, Transaction tx)

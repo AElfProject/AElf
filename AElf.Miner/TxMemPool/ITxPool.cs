@@ -7,32 +7,11 @@ namespace AElf.Miner.TxMemPool
 {
     public interface ITxPool
     {
-        ///<summary>
-        /// add tx to tmp pool
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx, bool validateReference = true);
+        Task AddTransactionAsync(Transaction transaction, bool skipValidation=false);
 
-        /// <summary>
-        /// return ready txs can be executed 
-        /// </summary>
-        /// <returns></returns>
-        Task<List<Transaction>> GetReadyTxsAsync(Round currentRoundInfo = null, double intervals = 150);
+        Task<List<Transaction>> GetExecutableTransactionsAsync();
 
-        /// <summary>
-        /// return pool size
-        /// </summary>
-        /// <returns></returns>
-        Task<ulong> GetPoolSize();
-
-        /// <summary>
-        /// return a tx alread in pool
-        /// </summary>
-        /// <param name="txHash"></param>
-        /// <returns></returns>
-        bool TryGetTx(Hash txHash, out Transaction tx);
-
+        bool TryGetTx(Hash txId, out Transaction tx);
         /// <summary>
         /// open transaction pool
         /// </summary>
@@ -42,7 +21,5 @@ namespace AElf.Miner.TxMemPool
         /// close transaction pool
         /// </summary>
         Task Stop();
-
-        void SetBlockVolume(int minimal, int maximal);
     }
 }

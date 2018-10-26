@@ -6,7 +6,7 @@ namespace AElf.Kernel
     {
         public TransactionReceipt(Transaction transaction)
         {
-            TransactionId = transaction.GetHash();
+            TransactionId = transaction?.GetHash();
             Transaction = transaction;
         }
 

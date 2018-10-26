@@ -207,22 +207,23 @@ namespace AElf.ChainController.Rpc
                 return await Task.FromResult(res);
             }
             
-            try
-            {
-                var valRes = await TxPool.AddTxAsync(transaction);
-                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
-                {
-                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
-                }
-                else
-                {
-                    res["error"] = valRes.ToString();
-                }
-            }
-            catch (Exception e)
-            {
-                res["error"] = e.ToString();
-            }
+//            try
+//            {
+            // TODO: Wait validation done
+                await TxPool.AddTransactionAsync(transaction);
+//                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
+//                {
+//                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
+//                }
+//                else
+//                {
+//                    res["error"] = valRes.ToString();
+//                }
+//            }
+//            catch (Exception e)
+//            {
+//                res["error"] = e.ToString();
+//            }
 
             return await Task.FromResult(res);
         }

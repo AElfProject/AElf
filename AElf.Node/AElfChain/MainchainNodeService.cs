@@ -159,7 +159,7 @@ namespace AElf.Node.AElfChain
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
-                await _txPool.AddTxAsync(inTx.Transaction);
+                await _txPool.AddTransactionAsync(inTx.Transaction);
             });
 
             MessageHub.Instance.Subscribe<UpdateConsensus>(option =>

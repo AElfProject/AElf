@@ -27,9 +27,12 @@ namespace AElf.Kernel.Tests
             NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
             NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
             _transactionResultManager = transactionResultManager;
-            _transactionResultService = new TransactionResultService(
-                new TxPool(logger,
-                    new NewTxHub(transactionManager, chainService, signatureVerifier, refBlockValidator)), transactionResultManager);
+            _signatureVerifier = signatureVerifier;
+            _refBlockValidator = refBlockValidator;
+//            _transactionResultService = new TransactionResultService(
+//                new TxPool(logger,
+//                    new NewTxHub(transactionManager, chainService, signatureVerifier, refBlockValidator)), transactionResultManager);
+            _transactionResultService = new TransactionResultService(new NewTxHub(transactionManager, chainService, _signatureVerifier, _refBlockValidator),_transactionResultManager );
         }
 
         private TransactionResult CreateResult(Hash txId, Status status)

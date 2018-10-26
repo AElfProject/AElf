@@ -191,7 +191,7 @@ namespace AElf.Kernel.Node
                 RefBlockPrefix = ByteString.CopyFrom(bhPref),
                 MethodName = methodName,
                 P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey),
-                Type = TransactionType.DposTransaction
+//                Type = TransactionType.DposTransaction
             };
 
             switch (parameters.Count)
@@ -440,26 +440,26 @@ namespace AElf.Kernel.Node
             if (tx.From.Equals(_nodeKeyPair.Address))
                 _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().DumpHex() + ", threadId: " +
                                Thread.CurrentThread.ManagedThreadId);
-            try
-            {
-                var result = await _txPool.AddTxAsync(tx);
-                if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
-                {
-                    _logger?.Trace("Tx added to the pool");
-                    if (tx.MethodName == ConsensusBehavior.PublishInValue.ToString())
-                    {
-                        MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-                    }
-                }
-                else
-                {
-                    _logger?.Trace("Failed to insert tx: " + result);
-                }
-            }
-            catch (Exception e)
-            {
-                _logger?.Debug("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
-            }
+//            try
+//            {
+                await _txPool.AddTransactionAsync(tx, true);
+//                if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
+//                {
+//                    _logger?.Trace("Tx added to the pool");
+//                    if (tx.MethodName == ConsensusBehavior.PublishInValue.ToString())
+//                    {
+//                        MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
+//                    }
+//                }
+//                else
+//                {
+//                    _logger?.Trace("Failed to insert tx: " + result);
+//                }
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Debug("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
+//            }
         }
     }
 }

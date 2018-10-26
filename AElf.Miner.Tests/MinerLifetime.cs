@@ -194,7 +194,7 @@ namespace AElf.Kernel.Tests.Miner
             var txs = CreateTx(chain.Id);
             foreach (var tx in txs)
             {
-                await txPool.AddTxAsync(tx);
+                await txPool.AddTransactionAsync(tx);
             }
             
             var manager = _mock.MinerClientManager();

@@ -52,6 +52,7 @@ namespace AElf.Miner.Miner
         private IMinerConfig Config { get; }
 
         public Address Coinbase => Config.CoinBase;
+        private readonly DPoSTxFilter _dpoSTxFilter;
 
         public Miner(IMinerConfig config, ITxPool txPool, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
@@ -70,6 +71,7 @@ namespace AElf.Miner.Miner
             _serverManager = serverManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
+            _dpoSTxFilter = new DPoSTxFilter();
         }
 
         /// <inheritdoc />
@@ -91,9 +93,25 @@ namespace AElf.Miner.Miner
 
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
                     var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
-                    var readyTxs = await _txPool.GetReadyTxsAsync(currentRoundInfo);
+                    var txs = await _txPool.GetExecutableTransactionsAsync();
 
-                    var dposTxs = readyTxs.Where(tx => tx.Type == TransactionType.DposTransaction);
+                    var txGroup = txs.GroupBy(tx => tx.Type == TransactionType.DposTransaction)
+                        .ToDictionary(x => x.Key, x => x.ToList());
+
+                    if (txGroup.TryGetValue(true, out var dposTxs))
+                    {
+                        if (currentRoundInfo != null)
+                        {
+                            _dpoSTxFilter.Execute(dposTxs);
+                        }
+                    }
+                    else
+                    {
+                        dposTxs = new List<Transaction>();
+                    }
+
+                    var readyTxs = txGroup.Values.SelectMany(x => x).ToList();
+                    
                     _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
                     foreach (var transaction in dposTxs)
                     {
@@ -201,14 +219,8 @@ namespace AElf.Miner.Miner
                 return false;
             
             // insert to tx pool and broadcast
-            var insertion = await _txPool.AddTxAsync(tx);
-            if (insertion == TxValidation.TxInsertionAndBroadcastingError.Success)
-            {
-                MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-                _logger.Debug($"Parent chain block info transaction insertion success. {tx.GetHash()}");
-                return true;
-            }
-            _logger?.Debug($"Parent chain block info transaction insertion failed. {insertion}");
+            await _txPool.AddTransactionAsync(tx);
+
             return false;
         }
         

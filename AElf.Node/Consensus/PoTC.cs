@@ -48,7 +48,7 @@ namespace AElf.Kernel.Node
         {
             while (true)
             {
-                var count = await _txPool.GetPoolSize();
+                var count = (ulong)(await _txPool.GetExecutableTransactionsAsync()).Count;
                 if (ConsensusMemory != count)
                 {
                     _logger?.Trace($"Current tx pool size: {count} / {GlobalConfig.ExpectedTransactionCount}");

@@ -15,31 +15,21 @@ using Easy.MessageHub;
 
 namespace AElf.Miner.TxMemPool
 {
-    public class NewTxHub
+    public class NewTxHub : ITxPool
     {
-        private ITransactionManager _transactionManager;
-        private ITxSignatureVerifier _signatureVerifier;
-        private ITxRefBlockValidator _refBlockValidator;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITxSignatureVerifier _signatureVerifier;
+        private readonly ITxRefBlockValidator _refBlockValidator;
 
-        private ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
+        private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
 
-        private IChainService _chainService;
+        private readonly IChainService _chainService;
         private IBlockChain _blockChain;
 
-        private IBlockChain BlockChain
-        {
-            get
-            {
-                if (_blockChain == null)
-                {
-                    _blockChain =
-                        _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
-                }
-
-                return _blockChain;
-            }
-        }
+        private IBlockChain BlockChain => _blockChain ??
+                                          (_blockChain =
+                                              _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId)));
 
         private ulong _curHeight;
 
@@ -71,9 +61,23 @@ namespace AElf.Miner.TxMemPool
                 await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
         }
 
-        public async Task AddTransactionAsync(Transaction transaction)
+        public void Start()
+        {
+        }
+
+        public Task Stop()
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task AddTransactionAsync(Transaction transaction, bool skipValidation = false)
         {
             var tr = new TransactionReceipt(transaction);
+            if (skipValidation)
+            {
+                tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
+                tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockValid;
+            }
 
             var txn = await _transactionManager.GetTransaction(tr.TransactionId);
 
@@ -99,9 +103,10 @@ namespace AElf.Miner.TxMemPool
             }).ConfigureAwait(false);
         }
 
-        public Task<IEnumerable<TransactionReceipt>> GetReadyTxsAsync()
+        public async Task<List<Transaction>> GetExecutableTransactionsAsync()
         {
-            return Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable));
+            return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).Select(x => x.Transaction)
+                .ToList());
         }
 
         public async Task<List<TransactionReceipt>> ValidateAllTxs(IEnumerable<Transaction> transactions)
@@ -124,20 +129,33 @@ namespace AElf.Miner.TxMemPool
             return trs;
         }
 
-        public async Task<TransactionReceipt> GetTxReceiptAsync(Hash txId)
+        public async Task<TransactionReceipt> GetTransactionReceiptAsync(Hash txId)
         {
-            _allTxns.TryGetValue(txId, out var tr);
-            return await Task.FromResult(tr);
+            if (_allTxns.TryGetValue(txId, out var tr))
+            {
+                return await Task.FromResult(tr);
+            }
+
+            // TODO: Store and Get TransactionReceipt
+            var tx = await _transactionManager.GetTransaction(txId);
+            return new TransactionReceipt(tx);
         }
 
         public async Task<Transaction> GetTxAsync(Hash txId)
         {
-            if (_allTxns.TryGetValue(txId, out var tr))
+            var tr = await GetTransactionReceiptAsync(txId);
+            if (tr != null)
             {
-                return await Task.FromResult(tr.Transaction);
+                return tr.Transaction;
             }
 
-            return await _transactionManager.GetTransaction(txId);
+            return await Task.FromResult<Transaction>(null);
+        }
+
+        public bool TryGetTx(Hash txHash, out Transaction tx)
+        {
+            tx = GetTxAsync(txHash).Result;
+            return tx != null;
         }
 
         private static void MaybePublishTransaction(TransactionReceipt tr)
