@@ -109,7 +109,7 @@ namespace AElf.Miner.TxMemPool
                 .ToList());
         }
 
-        public async Task<List<TransactionReceipt>> ValidateAllTxs(IEnumerable<Transaction> transactions)
+        public async Task<List<TransactionReceipt>> GetReceiptsFor(IEnumerable<Transaction> transactions)
         {
             var trs = new List<TransactionReceipt>();
             // TODO: Check if parallelization is needed

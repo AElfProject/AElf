@@ -66,7 +66,7 @@ namespace AElf.Synchronization.BlockExecution
                 // get txn from pool
                 var readyTxns = await CollectTransactions(block);
 
-                var trs = await _txHub.ValidateAllTxs(readyTxns);
+                var trs = await _txHub.GetReceiptsFor(readyTxns);
                 foreach (var tr in trs)
                 {
                     if (!tr.IsExecutable)
