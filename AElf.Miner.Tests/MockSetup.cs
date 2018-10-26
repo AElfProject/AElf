@@ -104,7 +104,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, pool, _chainService, _concurrencyExecutingService,
                 _transactionManager, _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _chainContextService);
+                MockBlockValidationService().Object.ValidatingOwnBlock(true), _chainContextService);
 
             return miner;
         }
@@ -316,6 +316,8 @@ namespace AElf.Miner.Tests
         private Mock<IBlockValidationService> MockBlockValidationService()
         {
             var mock = new Mock<IBlockValidationService>();
+            mock.Setup(bvs => bvs.ValidatingOwnBlock(It.IsAny<bool>()))
+                .Returns(() => mock.Object);
             mock.Setup(bvs => bvs.ValidateBlockAsync(It.IsAny<IBlock>(), It.IsAny<IChainContext>()))
                 .Returns(() => Task.FromResult(BlockValidationResult.Success));
             return mock;
