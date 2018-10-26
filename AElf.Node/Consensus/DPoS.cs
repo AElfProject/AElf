@@ -238,6 +238,7 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
+            MessageHub.Instance.Publish(new MiningStateChanged(true));
             _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
 
             if (await Helper.HasGenerated())
@@ -262,6 +263,7 @@ namespace AElf.Kernel.Node
             await Mine();
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
+            MessageHub.Instance.Publish(new MiningStateChanged(false));
             _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
         }
 
@@ -280,6 +282,7 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
+            MessageHub.Instance.Publish(new MiningStateChanged(true));
             _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
             
             var inValue = Hash.Generate();
@@ -315,6 +318,7 @@ namespace AElf.Kernel.Node
             await Mine();
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
+            MessageHub.Instance.Publish(new MiningStateChanged(false));
             _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
         }
 
@@ -365,6 +369,7 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
+            MessageHub.Instance.Publish(new MiningStateChanged(true));
             _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
             
             var extraBlockResult = Helper.ExecuteTxsForExtraBlock();
@@ -386,6 +391,8 @@ namespace AElf.Kernel.Node
             await Mine();
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
+            
+            MessageHub.Instance.Publish(new MiningStateChanged(false));
             _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
         }
 

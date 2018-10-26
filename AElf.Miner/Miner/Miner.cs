@@ -120,7 +120,7 @@ namespace AElf.Miner.Miner
 
                     // We need at least check the txs count of this block.
                     var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
-                    var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
+                    var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true).ValidateBlockAsync(block, chainContext);
                     if (blockValidationResult != BlockValidationResult.Success)
                     {
                         _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");

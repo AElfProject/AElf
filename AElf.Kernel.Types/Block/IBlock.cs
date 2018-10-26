@@ -15,7 +15,7 @@ namespace AElf.Kernel
         bool AddTransactions(IEnumerable<Transaction> txHashes);
         void Sign(ECKeyPair keyPair);
         ParentChainBlockInfo ParentChainBlockInfo { get; set; }
-        ulong Index { get; }
-        string BlockHashToHex { get; }
+        ulong Index { get; set; }
+        string BlockHashToHex { get; set; }
     }
 }

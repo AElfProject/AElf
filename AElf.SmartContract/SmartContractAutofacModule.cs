@@ -14,7 +14,7 @@ namespace AElf.SmartContract
             var assembly2 = typeof(DataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
             
-            builder.RegisterType<SmartContractService>().As<ISmartContractService>();
+            builder.RegisterType<SmartContractService>().As<ISmartContractService>().SingleInstance();
             builder.RegisterType<FunctionMetadataService>().As<IFunctionMetadataService>().SingleInstance();
             builder.RegisterType<StateStore>().As<IStateStore>().SingleInstance();
         }

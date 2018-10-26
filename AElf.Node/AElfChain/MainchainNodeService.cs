@@ -262,6 +262,7 @@ namespace AElf.Node.AElfChain
 
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
+                _logger?.Trace($"Receive block of height {inBlock.Block.Index} - {inBlock.Block.BlockHashToHex}");
                 await _blockSynchronizer.ReceiveBlock(inBlock.Block);
             });
 
