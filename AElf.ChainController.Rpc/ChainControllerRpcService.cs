@@ -30,7 +30,7 @@ namespace AElf.ChainController.Rpc
         public IChainService ChainService { get; set; }
         public IChainContextService ChainContextService { get; set; }
         public IChainCreationService ChainCreationService { get; set; }
-        public ITxPool TxPool { get; set; }
+        public ITxHub TxHub { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ITransactionResultService TransactionResultService { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
@@ -210,7 +210,7 @@ namespace AElf.ChainController.Rpc
 //            try
 //            {
             // TODO: Wait validation done
-                await TxPool.AddTransactionAsync(transaction);
+                await TxHub.AddTransactionAsync(transaction);
 //                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
 //                {
 //                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));

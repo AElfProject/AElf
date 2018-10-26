@@ -32,7 +32,7 @@ namespace AElf.Kernel.Tests
 //            _transactionResultService = new TransactionResultService(
 //                new TxPool(logger,
 //                    new NewTxHub(transactionManager, chainService, signatureVerifier, refBlockValidator)), transactionResultManager);
-            _transactionResultService = new TransactionResultService(new NewTxHub(transactionManager, chainService, _signatureVerifier, _refBlockValidator),_transactionResultManager );
+            _transactionResultService = new TransactionResultService(new TxHub(transactionManager, chainService, _signatureVerifier, _refBlockValidator),_transactionResultManager );
         }
 
         private TransactionResult CreateResult(Hash txId, Status status)

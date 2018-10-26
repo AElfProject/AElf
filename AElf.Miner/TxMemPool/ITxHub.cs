@@ -5,7 +5,7 @@ using AElf.Kernel;
 
 namespace AElf.Miner.TxMemPool
 {
-    public interface ITxPool
+    public interface ITxHub
     {
         Task AddTransactionAsync(Transaction transaction, bool skipValidation=false);
 

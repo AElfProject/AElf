@@ -102,9 +102,9 @@ namespace AElf.Miner.Tests
             return chain;
         }
 
-        internal IMiner GetMiner(IMinerConfig config, ITxPool pool, ClientManager clientManager = null)
+        internal IMiner GetMiner(IMinerConfig config, ITxHub hub, ClientManager clientManager = null)
         {
-            var miner = new AElf.Miner.Miner.Miner(config, pool, _chainService, _concurrencyExecutingService,
+            var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
                 MockBlockValidationService().Object, _chainContextService);
 
@@ -114,7 +114,7 @@ namespace AElf.Miner.Tests
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
-                _transactionResultManager, clientManager, _binaryMerkleTreeManager, new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
+                _transactionResultManager, clientManager, _binaryMerkleTreeManager, new TxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
 
             return blockExecutor;
         }
@@ -124,10 +124,10 @@ namespace AElf.Miner.Tests
             return _chainService.GetBlockChain(chainId);
         }
         
-        internal ITxPool CreateTxPool()
+        internal ITxHub CreateTxPool()
         {
             var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
-            return new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator);
+            return new TxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator);
 //            return new TxPool(_logger, new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
         }
 

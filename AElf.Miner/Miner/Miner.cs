@@ -34,7 +34,7 @@ namespace AElf.Miner.Miner
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
-        private readonly ITxPool _txPool;
+        private readonly ITxHub _txHub;
         private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
@@ -54,14 +54,14 @@ namespace AElf.Miner.Miner
         public Address Coinbase => Config.CoinBase;
         private readonly DPoSTxFilter _dpoSTxFilter;
 
-        public Miner(IMinerConfig config, ITxPool txPool, IChainService chainService,
+        public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager, 
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager, 
             IBlockValidationService blockValidationService, IChainContextService chainContextService)
         {
             Config = config;
-            _txPool = txPool;
+            _txHub = txHub;
             _chainService = chainService;
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
@@ -93,7 +93,7 @@ namespace AElf.Miner.Miner
 
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
                     var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
-                    var txs = await _txPool.GetExecutableTransactionsAsync();
+                    var txs = await _txHub.GetExecutableTransactionsAsync();
 
                     var txGroup = txs.GroupBy(tx => tx.Type == TransactionType.DposTransaction)
                         .ToDictionary(x => x.Key, x => x.ToList());
@@ -219,7 +219,7 @@ namespace AElf.Miner.Miner
                 return false;
             
             // insert to tx pool and broadcast
-            await _txPool.AddTransactionAsync(tx);
+            await _txHub.AddTransactionAsync(tx);
 
             return false;
         }

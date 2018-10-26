@@ -159,7 +159,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
         {
-            if (s.TxPool.TryGetTx(txId, out var tx))
+            if (s.TxHub.TryGetTx(txId, out var tx))
             {
                 return tx;
             }
@@ -211,7 +211,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetTransactionPoolSize(this Svc s)
         {
-            return (ulong)(await s.TxPool.GetExecutableTransactionsAsync()).Count;
+            return (ulong)(await s.TxHub.GetExecutableTransactionsAsync()).Count;
         }
 
         internal static void SetBlockVolume(this Svc s, int minimal, int maximal)

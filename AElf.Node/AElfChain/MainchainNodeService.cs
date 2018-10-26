@@ -34,7 +34,7 @@ namespace AElf.Node.AElfChain
     {
         private readonly ILogger _logger;
 
-        private readonly ITxPool _txPool;
+        private readonly ITxHub _txHub;
         private readonly IStateStore _stateStore;
         private readonly IMiner _miner;
         private readonly IP2P _p2p;
@@ -53,7 +53,7 @@ namespace AElf.Node.AElfChain
 
         public MainchainNodeService(
             IStateStore stateStore,
-            ITxPool pool,
+            ITxHub hub,
             IBlockValidationService blockValidationService,
             IChainContextService chainContextService,
             IChainCreationService chainCreationService,
@@ -67,7 +67,7 @@ namespace AElf.Node.AElfChain
             _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
-            _txPool = pool;
+            _txHub = hub;
             _logger = logger;
             _blockExecutor = blockExecutor;
             _miner = miner;
@@ -159,7 +159,7 @@ namespace AElf.Node.AElfChain
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
-                await _txPool.AddTransactionAsync(inTx.Transaction);
+                await _txHub.AddTransactionAsync(inTx.Transaction);
             });
 
             MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
@@ -244,7 +244,7 @@ namespace AElf.Node.AElfChain
 
             #region start
 
-            _txPool.Start();
+            _txHub.Start();
             _blockExecutor.Init();
 
             if (NodeConfig.Instance.IsMiner)
@@ -371,11 +371,11 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_stateStore, _txPool, _miner, _chainService);
+                    _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService);
                     break;
 
                 case ConsensusType.PoTC:
-                    _consensus = new PoTC(_miner, _txPool);
+                    _consensus = new PoTC(_miner, _txHub);
                     break;
 
                 case ConsensusType.SingleNode:

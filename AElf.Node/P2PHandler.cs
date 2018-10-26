@@ -12,7 +12,7 @@ namespace AElf.Node
     {
         public IChainService ChainService { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
-        public ITxPool TxPool { get; set; }
+        public ITxHub TxHub { get; set; }
         public ITransactionManager TransactionManager { get; set; }
 
         public async Task<Block> GetBlockAtHeight(int height)
@@ -30,7 +30,7 @@ namespace AElf.Node
 
         public async Task<Transaction> GetTransaction(Hash txId)
         {
-            if (TxPool.TryGetTx(txId, out var tx))
+            if (TxHub.TryGetTx(txId, out var tx))
             {
                 return tx;
             }

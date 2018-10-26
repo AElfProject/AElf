@@ -15,7 +15,7 @@ using Easy.MessageHub;
 
 namespace AElf.Miner.TxMemPool
 {
-    public class NewTxHub : ITxPool
+    public class TxHub : ITxHub
     {
         private readonly ITransactionManager _transactionManager;
         private readonly ITxSignatureVerifier _signatureVerifier;
@@ -46,7 +46,7 @@ namespace AElf.Miner.TxMemPool
             }
         }
 
-        public NewTxHub(ITransactionManager transactionManager, IChainService chainService,
+        public TxHub(ITransactionManager transactionManager, IChainService chainService,
             ITxSignatureVerifier signatureVerifier,
             ITxRefBlockValidator refBlockValidator)
         {

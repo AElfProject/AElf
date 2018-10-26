@@ -38,7 +38,7 @@ namespace AElf.Kernel.Node
 
         private bool isMining;
 
-        private readonly ITxPool _txPool;
+        private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
         
@@ -67,10 +67,10 @@ namespace AElf.Kernel.Node
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateStore stateStore, ITxPool txPool, IMiner miner,
+        public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner,
             IChainService chainService)
         {
-            _txPool = txPool;
+            _txHub = txHub;
             _miner = miner;
             _chainService = chainService;
 
@@ -442,7 +442,7 @@ namespace AElf.Kernel.Node
                                Thread.CurrentThread.ManagedThreadId);
 //            try
 //            {
-                await _txPool.AddTransactionAsync(tx, true);
+                await _txHub.AddTransactionAsync(tx, true);
 //                if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
 //                {
 //                    _logger?.Trace("Tx added to the pool");
