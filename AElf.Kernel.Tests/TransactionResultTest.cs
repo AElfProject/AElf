@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.ChainController.Rpc;
@@ -16,8 +17,11 @@ namespace AElf.Kernel.Tests
     {
         private readonly ITransactionResultService _transactionResultService;
         private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ITxSignatureVerifier _signatureVerifier;
+        private readonly ITxRefBlockValidator _refBlockValidator;
 
         public TransactionResultTest(ITxPoolConfig txPoolConfig, IChainService chainService,
+            ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
         {
             NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
@@ -25,7 +29,7 @@ namespace AElf.Kernel.Tests
             _transactionResultManager = transactionResultManager;
             _transactionResultService = new TransactionResultService(
                 new TxPool(logger,
-                    new NewTxHub(transactionManager, chainService)), transactionResultManager);
+                    new NewTxHub(transactionManager, chainService, signatureVerifier, refBlockValidator)), transactionResultManager);
         }
 
         private TransactionResult CreateResult(Hash txId, Status status)

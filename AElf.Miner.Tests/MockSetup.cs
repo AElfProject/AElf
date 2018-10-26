@@ -45,12 +45,16 @@ namespace AElf.Miner.Tests
         private readonly IDataStore _dataStore;
         private readonly IStateStore _stateStore;
         private IChainContextService _chainContextService;
+        private ITxSignatureVerifier _signatureVerifier;
+        private ITxRefBlockValidator _refBlockValidator;
 
-        public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore)
+        public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
         {
             _logger = logger;
             _dataStore = dataStore;
             _stateStore = stateStore;
+            _signatureVerifier = signatureVerifier;
+            _refBlockValidator = refBlockValidator;
             Initialize();
         }
 
@@ -110,7 +114,7 @@ namespace AElf.Miner.Tests
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
-                _transactionResultManager, clientManager, _binaryMerkleTreeManager, new NewTxHub(_transactionManager, _chainService));
+                _transactionResultManager, clientManager, _binaryMerkleTreeManager, new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
 
             return blockExecutor;
         }
@@ -123,7 +127,7 @@ namespace AElf.Miner.Tests
         internal ITxPool CreateTxPool()
         {
             var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
-            return new TxPool(_logger, new NewTxHub(_transactionManager, _chainService));
+            return new TxPool(_logger, new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
