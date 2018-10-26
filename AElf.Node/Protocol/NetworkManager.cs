@@ -85,7 +85,7 @@ namespace AElf.Node.Protocol
             _chainService = chainService;
             _logger = logger;
             _blockSynchronizer = blockSynchronizer;
-
+            
             _chainId = new Hash { Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)) };
             
             peerManager.PeerEvent += OnPeerAdded;
@@ -127,24 +127,6 @@ namespace AElf.Node.Protocol
                 });
             
             MessageHub.Instance.Subscribe<BlockExecuted>(inBlock => 
-            {
-                if (inBlock?.Block == null)
-                {
-                    _logger?.Warn("[event] Block null.");
-                    return;
-                }
-
-                byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
-
-                if (blockHash != null)
-                    _lastBlocksReceived.Enqueue(blockHash);
-                    
-                _logger?.Trace($"Block executed, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
-                
-                _localHeight++;
-            });
-            
-            MessageHub.Instance.Subscribe<BlockAccepted>(inBlock => 
             {
                 if (inBlock?.Block == null)
                 {

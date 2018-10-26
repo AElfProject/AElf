@@ -89,6 +89,12 @@ namespace AElf.Kernel.Consensus
 
         public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeSlot)
         {
+            if (extraBlockTimeSlot.ToDateTime() < DateTime.UtcNow)
+            {
+                extraBlockTimeSlot = extraBlockTimeSlot.ToDateTime()
+                    .AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * (GlobalConfig.BlockProducerNumber + 2))
+                    .ToTimestamp();
+            }
             var doNothingObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
                 .Select(_ => ConsensusBehavior.DoNothing);

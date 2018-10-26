@@ -23,13 +23,14 @@ namespace AElf.Kernel
 
         public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
-            IStateStore stateStore, IDataStore dataStore, ILogger logger = null) : base(
+            IStateStore stateStore, IDataStore dataStore) : base(
             chainId, chainManager, blockManager, dataStore)
         {
             _transactionManager = transactionManager;
             _transactionTraceManager = transactionTraceManager;
             _stateStore = stateStore;
-            _logger = logger;
+            
+            _logger = LogManager.GetLogger(nameof(BlockChain));
         }
 
         public IBlock CurrentBlock
@@ -44,7 +45,7 @@ namespace AElf.Kernel
         public async Task<bool> HasBlock(Hash blockId)
         {
             var blk = await _blockManager.GetBlockAsync(blockId);
-            return blk != null;
+            return blk?.Header != null;
         }
 
         public async Task<bool> IsOnCanonical(Hash blockId)
@@ -85,12 +86,12 @@ namespace AElf.Kernel
         public async Task<List<Transaction>> RollbackOneBlock()
         {
             var currentHeight = await GetCurrentBlockHeightAsync();
-            return await RollbackToHeight(currentHeight);
+            return await RollbackToHeight(currentHeight - 1);
         }
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
         {
-            _logger?.Trace($"Will rollback to height: {height}.");
+            _logger?.Trace("Will rollback to " + height);
 
             var currentHash = await GetCurrentBlockHashAsync();
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
@@ -120,9 +121,11 @@ namespace AElf.Kernel
 
             await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
             MessageHub.Instance.Publish(
-                new RevertedToBlockHeader(((BlockHeader) await GetHeaderByHashAsync(currentHash))));
-            return txs;
+                new RevertedToBlockHeader((BlockHeader) await GetHeaderByHashAsync(currentHash)));
+            
+            _logger?.Trace("Finished rollback to " + height);
 
+            return txs;
         }
 
         private async Task RollbackStateForBlock(IBlock block)
@@ -140,7 +143,7 @@ namespace AElf.Kernel
                 var trace = await _transactionTraceManager.GetTransactionTraceAsync(txId, disambiguationHash);
                 foreach (var kv in trace.StateChanges)
                 {
-                    origValues.Add(kv.StatePath, kv.StateValue.OriginalValue.ToByteArray());
+                    origValues[kv.StatePath] = kv.StateValue.OriginalValue.ToByteArray();
                 }
             }
 

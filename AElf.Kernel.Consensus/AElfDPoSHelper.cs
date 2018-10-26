@@ -42,10 +42,6 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    // If reusing DataProvider, the cache has to be cleared first 
-//                    _dataProvider.ClearCache();
-//                    var miners = Miners.Parser.ParseFrom(_dataProvider
-//                        .GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)).Result);
                     var miners = Miners.Parser.ParseFrom(GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)));
                     return miners;
                 }

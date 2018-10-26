@@ -8,12 +8,16 @@ namespace AElf.Synchronization.BlockSynchronization
 {
     public interface IBlockSet
     {
+        int InvalidBlockCount { get; }
+        int ExecutedBlockCount { get; }
+        ulong KeepHeight { get; set; }
         void AddBlock(IBlock block);
         void RemoveExecutedBlock(string blockHashHex);
-        void Tell(ulong currentHeight);
+        void Tell(IBlock currentExecutedBlock);
         bool IsBlockReceived(Hash blockHash, ulong height);
         IBlock GetBlockByHash(Hash blockHash);
         List<IBlock> GetBlockByHeight(ulong height);
         ulong AnyLongerValidChain(ulong currentHeight);
+        void InformRollback(ulong targetHeight, ulong currentHeight);
     }
 }
