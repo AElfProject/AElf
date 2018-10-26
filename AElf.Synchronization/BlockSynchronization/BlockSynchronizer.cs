@@ -7,6 +7,7 @@ using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
+using AElf.Kernel.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
@@ -120,8 +121,10 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             _blockSet.AddBlock(message.Block);
 
-            var executionResult = await _blockExecutor.ExecuteBlock(message.Block);
+            var executionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
 
+            _logger?.Trace("Block execution result: " + executionResult);
+            
             if (executionResult.NeedToRollback())
             {
                 // Need to rollback one block:
@@ -195,7 +198,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (message.BlockValidationResult == BlockValidationResult.Pending)
             {
-                await ReviewBlockSet();
+                //await ReviewBlockSet();
+                MessageHub.Instance.Publish(UpdateConsensus.Dispose);
+                //MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index - 1));
             }
         }
 
@@ -248,15 +253,18 @@ namespace AElf.Synchronization.BlockSynchronization
             var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
             if (forkHeight != 0)
             {
-                RollbackToHeight(forkHeight);
-                _blockSet.InformRollback(forkHeight, currentHeight);
-                MessageHub.Instance.Publish(new SyncUnfinishedBlock(forkHeight));
+                RollbackToHeight(forkHeight, currentHeight);
             }
         }
 
-        private void RollbackToHeight(ulong targetHeight)
+        private void RollbackToHeight(ulong targetHeight, ulong currentHeight)
         {
-            BlockChain.RollbackToHeight(targetHeight - 1).ConfigureAwait(false);
+            MessageHub.Instance.Publish(new RollBackStateChanged(true));
+            var task = BlockChain.RollbackToHeight(targetHeight - 1);
+            task.Wait();
+            _blockSet.InformRollback(targetHeight, currentHeight);
+            MessageHub.Instance.Publish(new RollBackStateChanged(false));
+            MessageHub.Instance.Publish(new SyncUnfinishedBlock(targetHeight));
         }
 
         private async Task<IChainContext> GetChainContextAsync()

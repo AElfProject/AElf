@@ -289,16 +289,12 @@ namespace AElf.Synchronization.BlockExecution
         private async Task<BlockExecutionResult> UpdateWorldState(IBlock block, IEnumerable<TransactionResult> results)
         {
             var root = new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
-            string errorLog = null;
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
-                errorLog = "ExecuteBlock - Incorrect merkle trees.";
+                _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
                 res = BlockExecutionResult.IncorrectStateMerkleTree;
             }
-
-            if (res.IsFailed())
-                throw new InvalidBlockException(errorLog);
 
             return res;
         }

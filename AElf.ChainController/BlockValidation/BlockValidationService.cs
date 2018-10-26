@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
 using NLog;
 
@@ -17,6 +18,7 @@ namespace AElf.ChainController
         private readonly ILogger _logger;
 
         private bool _isMining;
+        private bool _doingRollback;
 
         private bool _validatingOwnBlock;
 
@@ -27,6 +29,7 @@ namespace AElf.ChainController
             _logger = LogManager.GetLogger(nameof(BlockValidationService));
 
             MessageHub.Instance.Subscribe<MiningStateChanged>(state => { _isMining = state.IsMining; });
+            MessageHub.Instance.Subscribe<RollBackStateChanged>(state => { _doingRollback = state.DoingRollback; });
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
@@ -39,6 +42,12 @@ namespace AElf.ChainController
                     return BlockValidationResult.AlreadyExecuted;
                 }
                 return BlockValidationResult.IsMining;
+            }
+
+            if (_doingRollback)
+            {
+                _logger?.Trace("Is rollbacking!");
+                return BlockValidationResult.DoingRollback;
             }
             
             var resultCollection = new List<BlockValidationResult>();

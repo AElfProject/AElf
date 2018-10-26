@@ -179,47 +179,63 @@ namespace AElf.Synchronization.BlockSynchronization
                 _logger?.Trace("Find higher blocks in block set, will check whether there are longer valid chain.");
 
                 // Get the index of highest block in block set.
-                var block = higherBlocks.First();
-                var index = block.Index;
+                var blockToCheck = higherBlocks.First();
 
-                var flag = true;
-                while (flag)
+                while (true)
                 {
                     lock (_)
                     {
-                        if (_invalidBlockList.Any(b => b.Index == index - 1))
+                        // If a linkable block can be found in the invalid block list,
+                        // update blockToCheck and indexToCheck.
+                        if (_invalidBlockList.Any(b => b.Index == blockToCheck.Index - 1 &&
+                                 b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex()))
                         {
-                            var index1 = index;
-                            var lowerBlock = _invalidBlockList.Where(b => b.Index == index1 - 1);
-                            block = lowerBlock.FirstOrDefault(b =>
-                                block != null && b.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex());
-                            if (block?.Header != null)
+                            blockToCheck = _invalidBlockList.FirstOrDefault(b =>
+                                b.Index == blockToCheck.Index - 1 &&
+                                b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex());
+                            if (blockToCheck?.Header == null)
                             {
-                                index--;
-                                forkHeight = index;
+                                break;
                             }
+                            
+                            forkHeight = blockToCheck.Index;
                         }
                         else
                         {
-                            flag = false;
+                            break;
                         }
+                        
+/*                        if (_invalidBlockList.Any(b => b.Index == indexToCheck - 1))
+                        {
+                            var index1 = indexToCheck;
+                            var lowerBlocks = _invalidBlockList.Where(b => b.Index == index1 - 1).ToList();
+                            foreach (var lowerBlock in lowerBlocks)
+                            {
+                                _logger?.Trace("lower block: " + lowerBlock.BlockHashToHex);
+                            }
+                            blockToCheck = lowerBlocks.FirstOrDefault(b =>
+                                blockToCheck != null && b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex());
+                            if (blockToCheck?.Header != null)
+                            {
+                                indexToCheck--;
+                                forkHeight = indexToCheck;
+                            }
+                        }*/
                     }
                 }
             }
 
-            if (forkHeight <= currentHeight - 1)
+            _logger?.Trace($"Fork height: {forkHeight}");
+            _logger?.Trace($"Current height: {currentHeight}");
+
+            if (forkHeight > currentHeight)
             {
-                _logger?.Trace($"Find fork height: {forkHeight}");
-                _logger?.Trace($"Current height - 1: {currentHeight - 1}");
-            }
-            else
-            {
-                _logger?.Trace("Can't find proper fork height.");
+                _logger?.Trace("No proper fork height.");
             }
 
             Interlocked.CompareExchange(ref _flag, 0, 1);
 
-            return forkHeight <= currentHeight - 1 ? forkHeight : 0;
+            return forkHeight <= currentHeight ? forkHeight : 0;
         }
 
         public void InformRollback(ulong targetHeight, ulong currentHeight)
@@ -245,7 +261,7 @@ namespace AElf.Synchronization.BlockSynchronization
             var str = "\nInvalid Block List:\n";
             foreach (var block in _invalidBlockList)
             {
-                str += $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}";
+                str += $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}\n";
             }
             _logger?.Trace(str);
         }

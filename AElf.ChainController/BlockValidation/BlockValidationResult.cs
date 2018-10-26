@@ -18,6 +18,7 @@ namespace AElf.ChainController
         UnknownReason,
         Unlinkable,
         IsMining,
+        DoingRollback,
 
         // Unforgivable, discard
         BlockIsNull = 101,
@@ -30,7 +31,7 @@ namespace AElf.ChainController
         IncorrectFirstBlock,
         AlreadyExecuted,
         IncorrectPoWResult,
-        NotImplementConsensus
+        NotImplementConsensus,
     }
     
     public static class ValidationResultExtensions
