@@ -74,8 +74,8 @@ namespace AElf.Synchronization.BlockExecution
                         throw new InvalidBlockException($"Transaction is not executable. {tr}");
                     }    
                 }
-                
-                txnRes = await ExecuteTransactions(readyTxns, block, block.Header.GetDisambiguationHash());
+
+                txnRes = await ExecuteTransactions(readyTxns, block.Header.ChainId, block.Header.GetDisambiguationHash());
 
                 await UpdateWorldState(block, txnRes);
                 await UpdateSideChainInfo(block);
@@ -104,14 +104,14 @@ namespace AElf.Synchronization.BlockExecution
         /// Execute transactions.
         /// </summary>
         /// <param name="readyTxs"></param>
-        /// <param name="block"></param>
+        /// <param name="chainId"></param>
         /// <returns></returns>
-        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, IBlock block,
+        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId,
             Hash disambiguationHash)
         {
             var traces = readyTxs.Count == 0
                 ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(readyTxs, block.Header.ChainId, Cts.Token, disambiguationHash);
+                : await _executingService.ExecuteAsync(readyTxs, chainId, Cts.Token, disambiguationHash);
 
             var results = new List<TransactionResult>();
             foreach (var trace in traces)
