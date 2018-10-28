@@ -4,8 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.EventMessages;
-using AElf.Common.Attributes;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -15,7 +13,6 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
-using AElf.Common;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
@@ -76,7 +73,7 @@ namespace AElf.Synchronization.BlockExecution
                 }
 
                 txnRes = await ExecuteTransactions(readyTxns, block.Header.ChainId, block.Header.GetDisambiguationHash());
-
+                txnRes = SortToOriginalOrder(txnRes, readyTxns);
                 await UpdateWorldState(block, txnRes);
                 await UpdateSideChainInfo(block);
                 await AppendBlock(block);
@@ -140,6 +137,14 @@ namespace AElf.Synchronization.BlockExecution
             return results;
         }
 
+        private List<TransactionResult> SortToOriginalOrder(List<TransactionResult> results, List<Transaction> txs)
+        {
+            var indexes = txs.Select((x, i)=>new {hash=x.GetHash(),ind=i}).ToDictionary(x=>x.hash, x=>x.ind);
+            return results.Zip(results.Select(r => indexes[r.TransactionId]), Tuple.Create).OrderBy(
+                x => x.Item2).Select(x=>x.Item1).ToList();
+//                tx => indexes[tx.TransactionId]).ToList();
+        }
+        
         #region Before transaction execution
 
         /// <summary>

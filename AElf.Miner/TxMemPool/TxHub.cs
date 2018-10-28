@@ -103,10 +103,9 @@ namespace AElf.Miner.TxMemPool
             }).ConfigureAwait(false);
         }
 
-        public async Task<List<Transaction>> GetExecutableTransactionsAsync()
+        public async Task<List<TransactionReceipt>> GetReceiptsOfExecutablesAsync()
         {
-            return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).Select(x => x.Transaction)
-                .ToList());
+            return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).ToList());
         }
 
         public async Task<List<TransactionReceipt>> GetReceiptsFor(IEnumerable<Transaction> transactions)

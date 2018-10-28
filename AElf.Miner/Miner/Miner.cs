@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.EventMessages;
 using AElf.Common.Attributes;
 using AElf.Common;
 using AElf.Configuration;
@@ -13,7 +12,6 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Miner.Rpc.Exceptions;
 using AElf.Miner.Rpc.Server;
-using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -25,7 +23,6 @@ using AElf.Execution.Execution;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
-using NLog.Fluent;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -56,8 +53,8 @@ namespace AElf.Miner.Miner
 
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
-            ILogger logger, ClientManager clientManager, 
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager, 
+            ILogger logger, ClientManager clientManager,
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IChainContextService chainContextService)
         {
             Config = config;
@@ -93,44 +90,40 @@ namespace AElf.Miner.Miner
 
                     var parentChainBlockInfo = await GetParentChainBlockInfo();
                     var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
-                    var txs = await _txHub.GetExecutableTransactionsAsync();
-
-                    var txGroup = txs.GroupBy(tx => tx.Type == TransactionType.DposTransaction)
-                        .ToDictionary(x => x.Key, x => x.ToList());
-
-                    if (txGroup.TryGetValue(true, out var dposTxs))
+                    var txs = await _txHub.GetReceiptsOfExecutablesAsync();
+                    var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
+                    var readyTxs = new List<Transaction>();
+                    var traces = new List<TransactionTrace>();
+                    if (txGrp.TryGetValue(true, out var sysRcpts))
                     {
-                        if (currentRoundInfo != null)
+                        var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
+                        var needFilter = currentRoundInfo != null;
+                        if (needFilter)
                         {
-                            _dpoSTxFilter.Execute(dposTxs);
+                            sysTxs = FilterDpos(sysTxs);
                         }
+
+                        readyTxs = sysTxs;
+                        _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
+                        traces = await ExecuteTransactions(sysTxs);
+                        _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
                     }
-                    else
+                    if (txGrp.TryGetValue(false, out var regRcpts))
                     {
-                        dposTxs = new List<Transaction>();
+                        var regTxs = regRcpts.Select(x => x.Transaction).ToList();
+                        readyTxs.AddRange(regTxs);
+                        _logger?.Trace($"Start executing {regTxs.Count} regular transactions.");
+                        traces.AddRange(await ExecuteTransactions(regTxs));
+                        _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
                     }
 
-                    var readyTxs = txGroup.Values.SelectMany(x => x).ToList();
-                    
-                    _logger?.Trace($"Will package {dposTxs.Count()} DPoS txs.");
-                    foreach (var transaction in dposTxs)
-                    {
-                        _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName} from {transaction.From.DumpHex()}");
-                    }
-
-                    var disambiguationHash = HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
-                    _logger?.Log(LogLevel.Debug, "Executing Transactions..");
-                    var traces = readyTxs.Count == 0
-                        ? new List<TransactionTrace>()
-                        : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token, disambiguationHash);
-                    _logger?.Log(LogLevel.Debug, "Executed Transactions.");
-
-                    // transaction results
                     ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
 
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
-                    _logger?.Log(LogLevel.Debug, $"Generated Block at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
+
+
+                    _logger?.Debug($"Generated Block at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                     // We need at least check the txs count of this block.
                     var chainContext =
@@ -141,9 +134,10 @@ namespace AElf.Miner.Miner
                         _logger?.Trace("Found the block generated before invalid: " + blockValidationResult);
                         return null;
                     }
-                    
+
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
+                        _logger?.Debug($"Block {block} executed {executed.Count}");
                     MessageHub.Instance.Publish(new TransactionsExecuted(executed, block.Index));
 
                     // insert to db
@@ -159,6 +153,30 @@ namespace AElf.Miner.Miner
                     return null;
                 }
             }
+        }
+
+        private List<Transaction> FilterDpos(List<Transaction> txs)
+        {
+            var txGroup = txs.GroupBy(tx => tx.Type == TransactionType.DposTransaction)
+                .ToDictionary(x => x.Key, x => x.ToList());
+
+            if (txGroup.TryGetValue(true, out var dposTxs))
+            {
+                _dpoSTxFilter.Execute(dposTxs);
+            }
+
+            return txs;
+        }
+
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs)
+        {
+            var disambiguationHash = HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
+            
+            var traces = txs.Count == 0
+                ? new List<TransactionTrace>()
+                : await _executingService.ExecuteAsync(txs, Config.ChainId, CancellationToken.None, disambiguationHash);
+
+            return traces;
         }
 
         private async Task<ulong> GetNewBlockIndexAsync()
@@ -178,10 +196,11 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="parentChainBlockInfo"></param>
         /// <returns></returns>
-        private async Task<Transaction> GenerateTransactionWithParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
+        private async Task<Transaction> GenerateTransactionWithParentChainBlockInfo(
+            ParentChainBlockInfo parentChainBlockInfo)
         {
             if (parentChainBlockInfo == null)
-                return null; 
+                return null;
             try
             {
                 var bn = await _blockChain.GetCurrentBlockHeightAsync();
@@ -190,7 +209,8 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
-                    To = AddressHelpers.GetSystemContractAddress(Config.ChainId, SmartContractType.SideChainContract.ToString()),
+                    To = AddressHelpers.GetSystemContractAddress(Config.ChainId,
+                        SmartContractType.SideChainContract.ToString()),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
@@ -202,7 +222,7 @@ namespace AElf.Miner.Miner
                 var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
                 tx.R = ByteString.CopyFrom(signature.R);
                 tx.S = ByteString.CopyFrom(signature.S);
-                
+
                 await BroadcastTransaction(tx);
                 return tx;
             }
@@ -217,13 +237,13 @@ namespace AElf.Miner.Miner
         {
             if (tx == null)
                 return false;
-            
+
             // insert to tx pool and broadcast
             await _txHub.AddTransactionAsync(tx);
 
             return false;
         }
-        
+
         /// <summary>
         /// Extract tx results from traces
         /// </summary>
@@ -321,7 +341,7 @@ namespace AElf.Miner.Miner
         /// <param name="block"></param>
         /// <param name="parentChainBlockInfo"></param>
         /// <param name="pcbTransaction"></param>
-        private void Update(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block, 
+        private void Update(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block,
             ParentChainBlockInfo parentChainBlockInfo, Transaction pcbTransaction)
         {
             var bn = block.Header.Index;
@@ -332,9 +352,10 @@ namespace AElf.Miner.Miner
                 r.BlockHash = bh;
                 r.MerklePath = block.Body.BinaryMerkleTree.GenerateMerklePath(r.Index);
                 await _transactionResultManager.AddTransactionResultAsync(r);
-                
+
                 // update parent chain block info
-                if (pcbTransaction != null && r.TransactionId.Equals(pcbTransaction.GetHash()) && r.Status.Equals(Status.Mined))
+                if (pcbTransaction != null && r.TransactionId.Equals(pcbTransaction.GetHash()) &&
+                    r.Status.Equals(Status.Mined))
                 {
                     await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
                 }
@@ -378,7 +399,8 @@ namespace AElf.Miner.Miner
             block.AddTransactions(results.Select(r => r.Transaction));
 
             // set ws merkle tree root
-            block.Header.MerkleTreeRootOfWorldState = new BinaryMerkleTree().AddNodes(results.Select(x=>x.StateHash)).ComputeRootHash();
+            block.Header.MerkleTreeRootOfWorldState =
+                new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
 
             // calculate and set tx merkle tree root 
@@ -447,7 +469,7 @@ namespace AElf.Miner.Miner
                 throw;
             }
         }
-        
+
         /// <summary>
         /// Start mining
         /// init clients to side chain node 

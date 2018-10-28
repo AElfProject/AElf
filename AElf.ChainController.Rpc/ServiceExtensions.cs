@@ -211,7 +211,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetTransactionPoolSize(this Svc s)
         {
-            return (ulong)(await s.TxHub.GetExecutableTransactionsAsync()).Count;
+            return (ulong)(await s.TxHub.GetReceiptsOfExecutablesAsync()).Count;
         }
 
         internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
