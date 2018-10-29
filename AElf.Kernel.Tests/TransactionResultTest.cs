@@ -23,7 +23,7 @@ namespace AElf.Kernel.Tests
 
         public TransactionResultTest(ITxPoolConfig txPoolConfig, IChainService chainService,
             ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ITxHub txHub)
+            ITransactionResultManager transactionResultManager, ITxHub txHub)
         {
             NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
             NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
