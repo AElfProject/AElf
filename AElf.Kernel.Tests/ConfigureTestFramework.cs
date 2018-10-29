@@ -65,6 +65,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterType<TxValidator>().As<ITxValidator>();
             builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
+            builder.RegisterType<TxHub>().As<ITxHub>();
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();
         }
