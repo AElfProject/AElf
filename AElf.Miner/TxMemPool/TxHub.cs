@@ -18,6 +18,7 @@ namespace AElf.Miner.TxMemPool
     public class TxHub : ITxHub
     {
         private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionReceiptManager _receiptManager;
         private readonly ITxSignatureVerifier _signatureVerifier;
         private readonly ITxRefBlockValidator _refBlockValidator;
 
@@ -46,11 +47,13 @@ namespace AElf.Miner.TxMemPool
             }
         }
 
-        public TxHub(ITransactionManager transactionManager, IChainService chainService,
+        public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
+            IChainService chainService,
             ITxSignatureVerifier signatureVerifier,
             ITxRefBlockValidator refBlockValidator)
         {
             _transactionManager = transactionManager;
+            _receiptManager = receiptManager;
             _chainService = chainService;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
@@ -108,7 +111,7 @@ namespace AElf.Miner.TxMemPool
             return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).ToList());
         }
 
-        public async Task<List<TransactionReceipt>> GetReceiptsFor(IEnumerable<Transaction> transactions)
+        public async Task<List<TransactionReceipt>> GetReceiptsForAsync(IEnumerable<Transaction> transactions)
         {
             var trs = new List<TransactionReceipt>();
             // TODO: Check if parallelization is needed
@@ -128,21 +131,19 @@ namespace AElf.Miner.TxMemPool
             return trs;
         }
 
-        public async Task<TransactionReceipt> GetTransactionReceiptAsync(Hash txId)
+        public async Task<TransactionReceipt> GetReceiptAsync(Hash txId)
         {
-            if (_allTxns.TryGetValue(txId, out var tr))
+            if (!_allTxns.TryGetValue(txId, out var tr))
             {
-                return await Task.FromResult(tr);
+                tr = await _receiptManager.GetReceiptAsync(txId);
             }
-
-            // TODO: Store and Get TransactionReceipt
-            var tx = await _transactionManager.GetTransaction(txId);
-            return new TransactionReceipt(tx);
+            
+            return tr;
         }
 
         public async Task<Transaction> GetTxAsync(Hash txId)
         {
-            var tr = await GetTransactionReceiptAsync(txId);
+            var tr = await GetReceiptAsync(txId);
             if (tr != null)
             {
                 return tr.Transaction;
@@ -226,6 +227,7 @@ namespace AElf.Miner.TxMemPool
         // Change transaction status and add transaction into TransactionManager.
         private void OnTransactionsExecuted(TransactionsExecuted transactionsesExecuted)
         {
+            var receipts = new List<TransactionReceipt>();
             foreach (var tx in transactionsesExecuted.Transactions)
             {
                 if (_allTxns.TryGetValue(tx.GetHash(), out var tr))
@@ -233,8 +235,15 @@ namespace AElf.Miner.TxMemPool
                     tr.Status = TransactionReceipt.Types.TransactionStatus.TransactionExecuted;
                     tr.ExecutedBlockNumber = transactionsesExecuted.BlockNumber;
                     _transactionManager.AddTransactionAsync(tr.Transaction);
+                    receipts.Add(tr);
+                }
+                else
+                {
+                    //TODO: Handle this, but it should never happen  
                 }
             }
+
+            _receiptManager.AddOrUpdateReceiptsAsync(receipts);
         }
 
         // Render transactions to expire, and purge old transactions (RefBlockValidPeriod + some buffer)

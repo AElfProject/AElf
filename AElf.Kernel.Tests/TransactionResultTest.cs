@@ -22,7 +22,8 @@ namespace AElf.Kernel.Tests
 
         public TransactionResultTest(ITxPoolConfig txPoolConfig, IChainService chainService,
             ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
+            ITransactionManager transactionManager, ITransactionReceiptManager transactionReceiptManager,
+            ITransactionResultManager transactionResultManager, ILogger logger)
         {
             NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
             NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
@@ -32,7 +33,9 @@ namespace AElf.Kernel.Tests
 //            _transactionResultService = new TransactionResultService(
 //                new TxPool(logger,
 //                    new NewTxHub(transactionManager, chainService, signatureVerifier, refBlockValidator)), transactionResultManager);
-            _transactionResultService = new TransactionResultService(new TxHub(transactionManager, chainService, _signatureVerifier, _refBlockValidator),_transactionResultManager );
+            _transactionResultService = new TransactionResultService(
+                new TxHub(transactionManager, transactionReceiptManager,
+                    chainService, _signatureVerifier, _refBlockValidator),_transactionResultManager );
         }
 
         private TransactionResult CreateResult(Hash txId, Status status)

@@ -72,7 +72,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 var readyTxns = tuple.Item2;
 
-                var trs = await _txHub.GetReceiptsFor(readyTxns);
+                var trs = await _txHub.GetReceiptsForAsync(readyTxns);
                 foreach (var tr in trs)
                 {
                     if (!tr.IsExecutable)

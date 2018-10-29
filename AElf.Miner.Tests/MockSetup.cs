@@ -17,6 +17,7 @@ using Google.Protobuf;
 using Moq;
 using NLog;
 using AElf.Common;
+using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
@@ -36,21 +37,24 @@ namespace AElf.Miner.Tests
         private ISmartContractManager _smartContractManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ITransactionManager _transactionManager;
+        private ITransactionReceiptManager _transactionReceiptManager;
         private ITransactionResultManager _transactionResultManager;
         private ITransactionTraceManager _transactionTraceManager;
         private IExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private IKeyValueDatabase _database;
         private readonly IDataStore _dataStore;
         private readonly IStateStore _stateStore;
         private IChainContextService _chainContextService;
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
 
-        public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
+        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
         {
             _logger = logger;
+            _database = database;
             _dataStore = dataStore;
             _stateStore = stateStore;
             _signatureVerifier = signatureVerifier;
@@ -61,6 +65,7 @@ namespace AElf.Miner.Tests
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_dataStore, _logger);
+            _transactionReceiptManager = new TransactionReceiptManager(_database);
             _smartContractManager = new SmartContractManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
@@ -114,7 +119,8 @@ namespace AElf.Miner.Tests
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
-                _transactionResultManager, clientManager, _binaryMerkleTreeManager, new TxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
+                _transactionResultManager, clientManager, _binaryMerkleTreeManager,
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _signatureVerifier, _refBlockValidator));
 
             return blockExecutor;
         }
@@ -127,7 +133,7 @@ namespace AElf.Miner.Tests
         internal ITxHub CreateTxPool()
         {
             var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
-            return new TxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator);
+            return new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _signatureVerifier, _refBlockValidator);
 //            return new TxPool(_logger, new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
         }
 
