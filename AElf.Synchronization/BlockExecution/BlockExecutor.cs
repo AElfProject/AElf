@@ -28,11 +28,11 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
-        private readonly TxHub _txHub;
+        private readonly ITxHub _txHub;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, TxHub txHub)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub)
         {
             _chainService = chainService;
             _executingService = executingService;

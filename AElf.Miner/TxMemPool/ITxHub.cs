@@ -10,6 +10,7 @@ namespace AElf.Miner.TxMemPool
         Task AddTransactionAsync(Transaction transaction, bool skipValidation=false);
 
         Task<List<TransactionReceipt>> GetReceiptsOfExecutablesAsync();
+        Task<List<TransactionReceipt>> GetReceiptsFor(IEnumerable<Transaction> transactions);
 
         bool TryGetTx(Hash txId, out Transaction tx);
         /// <summary>
