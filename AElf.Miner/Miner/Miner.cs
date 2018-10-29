@@ -270,8 +270,7 @@ namespace AElf.Miner.Miner
                             Status = Status.Mined,
                             RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
                             StateHash = trace.GetSummarizedStateHash(),
-                            Index = index++,
-                            Transaction = trace.Transaction
+                            Index = index++
                         };
                         txRes.UpdateBloom();
                         results.Add(txRes);
@@ -283,8 +282,7 @@ namespace AElf.Miner.Miner
                             RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
                             Status = Status.Failed,
                             StateHash = trace.GetSummarizedStateHash(),
-                            Index = index++,
-                            Transaction = trace.Transaction
+                            Index = index++
                         };
                         results.Add(txResF);
                         break;
@@ -392,7 +390,7 @@ namespace AElf.Miner.Miner
             // side chain info
             await CollectSideChainIndexedInfo(block);
             // add tx hash
-            block.AddTransactions(results.Select(r => r.Transaction));
+            block.AddTransactions(results.Select(x=>x.TransactionId));
 
             // set ws merkle tree root
             block.Header.MerkleTreeRootOfWorldState =

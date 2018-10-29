@@ -56,6 +56,8 @@ namespace AElf.Kernel
         private async Task AddBlockAsync(IBlock block)
         {
             await AddHeaderAsync(block.Header);
+            // TODO: This will be problematic if the block is used somewhere else after this method
+            block.Body.TransactionList.Clear();
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         }
 

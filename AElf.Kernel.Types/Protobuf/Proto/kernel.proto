@@ -92,7 +92,6 @@ message TransactionResult {
     Hash StateHash = 9;
     // Merkle proof path for this transaction
     MerklePath MerklePath = 10;
-    Transaction Transaction = 11;
 }
 
 
@@ -118,7 +117,6 @@ message TransactionTrace {
     repeated StateChange StateChanges = 9;
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
-    Transaction Transaction = 12;
 }
 
 message LogEvent {

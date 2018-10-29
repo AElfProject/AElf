@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockSynchronization;
+using Google.Protobuf.Collections;
 
 namespace AElf.Node
 {
@@ -20,12 +21,14 @@ namespace AElf.Node
             //var blockchain = ChainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
             //return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
 
-            return (Block) await ChainService.GetBlockChain(Hash.Default).GetBlockByHeightAsync((ulong)height);
+            var block = (Block) await ChainService.GetBlockChain(Hash.Default).GetBlockByHeightAsync((ulong)height);
+            return block != null ? await FillBlockWithTransactionList(block) : null;
         }
-
+        
         public async Task<Block> GetBlockFromHash(Hash hash)
         {
-            return await Task.Run(() => (Block) BlockSynchronizer.GetBlockByHash(hash));
+            var block = await Task.Run(() => (Block) BlockSynchronizer.GetBlockByHash(hash));
+            return block != null ? await FillBlockWithTransactionList(block) : null;
         }
 
         public async Task<Transaction> GetTransaction(Hash txId)
@@ -36,6 +39,18 @@ namespace AElf.Node
             }
 
             return await TransactionManager.GetTransaction(txId);
+        }
+
+        private async Task<Block> FillBlockWithTransactionList(Block block)
+        {
+            block.Body.TransactionList.Clear();
+            foreach (var txId in block.Body.Transactions)
+            {
+                var r = await TxHub.GetReceiptAsync(txId);
+                block.Body.TransactionList.Add(r.Transaction);
+            }
+
+            return block;
         }
     }
 }
