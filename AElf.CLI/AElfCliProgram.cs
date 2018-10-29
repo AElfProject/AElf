@@ -9,6 +9,7 @@ using AElf.ABI.CSharp;
 using AElf.CLI.Certificate;
 using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
+using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Helpers;
 using AElf.CLI.Http;
 using AElf.CLI.Parsing;
@@ -343,9 +344,7 @@ namespace AElf.CLI
                         signature = signer.Sign(kp, toSig);
                         
                         // Update the signature
-                        t.R = signature.R;
-                        t.S = signature.S;
-                        t.P = kp.PublicKey.Q.GetEncoded();
+                        t.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
                         
                         var resp = SignAndSendTransaction(t);
                         

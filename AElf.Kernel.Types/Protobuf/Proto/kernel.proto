@@ -14,11 +14,15 @@ message Transaction {
     string MethodName = 6;
     bytes Params = 7;
     uint64 Fee = 8;
-    bytes R = 9;
-    bytes S = 10;
-    bytes P = 11;
-    TransactionType type = 12;
-    google.protobuf.Timestamp Time = 13;
+    Signature Sig = 9;
+    TransactionType type = 10;
+    google.protobuf.Timestamp Time = 11;
+}
+
+message Signature{
+    bytes R = 1;
+    bytes S = 2;
+    bytes P = 3;
 }
 
 message TransactionReceipt {

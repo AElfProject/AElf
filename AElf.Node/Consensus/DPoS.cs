@@ -190,8 +190,10 @@ namespace AElf.Kernel.Node
                 RefBlockNumber = bn,
                 RefBlockPrefix = ByteString.CopyFrom(bhPref),
                 MethodName = methodName,
-                P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey),
-//                Type = TransactionType.DposTransaction
+                Sig = new Signature{
+                    P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey)
+                },
+                Type = TransactionType.DposTransaction
             };
 
             switch (parameters.Count)
@@ -216,8 +218,8 @@ namespace AElf.Kernel.Node
             var signature = signer.Sign(_nodeKeyPair, tx.GetHash().DumpByteArray());
 
             // Update the signature
-            tx.R = ByteString.CopyFrom(signature.R);
-            tx.S = ByteString.CopyFrom(signature.S);
+            tx.Sig.R = ByteString.CopyFrom(signature.R);
+            tx.Sig.S = ByteString.CopyFrom(signature.S);
 
             return tx;
         }

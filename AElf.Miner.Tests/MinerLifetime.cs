@@ -84,9 +84,12 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txPrint.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txPrint.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txPrint.R = ByteString.CopyFrom(signature.R); 
-            txPrint.S = ByteString.CopyFrom(signature.S);
+            txPrint.Sig = new Signature
+            {
+                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
+                R = ByteString.CopyFrom(signature.R),
+                S = ByteString.CopyFrom(signature.S),
+            };
             
             var txs = new List<Transaction>(){
                 txPrint
@@ -135,9 +138,12 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txnDep.GetHash();
 
             ECSignature signature1 = signer.Sign(keyPair, hash.DumpByteArray());
-            txnDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txnDep.R = ByteString.CopyFrom(signature1.R); 
-            txnDep.S = ByteString.CopyFrom(signature1.S);
+            txnDep.Sig = new Signature
+            {
+                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
+                R = ByteString.CopyFrom(signature1.R),
+                S = ByteString.CopyFrom(signature1.S),
+            };
             
             var txInv_1 = new Transaction
             {
@@ -151,9 +157,12 @@ namespace AElf.Kernel.Tests.Miner
                 Type = TransactionType.ContractTransaction
             };
             ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().DumpByteArray());
-            txInv_1.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txInv_1.R = ByteString.CopyFrom(signature2.R); 
-            txInv_1.S = ByteString.CopyFrom(signature2.S);
+            txInv_1.Sig = new Signature{
+                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
+                R = ByteString.CopyFrom(signature2.R),
+                S = ByteString.CopyFrom(signature2.S)
+            };
+            
             
             var txInv_2 = new Transaction
             {
@@ -161,16 +170,19 @@ namespace AElf.Kernel.Tests.Miner
                 To = contractAddressZero,
                 IncrementId =txInv_1.IncrementId,
                 MethodName = "Print",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack("Hoopox")),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack("AElf")),
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1,
                 Type = TransactionType.ContractTransaction
             };
             
             ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().DumpByteArray());
-            txInv_2.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txInv_2.R = ByteString.CopyFrom(signature3.R); 
-            txInv_2.S = ByteString.CopyFrom(signature3.S);
+            txInv_2.Sig = new Signature
+            {
+                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
+            };
+            txInv_2.Sig.R = ByteString.CopyFrom(signature3.R); 
+            txInv_2.Sig.S = ByteString.CopyFrom(signature3.S);
             
             var txs = new List<Transaction>(){
                 txnDep, txInv_1, txInv_2
