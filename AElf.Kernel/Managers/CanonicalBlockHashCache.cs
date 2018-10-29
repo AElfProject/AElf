@@ -116,9 +116,14 @@ namespace AElf.Kernel.Managers
 
         private async Task RecoverCurrent()
         {
+            _blocks.Clear();
             var curHeight = await _lightChain.GetCurrentBlockHeightAsync();
             var curHeader = await _lightChain.GetHeaderByHeightAsync(curHeight);
-            await OnNewBlockHeader((BlockHeader) curHeader);
+            if (curHeader != null)
+            {
+                await OnNewBlockHeader((BlockHeader) curHeader);    
+            }
+            // TODO: curHeader should never be null, so maybe exception needs to be thrown
         }
     }
 }
