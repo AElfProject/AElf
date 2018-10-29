@@ -7,12 +7,19 @@ using Microsoft.AspNetCore.Hosting;
 using Autofac;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using NLog;
 
 namespace AElf.RPC
 {
     public class RpcServer : IRpcServer
     {
         private IWebHost _host;
+        private readonly ILogger _logger;
+
+        public RpcServer(ILogger logger)
+        {
+            _logger = logger;
+        }
 
         public bool Init(ILifetimeScope scope, string rpcHost, int rpcPort)
         {
@@ -52,6 +59,7 @@ namespace AElf.RPC
             }
             catch (Exception e)
             {
+                _logger?.Error(e, "Exception while RPC server init.");
                 return false;
             }
 
@@ -62,11 +70,12 @@ namespace AElf.RPC
         {
             try
             {
+                _logger?.Info("RPC server start.");
                 await _host.RunAsync();
             }
             catch (Exception e)
             {
-                ;
+                _logger?.Error(e, "Exception while start RPC server.");
             }
         }
 

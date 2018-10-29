@@ -24,7 +24,6 @@ using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
-using Org.BouncyCastle.Crypto.Engines;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Node.Protocol
@@ -65,6 +64,7 @@ namespace AElf.Node.Protocol
 
         private BoundedByteArrayQueue _lastBlocksReceived;
         private BoundedByteArrayQueue _lastTxReceived;
+        private BoundedByteArrayQueue _lastAnnouncementsReceived;
 
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
         
@@ -85,7 +85,7 @@ namespace AElf.Node.Protocol
             _chainService = chainService;
             _logger = logger;
             _blockSynchronizer = blockSynchronizer;
-
+            
             _chainId = new Hash { Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)) };
             
             peerManager.PeerEvent += OnPeerAdded;
@@ -127,24 +127,6 @@ namespace AElf.Node.Protocol
                 });
             
             MessageHub.Instance.Subscribe<BlockExecuted>(inBlock => 
-            {
-                if (inBlock?.Block == null)
-                {
-                    _logger?.Warn("[event] Block null.");
-                    return;
-                }
-
-                byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
-
-                if (blockHash != null)
-                    _lastBlocksReceived.Enqueue(blockHash);
-                    
-                _logger?.Trace($"Block executed, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
-                
-                _localHeight++;
-            });
-            
-            MessageHub.Instance.Subscribe<BlockAccepted>(inBlock => 
             {
                 if (inBlock?.Block == null)
                 {
@@ -207,10 +189,11 @@ namespace AElf.Node.Protocol
             // init the queue
             _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
             _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
+            _lastAnnouncementsReceived = new BoundedByteArrayQueue(MaxBlockHistory);
                 
             _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
                 
-            _logger?.Trace($"Network initialized at height {_localHeight}.");
+            _logger?.Info($"Network initialized at height {_localHeight}.");
             
             //_peerManager.Start();
             
@@ -282,7 +265,7 @@ namespace AElf.Node.Protocol
             CurrentSyncSource = peer;
             peer.Sync(start, target);
                     
-            _logger?.Trace($"Sync started from peer {CurrentSyncSource}, from {start} to {target}.");
+            _logger?.Info($"Sync started from peer {CurrentSyncSource}, from {start} to {target}.");
                     
             SetSyncState(true);
         }
@@ -401,6 +384,12 @@ namespace AElf.Node.Protocol
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
 
                 byte[] blockHash = a.Id.ToByteArray();
+                
+                if (_lastAnnouncementsReceived.Contains(blockHash))
+                    return;
+
+                _lastAnnouncementsReceived.Enqueue(blockHash);
+                
                 IBlock bbh = _blockSynchronizer.GetBlockByHash(new Hash { Value = ByteString.CopyFrom(blockHash) });
                 
                 _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
@@ -434,7 +423,7 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while handling new transaction reception");
+                _logger?.Error(e, "Error while handling new transaction reception.");
             }
         }
 
@@ -453,7 +442,7 @@ namespace AElf.Node.Protocol
 
                 peer.OnBlockReceived(block);
                               
-                MessageHub.Instance.Publish(new BlockReceived(block));
+                Task.Run(() => MessageHub.Instance.Publish(new BlockReceived(block))).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -556,36 +545,36 @@ namespace AElf.Node.Protocol
 
             if (sender is TimeoutRequest req)
             {
-                _logger?.Trace("Request timeout : " + req.IsBlockRequest + $", with {req.Peer} and timeout : {TimeSpan.FromMilliseconds(req.Timeout)}.");
+                _logger?.Warn($"Request timeout: {req.IsBlockRequest}, with {req.Peer} and timeout : {TimeSpan.FromMilliseconds(req.Timeout)}.");
                 
                 if (req.IsTxRequest && req.TransactionHashes != null && req.TransactionHashes.Any())
                 {
-                    _logger?.Trace("Hashes : [" + string.Join(", ", req.TransactionHashes.Select(kvp => kvp.ToHex())) + "]");
+                    _logger?.Trace($"Hashes: [{string.Join(", ", req.TransactionHashes.Select(kvp => kvp.ToHex()))}]");
                 }
-                
+
                 if (req.HasReachedMaxRetry)
                 {
                     lock (_pendingRequestsLock)
                     {
                         _pendingRequests.Remove(req);
                     }
-                    
+
                     req.RequestTimedOut -= RequestOnRequestTimedOut;
                     FireRequestFailed(req);
                     return;
                 }
-                
+
                 IPeer nextPeer = _peers.FirstOrDefault(p => !p.Equals(req.Peer));
                 
                 if (nextPeer != null)
                 {
-                    _logger?.Trace("Trying another peer : " + req.RequestMessage.RequestLogString + $", next : {nextPeer}.");
+                    _logger?.Warn("Trying another peer : " + req.RequestMessage.RequestLogString + $", next : {nextPeer}.");
                     req.TryPeer(nextPeer);
                 }
             }
             else
             {
-                _logger?.Trace("Request timeout - sender wrong type.");
+                _logger?.Warn("Request timeout - sender wrong type.");
             }
         }
 
@@ -692,7 +681,10 @@ namespace AElf.Node.Protocol
                         peer.EnqueueOutgoing(message); //todo
                         count++;
                     }
-                    catch (Exception e) { }
+                    catch (Exception e)
+                    {
+                        _logger?.Error(e, "Error while enqueue outgoing message.");
+                    }
                 }
             }
             catch (Exception e)

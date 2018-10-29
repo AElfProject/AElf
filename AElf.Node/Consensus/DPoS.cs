@@ -84,8 +84,8 @@ namespace AElf.Kernel.Node
             GlobalConfig.BlockProducerNumber = count;
             GlobalConfig.BlockNumberOfEachRound = count + 1;
 
-            _logger?.Trace("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
-            _logger?.Trace("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
+            _logger?.Info("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
+            _logger?.Info("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
 
             if (GlobalConfig.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
             {
@@ -136,7 +136,7 @@ namespace AElf.Kernel.Node
             }
 
             Helper.SyncMiningInterval();
-            _logger?.Trace($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
+            _logger?.Info($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
 
             if (Helper.CanRecoverDPoSInformation())
             {
@@ -172,7 +172,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e.Message);
+                _logger?.Error(e, "Exception while mining.");
                 return null;
             }
         }
@@ -236,7 +236,8 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
-            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}");
+            MessageHub.Instance.Publish(new MiningStateChanged(true));
+            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
 
             if (await Helper.HasGenerated())
             {
@@ -260,7 +261,8 @@ namespace AElf.Kernel.Node
             await Mine();
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
-            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}");
+            MessageHub.Instance.Publish(new MiningStateChanged(false));
+            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
         }
 
         /// <summary>
@@ -278,7 +280,8 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
-            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}");
+            MessageHub.Instance.Publish(new MiningStateChanged(true));
+            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
             
             var inValue = Hash.Generate();
             if (_consensusData.Count <= 0)
@@ -313,7 +316,8 @@ namespace AElf.Kernel.Node
             await Mine();
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
-            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}");
+            MessageHub.Instance.Publish(new MiningStateChanged(false));
+            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
         }
 
         /// <summary>
@@ -330,7 +334,7 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
-            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(PublishInValue)}");
+            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(PublishInValue)}.");
             
             var currentRoundNumber = Helper.CurrentRoundNumber;
 
@@ -347,7 +351,7 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txToPublishInValue);
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
-            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(PublishInValue)}");
+            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(PublishInValue)}.");
         }
 
         /// <summary>
@@ -363,7 +367,8 @@ namespace AElf.Kernel.Node
             if (res == 1)
                 return;
             
-            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}");
+            MessageHub.Instance.Publish(new MiningStateChanged(true));
+            _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
             
             var extraBlockResult = Helper.ExecuteTxsForExtraBlock();
 
@@ -384,7 +389,9 @@ namespace AElf.Kernel.Node
             await Mine();
             
             Interlocked.CompareExchange(ref _flag, 0, 1);
-            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}");
+            
+            MessageHub.Instance.Publish(new MiningStateChanged(false));
+            _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
         }
 
         public async Task Update()
@@ -434,32 +441,13 @@ namespace AElf.Kernel.Node
         {
             if (tx.Type == TransactionType.DposTransaction)
             {
-                _logger?.Trace($"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.DumpHex()}");
+                _logger?.Trace($"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.DumpHex()}.");
             }
             
             if (tx.From.Equals(_nodeKeyPair.Address))
                 _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().DumpHex() + ", threadId: " +
                                Thread.CurrentThread.ManagedThreadId);
-//            try
-//            {
                 await _txHub.AddTransactionAsync(tx, true);
-//                if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
-//                {
-//                    _logger?.Trace("Tx added to the pool");
-//                    if (tx.MethodName == ConsensusBehavior.PublishInValue.ToString())
-//                    {
-//                        MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-//                    }
-//                }
-//                else
-//                {
-//                    _logger?.Trace("Failed to insert tx: " + result);
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                _logger?.Debug("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
-//            }
         }
     }
 }

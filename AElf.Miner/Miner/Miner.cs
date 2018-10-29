@@ -49,7 +49,7 @@ namespace AElf.Miner.Miner
         private IMinerConfig Config { get; }
 
         public Address Coinbase => Config.CoinBase;
-        private readonly DPoSTxFilter _dpoSTxFilter;
+//        private readonly DPoSTxFilter _dpoSTxFilter;
 
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
@@ -68,7 +68,7 @@ namespace AElf.Miner.Miner
             _serverManager = serverManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
-            _dpoSTxFilter = new DPoSTxFilter();
+//            _dpoSTxFilter = new DPoSTxFilter();
         }
 
         /// <inheritdoc />
@@ -121,17 +121,14 @@ namespace AElf.Miner.Miner
 
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
-
-
-                    _logger?.Debug($"Generated Block at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
+                    _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                     // We need at least check the txs count of this block.
-                    var chainContext =
-                        await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
-                    var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
+                    var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                    var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true).ValidateBlockAsync(block, chainContext);
                     if (blockValidationResult != BlockValidationResult.Success)
                     {
-                        _logger?.Trace("Found the block generated before invalid: " + blockValidationResult);
+                        _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
                         return null;
                     }
 
@@ -162,7 +159,7 @@ namespace AElf.Miner.Miner
 
             if (txGroup.TryGetValue(true, out var dposTxs))
             {
-                _dpoSTxFilter.Execute(dposTxs);
+//                _dpoSTxFilter.Execute(dposTxs);
             }
 
             return txs;

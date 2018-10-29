@@ -23,25 +23,25 @@ namespace AElf.Kernel
         /// Add transaction Hash to the block
         /// </summary>
         /// <returns><c>true</c>, if the hash was added, <c>false</c> otherwise.</returns>
-        /// <param name="txHash">the transactions hash</param>
+        /// <param name="tx">the transactions hash</param>
         public bool AddTransaction(Transaction tx)
         {
             if (Body == null)
                 Body = new BlockBody();
-            
+
             return Body.AddTransaction(tx);
         }
-        
+
         /// <summary>
         /// Add transaction Hashes to the block
         /// </summary>
         /// <returns><c>true</c>, if the hash was added, <c>false</c> otherwise.</returns>
-        /// <param name="txHashes">the transactions hash</param>
+        /// <param name="txs">the transactions hash</param>
         public bool AddTransactions(IEnumerable<Transaction> txs)
         {
             if (Body == null)
                 Body = new BlockBody();
-            
+
             return Body.AddTransactions(txs);
         }
 
@@ -63,8 +63,18 @@ namespace AElf.Kernel
         }
 
         public ParentChainBlockInfo ParentChainBlockInfo { get; set; }
-        public ulong Index => Header?.Index ?? 0;
-        public string BlockHashToHex => Header?.GetHash().DumpHex() ?? Hash.Default.DumpHex();
+
+        public ulong Index
+        {
+            get => Header?.Index ?? 0;
+            set { }
+        }
+
+        public string BlockHashToHex
+        {
+            get => Header?.GetHash().DumpHex() ?? Hash.Default.DumpHex();
+            set { }
+        }
 
         public void FillTxsMerkleTreeRootInHeader()
         {

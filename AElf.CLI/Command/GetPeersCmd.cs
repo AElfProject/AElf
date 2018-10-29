@@ -67,7 +67,7 @@ namespace AElf.CLI.Command
             }
             catch (Exception e)
             {
-                ;
+                Console.WriteLine("Exception while GetPrintString <get_peers>: " + e.Message);
             }
             
             return strBuilder.ToString();

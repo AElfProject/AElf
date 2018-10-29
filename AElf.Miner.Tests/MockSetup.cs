@@ -31,7 +31,7 @@ namespace AElf.Miner.Tests
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
         private readonly ILogger _logger;
-        private ulong _i = GlobalConfig.GenesisBlockHeight;
+        private ulong _i = 0;
         private IChainCreationService _chainCreationService;
         private ISmartContractManager _smartContractManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
@@ -318,6 +318,8 @@ namespace AElf.Miner.Tests
         private Mock<IBlockValidationService> MockBlockValidationService()
         {
             var mock = new Mock<IBlockValidationService>();
+            mock.Setup(bvs => bvs.ValidatingOwnBlock(It.IsAny<bool>()))
+                .Returns(() => mock.Object);
             mock.Setup(bvs => bvs.ValidateBlockAsync(It.IsAny<IBlock>(), It.IsAny<IChainContext>()))
                 .Returns(() => Task.FromResult(BlockValidationResult.Success));
             return mock;

@@ -37,7 +37,7 @@ namespace AElf.Network.Sim.Tests.Peers
             }
             catch (Exception e)
             {
-                ;
+                Console.WriteLine("Exception while peer discovery test " + e);
             }
         }
 

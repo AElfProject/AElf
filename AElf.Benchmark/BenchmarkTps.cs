@@ -92,7 +92,7 @@ namespace AElf.Benchmark
             {
                 for (int currentGroupCount = _options.GroupRange.ElementAt(0); currentGroupCount <= _options.GroupRange.ElementAt(1); currentGroupCount++)
                 {
-                    _logger.Info($"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total");
+                    _logger.Info($"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total.");
                     var res = await MultipleGroupBenchmark(_options.TxNumber, currentGroupCount);
                     resDict.Add(res.Key, res.Value);
                 }
@@ -103,7 +103,7 @@ namespace AElf.Benchmark
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Exception while benchmark event group.");
             }
         }
 

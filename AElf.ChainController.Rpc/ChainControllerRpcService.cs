@@ -456,7 +456,7 @@ namespace AElf.ChainController.Rpc
                     ["Body"] = new JObject
                     {
                         ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
-                        ["IndexedSideChainBlcokInfo"] = blockinfo.GetIndexedSideChainBlcokInfo()
+                        ["IndexedSideChainBlcokInfo"] = blockinfo.GetIndexedSideChainBlockInfo()
                     },
                     ["CurrentTransactionPoolSize"] = transactionPoolSize
                 }
@@ -534,7 +534,7 @@ namespace AElf.ChainController.Rpc
             }
             catch (Exception e)
             {
-                _logger.Error("ProcSetBlockVolume failed: " + e);
+                _logger.Error(e, "Exception while ProcSetBlockVolume.");
                 return await Task.FromResult(new JObject
                 {
                     ["error"] = "Failed"

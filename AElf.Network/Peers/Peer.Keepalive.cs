@@ -13,17 +13,18 @@ namespace AElf.Network.Peers
     public partial class Peer
     {
         private readonly Timer _pingPongTimer;
-        
+
         /// <summary>
         /// List of currently pending ping requests.
         /// </summary>
         private readonly List<Ping> _pings = new List<Ping>();
+
         private object pingLock = new Object();
-        
+
         private TimeSpan pingWaitTime = TimeSpan.FromSeconds(2);
 
         private int _droppedPings = 0;
-        
+
         private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
         {
             if (IsDisposed)
@@ -38,25 +39,25 @@ namespace AElf.Network.Peers
                 {
                     _droppedPings += pings.Count;
                     _logger?.Trace($"{DistantNodeData} - Current failed count {_droppedPings}.");
-                    
+
                     var peerStr = _pings.Select(c => c.Id).Aggregate((a, b) => a.ToString() + ", " + b);
-                    
+
                     _logger?.Trace($"{DistantNodeData} - {pings.Count} pings where dropped [ {peerStr} ].");
-                    
+
                     foreach (var p in pings)
                         _pings.Remove(p);
                 }
             }
-            
+
             // Create a new ping
             try
             {
                 Guid id = Guid.NewGuid();
-                Ping ping = new Ping { Id = id.ToString(), Time = Timestamp.FromDateTime(DateTime.UtcNow)};
-            
+                Ping ping = new Ping {Id = id.ToString(), Time = Timestamp.FromDateTime(DateTime.UtcNow)};
+
                 byte[] payload = ping.ToByteArray();
-            
-                var pingMsg = new Message { Type = (int)MessageType.Ping, Length = payload.Length, Payload = payload };
+
+                var pingMsg = new Message {Type = (int) MessageType.Ping, Length = payload.Length, Payload = payload};
 
                 lock (pingLock)
                 {
@@ -76,13 +77,13 @@ namespace AElf.Network.Peers
             try
             {
                 Ping ping = Ping.Parser.ParseFrom(pingMsg.Payload);
-                Pong pong = new Pong { Id = ping.Id, Time = Timestamp.FromDateTime(DateTime.UtcNow) };
-                        
+                Pong pong = new Pong {Id = ping.Id, Time = Timestamp.FromDateTime(DateTime.UtcNow)};
+
                 byte[] payload = pong.ToByteArray();
-            
+
                 var pongMsg = new Message
                 {
-                    Type = (int)MessageType.Pong,
+                    Type = (int) MessageType.Pong,
                     Length = payload.Length,
                     Payload = payload
                 };
@@ -100,11 +101,11 @@ namespace AElf.Network.Peers
             try
             {
                 Pong pong = Pong.Parser.ParseFrom(pongMsg.Payload);
-                
+
                 lock (pingLock)
                 {
                     Ping ping = _pings.FirstOrDefault(p => p.Id == pong.Id);
-                            
+
                     if (ping != null)
                         _pings.Remove(ping);
                     else

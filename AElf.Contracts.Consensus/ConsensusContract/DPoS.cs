@@ -356,10 +356,10 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 return 2;
             }
 
+            var currentRound = await GetCurrentRoundInfo();
             if (roundId.Value != 1)
             {
                 // 3. Is same with current round.
-                var currentRound = await GetCurrentRoundInfo();
                 if (currentRound.RoundId == roundId.Value)
                 {
                     return 3;
@@ -503,7 +503,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await SetExtraBlockMiningTimeSlotOfSpecificRound(GetTimestampWithOffset(
                 nextRoundInfo.BlockProducers.Last().Value.TimeSlot, Interval));
 
-            ConsoleWriteLine(nameof(Update), $"Sync dpos info of round {CurrentRoundNumber} succeed");
+            ConsoleWriteLine(nameof(Update), $"Sync dpos info of round {CurrentRoundNumber} succeed.");
         }
 
         private async Task<Round> GetCurrentRoundInfo()
@@ -585,7 +585,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             if (LogLevel == 6)
                 return;
 
-            Console.WriteLine($"[{GetLocalTime():HH:mm:ss} - AElfDPoS]{prefix} - {log}");
+            Console.WriteLine($"[{GetLocalTime():yyyy-MM-dd HH:mm:ss.fff} - AElfDPoS]{prefix} - {log}.");
             if (ex != null)
             {
                 Console.WriteLine(ex);
