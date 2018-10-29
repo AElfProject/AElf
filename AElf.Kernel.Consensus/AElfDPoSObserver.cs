@@ -89,12 +89,16 @@ namespace AElf.Kernel.Consensus
 
         public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeSlot)
         {
+            _logger?.Trace("Extra block time slot of current round: " + extraBlockTimeSlot.ToDateTime().ToString("HH:mm:ss"));
             if (extraBlockTimeSlot.ToDateTime() < DateTime.UtcNow)
             {
                 extraBlockTimeSlot = extraBlockTimeSlot.ToDateTime()
                     .AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * (GlobalConfig.BlockProducerNumber + 2))
                     .ToTimestamp();
+                _logger?.Trace("Extra block time slot changed to: " +
+                               extraBlockTimeSlot.ToDateTime().ToString("HH:mm:ss"));
             }
+
             var doNothingObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
                 .Select(_ => ConsensusBehavior.DoNothing);
