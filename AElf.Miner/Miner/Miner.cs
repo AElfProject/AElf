@@ -49,7 +49,7 @@ namespace AElf.Miner.Miner
         private IMinerConfig Config { get; }
 
         public Address Coinbase => Config.CoinBase;
-//        private readonly DPoSTxFilter _dpoSTxFilter;
+        private readonly TransactionFilter _txFilter;
 
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
@@ -68,7 +68,7 @@ namespace AElf.Miner.Miner
             _serverManager = serverManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
-//            _dpoSTxFilter = new DPoSTxFilter();
+            _txFilter = new TransactionFilter();
         }
 
         /// <inheritdoc />
@@ -159,7 +159,7 @@ namespace AElf.Miner.Miner
 
             if (txGroup.TryGetValue(true, out var dposTxs))
             {
-//                _dpoSTxFilter.Execute(dposTxs);
+                _txFilter.Execute(dposTxs);
             }
 
             return txs;
