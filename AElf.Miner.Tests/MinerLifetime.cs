@@ -244,7 +244,7 @@ namespace AElf.Kernel.Tests.Miner
 
             blockExecutor.Init();
             var res = await blockExecutor.ExecuteBlock(block);
-            Assert.Equal(BlockExecutionResult.Failed, res);
+            Assert.NotEqual(BlockExecutionResult.Success, res);
 
             var blockchain = _mock.GetBlockChain(chain.Id); 
             var curHash = await blockchain.GetCurrentBlockHashAsync();
