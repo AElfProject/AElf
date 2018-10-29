@@ -256,6 +256,11 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
+        public bool MultipleBlocksInOneIndex(ulong index)
+        {
+            return _invalidBlockList.Count(b => b.Index == index) > 1;
+        }
+
         private void PrintInvalidBlockList()
         {
             var str = "\nInvalid Block List:\n";

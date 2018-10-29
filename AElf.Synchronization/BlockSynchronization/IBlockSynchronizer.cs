@@ -12,9 +12,6 @@ namespace AElf.Synchronization.BlockSynchronization
     {
         Task<BlockExecutionResult> ReceiveBlock(IBlock block);
         void AddMinedBlock(IBlock block);
-        bool IsBlockReceived(Hash blockHash, ulong height);
         IBlock GetBlockByHash(Hash blockHash);
-        List<IBlock> GetBlocksByHeight(ulong height);
-        Task ReceiveBlocks(IEnumerable<IBlock> blocks);
     }
 }
