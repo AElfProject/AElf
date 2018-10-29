@@ -27,6 +27,10 @@ namespace AElf.Database
 
         public async Task<bool> PipelineSetAsync(Dictionary<string, byte[]> cache)
         {
+            if (cache.Count == 0)
+            {
+                return true;
+            }
             return await Task.Factory.StartNew(() =>
             {
                 foreach (var change in cache)
