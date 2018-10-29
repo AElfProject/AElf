@@ -1,4 +1,5 @@
 ﻿using System;
+using Google.Protobuf;
 using ProtoBuf;
 
 namespace AElf.CLI.Data.Protobuf
@@ -47,15 +48,9 @@ namespace AElf.CLI.Data.Protobuf
         public UInt64 Fee { get; set; }
         
         [ProtoMember(9)]
-        public byte[] R { get; set; }
+        public Signature Sig { get; set; }
         
         [ProtoMember(10)]
-        public byte[] S { get; set; }
-        
-        [ProtoMember(11)]
-        public byte[] P { get; set; }
-        
-        [ProtoMember(12)]
         public TransactionType  type { get; set; }
     }
 
@@ -64,5 +59,16 @@ namespace AElf.CLI.Data.Protobuf
     {
         ContractTransaction = 0,
         DposTransaction = 1
+    }
+
+    [ProtoContract]
+    public class Signature
+    {
+        [ProtoMember(1)]
+        public byte[] R { get; set; }
+        [ProtoMember(2)]
+        public byte[] S { get; set; }
+        [ProtoMember(3)]
+        public byte[] P { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using AElf.CLI.Command;
+using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet.Exceptions;
@@ -208,10 +209,7 @@ namespace AElf.CLI.Wallet
             ECSignature signature = signer.Sign(kp, toSig);
                 
             // Update the signature
-            tx.R = signature.R;
-            tx.S = signature.S;
-                
-            tx.P = kp.PublicKey.Q.GetEncoded();
+            tx.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
 
             return tx;
         }

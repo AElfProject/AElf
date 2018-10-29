@@ -35,7 +35,7 @@ namespace AElf.Miner.TxMemPool
         /// <returns></returns>
         public static bool VerifySignature(this Transaction tx)
         {
-            if (tx.P == null)
+            if (tx.Sig == null)
             {
                 return false;
             }
