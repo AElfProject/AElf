@@ -182,14 +182,16 @@ namespace AElf.Miner.Miner
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
-                    P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey()),
+                    Sig = new Signature{
+                        P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey())
+                    },
                     Type = TransactionType.CrossChainBlockInfoTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo))
                 };
                 // sign tx
                 var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
-                tx.R = ByteString.CopyFrom(signature.R);
-                tx.S = ByteString.CopyFrom(signature.S);
+                tx.Sig.R = ByteString.CopyFrom(signature.R);
+                tx.Sig.S = ByteString.CopyFrom(signature.S);
                 
                 await BroadcastTransaction(tx);
                 return tx;
@@ -341,8 +343,9 @@ namespace AElf.Miner.Miner
             // update merkle tree
             _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
                 block.Header.Index);
-            _binaryMerkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
-                block.Body.BinaryMerkleTreeForSideChainTransactionRoots, Config.ChainId, block.Header.Index);
+            if (block.Body.IndexedInfo.Count > 0)
+                _binaryMerkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
+                    block.Body.BinaryMerkleTreeForSideChainTransactionRoots, Config.ChainId, block.Header.Index);
         }
 
         /// <summary>

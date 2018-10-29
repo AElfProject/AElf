@@ -113,9 +113,12 @@ namespace AElf.Synchronization.Tests
             var hash = txPrint.GetHash();
 
             var signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txPrint.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txPrint.R = ByteString.CopyFrom(signature.R);
-            txPrint.S = ByteString.CopyFrom(signature.S);
+            txPrint.Sig = new Signature
+            {
+                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
+                R = ByteString.CopyFrom(signature.R),
+                S = ByteString.CopyFrom(signature.S)
+            };
 
             var txs = new List<Transaction>
             {

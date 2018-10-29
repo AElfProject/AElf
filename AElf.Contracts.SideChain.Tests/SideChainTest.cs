@@ -110,9 +110,12 @@ namespace AElf.Contracts.SideChain.Tests
                 From = Address.FromString("1"),
                 To = Address.FromString("2"),
                 MethodName = "test",
-                P = ByteString.Empty,
+                Sig = new Signature
+                {
+                    P = ByteString.Empty,
+                    R = ByteString.Empty,
+                },
                 Params = ByteString.Empty,
-                R = ByteString.Empty,
                 RefBlockNumber = 0,
                 RefBlockPrefix = ByteString.Empty
             };

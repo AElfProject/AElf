@@ -15,11 +15,11 @@ namespace AElf.Synchronization.BlockExecution
 
         // Haven't appended yet
         IncorrectStateMerkleTree = 11,
+        InvalidSideChainInfo,
+        InvalidParentChainBlockInfo,
         ExecutionCancelled = 51,
         BlockIsNull,
         NoTransaction,
-        InvalidSideChainInfo,
-        InvalidParentChainBlockInfo,
         TooManyTxsForParentChainBlock,
         NotExecuted,
 
