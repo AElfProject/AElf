@@ -11,6 +11,7 @@ using AElf.Kernel.Managers;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using AElf.Types.CSharp;
+using Akka.Dispatch.SysMsg;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
@@ -88,10 +89,12 @@ namespace AElf.Synchronization.BlockExecution
             }
             catch (Exception e)
             {
-                if (e is InvalidBlockException)
+                BlockExecutionResult res = BlockExecutionResult.Failed;
+                if (e is InvalidCrossChainInfoException i)
                 {
-                    _logger?.Warn(e, "Exception while execute block.");
-                }
+                    _logger?.Warn($"Exception while execute block. {e.Message}");
+                    res = i.Result;
+;               }
                 else
                 {
                     _logger?.Error(e, "Exception while execute block.");
@@ -100,7 +103,7 @@ namespace AElf.Synchronization.BlockExecution
                 // TODO, no wait may need improve
                 Rollback(block, txnRes).ConfigureAwait(false);
 
-                return BlockExecutionResult.Failed;
+                return res;
             }
         }
 
@@ -172,7 +175,7 @@ namespace AElf.Synchronization.BlockExecution
                 errorLog = "ExecuteBlock - Transaction list is empty.";
                 res = BlockExecutionResult.NoTransaction;
             }
-            else if (!await ValidateSideChainBlockInfo(block))
+            else if (!ValidateSideChainBlockInfo(block))
             {
                 // side chain info verification 
                 // side chain info in this block cannot fit together with local side chain info.
@@ -193,7 +196,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns>
         /// Return true if side chain info is consistent with local node, else return false;
         /// </returns>
-        private async Task<bool> ValidateSideChainBlockInfo(IBlock block)
+        private bool ValidateSideChainBlockInfo(IBlock block)
         {
             return block.Body.IndexedInfo.All(_clientManager.CheckSideChainBlockInfo);
         }
@@ -203,6 +206,7 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
+        /// <exception cref="InvalidCrossChainInfoException"></exception>
         private async Task<Tuple<BlockExecutionResult, List<Transaction>>> CollectTransactions(IBlock block)
         {
             string errorLog = null;
@@ -237,7 +241,7 @@ namespace AElf.Synchronization.BlockExecution
             }
 
             if (res.IsFailed())
-                throw new InvalidBlockException(errorLog);
+                throw new InvalidCrossChainInfoException(errorLog, BlockExecutionResult.InvalidParentChainBlockInfo);
 
             return new Tuple<BlockExecutionResult, List<Transaction>>(res, readyTxs);
         }
@@ -245,7 +249,6 @@ namespace AElf.Synchronization.BlockExecution
         /// <summary>
         /// Validate parent chain block info.
         /// </summary>
-        /// <param name="transaction">System transaction with parent chain block info.</param>
         /// <returns>
         /// Return false if validation failed and then that block execution would fail.
         /// </returns>
@@ -263,15 +266,15 @@ namespace AElf.Synchronization.BlockExecution
                 if (cached.Equals(parentBlockInfo))
                     return true;
 
-                _logger.Warn($"Cached parent block info is {cached}");
-                _logger.Warn($"Parent block info in transaction is {parentBlockInfo}");
+                _logger.Trace($"Cached parent block info is {cached}");
+                _logger.Trace($"Parent block info in transaction is {parentBlockInfo}");
                 return false;
             }
             catch (Exception e)
             {
                 if (e is ClientShutDownException)
                     return true;
-                _logger.Error(e, "Parent chain block info validation failed.");
+                _logger.Warn("Parent chain block info validation failed.");
                 return false;
             }
         }
@@ -338,7 +341,7 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidBlockException"></exception>
+        /// <exception cref="InvalidCrossChainInfoException"></exception>
         private async Task UpdateSideChainInfo(IBlock block)
         {
             await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
@@ -351,14 +354,14 @@ namespace AElf.Synchronization.BlockExecution
             {
                 if (!await _clientManager.TryUpdateAndRemoveSideChainBlockInfo(blockInfo))
                     // Todo: _clientManager would be chaos if this happened.
-                    throw new InvalidBlockException(
-                        "Inconsistent side chain info. Something about side chain would be chaos if you see this. ");
+                    throw new InvalidCrossChainInfoException(
+                        "Inconsistent side chain info. Something about side chain would be chaos if you see this. ", BlockExecutionResult.InvalidSideChainInfo);
             }
 
             // update parent chain info
             if (!await _clientManager.UpdateParentChainBlockInfo(block.ParentChainBlockInfo))
-                throw new InvalidBlockException(
-                    "Inconsistent parent chain info. Something about parent chain would be chaos if you see this. ");
+                throw new InvalidCrossChainInfoException(
+                    "Inconsistent parent chain info. Something about parent chain would be chaos if you see this. ", BlockExecutionResult.InvalidSideChainInfo);
         }
 
         #endregion
@@ -392,11 +395,13 @@ namespace AElf.Synchronization.BlockExecution
         }
     }
 
-    internal class InvalidBlockException : Exception
+    internal class InvalidCrossChainInfoException : Exception
     {
-        public InvalidBlockException(string message) : base(message)
-        {
+        public BlockExecutionResult Result { get;}
 
+        public InvalidCrossChainInfoException(string message, BlockExecutionResult result) : base(message)
+        {
+            Result = result;
         }
     }
 }
