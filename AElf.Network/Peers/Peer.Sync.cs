@@ -35,13 +35,12 @@ namespace AElf.Network.Peers
         public int MaxRequestRetries { get; set; } = 2;
 
         private object _blockLock = new object();
-        private List<PendingBlock> _blocks { get; set; }
+        private readonly List<PendingBlock> _blocks;
 
         private object _blockReqLock = new object();
         private List<TimedBlockRequest> _blockRequests;
             
         public event EventHandler SyncFinished;
-        public event EventHandler RequestTimedOut;
         
         private int _peerHeight = 0;
 
@@ -201,6 +200,14 @@ namespace AElf.Network.Peers
             
             MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
         }
+        
+        public void RequestHeaders(int headerIndex, int headerRequestCount)
+        {
+            BlockHeaderRequest hReq = new BlockHeaderRequest { Height = headerIndex - 1, Count = headerRequestCount };
+            Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.HashRequest, hReq.ToByteArray());
+
+            EnqueueOutgoing(message);
+        }
 
         private void RequestBlockByIndex(int index)
         {
@@ -267,8 +274,6 @@ namespace AElf.Network.Peers
                 }
                 else
                 {
-                    // todo RequestTimedOut?.Invoke(this, req)
-                    
                     lock (_blockReqLock)
                     {
                         _blockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));

@@ -14,6 +14,7 @@
         RequestBlock,
         Block,
         
-        Announcement
+        Announcement,
+        HashRequest
     }
 }

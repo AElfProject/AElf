@@ -11,7 +11,6 @@ using AElf.Common.Collections;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
-using AElf.Miner.TxMemPool;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -33,6 +32,7 @@ namespace AElf.Node.Protocol
     {
         #region Settings
 
+        public const int DefaultHeaderRequestCount = 3;
         public const int DefaultMaxBlockHistory = 15;
         public const int DefaultMaxTransactionHistory = 20;
         
@@ -158,9 +158,23 @@ namespace AElf.Node.Protocol
                     SetSyncState(false);
             });
 
-            MessageHub.Instance.Subscribe<UnlinkableHeader>(header =>
+            MessageHub.Instance.Subscribe<UnlinkableHeader>(unlinkableHeaderMsg =>
             {
+                if (unlinkableHeaderMsg?.Header == null)
+                {
+                    _logger?.Warn("[event] message or header null.");
+                    return;
+                }
                 
+                IPeer target = CurrentSyncSource ?? _peers.FirstOrDefault(p => p.KnownHeight >= (int)unlinkableHeaderMsg.Header.Index);
+
+                if (target == null)
+                {
+                    _logger?.Warn("[event] no peers to sync from.");
+                    return;
+                }
+
+                target.RequestHeaders((int)unlinkableHeaderMsg.Header.Index, DefaultHeaderRequestCount);
             });
 
             MessageHub.Instance.Subscribe<HeaderAccepted>(header =>
