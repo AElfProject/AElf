@@ -83,7 +83,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 _logger?.Info($"Executed block {block.GetHash()}");
 
-                return result;
+                return BlockExecutionResult.Success;
             }
             catch (Exception e)
             {

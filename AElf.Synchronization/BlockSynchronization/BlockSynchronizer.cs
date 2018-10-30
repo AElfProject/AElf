@@ -153,24 +153,25 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // No need to rollback:
                 // Receive again to execute the same block.
-                var reExecutionResult = BlockExecutionResult.Failed;
                 var index = message.Block.Index;
                 if (!_minedBlock)
                 {
-                    while (reExecutionResult != BlockExecutionResult.Success && !_blockSet.MultipleBlocksInOneIndex(index))
+                    BlockExecutionResult reExecutionResult;
+                    do
                     {
                         var reValidationResult = _blockValidationService.ValidatingOwnBlock(false)
                             .ValidateBlockAsync(message.Block, await GetChainContextAsync()).Result;
-                        if (reValidationResult != BlockValidationResult.Success)
+                        if (reValidationResult.IsFailed())
                         {
                             break;
                         }
+
                         reExecutionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
-                    }
-                    if (reExecutionResult != BlockExecutionResult.Success)
-                    {
-                        return reExecutionResult;
-                    }
+                        if (_blockSet.MultipleBlocksInOneIndex(index))
+                        {
+                            return reExecutionResult;
+                        }
+                    } while (reExecutionResult.IsFailed());
                 }
                 else
                 {
@@ -180,6 +181,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             _blockSet.Tell(message.Block);
 
+            _logger?.Trace("Will notify network layer this block already executed.");
             // Notify the network layer the block has been executed.
             MessageHub.Instance.Publish(message);
 
