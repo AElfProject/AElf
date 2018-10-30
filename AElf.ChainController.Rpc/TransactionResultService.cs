@@ -10,12 +10,12 @@ namespace AElf.ChainController.Rpc
     public class TransactionResultService : ITransactionResultService
     {
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly ITxPool _txPool;
+        private readonly ITxHub _txHub;
         private readonly Dictionary<Hash, TransactionResult> _cacheResults = new Dictionary<Hash, TransactionResult>();
 
-        public TransactionResultService(ITxPool txPool, ITransactionResultManager transactionResultManager)
+        public TransactionResultService(ITxHub txHub, ITransactionResultManager transactionResultManager)
         {
-            _txPool = txPool;
+            _txHub = txHub;
             _transactionResultManager = transactionResultManager;
         }
 
@@ -38,7 +38,7 @@ namespace AElf.ChainController.Rpc
             }
 
             // in tx pool
-            if (_txPool.TryGetTx(txId, out var tx))
+            if (_txHub.TryGetTx(txId, out var tx))
             {
                 return new TransactionResult
                 {

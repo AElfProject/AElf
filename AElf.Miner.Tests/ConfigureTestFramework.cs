@@ -1,11 +1,13 @@
 ﻿using AElf.ChainController;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using AElf.Synchronization.BlockSynchronization;
@@ -28,6 +30,9 @@ namespace AElf.Miner.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
+            NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
+            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
+
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterType<DataStore>().As<IDataStore>();
@@ -38,7 +43,10 @@ namespace AElf.Miner.Tests
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>().SingleInstance();
             builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>().SingleInstance();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
+            builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>().SingleInstance();
             builder.RegisterType<StateStore>().As<IStateStore>();
+            builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
+            builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
         }
     }
 }

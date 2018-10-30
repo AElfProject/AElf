@@ -4,6 +4,7 @@ using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockSynchronization;
 using Autofac;
 using Xunit;
@@ -34,6 +35,9 @@ namespace AElf.Synchronization.Tests
             builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>().SingleInstance();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
             builder.RegisterType<StateStore>().As<IStateStore>();
+            builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
+            builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
+            builder.RegisterType<TxHub>().As<ITxHub>();
         }
     }
 }

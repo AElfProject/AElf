@@ -159,17 +159,8 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
         {
-            if (s.TxPool.TryGetTx(txId, out var tx))
-            {
-                return tx;
-            }
-
-            return await s.TransactionManager.GetTransaction(txId);
-        }
-
-        internal static ITransactionHolderView GetTransactionHolder(this Svc s, Hash txId)
-        {
-            return s.TxHub.GetTxHolderView(txId);
+            var r = await s.TxHub.GetReceiptAsync(txId);
+            return r?.Transaction;
         }
 
         internal static async Task<TransactionResult> GetTransactionResult(this Svc s, Hash txHash)
@@ -216,20 +207,20 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetTransactionPoolSize(this Svc s)
         {
-            return await s.TxPool.GetPoolSize();
+            return (ulong)(await s.TxHub.GetReceiptsOfExecutablesAsync()).Count;
         }
 
         internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
         {
-            s.TxPool.SetBlockVolume(minimal, maximal);
+            // TODO: Maybe control this in miner
+//            s.TxPool.SetBlockVolume(minimal, maximal);
         }
 
         internal static async Task<byte[]> CallReadOnly(this Svc s, Transaction tx)
         {
             var trace = new TransactionTrace
             {
-                TransactionId = tx.GetHash(),
-                Transaction = tx
+                TransactionId = tx.GetHash()
             };
 
             var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));

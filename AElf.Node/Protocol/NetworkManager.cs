@@ -52,7 +52,7 @@ namespace AElf.Node.Protocol
         public event EventHandler BlockReceived;
         public event EventHandler TransactionsReceived;
 
-        private readonly ITxPool _txPool;
+        private readonly ITxHub _txHub;
         private readonly IPeerManager _peerManager;
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
@@ -75,12 +75,12 @@ namespace AElf.Node.Protocol
         
         private Hash _chainId;
 
-        public NetworkManager(ITxPool txPool, IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
+        public NetworkManager(ITxHub txHub, IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _pendingRequests = new List<TimeoutRequest>();
 
-            _txPool = txPool;
+            _txHub = txHub;
             _peerManager = peerManager;
             _chainService = chainService;
             _logger = logger;

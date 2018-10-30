@@ -12,13 +12,13 @@ namespace AElf.Kernel.Node
     {
         private ulong ConsensusMemory { get; set; }
         private readonly ILogger _logger;
-        private readonly ITxPool _txPool;
+        private readonly ITxHub _txHub;
         private readonly IMiner _miner;
 
-        public PoTC(IMiner miner, ITxPool txPool)
+        public PoTC(IMiner miner, ITxHub txHub)
         {
             _miner = miner;
-            _txPool = txPool;
+            _txHub = txHub;
 
             _logger = LogManager.GetLogger(nameof(PoTC));
         }
@@ -48,7 +48,7 @@ namespace AElf.Kernel.Node
         {
             while (true)
             {
-                var count = await _txPool.GetPoolSize();
+                var count = (ulong)(await _txHub.GetReceiptsOfExecutablesAsync()).Count;
                 if (ConsensusMemory != count)
                 {
                     _logger?.Trace($"Current tx pool size: {count} / {GlobalConfig.ExpectedTransactionCount}");

@@ -30,12 +30,10 @@ namespace AElf.ChainController.Rpc
         public IChainService ChainService { get; set; }
         public IChainContextService ChainContextService { get; set; }
         public IChainCreationService ChainCreationService { get; set; }
-        public ITxPool TxPool { get; set; }
-        public ITransactionManager TransactionManager { get; set; }
+        public ITxHub TxHub { get; set; }
         public ITransactionResultService TransactionResultService { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractService SmartContractService { get; set; }
-        public TxHub TxHub { get; set; }
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfo CrossChainInfo { get; set; }
 
@@ -208,22 +206,23 @@ namespace AElf.ChainController.Rpc
                 return await Task.FromResult(res);
             }
             
-            try
-            {
-                var valRes = await TxPool.AddTxAsync(transaction);
-                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
-                {
-                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
-                }
-                else
-                {
-                    res["error"] = valRes.ToString();
-                }
-            }
-            catch (Exception e)
-            {
-                res["error"] = e.ToString();
-            }
+//            try
+//            {
+            // TODO: Wait validation done
+                await TxHub.AddTransactionAsync(transaction);
+//                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
+//                {
+//                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
+//                }
+//                else
+//                {
+//                    res["error"] = valRes.ToString();
+//                }
+//            }
+//            catch (Exception e)
+//            {
+//                res["error"] = e.ToString();
+//            }
 
             return await Task.FromResult(res);
         }
@@ -361,7 +360,6 @@ namespace AElf.ChainController.Rpc
             try
             {
                 var transaction = await this.GetTransaction(txHash);
-                var txnStatus = this.GetTransactionHolder(txHash)?.Status;
 
                 var txInfo = transaction == null
                     ? new JObject {["tx"] = "Not Found"}
@@ -373,7 +371,6 @@ namespace AElf.ChainController.Rpc
                 var txResult = await this.GetTransactionResult(txHash);
                 var response = new JObject
                 {
-                    ["tx_s"] = txnStatus?.ToString(),
                     ["tx_status"] = txResult.Status.ToString(),
                     ["tx_info"] = txInfo["tx"]
                 };

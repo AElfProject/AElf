@@ -14,8 +14,20 @@ namespace AElf.Kernel.Managers
         private readonly ILightChain _lightChain;
         private int _filling;
         private readonly ILogger _logger;
-        
-        public ulong CurrentHeight { get; private set; }
+        private ulong _currentHeight;
+
+        public ulong CurrentHeight
+        {
+            get
+            {
+                if (_currentHeight == default(ulong))
+                {
+                    RecoverCurrent().Wait();
+                }
+
+                return _currentHeight;
+            }
+        }
 
         private bool _doingRollback;
 
@@ -27,9 +39,12 @@ namespace AElf.Kernel.Managers
             _logger = logger;
             MessageHub.Instance.Subscribe<BlockHeader>(
                 async h => await OnNewBlockHeader(h));
-            MessageHub.Instance.Subscribe<RevertedToBlockHeader>(
-                async r => await OnNewBlockHeader(r.BlockHeader));
+
+            MessageHub.Instance.Subscribe<BranchRolledBack>(
+                async r => await RecoverCurrent());
+
             MessageHub.Instance.Subscribe<RollBackStateChanged>(state => _doingRollback = state.DoingRollback);
+
         }
 
         public Hash GetHashByHeight(ulong height)
@@ -73,7 +88,7 @@ namespace AElf.Kernel.Managers
                 AddToBlocks(height, header.GetHash());
             }
 
-            CurrentHeight = height;
+            _currentHeight = height;
             await MaybeFillBlocks();
         }
 
@@ -91,7 +106,7 @@ namespace AElf.Kernel.Managers
 
         private async Task MaybeFillBlocks()
         {
-            var height = CurrentHeight;
+            var height = _currentHeight;
             if (Interlocked.CompareExchange(ref _filling, 1, 0) == 0)
             {
                 for (var i = (ulong) 1; i <= Math.Max(GlobalConfig.ReferenceBlockValidPeriod, height); i++)
@@ -113,9 +128,14 @@ namespace AElf.Kernel.Managers
 
         private async Task RecoverCurrent()
         {
+            _blocks.Clear();
             var curHeight = await _lightChain.GetCurrentBlockHeightAsync();
             var curHeader = await _lightChain.GetHeaderByHeightAsync(curHeight);
-            await OnNewBlockHeader((BlockHeader) curHeader);
+            if (curHeader != null)
+            {
+                await OnNewBlockHeader((BlockHeader) curHeader);    
+            }
+            // TODO: curHeader should never be null, so maybe exception needs to be thrown
         }
     }
 }
