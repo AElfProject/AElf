@@ -179,7 +179,21 @@ namespace AElf.Node.Protocol
 
             MessageHub.Instance.Subscribe<HeaderAccepted>(header =>
             {
-                ;
+                if (header?.Header == null)
+                {
+                    _logger?.Warn("[event] message or header null.");
+                    return;
+                }
+                
+                IPeer target = CurrentSyncSource ?? _peers.FirstOrDefault(p => p.KnownHeight >= (int)header.Header.Index);
+                
+                if (target == null)
+                {
+                    _logger?.Warn("[event] no peers to sync from.");
+                    return;
+                }
+                
+                StartSync(target, (int) header.Header.Index, target.KnownHeight);
             });
 
             MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
