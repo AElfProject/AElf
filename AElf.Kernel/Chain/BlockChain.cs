@@ -56,6 +56,8 @@ namespace AElf.Kernel
         private async Task AddBlockAsync(IBlock block)
         {
             await AddHeaderAsync(block.Header);
+            // TODO: This will be problematic if the block is used somewhere else after this method
+            block.Body.TransactionList.Clear();
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         }
 
@@ -102,6 +104,7 @@ namespace AElf.Kernel
                 return txs;
             }
 
+            var blocks = new List<Block>();
             for (var i = currentHeight; i > height; i--)
             {
                 var block = await GetBlockByHeightAsync(i);
@@ -115,14 +118,16 @@ namespace AElf.Kernel
                 var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
                 await _dataStore.RemoveAsync<Hash>(h);
                 await RollbackStateForBlock(block);
+                blocks.Add((Block)block);
             }
+
+            blocks.Reverse();
 
             var hash = await GetCanonicalHashAsync(height);
 
             await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
-            MessageHub.Instance.Publish(
-                new RevertedToBlockHeader((BlockHeader) await GetHeaderByHashAsync(currentHash)));
-            
+
+            MessageHub.Instance.Publish(new BranchRolledBack(blocks));
             _logger?.Trace("Finished rollback to " + height);
 
             return txs;

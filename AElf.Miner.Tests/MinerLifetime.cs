@@ -206,7 +206,7 @@ namespace AElf.Kernel.Tests.Miner
             var txs = CreateTx(chain.Id);
             foreach (var tx in txs)
             {
-                await txPool.AddTxAsync(tx);
+                await txPool.AddTransactionAsync(tx);
             }
             
             var manager = _mock.MinerClientManager();
@@ -256,7 +256,7 @@ namespace AElf.Kernel.Tests.Miner
 
             blockExecutor.Init();
             var res = await blockExecutor.ExecuteBlock(block);
-            Assert.Equal(BlockExecutionResult.Failed, res);
+            Assert.NotEqual(BlockExecutionResult.Success, res);
 
             var blockchain = _mock.GetBlockChain(chain.Id); 
             var curHash = await blockchain.GetCurrentBlockHashAsync();

@@ -6,6 +6,7 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AElf.Miner.TxMemPool;
 using AElf.SmartContract;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
@@ -28,10 +29,11 @@ namespace AElf.Synchronization.Tests
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private IFunctionMetadataService _functionMetadataService;
         private IExecutingService _concurrencyExecutingService;
+        private ITxHub _txHub;
 
         private IBlockSynchronizer _blockSynchronizer;
 
-        public MockSetup(IDataStore dataStore, IStateStore stateStore)
+        public MockSetup(IDataStore dataStore, IStateStore stateStore, ITxHub txHub)
         {
             _dataStore = dataStore;
             _stateStore = stateStore;
@@ -45,6 +47,7 @@ namespace AElf.Synchronization.Tests
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateStore,
                     _functionMetadataService), _transactionTraceManager, _stateStore,
                 new ChainContextService(GetChainService()));
+            _txHub = txHub;
         }
 
         public IBlockSynchronizer GetBlockSynchronizer()
@@ -97,7 +100,7 @@ namespace AElf.Synchronization.Tests
         public IBlockExecutor GetBlockExecutor()
         {
             return new BlockExecutor(GetChainService(), _concurrencyExecutingService, 
-                _transactionManager, _transactionResultManager, null, null);
+                _transactionResultManager, null, null, _txHub);
         }
     }
 }

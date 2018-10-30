@@ -122,8 +122,8 @@ namespace AElf.Kernel
                 if (curHash.IsNull())
                 {
                     await _chainManager.AddChainAsync(_chainId, header.GetHash());
-                    return;
                 }
+                return;
             }
 
             #endregion genesis
