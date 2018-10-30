@@ -158,6 +158,16 @@ namespace AElf.Node.Protocol
                     SetSyncState(false);
             });
 
+            MessageHub.Instance.Subscribe<UnlinkableHeader>(header =>
+            {
+                
+            });
+
+            MessageHub.Instance.Subscribe<HeaderAccepted>(header =>
+            {
+                ;
+            });
+
             MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
             {
                 _peerManager.Start();

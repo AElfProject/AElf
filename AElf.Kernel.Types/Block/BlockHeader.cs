@@ -1,9 +1,6 @@
-﻿using System;
-using System.Security.Cryptography;
-using AElf.Cryptography.ECDSA;
+﻿using AElf.Cryptography.ECDSA;
 using AElf.Common;
 using Google.Protobuf;
-using Org.BouncyCastle.Math;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
