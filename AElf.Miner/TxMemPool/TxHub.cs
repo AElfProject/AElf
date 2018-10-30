@@ -12,11 +12,13 @@ using AElf.Kernel.Managers;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using Easy.MessageHub;
+using NLog;
 
 namespace AElf.Miner.TxMemPool
 {
     public class TxHub : ITxHub
     {
+        private readonly ILogger _logger = LogManager.GetLogger(nameof(TxHub));
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionReceiptManager _receiptManager;
         private readonly ITxSignatureVerifier _signatureVerifier;
@@ -91,13 +93,14 @@ namespace AElf.Miner.TxMemPool
             // if the transaction is in TransactionManager, it is either executed or added into _allTxns
             if (txn != null && !txn.Equals(new Transaction()))
             {
-                throw new Exception("Transaction already exists.");
+                _logger?.Warn($"Transaction {transaction.GetHash()} already exists.");
+                return;
             }
 
             if (!_allTxns.TryAdd(tr.TransactionId, tr))
             {
-                // Add failed, transaction exists already
-                throw new Exception("Transaction already exists.");
+                _logger?.Warn($"Transaction {transaction.GetHash()} already exists.");
+                return;
             }
 
             IdentifyTransactionType(tr);
