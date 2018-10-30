@@ -93,13 +93,13 @@ namespace AElf.Miner.TxMemPool
             // if the transaction is in TransactionManager, it is either executed or added into _allTxns
             if (txn != null && !txn.Equals(new Transaction()))
             {
-                _logger?.Warn($"Transaction {transaction.GetHash()} already exists.");
+                // _logger?.Warn($"Transaction {transaction.GetHash()} already exists.");
                 return;
             }
 
             if (!_allTxns.TryAdd(tr.TransactionId, tr))
             {
-                _logger?.Warn($"Transaction {transaction.GetHash()} already exists.");
+                // _logger?.Warn($"Transaction {transaction.GetHash()} already exists.");
                 return;
             }
 
