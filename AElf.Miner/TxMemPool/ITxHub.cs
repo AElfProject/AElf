@@ -14,6 +14,9 @@ namespace AElf.Miner.TxMemPool
         Task<TransactionReceipt> GetReceiptAsync(Hash txId);
 
         bool TryGetTx(Hash txId, out Transaction tx);
+
+        void Initialize();
+        
         /// <summary>
         /// open transaction pool
         /// </summary>

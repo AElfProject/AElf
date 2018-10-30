@@ -58,10 +58,14 @@ namespace AElf.Miner.TxMemPool
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
 
+        }
+
+        public void Initialize()
+        {
             MessageHub.Instance.Subscribe<TransactionsExecuted>(OnTransactionsExecuted);
             MessageHub.Instance.Subscribe<BlockHeader>(OnNewBlockHeader);
             MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
-                await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
+                await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));            
         }
 
         public void Start()

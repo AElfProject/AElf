@@ -199,6 +199,7 @@ namespace AElf.Node.AElfChain
                     _consensus?.Start();
                 }
             });
+            _txHub.Initialize();
         }
 
         public bool Start()
