@@ -14,8 +14,20 @@ namespace AElf.Kernel.Managers
         private readonly ILightChain _lightChain;
         private int _filling;
         private readonly ILogger _logger;
-        
-        public ulong CurrentHeight { get; private set; }
+        private ulong _currentHeight;
+
+        public ulong CurrentHeight
+        {
+            get
+            {
+                if (_currentHeight == default(ulong))
+                {
+                    RecoverCurrent().Wait();
+                }
+
+                return _currentHeight;
+            }
+        }
 
         private bool _doingRollback;
 
@@ -76,7 +88,7 @@ namespace AElf.Kernel.Managers
                 AddToBlocks(height, header.GetHash());
             }
 
-            CurrentHeight = height;
+            _currentHeight = height;
             await MaybeFillBlocks();
         }
 
@@ -94,7 +106,7 @@ namespace AElf.Kernel.Managers
 
         private async Task MaybeFillBlocks()
         {
-            var height = CurrentHeight;
+            var height = _currentHeight;
             if (Interlocked.CompareExchange(ref _filling, 1, 0) == 0)
             {
                 for (var i = (ulong) 1; i <= Math.Max(GlobalConfig.ReferenceBlockValidPeriod, height); i++)
