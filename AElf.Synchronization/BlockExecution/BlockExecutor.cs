@@ -78,12 +78,10 @@ namespace AElf.Synchronization.BlockExecution
 
                 await UpdateSideChainInfo(block);
 
-                //Need-to-rollback boundary
-
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
 
-                _logger?.Info($"Execute block {block.GetHash()}");
+                _logger?.Info($"Executed block {block.GetHash()}");
 
                 return result;
             }
@@ -209,7 +207,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <exception cref="InvalidCrossChainInfoException"></exception>
         private async Task<Tuple<BlockExecutionResult, List<Transaction>>> CollectTransactions(IBlock block)
         {
-            string errorLog = null;
+            //string errorLog = null;
             var res = BlockExecutionResult.CollectTransactionsSuccess;
             var txs = block.Body.TransactionList.ToList();
             var readyTxs = new List<Transaction>();
@@ -222,7 +220,7 @@ namespace AElf.Synchronization.BlockExecution
                         new[] {typeof(ParentChainBlockInfo)})[0];
                     if (!await ValidateParentChainBlockInfoTransaction(parentBlockInfo))
                     {
-                        errorLog = "Invalid parent chain block info.";
+                        //errorLog = "Invalid parent chain block info.";
                         res = BlockExecutionResult.InvalidParentChainBlockInfo;
                         break;
                     }
@@ -237,11 +235,8 @@ namespace AElf.Synchronization.BlockExecution
             if (res.IsSuccess() && readyTxs.Count(t => t.Type == TransactionType.CrossChainBlockInfoTransaction) > 1)
             {
                 res = BlockExecutionResult.TooManyTxsForParentChainBlock;
-                errorLog = "More than one transaction to record parent chain block info.";
+                //errorLog = "More than one transaction to record parent chain block info.";
             }
-
-            if (res.IsFailed())
-                throw new InvalidCrossChainInfoException(errorLog, BlockExecutionResult.InvalidParentChainBlockInfo);
 
             return new Tuple<BlockExecutionResult, List<Transaction>>(res, readyTxs);
         }
