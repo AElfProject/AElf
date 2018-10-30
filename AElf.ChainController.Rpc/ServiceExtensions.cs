@@ -159,12 +159,8 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
         {
-            if (s.TxHub.TryGetTx(txId, out var tx))
-            {
-                return tx;
-            }
-
-            return await s.TransactionManager.GetTransaction(txId);
+            var r = await s.TxHub.GetReceiptAsync(txId);
+            return r?.Transaction;
         }
 
         internal static async Task<TransactionResult> GetTransactionResult(this Svc s, Hash txHash)
