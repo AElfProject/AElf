@@ -279,11 +279,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private void RollbackToHeight(ulong targetHeight, ulong currentHeight)
         {
-            MessageHub.Instance.Publish(new RollBackStateChanged(true));
             var task = BlockChain.RollbackToHeight(targetHeight - 1);
             task.Wait();
             _blockSet.InformRollback(targetHeight, currentHeight);
-            MessageHub.Instance.Publish(new RollBackStateChanged(false));
             MessageHub.Instance.Publish(new SyncUnfinishedBlock(targetHeight));
         }
 

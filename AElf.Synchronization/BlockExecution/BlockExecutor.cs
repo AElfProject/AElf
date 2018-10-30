@@ -260,7 +260,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 if (cached.Equals(parentBlockInfo))
                     return true;
-
+                
                 _logger.Trace($"Cached parent block info is {cached}");
                 _logger.Trace($"Parent block info in transaction is {parentBlockInfo}");
                 return false;
