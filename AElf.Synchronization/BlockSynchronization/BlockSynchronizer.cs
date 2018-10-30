@@ -154,29 +154,24 @@ namespace AElf.Synchronization.BlockSynchronization
                 // No need to rollback:
                 // Receive again to execute the same block.
                 var index = message.Block.Index;
-                if (!_minedBlock)
+                
+                // TODO: block verification mechanism 
+                BlockExecutionResult reExecutionResult;
+                do
                 {
-                    BlockExecutionResult reExecutionResult;
-                    do
+                    var reValidationResult = _blockValidationService.ValidatingOwnBlock(false)
+                        .ValidateBlockAsync(message.Block, await GetChainContextAsync()).Result;
+                    if (reValidationResult.IsFailed())
                     {
-                        var reValidationResult = _blockValidationService.ValidatingOwnBlock(false)
-                            .ValidateBlockAsync(message.Block, await GetChainContextAsync()).Result;
-                        if (reValidationResult.IsFailed())
-                        {
-                            break;
-                        }
+                        break;
+                    }
 
-                        reExecutionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
-                        if (_blockSet.MultipleBlocksInOneIndex(index))
-                        {
-                            return reExecutionResult;
-                        }
-                    } while (reExecutionResult.IsFailed());
-                }
-                else
-                {
-                    return executionResult;
-                }
+                    reExecutionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
+                    if (_blockSet.MultipleBlocksInOneIndex(index))
+                    {
+                        return reExecutionResult;
+                    }
+                } while (reExecutionResult.IsFailed());
             }
 
             _blockSet.Tell(message.Block);
