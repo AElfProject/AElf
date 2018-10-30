@@ -195,7 +195,7 @@ namespace AElf.Node.Protocol
                 return;
             
             _isSyncing = newState;
-            MessageHub.Instance.Publish(new SyncStateChanged(newState));
+            Task.Run(() => MessageHub.Instance.Publish(new SyncStateChanged(newState)));
             
             _logger?.Trace($"Sync state changed {_isSyncing}.");
         }
@@ -363,15 +363,31 @@ namespace AElf.Node.Protocol
                 case AElfProtocolMsgType.NewTransaction:
                     HandleNewTransaction(msgType, args.Message, args.Peer);
                     break;
+                case AElfProtocolMsgType.Headers:
+                    HandleHeaders(msgType, args.Message, args.Peer);
+                    break;
             }
             
             // Re-fire the event for higher levels if needed.
             BubbleMessageReceivedEvent(args);
         }
-        
+
         private void BubbleMessageReceivedEvent(PeerMessageReceivedArgs args)
         {
             MessageReceived?.Invoke(this, new NetMessageReceivedEventArgs(args.Message, args));
+        }
+        
+        private void HandleHeaders(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        {
+            try
+            {
+                BlockHeaderList blockHeaders = BlockHeaderList.Parser.ParseFrom(msg.Payload);
+                Task.Run(() => MessageHub.Instance.Publish(new HeadersReceived(blockHeaders.Headers.ToList()))).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while handling header list.");
+            }
         }
 
         private void HandleTransactionsMessage(AElfProtocolMsgType msgType, Message msg, Peer peer)
@@ -435,7 +451,7 @@ namespace AElf.Node.Protocol
 
                 _lastTxReceived.Enqueue(txHash);
                 
-                MessageHub.Instance.Publish(new TxReceived(tx));
+                Task.Run(() => MessageHub.Instance.Publish(new TxReceived(tx))).ConfigureAwait(false);
             }
             catch (Exception e)
             {

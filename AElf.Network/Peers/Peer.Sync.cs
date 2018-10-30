@@ -204,7 +204,7 @@ namespace AElf.Network.Peers
         public void RequestHeaders(int headerIndex, int headerRequestCount)
         {
             BlockHeaderRequest hReq = new BlockHeaderRequest { Height = headerIndex - 1, Count = headerRequestCount };
-            Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.HashRequest, hReq.ToByteArray());
+            Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.HeaderRequest, hReq.ToByteArray());
 
             EnqueueOutgoing(message);
         }

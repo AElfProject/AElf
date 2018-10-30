@@ -15,6 +15,8 @@
         Block,
         
         Announcement,
-        HashRequest
+        
+        HeaderRequest,
+        Headers
     }
 }

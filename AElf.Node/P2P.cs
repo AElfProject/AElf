@@ -53,7 +53,7 @@ namespace AElf.Node
                     {
                         await HandleTxRequest(message, args.PeerMessage);
                     }
-                    else if (msgType == AElfProtocolMsgType.HashRequest)
+                    else if (msgType == AElfProtocolMsgType.HeaderRequest)
                     {
                         await HandleHashRequest(message, args.PeerMessage);
                     }
