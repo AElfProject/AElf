@@ -37,6 +37,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private const ulong Limit = 256;
 
+        private bool _minedBlock;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -117,6 +119,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 _logger?.Trace("Set the limit of the branched blocks cache in block set to " + Limit);
                 _blockSet.KeepHeight = Limit;
             }
+
+            _minedBlock = true;
         }
 
         private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)
@@ -150,24 +154,27 @@ namespace AElf.Synchronization.BlockSynchronization
                 // No need to rollback:
                 // Receive again to execute the same block.
                 var reExecutionResult = BlockExecutionResult.Failed;
-                var power = 0;
                 var index = message.Block.Index;
-                while (reExecutionResult != BlockExecutionResult.Success && power < 11 &&
-                       !_blockSet.MultipleBlocksInOneIndex(index))
+                if (!_minedBlock)
                 {
-                    var reValidationResult = _blockValidationService.ValidatingOwnBlock(false)
-                        .ValidateBlockAsync(message.Block, await GetChainContextAsync()).Result;
-                    if (reValidationResult != BlockValidationResult.Success)
+                    while (reExecutionResult != BlockExecutionResult.Success && !_blockSet.MultipleBlocksInOneIndex(index))
                     {
-                        break;
+                        var reValidationResult = _blockValidationService.ValidatingOwnBlock(false)
+                            .ValidateBlockAsync(message.Block, await GetChainContextAsync()).Result;
+                        if (reValidationResult != BlockValidationResult.Success)
+                        {
+                            break;
+                        }
+                        reExecutionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
                     }
-                    reExecutionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
-                    Thread.Sleep((int) Math.Pow(2, power++));
+                    if (reExecutionResult != BlockExecutionResult.Success)
+                    {
+                        return reExecutionResult;
+                    }
                 }
-
-                if (reExecutionResult != BlockExecutionResult.Success)
+                else
                 {
-                    return reExecutionResult;
+                    return executionResult;
                 }
             }
 
