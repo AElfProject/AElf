@@ -33,7 +33,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private bool _receivedBranchedBlock;
 
-        private const ulong Limit = 256;
+        private const ulong Limit = 64;
 
         private bool _minedBlock;
 
@@ -67,7 +67,19 @@ namespace AElf.Synchronization.BlockSynchronization
 
             MessageHub.Instance.Subscribe<HeadersReceived>(async inHeaders =>
             {
-                
+                var headers = inHeaders.Headers.OrderByDescending(h => h.Index).ToList();
+                if (!headers.Any())
+                    return;
+                foreach (var blockHeader in headers)
+                {
+                    var correspondingBlockHeader = await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
+                    if (correspondingBlockHeader.BlockHashToHex != blockHeader.PreviousBlockHash.DumpHex())
+                        continue;
+                    MessageHub.Instance.Publish(new HeaderAccepted(blockHeader));
+                    return;
+                }
+
+                MessageHub.Instance.Publish(new UnlinkableHeader(headers.Last()));
             });
         }
 
@@ -329,6 +341,18 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 BlockChain.GetBlockByHeightAsync(height).Result
             };
+        }
+
+        public async Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count)
+        {
+            var blockHeaderList = new BlockHeaderList();
+            for (var i = index; i > index - (ulong) count; i--)
+            {
+                var block = await BlockChain.GetBlockByHeightAsync(i);
+                blockHeaderList.Headers.Add(block.Header);
+            }
+
+            return blockHeaderList;
         }
     }
 }

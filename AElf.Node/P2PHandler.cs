@@ -28,6 +28,11 @@ namespace AElf.Node
             return await Task.Run(() => (Block) BlockSynchronizer.GetBlockByHash(hash));
         }
 
+        public async Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count)
+        {
+            return await BlockSynchronizer.GetBlockHeaderList(index, count);
+        }
+
         public async Task<Transaction> GetTransaction(Hash txId)
         {
             if (TxPool.TryGetTx(txId, out var tx))
