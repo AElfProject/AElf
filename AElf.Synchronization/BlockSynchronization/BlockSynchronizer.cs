@@ -46,7 +46,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _blockSet = blockSet;
 
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
-
+            
             MessageHub.Instance.Subscribe<SyncUnfinishedBlock>(async inHeight =>
             {
                 // Find new blocks from block set to execute

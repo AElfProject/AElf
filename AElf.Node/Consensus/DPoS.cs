@@ -467,7 +467,7 @@ namespace AElf.Kernel.Node
                 if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
                     _logger?.Trace("Tx added to the pool");
-                    if (tx.MethodName == ConsensusBehavior.PublishInValue.ToString())
+                    if (tx.MethodName.ShouldBroadcast())
                     {
                         MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
                     }
