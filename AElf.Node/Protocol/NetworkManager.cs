@@ -448,10 +448,9 @@ namespace AElf.Node.Protocol
 
                 IBlock bbh = _blockSynchronizer.GetBlockByHash(new Hash {Value = ByteString.CopyFrom(blockHash)});
 
-                _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " +
-                               (bbh == null ? "(unknown)" : "(known)"));
+                _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
 
-                if (bbh?.Header != null)
+                if (bbh != null)
                     return;
 
                 SetSyncState(true);
