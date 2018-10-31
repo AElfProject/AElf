@@ -157,7 +157,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 var index = message.Block.Index;
                 if (!_minedBlock)
                 {
-                    while (reExecutionResult != BlockExecutionResult.Success && !_blockSet.MultipleBlocksInOneIndex(index))
+                    while (reExecutionResult != BlockExecutionResult.Success &&
+                           !_blockSet.MultipleBlocksInOneIndex(index))
                     {
                         var reValidationResult = _blockValidationService.ValidatingOwnBlock(false)
                             .ValidateBlockAsync(message.Block, await GetChainContextAsync()).Result;
@@ -165,8 +166,10 @@ namespace AElf.Synchronization.BlockSynchronization
                         {
                             break;
                         }
+
                         reExecutionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
                     }
+
                     if (reExecutionResult != BlockExecutionResult.Success)
                     {
                         return reExecutionResult;
@@ -201,9 +204,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (message.BlockValidationResult == BlockValidationResult.Unlinkable)
             {
-                _logger?.Warn("Received unlinkable block.");
-
                 _receivedBranchedBlock = true;
+
+                _logger?.Warn("Received unlinkable block.");
 
                 await ReviewBlockSet();
             }
