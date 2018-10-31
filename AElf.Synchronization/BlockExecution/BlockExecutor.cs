@@ -341,8 +341,6 @@ namespace AElf.Synchronization.BlockExecution
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
 
-            MessageHub.Instance.Publish(new TransactionsExecuted(executedTxs, bn));
-
             txResults.AsParallel().ForEach(async r =>
             {
                 r.BlockNumber = bn;
