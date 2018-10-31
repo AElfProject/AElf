@@ -17,7 +17,7 @@ namespace AElf.Kernel.Managers
         public BlockManagerBasic(IDataStore dataStore)
         {
             _dataStore = dataStore;
-            
+
             _logger = LogManager.GetLogger(nameof(BlockManagerBasic));
         }
 
@@ -52,11 +52,21 @@ namespace AElf.Kernel.Managers
 
         public async Task<Block> GetBlockAsync(Hash blockHash)
         {
-            return new Block
+            try
             {
-                Header = await _dataStore.GetAsync<BlockHeader>(blockHash.Clone().OfType(HashType.BlockHeaderHash)),
-                Body = await _dataStore.GetAsync<BlockBody>(blockHash.Clone().OfType(HashType.BlockBodyHash))
-            };
+                var header = await _dataStore.GetAsync<BlockHeader>(blockHash.Clone().OfType(HashType.BlockHeaderHash));
+                var bb = await _dataStore.GetAsync<BlockBody>(blockHash.Clone().OfType(HashType.BlockBodyHash));
+
+                if (header == null || bb == null)
+                    return null;
+
+                return new Block { Header = header, Body = bb };
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, $"Error while getting block {blockHash.DumpHex()}.");
+                return null;
+            }
         }
 
         /// <summary>
@@ -89,9 +99,9 @@ namespace AElf.Kernel.Managers
             var nextBlockHeight = (await GetBlockHeaderAsync(blockHash)).Index + 1;
             var nextBlockHash = await _dataStore.GetAsync<Hash>(
                 DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, nextBlockHeight));
-            return await GetBlockAsync(nextBlockHash); 
+            return await GetBlockAsync(nextBlockHash);
         }
-        
+
         public async Task<Block> GetBlockByHeight(Hash chainId, ulong height)
         {
             _logger?.Trace($"Trying to get block by height {height}.");
@@ -102,9 +112,9 @@ namespace AElf.Kernel.Managers
                 _logger?.Error($"Invalid block height - {height}.");
                 return null;
             }
-            
+
             var blockHash = await _dataStore.GetAsync<Hash>(key);
-            
+
             var blockHeader = await _dataStore.GetAsync<BlockHeader>(blockHash.OfType(HashType.BlockHeaderHash));
             var blockBody = await _dataStore.GetAsync<BlockBody>(blockHash.OfType(HashType.BlockBodyHash));
             return new Block
