@@ -156,11 +156,6 @@ namespace AElf.Miner.Miner
             return index;
         }
 
-        private async Task UpdateParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
-        {
-            await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
-        }
-
         /// <summary>
         /// Generate a system tx for parent chain block info and broadcast it.
         /// </summary>

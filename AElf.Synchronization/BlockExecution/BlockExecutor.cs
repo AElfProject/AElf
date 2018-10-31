@@ -76,8 +76,7 @@ namespace AElf.Synchronization.BlockExecution
                     return result;
                 }
 
-                await UpdateSideChainInfo(block);
-
+                await UpdateCrossChainInfo(block);
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
 
@@ -337,7 +336,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="block"></param>
         /// <returns></returns>
         /// <exception cref="InvalidCrossChainInfoException"></exception>
-        private async Task UpdateSideChainInfo(IBlock block)
+        private async Task UpdateCrossChainInfo(IBlock block)
         {
             await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
                 block.Header.ChainId, block.Header.Index);

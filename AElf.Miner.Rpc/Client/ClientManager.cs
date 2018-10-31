@@ -39,7 +39,7 @@ namespace AElf.Miner.Rpc.Client
         /// <summary>
         /// Waiting interval for taking element.
         /// </summary>
-        private int Interval => GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
+        private int WaitingIntervalInMillisecond => GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
 
         public ClientManager(ILogger logger, IChainManagerBasic chainManagerBasic)
         {
@@ -141,7 +141,7 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while create client to side chain.");
+                _logger?.Error(e, "Exception while creating client to side chain.");
                 throw;
             }
         }
@@ -191,8 +191,8 @@ namespace AElf.Miner.Rpc.Client
             var uriStr = uri.ToString();
             var channel = CreateChannel(uriStr, targetChainId);
             if (toSideChain)
-                return new ClientToSideChain(channel, _logger, Hash.LoadHex(targetChainId), _interval);
-            return new ClientToParentChain(channel, _logger, Hash.LoadHex(targetChainId), _interval);
+                return new ClientToSideChain(channel, _logger, Hash.LoadHex(targetChainId), _interval, GlobalConfig.InvertibleChainHeight);
+            return new ClientToParentChain(channel, _logger, Hash.LoadHex(targetChainId), _interval, GlobalConfig.InvertibleChainHeight);
         }
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace AElf.Miner.Rpc.Client
                 var height =
                     await _chainManagerBasic.GetCurrentBlockHeightAsync(_.Key);
                 var targetHeight = height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
-                if (!_.Value.TryTake(Interval, out var blockInfo) || blockInfo.Height != targetHeight)
+                if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo))
                     continue;
 
                 res.Add((SideChainBlockInfo) blockInfo);
@@ -287,11 +287,16 @@ namespace AElf.Miner.Rpc.Client
             if (client.Empty() || !client.First().Equals(blockInfo))
                 return false;
             // TODO: this could be changed.
+            var res = client.TryTake(WaitingIntervalInMillisecond * 2, blockInfo.Height, out var scb);
+            if (!res || !scb.Equals(blockInfo))
+            {
+                // this should not happen in most cases
+                //client.ReCacheBlockInfo(scb);
+                return false;
+            } 
             await UpdateSideChainInfo(blockInfo);
-            var scb = client.Take();
-            _logger?.Info($"Remove side chain Info from {scb.ChainId} at height {scb.Height}");
-            return scb.Equals(blockInfo);
-
+            _logger?.Info($"Removed side chain Info from {scb.ChainId} at height {scb.Height}");
+            return true;
         }
         
         /// <summary>
@@ -307,13 +312,20 @@ namespace AElf.Miner.Rpc.Client
         {
             if (_clientToParentChain == null)
                 return true;
-            _logger?.Trace($"To remove parent chain info at height {blockInfo?.Height}");
-            
+            _logger?.Trace($"To remove parent chain info at height {blockInfo.Height}");
+
             if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(blockInfo))
                 return false;
-            var pcb = _clientToParentChain.Take();
-            _logger?.Trace($"Remove parent chain info at height {pcb.Height}");
-            return pcb.Equals(blockInfo);
+            var res = _clientToParentChain.TryTake(WaitingIntervalInMillisecond * 2, blockInfo.Height, out var pcb);
+
+            if (!res || !pcb.Equals(blockInfo))
+            {
+                // this should not happen in most cases
+                //_clientToParentChain.ReCacheBlockInfo(pcb);
+                return false;
+            }
+            _logger?.Trace($"Removed parent chain info at height {pcb.Height}");
+            return true;
         }
 
         /// <summary>
