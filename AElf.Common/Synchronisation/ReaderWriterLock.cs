@@ -15,14 +15,14 @@ namespace AElf.Common.Synchronisation
 
         public ReaderWriterLock()
         {
-            ExclusiveWritrer = new TaskFactory(SchedulerPair.ExclusiveScheduler);
+            ExclusiveWriter = new TaskFactory(SchedulerPair.ExclusiveScheduler);
             ConcurrentReader = new TaskFactory(SchedulerPair.ConcurrentScheduler);
         }
 
 
         private TaskFactory ConcurrentReader { get; }
 
-        private TaskFactory ExclusiveWritrer { get; }
+        private TaskFactory ExclusiveWriter { get; }
 
         /// <inheritdoc />
         public Task<T> ReadLock<T>(Func<T> func)
@@ -33,13 +33,13 @@ namespace AElf.Common.Synchronisation
         /// <inheritdoc />
         public Task<T> WriteLock<T>(Func<T> func)
         {
-            return ExclusiveWritrer.StartNew(func);
+            return ExclusiveWriter.StartNew(func);
         }
         
         /// <inheritdoc />
         public Task WriteLock(Action action, CancellationToken token = default(CancellationToken))
         {
-            return ExclusiveWritrer.StartNew(action, token);
+            return ExclusiveWriter.StartNew(action, token);
         }
     }
 }

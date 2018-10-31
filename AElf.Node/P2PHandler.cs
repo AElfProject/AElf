@@ -31,6 +31,11 @@ namespace AElf.Node
             return block != null ? await FillBlockWithTransactionList(block) : null;
         }
 
+        public async Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count)
+        {
+            return await BlockSynchronizer.GetBlockHeaderList(index, count);
+        }
+
         public async Task<Transaction> GetTransaction(Hash txId)
         {
             if (TxHub.TryGetTx(txId, out var tx))

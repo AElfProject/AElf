@@ -32,6 +32,11 @@ message BlockRequest {
     bytes Id = 2;
 }
 
+message BlockHeaderRequest {
+    int32 height = 1;
+    int32 count = 2;
+}
+
 message Announce {
     int32 Height = 1;
     bytes Id = 2;

@@ -7,7 +7,6 @@ using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
-using AElf.Kernel.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
@@ -34,7 +33,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private bool _receivedBranchedBlock;
 
-        private const ulong Limit = 256;
+        private const ulong Limit = 64;
+
+        private bool _minedBlock;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
@@ -45,7 +46,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _blockSet = blockSet;
 
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
-
+            
             MessageHub.Instance.Subscribe<SyncUnfinishedBlock>(async inHeight =>
             {
                 // Find new blocks from block set to execute
@@ -63,12 +64,30 @@ namespace AElf.Synchronization.BlockSynchronization
                     }
                 }
             });
+
+            MessageHub.Instance.Subscribe<HeadersReceived>(async inHeaders =>
+            {
+                var headers = inHeaders.Headers.OrderByDescending(h => h.Index).ToList();
+                if (!headers.Any())
+                    return;
+                foreach (var blockHeader in headers)
+                {
+                    var correspondingBlockHeader = await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
+                    if (correspondingBlockHeader.BlockHashToHex != blockHeader.PreviousBlockHash.DumpHex())
+                        continue;
+                    MessageHub.Instance.Publish(new HeaderAccepted(blockHeader));
+                    return;
+                }
+
+                MessageHub.Instance.Publish(new UnlinkableHeader(headers.Last()));
+            });
         }
 
         public async Task<BlockExecutionResult> ReceiveBlock(IBlock block)
         {
             var blockValidationResult =
-                await _blockValidationService.ValidatingOwnBlock(false).ValidateBlockAsync(block, await GetChainContextAsync());
+                await _blockValidationService.ValidatingOwnBlock(false)
+                    .ValidateBlockAsync(block, await GetChainContextAsync());
 
             var message = new BlockExecuted(block, blockValidationResult);
 
@@ -102,13 +121,15 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             _blockSet.Tell(block);
 
+            _minedBlock = true;
+            
             // Update DPoS process.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
 
             // Basically notify the network layer that this node just mined a block
             // and added to executed block list.
             MessageHub.Instance.Publish(new BlockAddedToSet(block));
-            
+
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
             {
@@ -124,7 +145,7 @@ namespace AElf.Synchronization.BlockSynchronization
             var executionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
 
             _logger?.Trace("Block execution result: " + executionResult);
-            
+
             if (executionResult.NeedToRollback())
             {
                 // Need to rollback one block:
@@ -147,19 +168,40 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // No need to rollback:
                 // Receive again to execute the same block.
-                await ReceiveBlock(message.Block);
+                var index = message.Block.Index;
 
-                return executionResult;
+                if (_minedBlock)
+                {
+                    return executionResult;
+                }
+
+                BlockExecutionResult reExecutionResult;
+                do
+                {
+                    var reValidationResult = _blockValidationService.ValidatingOwnBlock(false)
+                        .ValidateBlockAsync(message.Block, await GetChainContextAsync()).Result;
+                    if (reValidationResult.IsFailed())
+                    {
+                        break;
+                    }
+
+                    reExecutionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
+                    if (_blockSet.MultipleBlocksInOneIndex(index))
+                    {
+                        return reExecutionResult;
+                    }
+                } while (reExecutionResult.IsFailed());
             }
 
             _blockSet.Tell(message.Block);
 
+            _logger?.Trace("Will notify network layer this block already executed.");
             // Notify the network layer the block has been executed.
             MessageHub.Instance.Publish(message);
 
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
-            
+
             MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index + 1));
 
             return BlockExecutionResult.Success;
@@ -175,9 +217,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (message.BlockValidationResult == BlockValidationResult.Unlinkable)
             {
+                _receivedBranchedBlock = true;
+
                 _logger?.Warn("Received unlinkable block.");
                 
-                _receivedBranchedBlock = true;
+                MessageHub.Instance.Publish(new UnlinkableHeader(message.Block.Header));
 
                 await ReviewBlockSet();
             }
@@ -192,15 +236,11 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     return;
                 }
-
-                //await ReceiveBlock(linkableBlock);
             }
 
             if (message.BlockValidationResult == BlockValidationResult.Pending)
             {
-                //await ReviewBlockSet();
                 MessageHub.Instance.Publish(UpdateConsensus.Dispose);
-                //MessageHub.Instance.Publish(new SyncUnfinishedBlock(message.Block.Index - 1));
             }
         }
 
@@ -234,7 +274,8 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             catch (Exception e)
             {
-                _logger?.Error($"Error while checking linkablity of block {block.BlockHashToHex} in height {block.Index}");
+                _logger?.Error(e,
+                    $"Error while checking linkablity of block {block.BlockHashToHex} in height {block.Index}");
                 return null;
             }
         }
@@ -259,11 +300,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private void RollbackToHeight(ulong targetHeight, ulong currentHeight)
         {
-            MessageHub.Instance.Publish(new RollBackStateChanged(true));
             var task = BlockChain.RollbackToHeight(targetHeight - 1);
             task.Wait();
             _blockSet.InformRollback(targetHeight, currentHeight);
-            MessageHub.Instance.Publish(new RollBackStateChanged(false));
             MessageHub.Instance.Publish(new SyncUnfinishedBlock(targetHeight));
         }
 
@@ -276,7 +315,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 ChainId = chainId,
                 BlockHash = await blockchain.GetCurrentBlockHashAsync()
             };
-            
+
             if (chainContext.BlockHash != Hash.Genesis && chainContext.BlockHash != null)
             {
                 chainContext.BlockHeight =
@@ -302,6 +341,18 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 BlockChain.GetBlockByHeightAsync(height).Result
             };
+        }
+
+        public async Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count)
+        {
+            var blockHeaderList = new BlockHeaderList();
+            for (var i = index; i > index - (ulong) count; i--)
+            {
+                var block = await BlockChain.GetBlockByHeightAsync(i);
+                blockHeaderList.Headers.Add(block.Header);
+            }
+
+            return blockHeaderList;
         }
     }
 }

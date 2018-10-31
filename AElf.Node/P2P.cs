@@ -53,11 +53,45 @@ namespace AElf.Node
                     {
                         await HandleTxRequest(message, args.PeerMessage);
                     }
+                    else if (msgType == AElfProtocolMsgType.HeaderRequest)
+                    {
+                        await HandleBlockHeaderRequest(message, args.PeerMessage);
+                    }
                 }
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while dequeuing.");
+            }
+        }
+
+        private async Task HandleBlockHeaderRequest(Message message, PeerMessageReceivedArgs args)
+        {
+            if (message?.Payload == null)
+            {
+                _logger?.Warn($"Hash request from [{args.Peer}], message/payload is null.");
+                return;
+            }
+
+            try
+            {
+                var hashReq = BlockHeaderRequest.Parser.ParseFrom(message.Payload);
+                var blockHeaderList = await _handler.GetBlockHeaderList((ulong) hashReq.Height, hashReq.Count);
+                
+                var req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Headers, blockHeaderList.ToByteArray());
+                
+                if (message.HasId)
+                    req.Id = message.Id;
+
+                args.Peer.EnqueueOutgoing(req);
+
+                _logger?.Debug(
+                    $"Send {blockHeaderList.Headers.Count} block headers start from {blockHeaderList.Headers.FirstOrDefault()?.GetHash().DumpHex()}, to node " +
+                    args.Peer);
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while during HandleBlockRequest.");
             }
         }
 

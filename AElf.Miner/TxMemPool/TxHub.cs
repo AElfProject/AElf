@@ -7,6 +7,7 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Miner.EventMessages;
@@ -167,6 +168,11 @@ namespace AElf.Miner.TxMemPool
 
         private static void MaybePublishTransaction(TransactionReceipt tr)
         {
+            if (tr.Transaction.ShouldNotBroadcast())
+            {
+                return;
+            }
+            
             if (tr.IsExecutable)
             {
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tr.Transaction));
