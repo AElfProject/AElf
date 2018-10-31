@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
-using AElf.Kernel.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
@@ -36,8 +34,6 @@ namespace AElf.Synchronization.BlockSynchronization
         private bool _receivedBranchedBlock;
 
         private const ulong Limit = 256;
-
-        private bool _minedBlock;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
@@ -119,8 +115,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 _logger?.Trace("Set the limit of the branched blocks cache in block set to " + Limit);
                 _blockSet.KeepHeight = Limit;
             }
-
-            _minedBlock = true;
         }
 
         private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)
@@ -154,7 +148,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 // No need to rollback:
                 // Receive again to execute the same block.
                 var index = message.Block.Index;
-                
+
                 // TODO: block verification mechanism 
                 BlockExecutionResult reExecutionResult;
                 do
