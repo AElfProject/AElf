@@ -35,6 +35,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private const ulong Limit = 256;
 
+        private bool _minedBlock;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -61,6 +63,11 @@ namespace AElf.Synchronization.BlockSynchronization
                         await ReceiveBlock(block);
                     }
                 }
+            });
+
+            MessageHub.Instance.Subscribe<HeadersReceived>(async inHeaders =>
+            {
+                
             });
         }
 
@@ -102,6 +109,8 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             _blockSet.Tell(block);
 
+            _minedBlock = true;
+            
             // Update DPoS process.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
 
@@ -149,7 +158,11 @@ namespace AElf.Synchronization.BlockSynchronization
                 // Receive again to execute the same block.
                 var index = message.Block.Index;
 
-                // TODO: block verification mechanism 
+                if (_minedBlock)
+                {
+                    return executionResult;
+                }
+
                 BlockExecutionResult reExecutionResult;
                 do
                 {
@@ -195,6 +208,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 _receivedBranchedBlock = true;
 
                 _logger?.Warn("Received unlinkable block.");
+                
+                MessageHub.Instance.Publish(new UnlinkableHeader(message.Block.Header));
 
                 await ReviewBlockSet();
             }
