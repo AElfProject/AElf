@@ -105,12 +105,12 @@ namespace AElf.Synchronization.BlockExecution
                 BlockExecutionResult res = BlockExecutionResult.Failed;
                 if (e is InvalidCrossChainInfoException i)
                 {
-                    _logger?.Warn($"Exception while execute block. {e.Message}");
+                    _logger?.Warn(e, $"Exception while execute block {block.BlockHashToHex}.");
                     res = i.Result;
 ;               }
                 else
                 {
-                    _logger?.Error(e, "Exception while execute block.");
+                    _logger?.Error(e, "Exception while execute block {block.BlockHashToHex}.");
                 }
 
                 // TODO, no wait may need improve
@@ -165,7 +165,6 @@ namespace AElf.Synchronization.BlockExecution
             var indexes = txs.Select((x, i)=>new {hash=x.GetHash(),ind=i}).ToDictionary(x=>x.hash, x=>x.ind);
             return results.Zip(results.Select(r => indexes[r.TransactionId]), Tuple.Create).OrderBy(
                 x => x.Item2).Select(x=>x.Item1).ToList();
-//                tx => indexes[tx.TransactionId]).ToList();
         }
         
         #region Before transaction execution

@@ -85,9 +85,8 @@ namespace AElf.Node
 
                 args.Peer.EnqueueOutgoing(req);
 
-                _logger?.Debug(
-                    $"Send {blockHeaderList.Headers.Count} block headers start from {blockHeaderList.Headers.FirstOrDefault()?.GetHash().DumpHex()}, to node " +
-                    args.Peer);
+                _logger?.Debug($"Send {blockHeaderList.Headers.Count} block headers start " +
+                               $"from {blockHeaderList.Headers.FirstOrDefault()?.GetHash().DumpHex()}, to node {args.Peer}.");
             }
             catch (Exception e)
             {
@@ -138,7 +137,7 @@ namespace AElf.Node
 
                 if (b == null)
                 {
-                    _logger?.Warn($"Block not found {breq.Id.ToByteArray().ToHex()}");
+                    _logger?.Warn($"Block not found {breq.Id?.ToByteArray().ToHex()}");
                     return;
                 }
                     
@@ -150,7 +149,7 @@ namespace AElf.Node
 
                 args.Peer.EnqueueOutgoing(req);
 
-                _logger?.Debug("Send block " + b.GetHash().DumpHex() + " to " + args.Peer);
+                _logger?.Debug($"Send block {b.BlockHashToHex } to {args.Peer}");
             }
             catch (Exception e)
             {
@@ -212,7 +211,7 @@ namespace AElf.Node
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Transaction request failed.");
+                _logger?.Error(e, "Transaction request failed.");
             }
         }
 
@@ -234,8 +233,8 @@ namespace AElf.Node
             var serializedBlock = b.ToByteArray();
             await _netManager.BroadcastBlock(block.GetHash().Value.ToByteArray(), serializedBlock);
 
-            var bh = block.GetHash().DumpHex();
-            _logger?.Trace($"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
+            _logger?.Trace($"Broadcasted block {block.BlockHashToHex} to peers " +
+                           $"with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
 
             return true;
         }
