@@ -262,9 +262,9 @@ namespace AElf.Miner.TxMemPool
         private async Task OnNewBlockHeader(BlockHeader blockHeader)
         {
             // TODO: Handle LIB
-            if (blockHeader.Index != (CurHeight + 1) && CurHeight != GlobalConfig.GenesisBlockHeight)
+            if (blockHeader.Index > (CurHeight + 1) && CurHeight != GlobalConfig.GenesisBlockHeight)
             {
-                throw new Exception("Invalid block index.");
+                throw new Exception($"Invalid block index {blockHeader.Index} but current height is {CurHeight}.");
             }
 
             _curHeight = blockHeader.Index;
