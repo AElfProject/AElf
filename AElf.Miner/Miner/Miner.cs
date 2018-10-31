@@ -100,7 +100,7 @@ namespace AElf.Miner.Miner
                         var needFilter = currentRoundInfo != null;
                         if (needFilter)
                         {
-                            sysTxs = FilterDpos(sysTxs);
+                            _txFilter.Execute(sysTxs);
                         }
 
                         readyTxs = sysTxs;
@@ -151,9 +151,9 @@ namespace AElf.Miner.Miner
             }
         }
 
-        private List<Transaction> FilterDpos(List<Transaction> txs)
+        /*private void FilterSystemTxns(List<Transaction> txs)
         {
-            var txGroup = txs.GroupBy(tx => tx.Type == TransactionType.DposTransaction)
+            /*var txGroup = txs.GroupBy(tx => tx.Type == TransactionType.DposTransaction)
                 .ToDictionary(x => x.Key, x => x.ToList());
 
             if (txGroup.TryGetValue(true, out var dposTxs))
@@ -161,8 +161,8 @@ namespace AElf.Miner.Miner
                 _txFilter.Execute(dposTxs);
             }
 
-            return txs;
-        }
+            _txFilter.Execute(txs);
+        }*/
 
         private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs)
         {
