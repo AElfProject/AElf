@@ -459,27 +459,6 @@ namespace AElf.Kernel.Node
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
             await _txHub.AddTransactionAsync(tx, true);
-
-/*            try
-            {
-                var result = await _txPool.AddTxAsync(tx);
-                if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
-                {
-                    _logger?.Trace("Tx added to the pool");
-                    if (tx.MethodName.ShouldBroadcast())
-                    {
-                        MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-                    }
-                }
-                else
-                {
-                    _logger?.Trace("Failed to insert tx: " + result);
-                }
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, $"Transaction insertion failed: {e.Message},\n{tx.GetTransactionInfo()}");
-            }*/
         }
     }
 }

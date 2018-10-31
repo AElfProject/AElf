@@ -9,30 +9,25 @@ namespace AElf.Kernel.Consensus
         InitializeAElfDPoS,
         UpdateAElfDPoS,
         PublishOutValueAndSignature,
-        
+
         PublishInValue = 11
     }
 
     public static class ConsensusBehaviorExtensions
     {
-        private static bool ShouldBroadcast(this ConsensusBehavior behavior)
+        private static bool ShouldNotBroadcast(this ConsensusBehavior behavior)
         {
-            return (int) behavior > 10;
+            return (int) behavior < 10;
         }
-        
-        public static bool ShouldBroadcast(this string str)
+
+        public static bool ShouldNotBroadcast(this string str)
         {
-            return Enum.TryParse(str, out ConsensusBehavior behavior) && behavior.ShouldBroadcast();
+            return Enum.TryParse(str, out ConsensusBehavior behavior) && behavior.ShouldNotBroadcast();
         }
-        
-        private static bool CanBeAddedToTxPool(this ConsensusBehavior behavior)
+
+        public static bool ShouldNotBroadcast(this Transaction tx)
         {
-            return (int) behavior > 10;
-        }
-        
-        public static bool CanBeAddedToTxPool(this string str)
-        {
-            return Enum.TryParse(str, out ConsensusBehavior behavior) && behavior.CanBeAddedToTxPool();
+            return tx.Type == TransactionType.DposTransaction && tx.MethodName.ShouldNotBroadcast();
         }
     }
 }
