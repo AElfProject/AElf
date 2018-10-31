@@ -10,38 +10,55 @@ using NLog;
 // ReSharper disable once CheckNamespace
 namespace AElf.Synchronization.BlockSynchronization
 {
+    // ReSharper disable FieldCanBeMadeReadOnly.Local
     public class BlockSet : IBlockSet
     {
         public int InvalidBlockCount
         {
             get
             {
-                lock (_)
+                int count;
+                _rwLock.AcquireReaderLock(100);
+                try
                 {
-                    return _invalidBlockList.Count;
+                    count = _blockCache.Count;
                 }
+                finally
+                {
+                    _rwLock.ReleaseReaderLock();
+                }
+
+                return count;
             }
         }
+
 
         public int ExecutedBlockCount
         {
             get
             {
-                lock (_)
+                int count;
+                _rwLock.AcquireReaderLock(100);
+                try
                 {
-                    return _executedBlocks.Count;
+                    count = _executedBlocks.Count;
                 }
+                finally
+                {
+                    _rwLock.ReleaseReaderLock();
+                }
+
+                return count;
             }
         }
 
         private readonly ILogger _logger;
 
-        private readonly List<IBlock> _invalidBlockList = new List<IBlock>();
+        private readonly List<IBlock> _blockCache = new List<IBlock>();
 
         private readonly Dictionary<ulong, IBlock> _executedBlocks = new Dictionary<ulong, IBlock>();
 
-        // ReSharper disable once FieldCanBeMadeReadOnly.Local
-        private object _ = new object();
+        private ReaderWriterLock _rwLock = new ReaderWriterLock();
 
         private int _flag;
 
@@ -55,28 +72,45 @@ namespace AElf.Synchronization.BlockSynchronization
         public void AddBlock(IBlock block)
         {
             var hash = block.BlockHashToHex;
-            _logger?.Trace($"Added block {hash} to invalid block list.");
-            lock (_)
+            _logger?.Trace($"Added block {hash} to block cache.");
+            _rwLock.AcquireReaderLock(100);
+            try
             {
-                if (_invalidBlockList.All(b => b.BlockHashToHex != block.BlockHashToHex))
+                if (_blockCache.Any(b => b.BlockHashToHex == block.BlockHashToHex))
+                    return;
+
+                var lc = _rwLock.UpgradeToWriterLock(100);
+                try
                 {
-                    _invalidBlockList.Add(block);
+                    _blockCache.Add(block);
                 }
+                finally
+                {
+                    _rwLock.DowngradeFromWriterLock(ref lc);
+                }
+            }
+            finally
+            {
+                _rwLock.ReleaseReaderLock();
             }
         }
 
         public void RemoveExecutedBlock(string blockHashHex)
         {
-            lock (_)
+            var toRemove = _blockCache.FirstOrDefault(b => b.BlockHashToHex == blockHashHex);
+            if (toRemove?.Header == null)
+                return;
+            _rwLock.AcquireWriterLock(100);
+            try
             {
-                var toRemove = _invalidBlockList.FirstOrDefault(b => b.BlockHashToHex == blockHashHex);
-                if (toRemove?.Header == null) 
-                    return;
-                
-                _invalidBlockList.Remove(toRemove);
-                _logger?.Trace($"Removed block {blockHashHex} from invalid block list.");
+                _blockCache.Remove(toRemove);
                 _executedBlocks.TryAdd(toRemove.Index, toRemove);
-                _logger?.Trace($"Add block {blockHashHex} to executed block dict.");
+            }
+            finally
+            {
+                _rwLock.ReleaseWriterLock();
+                _logger?.Trace($"Removed block {blockHashHex} from block cache.");
+                _logger?.Trace($"Added block {blockHashHex} to executed block dict.");
             }
         }
 
@@ -95,55 +129,84 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public bool IsBlockReceived(Hash blockHash, ulong height)
         {
-            lock (_)
+            bool res;
+            _rwLock.AcquireReaderLock(100);
+            try
             {
-                return _invalidBlockList.Any(b => b.Index == height && b.BlockHashToHex == blockHash.DumpHex());
+                res = _blockCache.Any(b => b.Index == height && b.BlockHashToHex == blockHash.DumpHex());
             }
+            finally
+            {
+                _rwLock.ReleaseReaderLock();
+            }
+
+            return res;
         }
 
         public IBlock GetBlockByHash(Hash blockHash)
         {
-            lock (_)
+            IBlock block;
+            _rwLock.AcquireReaderLock(100);
+            try
             {
-                return _invalidBlockList.FirstOrDefault(b => b.BlockHashToHex == blockHash.DumpHex());
+                block = _blockCache.FirstOrDefault(b => b.BlockHashToHex == blockHash.DumpHex());
             }
+            finally
+            {
+                _rwLock.ReleaseReaderLock();
+            }
+
+            return block;
         }
 
         public List<IBlock> GetBlockByHeight(ulong height)
         {
-            lock (_)
+            _rwLock.AcquireReaderLock(100);
+            try
             {
-                if (_invalidBlockList.Any(b => b.Index == height))
+                if (_blockCache.Any(b => b.Index == height))
                 {
-                    return _invalidBlockList.Where(b => b.Index == height).ToList();
+                    return _blockCache.Where(b => b.Index == height).ToList();
                 }
 
                 if (_executedBlocks.TryGetValue(height, out var block) && block?.Header != null)
                 {
                     return new List<IBlock> {block};
                 }
-
-                return null;
             }
+            finally
+            {
+                _rwLock.ReleaseReaderLock();
+            }
+
+            return null;
         }
 
         private void RemoveOldBlocks(ulong targetHeight)
         {
             try
             {
-                lock (_)
+                _rwLock.AcquireWriterLock(100);
+                try
                 {
-                    var toRemove = _invalidBlockList.Where(b => b.Index <= targetHeight).ToList();
+                    var toRemove = _blockCache.Where(b => b.Index <= targetHeight).ToList();
                     if (!toRemove.Any())
                         return;
                     foreach (var block in toRemove)
                     {
-                        _invalidBlockList.Remove(block);
-                        _logger?.Trace($"Removed block {block.BlockHashToHex} from invalid block list.");
+                        _blockCache.Remove(block);
+                        _logger?.Trace($"Removed block {block.BlockHashToHex} from block cache.");
                     }
 
-                    _logger?.Trace($"Removed block of height {targetHeight} from executed block dict.");
-                    _executedBlocks.RemoveKey(targetHeight);
+                    for (var i = _executedBlocks.OrderBy(p => p.Key).FirstOrDefault().Key; i < targetHeight; i++)
+                    {
+                        _executedBlocks.RemoveKey(i);
+                        _logger?.Trace($"Removed block of height {i} from executed block dict.");
+                    }
+                }
+                finally
+                {
+                    _rwLock.ReleaseWriterLock();
                 }
             }
             catch (Exception e)
@@ -164,15 +227,11 @@ namespace AElf.Synchronization.BlockSynchronization
                 return 0;
 
             PrintInvalidBlockList();
-            
-            IEnumerable<IBlock> higherBlocks;
+
             ulong forkHeight = 0;
 
-            lock (_)
-            {
-                higherBlocks = _invalidBlockList.Where(b => b.Index > currentHeight).OrderByDescending(b => b.Index)
-                    .ToList();
-            }
+            var higherBlocks = _blockCache.Where(b => b.Index > currentHeight).OrderByDescending(b => b.Index)
+                .ToList();
 
             if (higherBlocks.Any())
             {
@@ -183,44 +242,32 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 while (true)
                 {
-                    lock (_)
+                    _rwLock.AcquireReaderLock(100);
+                    try
                     {
                         // If a linkable block can be found in the invalid block list,
                         // update blockToCheck and indexToCheck.
-                        if (_invalidBlockList.Any(b => b.Index == blockToCheck.Index - 1 &&
-                                 b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex()))
+                        if (_blockCache.Any(b => b.Index == blockToCheck.Index - 1 &&
+                                                 b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex()))
                         {
-                            blockToCheck = _invalidBlockList.FirstOrDefault(b =>
+                            blockToCheck = _blockCache.FirstOrDefault(b =>
                                 b.Index == blockToCheck.Index - 1 &&
                                 b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex());
                             if (blockToCheck?.Header == null)
                             {
                                 break;
                             }
-                            
+
                             forkHeight = blockToCheck.Index;
                         }
                         else
                         {
                             break;
                         }
-                        
-/*                        if (_invalidBlockList.Any(b => b.Index == indexToCheck - 1))
-                        {
-                            var index1 = indexToCheck;
-                            var lowerBlocks = _invalidBlockList.Where(b => b.Index == index1 - 1).ToList();
-                            foreach (var lowerBlock in lowerBlocks)
-                            {
-                                _logger?.Trace("lower block: " + lowerBlock.BlockHashToHex);
-                            }
-                            blockToCheck = lowerBlocks.FirstOrDefault(b =>
-                                blockToCheck != null && b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex());
-                            if (blockToCheck?.Header != null)
-                            {
-                                indexToCheck--;
-                                forkHeight = indexToCheck;
-                            }
-                        }*/
+                    }
+                    finally
+                    {
+                        _rwLock.ReleaseReaderLock();
                     }
                 }
             }
@@ -251,18 +298,35 @@ namespace AElf.Synchronization.BlockSynchronization
 
             foreach (var block in toRemove)
             {
-                _executedBlocks.Remove(block.Index);
+                _rwLock.AcquireWriterLock(100);
+                try
+                {
+                    _executedBlocks.Remove(block.Index);
+                }
+                finally
+                {
+                    _rwLock.ReleaseWriterLock();
+                }
                 _logger?.Trace($"Removed block of height {block.Index} from executed block dict.");
+                _blockCache.Add(block);
+                _logger?.Trace($"Added block {block.BlockHashToHex} to block cache.");
             }
+        }
+
+        public bool MultipleBlocksInOneIndex(ulong index)
+        {
+            return _blockCache.Count(b => b.Index == index) > 1;
         }
 
         private void PrintInvalidBlockList()
         {
             var str = "\nInvalid Block List:\n";
-            foreach (var block in _invalidBlockList)
+            foreach (var block in _blockCache)
             {
-                str += $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}\n";
+                str +=
+                    $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}\n";
             }
+
             _logger?.Trace(str);
         }
     }

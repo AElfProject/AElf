@@ -423,7 +423,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private async Task SetExtraBlockMiningTimeSlotOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)
         {
-            var lastMinerTimeSlot = info.GetLastBlockProducerTimeslotOfSpecificRound(roundNumber.Value);
+            var lastMinerTimeSlot = info.GetLastBlockProducerTimeSlotOfSpecificRound(roundNumber.Value);
             var timeSlot = GetTimestampWithOffset(lastMinerTimeSlot, Interval);
             await _timeForProducingExtraBlockField.SetAsync(timeSlot);
         }
