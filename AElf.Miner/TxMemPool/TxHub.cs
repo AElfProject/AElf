@@ -275,6 +275,7 @@ namespace AElf.Miner.TxMemPool
                 var expired = _allTxns.Where(tr =>
                     tr.Value.Status == TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus
                     && tr.Value.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.RefBlockExpired
+                    && CurHeight > tr.Value.Transaction.RefBlockNumber
                     && CurHeight - tr.Value.Transaction.RefBlockNumber > GlobalConfig.ReferenceBlockValidPeriod
                 );
                 foreach (var tr in expired)
