@@ -122,6 +122,10 @@ message RetVal {
     }
 }
 
+message BlockHeaderList {
+    repeated BlockHeader Headers = 1;
+}
+
 message BlockHeader {
     int32 Version = 1;
     Hash PreviousBlockHash = 2;

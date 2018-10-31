@@ -53,12 +53,21 @@ namespace AElf.Node
                     {
                         await HandleTxRequest(message, args.PeerMessage);
                     }
+                    else if (msgType == AElfProtocolMsgType.HeaderRequest)
+                    {
+                        await HandleHashRequest(message, args.PeerMessage);
+                    }
                 }
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while dequeuing.");
             }
+        }
+
+        private Task<BlockHeaderList> HandleHashRequest(Message message, PeerMessageReceivedArgs argsPeerMessage)
+        {
+            return Task.FromResult(new BlockHeaderList());
         }
 
         internal async Task<Block> HandleBlockRequestByHeight(int height)

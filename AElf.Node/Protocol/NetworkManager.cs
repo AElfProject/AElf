@@ -11,7 +11,6 @@ using AElf.Common.Collections;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
-using AElf.Miner.TxMemPool;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -33,6 +32,7 @@ namespace AElf.Node.Protocol
     {
         #region Settings
 
+        public const int DefaultHeaderRequestCount = 3;
         public const int DefaultMaxBlockHistory = 15;
         public const int DefaultMaxTransactionHistory = 20;
         
@@ -52,7 +52,6 @@ namespace AElf.Node.Protocol
         public event EventHandler BlockReceived;
         public event EventHandler TransactionsReceived;
 
-        private readonly ITxPool _txPool;
         private readonly IPeerManager _peerManager;
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
@@ -75,12 +74,11 @@ namespace AElf.Node.Protocol
         
         private Hash _chainId;
 
-        public NetworkManager(ITxPool txPool, IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
+        public NetworkManager(IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _pendingRequests = new List<TimeoutRequest>();
-
-            _txPool = txPool;
+            
             _peerManager = peerManager;
             _chainService = chainService;
             _logger = logger;
@@ -143,8 +141,6 @@ namespace AElf.Node.Protocol
                 
                 _localHeight++;
 
-                //CurrentSyncSource?.OnNewBlockAccepted(inBlock.Block);
-
                 bool syncFinished = true;
                 foreach (var peer in _peers)
                 {
@@ -162,6 +158,44 @@ namespace AElf.Node.Protocol
                     SetSyncState(false);
             });
 
+            MessageHub.Instance.Subscribe<UnlinkableHeader>(unlinkableHeaderMsg =>
+            {
+                if (unlinkableHeaderMsg?.Header == null)
+                {
+                    _logger?.Warn("[event] message or header null.");
+                    return;
+                }
+                
+                IPeer target = CurrentSyncSource ?? _peers.FirstOrDefault(p => p.KnownHeight >= (int)unlinkableHeaderMsg.Header.Index);
+
+                if (target == null)
+                {
+                    _logger?.Warn("[event] no peers to sync from.");
+                    return;
+                }
+
+                target.RequestHeaders((int)unlinkableHeaderMsg.Header.Index, DefaultHeaderRequestCount);
+            });
+
+            MessageHub.Instance.Subscribe<HeaderAccepted>(header =>
+            {
+                if (header?.Header == null)
+                {
+                    _logger?.Warn("[event] message or header null.");
+                    return;
+                }
+                
+                IPeer target = CurrentSyncSource ?? _peers.FirstOrDefault(p => p.KnownHeight >= (int)header.Header.Index);
+                
+                if (target == null)
+                {
+                    _logger?.Warn("[event] no peers to sync from.");
+                    return;
+                }
+                
+                StartSync(target, (int) header.Header.Index, target.KnownHeight);
+            });
+
             MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
             {
                 _peerManager.Start();
@@ -175,7 +209,7 @@ namespace AElf.Node.Protocol
                 return;
             
             _isSyncing = newState;
-            MessageHub.Instance.Publish(new SyncStateChanged(newState));
+            Task.Run(() => MessageHub.Instance.Publish(new SyncStateChanged(newState)));
             
             _logger?.Trace($"Sync state changed {_isSyncing}.");
         }
@@ -194,10 +228,6 @@ namespace AElf.Node.Protocol
             _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
                 
             _logger?.Info($"Network initialized at height {_localHeight}.");
-            
-            //_peerManager.Start();
-            
-            //Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
         }
         
         private void AnnounceBlock(IBlock block)
@@ -347,15 +377,31 @@ namespace AElf.Node.Protocol
                 case AElfProtocolMsgType.NewTransaction:
                     HandleNewTransaction(msgType, args.Message, args.Peer);
                     break;
+                case AElfProtocolMsgType.Headers:
+                    HandleHeaders(msgType, args.Message, args.Peer);
+                    break;
             }
             
             // Re-fire the event for higher levels if needed.
             BubbleMessageReceivedEvent(args);
         }
-        
+
         private void BubbleMessageReceivedEvent(PeerMessageReceivedArgs args)
         {
             MessageReceived?.Invoke(this, new NetMessageReceivedEventArgs(args.Message, args));
+        }
+        
+        private void HandleHeaders(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        {
+            try
+            {
+                BlockHeaderList blockHeaders = BlockHeaderList.Parser.ParseFrom(msg.Payload);
+                Task.Run(() => MessageHub.Instance.Publish(new HeadersReceived(blockHeaders.Headers.ToList()))).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while handling header list.");
+            }
         }
 
         private void HandleTransactionsMessage(AElfProtocolMsgType msgType, Message msg, Peer peer)
@@ -419,7 +465,7 @@ namespace AElf.Node.Protocol
 
                 _lastTxReceived.Enqueue(txHash);
                 
-                MessageHub.Instance.Publish(new TxReceived(tx));
+                Task.Run(() => MessageHub.Instance.Publish(new TxReceived(tx))).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -488,48 +534,6 @@ namespace AElf.Node.Protocol
             }
         }
         
-//        public void QueueBlockRequestByIndex(int index)
-//        {
-//            if (index <= 0)
-//            {
-//                _logger?.Warn($"Cannot request block because height {index} is not valid.");
-//                return;
-//            }
-//            
-//            try
-//            {
-//                IPeer selectedPeer = _peers.FirstOrDefault();
-//            
-//                if(selectedPeer == null)
-//                    return;
-//                
-//                // Create the request object
-//                BlockRequest br = new BlockRequest { Height = index };
-//                Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
-//
-//                if (message.Payload == null)
-//                {
-//                    _logger?.Warn($"Request for block at height {index} failed because payload is null.");
-//                    return;   
-//                }
-//                
-//                // Select peer for request
-//                TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
-//                request.MaxRetryCount = RequestMaxRetry;
-//                
-//                lock (_pendingRequestsLock)
-//                {
-//                    _pendingRequests.Add(request);
-//                }
-//
-//                request.TryPeer(selectedPeer);
-//            }
-//            catch (Exception e)
-//            {
-//                _logger?.Error(e, $"Error while requesting block for index {index}.");
-//            }
-//        }
-
         /// <summary>
         /// Callback called when the requests internal timer has executed.
         /// </summary>
