@@ -11,34 +11,35 @@ using AElf.Kernel.Managers;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using AElf.Types.CSharp;
-using Akka.Dispatch.SysMsg;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
+using AElf.Miner.EventMessages;
+using AElf.Miner.TxMemPool;
+using Easy.MessageHub;
 
 namespace AElf.Synchronization.BlockExecution
 {
     public class BlockExecutor : IBlockExecutor
     {
         private readonly IChainService _chainService;
-        private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IExecutingService _executingService;
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private readonly ITxHub _txHub;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager,
-            ClientManager clientManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
+            ITransactionResultManager transactionResultManager, ClientManager clientManager,
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub)
         {
             _chainService = chainService;
             _executingService = executingService;
-            _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
-
+            _txHub = txHub;
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
         }
 
@@ -56,6 +57,8 @@ namespace AElf.Synchronization.BlockExecution
                 return result;
             }
 
+            _logger?.Trace($"Executing block {block.GetHash()}");
+
             var txnRes = new List<TransactionResult>();
             try
             {
@@ -68,15 +71,27 @@ namespace AElf.Synchronization.BlockExecution
                 }
 
                 var readyTxns = tuple.Item2;
-                txnRes = await ExecuteTransactions(readyTxns, block, block.Header.GetDisambiguationHash());
+
+                var trs = await _txHub.GetReceiptsForAsync(readyTxns);
+                foreach (var tr in trs)
+                {
+                    if (!tr.IsExecutable)
+                    {
+                        throw new InvalidBlockException($"Transaction is not executable. {tr}");
+                    }    
+                }
+
+                txnRes = await ExecuteTransactions(readyTxns, block.Header.ChainId, block.Header.GetDisambiguationHash());
+                txnRes = SortToOriginalOrder(txnRes, readyTxns);
 
                 result = await UpdateWorldState(block, txnRes);
                 if (result.IsFailed())
                 {
                     return result;
                 }
-
                 await UpdateSideChainInfo(block);
+
+                //Need-to-rollback boundary
 
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
@@ -105,19 +120,18 @@ namespace AElf.Synchronization.BlockExecution
             }
         }
 
-
         /// <summary>
         /// Execute transactions.
         /// </summary>
         /// <param name="readyTxs"></param>
-        /// <param name="block"></param>
+        /// <param name="chainId"></param>
         /// <returns></returns>
-        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, IBlock block,
+        private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId,
             Hash disambiguationHash)
         {
             var traces = readyTxs.Count == 0
                 ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(readyTxs, block.Header.ChainId, Cts.Token, disambiguationHash);
+                : await _executingService.ExecuteAsync(readyTxs, chainId, Cts.Token, disambiguationHash);
 
             var results = new List<TransactionResult>();
             foreach (var trace in traces)
@@ -144,9 +158,16 @@ namespace AElf.Synchronization.BlockExecution
             }
 
             return results;
-
         }
 
+        private List<TransactionResult> SortToOriginalOrder(List<TransactionResult> results, List<Transaction> txs)
+        {
+            var indexes = txs.Select((x, i)=>new {hash=x.GetHash(),ind=i}).ToDictionary(x=>x.hash, x=>x.ind);
+            return results.Zip(results.Select(r => indexes[r.TransactionId]), Tuple.Create).OrderBy(
+                x => x.Item2).Select(x=>x.Item1).ToList();
+//                tx => indexes[tx.TransactionId]).ToList();
+        }
+        
         #region Before transaction execution
 
         /// <summary>
@@ -318,10 +339,8 @@ namespace AElf.Synchronization.BlockExecution
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-            foreach (var t in executedTxs)
-            {
-                await _transactionManager.AddTransactionAsync(t);
-            }
+
+            MessageHub.Instance.Publish(new TransactionsExecuted(executedTxs, bn));
 
             txResults.AsParallel().ForEach(async r =>
             {
@@ -397,6 +416,13 @@ namespace AElf.Synchronization.BlockExecution
         public InvalidCrossChainInfoException(string message, BlockExecutionResult result) : base(message)
         {
             Result = result;
+        }
+    }
+    
+    internal class InvalidBlockException : Exception
+    {
+        public InvalidBlockException(string message) : base(message)
+        {
         }
     }
 }

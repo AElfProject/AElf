@@ -1,6 +1,7 @@
 ﻿using AElf.SmartContract;
 using AElf.ChainController;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;
@@ -25,6 +26,9 @@ namespace AElf.Kernel.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
+            NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
+            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
+
             var assembly1 = typeof(IDataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
             var assembly2 = typeof(ISerializer<>).Assembly;
@@ -59,6 +63,9 @@ namespace AElf.Kernel.Tests
             smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
             builder.RegisterType<TxValidator>().As<ITxValidator>();
+            builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
+            builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
+            builder.RegisterType<TxHub>().As<ITxHub>();
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();
         }

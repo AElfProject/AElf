@@ -35,17 +35,17 @@ namespace AElf.Kernel
 
             return successful;
         }
-        
+
         public Hash GetSummarizedStateHash()
         {
             if (InlineTraces.Count == 0)
             {
-                return StateHash;
+                return StateHash ?? Hash.Default;
             }
 
             var hashes = new List<Hash>() {StateHash};
-            hashes.AddRange(InlineTraces.Select(x=>x.GetSummarizedStateHash()));
-            return Hash.FromRawBytes(ByteArrayHelpers.Combine(hashes.Select(x=>x.DumpByteArray()).ToArray()));
+            hashes.AddRange(InlineTraces.Select(x => x.GetSummarizedStateHash()));
+            return Hash.FromRawBytes(ByteArrayHelpers.Combine(hashes.Select(x => x.DumpByteArray()).ToArray()));
         }
     }
 }

@@ -7,6 +7,7 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
       <ProjectReference Include="..\AElf.Miner.Rpc\AElf.Miner.Rpc.csproj" />
+      <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
     </ItemGroup>
 
 </Project>

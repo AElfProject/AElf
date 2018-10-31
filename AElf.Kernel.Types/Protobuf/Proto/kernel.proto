@@ -25,6 +25,33 @@ message Signature{
     bytes P = 3;
 }
 
+message TransactionReceipt {
+    enum TransactionStatus {
+        UnknownTransactionStatus = 0;
+        TransactionExecuting = 1;
+        TransactionExecuted = 2;
+    }
+    enum SignatureStatus {
+        UnknownSignatureStatus = 0;
+        SignatureValid = 1;
+        SignatureInvalid = -1;
+    }
+    enum RefBlockStatus {
+        UnknownRefBlockStatus = 0;
+        RefBlockValid = 1;
+        RefBlockInvalid = -1;
+        RefBlockExpired = -2;
+        FutureRefBlock = -3;
+    }
+    Hash TransactionId = 1;
+    Transaction Transaction = 2;
+    SignatureStatus SignatureSt = 3;
+    RefBlockStatus RefBlockSt = 4;
+    TransactionStatus Status = 5;
+    bool IsSystemTxn = 6;
+    uint64 ExecutedBlockNumber = 7;
+}
+
 message StatePath {
     repeated bytes Path = 1;
 //    Address ContractAddress = 2;
@@ -70,7 +97,6 @@ message TransactionResult {
     Hash StateHash = 9;
     // Merkle proof path for this transaction
     MerklePath MerklePath = 10;
-    Transaction Transaction = 11;
 }
 
 
@@ -96,7 +122,6 @@ message TransactionTrace {
     repeated StateChange StateChanges = 9;
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
-    Transaction Transaction = 12;
 }
 
 message LogEvent {

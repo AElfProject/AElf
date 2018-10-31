@@ -11,6 +11,7 @@ using AElf.Common.Collections;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
+using AElf.Miner.TxMemPool;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -53,6 +54,7 @@ namespace AElf.Node.Protocol
         public event EventHandler BlockReceived;
         public event EventHandler TransactionsReceived;
 
+        private readonly ITxHub _txHub;
         private readonly IPeerManager _peerManager;
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
@@ -75,12 +77,12 @@ namespace AElf.Node.Protocol
 
         private Hash _chainId;
 
-        public NetworkManager(IPeerManager peerManager, IChainService chainService, ILogger logger,
-            IBlockSynchronizer blockSynchronizer)
+        public NetworkManager(ITxHub txHub, IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _pendingRequests = new List<TimeoutRequest>();
 
+            _txHub = txHub;
             _peerManager = peerManager;
             _chainService = chainService;
             _logger = logger;
