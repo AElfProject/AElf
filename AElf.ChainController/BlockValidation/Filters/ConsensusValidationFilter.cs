@@ -99,7 +99,7 @@ namespace AElf.ChainController
             }
             finally
             {
-                _smartContractService.PutExecutiveAsync(contractAccountHash, executive);
+                _smartContractService.PutExecutiveAsync(contractAccountHash, executive).Wait();
             }
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())

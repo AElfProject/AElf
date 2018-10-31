@@ -13,5 +13,6 @@ namespace AElf.Synchronization.BlockSynchronization
         Task<BlockExecutionResult> ReceiveBlock(IBlock block);
         void AddMinedBlock(IBlock block);
         IBlock GetBlockByHash(Hash blockHash);
+        Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count);
     }
 }

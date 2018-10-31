@@ -61,6 +61,7 @@ namespace AElf.Common
         #region data key prefixes
 
         public const string StatePrefix = "st";
+        public const string TransactionReceiptPrefix = "rc";
 
         #endregion data key prefixes
     }

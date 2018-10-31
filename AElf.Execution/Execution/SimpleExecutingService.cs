@@ -73,15 +73,13 @@ namespace AElf.Execution.Execution
                 {
                     TransactionId = transaction.GetHash(),
                     StdErr = "Execution Canceled",
-                    ExecutionStatus = ExecutionStatus.Canceled,
-                    Transaction = transaction
+                    ExecutionStatus = ExecutionStatus.Canceled
                 };
             }
 
             var trace = new TransactionTrace()
             {
-                TransactionId = transaction.GetHash(),
-                Transaction = transaction
+                TransactionId = transaction.GetHash()
             };
 
             var txCtxt = new TransactionContext()

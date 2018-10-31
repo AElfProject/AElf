@@ -38,7 +38,7 @@ namespace AElf.Kernel.Node
 
         private bool isMining;
 
-        private readonly ITxPool _txPool;
+        private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
 
@@ -68,10 +68,10 @@ namespace AElf.Kernel.Node
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateStore stateStore, ITxPool txPool, IMiner miner,
+        public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner,
             IChainService chainService)
         {
-            _txPool = txPool;
+            _txHub = txHub;
             _miner = miner;
             _chainService = chainService;
 
@@ -221,8 +221,6 @@ namespace AElf.Kernel.Node
             // Update the signature
             tx.Sig.R = ByteString.CopyFrom(signature.R);
             tx.Sig.S = ByteString.CopyFrom(signature.S);
-
-            _logger?.Trace("Tx generated.");
 
             return tx;
         }
@@ -460,27 +458,7 @@ namespace AElf.Kernel.Node
                 _logger?.Trace(
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
-
-            try
-            {
-                var result = await _txPool.AddTxAsync(tx);
-                if (result == TxValidation.TxInsertionAndBroadcastingError.Success)
-                {
-                    _logger?.Trace("Tx added to the pool");
-                    if (tx.MethodName == ConsensusBehavior.PublishInValue.ToString())
-                    {
-                        MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
-                    }
-                }
-                else
-                {
-                    _logger?.Trace("Failed to insert tx: " + result);
-                }
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, $"Transaction insertion failed: {e.Message},\n{tx.GetTransactionInfo()}");
-            }
+            await _txHub.AddTransactionAsync(tx, true);
         }
     }
 }

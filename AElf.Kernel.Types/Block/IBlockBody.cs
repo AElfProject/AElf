@@ -10,7 +10,7 @@ namespace AElf.Kernel
 
         bool AddTransaction(Transaction tx);
 
-        bool AddTransactions(IEnumerable<Transaction> txs);
+        bool AddTransactions(IEnumerable<Hash> txs);
         
         void Complete(Hash blockHeaderHash);
         

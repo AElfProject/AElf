@@ -41,6 +41,7 @@ namespace AElf.ChainController
                 {
                     return BlockValidationResult.AlreadyExecuted;
                 }
+
                 return BlockValidationResult.IsMining;
             }
 
@@ -49,7 +50,7 @@ namespace AElf.ChainController
                 _logger?.Trace("Is rollbacking!");
                 return BlockValidationResult.DoingRollback;
             }
-            
+
             var resultCollection = new List<BlockValidationResult>();
             foreach (var filter in _filters)
             {
@@ -66,6 +67,26 @@ namespace AElf.ChainController
             _validatingOwnBlock = flag;
 
             return this;
+        }
+
+        public BlockHeaderValidationResult ValidateBlockHeaderAsync(IBlockHeader blockHeader, IChainContext context)
+        {
+            try
+            {
+                if (blockHeader.Index != context.BlockHeight + 1)
+                {
+                    return BlockHeaderValidationResult.Others;
+                }
+
+                return blockHeader.GetHash().DumpHex() == context.BlockHash.DumpHex()
+                    ? BlockHeaderValidationResult.Success
+                    : BlockHeaderValidationResult.Unlinkable;
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error while validating the block header.");
+                return BlockHeaderValidationResult.Others;
+            }
         }
     }
 }

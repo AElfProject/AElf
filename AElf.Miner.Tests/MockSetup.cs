@@ -17,6 +17,7 @@ using Google.Protobuf;
 using Moq;
 using NLog;
 using AElf.Common;
+using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
@@ -36,28 +37,35 @@ namespace AElf.Miner.Tests
         private ISmartContractManager _smartContractManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ITransactionManager _transactionManager;
+        private ITransactionReceiptManager _transactionReceiptManager;
         private ITransactionResultManager _transactionResultManager;
         private ITransactionTraceManager _transactionTraceManager;
         private IExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private IKeyValueDatabase _database;
         private readonly IDataStore _dataStore;
         private readonly IStateStore _stateStore;
-        private TxHub _txHub;
         private IChainContextService _chainContextService;
+        private ITxSignatureVerifier _signatureVerifier;
+        private ITxRefBlockValidator _refBlockValidator;
 
-        public MockSetup(ILogger logger, IDataStore dataStore, IStateStore stateStore)
+        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
         {
             _logger = logger;
+            _database = database;
             _dataStore = dataStore;
             _stateStore = stateStore;
+            _signatureVerifier = signatureVerifier;
+            _refBlockValidator = refBlockValidator;
             Initialize();
         }
 
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_dataStore, _logger);
+            _transactionReceiptManager = new TransactionReceiptManager(_database);
             _smartContractManager = new SmartContractManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
@@ -79,7 +87,6 @@ namespace AElf.Miner.Tests
                     _stateStore, _functionMetadataService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
-            _txHub = new TxHub(_transactionManager);
             _chainContextService = new ChainContextService(_chainService);
         }
 
@@ -100,11 +107,11 @@ namespace AElf.Miner.Tests
             return chain;
         }
 
-        internal IMiner GetMiner(IMinerConfig config, ITxPool pool, ClientManager clientManager = null)
+        internal IMiner GetMiner(IMinerConfig config, ITxHub hub, ClientManager clientManager = null)
         {
-            var miner = new AElf.Miner.Miner.Miner(config, pool, _chainService, _concurrencyExecutingService,
-                _transactionManager, _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object.ValidatingOwnBlock(true), _chainContextService);
+            var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
+                _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
+                MockBlockValidationService().Object, _chainContextService);
 
             return miner;
         }
@@ -112,8 +119,8 @@ namespace AElf.Miner.Tests
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
-                _transactionManager, _transactionResultManager,
-                clientManager, _binaryMerkleTreeManager);
+                _transactionResultManager, clientManager, _binaryMerkleTreeManager,
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _signatureVerifier, _refBlockValidator));
 
             return blockExecutor;
         }
@@ -123,10 +130,11 @@ namespace AElf.Miner.Tests
             return _chainService.GetBlockChain(chainId);
         }
         
-        internal ITxPool CreateTxPool()
+        internal ITxHub CreateTxPool()
         {
             var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
-            return new TxPool(_logger, validator, _txHub);
+            return new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _signatureVerifier, _refBlockValidator);
+//            return new TxPool(_logger, new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)

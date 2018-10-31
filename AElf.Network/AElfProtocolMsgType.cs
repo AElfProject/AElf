@@ -14,6 +14,9 @@
         RequestBlock,
         Block,
         
-        Announcement
+        Announcement,
+        
+        HeaderRequest,
+        Headers
     }
 }
