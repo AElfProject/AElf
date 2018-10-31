@@ -308,6 +308,8 @@ namespace AElf.Synchronization.BlockSynchronization
                     _rwLock.ReleaseWriterLock();
                 }
                 _logger?.Trace($"Removed block of height {block.Index} from executed block dict.");
+                _blockCache.Add(block);
+                _logger?.Trace($"Added block {block.BlockHashToHex} to block cache.");
             }
         }
 
