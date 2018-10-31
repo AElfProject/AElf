@@ -48,7 +48,7 @@ namespace AElf.Miner.TxMemPool
             var curHeight = _canonicalBlockHashCache.CurrentHeight;
             if (tx.RefBlockNumber > curHeight && curHeight > GlobalConfig.GenesisBlockHeight)
             {
-                throw  new RefBlockInvalidException();
+                throw  new FutureRefBlockException();
             }
 
             if (curHeight > GlobalConfig.ReferenceBlockValidPeriod + GlobalConfig.GenesisBlockHeight &&
