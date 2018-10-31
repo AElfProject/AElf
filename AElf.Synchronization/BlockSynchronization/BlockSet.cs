@@ -176,7 +176,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             finally
             {
-                _rwLock.ReleaseWriterLock();
+                _rwLock.ReleaseReaderLock();
             }
 
             return null;
