@@ -41,6 +41,7 @@ message TransactionReceipt {
         RefBlockValid = 1;
         RefBlockInvalid = -1;
         RefBlockExpired = -2;
+        FutureRefBlock = -3;
     }
     Hash TransactionId = 1;
     Transaction Transaction = 2;

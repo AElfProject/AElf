@@ -59,15 +59,14 @@ namespace AElf.Miner.TxMemPool
             _chainService = chainService;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
-
         }
 
         public void Initialize()
         {
             MessageHub.Instance.Subscribe<TransactionsExecuted>(OnTransactionsExecuted);
-            MessageHub.Instance.Subscribe<BlockHeader>(OnNewBlockHeader);
+            MessageHub.Instance.Subscribe<BlockHeader>(async h => await OnNewBlockHeader(h));
             MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
-                await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));            
+                await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
         }
 
         public void Start()
@@ -127,6 +126,7 @@ namespace AElf.Miner.TxMemPool
                 if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
                 {
                     tr = new TransactionReceipt(txn);
+                    _allTxns.TryAdd(tr.TransactionId, tr);
                 }
 
                 VerifySignature(tr);
@@ -144,7 +144,7 @@ namespace AElf.Miner.TxMemPool
             {
                 tr = await _receiptManager.GetReceiptAsync(txId);
             }
-            
+
             return tr;
         }
 
@@ -190,7 +190,8 @@ namespace AElf.Miner.TxMemPool
 
         private async Task ValidateRefBlock(TransactionReceipt tr)
         {
-            if (tr.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.UnknownRefBlockStatus)
+            if (tr.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.UnknownRefBlockStatus &&
+                tr.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.FutureRefBlock)
             {
                 return;
             }
@@ -199,6 +200,10 @@ namespace AElf.Miner.TxMemPool
             {
                 await _refBlockValidator.ValidateAsync(tr.Transaction);
                 tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockValid;
+            }
+            catch (FutureRefBlockException)
+            {
+                tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.FutureRefBlock;
             }
             catch (RefBlockInvalidException)
             {
@@ -254,10 +259,10 @@ namespace AElf.Miner.TxMemPool
         }
 
         // Render transactions to expire, and purge old transactions (RefBlockValidPeriod + some buffer)
-        private void OnNewBlockHeader(BlockHeader blockHeader)
+        private async Task OnNewBlockHeader(BlockHeader blockHeader)
         {
             // TODO: Handle LIB
-            if (blockHeader.Index != (CurHeight + 1) && CurHeight != 0)
+            if (blockHeader.Index != (CurHeight + 1) && CurHeight != GlobalConfig.GenesisBlockHeight)
             {
                 throw new Exception("Invalid block index.");
             }
@@ -289,6 +294,13 @@ namespace AElf.Miner.TxMemPool
                 {
                     _allTxns.TryRemove(tr.Key, out _);
                 }
+            }
+
+            // Re-validate FutureRefBlock transactions
+            foreach (var tr in _allTxns.Values.Where(x =>
+                x.RefBlockSt == TransactionReceipt.Types.RefBlockStatus.FutureRefBlock))
+            {
+                await ValidateRefBlock(tr);
             }
         }
 
