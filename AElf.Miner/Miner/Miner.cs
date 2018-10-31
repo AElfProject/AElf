@@ -348,6 +348,7 @@ namespace AElf.Miner.Miner
                 if (pcbTransaction != null && r.TransactionId.Equals(pcbTransaction.GetHash()) &&
                     r.Status.Equals(Status.Mined))
                 {
+                    _logger?.Trace("UpdateParentChainBlockInfo");
                     await _clientManager.UpdateParentChainBlockInfo(parentChainBlockInfo);
                 }
             });
