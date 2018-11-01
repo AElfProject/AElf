@@ -37,8 +37,6 @@ namespace AElf.Node.AElfChain
         private readonly IStateStore _stateStore;
         private readonly IMiner _miner;
         private readonly IP2P _p2p;
-        private readonly IBlockValidationService _blockValidationService;
-        private readonly IChainContextService _chainContextService;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockSynchronizer _blockSynchronizer;
@@ -53,8 +51,6 @@ namespace AElf.Node.AElfChain
         public MainchainNodeService(
             IStateStore stateStore,
             ITxHub hub,
-            IBlockValidationService blockValidationService,
-            IChainContextService chainContextService,
             IChainCreationService chainCreationService,
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
@@ -71,8 +67,6 @@ namespace AElf.Node.AElfChain
             _blockExecutor = blockExecutor;
             _miner = miner;
             _p2p = p2p;
-            _blockValidationService = blockValidationService;
-            _chainContextService = chainContextService;
             _blockSynchronizer = blockSynchronizer;
         }
 
@@ -365,7 +359,7 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService);
+                    _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService, _blockSynchronizer);
                     break;
 
                 case ConsensusType.PoTC:

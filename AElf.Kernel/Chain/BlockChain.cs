@@ -33,19 +33,10 @@ namespace AElf.Kernel
             _logger = LogManager.GetLogger(nameof(BlockChain));
         }
 
-        public IBlock CurrentBlock
-        {
-            get
-            {
-                var currentBlockHash = _chainManager.GetCurrentBlockHashAsync(_chainId).Result;
-                return _blockManager.GetBlockAsync(currentBlockHash).Result;
-            }
-        }
-
         public async Task<bool> HasBlock(Hash blockId)
         {
             var blk = await _blockManager.GetBlockAsync(blockId);
-            return blk?.Header != null;
+            return blk != null;
         }
 
         public async Task<bool> IsOnCanonical(Hash blockId)

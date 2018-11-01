@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -14,7 +15,6 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
-using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using Easy.MessageHub;
 
@@ -58,8 +58,10 @@ namespace AElf.Synchronization.BlockExecution
             {
                 return result;
             }
-
+            
             _logger?.Trace($"Executing block {block.GetHash()}");
+
+            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
 
             var txnRes = new List<TransactionResult>();
             try
@@ -80,10 +82,11 @@ namespace AElf.Synchronization.BlockExecution
                     if (!tr.IsExecutable)
                     {
                         throw new InvalidBlockException($"Transaction is not executable. {tr}");
-                    }    
+                    }
                 }
 
-                txnRes = await ExecuteTransactions(readyTxns, block.Header.ChainId, block.Header.GetDisambiguationHash());
+                txnRes = await ExecuteTransactions(readyTxns, block.Header.ChainId,
+                    block.Header.GetDisambiguationHash());
                 txnRes = SortToOriginalOrder(txnRes, readyTxns);
 
                 result = await UpdateWorldState(block, txnRes);
@@ -95,7 +98,7 @@ namespace AElf.Synchronization.BlockExecution
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
 
-                _logger?.Info($"Executed block {block.GetHash()}");
+                MessageHub.Instance.Publish(new ExecutionStateChanged(false));
 
                 return BlockExecutionResult.Success;
             }
@@ -104,18 +107,23 @@ namespace AElf.Synchronization.BlockExecution
                 BlockExecutionResult res = BlockExecutionResult.Failed;
                 if (e is InvalidCrossChainInfoException i)
                 {
-                    _logger?.Warn($"Exception while execute block. {e.Message}");
+                    _logger?.Warn(e, $"Exception while execute block {block.BlockHashToHex}.");
                     res = i.Result;
-;               }
+                    ;
+                }
                 else
                 {
-                    _logger?.Error(e, "Exception while execute block.");
+                    _logger?.Error(e, "Exception while execute block {block.BlockHashToHex}.");
                 }
 
                 // TODO, no wait may need improve
                 Rollback(block, txnRes).ConfigureAwait(false);
 
                 return res;
+            }
+            finally
+            {
+                _logger?.Info($"Executed block {block.GetHash()}");
             }
         }
 
@@ -164,7 +172,6 @@ namespace AElf.Synchronization.BlockExecution
             var indexes = txs.Select((x, i)=>new {hash=x.GetHash(),ind=i}).ToDictionary(x=>x.hash, x=>x.ind);
             return results.Zip(results.Select(r => indexes[r.TransactionId]), Tuple.Create).OrderBy(
                 x => x.Item2).Select(x=>x.Item1).ToList();
-//                tx => indexes[tx.TransactionId]).ToList();
         }
         
         #region Before transaction execution
@@ -329,8 +336,6 @@ namespace AElf.Synchronization.BlockExecution
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-
-            MessageHub.Instance.Publish(new TransactionsExecuted(executedTxs, bn));
 
             txResults.AsParallel().ForEach(async r =>
             {

@@ -6,7 +6,9 @@ using AElf.ChainController.EventMessages;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
+using AElf.Database;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
@@ -18,7 +20,10 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
+using Newtonsoft.Json.Serialization;
 using NLog;
+using NServiceKit.Text;
+using ServiceStack.Templates;
 
 namespace AElf.ChainController.Rpc
 {
@@ -36,6 +41,7 @@ namespace AElf.ChainController.Rpc
         public ISmartContractService SmartContractService { get; set; }
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfo CrossChainInfo { get; set; }
+        public IKeyValueDatabase KeyValueDatabase { get; set; }
 
         #endregion Properties
 
@@ -542,6 +548,86 @@ namespace AElf.ChainController.Rpc
         }
 
         #endregion Admin
+        
+        [JsonRpcMethod("get_db_value","key")]
+        public async Task<JObject> GetDbValue(string key)
+        {
+            string type = string.Empty;
+            JToken id;
+            try
+            {
+                var valueBytes = KeyValueDatabase.GetAsync(key).Result;
+
+                object value;
+
+                if (key.StartsWith(GlobalConfig.StatePrefix))
+                {
+                    type = "State";
+                    id = key.Substring(GlobalConfig.StatePrefix.Length, key.Length - GlobalConfig.StatePrefix.Length);
+                    value = StateValue.Create(valueBytes);
+                }
+                else if(key.StartsWith(GlobalConfig.TransactionReceiptPrefix))
+                {
+                    type = "TransactionReceipt";
+                    id = key.Substring(GlobalConfig.TransactionReceiptPrefix.Length, key.Length - GlobalConfig.TransactionReceiptPrefix.Length);
+                    value = valueBytes?.Deserialize<TransactionReceipt>();
+                }
+                else
+                {
+                    var keyObj = Key.Parser.ParseFrom(ByteArrayHelpers.FromHexString(key));
+                    type = keyObj.Type;
+                    id = JObject.Parse(keyObj.ToString());
+                    var obj = GetInstance(type);
+                    obj.MergeFrom(valueBytes);
+                    value = obj;
+                }
+
+                var response = new JObject
+                {
+                    ["Type"] = type,
+                    ["Id"] = id,
+                    ["Value"] = JObject.Parse(value.ToString())
+                };
+
+                return JObject.FromObject(response);
+            }
+            catch (Exception e)
+            {
+                var response = new JObject
+                {
+                    ["Type"]=type,
+                    ["Value"] = e.Message
+                };
+                return JObject.FromObject(response);
+            }
+        }
+
+        private IMessage GetInstance(string type)
+        {
+            switch (type)
+            {
+                case "MerklePath":
+                    return new MerklePath();
+                case "BinaryMerkleTree":
+                    return new BinaryMerkleTree ();
+                case "BlockHeader":
+                    return new BlockHeader();
+                case "BlockBody":
+                    return new BlockBody();
+                case "Hash":
+                    return new Hash();
+                case "SmartContractRegistration":
+                    return new SmartContractRegistration();
+                case "Transaction":
+                    return new Transaction();
+                case "TransactionResult":
+                    return new TransactionResult();
+                case "TransactionTrace":
+                    return new TransactionTrace();
+                default:
+                    throw new ArgumentException($"[{type}] not found");
+            }
+        }
 
         #endregion Methods
     }
