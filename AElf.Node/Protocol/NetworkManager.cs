@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -17,6 +18,7 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;
+using AElf.Node.AElfChain;
 using AElf.Node.EventMessages;
 using AElf.Node.Protocol.Events;
 using AElf.Synchronization.BlockSynchronization;
@@ -55,7 +57,8 @@ namespace AElf.Node.Protocol
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private readonly IBlockSynchronizer _blockSynchronizer;
-        
+        private readonly INodeService _nodeService;
+
         private readonly List<IPeer> _peers = new List<IPeer>();
 
         private BoundedByteArrayQueue _lastBlocksReceived;
@@ -71,7 +74,7 @@ namespace AElf.Node.Protocol
 
         private readonly Hash _chainId;
 
-        public NetworkManager(IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
+        public NetworkManager(IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer, INodeService nodeService)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
 
@@ -79,6 +82,7 @@ namespace AElf.Node.Protocol
             _chainService = chainService;
             _logger = logger;
             _blockSynchronizer = blockSynchronizer;
+            _nodeService = nodeService;
 
             _chainId = new Hash
             {
@@ -202,7 +206,7 @@ namespace AElf.Node.Protocol
             MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
             {
                 _peerManager.Start();
-                Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
+                Task.Run(StartProcessingIncoming).ConfigureAwait(false);
             });
         }
 
@@ -345,14 +349,14 @@ namespace AElf.Node.Protocol
 
         #region Message processing
 
-        private void StartProcessingIncoming()
+        private async Task StartProcessingIncoming()
         {
             while (true)
             {
                 try
                 {
                     PeerMessageReceivedArgs msg = _incomingJobs.Take();
-                    ProcessPeerMessage(msg);
+                    await ProcessPeerMessage(msg);
                 }
                 catch (Exception e)
                 {
@@ -361,28 +365,35 @@ namespace AElf.Node.Protocol
             }
         }
 
-        private void ProcessPeerMessage(PeerMessageReceivedArgs args)
+        private async Task ProcessPeerMessage(PeerMessageReceivedArgs args)
         {
-            if (args?.Peer == null || args.Message == null)
+            if (args?.Peer == null)
             {
-                _logger.Warn("Invalid message from peer.");
+                _logger.Warn("Peer is invalid.");
+                return;
+            }
+            
+            if (args.Message?.Payload == null)
+            {
+                _logger?.Warn($"Message from [{args.Peer}], message/payload is null.");
                 return;
             }
 
             AElfProtocolMsgType msgType = (AElfProtocolMsgType) args.Message.Type;
 
-            Stopwatch s = Stopwatch.StartNew();
-            
-            _logger?.Debug($"Processing job ({msgType})");
+            Stopwatch s = null;
+
+            if (msgType == AElfProtocolMsgType.Block || msgType == AElfProtocolMsgType.RequestBlock)
+            {
+                s = Stopwatch.StartNew();
+                _logger?.Debug($"Processing job ({msgType})");
+            }
             
             switch (msgType)
             {
                 case AElfProtocolMsgType.Announcement:
                     HandleAnnouncement(msgType, args.Message, args.Peer);
                     break;
-                // New blocks and requested blocks will be added to the sync
-                // Subscribe to the BlockReceived event.
-                case AElfProtocolMsgType.NewBlock:
                 case AElfProtocolMsgType.Block:
                     MessageHub.Instance.Publish(new BlockReceived(args.Block));
                     break;
@@ -393,19 +404,82 @@ namespace AElf.Node.Protocol
                 case AElfProtocolMsgType.Headers:
                     HandleHeaders(msgType, args.Message, args.Peer);
                     break;
+                case AElfProtocolMsgType.RequestBlock:
+                    await HandleBlockRequestJob(args);
+                    break;
+                case AElfProtocolMsgType.HeaderRequest:
+                    await HandleHeaderRequest(args);
+                    break;
             }
 
-            // Re-fire the event for higher levels if needed.
-            BubbleMessageReceivedEvent(args);
-            
-            s.Stop();
-            
-            _logger?.Debug($"Finished processing job ({msgType}) - duration : {s.ElapsedMilliseconds}");
+            if (msgType == AElfProtocolMsgType.Block || msgType == AElfProtocolMsgType.RequestBlock)
+            {
+                s?.Stop();
+                _logger?.Debug($"Finished processing job ({msgType}) - duration : {s.ElapsedMilliseconds} ms");
+            }
         }
 
-        private void BubbleMessageReceivedEvent(PeerMessageReceivedArgs args)
+        private async Task HandleHeaderRequest(PeerMessageReceivedArgs args)
         {
-            MessageReceived?.Invoke(this, new NetMessageReceivedEventArgs(args.Message, args));
+            try
+            {
+                var hashReq = BlockHeaderRequest.Parser.ParseFrom(args.Message.Payload);
+                
+                var blockHeaderList = await _nodeService.GetBlockHeaderList((ulong) hashReq.Height, hashReq.Count);
+                
+                var req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Headers, blockHeaderList.ToByteArray());
+                
+                if (args.Message.HasId)
+                    req.Id = args.Message.Id;
+
+                args.Peer.EnqueueOutgoing(req);
+
+                _logger?.Debug($"Send {blockHeaderList.Headers.Count} block headers start " +
+                               $"from {blockHeaderList.Headers.FirstOrDefault()?.GetHash().DumpHex()}, to node {args.Peer}.");
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while during HandleBlockRequest.");
+            }
+        }
+
+        private async Task HandleBlockRequestJob(PeerMessageReceivedArgs args)
+        { 
+            try
+            {
+                var breq = BlockRequest.Parser.ParseFrom(args.Message.Payload);
+                
+                Block b;
+                
+                if (breq.Id != null && breq.Id.Length > 0)
+                {
+                    b = await _nodeService.GetBlockFromHash(breq.Id.ToByteArray());
+                }
+                else
+                {
+                    b = await _nodeService.GetBlockAtHeight(breq.Height);
+                }
+
+                if (b == null)
+                {
+                    _logger?.Warn($"Block not found {breq.Id?.ToByteArray().ToHex()}");
+                    return;
+                }
+                
+                Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Block, b.ToByteArray());
+                
+                if (args.Message.HasId)
+                    req.Id = args.Message.Id;
+
+                // Send response
+                args.Peer.EnqueueOutgoing(req);
+
+                _logger?.Debug($"Send block {b.BlockHashToHex} to {args.Peer}");
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while during HandleBlockRequest.");
+            }
         }
 
         private void HandleHeaders(AElfProtocolMsgType msgType, Message msg, Peer peer)

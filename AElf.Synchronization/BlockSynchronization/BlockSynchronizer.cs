@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -181,7 +182,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
             _blockSet.Tell(message.Block);
 
-            _logger?.Trace("Will notify network layer this block already executed.");
             // Notify the network layer the block has been executed.
             MessageHub.Instance.Publish(message);
 
