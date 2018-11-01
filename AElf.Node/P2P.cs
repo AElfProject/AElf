@@ -49,10 +49,6 @@ namespace AElf.Node
                     {
                         await HandleBlockRequest(message, args.PeerMessage);
                     }
-                    else if (msgType == AElfProtocolMsgType.TxRequest)
-                    {
-                        await HandleTxRequest(message, args.PeerMessage);
-                    }
                     else if (msgType == AElfProtocolMsgType.HeaderRequest)
                     {
                         await HandleBlockHeaderRequest(message, args.PeerMessage);
@@ -154,64 +150,6 @@ namespace AElf.Node
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while during HandleBlockRequest.");
-            }
-        }
-
-        private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
-        {
-            if (message.Payload == null || message.Payload.Length <= 0)
-            {
-                _logger?.Warn("Payload null or empty, cannot process transaction request.");
-                return;
-            }
-                
-            try
-            {
-                TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
-
-                if (!breq.TxHashes.Any())
-                {
-                    _logger?.Warn("Received transaction request with empty hash list.");
-                    return;
-                }
-
-                TransactionList txList = new TransactionList();
-                foreach (var txHash in breq.TxHashes)
-                {
-                    var hash = txHash.ToByteArray();
-                    var tx = await _handler.GetTransaction(Hash.LoadByteArray(hash));
-                
-                    if(tx != null)
-                        txList.Transactions.Add(tx);
-                    else
-                    {
-                        _logger?.Trace($"wanna get tx: {txHash.ToByteArray().ToHex()}.");
-                    }
-                }
-
-                if (!txList.Transactions.Any())
-                {
-                    _logger?.Warn("None of the transactions where found.");
-                    return;
-                }
-
-                byte[] serializedTxList = txList.ToByteArray();
-                Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Transactions, serializedTxList);
-                _logger?.Trace($"payload length: {req.Length}.");
-
-                if (message.HasId)
-                {
-                    req.HasId = true;
-                    req.Id = message.Id;
-                }
-                
-                args.Peer.EnqueueOutgoing(req);
-                
-                _logger?.Debug($"Send {txList.Transactions.Count} to {args.Peer}.");
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Transaction request failed.");
             }
         }
 
