@@ -89,7 +89,9 @@ namespace AElf.Node.Protocol
             _blockSynchronizer = blockSynchronizer;
 
             _chainId = new Hash
-                {Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId))};
+            {
+                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId))
+            };
 
             peerManager.PeerEvent += OnPeerAdded;
 
@@ -124,8 +126,8 @@ namespace AElf.Node.Protocol
 
                 AnnounceBlock((Block) inBlock.Block);
 
-                _logger?.Trace(
-                    $"Block produced, announcing \"{blockHash.ToHex()}\" to peers with {inBlock.Block.Body.TransactionsCount} txs. Block height: [{inBlock.Block.Header.Index}].");
+                _logger?.Info($"Block produced, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}) with " +
+                              $"{inBlock.Block.Body.TransactionsCount} txs. Block height {inBlock.Block.Header.Index}.");
 
                 _localHeight++;
             });
@@ -143,8 +145,8 @@ namespace AElf.Node.Protocol
                 if (blockHash != null)
                     _lastBlocksReceived.Enqueue(blockHash);
 
-                _logger?.Trace(
-                    $"Block accepted, announcing \"{blockHash.ToHex()}\" to peers. Block height: [{inBlock.Block.Header.Index}].");
+                _logger?.Trace($"Block accepted, announcing {blockHash.ToHex()} to peers {string.Join("|", _peers)}. " +
+                               $"Block height {inBlock.Block.Header.Index}.");
 
                 _localHeight++;
 
