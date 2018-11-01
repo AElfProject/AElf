@@ -66,12 +66,21 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public async Task<BlockExecutionResult> ReceiveBlock(IBlock block)
         {
+            if (_blockSet.IsBlockReceived(block.GetHash(), block.Index))
+            {
+                return BlockExecutionResult.NotExecuted;
+            }
+
+            return await HandleBlock(block);
+        }
+
+        private async Task<BlockExecutionResult> HandleBlock(IBlock block)
+        {
             var blockValidationResult =
                 await _blockValidationService.ValidatingOwnBlock(false)
                     .ValidateBlockAsync(block, await GetChainContextAsync());
 
             var message = new BlockExecuted(block, blockValidationResult);
-
             if (blockValidationResult.IsSuccess())
             {
                 _logger?.Trace($"Valid Block {block.BlockHashToHex}.");
@@ -92,23 +101,24 @@ namespace AElf.Synchronization.BlockSynchronization
             ulong i = 0;
             while (blocks != null && blocks.Any())
             {
-                _logger?.Trace($"Will get block of height {targetHeight + i} from block set to execute - {blocks.Count} blocks.");
-                
+                _logger?.Trace(
+                    $"Will get block of height {targetHeight + i} from block set to execute - {blocks.Count} blocks.");
+
                 i++;
                 foreach (var block in blocks)
                 {
                     blocks = _blockSet.GetBlockByHeight(targetHeight + i);
-                    await ReceiveBlock(block);
+                    await HandleBlock(block);
                 }
             }
         }
-        
+
         public void AddMinedBlock(IBlock block)
         {
             _blockSet.Tell(block);
 
             _minedBlock = true;
-            
+
             // Update DPoS process.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
 
@@ -188,7 +198,7 @@ namespace AElf.Synchronization.BlockSynchronization
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
 
-            await ExecuteRemainingBlocks(message.Block.Index+1);
+            await ExecuteRemainingBlocks(message.Block.Index + 1);
 
             return BlockExecutionResult.Success;
         }
@@ -206,7 +216,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 _receivedBranchedBlock = true;
 
                 _logger?.Warn("Received unlinkable block.");
-                
+
                 MessageHub.Instance.Publish(new UnlinkableHeader(message.Block.Header));
 
                 await ReviewBlockSet();
