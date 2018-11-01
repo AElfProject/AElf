@@ -167,6 +167,7 @@ namespace AElf.Kernel.Node
             {
                 ulong chainHeight = await BlockChain.GetCurrentBlockHeightAsync();
                 await _synchronizer.ExecuteRemainingBlocks(chainHeight);
+                _logger?.Trace("Will execute block of height " + chainHeight);
                 
                 var block = await _miner.Mine(Helper.GetCurrentRoundInfo());
 

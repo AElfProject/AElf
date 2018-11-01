@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -14,7 +15,6 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
-using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using Easy.MessageHub;
 
@@ -56,8 +56,10 @@ namespace AElf.Synchronization.BlockExecution
             {
                 return result;
             }
-
+            
             _logger?.Trace($"Executing block {block.GetHash()}");
+
+            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
 
             var txnRes = new List<TransactionResult>();
             try
@@ -78,10 +80,11 @@ namespace AElf.Synchronization.BlockExecution
                     if (!tr.IsExecutable)
                     {
                         throw new InvalidBlockException($"Transaction is not executable. {tr}");
-                    }    
+                    }
                 }
 
-                txnRes = await ExecuteTransactions(readyTxns, block.Header.ChainId, block.Header.GetDisambiguationHash());
+                txnRes = await ExecuteTransactions(readyTxns, block.Header.ChainId,
+                    block.Header.GetDisambiguationHash());
                 txnRes = SortToOriginalOrder(txnRes, readyTxns);
 
                 result = await UpdateWorldState(block, txnRes);
@@ -89,6 +92,7 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     return result;
                 }
+
                 await UpdateSideChainInfo(block);
 
                 //Need-to-rollback boundary
@@ -96,7 +100,7 @@ namespace AElf.Synchronization.BlockExecution
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
 
-                _logger?.Info($"Executed block {block.GetHash()}");
+                MessageHub.Instance.Publish(new ExecutionStateChanged(false));
 
                 return BlockExecutionResult.Success;
             }
@@ -107,7 +111,8 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     _logger?.Warn(e, $"Exception while execute block {block.BlockHashToHex}.");
                     res = i.Result;
-;               }
+                    ;
+                }
                 else
                 {
                     _logger?.Error(e, "Exception while execute block {block.BlockHashToHex}.");
@@ -117,6 +122,10 @@ namespace AElf.Synchronization.BlockExecution
                 Rollback(block, txnRes).ConfigureAwait(false);
 
                 return res;
+            }
+            finally
+            {
+                _logger?.Info($"Executed block {block.GetHash()}");
             }
         }
 
