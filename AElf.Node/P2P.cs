@@ -119,7 +119,7 @@ namespace AElf.Node
             try
             {
                 var breq = BlockRequest.Parser.ParseFrom(message.Payload);
-
+                
                 Block b;
                 
                 if (breq.Id != null && breq.Id.Length > 0)
@@ -136,7 +136,6 @@ namespace AElf.Node
                     _logger?.Warn($"Block not found {breq.Id?.ToByteArray().ToHex()}");
                     return;
                 }
-                    
                 
                 Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Block, b.ToByteArray());
                 

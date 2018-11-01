@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -316,7 +317,6 @@ namespace AElf.Node.Protocol
 
                 peer.MessageReceived -= HandleNewMessage;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
-                //peer.SyncFinished -= PeerOnSyncFinished;
 
                 _peers.Remove(args.Peer);
             }
@@ -326,6 +326,17 @@ namespace AElf.Node.Protocol
         {
             if (e is PeerMessageReceivedArgs args)
             {
+                if (args.Message.Type == (int)AElfProtocolMsgType.Block)
+                {
+                    // If we get a block deserialize it here to stop the request timer asap
+                    var block = HandleBlockReception(args.Message.Payload, args.Peer);
+
+                    if (block == null)
+                        return;
+                    
+                    args.Block = block;
+                }
+                
                 _incomingJobs.Enqueue(args, 0);
             }
         }
@@ -360,6 +371,10 @@ namespace AElf.Node.Protocol
 
             AElfProtocolMsgType msgType = (AElfProtocolMsgType) args.Message.Type;
 
+            Stopwatch s = Stopwatch.StartNew();
+            
+            _logger?.Debug($"Processing job ({msgType})");
+            
             switch (msgType)
             {
                 case AElfProtocolMsgType.Announcement:
@@ -369,7 +384,7 @@ namespace AElf.Node.Protocol
                 // Subscribe to the BlockReceived event.
                 case AElfProtocolMsgType.NewBlock:
                 case AElfProtocolMsgType.Block:
-                    HandleBlockReception(msgType, args.Message, args.Peer);
+                    MessageHub.Instance.Publish(new BlockReceived(args.Block));
                     break;
                 // New transaction issue from a broadcast.
                 case AElfProtocolMsgType.NewTransaction:
@@ -382,6 +397,10 @@ namespace AElf.Node.Protocol
 
             // Re-fire the event for higher levels if needed.
             BubbleMessageReceivedEvent(args);
+            
+            s.Stop();
+            
+            _logger?.Debug($"Finished processing job ({msgType}) - duration : {s.ElapsedMilliseconds}");
         }
 
         private void BubbleMessageReceivedEvent(PeerMessageReceivedArgs args)
@@ -394,8 +413,7 @@ namespace AElf.Node.Protocol
             try
             {
                 BlockHeaderList blockHeaders = BlockHeaderList.Parser.ParseFrom(msg.Payload);
-                Task.Run(() => MessageHub.Instance.Publish(new HeadersReceived(blockHeaders.Headers.ToList())))
-                    .ConfigureAwait(false);
+                MessageHub.Instance.Publish(new HeadersReceived(blockHeaders.Headers.ToList()));
             }
             catch (Exception e)
             {
@@ -445,7 +463,7 @@ namespace AElf.Node.Protocol
 
                 _lastTxReceived.Enqueue(txHash);
 
-                Task.Run(() => MessageHub.Instance.Publish(new TxReceived(tx))).ConfigureAwait(false);
+                MessageHub.Instance.Publish(new TxReceived(tx));
             }
             catch (Exception e)
             {
@@ -453,27 +471,32 @@ namespace AElf.Node.Protocol
             }
         }
 
-        private void HandleBlockReception(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        private Block HandleBlockReception(byte[] serializedBlock, Peer peer)
         {
             try
             {
-                Block block = Block.Parser.ParseFrom(msg.Payload);
+                Block block = Block.Parser.ParseFrom(serializedBlock);
 
                 byte[] blockHash = block.GetHashBytes();
 
                 if (_lastBlocksReceived.Contains(blockHash))
-                    return;
+                {
+                    _logger.Warn("Block already in network cache");
+                    return null;
+                }
 
                 _lastBlocksReceived.Enqueue(blockHash);
 
                 peer.OnBlockReceived(block);
 
-                Task.Run(() => MessageHub.Instance.Publish(new BlockReceived(block))).ConfigureAwait(false);
+                return block;
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while handling block reception");
             }
+
+            return null;
         }
 
         #endregion
