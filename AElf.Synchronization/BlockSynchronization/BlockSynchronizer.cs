@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -45,6 +46,11 @@ namespace AElf.Synchronization.BlockSynchronization
             _blockSet = blockSet;
 
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
+            
+            MessageHub.Instance.Subscribe<SyncUnfinishedBlock>(async inHeight =>
+                {
+                    await ExecuteRemainingBlocks(inHeight.TargetHeight);
+                });
 
             MessageHub.Instance.Subscribe<HeadersReceived>(async inHeaders =>
             {
@@ -85,7 +91,7 @@ namespace AElf.Synchronization.BlockSynchronization
             return BlockExecutionResult.NotExecuted;
         }
 
-        public async Task ExecuteRemainingBlocks(ulong targetHeight)
+        private async Task ExecuteRemainingBlocks(ulong targetHeight)
         {
             // Find new blocks from block set to execute
             var blocks = _blockSet.GetBlockByHeight(targetHeight);

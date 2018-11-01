@@ -11,6 +11,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Miner.Miner;
 using AElf.Node;
+using AElf.Node.AElfChain;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
@@ -18,8 +19,9 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
+using AElf.Synchronization.EventMessages;
 using AElf.Kernel.Storages;
-using AElf.Synchronization.BlockSynchronization;
+using AElf.Node.EventMessages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -39,7 +41,6 @@ namespace AElf.Kernel.Node
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
-        private readonly IBlockSynchronizer _synchronizer;
 
         private IBlockChain _blockChain;
 
@@ -68,12 +69,11 @@ namespace AElf.Kernel.Node
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
         public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner,
-            IChainService chainService, IBlockSynchronizer synchronizer)
+            IChainService chainService)
         {
             _txHub = txHub;
             _miner = miner;
             _chainService = chainService;
-            _synchronizer = synchronizer;
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
@@ -165,9 +165,8 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                ulong chainHeight = await BlockChain.GetCurrentBlockHeightAsync();
-                await _synchronizer.ExecuteRemainingBlocks(chainHeight);
-                
+                MessageHub.Instance.Publish(new SyncUnfinishedBlock(await BlockChain.GetCurrentBlockHeightAsync()));
+
                 var block = await _miner.Mine(Helper.GetCurrentRoundInfo());
 
                 return block;

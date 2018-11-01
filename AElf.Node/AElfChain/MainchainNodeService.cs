@@ -359,7 +359,7 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService, _blockSynchronizer);
+                    _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService);
                     break;
 
                 case ConsensusType.PoTC:
