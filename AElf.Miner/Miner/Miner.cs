@@ -90,11 +90,8 @@ namespace AElf.Miner.Miner
                     if (cancellationTokenSource.IsCancellationRequested)
                         return null;
 
-                    var parentChainBlockInfo = await GetParentChainBlockInfo();
-                    GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo).ConfigureAwait(false);
                     var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                     var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
-                    var readyTxs = new List<Transaction>();
                     var traces = new List<TransactionTrace>();
                     ParentChainBlockInfo pcb = null; 
                     if (txGrp.TryGetValue(true, out var sysRcpts))
@@ -105,11 +102,9 @@ namespace AElf.Miner.Miner
                         {
                             _txFilter.Execute(dposTxns);
                         }
-                        readyTxs.AddRange(dposTxns);
 
                         var others = sysTxs.Where(t => t.Type != TransactionType.DposTransaction).ToList();
                         _txFilter.Execute(others);
-                        readyTxs.AddRange(others);
 
                         _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
                         traces = await ExecuteTransactions(sysTxs);
@@ -120,13 +115,12 @@ namespace AElf.Miner.Miner
                     if (txGrp.TryGetValue(false, out var regRcpts))
                     {
                         var regTxs = regRcpts.Select(x => x.Transaction).ToList();
-                        readyTxs.AddRange(regTxs);
                         _logger?.Trace($"Start executing {regTxs.Count} regular transactions.");
                         traces.AddRange(await ExecuteTransactions(regTxs));
                         _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
                     }
 
-                    ExtractTransactionResults(readyTxs, traces, out var executed, out var results);
+                    ExtractTransactionResults(traces, out var results);
 
                     // generate block
                     var block = await GenerateBlockAsync(results);
@@ -146,7 +140,10 @@ namespace AElf.Miner.Miner
                     // insert to db
                     Update(results, block);
                     if (pcb != null)
+                    {
                         await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
+                    }
+                    GenerateTransactionWithParentChainBlockInfo().ConfigureAwait(false);
                     MessageHub.Instance.Publish(new BlockMined(block));
 
                     return block;
@@ -193,11 +190,10 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// Generate a system tx for parent chain block info and broadcast it.
         /// </summary>
-        /// <param name="parentChainBlockInfo"></param>
         /// <returns></returns>
-        private async Task GenerateTransactionWithParentChainBlockInfo(
-            ParentChainBlockInfo parentChainBlockInfo)
+        private async Task GenerateTransactionWithParentChainBlockInfo()
         {
+            var parentChainBlockInfo = await GetParentChainBlockInfo();
             if (parentChainBlockInfo == null)
                 return;
             try
@@ -245,14 +241,10 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// Extract tx results from traces
         /// </summary>
-        /// <param name="readyTxs"></param>
         /// <param name="traces"></param>
-        /// <param name="executed"></param>
         /// <param name="results"></param>
-        private void ExtractTransactionResults(IEnumerable<Transaction> readyTxs, IEnumerable<TransactionTrace> traces,
-            out List<Transaction> executed, out HashSet<TransactionResult> results)
+        private void ExtractTransactionResults(IEnumerable<TransactionTrace> traces, out HashSet<TransactionResult> results)
         {
-            var canceledTxIds = new List<Hash>();
             results = new HashSet<TransactionResult>();
             int index = 0;
             foreach (var trace in traces)
@@ -261,7 +253,6 @@ namespace AElf.Miner.Miner
                 {
                     case ExecutionStatus.Canceled:
                         // Put back transaction
-                        canceledTxIds.Add(trace.TransactionId);
                         break;
                     case ExecutionStatus.ExecutedAndCommitted:
                         // Successful
@@ -311,9 +302,6 @@ namespace AElf.Miner.Miner
                         break;
                 }
             }
-
-            var canceled = canceledTxIds.ToHashSet();
-            executed = readyTxs.Where(tx => !canceled.Contains(tx.GetHash())).ToList();
         }
 
 
