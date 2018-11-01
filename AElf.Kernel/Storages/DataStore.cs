@@ -44,30 +44,6 @@ namespace AElf.Kernel.Storages
             }
         }
 
-        public async Task InsertBytesAsync<T>(Hash pointerHash, byte[] obj) where T : IMessage
-        {
-            try
-            {
-                if (pointerHash == null)
-                {
-                    throw new Exception("Point hash cannot be null.");
-                }
-
-                if (obj == null)
-                {
-                    throw new Exception("Cannot insert null value.");
-                }
-
-                var key = pointerHash.GetKeyString(typeof(byte[]).Name);
-                await _keyValueDatabase.SetAsync(key, obj);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-        }
-
         public async Task<T> GetAsync<T>(Hash pointerHash) where T : IMessage, new()
         {
             try
@@ -85,39 +61,6 @@ namespace AElf.Kernel.Storages
             {
                 Console.WriteLine(e);
                 throw;
-            }
-        }
-        
-        public async Task<byte[]> GetBytesAsync<T>(Hash pointerHash) where T : IMessage, new()
-        {
-            try
-            {
-                if (pointerHash == null)
-                {
-                    throw new Exception("Pointer hash cannot be null.");
-                }
-                
-                var key = pointerHash.GetKeyString(typeof(byte[]).Name);
-                return await _keyValueDatabase.GetAsync(key);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-        }
-
-        public async Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet)
-        {
-            try
-            {
-                return await _keyValueDatabase.PipelineSetAsync(
-                    pipelineSet.ToDictionary(kv => kv.Key.GetKeyString(typeof(byte[]).Name), kv => kv.Value));
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return false;
             }
         }
 
