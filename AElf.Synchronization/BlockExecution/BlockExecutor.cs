@@ -369,7 +369,8 @@ namespace AElf.Synchronization.BlockExecution
             }
 
             // update parent chain info
-            await _chainManagerBasic.UpdateCurrentBlockHeightAsync(block.ParentChainBlockInfo.ChainId,
+            if(block.ParentChainBlockInfo != null)
+                await _chainManagerBasic.UpdateCurrentBlockHeightAsync(block.ParentChainBlockInfo.ChainId,
                 block.ParentChainBlockInfo.Height);
         }
 
