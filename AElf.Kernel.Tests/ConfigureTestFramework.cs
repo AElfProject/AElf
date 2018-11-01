@@ -44,7 +44,7 @@ namespace AElf.Kernel.Tests
             var assembly7 = typeof(BlockHeader).Assembly;
             builder.RegisterAssemblyTypes(assembly7).AsImplementedInterfaces();
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
-            
+
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());

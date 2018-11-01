@@ -4,15 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using Easy.MessageHub;
 using NLog;
+using Org.BouncyCastle.Crypto.Engines;
 
 namespace AElf.Miner.TxMemPool
 {
@@ -63,8 +66,8 @@ namespace AElf.Miner.TxMemPool
 
         public void Initialize()
         {
-            MessageHub.Instance.Subscribe<TransactionsExecuted>(OnTransactionsExecuted);
-            MessageHub.Instance.Subscribe<BlockHeader>(async h => await OnNewBlockHeader(h));
+            MessageHub.Instance.Subscribe<BlockMined>(async b => { await OnNewBlock((Block) b.Block); });
+            MessageHub.Instance.Subscribe<BlockExecuted>(async b => { await OnNewBlock((Block) b.Block); });
             MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
                 await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
         }
@@ -167,6 +170,11 @@ namespace AElf.Miner.TxMemPool
 
         private static void MaybePublishTransaction(TransactionReceipt tr)
         {
+            if (tr.Transaction.ShouldNotBroadcast())
+            {
+                return;
+            }
+            
             if (tr.IsExecutable)
             {
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tr.Transaction));
@@ -237,15 +245,15 @@ namespace AElf.Miner.TxMemPool
         #region Event Handlers
 
         // Change transaction status and add transaction into TransactionManager.
-        private void OnTransactionsExecuted(TransactionsExecuted transactionsesExecuted)
+        private void UpdateExecutedTransactions(IEnumerable<Hash> txIds, ulong blockNumber)
         {
             var receipts = new List<TransactionReceipt>();
-            foreach (var tx in transactionsesExecuted.Transactions)
+            foreach (var txId in txIds)
             {
-                if (_allTxns.TryGetValue(tx.GetHash(), out var tr))
+                if (_allTxns.TryGetValue(txId, out var tr))
                 {
                     tr.Status = TransactionReceipt.Types.TransactionStatus.TransactionExecuted;
-                    tr.ExecutedBlockNumber = transactionsesExecuted.BlockNumber;
+                    tr.ExecutedBlockNumber = blockNumber;
                     _transactionManager.AddTransactionAsync(tr.Transaction);
                     receipts.Add(tr);
                 }
@@ -258,18 +266,8 @@ namespace AElf.Miner.TxMemPool
             _receiptManager.AddOrUpdateReceiptsAsync(receipts);
         }
 
-        // Render transactions to expire, and purge old transactions (RefBlockValidPeriod + some buffer)
-        private async Task OnNewBlockHeader(BlockHeader blockHeader)
+        private void IdentifyExpiredTransactions()
         {
-            // TODO: Handle LIB
-            if (blockHeader.Index > (CurHeight + 1) && CurHeight != GlobalConfig.GenesisBlockHeight)
-            {
-                throw new Exception($"Invalid block index {blockHeader.Index} but current height is {CurHeight}.");
-            }
-
-            _curHeight = blockHeader.Index;
-
-            // Identify expired transactions
             if (CurHeight > GlobalConfig.ReferenceBlockValidPeriod)
             {
                 var expired = _allTxns.Where(tr =>
@@ -283,7 +281,10 @@ namespace AElf.Miner.TxMemPool
                     tr.Value.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockExpired;
                 }
             }
+        }
 
+        private void RemoveOldTransactions()
+        {
             // TODO: Improve
             // Remove old transactions (executed, invalid and expired)
             var keepNBlocks = GlobalConfig.ReferenceBlockValidPeriod / 4 * 5;
@@ -296,13 +297,37 @@ namespace AElf.Miner.TxMemPool
                     _allTxns.TryRemove(tr.Key, out _);
                 }
             }
+        }
 
+        private async Task RevalidateFutureTransactions()
+        {
             // Re-validate FutureRefBlock transactions
             foreach (var tr in _allTxns.Values.Where(x =>
                 x.RefBlockSt == TransactionReceipt.Types.RefBlockStatus.FutureRefBlock))
             {
                 await ValidateRefBlock(tr);
             }
+        }
+
+        // Render transactions to expire, and purge old transactions (RefBlockValidPeriod + some buffer)
+        private async Task OnNewBlock(Block block)
+        {
+            var blockHeader = block.Header;
+            // TODO: Handle LIB
+            if (blockHeader.Index > (CurHeight + 1) && CurHeight != GlobalConfig.GenesisBlockHeight)
+            {
+                throw new Exception($"Invalid block index {blockHeader.Index} but current height is {CurHeight}.");
+            }
+
+            _curHeight = blockHeader.Index;
+
+            UpdateExecutedTransactions(block.Body.Transactions, block.Header.Index);
+
+            IdentifyExpiredTransactions();
+
+            RemoveOldTransactions();
+
+            await RevalidateFutureTransactions();
         }
 
         private async Task OnBranchRolledBack(List<Block> blocks)

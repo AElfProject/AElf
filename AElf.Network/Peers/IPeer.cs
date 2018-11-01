@@ -28,5 +28,6 @@ namespace AElf.Network.Peers
         void OnNewBlockAccepted(IBlock block);
 
         bool AnySyncing();
+        void RequestHeaders(int headerIndex, int headerRequestCount);
     }
 }

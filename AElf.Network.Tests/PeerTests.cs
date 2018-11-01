@@ -37,32 +37,12 @@ namespace AElf.Network.Tests
             
             Peer p = new Peer(new TcpClient(), null, null, port, null, 0);
             
-            var (_, handshake) = CreateKeyPairAndHandshake(port);
+            var (_, handshake) = NetworkTestHelpers.CreateKeyPairAndHandshake(port);
             
             p.AuthentifyWith(handshake);
 
             var ex = Assert.Throws<InvalidOperationException>(() => p.Start());
             Assert.Equal("Cannot start an already authentified peer.", ex.Message);
-        }
-
-        private (ECKeyPair, Handshake) CreateKeyPairAndHandshake(int port)
-        {
-            ECKeyPair key = new KeyPairGenerator().Generate();
-            
-            var nodeInfo = new NodeData { Port = port };
-            
-            ECSigner signer = new ECSigner();
-            ECSignature sig = signer.Sign(key, nodeInfo.ToByteArray());
-            
-            var handshakeMsg = new Handshake
-            {
-                NodeInfo = nodeInfo,
-                PublicKey = ByteString.CopyFrom(key.GetEncodedPublicKey()),
-                R = ByteString.CopyFrom(sig.R),
-                S = ByteString.CopyFrom(sig.S),
-            };
-
-            return (key, handshakeMsg);
         }
         
         [Fact]
@@ -137,7 +117,7 @@ namespace AElf.Network.Tests
             
             p.Start();
             
-            var (_, handshake) = CreateKeyPairAndHandshake(remotePort);
+            var (_, handshake) = NetworkTestHelpers.CreateKeyPairAndHandshake(remotePort);
             p.AuthentifyWith(handshake);
             
             Task.Delay(200).Wait();

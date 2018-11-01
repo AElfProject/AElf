@@ -134,7 +134,6 @@ namespace AElf.Miner.Miner
 
                     // append block
                     await _blockChain.AddBlocksAsync(new List<IBlock> {block});
-                    MessageHub.Instance.Publish(new TransactionsExecuted(executed, block.Index));
 
                     // insert to db
                     Update(executed, results, block, parentChainBlockInfo, genTx);

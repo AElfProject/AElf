@@ -1,7 +1,3 @@
-// ReSharper disable once CheckNamespace
-
-using Akka.Remote;
-
 namespace AElf.Synchronization.BlockExecution
 {
     // ReSharper disable InconsistentNaming
@@ -14,10 +10,11 @@ namespace AElf.Synchronization.BlockExecution
         UpdateWorldStateSuccess,
 
         // Haven't appended yet
-        IncorrectStateMerkleTree = 11,
-        InvalidSideChainInfo,
+        InvalidSideChainInfo = 11,
         InvalidParentChainBlockInfo,
+        
         ExecutionCancelled = 51,
+        IncorrectStateMerkleTree,
         BlockIsNull,
         NoTransaction,
         TooManyTxsForParentChainBlock,

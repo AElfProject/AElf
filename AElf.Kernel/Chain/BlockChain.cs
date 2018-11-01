@@ -33,19 +33,10 @@ namespace AElf.Kernel
             _logger = LogManager.GetLogger(nameof(BlockChain));
         }
 
-        public IBlock CurrentBlock
-        {
-            get
-            {
-                var currentBlockHash = _chainManager.GetCurrentBlockHashAsync(_chainId).Result;
-                return _blockManager.GetBlockAsync(currentBlockHash).Result;
-            }
-        }
-
         public async Task<bool> HasBlock(Hash blockId)
         {
             var blk = await _blockManager.GetBlockAsync(blockId);
-            return blk?.Header != null;
+            return blk != null;
         }
 
         public async Task<bool> IsOnCanonical(Hash blockId)
@@ -94,6 +85,7 @@ namespace AElf.Kernel
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
         {
             _logger?.Trace("Will rollback to " + height);
+            MessageHub.Instance.Publish(new RollBackStateChanged(true));
 
             var currentHash = await GetCurrentBlockHashAsync();
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
@@ -129,6 +121,7 @@ namespace AElf.Kernel
 
             MessageHub.Instance.Publish(new BranchRolledBack(blocks));
             _logger?.Trace("Finished rollback to " + height);
+            MessageHub.Instance.Publish(new RollBackStateChanged(false));
 
             return txs;
         }
