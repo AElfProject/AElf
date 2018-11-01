@@ -50,6 +50,7 @@ namespace AElf.Miner.Tests
         private IChainContextService _chainContextService;
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
+        private IChainManagerBasic _chainManagerBasic;
 
         public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
         {
@@ -70,7 +71,8 @@ namespace AElf.Miner.Tests
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            _chainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore),
+            _chainManagerBasic = new ChainManagerBasic(_dataStore);
+            _chainService = new ChainService(_chainManagerBasic, new BlockManagerBasic(_dataStore),
                 _transactionManager, _transactionTraceManager, _dataStore, _stateStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
@@ -111,7 +113,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _chainContextService);
+                MockBlockValidationService().Object, _chainContextService, _chainManagerBasic);
 
             return miner;
         }
@@ -120,7 +122,7 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _signatureVerifier, _refBlockValidator));
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _signatureVerifier, _refBlockValidator), _chainManagerBasic);
 
             return blockExecutor;
         }
@@ -336,5 +338,6 @@ namespace AElf.Miner.Tests
             if(Directory.Exists(Path.Combine(dir, "certs")))
                 Directory.Delete(Path.Combine(dir, "certs"), true);
         }
+        
     }
 }

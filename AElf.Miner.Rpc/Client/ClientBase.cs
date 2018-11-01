@@ -198,19 +198,6 @@ namespace AElf.Miner.Rpc.Client
             return blockInfo != null;
         }
 
-                
-        /*/// <summary>
-        /// Take element from cached queue.
-        /// </summary>
-        /// <returns></returns>
-        public IBlockInfo TryTake(int millisecondsTimeout = -1)
-        {
-            var res = ToBeIndexedInfoQueue.TryTake(out var blockInfo, millisecondsTimeout);
-            if (res)
-                return blockInfo;
-            
-        }*/
-
         /// <summary>
         /// Cache block info lately removed.
         /// Dequeue one element if the cached count reaches <see cref="_cachedBoundedCapacity"/>
@@ -224,18 +211,14 @@ namespace AElf.Miner.Rpc.Client
             CachedInfoQueue.Dequeue();
         }
 
+        
         /// <summary>
         /// Return first element in cached queue.
         /// </summary>
         /// <returns></returns>
-        public IBlockInfo First()
+        private IBlockInfo First()
         {
             return ToBeIndexedInfoQueue.FirstOrDefault();
-        }
-
-        public bool Empty()
-        {
-            return IndexedInfoQueueCount == 0;
         }
             
         /// <summary>
