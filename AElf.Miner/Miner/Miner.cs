@@ -79,74 +79,70 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         public async Task<IBlock> Mine(Round currentRoundInfo = null)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource())
-            using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
+            try
             {
-                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
-                try
+                var parentChainBlockInfo = await GetParentChainBlockInfo();
+                var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
+                var txs = await _txHub.GetReceiptsOfExecutablesAsync();
+                var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
+                var readyTxs = new List<Transaction>();
+                var traces = new List<TransactionTrace>();
+                if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
-                    if (cancellationTokenSource.IsCancellationRequested)
-                        return null;
-
-                    var parentChainBlockInfo = await GetParentChainBlockInfo();
-                    var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
-                    var txs = await _txHub.GetReceiptsOfExecutablesAsync();
-                    var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
-                    var readyTxs = new List<Transaction>();
-                    var traces = new List<TransactionTrace>();
-                    if (txGrp.TryGetValue(true, out var sysRcpts))
+                    var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
+                    var needFilter = currentRoundInfo != null;
+                    if (needFilter)
                     {
-                        var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
-                        var needFilter = currentRoundInfo != null;
-                        if (needFilter)
-                        {
-                            sysTxs = FilterDpos(sysTxs);
-                        }
-
-                        readyTxs = sysTxs;
-                        _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
-                        traces = await ExecuteTransactions(sysTxs);
-                        _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
-                    }
-                    if (txGrp.TryGetValue(false, out var regRcpts))
-                    {
-                        var regTxs = regRcpts.Select(x => x.Transaction).ToList();
-                        readyTxs.AddRange(regTxs);
-                        _logger?.Trace($"Start executing {regTxs.Count} regular transactions.");
-                        traces.AddRange(await ExecuteTransactions(regTxs));
-                        _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
+                        sysTxs = FilterDpos(sysTxs);
                     }
 
-                    ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
-
-                    // generate block
-                    var block = await GenerateBlockAsync(Config.ChainId, results);
-                    _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
-
-                    // We need at least check the txs count of this block.
-                    var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
-                    var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true).ValidateBlockAsync(block, chainContext);
-                    if (blockValidationResult != BlockValidationResult.Success)
-                    {
-                        _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
-                        return null;
-                    }
-
-                    // append block
-                    await _blockChain.AddBlocksAsync(new List<IBlock> {block});
-
-                    // insert to db
-                    Update(executed, results, block, parentChainBlockInfo, genTx);
-
-                    MessageHub.Instance.Publish(new BlockMined(block));
-
-                    return block;
+                    readyTxs = sysTxs;
+                    _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
+                    traces = await ExecuteTransactions(sysTxs, noTimeout: true);
+                    _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
                 }
-                catch (Exception e)
+
+                if (txGrp.TryGetValue(false, out var regRcpts))
                 {
-                    _logger?.Error(e, "Mining failed with exception.");
+                    var regTxs = regRcpts.Select(x => x.Transaction).ToList();
+                    readyTxs.AddRange(regTxs);
+                    _logger?.Trace($"Start executing {regTxs.Count} regular transactions.");
+                    traces.AddRange(await ExecuteTransactions(regTxs));
+                    _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
+                }
+
+                ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
+
+                // generate block
+                var block = await GenerateBlockAsync(Config.ChainId, results);
+                _logger?.Info(
+                    $"Generate block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
+
+                // We need at least check the txs count of this block.
+                var chainContext =
+                    await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true)
+                    .ValidateBlockAsync(block, chainContext);
+                if (blockValidationResult != BlockValidationResult.Success)
+                {
+                    _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
                     return null;
                 }
+
+                // append block
+                await _blockChain.AddBlocksAsync(new List<IBlock> {block});
+
+                // insert to db
+                Update(executed, results, block, parentChainBlockInfo, genTx);
+
+                MessageHub.Instance.Publish(new BlockMined(block));
+
+                return block;
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Mining failed with exception.");
+                return null;
             }
         }
 
@@ -163,15 +159,26 @@ namespace AElf.Miner.Miner
             return txs;
         }
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs)
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false)
         {
-            var disambiguationHash = HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
-            
-            var traces = txs.Count == 0
-                ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(txs, Config.ChainId, CancellationToken.None, disambiguationHash);
+            using (var cts = new CancellationTokenSource())
+            using (var timer = new Timer(s => cts.Cancel()))
+            {
+                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
+                if (cts.IsCancellationRequested)
+                    return null;
 
-            return traces;
+                var disambiguationHash =
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
+
+                var traces = txs.Count == 0
+                    ? new List<TransactionTrace>()
+                    : await _executingService.ExecuteAsync(txs, Config.ChainId,
+                        noTimeout ? CancellationToken.None : cts.Token,
+                        disambiguationHash);
+
+                return traces;
+            }
         }
 
         private async Task<ulong> GetNewBlockIndexAsync()
@@ -209,7 +216,8 @@ namespace AElf.Miner.Miner
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
-                    Sig = new Signature{
+                    Sig = new Signature
+                    {
                         P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey())
                     },
                     Type = TransactionType.CrossChainBlockInfoTransaction,
@@ -392,7 +400,7 @@ namespace AElf.Miner.Miner
             // side chain info
             await CollectSideChainIndexedInfo(block);
             // add tx hash
-            block.AddTransactions(results.Select(x=>x.TransactionId));
+            block.AddTransactions(results.Select(x => x.TransactionId));
 
             // set ws merkle tree root
             block.Header.MerkleTreeRootOfWorldState =
