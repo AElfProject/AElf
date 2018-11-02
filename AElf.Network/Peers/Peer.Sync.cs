@@ -249,7 +249,11 @@ namespace AElf.Network.Peers
                 _blockRequests.Add(blockRequest);
             }
             
-            EnqueueOutgoing(message, blockRequest);
+            EnqueueOutgoing(message, (_) =>
+            {
+                blockRequest?.Start();
+                _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
+            });
             
             _logger?.Trace($"[{this}] Block request enqueued {blockRequest}.");
         }
@@ -269,7 +273,15 @@ namespace AElf.Network.Peers
                     
                     _logger?.Debug($"[{this}] Try again {req}.");
                     
-                    EnqueueOutgoing(req.Message, req);
+                    EnqueueOutgoing(req.Message, (_) =>
+                    {
+                        // last check for cancelation
+                        if (req == null || req.IsCanceled)
+                            return;
+                        
+                        req.Start();
+                        _logger?.Trace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
+                    });
                 }
                 else
                 {
