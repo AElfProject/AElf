@@ -1,28 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Common.Attributes;
 using AElf.Common;
+using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.Miner.Rpc.Exceptions;
-using AElf.Miner.Rpc.Server;
-using AElf.Types.CSharp;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Easy.MessageHub;
-using NLog;
-using NServiceKit.Common.Extensions;
-using Status = AElf.Kernel.Status;
-using AElf.Execution.Execution;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
+using AElf.Miner.Rpc.Exceptions;
+using AElf.Miner.Rpc.Server;
 using AElf.Miner.TxMemPool;
+using AElf.Types.CSharp;
+using Easy.MessageHub;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using NLog;
+using NServiceKit.Common.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -81,78 +81,79 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         public async Task<IBlock> Mine(Round currentRoundInfo = null)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource())
-            using (var timer = new Timer(s => cancellationTokenSource.Cancel()))
+            try
             {
-                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
-                try
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
+                await GenerateTransactionWithParentChainBlockInfo();
+                var txs = await _txHub.GetReceiptsOfExecutablesAsync();
+                var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
+                var traces = new List<TransactionTrace>();
+                ParentChainBlockInfo pcb = null; 
+                if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
-                    if (cancellationTokenSource.IsCancellationRequested)
-                        return null;
 
-                    var txs = await _txHub.GetReceiptsOfExecutablesAsync();
-                    var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
-                    var traces = new List<TransactionTrace>();
-                    ParentChainBlockInfo pcb = null; 
-                    if (txGrp.TryGetValue(true, out var sysRcpts))
+                    var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
+                    var dposTxns = sysTxs.Where(t => t.Type == TransactionType.DposTransaction).ToList();
+                    if (currentRoundInfo != null)
                     {
-                        var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
-                        var dposTxns = sysTxs.Where(t => t.Type == TransactionType.DposTransaction).ToList();
-                        if (currentRoundInfo != null)
-                        {
-                            _txFilter.Execute(dposTxns);
-                        }
-
-                        var others = sysTxs.Where(t => t.Type != TransactionType.DposTransaction).ToList();
-                        _txFilter.Execute(others);
-
-                        _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
-                        traces = await ExecuteTransactions(sysTxs);
-                        _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
-
-                        FindCrossChainInfo(others, traces, out pcb);
-                    }
-                    if (txGrp.TryGetValue(false, out var regRcpts))
-                    {
-                        var regTxs = regRcpts.Select(x => x.Transaction).ToList();
-                        _logger?.Trace($"Start executing {regTxs.Count} regular transactions.");
-                        traces.AddRange(await ExecuteTransactions(regTxs));
-                        _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
+                        _txFilter.Execute(dposTxns);
                     }
 
-                    ExtractTransactionResults(traces, out var results);
+                    var others = sysTxs.Where(t => t.Type != TransactionType.DposTransaction).ToList();
+                    _txFilter.Execute(others);
 
-                    // generate block
-                    var block = await GenerateBlockAsync(results);
-                    _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
+                    _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
+                    traces = await ExecuteTransactions(sysTxs);
+                    _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
 
-                    // We need at least check the txs count of this block.
-                    var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
-                    var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true).ValidateBlockAsync(block, chainContext);
-                    if (blockValidationResult != BlockValidationResult.Success)
-                    {
-                        _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
-                        return null;
-                    }
-                    // append block
-                    await _blockChain.AddBlocksAsync(new List<IBlock> {block});
-
-                    // insert to db
-                    Update(results, block);
-                    if (pcb != null)
-                    {
-                        await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
-                    }
-                    GenerateTransactionWithParentChainBlockInfo().ConfigureAwait(false);
-                    MessageHub.Instance.Publish(new BlockMined(block));
-
-                    return block;
+                    FindCrossChainInfo(others, traces, out pcb);
                 }
-                catch (Exception e)
+                if (txGrp.TryGetValue(false, out var regRcpts))
                 {
-                    _logger?.Error(e, "Mining failed with exception.");
+                    var regTxs = regRcpts.Select(x => x.Transaction).ToList();
+                    _logger?.Trace($"Start executing {regTxs.Count} regular transactions.");
+                    traces.AddRange(await ExecuteTransactions(regTxs));
+                    _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
+                }
+
+                ExtractTransactionResults(traces, out var results);
+
+                // generate block
+                var block = await GenerateBlockAsync(results);
+                _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
+
+                // We need at least check the txs count of this block.
+                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true).ValidateBlockAsync(block, chainContext);
+                if (blockValidationResult != BlockValidationResult.Success)
+                {
+                    _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
                     return null;
                 }
+                // append block
+                await _blockChain.AddBlocksAsync(new List<IBlock> {block});
+
+                // insert to db
+                Update(results, block);
+                if (pcb != null)
+                {
+                    await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
+                }
+                GenerateTransactionWithParentChainBlockInfo().ConfigureAwait(false);
+                MessageHub.Instance.Publish(new BlockMined(block));
+
+                stopwatch.Stop();
+                _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
+                              $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
+
+                return block;
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Mining failed with exception.");
+                return null;
             }
         }
 
@@ -169,15 +170,44 @@ namespace AElf.Miner.Miner
             _txFilter.Execute(txs);
         }*/
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs)
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false)
         {
-            var disambiguationHash = HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
-            
-            var traces = txs.Count == 0
-                ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(txs, Config.ChainId, CancellationToken.None, disambiguationHash);
+            using (var cts = new CancellationTokenSource())
+            using (var timer = new Timer(s =>
+            {
+                try
+                {
+                    cts.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Ignore if timer's callback is called after it's been disposed.
+                    // The following is paragraph from Microsoft's documentation explaining the behaviour:
+                    // https://docs.microsoft.com/en-us/dotnet/api/system.threading.timer?redirectedfrom=MSDN&view=netcore-2.1#Remarks
+                    //
+                    // When a timer is no longer needed, use the Dispose method to free the resources
+                    // held by the timer. Note that callbacks can occur after the Dispose() method
+                    // overload has been called, because the timer queues callbacks for execution by
+                    // thread pool threads. You can use the Dispose(WaitHandle) method overload to
+                    // wait until all callbacks have completed.
+                }
+            }))
+            {
+                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
 
-            return traces;
+                if (cts.IsCancellationRequested)
+                    return null;
+                var disambiguationHash =
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
+
+                var traces = txs.Count == 0
+                    ? new List<TransactionTrace>()
+                    : await _executingService.ExecuteAsync(txs, Config.ChainId,
+                        noTimeout ? CancellationToken.None : cts.Token,
+                        disambiguationHash);
+
+                return traces;
+            }
         }
 
         private async Task<ulong> GetNewBlockIndexAsync()
@@ -210,7 +240,8 @@ namespace AElf.Miner.Miner
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
-                    Sig = new Signature{
+                    Sig = new Signature
+                    {
                         P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey())
                     },
                     Type = TransactionType.CrossChainBlockInfoTransaction,
@@ -378,7 +409,7 @@ namespace AElf.Miner.Miner
             // side chain info
             await CollectSideChainIndexedInfo(block);
             // add tx hash
-            block.AddTransactions(results.Select(x=>x.TransactionId));
+            block.AddTransactions(results.Select(x => x.TransactionId));
 
             // set ws merkle tree root
             block.Header.MerkleTreeRootOfWorldState =

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,10 +59,14 @@ namespace AElf.Synchronization.BlockExecution
             {
                 return result;
             }
-            
-            _logger?.Trace($"Executing block {block.GetHash()}");
+
+            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
 
             var txnRes = new List<TransactionResult>();
+            var readyTxs = new List<Transaction>();
             try
             {
                 // get txn from pool
@@ -72,9 +77,9 @@ namespace AElf.Synchronization.BlockExecution
                     return result;
                 }
 
-                var readyTxns = tuple.Item2;
+                readyTxs = tuple.Item2;
 
-                var trs = await _txHub.GetReceiptsForAsync(readyTxns);
+                var trs = await _txHub.GetReceiptsForAsync(readyTxs);
                 foreach (var tr in trs)
                 {
                     if (!tr.IsExecutable)
@@ -83,9 +88,8 @@ namespace AElf.Synchronization.BlockExecution
                     }
                 }
 
-                txnRes = await ExecuteTransactions(readyTxns, block.Header.ChainId,
-                    block.Header.GetDisambiguationHash());
-                txnRes = SortToOriginalOrder(txnRes, readyTxns);
+                txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
+                txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
                 result = await UpdateWorldState(block, txnRes);
                 if (result.IsFailed())
@@ -94,7 +98,9 @@ namespace AElf.Synchronization.BlockExecution
                 }
                 await UpdateCrossChainInfo(block);
                 await AppendBlock(block);
-                await InsertTxs(readyTxns, txnRes, block);
+                await InsertTxs(readyTxs, txnRes, block);
+
+                MessageHub.Instance.Publish(new ExecutionStateChanged(false));
 
                 return BlockExecutionResult.Success;
             }
@@ -105,7 +111,6 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     _logger?.Warn(e, $"Exception while execute block {block.BlockHashToHex}.");
                     res = i.Result;
-                    ;
                 }
                 else
                 {
@@ -119,7 +124,9 @@ namespace AElf.Synchronization.BlockExecution
             }
             finally
             {
-                _logger?.Info($"Executed block {block.GetHash()}");
+                stopwatch.Stop();
+                _logger?.Info($"Execute block {block.BlockHashToHex} with txs {readyTxs.Count}, " +
+                              $"duration {stopwatch.ElapsedMilliseconds} ms.");
             }
         }
 
