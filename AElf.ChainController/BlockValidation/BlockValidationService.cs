@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
@@ -17,11 +16,13 @@ namespace AElf.ChainController
         private readonly IEnumerable<IBlockValidationFilter> _filters;
         private readonly ILogger _logger;
 
-        private bool _isMining;
         private bool _isExecuting;
         private bool _doingRollback;
 
         private bool _validatingOwnBlock;
+        private bool _executingAgain;
+
+        private bool LetItGo => _validatingOwnBlock || _executingAgain;
 
         public BlockValidationService(IEnumerable<IBlockValidationFilter> filters)
         {
@@ -29,14 +30,13 @@ namespace AElf.ChainController
 
             _logger = LogManager.GetLogger(nameof(BlockValidationService));
 
-            MessageHub.Instance.Subscribe<MiningStateChanged>(inState => { _isMining = inState.IsMining; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inState => { _doingRollback = inState.DoingRollback; });
             MessageHub.Instance.Subscribe<ExecutionStateChanged>(inState => { _isExecuting = inState.IsExecuting; });
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
-            if (!_validatingOwnBlock)
+            if (!LetItGo)
             {
                 if (_isExecuting)
                 {
@@ -69,34 +69,22 @@ namespace AElf.ChainController
             MessageHub.Instance.Publish(new ValidationStateChanged(block.BlockHashToHex, block.Index, false,
                 finalResult));
 
+            _validatingOwnBlock = false;
+            _executingAgain = false;
+
             return finalResult;
         }
 
         public IBlockValidationService ValidatingOwnBlock(bool flag)
         {
             _validatingOwnBlock = flag;
-
             return this;
         }
 
-        public BlockHeaderValidationResult ValidateBlockHeaderAsync(IBlockHeader blockHeader, IChainContext context)
+        public IBlockValidationService ExecutingAgain(bool flag)
         {
-            try
-            {
-                if (blockHeader.Index != context.BlockHeight + 1)
-                {
-                    return BlockHeaderValidationResult.Others;
-                }
-
-                return blockHeader.GetHash().DumpHex() == context.BlockHash.DumpHex()
-                    ? BlockHeaderValidationResult.Success
-                    : BlockHeaderValidationResult.Unlinkable;
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, "Error while validating the block header.");
-                return BlockHeaderValidationResult.Others;
-            }
+            _executingAgain = flag;
+            return this;
         }
     }
 }

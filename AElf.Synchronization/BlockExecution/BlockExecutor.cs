@@ -56,12 +56,11 @@ namespace AElf.Synchronization.BlockExecution
         {
             if (_current != null)
             {
-                _logger?.Trace($"Prevent block {block.BlockHashToHex} from re-entering block execution");
+                _logger?.Trace($"Prevent block {block.BlockHashToHex} from re-entering block execution, " +
+                               $"for block {_current} is being executing.");
                 var t = new StackTrace();
                 _logger?.Trace(t.ToString());
             }
-
-            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
 
             _current = block.BlockHashToHex;
 
@@ -74,10 +73,10 @@ namespace AElf.Synchronization.BlockExecution
 
             _logger?.Trace($"Executing block {block.GetHash()}");
 
-            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
-
             var stopwatch = new Stopwatch();
             stopwatch.Start();
+
+            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
 
             var txnRes = new List<TransactionResult>();
             var readyTxs = new List<Transaction>();
@@ -110,22 +109,19 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     return result;
                 }
-
+                
                 await UpdateSideChainInfo(block);
 
-                //Need-to-rollback boundary
+                /*** Need-to-rollback boundary ***/
 
                 await AppendBlock(block);
                 await InsertTxs(readyTxs, txnRes, block);
-
-                _logger?.Info($"Executed block {block.GetHash()}");
-
 
                 return BlockExecutionResult.Success;
             }
             catch (Exception e)
             {
-                BlockExecutionResult res = BlockExecutionResult.Failed;
+                var res = BlockExecutionResult.Failed;
                 if (e is InvalidCrossChainInfoException i)
                 {
                     _logger?.Warn(e, $"Exception while execute block {block.BlockHashToHex}.");
@@ -143,8 +139,8 @@ namespace AElf.Synchronization.BlockExecution
             }
             finally
             {
-                _current = null;
                 MessageHub.Instance.Publish(new ExecutionStateChanged(false));
+                _current = null;
                 stopwatch.Stop();
                 _logger?.Info($"Execute block {block.BlockHashToHex} with txs {readyTxs.Count}, " +
                               $"duration {stopwatch.ElapsedMilliseconds} ms.");

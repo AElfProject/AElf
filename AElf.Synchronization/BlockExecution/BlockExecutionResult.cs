@@ -18,10 +18,11 @@ namespace AElf.Synchronization.BlockExecution
         NoTransaction,
         TooManyTxsForParentChainBlock,
         NotExecuted,
+        AlreadyReceived,
 
         // Need to rollback
         Failed = 101,
-        IncorrectStateMerkleTree,
+        IncorrectStateMerkleTree
     }
 
     public static class ExecutionResultExtensions

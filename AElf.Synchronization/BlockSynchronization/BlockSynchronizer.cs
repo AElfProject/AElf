@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
@@ -37,6 +38,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private bool _minedBlock;
 
+        private volatile object _ = new object();
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -69,7 +72,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             if (_blockSet.IsBlockReceived(block.GetHash(), block.Index))
             {
-                return BlockExecutionResult.NotExecuted;
+                return BlockExecutionResult.AlreadyReceived;
             }
 
             return await HandleBlock(block);
@@ -77,17 +80,34 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<BlockExecutionResult> HandleBlock(IBlock block)
         {
-            var blockValidationResult =
-                await _blockValidationService.ValidatingOwnBlock(false)
-                    .ValidateBlockAsync(block, await GetChainContextAsync());
-
-            var message = new BlockExecuted(block, blockValidationResult);
-            if (blockValidationResult.IsSuccess())
+            var lockWasTaken = false;
+            try
             {
-                return await HandleValidBlock(message);
-            }
-            await HandleInvalidBlock(message);
+                if (Monitor.TryEnter(_))
+                {
+                    lockWasTaken = true;
+                    
+                    var blockValidationResult =
+                        await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
 
+                    var message = new BlockExecuted(block, blockValidationResult);
+            
+                    if (blockValidationResult.IsSuccess())
+                    {
+                        return await HandleValidBlock(message);
+                    }
+                    
+                    await HandleInvalidBlock(message);
+                }
+            }
+            finally
+            {
+                if (lockWasTaken)
+                {
+                    Monitor.Exit(_);
+                }
+            }
+            
             return BlockExecutionResult.NotExecuted;
         }
 
@@ -173,8 +193,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 BlockExecutionResult reExecutionResult;
                 do
                 {
-                    var reValidationResult = _blockValidationService.ValidatingOwnBlock(false)
-                        .ValidateBlockAsync(message.Block, await GetChainContextAsync()).Result;
+                    var reValidationResult = await _blockValidationService.ExecutingAgain(true)
+                        .ValidateBlockAsync(message.Block, await GetChainContextAsync());
                     if (reValidationResult.IsFailed())
                     {
                         break;
