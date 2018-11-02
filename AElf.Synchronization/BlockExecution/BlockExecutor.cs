@@ -123,6 +123,8 @@ namespace AElf.Synchronization.BlockExecution
                 await AppendBlock(block);
                 await InsertTxs(readyTxs, txnRes, block);
 
+                await _txHub.OnNewBlock((Block)block);
+
                 return BlockExecutionResult.Success;
             }
             catch (Exception e)

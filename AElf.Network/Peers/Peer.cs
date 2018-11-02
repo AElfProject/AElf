@@ -404,10 +404,10 @@ namespace AElf.Network.Peers
         /// <summary>
         /// Sends the provided message to the peer.
         /// </summary>
-        /// <param name="data"></param>
         /// <param name="msg"></param>
+        /// <param name="successCallback"></param>
         /// <returns></returns>
-        public void EnqueueOutgoing(Message msg, ITimedRequest associatedRequest = null)
+        public void EnqueueOutgoing(Message msg, Action<Message> successCallback = null)
         {
             try
             {
@@ -421,15 +421,8 @@ namespace AElf.Network.Peers
                     _logger?.Warn($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
                     return;
                 }
-
-                // last check for cancelation
-                if (associatedRequest != null && associatedRequest.IsCanceled)
-                    return;
-
-                _messageWriter.EnqueueMessage(msg);
-
-                // todo should be propagated lower, after the real write
-                associatedRequest?.Start();
+                
+                _messageWriter.EnqueueMessage(msg, successCallback);
             }
             catch (Exception e)
             {

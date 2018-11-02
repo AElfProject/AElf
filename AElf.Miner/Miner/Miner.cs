@@ -128,6 +128,8 @@ namespace AElf.Miner.Miner
                 // insert to db
                 Update(executed, results, block, parentChainBlockInfo, genTx);
 
+                await _txHub.OnNewBlock((Block)block);
+
                 MessageHub.Instance.Publish(new BlockMined(block));
 
                 stopwatch.Stop();
