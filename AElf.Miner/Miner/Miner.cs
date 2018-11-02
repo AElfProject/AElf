@@ -1,28 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Common.Attributes;
 using AElf.Common;
+using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.Miner.Rpc.Exceptions;
-using AElf.Miner.Rpc.Server;
-using AElf.Types.CSharp;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Easy.MessageHub;
-using NLog;
-using NServiceKit.Common.Extensions;
-using Status = AElf.Kernel.Status;
-using AElf.Execution.Execution;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
+using AElf.Miner.Rpc.Exceptions;
+using AElf.Miner.Rpc.Server;
 using AElf.Miner.TxMemPool;
+using AElf.Types.CSharp;
+using Easy.MessageHub;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using NLog;
+using NServiceKit.Common.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -111,16 +111,18 @@ namespace AElf.Miner.Miner
                     _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
                 }
 
-                ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
 
-                // generate block
+                ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
                 var block = await GenerateBlockAsync(Config.ChainId, results);
-                _logger?.Info(
-                    $"Generate block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
+
+                stopwatch.Stop();
+                _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
+                              $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 
                 // We need at least check the txs count of this block.
-                var chainContext =
-                    await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
                 var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true)
                     .ValidateBlockAsync(block, chainContext);
                 if (blockValidationResult != BlockValidationResult.Success)
@@ -159,7 +161,7 @@ namespace AElf.Miner.Miner
             return txs;
         }
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout=false)
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false)
         {
             using (var cts = new CancellationTokenSource())
             using (var timer = new Timer(s => cts.Cancel()))

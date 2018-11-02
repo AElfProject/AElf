@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Timers;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -53,6 +54,8 @@ namespace AElf.Network.Peers
     {
         public Peer Peer { get; set; }
         public Message Message { get; set; }
+        
+        public Block Block { get; set; }
     }
 
     /// <summary>
