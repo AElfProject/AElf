@@ -26,5 +26,7 @@ namespace AElf.Miner.TxMemPool
         /// close transaction pool
         /// </summary>
         Task Stop();
+
+        Task OnNewBlock(Block block);
     }
 }

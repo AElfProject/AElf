@@ -375,20 +375,12 @@ namespace AElf.Node.Protocol
             
             if (args.Message?.Payload == null)
             {
-                _logger?.Warn($"Message from [{args.Peer}], message/payload is null.");
+                _logger?.Warn($"Message from {args.Peer}, message/payload is null.");
                 return;
             }
 
             AElfProtocolMsgType msgType = (AElfProtocolMsgType) args.Message.Type;
 
-            Stopwatch s = null;
-
-            if (msgType == AElfProtocolMsgType.Block || msgType == AElfProtocolMsgType.RequestBlock)
-            {
-                s = Stopwatch.StartNew();
-                _logger?.Debug($"Processing job ({msgType})");
-            }
-            
             switch (msgType)
             {
                 case AElfProtocolMsgType.Announcement:
@@ -410,12 +402,6 @@ namespace AElf.Node.Protocol
                 case AElfProtocolMsgType.HeaderRequest:
                     await HandleHeaderRequest(args);
                     break;
-            }
-
-            if (msgType == AElfProtocolMsgType.Block || msgType == AElfProtocolMsgType.RequestBlock)
-            {
-                s?.Stop();
-                _logger?.Debug($"Finished processing job ({msgType}) - duration : {s.ElapsedMilliseconds} ms");
             }
         }
 
@@ -472,9 +458,10 @@ namespace AElf.Node.Protocol
                     req.Id = args.Message.Id;
 
                 // Send response
-                args.Peer.EnqueueOutgoing(req);
-
-                _logger?.Debug($"Send block {b.BlockHashToHex} to {args.Peer}");
+                args.Peer.EnqueueOutgoing(req, (_) =>
+                {
+                    _logger?.Debug($"Block sent {{ hash: {b.BlockHashToHex}, to: {args.Peer} }}");
+                });
             }
             catch (Exception e)
             {
@@ -510,7 +497,7 @@ namespace AElf.Node.Protocol
 
                 IBlock bbh = _blockSynchronizer.GetBlockByHash(new Hash {Value = ByteString.CopyFrom(blockHash)});
 
-                _logger?.Debug($"{peer} annouced {blockHash.ToHex()} [{a.Height}] " + (bbh == null ? "(unknown)" : "(known)"));
+                _logger?.Debug($"Peer {peer} annouced block {blockHash.ToHex()} height {a.Height} " + (bbh == null ? "(unknown)" : "(known)"));
 
                 if (bbh != null)
                     return;

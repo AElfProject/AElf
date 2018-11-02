@@ -139,6 +139,7 @@ namespace AElf.Miner.Miner
                 {
                     await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
                 }
+                await _txHub.OnNewBlock((Block)block);
                 MessageHub.Instance.Publish(new BlockMined(block));
                 GenerateTransactionWithParentChainBlockInfo().ConfigureAwait(false);
                 stopwatch.Stop();
