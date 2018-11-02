@@ -14,6 +14,7 @@ namespace AElf.Database
 
         public RedisDatabase()
         {
+            //_client = new PooledRedisClientManager(DatabaseConfig.Instance.Number,$"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
         }
 
         public async Task<byte[]> GetAsync(string database, string key)
@@ -88,8 +89,7 @@ namespace AElf.Database
                 throw new ArgumentException("database is empty");
             }
             database = database.ToLower();
-            PooledRedisClientManager client;
-            if (!_clientManagers.TryGetValue(database.ToLower(), out client))
+            if (!_clientManagers.TryGetValue(database.ToLower(), out var client))
             {
                 // get from config
                 client = new PooledRedisClientManager();
