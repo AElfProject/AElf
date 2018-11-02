@@ -102,6 +102,7 @@ namespace AElf.Synchronization.BlockExecution
                 await AppendBlock(block);
                 await InsertTxs(readyTxs, txnRes, block);
 
+                await _txHub.OnNewBlock((Block)block);
                 MessageHub.Instance.Publish(new ExecutionStateChanged(false));
 
 
