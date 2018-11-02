@@ -9,8 +9,8 @@ namespace AElf.Miner.Rpc.Client
     {
         private readonly ParentChainBlockInfoRpc.ParentChainBlockInfoRpcClient _client;
 
-        public ClientToParentChain(Channel channel, ILogger logger, Hash targetChainId, int interval) 
-            : base(logger, targetChainId, interval)
+        public ClientToParentChain(Channel channel, ILogger logger, Hash targetChainId, int interval,  int cachedBoundedCapacity) 
+            : base(logger, targetChainId, interval, cachedBoundedCapacity)
         {
             _client = new ParentChainBlockInfoRpc.ParentChainBlockInfoRpcClient(channel);
         }

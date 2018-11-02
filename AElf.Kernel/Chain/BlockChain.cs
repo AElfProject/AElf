@@ -109,6 +109,7 @@ namespace AElf.Kernel
 
                 var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
                 await _dataStore.RemoveAsync<Hash>(h);
+                await RollbackSideChainInfo(block);
                 await RollbackStateForBlock(block);
                 blocks.Add((Block)block);
             }
@@ -126,6 +127,15 @@ namespace AElf.Kernel
             return txs;
         }
 
+        private async Task RollbackSideChainInfo(IBlock block)
+        {
+            foreach (var info in block.Body.IndexedInfo)
+            {
+                await _chainManager.UpdateCurrentBlockHeightAsync(info.ChainId,
+                    info.Height > GlobalConfig.GenesisBlockHeight ? info.Height - 1 : 0);
+            }
+        }
+        
         private async Task RollbackStateForBlock(IBlock block)
         {
             var txIds = block.Body.Transactions;

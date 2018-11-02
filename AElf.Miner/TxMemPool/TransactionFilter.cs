@@ -18,6 +18,9 @@ namespace AElf.Miner.TxMemPool
     {
         private Func<List<Transaction>, ILogger, List<Transaction>> _txFilter;
 
+        private delegate int WhoIsFirst(Transaction t1, Transaction t2);
+
+        private static readonly WhoIsFirst IsFirst = (t1, t2) => t1.Time.Nanos < t2.Time.Nanos ? -1 : 1;
         private readonly ILogger _logger;
 
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMe = (list, logger) =>
@@ -26,15 +29,24 @@ namespace AElf.Miner.TxMemPool
             toRemove.AddRange(list.FindAll(tx => tx.From != Address.LoadHex(NodeConfig.Instance.NodeAccount)));
             return toRemove;
         };
-
-        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMeCrossChain =
-            (list, logger) =>
-            {
-                var toRemove = new List<Transaction>();
-                toRemove.AddRange(list.FindAll(tx => tx.From != Address.LoadHex(NodeConfig.Instance.NodeAccount)));
-                return toRemove.Where(t => t.Type == TransactionType.CrossChainBlockInfoTransaction).ToList();
-            };
-
+        
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _firstCrossChainTxnGeneratedByMe = (list, logger) =>
+        {
+            var toRemove = new List<Transaction>();
+            var crossChainTxns = list.FindAll(tx =>
+                tx.Type == TransactionType.CrossChainBlockInfoTransaction &&
+                tx.From == Address.LoadHex(NodeConfig.Instance.NodeAccount)).ToList();
+            if (crossChainTxns.Count <= 1)
+                return toRemove;
+            // sort txns with timestamp
+            crossChainTxns.Sort((t1, t2) => IsFirst(t1, t2));
+            var firstTxn = crossChainTxns.FirstOrDefault();
+            // only reserve first txn
+            if(firstTxn != null)
+                toRemove.AddRange(list.FindAll(t => !t.Equals(firstTxn)));
+            return toRemove;
+        };
+        
         /// <summary>
         /// If tx pool contains more than ore InitializeAElfDPoS tx:
         /// Keep the latest one.
@@ -131,10 +143,11 @@ namespace AElf.Miner.TxMemPool
                         case ConsensusBehavior.UpdateAElfDPoS:
                             _txFilter = null;
                             _txFilter += _oneUpdateAElfDPoSTx;
-                            _txFilter += _generatedByMeCrossChain;
                             break;
                     }
                 }
+
+                _txFilter += _firstCrossChainTxnGeneratedByMe;
             });
 
             _logger = LogManager.GetLogger(nameof(TransactionFilter));
@@ -182,4 +195,5 @@ namespace AElf.Miner.TxMemPool
             }
         }
     }
+
 }

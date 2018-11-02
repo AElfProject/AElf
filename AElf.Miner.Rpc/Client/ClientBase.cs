@@ -20,16 +20,19 @@ namespace AElf.Miner.Rpc.Client
         private int _interval;
         private int _realInterval;
         private const int UnavailableConnectionInterval = 1_000;
-
-        private BlockingCollection<IBlockInfo> IndexedInfoQueue { get; } =
+        private readonly int _cachedBoundedCapacity;
+        
+        private BlockingCollection<IBlockInfo> ToBeIndexedInfoQueue { get; } =
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
-
-        protected ClientBase(ILogger logger, Hash targetChainId, int interval)
+        private Queue<IBlockInfo> CachedInfoQueue { get; } = new Queue<IBlockInfo>();
+        
+        protected ClientBase(ILogger logger, Hash targetChainId, int interval, int cachedBoundedCapacity)
         {
             _logger = logger;
             _targetChainId = targetChainId;
             _interval = interval;
             _realInterval = _interval;
+            _cachedBoundedCapacity = cachedBoundedCapacity;
         }
 
         public void UpdateRequestInterval(int interval)
@@ -57,7 +60,7 @@ namespace AElf.Miner.Rpc.Client
                         _realInterval = AdjustInterval();
                         continue;
                     }
-                    if(response.Height != _next || !IndexedInfoQueue.TryAdd(response.BlockInfoResult))
+                    if(response.Height != _next || !ToBeIndexedInfoQueue.TryAdd(response.BlockInfoResult))
                         continue;
                     
                     _next++;
@@ -88,7 +91,7 @@ namespace AElf.Miner.Rpc.Client
                 var request = new RequestBlockInfo
                 {
                     ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
-                    NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
+                    NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 //_logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
@@ -104,7 +107,7 @@ namespace AElf.Miner.Rpc.Client
         /// <returns></returns>
         public async Task StartDuplexStreamingCall(CancellationToken cancellationToken, ulong next)
         {
-            _next = Math.Max(next, IndexedInfoQueue.LastOrDefault()?.Height?? -1 + 1);
+            _next = Math.Max(next, ToBeIndexedInfoQueue.LastOrDefault()?.Height?? -1 + 1);
             try
             {
                 using (var call = Call())
@@ -141,13 +144,13 @@ namespace AElf.Miner.Rpc.Client
         /// <returns></returns>
         public async Task StartServerStreamingCall(ulong next)
         {
-            _next = Math.Max(next, IndexedInfoQueue.Last()?.Height?? -1 + 1);
+            _next = Math.Max(next, ToBeIndexedInfoQueue.Last()?.Height?? -1 + 1);
             try
             {
                 var request = new RequestBlockInfo
                 {
                     ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
-                    NextHeight = IndexedInfoQueue.Count == 0 ? _next : IndexedInfoQueue.Last().Height + 1
+                    NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 
                 using (var call = Call(request))
@@ -159,7 +162,7 @@ namespace AElf.Miner.Rpc.Client
                         // request failed or useless response
                         if (!response.Success || response.Height != _next)
                             continue;
-                        if (IndexedInfoQueue.TryAdd(response.BlockInfoResult))
+                        if (ToBeIndexedInfoQueue.TryAdd(response.BlockInfoResult))
                         {
                             _next++;
                         }
@@ -168,7 +171,7 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (RpcException e)
             {
-                Console.WriteLine(e);
+                _logger.Error(e);
                 throw;
             }
         }
@@ -176,41 +179,52 @@ namespace AElf.Miner.Rpc.Client
         /// <summary>
         /// Try Take element from cached queue.
         /// </summary>
-        /// <param name="interval"></param>
+        /// <param name="millisecondsTimeout"></param>
+        /// <param name="height">the height of block info needed</param>
         /// <param name="blockInfo"></param>
         /// <returns></returns>
-        public bool TryTake(int interval, out IBlockInfo blockInfo)
+        public bool TryTake(int millisecondsTimeout, ulong height, out IBlockInfo blockInfo)
         {
-            return IndexedInfoQueue.TryTake(out blockInfo, interval);
-        }
-        
-        /// <summary>
-        /// Take element from cached queue.
-        /// </summary>
-        /// <returns></returns>
-        public IBlockInfo Take()
-        {
-            return IndexedInfoQueue.Take();
+            var first = First();
+            if (first != null && first.Height == height)
+            {
+                var res = ToBeIndexedInfoQueue.TryTake(out blockInfo, millisecondsTimeout);
+                if(res)
+                    CacheBlockInfo(blockInfo);
+                return res;
+            }
+            
+            blockInfo = CachedInfoQueue.FirstOrDefault(c => c.Height == height);
+            return blockInfo != null;
         }
 
+        /// <summary>
+        /// Cache block info lately removed.
+        /// Dequeue one element if the cached count reaches <see cref="_cachedBoundedCapacity"/>
+        /// </summary>
+        /// <param name="blockInfo"></param>
+        private void CacheBlockInfo(IBlockInfo blockInfo)
+        {
+            CachedInfoQueue.Enqueue(blockInfo);
+            if (CachedInfoQueue.Count < _cachedBoundedCapacity)
+                return;
+            CachedInfoQueue.Dequeue();
+        }
+
+        
         /// <summary>
         /// Return first element in cached queue.
         /// </summary>
         /// <returns></returns>
-        public IBlockInfo First()
+        private IBlockInfo First()
         {
-            return IndexedInfoQueue.FirstOrDefault();
-        }
-
-        public bool Empty()
-        {
-            return IndexedInfoQueueCount == 0;
+            return ToBeIndexedInfoQueue.FirstOrDefault();
         }
             
         /// <summary>
         /// Get cached count.
         /// </summary>
-        private int IndexedInfoQueueCount => IndexedInfoQueue.Count;
+        private int IndexedInfoQueueCount => ToBeIndexedInfoQueue.Count;
 
         protected abstract AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> Call();
         protected abstract AsyncServerStreamingCall<TResponse> Call(RequestBlockInfo requestBlockInfo);

@@ -370,7 +370,9 @@ namespace AElf.Kernel.Tests.Miner
                 Assert.Equal(GlobalConfig.GenesisBlockHeight, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight));
-                Assert.True(await manager.UpdateParentChainBlockInfo(result));
+                //Assert.True(await manager.UpdateParentChainBlockInfo(result));
+                var chainManagerBasic = _mock.MockChainManager().Object;
+                await chainManagerBasic.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
                 
                 Thread.Sleep(t);
                 result = await manager.TryGetParentChainBlockInfo();
@@ -378,7 +380,8 @@ namespace AElf.Kernel.Tests.Miner
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 1));
-                Assert.True(await manager.UpdateParentChainBlockInfo(result));
+                //Assert.True(await manager.UpdateParentChainBlockInfo(result));
+                await chainManagerBasic.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
 
                 Thread.Sleep(t);
                 result = await manager.TryGetParentChainBlockInfo();

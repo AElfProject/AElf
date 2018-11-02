@@ -31,10 +31,11 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
+        private readonly IChainManagerBasic _chainManagerBasic;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -42,6 +43,7 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
+            _chainManagerBasic = chainManagerBasic;
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
         }
 
@@ -115,11 +117,7 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     return result;
                 }
-                
-                await UpdateSideChainInfo(block);
-
-                /*** Need-to-rollback boundary ***/
-
+                await UpdateCrossChainInfo(block);
                 await AppendBlock(block);
                 await InsertTxs(readyTxs, txnRes, block);
 
@@ -252,7 +250,7 @@ namespace AElf.Synchronization.BlockExecution
         /// </returns>
         private bool ValidateSideChainBlockInfo(IBlock block)
         {
-            return block.Body.IndexedInfo.All(_clientManager.CheckSideChainBlockInfo);
+            return block.Body.IndexedInfo.All(_clientManager.TryGetSideChainBlockInfo);
         }
 
         /// <summary>
@@ -308,17 +306,8 @@ namespace AElf.Synchronization.BlockExecution
             try
             {
                 var cached = await _clientManager.TryGetParentChainBlockInfo();
-                if (cached == null)
-                {
-                    _logger.Warn("Not found cached parent block info");
-                    return false;
-                }
-
-                if (cached.Equals(parentBlockInfo))
-                    return true;
-
-                _logger.Trace($"Cached parent block info is {cached}");
-                _logger.Trace($"Parent block info in transaction is {parentBlockInfo}");
+                if (cached != null) return cached.Equals(parentBlockInfo);
+                _logger.Warn("Not found cached parent block info");
                 return false;
             }
             catch (Exception e)
@@ -389,7 +378,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="block"></param>
         /// <returns></returns>
         /// <exception cref="InvalidCrossChainInfoException"></exception>
-        private async Task UpdateSideChainInfo(IBlock block)
+        private async Task UpdateCrossChainInfo(IBlock block)
         {
             await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
                 block.Header.ChainId, block.Header.Index);
@@ -399,18 +388,17 @@ namespace AElf.Synchronization.BlockExecution
             // update side chain block info if execution succeed
             foreach (var blockInfo in block.Body.IndexedInfo)
             {
-                if (!await _clientManager.TryUpdateAndRemoveSideChainBlockInfo(blockInfo))
+                /*if (!await _clientManager.TryUpdateAndRemoveSideChainBlockInfo(blockInfo))
                     // Todo: _clientManager would be chaos if this happened.
                     throw new InvalidCrossChainInfoException(
-                        "Inconsistent side chain info. Something about side chain would be chaos if you see this. ",
-                        BlockExecutionResult.InvalidSideChainInfo);
+                        "Inconsistent side chain info. Something about side chain would be chaos if you see this. ", BlockExecutionResult.InvalidSideChainInfo);*/
+                await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height);
             }
 
             // update parent chain info
-            if (!await _clientManager.UpdateParentChainBlockInfo(block.ParentChainBlockInfo))
-                throw new InvalidCrossChainInfoException(
-                    "Inconsistent parent chain info. Something about parent chain would be chaos if you see this. ",
-                    BlockExecutionResult.InvalidSideChainInfo);
+            if(block.ParentChainBlockInfo != null)
+                await _chainManagerBasic.UpdateCurrentBlockHeightAsync(block.ParentChainBlockInfo.ChainId,
+                block.ParentChainBlockInfo.Height);
         }
 
         #endregion
@@ -446,14 +434,14 @@ namespace AElf.Synchronization.BlockExecution
 
     internal class InvalidCrossChainInfoException : Exception
     {
-        public BlockExecutionResult Result { get; }
+        public BlockExecutionResult Result { get;}
 
         public InvalidCrossChainInfoException(string message, BlockExecutionResult result) : base(message)
         {
             Result = result;
         }
     }
-
+    
     internal class InvalidBlockException : Exception
     {
         public InvalidBlockException(string message) : base(message)
