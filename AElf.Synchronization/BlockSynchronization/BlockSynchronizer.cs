@@ -84,12 +84,12 @@ namespace AElf.Synchronization.BlockSynchronization
             var message = new BlockExecuted(block, blockValidationResult);
             if (blockValidationResult.IsSuccess())
             {
-                _logger?.Trace($"Valid Block {block.BlockHashToHex}.");
+                _logger?.Trace($"Valid block {block.BlockHashToHex}.");
 
                 return await HandleValidBlock(message);
             }
 
-            _logger?.Warn($"Invalid Block {block.BlockHashToHex} : {message.BlockValidationResult.ToString()}.");
+            _logger?.Warn($"Invalid block {block.BlockHashToHex}: {message.BlockValidationResult.ToString()}.");
             await HandleInvalidBlock(message);
 
             return BlockExecutionResult.NotExecuted;
@@ -102,8 +102,8 @@ namespace AElf.Synchronization.BlockSynchronization
             ulong i = 0;
             while (blocks != null && blocks.Any())
             {
-                _logger?.Trace(
-                    $"Will get block of height {targetHeight + i} from block set to execute - {blocks.Count} blocks.");
+                _logger?.Trace($"Will get block of height {targetHeight + i} from block set to " +
+                               $"execute - {blocks.Count} blocks.");
 
                 i++;
                 foreach (var block in blocks)
@@ -130,7 +130,7 @@ namespace AElf.Synchronization.BlockSynchronization
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
             {
-                _logger?.Trace("Set the limit of the branched blocks cache in block set to " + Limit);
+                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {Limit}.");
                 _blockSet.KeepHeight = Limit;
             }
         }
@@ -141,7 +141,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             var executionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
 
-            _logger?.Trace("Block execution result: " + executionResult);
+            _logger?.Trace($"Block execution result: {executionResult}.");
 
             if (executionResult.NeedToRollback())
             {
@@ -270,8 +270,8 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             catch (Exception e)
             {
-                _logger?.Error(e,
-                    $"Error while checking linkablity of block {block.BlockHashToHex} in height {block.Index}");
+                _logger?.Error(e, $"Error while checking linkablity of block {block.BlockHashToHex} " +
+                                  $"in height {block.Index}");
                 return null;
             }
         }
