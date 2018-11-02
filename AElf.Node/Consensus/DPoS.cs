@@ -63,6 +63,8 @@ namespace AElf.Kernel.Node
 
         private static int _flag;
 
+        private static bool _hangOnMining;
+
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
@@ -152,12 +154,12 @@ namespace AElf.Kernel.Node
 
         public void Hang()
         {
-            Interlocked.CompareExchange(ref _flag, 1, 0);
+            _hangOnMining = true;
         }
 
         public void Recover()
         {
-            Interlocked.CompareExchange(ref _flag, 0, 1);
+            _hangOnMining = false;
         }
 
         private async Task<IBlock> Mine()
@@ -240,6 +242,14 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithInitializingAElfDPoSInformation()
         {
+            _logger?.Trace(
+                $"Trying to enter DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
+            
+            if (_hangOnMining)
+            {
+                return;
+            }
+
             var lockWasTaken = false;
             try
             {
@@ -293,13 +303,22 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithPublishingOutValueAndSignature()
         {
+            _logger?.Trace(
+                $"Trying to enter DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
+            
+            if (_hangOnMining)
+            {
+                return;
+            }
+
             var lockWasTaken = false;
             try
             {
                 lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
                 if (lockWasTaken)
                 {
-                    MessageHub.Instance.Publish(new DPoSStateChanged(ConsensusBehavior.PublishOutValueAndSignature, true));
+                    MessageHub.Instance.Publish(new DPoSStateChanged(ConsensusBehavior.PublishOutValueAndSignature,
+                        true));
                     _logger?.Trace(
                         $"Mine - Entered DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
 
@@ -355,7 +374,15 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task PublishInValue()
         {
-            bool lockWasTaken = false;
+            _logger?.Trace(
+                $"Trying to enter DPoS Mining Process - {nameof(PublishInValue)}.");
+            
+            if (_hangOnMining)
+            {
+                return;
+            }
+
+            var lockWasTaken = false;
             try
             {
                 lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
@@ -399,6 +426,14 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithUpdatingAElfDPoSInformation()
         {
+            _logger?.Trace(
+                $"Trying to enter DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
+            
+            if (_hangOnMining)
+            {
+                return;
+            }
+
             var lockWasTaken = false;
             try
             {

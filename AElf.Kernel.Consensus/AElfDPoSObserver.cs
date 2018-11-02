@@ -89,7 +89,8 @@ namespace AElf.Kernel.Consensus
 
         public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeSlot)
         {
-            _logger?.Trace("Extra block time slot of current round: " + extraBlockTimeSlot.ToDateTime().ToString("HH:mm:ss"));
+            _logger?.Trace("Extra block time slot of current round: " +
+                           extraBlockTimeSlot.ToDateTime().ToLocalTime().ToString("HH:mm:ss"));
             if (extraBlockTimeSlot.ToDateTime() < DateTime.UtcNow)
             {
                 extraBlockTimeSlot = extraBlockTimeSlot.ToDateTime()

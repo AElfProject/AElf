@@ -58,8 +58,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 _logger?.Trace($"Prevent block {block.BlockHashToHex} from re-entering block execution, " +
                                $"for block {_current} is being executing.");
-                var t = new StackTrace();
-                _logger?.Trace(t.ToString());
+                return BlockExecutionResult.AlreadyReceived;
             }
 
             _current = block.BlockHashToHex;

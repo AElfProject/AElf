@@ -80,30 +80,31 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<BlockExecutionResult> HandleBlock(IBlock block)
         {
+            _logger?.Trace("Trying to enter HandleBlock");
             var lockWasTaken = false;
             try
             {
                 if (Monitor.TryEnter(_))
                 {
+                    _logger?.Trace("Entered HandleBlock");
                     lockWasTaken = true;
                     
                     var blockValidationResult =
                         await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
 
-                    var message = new BlockExecuted(block, blockValidationResult);
-            
                     if (blockValidationResult.IsSuccess())
                     {
-                        return await HandleValidBlock(message);
+                        return await HandleValidBlock(block);
                     }
                     
-                    await HandleInvalidBlock(message);
+                    await HandleInvalidBlock(block, blockValidationResult);
                 }
             }
             finally
             {
-                if (lockWasTaken)
+                if (lockWasTaken && Monitor.IsEntered(_))
                 {
+                    _logger?.Trace("Exiting HandleBlock");
                     Monitor.Exit(_);
                 }
             }
@@ -125,7 +126,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 foreach (var block in blocks)
                 {
                     blocks = _blockSet.GetBlockByHeight(targetHeight + i);
-                    await HandleBlock(block);
+                    await HandleValidBlock(block);
                 }
             }
         }
@@ -151,13 +152,13 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)
+        private async Task<BlockExecutionResult> HandleValidBlock(IBlock block)
         {
-            _logger?.Trace($"Valid block {message.Block.BlockHashToHex}.");
+            _logger?.Trace($"Valid block {block.BlockHashToHex}.");
             
-            _blockSet.AddBlock(message.Block);
+            _blockSet.AddBlock(block);
 
-            var executionResult = await _blockExecutor.ExecuteBlock(message.Block);
+            var executionResult = await _blockExecutor.ExecuteBlock(block);
 
             _logger?.Trace($"Block execution result: {executionResult}.");
 
@@ -165,17 +166,17 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // Need to rollback one block:
                 await BlockChain.RollbackOneBlock();
-                _blockSet.InformRollback(message.Block.Index, message.Block.Index);
+                _blockSet.InformRollback(block.Index, block.Index);
 
                 // Basically re-sync the block of specific height.
-                await ExecuteRemainingBlocks(message.Block.Index);
+                await ExecuteRemainingBlocks(block.Index);
 
                 return executionResult;
             }
 
             if (executionResult.CannotExecute())
             {
-                _logger?.Trace($"Cannot execute block {message.Block.BlockHashToHex} of height {message.Block.Index}");
+                _logger?.Trace($"Cannot execute block {block.BlockHashToHex} of height {block.Index}");
                 return executionResult;
             }
 
@@ -183,7 +184,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // No need to rollback:
                 // Receive again to execute the same block.
-                var index = message.Block.Index;
+                var index = block.Index;
 
                 if (_minedBlock)
                 {
@@ -194,13 +195,13 @@ namespace AElf.Synchronization.BlockSynchronization
                 do
                 {
                     var reValidationResult = await _blockValidationService.ExecutingAgain(true)
-                        .ValidateBlockAsync(message.Block, await GetChainContextAsync());
+                        .ValidateBlockAsync(block, await GetChainContextAsync());
                     if (reValidationResult.IsFailed())
                     {
                         break;
                     }
 
-                    reExecutionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
+                    reExecutionResult = _blockExecutor.ExecuteBlock(block).Result;
                     if (_blockSet.MultipleBlocksInOneIndex(index))
                     {
                         return reExecutionResult;
@@ -208,53 +209,53 @@ namespace AElf.Synchronization.BlockSynchronization
                 } while (reExecutionResult.IsFailed());
             }
 
-            _blockSet.Tell(message.Block);
+            _blockSet.Tell(block);
 
             // Notify the network layer the block has been executed.
-            MessageHub.Instance.Publish(message);
+            MessageHub.Instance.Publish(new BlockExecuted(block));
 
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
 
-            await ExecuteRemainingBlocks(message.Block.Index + 1);
+            await ExecuteRemainingBlocks(block.Index + 1);
 
             return BlockExecutionResult.Success;
         }
 
-        private async Task HandleInvalidBlock(BlockExecuted message)
+        private async Task HandleInvalidBlock(IBlock block, BlockValidationResult blockValidationResult)
         {
-            _logger?.Warn($"Invalid block {message.Block.BlockHashToHex} : {message.BlockValidationResult.ToString()}.");
+            _logger?.Warn($"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}.");
 
             // Handle the invalid blocks according to their validation results.
-            if ((int) message.BlockValidationResult < 100)
+            if ((int) blockValidationResult < 100)
             {
-                _blockSet.AddBlock(message.Block);
+                _blockSet.AddBlock(block);
             }
 
-            if (message.BlockValidationResult == BlockValidationResult.Unlinkable)
+            if (blockValidationResult == BlockValidationResult.Unlinkable)
             {
                 _receivedBranchedBlock = true;
 
                 _logger?.Warn("Received unlinkable block.");
 
-                MessageHub.Instance.Publish(new UnlinkableHeader(message.Block.Header));
+                MessageHub.Instance.Publish(new UnlinkableHeader(block.Header));
 
                 await ReviewBlockSet();
             }
 
             // Received blocks from branched chain.
-            if (message.BlockValidationResult == BlockValidationResult.BranchedBlock)
+            if (blockValidationResult == BlockValidationResult.BranchedBlock)
             {
                 _logger?.Warn("Received a block from branched chain.");
 
-                var linkableBlock = CheckLinkabilityOfBlock(message.Block);
+                var linkableBlock = CheckLinkabilityOfBlock(block);
                 if (linkableBlock == null)
                 {
                     return;
                 }
             }
 
-            if (message.BlockValidationResult == BlockValidationResult.Pending)
+            if (blockValidationResult == BlockValidationResult.Pending)
             {
                 MessageHub.Instance.Publish(UpdateConsensus.Dispose);
             }

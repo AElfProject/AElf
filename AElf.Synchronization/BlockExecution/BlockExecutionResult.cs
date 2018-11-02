@@ -1,3 +1,5 @@
+using AElf.Common;
+
 namespace AElf.Synchronization.BlockExecution
 {
     // ReSharper disable InconsistentNaming
@@ -19,10 +21,10 @@ namespace AElf.Synchronization.BlockExecution
         TooManyTxsForParentChainBlock,
         NotExecuted,
         AlreadyReceived,
+        IncorrectStateMerkleTree,
 
         // Need to rollback
         Failed = 101,
-        IncorrectStateMerkleTree
     }
 
     public static class ExecutionResultExtensions
