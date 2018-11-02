@@ -12,11 +12,6 @@ namespace AElf.Database
     {
         private readonly ConcurrentDictionary<string, PooledRedisClientManager> _clientManagers = new ConcurrentDictionary<string, PooledRedisClientManager>();
 
-        public RedisDatabase()
-        {
-            //_client = new PooledRedisClientManager(DatabaseConfig.Instance.Number,$"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
-        }
-
         public async Task<byte[]> GetAsync(string database, string key)
         {
             if (string.IsNullOrWhiteSpace(key))
@@ -88,11 +83,10 @@ namespace AElf.Database
             {
                 throw new ArgumentException("database is empty");
             }
-            database = database.ToLower();
-            if (!_clientManagers.TryGetValue(database.ToLower(), out var client))
+            if (!_clientManagers.TryGetValue(database, out var client))
             {
-                // get from config
-                client = new PooledRedisClientManager();
+                var databaseHost = DatabaseConfig.Instance.GetHost(database);
+                client = new PooledRedisClientManager(databaseHost.Number,$"{databaseHost.Host}:{databaseHost.Port}");
                 _clientManagers.TryAdd(database, client);
             }
 

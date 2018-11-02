@@ -11,7 +11,7 @@ namespace AElf.Database
     public class SsdbDatabase : IKeyValueDatabase
     {
         //private readonly PooledRedisClientManager _client;
-        
+
         private readonly ConcurrentDictionary<string, PooledRedisClientManager> _clientManagers = new ConcurrentDictionary<string, PooledRedisClientManager>();
 
         public SsdbDatabase()
@@ -40,6 +40,7 @@ namespace AElf.Database
             {
                 return true;
             }
+
             return await Task.Factory.StartNew(() =>
             {
                 GetClient(database).SetAll(cache);
@@ -62,7 +63,7 @@ namespace AElf.Database
                 {
                     GetClient(database).Set<byte[]>("ping", null);
                 }
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -70,18 +71,18 @@ namespace AElf.Database
                 throw ex;
             }
         }
-        
+
         private ICacheClient GetClient(string database)
         {
             if (string.IsNullOrWhiteSpace(database))
             {
                 throw new ArgumentException("database is empty");
             }
-            database = database.ToLower();
-            if (!_clientManagers.TryGetValue(database.ToLower(), out var client))
+
+            if (!_clientManagers.TryGetValue(database, out var client))
             {
-                // get from config
-                client = new PooledRedisClientManager();
+                var databaseHost = DatabaseConfig.Instance.GetHost(database);
+                client = new PooledRedisClientManager($"{databaseHost.Host}:{databaseHost.Port}");
                 _clientManagers.TryAdd(database, client);
             }
 

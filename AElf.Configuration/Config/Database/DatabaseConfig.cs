@@ -12,6 +12,16 @@ namespace AElf.Configuration
         public DatabaseType Type { get; set; }
 
         public Dictionary<string, DatabaseHost> Hosts { get; set; }
+
+        public DatabaseHost GetHost(string database)
+        {
+            if (!Hosts.TryGetValue(database, out var host))
+            {
+                host = Hosts["Default"];
+            }
+
+            return host;
+        }
     }
 
     public class DatabaseHost
