@@ -57,7 +57,7 @@ namespace AElf.Network.Tests
             Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, peerPort, kp, 0);
 
             Message authMessage = null;
-            messageWritter.Setup(w => w.EnqueueMessage(It.IsAny<Message>())).Callback<Message>(m => authMessage = m);
+            messageWritter.Setup(w => w.EnqueueMessage(It.IsAny<Message>(), It.IsAny<Action<Message>>())).Callback<Message, Action<Message>>((m, a) => authMessage = m);
             
             p.Start();
             
