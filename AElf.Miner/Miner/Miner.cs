@@ -164,7 +164,25 @@ namespace AElf.Miner.Miner
         private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false)
         {
             using (var cts = new CancellationTokenSource())
-            using (var timer = new Timer(s => cts.Cancel()))
+            using (var timer = new Timer(s =>
+            {
+                try
+                {
+                    cts.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Ignore if timer's callback is called after it's been disposed.
+                    // The following is paragraph from Microsoft's documentation explaining the behaviour:
+                    // https://docs.microsoft.com/en-us/dotnet/api/system.threading.timer?redirectedfrom=MSDN&view=netcore-2.1#Remarks
+                    //
+                    // When a timer is no longer needed, use the Dispose method to free the resources
+                    // held by the timer. Note that callbacks can occur after the Dispose() method
+                    // overload has been called, because the timer queues callbacks for execution by
+                    // thread pool threads. You can use the Dispose(WaitHandle) method overload to
+                    // wait until all callbacks have completed.
+                }
+            }))
             {
                 timer.Change(_timeoutMilliseconds, Timeout.Infinite);
 
