@@ -36,7 +36,6 @@ namespace AElf.Node.AElfChain
         private readonly ITxHub _txHub;
         private readonly IStateStore _stateStore;
         private readonly IMiner _miner;
-        private readonly IP2P _p2p;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockSynchronizer _blockSynchronizer;
@@ -55,7 +54,6 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            IP2P p2p,
             IBlockExecutor blockExecutor,
             ILogger logger)
         {
@@ -66,7 +64,6 @@ namespace AElf.Node.AElfChain
             _logger = logger;
             _blockExecutor = blockExecutor;
             _miner = miner;
-            _p2p = p2p;
             _blockSynchronizer = blockSynchronizer;
         }
 
@@ -241,9 +238,6 @@ namespace AElf.Node.AElfChain
                 _logger?.Debug($"Coinbase = {_miner.Coinbase.DumpHex()}");
             }
 
-            // todo maybe move
-            Task.Run(async () => await _p2p.ProcessLoop()).ConfigureAwait(false);
-
             Thread.Sleep(1000);
 
             if (NodeConfig.Instance.ConsensusInfoGenerator)
@@ -383,20 +377,50 @@ namespace AElf.Node.AElfChain
 
         #endregion private methods
 
-        public int GetCurrentHeight()
+        public async Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count)
         {
-            int height = 1;
-
-            try
+            return await _blockSynchronizer.GetBlockHeaderList(index, count);
+        }
+        
+        public async Task<Block> GetBlockAtHeight(int height)
+        {
+            if (height <= 0)
             {
-                height = (int) _blockChain.GetCurrentBlockHeightAsync().Result;
+                _logger?.Warn($"Cannot get block - height {height} is not valid.");
+                return null;
             }
-            catch (Exception e)
+            
+            var block = (Block) await _chainService.GetBlockChain(Hash.Default).GetBlockByHeightAsync((ulong)height);
+            return block != null ? await FillBlockWithTransactionList(block) : null;
+        }
+        
+        public async Task<Block> GetBlockFromHash(byte[] hash)
+        {
+            if (hash == null || hash.Length <= 0)
             {
-                _logger?.Error(e, "Exception while getting chain height.");
+                _logger?.Warn("Cannot get block - invalid hash.");
+                return null;
+            }
+            
+            return await GetBlockFromHash(Hash.LoadByteArray(hash));
+        }
+        
+        public async Task<Block> GetBlockFromHash(Hash hash)
+        {
+            var block = await Task.Run(() => (Block) _blockSynchronizer.GetBlockByHash(hash));
+            return block != null ? await FillBlockWithTransactionList(block) : null;
+        }
+        
+        private async Task<Block> FillBlockWithTransactionList(Block block)
+        {
+            block.Body.TransactionList.Clear();
+            foreach (var txId in block.Body.Transactions)
+            {
+                var r = await _txHub.GetReceiptAsync(txId);
+                block.Body.TransactionList.Add(r.Transaction);
             }
 
-            return height;
+            return block;
         }
     }
 }

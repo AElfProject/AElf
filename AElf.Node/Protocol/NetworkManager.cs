@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -11,12 +13,12 @@ using AElf.Common.Collections;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
-using AElf.Miner.TxMemPool;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;
+using AElf.Node.AElfChain;
 using AElf.Node.EventMessages;
 using AElf.Node.Protocol.Events;
 using AElf.Synchronization.BlockSynchronization;
@@ -50,19 +52,14 @@ namespace AElf.Node.Protocol
         #endregion
 
         public event EventHandler MessageReceived;
-        public event EventHandler RequestFailed;
-        public event EventHandler BlockReceived;
-        public event EventHandler TransactionsReceived;
-
-        private readonly ITxHub _txHub;
+        
         private readonly IPeerManager _peerManager;
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private readonly IBlockSynchronizer _blockSynchronizer;
-        private readonly List<IPeer> _peers = new List<IPeer>();
+        private readonly INodeService _nodeService;
 
-        private readonly Object _pendingRequestsLock = new Object();
-        private readonly List<TimeoutRequest> _pendingRequests;
+        private readonly List<IPeer> _peers = new List<IPeer>();
 
         private BoundedByteArrayQueue _lastBlocksReceived;
         private BoundedByteArrayQueue _lastTxReceived;
@@ -75,18 +72,17 @@ namespace AElf.Node.Protocol
 
         private bool _isSyncing = false;
 
-        private Hash _chainId;
+        private readonly Hash _chainId;
 
-        public NetworkManager(ITxHub txHub, IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer)
+        public NetworkManager(IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer, INodeService nodeService)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
-            _pendingRequests = new List<TimeoutRequest>();
 
-            _txHub = txHub;
             _peerManager = peerManager;
             _chainService = chainService;
             _logger = logger;
             _blockSynchronizer = blockSynchronizer;
+            _nodeService = nodeService;
 
             _chainId = new Hash
             {
@@ -127,7 +123,7 @@ namespace AElf.Node.Protocol
                 AnnounceBlock((Block) inBlock.Block);
 
                 _logger?.Info($"Block produced, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}) with " +
-                              $"{inBlock.Block.Body.TransactionsCount} txs. Block height {inBlock.Block.Header.Index}.");
+                              $"{inBlock.Block.Body.TransactionsCount} txs, block height {inBlock.Block.Header.Index}.");
 
                 _localHeight++;
             });
@@ -145,8 +141,8 @@ namespace AElf.Node.Protocol
                 if (blockHash != null)
                     _lastBlocksReceived.Enqueue(blockHash);
 
-                _logger?.Trace($"Block accepted, announcing {blockHash.ToHex()} to peers {string.Join("|", _peers)}. " +
-                               $"Block height {inBlock.Block.Header.Index}.");
+                _logger?.Trace($"Block accepted, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}), " +
+                               $"block height {inBlock.Block.Header.Index}.");
 
                 _localHeight++;
 
@@ -210,7 +206,7 @@ namespace AElf.Node.Protocol
             MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
             {
                 _peerManager.Start();
-                Task.Run(() => StartProcessingIncoming()).ConfigureAwait(false);
+                Task.Run(StartProcessingIncoming).ConfigureAwait(false);
             });
         }
 
@@ -325,7 +321,6 @@ namespace AElf.Node.Protocol
 
                 peer.MessageReceived -= HandleNewMessage;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
-                //peer.SyncFinished -= PeerOnSyncFinished;
 
                 _peers.Remove(args.Peer);
             }
@@ -335,6 +330,17 @@ namespace AElf.Node.Protocol
         {
             if (e is PeerMessageReceivedArgs args)
             {
+                if (args.Message.Type == (int)AElfProtocolMsgType.Block)
+                {
+                    // If we get a block deserialize it here to stop the request timer asap
+                    var block = HandleBlockReception(args.Message.Payload, args.Peer);
+
+                    if (block == null)
+                        return;
+                    
+                    args.Block = block;
+                }
+                
                 _incomingJobs.Enqueue(args, 0);
             }
         }
@@ -343,14 +349,14 @@ namespace AElf.Node.Protocol
 
         #region Message processing
 
-        private void StartProcessingIncoming()
+        private async Task StartProcessingIncoming()
         {
             while (true)
             {
                 try
                 {
                     PeerMessageReceivedArgs msg = _incomingJobs.Take();
-                    ProcessPeerMessage(msg);
+                    await ProcessPeerMessage(msg);
                 }
                 catch (Exception e)
                 {
@@ -359,30 +365,37 @@ namespace AElf.Node.Protocol
             }
         }
 
-        private void ProcessPeerMessage(PeerMessageReceivedArgs args)
+        private async Task ProcessPeerMessage(PeerMessageReceivedArgs args)
         {
-            if (args?.Peer == null || args.Message == null)
+            if (args?.Peer == null)
             {
-                _logger.Warn("Invalid message from peer.");
+                _logger.Warn("Peer is invalid.");
+                return;
+            }
+            
+            if (args.Message?.Payload == null)
+            {
+                _logger?.Warn($"Message from [{args.Peer}], message/payload is null.");
                 return;
             }
 
             AElfProtocolMsgType msgType = (AElfProtocolMsgType) args.Message.Type;
 
+            Stopwatch s = null;
+
+            if (msgType == AElfProtocolMsgType.Block || msgType == AElfProtocolMsgType.RequestBlock)
+            {
+                s = Stopwatch.StartNew();
+                _logger?.Debug($"Processing job ({msgType})");
+            }
+            
             switch (msgType)
             {
                 case AElfProtocolMsgType.Announcement:
                     HandleAnnouncement(msgType, args.Message, args.Peer);
                     break;
-                // New blocks and requested blocks will be added to the sync
-                // Subscribe to the BlockReceived event.
-                case AElfProtocolMsgType.NewBlock:
                 case AElfProtocolMsgType.Block:
-                    HandleBlockReception(msgType, args.Message, args.Peer);
-                    break;
-                // Transactions requested from the sync.
-                case AElfProtocolMsgType.Transactions:
-                    HandleTransactionsMessage(msgType, args.Message, args.Peer);
+                    MessageHub.Instance.Publish(new BlockReceived(args.Block));
                     break;
                 // New transaction issue from a broadcast.
                 case AElfProtocolMsgType.NewTransaction:
@@ -391,15 +404,82 @@ namespace AElf.Node.Protocol
                 case AElfProtocolMsgType.Headers:
                     HandleHeaders(msgType, args.Message, args.Peer);
                     break;
+                case AElfProtocolMsgType.RequestBlock:
+                    await HandleBlockRequestJob(args);
+                    break;
+                case AElfProtocolMsgType.HeaderRequest:
+                    await HandleHeaderRequest(args);
+                    break;
             }
 
-            // Re-fire the event for higher levels if needed.
-            BubbleMessageReceivedEvent(args);
+            if (msgType == AElfProtocolMsgType.Block || msgType == AElfProtocolMsgType.RequestBlock)
+            {
+                s?.Stop();
+                _logger?.Debug($"Finished processing job ({msgType}) - duration : {s.ElapsedMilliseconds} ms");
+            }
         }
 
-        private void BubbleMessageReceivedEvent(PeerMessageReceivedArgs args)
+        private async Task HandleHeaderRequest(PeerMessageReceivedArgs args)
         {
-            MessageReceived?.Invoke(this, new NetMessageReceivedEventArgs(args.Message, args));
+            try
+            {
+                var hashReq = BlockHeaderRequest.Parser.ParseFrom(args.Message.Payload);
+                
+                var blockHeaderList = await _nodeService.GetBlockHeaderList((ulong) hashReq.Height, hashReq.Count);
+                
+                var req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Headers, blockHeaderList.ToByteArray());
+                
+                if (args.Message.HasId)
+                    req.Id = args.Message.Id;
+
+                args.Peer.EnqueueOutgoing(req);
+
+                _logger?.Debug($"Send {blockHeaderList.Headers.Count} block headers start " +
+                               $"from {blockHeaderList.Headers.FirstOrDefault()?.GetHash().DumpHex()}, to node {args.Peer}.");
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while during HandleBlockRequest.");
+            }
+        }
+
+        private async Task HandleBlockRequestJob(PeerMessageReceivedArgs args)
+        { 
+            try
+            {
+                var breq = BlockRequest.Parser.ParseFrom(args.Message.Payload);
+                
+                Block b;
+                
+                if (breq.Id != null && breq.Id.Length > 0)
+                {
+                    b = await _nodeService.GetBlockFromHash(breq.Id.ToByteArray());
+                }
+                else
+                {
+                    b = await _nodeService.GetBlockAtHeight(breq.Height);
+                }
+
+                if (b == null)
+                {
+                    _logger?.Warn($"Block not found {breq.Id?.ToByteArray().ToHex()}");
+                    return;
+                }
+                
+                Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Block, b.ToByteArray());
+                
+                if (args.Message.HasId)
+                    req.Id = args.Message.Id;
+
+                // Send response
+                args.Peer.EnqueueOutgoing(req);
+
+                _logger?.Debug($"Send block {b.BlockHashToHex} to {args.Peer}");
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while during HandleBlockRequest.");
+            }
         }
 
         private void HandleHeaders(AElfProtocolMsgType msgType, Message msg, Peer peer)
@@ -407,31 +487,11 @@ namespace AElf.Node.Protocol
             try
             {
                 BlockHeaderList blockHeaders = BlockHeaderList.Parser.ParseFrom(msg.Payload);
-                Task.Run(() => MessageHub.Instance.Publish(new HeadersReceived(blockHeaders.Headers.ToList())))
-                    .ConfigureAwait(false);
+                MessageHub.Instance.Publish(new HeadersReceived(blockHeaders.Headers.ToList()));
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while handling header list.");
-            }
-        }
-
-        private void HandleTransactionsMessage(AElfProtocolMsgType msgType, Message msg, Peer peer)
-        {
-            try
-            {
-                if (msg.HasId)
-                    GetAndClearRequest(msg);
-
-                TransactionList txList = TransactionList.Parser.ParseFrom(msg.Payload);
-                // The sync should subscribe to this and add to pool
-                //TransactionsReceived?.Invoke(this, new TransactionsReceivedEventArgs(txList, peer, msgType));
-
-                // todo launch tx event
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Error while deserializing transaction list.");
             }
         }
 
@@ -477,7 +537,7 @@ namespace AElf.Node.Protocol
 
                 _lastTxReceived.Enqueue(txHash);
 
-                Task.Run(() => MessageHub.Instance.Publish(new TxReceived(tx))).ConfigureAwait(false);
+                MessageHub.Instance.Publish(new TxReceived(tx));
             }
             catch (Exception e)
             {
@@ -485,177 +545,35 @@ namespace AElf.Node.Protocol
             }
         }
 
-        private void HandleBlockReception(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        private Block HandleBlockReception(byte[] serializedBlock, Peer peer)
         {
             try
             {
-                Block block = Block.Parser.ParseFrom(msg.Payload);
+                Block block = Block.Parser.ParseFrom(serializedBlock);
 
                 byte[] blockHash = block.GetHashBytes();
 
                 if (_lastBlocksReceived.Contains(blockHash))
-                    return;
+                {
+                    _logger.Warn("Block already in network cache");
+                    return null;
+                }
 
                 _lastBlocksReceived.Enqueue(blockHash);
 
                 peer.OnBlockReceived(block);
 
-                Task.Run(() => MessageHub.Instance.Publish(new BlockReceived(block))).ConfigureAwait(false);
+                return block;
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while handling block reception");
             }
+
+            return null;
         }
 
         #endregion
-
-        public void QueueTransactionRequest(List<byte[]> transactionHashes, IPeer hint)
-        {
-            try
-            {
-                IPeer selectedPeer = hint ?? _peers.FirstOrDefault();
-
-                if (selectedPeer == null)
-                    return;
-
-                // Create the message
-                TxRequest br = new TxRequest();
-                br.TxHashes.Add(transactionHashes.Select(h => ByteString.CopyFrom(h)).ToList());
-                var msg = NetRequestFactory.CreateMessage(AElfProtocolMsgType.TxRequest, br.ToByteArray());
-
-                // Identification
-                msg.HasId = true;
-                msg.Id = Guid.NewGuid().ToByteArray();
-
-                // Select peer for request
-                TimeoutRequest request = new TimeoutRequest(transactionHashes, msg, RequestTimeout);
-                request.MaxRetryCount = RequestMaxRetry;
-
-                lock (_pendingRequestsLock)
-                {
-                    _pendingRequests.Add(request);
-                }
-
-                request.RequestTimedOut += RequestOnRequestTimedOut;
-                request.TryPeer(selectedPeer);
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Error while requesting transactions.");
-            }
-        }
-
-        /// <summary>
-        /// Callback called when the requests internal timer has executed.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="eventArgs"></param>
-        private void RequestOnRequestTimedOut(object sender, EventArgs eventArgs)
-        {
-            if (sender == null)
-            {
-                _logger?.Warn("Request timeout - sender null.");
-                return;
-            }
-
-            if (sender is TimeoutRequest req)
-            {
-                _logger?.Warn(
-                    $"Request timeout: {req.IsBlockRequest}, with {req.Peer} and timeout : {TimeSpan.FromMilliseconds(req.Timeout)}.");
-
-                if (req.IsTxRequest && req.TransactionHashes != null && req.TransactionHashes.Any())
-                {
-                    _logger?.Trace($"Hashes: [{string.Join(", ", req.TransactionHashes.Select(kvp => kvp.ToHex()))}]");
-                }
-
-                if (req.HasReachedMaxRetry)
-                {
-                    lock (_pendingRequestsLock)
-                    {
-                        _pendingRequests.Remove(req);
-                    }
-
-                    req.RequestTimedOut -= RequestOnRequestTimedOut;
-                    FireRequestFailed(req);
-                    return;
-                }
-
-                IPeer nextPeer = _peers.FirstOrDefault(p => !p.Equals(req.Peer));
-
-                if (nextPeer != null)
-                {
-                    _logger?.Warn("Trying another peer : " + req.RequestMessage.RequestLogString +
-                                  $", next : {nextPeer}.");
-                    req.TryPeer(nextPeer);
-                }
-            }
-            else
-            {
-                _logger?.Warn("Request timeout - sender wrong type.");
-            }
-        }
-
-        private void FireRequestFailed(TimeoutRequest req)
-        {
-            RequestFailedEventArgs reqFailedEventArgs = new RequestFailedEventArgs
-            {
-                RequestMessage = req.RequestMessage,
-                TriedPeers = req.TriedPeers.ToList()
-            };
-
-            _logger?.Warn("Request failed : " + req.RequestMessage.RequestLogString +
-                          $" after {req.TriedPeers.Count} tries. Max tries : {req.MaxRetryCount}.");
-
-            RequestFailed?.Invoke(this, reqFailedEventArgs);
-        }
-
-        internal TimeoutRequest GetAndClearRequest(Message msg)
-        {
-            if (msg == null)
-            {
-                _logger?.Warn("Handle message : peer or message null.");
-                return null;
-            }
-
-            try
-            {
-                TimeoutRequest request;
-
-                lock (_pendingRequestsLock)
-                {
-                    request = _pendingRequests.FirstOrDefault(r => r.Id.BytesEqual(msg.Id));
-                }
-
-                if (request != null)
-                {
-                    request.RequestTimedOut -= RequestOnRequestTimedOut;
-                    request.Stop();
-
-                    lock (_pendingRequestsLock)
-                    {
-                        _pendingRequests.Remove(request);
-                    }
-
-                    if (request.IsTxRequest && request.TransactionHashes != null && request.TransactionHashes.Any())
-                    {
-                        _logger?.Debug("Matched : [" + string.Join(", ",
-                                           request.TransactionHashes.Select(kvp => kvp.ToHex()).ToList()) + "]");
-                    }
-                }
-                else
-                {
-                    _logger?.Warn($"Request not found. Index : {msg.Id.ToHex()}.");
-                }
-
-                return request;
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Exception while handling request message.");
-                return null;
-            }
-        }
 
         public async Task<int> BroadcastBlock(byte[] hash, byte[] payload)
         {
@@ -713,11 +631,6 @@ namespace AElf.Node.Protocol
             }
 
             return count;
-        }
-
-        public int GetPendingRequestCount()
-        {
-            return _pendingRequests.Count;
         }
     }
 }
