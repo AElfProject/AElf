@@ -86,7 +86,6 @@ namespace AElf.Miner.Miner
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                await GenerateTransactionWithParentChainBlockInfo();
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
                 var traces = new List<TransactionTrace>();
@@ -95,20 +94,19 @@ namespace AElf.Miner.Miner
                 {
 
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
-                    var dposTxns = sysTxs.Where(t => t.Type == TransactionType.DposTransaction).ToList();
                     if (currentRoundInfo != null)
                     {
-                        _txFilter.Execute(dposTxns);
+                        // Note that any txn wont be filtered if currentRoundInfo is null.
+                        // It should be better if this parameter can be removed 
+                        _txFilter.Execute(sysTxs);
                     }
-
-                    var others = sysTxs.Where(t => t.Type != TransactionType.DposTransaction).ToList();
-                    _txFilter.Execute(others);
 
                     _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
                     traces = await ExecuteTransactions(sysTxs);
                     _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
 
-                    FindCrossChainInfo(others, traces, out pcb);
+                    // need check result of cross chain transaction 
+                    FindCrossChainInfo(sysTxs, traces, out pcb);
                 }
                 if (txGrp.TryGetValue(false, out var regRcpts))
                 {
@@ -141,9 +139,8 @@ namespace AElf.Miner.Miner
                 {
                     await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
                 }
-                GenerateTransactionWithParentChainBlockInfo().ConfigureAwait(false);
                 MessageHub.Instance.Publish(new BlockMined(block));
-
+                GenerateTransactionWithParentChainBlockInfo().ConfigureAwait(false);
                 stopwatch.Stop();
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
@@ -157,9 +154,9 @@ namespace AElf.Miner.Miner
             }
         }
 
-        /*private void FilterSystemTxns(List<Transaction> txs)
+        private void FilterSystemTxns(List<Transaction> txs)
         {
-            /*var txGroup = txs.GroupBy(tx => tx.Type == TransactionType.DposTransaction)
+            var txGroup = txs.GroupBy(tx => tx.Type == TransactionType.DposTransaction)
                 .ToDictionary(x => x.Key, x => x.ToList());
 
             if (txGroup.TryGetValue(true, out var dposTxs))
@@ -168,7 +165,8 @@ namespace AElf.Miner.Miner
             }
 
             _txFilter.Execute(txs);
-        }*/
+        }
+        
 
         private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false)
         {
