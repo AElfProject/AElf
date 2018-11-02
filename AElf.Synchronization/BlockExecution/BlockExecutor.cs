@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -102,6 +103,12 @@ namespace AElf.Synchronization.BlockExecution
 
                 txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
+
+                var blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
+                {
+                    return BlockExecutionResult.AlreadyReceived;
+                }
 
                 result = await UpdateWorldState(block, txnRes);
                 if (result.IsFailed())
