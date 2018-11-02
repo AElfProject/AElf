@@ -136,9 +136,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)
         {
+            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
             _blockSet.AddBlock(message.Block);
 
             var executionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
+            MessageHub.Instance.Publish(new ExecutionStateChanged(false));
 
             _logger?.Trace("Block execution result: " + executionResult);
 
@@ -178,12 +180,14 @@ namespace AElf.Synchronization.BlockSynchronization
                         .ValidateBlockAsync(message.Block, await GetChainContextAsync()).Result;
                     if (reValidationResult.IsFailed())
                     {
+                        _logger?.Trace($"Validation failed. {reValidationResult}");
                         break;
                     }
 
                     reExecutionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
                     if (_blockSet.MultipleBlocksInOneIndex(index))
                     {
+                        _logger?.Trace("MultipleBlocksInOneIndex");
                         return reExecutionResult;
                     }
                 } while (reExecutionResult.IsFailed());

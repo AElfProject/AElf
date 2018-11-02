@@ -61,8 +61,6 @@ namespace AElf.Synchronization.BlockExecution
             
             _logger?.Trace($"Executing block {block.GetHash()}");
 
-            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
-
             var txnRes = new List<TransactionResult>();
             try
             {
@@ -97,8 +95,6 @@ namespace AElf.Synchronization.BlockExecution
                 await UpdateCrossChainInfo(block);
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
-
-                MessageHub.Instance.Publish(new ExecutionStateChanged(false));
 
                 return BlockExecutionResult.Success;
             }
