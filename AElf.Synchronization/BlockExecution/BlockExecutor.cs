@@ -61,7 +61,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 _logger?.Trace($"Prevent block {block.BlockHashToHex} from re-entering block execution, " +
                                $"for block {_current} is being executing.");
-                return BlockExecutionResult.AlreadyReceived;
+                return BlockExecutionResult.Expelled;
             }
 
             _current = block.BlockHashToHex;
@@ -109,7 +109,7 @@ namespace AElf.Synchronization.BlockExecution
                 var blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
-                    return BlockExecutionResult.AlreadyReceived;
+                    return BlockExecutionResult.AlreadyAppended;
                 }
 
                 result = await UpdateWorldState(block, txnRes);

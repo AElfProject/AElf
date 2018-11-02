@@ -40,6 +40,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static int _flag;
 
+        private static ulong _firstFutureBlockHeight;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -77,6 +79,10 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (block.Index > await BlockChain.GetCurrentBlockHeightAsync() + 1)
             {
+                if (_firstFutureBlockHeight == 0)
+                {
+                    _firstFutureBlockHeight = block.Index;
+                }
                 _blockSet.AddBlock(block);
                 _logger?.Trace($"Added block {block.BlockHashToHex} to block cache cause this is a future block.");
                 return BlockExecutionResult.FutureBlock;
@@ -213,8 +219,11 @@ namespace AElf.Synchronization.BlockSynchronization
             
             // Notify the network layer the block has been executed.
             MessageHub.Instance.Publish(new BlockExecuted(block));
-            
-            //await ExecuteRemainingBlocks(block.Index + 1);
+
+            if (block.Index + 1 == _firstFutureBlockHeight)
+            {
+                await ExecuteRemainingBlocks(_firstFutureBlockHeight);
+            }
 
             return BlockExecutionResult.Success;
         }

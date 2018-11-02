@@ -166,10 +166,6 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var chainHeight = await BlockChain.GetCurrentBlockHeightAsync();
-                await _synchronizer.ExecuteRemainingBlocks(chainHeight);
-                _logger?.Trace("Will execute block of height " + chainHeight);
-
                 var block = await _miner.Mine();
 
                 return block;
