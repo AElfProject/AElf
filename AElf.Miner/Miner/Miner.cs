@@ -1,28 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Common.Attributes;
 using AElf.Common;
+using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.Miner.Rpc.Exceptions;
-using AElf.Miner.Rpc.Server;
-using AElf.Types.CSharp;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Easy.MessageHub;
-using NLog;
-using NServiceKit.Common.Extensions;
-using Status = AElf.Kernel.Status;
-using AElf.Execution.Execution;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
+using AElf.Miner.Rpc.Exceptions;
+using AElf.Miner.Rpc.Server;
 using AElf.Miner.TxMemPool;
+using AElf.Types.CSharp;
+using Easy.MessageHub;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using NLog;
+using NServiceKit.Common.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
@@ -81,6 +81,9 @@ namespace AElf.Miner.Miner
         {
             try
             {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
                 var parentChainBlockInfo = await GetParentChainBlockInfo();
                 var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
@@ -112,15 +115,10 @@ namespace AElf.Miner.Miner
                 }
 
                 ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
-
-                // generate block
                 var block = await GenerateBlockAsync(Config.ChainId, results);
-                _logger?.Info(
-                    $"Generate block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // We need at least check the txs count of this block.
-                var chainContext =
-                    await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
                 var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true)
                     .ValidateBlockAsync(block, chainContext);
                 if (blockValidationResult != BlockValidationResult.Success)
@@ -136,6 +134,10 @@ namespace AElf.Miner.Miner
                 Update(executed, results, block, parentChainBlockInfo, genTx);
 
                 MessageHub.Instance.Publish(new BlockMined(block));
+
+                stopwatch.Stop();
+                _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
+                              $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 
                 return block;
             }
@@ -159,10 +161,28 @@ namespace AElf.Miner.Miner
             return txs;
         }
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout=false)
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false)
         {
             using (var cts = new CancellationTokenSource())
-            using (var timer = new Timer(s => cts.Cancel()))
+            using (var timer = new Timer(s =>
+            {
+                try
+                {
+                    cts.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Ignore if timer's callback is called after it's been disposed.
+                    // The following is paragraph from Microsoft's documentation explaining the behaviour:
+                    // https://docs.microsoft.com/en-us/dotnet/api/system.threading.timer?redirectedfrom=MSDN&view=netcore-2.1#Remarks
+                    //
+                    // When a timer is no longer needed, use the Dispose method to free the resources
+                    // held by the timer. Note that callbacks can occur after the Dispose() method
+                    // overload has been called, because the timer queues callbacks for execution by
+                    // thread pool threads. You can use the Dispose(WaitHandle) method overload to
+                    // wait until all callbacks have completed.
+                }
+            }))
             {
                 timer.Change(_timeoutMilliseconds, Timeout.Infinite);
 

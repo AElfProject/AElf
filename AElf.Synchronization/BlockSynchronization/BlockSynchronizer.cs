@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -85,7 +86,6 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 return await HandleValidBlock(message);
             }
-
             await HandleInvalidBlock(message);
 
             return BlockExecutionResult.NotExecuted;
@@ -98,8 +98,8 @@ namespace AElf.Synchronization.BlockSynchronization
             ulong i = 0;
             while (blocks != null && blocks.Any())
             {
-                _logger?.Trace(
-                    $"Will get block of height {targetHeight + i} from block set to execute - {blocks.Count} blocks.");
+                _logger?.Trace($"Will get block of height {targetHeight + i} from block set to " +
+                               $"execute - {blocks.Count} blocks.");
 
                 i++;
                 foreach (var block in blocks)
@@ -126,20 +126,20 @@ namespace AElf.Synchronization.BlockSynchronization
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
             {
-                _logger?.Trace("Set the limit of the branched blocks cache in block set to " + Limit);
+                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {Limit}.");
                 _blockSet.KeepHeight = Limit;
             }
         }
 
         private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)
         {
-            _logger?.Trace($"Valid Block {message.Block.BlockHashToHex}.");
+            _logger?.Trace($"Valid block {message.Block.BlockHashToHex}.");
             
             _blockSet.AddBlock(message.Block);
 
             var executionResult = await _blockExecutor.ExecuteBlock(message.Block);
 
-            _logger?.Trace("Block execution result: " + executionResult);
+            _logger?.Trace($"Block execution result: {executionResult}.");
 
             if (executionResult.NeedToRollback())
             {
@@ -190,7 +190,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
             _blockSet.Tell(message.Block);
 
-            _logger?.Trace("Will notify network layer this block already executed.");
             // Notify the network layer the block has been executed.
             MessageHub.Instance.Publish(message);
 
@@ -204,7 +203,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task HandleInvalidBlock(BlockExecuted message)
         {
-            _logger?.Warn($"Invalid Block {message.Block.BlockHashToHex} : {message.BlockValidationResult.ToString()}.");
+            _logger?.Warn($"Invalid block {message.Block.BlockHashToHex} : {message.BlockValidationResult.ToString()}.");
 
             // Handle the invalid blocks according to their validation results.
             if ((int) message.BlockValidationResult < 100)
@@ -271,8 +270,8 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             catch (Exception e)
             {
-                _logger?.Error(e,
-                    $"Error while checking linkablity of block {block.BlockHashToHex} in height {block.Index}");
+                _logger?.Error(e, $"Error while checking linkablity of block {block.BlockHashToHex} " +
+                                  $"in height {block.Index}");
                 return null;
             }
         }

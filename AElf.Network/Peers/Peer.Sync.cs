@@ -124,7 +124,18 @@ namespace AElf.Network.Peers
             byte[] blockHash = block.GetHashBytes();
             int blockHeight = (int) block.Header.Index;
 
-            _logger.Info($"Receive block {block.BlockHashToHex} at height {blockHeight}.");
+            _logger.Info($"[{this}] receiving block {block.BlockHashToHex} at height {blockHeight}.");
+            
+            lock (_blockReqLock)
+            {
+                TimedBlockRequest req = _blockRequests.FirstOrDefault(b => (b.IsById && b.Id.BytesEqual(blockHash)) || (!b.IsById && b.Height == blockHeight));
+
+                if (req != null)
+                {
+                    req.Cancel();
+                    _blockRequests.Remove(req);
+                }
+            }
 
             PendingBlock vBlock;
             lock (_blockLock)
@@ -136,18 +147,6 @@ namespace AElf.Network.Peers
             {
                 vBlock.IsRequesting = false;
                 vBlock.IsValidating = true;
-            }
-
-            // todo handle this for "by height" reqs
-            lock (_blockReqLock)
-            {
-                TimedBlockRequest req = _blockRequests.FirstOrDefault(b => (b.IsById && b.Id.BytesEqual(blockHash)) || (!b.IsById && b.Height == blockHeight));
-
-                if (req != null)
-                {
-                    req.Cancel();
-                    _blockRequests.Remove(req);
-                }
             }
         }
         
