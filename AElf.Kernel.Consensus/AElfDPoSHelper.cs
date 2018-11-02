@@ -59,6 +59,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
+                    _logger?.Trace("Getting Current Round Number.");
                     return UInt64Value.Parser.ParseFrom(
                         GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber)));
                 }
@@ -585,9 +586,14 @@ namespace AElf.Kernel.Consensus
             _logger?.Trace("Log dpos information - End");
         }
 
-        public Round GetCurrentRoundInfo()
+        public Round GetCurrentRoundInfo(UInt64Value currentRoundNumber = null)
         {
-            return CurrentRoundNumber.Value != 0 ? this[CurrentRoundNumber] : null;
+            _logger?.Trace("Getting Current Round Information.");
+            if (currentRoundNumber == null)
+            {
+                currentRoundNumber = CurrentRoundNumber;
+            }
+            return currentRoundNumber.Value != 0 ? this[currentRoundNumber] : null;
         }
 
         private string GetRoundInfoToString(UInt64Value roundNumber)

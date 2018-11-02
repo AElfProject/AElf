@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,18 +49,28 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         private CancellationTokenSource Cts { get; set; }
 
+        private string _current;
+        
         /// <inheritdoc/>
         public async Task<BlockExecutionResult> ExecuteBlock(IBlock block)
         {
+            if (_current != null)
+            {
+                _logger?.Trace("Prevent a block from re-entering block execution");
+                var t = new StackTrace();
+                _logger?.Trace(t.ToString());
+            }
+            
+            _current = block.BlockHashToHex;
+            
             var result = await Prepare(block);
             if (result.IsFailed())
             {
+                _current = null;
                 return result;
             }
             
             _logger?.Trace($"Executing block {block.GetHash()}");
-
-            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
 
             var txnRes = new List<TransactionResult>();
             try
@@ -69,6 +80,7 @@ namespace AElf.Synchronization.BlockExecution
                 result = tuple.Item1;
                 if (result.IsFailed())
                 {
+                    _current = null;
                     return result;
                 }
 
@@ -79,6 +91,7 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     if (!tr.IsExecutable)
                     {
+                        _current = null;
                         throw new InvalidBlockException($"Transaction is not executable. {tr}");
                     }
                 }
@@ -100,7 +113,7 @@ namespace AElf.Synchronization.BlockExecution
                 await AppendBlock(block);
                 await InsertTxs(readyTxns, txnRes, block);
 
-                MessageHub.Instance.Publish(new ExecutionStateChanged(false));
+                _logger?.Info($"Executed block {block.GetHash()}");
 
                 return BlockExecutionResult.Success;
             }
@@ -125,7 +138,7 @@ namespace AElf.Synchronization.BlockExecution
             }
             finally
             {
-                _logger?.Info($"Executed block {block.GetHash()}");
+                _current = null;
             }
         }
 

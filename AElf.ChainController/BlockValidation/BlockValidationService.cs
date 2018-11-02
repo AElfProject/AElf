@@ -22,6 +22,7 @@ namespace AElf.ChainController
         private bool _doingRollback;
 
         private bool _validatingOwnBlock;
+        private bool _executeAgain;
 
         public BlockValidationService(IEnumerable<IBlockValidationFilter> filters)
         {
@@ -36,7 +37,7 @@ namespace AElf.ChainController
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
-            if ((_isMining || _isExecuting) && !_validatingOwnBlock)
+            if ((_isMining || _isExecuting) && !_validatingOwnBlock && !_executeAgain)
             {
                 _logger?.Trace("Mining or Executing!");
                 if (context.BlockHash.DumpHex() == block.BlockHashToHex)
@@ -67,6 +68,13 @@ namespace AElf.ChainController
         public IBlockValidationService ValidatingOwnBlock(bool flag)
         {
             _validatingOwnBlock = flag;
+
+            return this;
+        }
+
+        public IBlockValidationService ExecuteAgain(bool flag)
+        {
+            _executeAgain = flag;
 
             return this;
         }

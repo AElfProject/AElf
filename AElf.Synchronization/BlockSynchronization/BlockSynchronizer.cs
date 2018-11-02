@@ -83,12 +83,9 @@ namespace AElf.Synchronization.BlockSynchronization
             var message = new BlockExecuted(block, blockValidationResult);
             if (blockValidationResult.IsSuccess())
             {
-                _logger?.Trace($"Valid Block {block.BlockHashToHex}.");
-
                 return await HandleValidBlock(message);
             }
 
-            _logger?.Warn($"Invalid Block {block.BlockHashToHex} : {message.BlockValidationResult.ToString()}.");
             await HandleInvalidBlock(message);
 
             return BlockExecutionResult.NotExecuted;
@@ -136,11 +133,17 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)
         {
+            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
+
+            _logger?.Trace($"Valid Block {message.Block.BlockHashToHex}.");
+            
             _blockSet.AddBlock(message.Block);
 
-            var executionResult = _blockExecutor.ExecuteBlock(message.Block).Result;
+            var executionResult = await _blockExecutor.ExecuteBlock(message.Block);
 
             _logger?.Trace("Block execution result: " + executionResult);
+
+            MessageHub.Instance.Publish(new ExecutionStateChanged(false));
 
             if (executionResult.NeedToRollback())
             {
@@ -205,6 +208,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task HandleInvalidBlock(BlockExecuted message)
         {
+            _logger?.Warn($"Invalid Block {message.Block.BlockHashToHex} : {message.BlockValidationResult.ToString()}.");
+
             // Handle the invalid blocks according to their validation results.
             if ((int) message.BlockValidationResult < 100)
             {
