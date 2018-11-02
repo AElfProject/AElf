@@ -189,6 +189,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.AcquireWriterLock(100);
                 try
                 {
+                    for (var i = _executedBlocks.OrderBy(p => p.Key).FirstOrDefault().Key; i < targetHeight; i++)
+                    {
+                        _executedBlocks.RemoveKey(i);
+                        _logger?.Trace($"Removed block of height {i} from executed block dict.");
+                    }
+                    
                     var toRemove = _blockCache.Where(b => b.Index <= targetHeight).ToList();
                     if (!toRemove.Any())
                         return;
@@ -196,12 +202,6 @@ namespace AElf.Synchronization.BlockSynchronization
                     {
                         _blockCache.Remove(block);
                         _logger?.Trace($"Removed block {block.BlockHashToHex} from block cache.");
-                    }
-
-                    for (var i = _executedBlocks.OrderBy(p => p.Key).FirstOrDefault().Key; i < targetHeight; i++)
-                    {
-                        _executedBlocks.RemoveKey(i);
-                        _logger?.Trace($"Removed block of height {i} from executed block dict.");
                     }
                 }
                 finally
