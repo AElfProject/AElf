@@ -88,7 +88,7 @@ namespace AElf.Network.Peers
         {
             if (a?.Id == null)
             {
-                _logger?.Error($"Peer {this} announcement or its id is null.");
+                _logger?.Error($"[{this}] announcement or its id is null.");
                 return;
             }
             
@@ -106,16 +106,16 @@ namespace AElf.Network.Peers
                 if (a.Height <= _peerHeight)
                 {
                     // todo just log for now, but this is probably a protocol error.
-                    _logger?.Warn($"Peer {this} current know heigth: {_peerHeight} announcement height {a.Height}.");
+                    _logger?.Warn($"[{this}] current know heigth: {_peerHeight} announcement height {a.Height}.");
                 }
             
                 _peerHeight = a.Height;
             
-                _logger?.Trace($"Peer {this} height increased: {_peerHeight}.");
+                _logger?.Trace($"[{this}] height increased: {_peerHeight}.");
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Peer {this} error processing announcement.");
+                _logger?.Error(e, $"[{this}] error processing announcement.");
             }
         }
 
@@ -163,7 +163,7 @@ namespace AElf.Network.Peers
                 {
                     if (blockHeight >= _syncTarget)
                     {
-                        _logger?.Info($"Peer {this} sync finished at {_syncTarget}.");
+                        _logger?.Info($"[{this}] sync finished at {_syncTarget}.");
                         
                         EndSync();
                     }
@@ -216,7 +216,7 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                _logger?.Warn($"Peer {this} request for block at height {index} failed because payload is null.");
+                _logger?.Warn($"[{this}] request for block at height {index} failed because payload is null.");
                 return;   
             }
             
@@ -231,7 +231,7 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                _logger?.Warn($"Peer {this} request for block with id {id.ToHex()} failed because payload is null.");
+                _logger?.Warn($"[{this}] request for block with id {id.ToHex()} failed because payload is null.");
                 return;
             }
 
@@ -255,14 +255,14 @@ namespace AElf.Network.Peers
                 _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
             });
             
-            _logger?.Trace($"Peer {this} block request enqueued {blockRequest}.");
+            _logger?.Trace($"[{this}] block request enqueued {blockRequest}.");
         }
 
         private void TimedRequestOnRequestTimedOut(object sender, EventArgs e)
         {
             if (sender is TimedBlockRequest req)
             {
-                _logger?.Warn($"Peer {this} failed timed request {req}");
+                _logger?.Warn($"[{this}] failed timed request {req}");
                 
                 if (req.CurrentPeerRetries < MaxRequestRetries)
                 {
@@ -271,7 +271,7 @@ namespace AElf.Network.Peers
                         return;
                     }
                     
-                    _logger?.Debug($"Peer {this} try again {req}.");
+                    _logger?.Debug($"[{this}] try again {req}.");
                     
                     EnqueueOutgoing(req.Message, (_) =>
                     {
@@ -290,7 +290,7 @@ namespace AElf.Network.Peers
                         _blockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
                     }
                     
-                    _logger?.Warn($"Peer {this} request failed {req}.");
+                    _logger?.Warn($"[{this}] request failed {req}.");
                     
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                 }

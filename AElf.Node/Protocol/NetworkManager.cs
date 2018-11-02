@@ -381,14 +381,6 @@ namespace AElf.Node.Protocol
 
             AElfProtocolMsgType msgType = (AElfProtocolMsgType) args.Message.Type;
 
-            Stopwatch s = null;
-
-            if (msgType == AElfProtocolMsgType.Block || msgType == AElfProtocolMsgType.RequestBlock)
-            {
-                s = Stopwatch.StartNew();
-                _logger?.Trace($"Processing job ({msgType})");
-            }
-            
             switch (msgType)
             {
                 case AElfProtocolMsgType.Announcement:
@@ -410,12 +402,6 @@ namespace AElf.Node.Protocol
                 case AElfProtocolMsgType.HeaderRequest:
                     await HandleHeaderRequest(args);
                     break;
-            }
-
-            if (msgType == AElfProtocolMsgType.Block || msgType == AElfProtocolMsgType.RequestBlock)
-            {
-                s?.Stop();
-                _logger?.Trace($"Finished processing job ({msgType}) - duration: {s.ElapsedMilliseconds} ms");
             }
         }
 
