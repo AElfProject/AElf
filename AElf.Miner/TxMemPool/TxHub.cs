@@ -66,8 +66,6 @@ namespace AElf.Miner.TxMemPool
 
         public void Initialize()
         {
-            MessageHub.Instance.Subscribe<BlockMined>(async b => { await OnNewBlock((Block) b.Block); });
-            MessageHub.Instance.Subscribe<BlockExecuted>(async b => { await OnNewBlock((Block) b.Block); });
             MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
                 await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
         }
@@ -310,7 +308,7 @@ namespace AElf.Miner.TxMemPool
         }
 
         // Render transactions to expire, and purge old transactions (RefBlockValidPeriod + some buffer)
-        private async Task OnNewBlock(Block block)
+        public async Task OnNewBlock(Block block)
         {
             var blockHeader = block.Header;
             // TODO: Handle LIB

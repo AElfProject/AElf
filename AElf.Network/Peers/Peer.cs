@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Timers;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -53,6 +54,8 @@ namespace AElf.Network.Peers
     {
         public Peer Peer { get; set; }
         public Message Message { get; set; }
+        
+        public Block Block { get; set; }
     }
 
     /// <summary>
@@ -401,10 +404,10 @@ namespace AElf.Network.Peers
         /// <summary>
         /// Sends the provided message to the peer.
         /// </summary>
-        /// <param name="data"></param>
         /// <param name="msg"></param>
+        /// <param name="successCallback"></param>
         /// <returns></returns>
-        public void EnqueueOutgoing(Message msg, ITimedRequest associatedRequest = null)
+        public void EnqueueOutgoing(Message msg, Action<Message> successCallback = null)
         {
             try
             {
@@ -418,15 +421,8 @@ namespace AElf.Network.Peers
                     _logger?.Warn($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
                     return;
                 }
-
-                // last check for cancelation
-                if (associatedRequest != null && associatedRequest.IsCanceled)
-                    return;
-
-                _messageWriter.EnqueueMessage(msg);
-
-                // todo should be propagated lower, after the real write
-                associatedRequest?.Start();
+                
+                _messageWriter.EnqueueMessage(msg, successCallback);
             }
             catch (Exception e)
             {

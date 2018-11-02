@@ -1,4 +1,7 @@
-﻿namespace AElf.Node.AElfChain
+﻿using System.Threading.Tasks;
+using AElf.Kernel;
+
+namespace AElf.Node.AElfChain
 {
     public interface INodeService
     {
@@ -7,5 +10,10 @@
         void Stop();
         bool IsDPoSAlive();
         bool IsForked();
+
+        Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count);
+
+        Task<Block> GetBlockFromHash(byte[] hash);
+        Task<Block> GetBlockAtHeight(int height);
     }
 }

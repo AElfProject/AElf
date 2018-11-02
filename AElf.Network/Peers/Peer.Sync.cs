@@ -111,7 +111,7 @@ namespace AElf.Network.Peers
             
                 _peerHeight = a.Height;
             
-                _logger?.Trace($"[{this}] peer height increased: {_peerHeight}.");
+                _logger?.Trace($"[{this}] height increased: {_peerHeight}.");
             }
             catch (Exception e)
             {
@@ -124,7 +124,18 @@ namespace AElf.Network.Peers
             byte[] blockHash = block.GetHashBytes();
             int blockHeight = (int) block.Header.Index;
 
-            _logger.Info($"Receive block {block.BlockHashToHex} at height {blockHeight}.");
+            _logger.Info($"Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}.");
+
+            lock (_blockReqLock)
+            {
+                TimedBlockRequest req = _blockRequests.FirstOrDefault(b => (b.IsById && b.Id.BytesEqual(blockHash)) || (!b.IsById && b.Height == blockHeight));
+
+                if (req != null)
+                {
+                    req.Cancel();
+                    _blockRequests.Remove(req);
+                }
+            }
 
             PendingBlock vBlock;
             lock (_blockLock)
@@ -136,18 +147,6 @@ namespace AElf.Network.Peers
             {
                 vBlock.IsRequesting = false;
                 vBlock.IsValidating = true;
-            }
-
-            // todo handle this for "by height" reqs
-            lock (_blockReqLock)
-            {
-                TimedBlockRequest req = _blockRequests.FirstOrDefault(b => (b.IsById && b.Id.BytesEqual(blockHash)) || (!b.IsById && b.Height == blockHeight));
-
-                if (req != null)
-                {
-                    req.Cancel();
-                    _blockRequests.Remove(req);
-                }
             }
         }
         
@@ -235,7 +234,7 @@ namespace AElf.Network.Peers
                 _logger?.Warn($"[{this}] request for block with id {id.ToHex()} failed because payload is null.");
                 return;
             }
-            
+
             SendTimedRequest(message, br);
         }
 
@@ -250,16 +249,20 @@ namespace AElf.Network.Peers
                 _blockRequests.Add(blockRequest);
             }
             
-            EnqueueOutgoing(message, blockRequest);
+            EnqueueOutgoing(message, (_) =>
+            {
+                blockRequest?.Start();
+                _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
+            });
             
-            _logger?.Trace($"[{this}] Block request enqueued {blockRequest}.");
+            _logger?.Trace($"[{this}] block request enqueued {blockRequest}.");
         }
 
         private void TimedRequestOnRequestTimedOut(object sender, EventArgs e)
         {
             if (sender is TimedBlockRequest req)
             {
-                _logger?.Warn($"[{this}] Failed timed request {req}");
+                _logger?.Warn($"[{this}] failed timed request {req}");
                 
                 if (req.CurrentPeerRetries < MaxRequestRetries)
                 {
@@ -268,9 +271,17 @@ namespace AElf.Network.Peers
                         return;
                     }
                     
-                    _logger?.Debug($"[{this}] Try again {req}.");
+                    _logger?.Debug($"[{this}] try again {req}.");
                     
-                    EnqueueOutgoing(req.Message, req);
+                    EnqueueOutgoing(req.Message, (_) =>
+                    {
+                        // last check for cancelation
+                        if (req == null || req.IsCanceled)
+                            return;
+                        
+                        req.Start();
+                        _logger?.Trace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
+                    });
                 }
                 else
                 {
@@ -279,7 +290,7 @@ namespace AElf.Network.Peers
                         _blockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
                     }
                     
-                    _logger?.Warn($"[{this}] Request failed {req}.");
+                    _logger?.Warn($"[{this}] request failed {req}.");
                     
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                 }

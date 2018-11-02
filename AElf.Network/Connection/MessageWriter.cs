@@ -12,6 +12,12 @@ using NLog;
 [assembly: InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Network.Connection
 {
+
+    public class WriteJob
+    {
+        public Message Message { get; set; }
+        public Action<Message> SuccessCallback { get; set; }
+    }
     /// <summary>
     /// This class performs writes to the underlying tcp stream.
     /// </summary>
@@ -22,7 +28,7 @@ namespace AElf.Network.Connection
         private readonly ILogger _logger;
         private readonly NetworkStream _stream;
 
-        private BlockingCollection<Message> _outboundMessages;
+        private BlockingCollection<WriteJob> _outboundMessages;
 
         internal bool IsDisposed { get; private set; }
 
@@ -36,7 +42,7 @@ namespace AElf.Network.Connection
 
         public MessageWriter(NetworkStream stream)
         {
-            _outboundMessages = new BlockingCollection<Message>();
+            _outboundMessages = new BlockingCollection<WriteJob>();
             _stream = stream;
 
             _logger = LogManager.GetLogger(nameof(MessageWriter));
@@ -50,14 +56,14 @@ namespace AElf.Network.Connection
             Task.Run(() => DequeueOutgoingLoop()).ConfigureAwait(false);
         }
 
-        public void EnqueueMessage(Message p)
+        public void EnqueueMessage(Message p, Action<Message> successCallback = null)
         {
             if (IsDisposed || _outboundMessages == null || _outboundMessages.IsAddingCompleted)
                 return;
 
             try
             {
-                _outboundMessages.Add(p);
+                _outboundMessages.Add(new WriteJob { Message = p, SuccessCallback = successCallback});
             }
             catch (Exception e)
             {
@@ -72,11 +78,11 @@ namespace AElf.Network.Connection
         {
             while (!IsDisposed && _outboundMessages != null)
             {
-                Message p = null;
+                WriteJob job;
 
                 try
                 {
-                    p = _outboundMessages.Take();
+                    job = _outboundMessages.Take();
                 }
                 catch (Exception e)
                 {
@@ -84,6 +90,14 @@ namespace AElf.Network.Connection
                     break;
                 }
 
+                var p = job.Message;
+
+                if (p == null)
+                {
+                    _logger?.Warn("Cannot write a null message.");
+                    continue;
+                }
+                
                 try
                 {
                     if (p.Payload.Length > MaxOutboundPacketSize)
@@ -102,6 +116,8 @@ namespace AElf.Network.Connection
                         // Send without splitting
                         SendPacketFromMessage(p);
                     }
+                    
+                    job.SuccessCallback?.Invoke(p);
                 }
                 catch (Exception e) when (e is IOException || e is ObjectDisposedException)
                 {
