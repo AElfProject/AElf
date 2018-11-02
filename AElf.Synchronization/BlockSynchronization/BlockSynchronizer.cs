@@ -133,8 +133,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<BlockExecutionResult> HandleValidBlock(BlockExecuted message)
         {
-            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
-
             _logger?.Trace($"Valid Block {message.Block.BlockHashToHex}.");
             
             _blockSet.AddBlock(message.Block);
@@ -142,8 +140,6 @@ namespace AElf.Synchronization.BlockSynchronization
             var executionResult = await _blockExecutor.ExecuteBlock(message.Block);
 
             _logger?.Trace("Block execution result: " + executionResult);
-
-            MessageHub.Instance.Publish(new ExecutionStateChanged(false));
 
             if (executionResult.NeedToRollback())
             {

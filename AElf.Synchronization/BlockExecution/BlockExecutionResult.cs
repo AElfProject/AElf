@@ -14,14 +14,14 @@ namespace AElf.Synchronization.BlockExecution
         InvalidParentChainBlockInfo,
         
         ExecutionCancelled = 51,
-        IncorrectStateMerkleTree,
         BlockIsNull,
         NoTransaction,
         TooManyTxsForParentChainBlock,
         NotExecuted,
 
         // Need to rollback
-        Failed = 101
+        Failed = 101,
+        IncorrectStateMerkleTree,
     }
 
     public static class ExecutionResultExtensions

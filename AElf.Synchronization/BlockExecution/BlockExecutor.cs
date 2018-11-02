@@ -50,26 +50,28 @@ namespace AElf.Synchronization.BlockExecution
         private CancellationTokenSource Cts { get; set; }
 
         private string _current;
-        
+
         /// <inheritdoc/>
         public async Task<BlockExecutionResult> ExecuteBlock(IBlock block)
         {
             if (_current != null)
             {
-                _logger?.Trace("Prevent a block from re-entering block execution");
+                _logger?.Trace($"Prevent block {block.BlockHashToHex} from re-entering block execution");
                 var t = new StackTrace();
                 _logger?.Trace(t.ToString());
             }
-            
+
+            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
+
             _current = block.BlockHashToHex;
-            
+
             var result = await Prepare(block);
             if (result.IsFailed())
             {
                 _current = null;
                 return result;
             }
-            
+
             _logger?.Trace($"Executing block {block.GetHash()}");
 
             var txnRes = new List<TransactionResult>();
@@ -80,7 +82,6 @@ namespace AElf.Synchronization.BlockExecution
                 result = tuple.Item1;
                 if (result.IsFailed())
                 {
-                    _current = null;
                     return result;
                 }
 
@@ -139,6 +140,7 @@ namespace AElf.Synchronization.BlockExecution
             finally
             {
                 _current = null;
+                MessageHub.Instance.Publish(new ExecutionStateChanged(false));
             }
         }
 
@@ -184,11 +186,11 @@ namespace AElf.Synchronization.BlockExecution
 
         private List<TransactionResult> SortToOriginalOrder(List<TransactionResult> results, List<Transaction> txs)
         {
-            var indexes = txs.Select((x, i)=>new {hash=x.GetHash(),ind=i}).ToDictionary(x=>x.hash, x=>x.ind);
+            var indexes = txs.Select((x, i) => new {hash = x.GetHash(), ind = i}).ToDictionary(x => x.hash, x => x.ind);
             return results.Zip(results.Select(r => indexes[r.TransactionId]), Tuple.Create).OrderBy(
-                x => x.Item2).Select(x=>x.Item1).ToList();
+                x => x.Item2).Select(x => x.Item1).ToList();
         }
-        
+
         #region Before transaction execution
 
         /// <summary>
@@ -302,7 +304,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 if (cached.Equals(parentBlockInfo))
                     return true;
-                
+
                 _logger.Trace($"Cached parent block info is {cached}");
                 _logger.Trace($"Parent block info in transaction is {parentBlockInfo}");
                 return false;
@@ -388,13 +390,15 @@ namespace AElf.Synchronization.BlockExecution
                 if (!await _clientManager.TryUpdateAndRemoveSideChainBlockInfo(blockInfo))
                     // Todo: _clientManager would be chaos if this happened.
                     throw new InvalidCrossChainInfoException(
-                        "Inconsistent side chain info. Something about side chain would be chaos if you see this. ", BlockExecutionResult.InvalidSideChainInfo);
+                        "Inconsistent side chain info. Something about side chain would be chaos if you see this. ",
+                        BlockExecutionResult.InvalidSideChainInfo);
             }
 
             // update parent chain info
             if (!await _clientManager.UpdateParentChainBlockInfo(block.ParentChainBlockInfo))
                 throw new InvalidCrossChainInfoException(
-                    "Inconsistent parent chain info. Something about parent chain would be chaos if you see this. ", BlockExecutionResult.InvalidSideChainInfo);
+                    "Inconsistent parent chain info. Something about parent chain would be chaos if you see this. ",
+                    BlockExecutionResult.InvalidSideChainInfo);
         }
 
         #endregion
@@ -430,14 +434,14 @@ namespace AElf.Synchronization.BlockExecution
 
     internal class InvalidCrossChainInfoException : Exception
     {
-        public BlockExecutionResult Result { get;}
+        public BlockExecutionResult Result { get; }
 
         public InvalidCrossChainInfoException(string message, BlockExecutionResult result) : base(message)
         {
             Result = result;
         }
     }
-    
+
     internal class InvalidBlockException : Exception
     {
         public InvalidBlockException(string message) : base(message)

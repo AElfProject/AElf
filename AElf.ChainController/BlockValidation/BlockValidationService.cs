@@ -22,7 +22,6 @@ namespace AElf.ChainController
         private bool _doingRollback;
 
         private bool _validatingOwnBlock;
-        private bool _executeAgain;
 
         public BlockValidationService(IEnumerable<IBlockValidationFilter> filters)
         {
@@ -30,29 +29,32 @@ namespace AElf.ChainController
 
             _logger = LogManager.GetLogger(nameof(BlockValidationService));
 
-            MessageHub.Instance.Subscribe<MiningStateChanged>(state => { _isMining = state.IsMining; });
-            MessageHub.Instance.Subscribe<RollBackStateChanged>(state => { _doingRollback = state.DoingRollback; });
+            MessageHub.Instance.Subscribe<MiningStateChanged>(inState => { _isMining = inState.IsMining; });
+            MessageHub.Instance.Subscribe<RollBackStateChanged>(inState => { _doingRollback = inState.DoingRollback; });
             MessageHub.Instance.Subscribe<ExecutionStateChanged>(inState => { _isExecuting = inState.IsExecuting; });
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
-            if ((_isMining || _isExecuting) && !_validatingOwnBlock && !_executeAgain)
+            if (!_validatingOwnBlock)
             {
-                _logger?.Trace("Mining or Executing!");
-                if (context.BlockHash.DumpHex() == block.BlockHashToHex)
+                if (_isExecuting)
                 {
-                    return BlockValidationResult.AlreadyExecuted;
+                    _logger?.Trace("Could not validate block during executing.");
+                    return context.BlockHash.DumpHex() == block.BlockHashToHex
+                        ? BlockValidationResult.AlreadyExecuted
+                        : BlockValidationResult.IsExecuting;
                 }
-
-                return BlockValidationResult.IsMiningOrExecuting;
             }
 
             if (_doingRollback)
             {
-                _logger?.Trace("Is rollbacking!");
+                _logger?.Trace("Could not validate block during rollbacking!");
                 return BlockValidationResult.DoingRollback;
             }
+
+            MessageHub.Instance.Publish(new ValidationStateChanged(block.BlockHashToHex, block.Index, true,
+                BlockValidationResult.Success));
 
             var resultCollection = new List<BlockValidationResult>();
             foreach (var filter in _filters)
@@ -62,19 +64,17 @@ namespace AElf.ChainController
                 resultCollection.Add(result);
             }
 
-            return resultCollection.Max();
+            var finalResult = resultCollection.Max();
+
+            MessageHub.Instance.Publish(new ValidationStateChanged(block.BlockHashToHex, block.Index, false,
+                finalResult));
+
+            return finalResult;
         }
 
         public IBlockValidationService ValidatingOwnBlock(bool flag)
         {
             _validatingOwnBlock = flag;
-
-            return this;
-        }
-
-        public IBlockValidationService ExecuteAgain(bool flag)
-        {
-            _executeAgain = flag;
 
             return this;
         }

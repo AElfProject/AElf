@@ -348,6 +348,8 @@ namespace AElf.Kernel.Node
 
             var currentRoundNumber = Helper.CurrentRoundNumber;
 
+            _logger?.Trace("Filling parameters of tx.");
+            
             var parameters = new List<byte[]>
             {
                 currentRoundNumber.ToByteArray(),
