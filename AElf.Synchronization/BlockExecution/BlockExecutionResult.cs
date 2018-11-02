@@ -21,8 +21,10 @@ namespace AElf.Synchronization.BlockExecution
         TooManyTxsForParentChainBlock,
         NotExecuted,
         AlreadyReceived,
+        Expelled,
         IncorrectStateMerkleTree,
         FutureBlock,
+        AlreadyAppended,
 
         // Need to rollback
         Failed = 101,
