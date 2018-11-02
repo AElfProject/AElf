@@ -1,5 +1,10 @@
 {
   "Type": "inmemory",
-  "Host": "127.0.0.1",
-  "Port": 8888
+  "Hosts": {
+    "default": {
+      "Host": "127.0.0.1",
+      "Port": 8888,
+      "Number": 0
+    }
+  }
 }

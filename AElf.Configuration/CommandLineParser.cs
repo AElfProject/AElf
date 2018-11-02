@@ -41,21 +41,6 @@ namespace AElf.Configuration
             NetworkConfig.Instance.NetAllowed = opts.NetAllowed;
             NetworkConfig.Instance.NetWhitelist = opts.NetWhitelist.ToList();
 
-            // Database
-            DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
-
-            if (!string.IsNullOrWhiteSpace(opts.DBHost))
-            {
-                DatabaseConfig.Instance.Host = opts.DBHost;
-            }
-
-            if (opts.DBPort.HasValue)
-            {
-                DatabaseConfig.Instance.Port = opts.DBPort.Value;
-            }
-
-            DatabaseConfig.Instance.Number = opts.DBNumber;
-
             ConsensusConfig.Instance.ConsensusType = ConsensusTypeHelper.GetType(opts.ConsensusType);
 
             // tx pool config
