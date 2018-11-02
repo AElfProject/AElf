@@ -81,6 +81,9 @@ namespace AElf.Miner.Miner
         {
             try
             {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
                 var parentChainBlockInfo = await GetParentChainBlockInfo();
                 var genTx = await GenerateTransactionWithParentChainBlockInfo(parentChainBlockInfo);
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
@@ -111,15 +114,8 @@ namespace AElf.Miner.Miner
                     _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
                 }
 
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
-
                 ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
                 var block = await GenerateBlockAsync(Config.ChainId, results);
-
-                stopwatch.Stop();
-                _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
-                              $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 
                 // We need at least check the txs count of this block.
                 var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
@@ -138,6 +134,10 @@ namespace AElf.Miner.Miner
                 Update(executed, results, block, parentChainBlockInfo, genTx);
 
                 MessageHub.Instance.Publish(new BlockMined(block));
+
+                stopwatch.Stop();
+                _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
+                              $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 
                 return block;
             }
