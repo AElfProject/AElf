@@ -32,7 +32,6 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-
         public int ExecutedBlockCount
         {
             get

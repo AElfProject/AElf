@@ -22,6 +22,7 @@ namespace AElf.Synchronization.BlockExecution
         NotExecuted,
         AlreadyReceived,
         IncorrectStateMerkleTree,
+        FutureBlock,
 
         // Need to rollback
         Failed = 101,

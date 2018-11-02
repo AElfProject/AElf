@@ -158,6 +158,7 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         /// <param name="readyTxs"></param>
         /// <param name="chainId"></param>
+        /// <param name="disambiguationHash"></param>
         /// <returns></returns>
         private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId,
             Hash disambiguationHash)

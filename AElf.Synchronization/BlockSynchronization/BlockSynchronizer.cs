@@ -38,7 +38,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private bool _minedBlock;
 
-        private volatile object _ = new object();
+        private static int _flag;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
@@ -75,38 +75,33 @@ namespace AElf.Synchronization.BlockSynchronization
                 return BlockExecutionResult.AlreadyReceived;
             }
 
+            if (block.Index > await BlockChain.GetCurrentBlockHeightAsync() + 1)
+            {
+                _blockSet.AddBlock(block);
+                _logger?.Trace($"Added block {block.BlockHashToHex} to block cache cause this is a future block.");
+                return BlockExecutionResult.FutureBlock;
+            }
+
             return await HandleBlock(block);
         }
 
         private async Task<BlockExecutionResult> HandleBlock(IBlock block)
         {
             _logger?.Trace("Trying to enter HandleBlock");
-            var lockWasTaken = false;
-            try
+            var lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
+            if (lockWasTaken)
             {
-                if (Monitor.TryEnter(_))
-                {
-                    _logger?.Trace("Entered HandleBlock");
-                    lockWasTaken = true;
+                _logger?.Trace("Entered HandleBlock");
                     
-                    var blockValidationResult =
-                        await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
+                var blockValidationResult =
+                    await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
 
-                    if (blockValidationResult.IsSuccess())
-                    {
-                        return await HandleValidBlock(block);
-                    }
-                    
-                    await HandleInvalidBlock(block, blockValidationResult);
-                }
-            }
-            finally
-            {
-                if (lockWasTaken && Monitor.IsEntered(_))
+                if (blockValidationResult.IsSuccess())
                 {
-                    _logger?.Trace("Exiting HandleBlock");
-                    Monitor.Exit(_);
+                    return await HandleValidBlock(block);
                 }
+                    
+                await HandleInvalidBlock(block, blockValidationResult);
             }
             
             return BlockExecutionResult.NotExecuted;
@@ -211,19 +206,23 @@ namespace AElf.Synchronization.BlockSynchronization
 
             _blockSet.Tell(block);
 
-            // Notify the network layer the block has been executed.
-            MessageHub.Instance.Publish(new BlockExecuted(block));
-
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
 
-            await ExecuteRemainingBlocks(block.Index + 1);
+            Thread.VolatileWrite(ref _flag, 0);
+            
+            // Notify the network layer the block has been executed.
+            MessageHub.Instance.Publish(new BlockExecuted(block));
+            
+            //await ExecuteRemainingBlocks(block.Index + 1);
 
             return BlockExecutionResult.Success;
         }
 
         private async Task HandleInvalidBlock(IBlock block, BlockValidationResult blockValidationResult)
         {
+            Thread.VolatileWrite(ref _flag, 0);
+
             _logger?.Warn($"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}.");
 
             // Handle the invalid blocks according to their validation results.
@@ -257,6 +256,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (blockValidationResult == BlockValidationResult.Pending)
             {
+                await ExecuteRemainingBlocks(await BlockChain.GetCurrentBlockHeightAsync() + 1);
                 MessageHub.Instance.Publish(UpdateConsensus.Dispose);
             }
         }
