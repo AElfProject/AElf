@@ -1,4 +1,5 @@
-﻿using AElf.Cryptography.ECDSA;
+﻿using System;
+using AElf.Cryptography.ECDSA;
 using AElf.Network.Data;
 using Google.Protobuf;
 
@@ -24,6 +25,14 @@ namespace AElf.Network.Tests
             };
 
             return (key, handshakeMsg);
+        }
+
+        public static byte[] GetRandomBytes(int size)
+        {
+            Random rnd = new Random();
+            byte[] b = new byte[size];
+            rnd.NextBytes(b);
+            return b;
         }
     }
 }
