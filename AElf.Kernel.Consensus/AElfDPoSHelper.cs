@@ -59,10 +59,10 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    _logger?.Trace("Getting Current Round Number.");
+                    //_logger?.Trace("Getting Current Round Number.");
                     var number = UInt64Value.Parser.ParseFrom(
                         GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber)));
-                    _logger?.Trace("Current Round Number: " + number.Value);
+                    //_logger?.Trace("Current Round Number: " + number.Value);
                     return number;
                 }
                 catch (Exception)

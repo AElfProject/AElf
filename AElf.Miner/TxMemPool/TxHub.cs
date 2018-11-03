@@ -52,6 +52,19 @@ namespace AElf.Miner.TxMemPool
             }
         }
 
+        private static Address DPosContractAddress =>
+            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(NodeConfig.Instance.ChainId),
+                SmartContractType.AElfDPoS.ToString());
+
+        private static Address SideChainContractAddress =>
+            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(NodeConfig.Instance.ChainId),
+                SmartContractType.SideChainContract.ToString());
+        
+        private readonly List<Address> _systemAddresses = new List<Address>()
+        {
+            DPosContractAddress, SideChainContractAddress
+        };
+
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
             IChainService chainService,
             ITxSignatureVerifier signatureVerifier,
@@ -173,7 +186,7 @@ namespace AElf.Miner.TxMemPool
                 return;
             }
             
-            if (tr.IsExecutable)
+            if (tr.IsExecutable && tr.ToBeBroadCasted)
             {
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tr.Transaction));
             }
@@ -223,19 +236,15 @@ namespace AElf.Miner.TxMemPool
 
         private void IdentifyTransactionType(TransactionReceipt tr)
         {
-            var systemAddresses = new List<Address>()
-            {
-                AddressHelpers.GetSystemContractAddress(
-                    Hash.LoadHex(NodeConfig.Instance.ChainId),
-                    SmartContractType.AElfDPoS.ToString()),
-                AddressHelpers.GetSystemContractAddress(
-                    Hash.LoadHex(NodeConfig.Instance.ChainId),
-                    SmartContractType.SideChainContract.ToString())
-            };
-            if (systemAddresses.Contains(tr.Transaction.To))
+            if (_systemAddresses.Contains(tr.Transaction.To))
             {
                 tr.IsSystemTxn = true;
             }
+
+            // cross chain txn should not be  broadcasted
+            if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction 
+                && SideChainContractAddress.Equals(tr.Transaction.To))
+                tr.ToBeBroadCasted = false;
         }
 
         #endregion Private Methods

@@ -33,14 +33,22 @@ namespace AElf.Miner.TxMemPool
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _firstCrossChainTxnGeneratedByMe = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
-            var crossChainTxns = list.FindAll(tx =>
+            
+            // remove cross chain transaction from others
+            // actually this should be empty, because this transaction type won't be broadcasted  
+            var crossChainTxnsFromOthers = list.FindAll(tx =>
+                tx.Type == TransactionType.CrossChainBlockInfoTransaction &&
+                tx.From != Address.LoadHex(NodeConfig.Instance.NodeAccount)).ToList();
+            toRemove.AddRange(crossChainTxnsFromOthers);
+            
+            var crossChainTxnsFromMe = list.FindAll(tx =>
                 tx.Type == TransactionType.CrossChainBlockInfoTransaction &&
                 tx.From == Address.LoadHex(NodeConfig.Instance.NodeAccount)).ToList();
-            if (crossChainTxns.Count <= 1)
+            if (crossChainTxnsFromMe.Count <= 1)
                 return toRemove;
             // sort txns with timestamp
-            crossChainTxns.Sort((t1, t2) => IsFirst(t1, t2));
-            var firstTxn = crossChainTxns.FirstOrDefault();
+            crossChainTxnsFromMe.Sort((t1, t2) => IsFirst(t1, t2));
+            var firstTxn = crossChainTxnsFromMe.FirstOrDefault();
             // only reserve first txn
             if(firstTxn != null)
                 toRemove.AddRange(list.FindAll(t => !t.Equals(firstTxn)));
