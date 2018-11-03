@@ -66,7 +66,7 @@ namespace AElf.Synchronization.BlockExecution
 
             _current = block.BlockHashToHex;
 
-            var result = await Prepare(block);
+            var result = Prepare(block);
             if (result.IsFailed())
             {
                 _current = null;
@@ -116,7 +116,7 @@ namespace AElf.Synchronization.BlockExecution
                     return res;
                 }
 
-                result = await UpdateWorldState(block, txnRes);
+                result = UpdateWorldState(block, txnRes);
                 if (result.IsFailed())
                 {
                     res = result;
