@@ -191,11 +191,19 @@ namespace AElf.Miner.Rpc.Client
                 var res = ToBeIndexedInfoQueue.TryTake(out blockInfo, millisecondsTimeout);
                 if(res)
                     CacheBlockInfo(blockInfo);
+                else
+                {
+                    _logger?.Trace($"Timeout to get cached data from chain {_targetChainId}");
+                }
                 return res;
             }
             
             blockInfo = CachedInfoQueue.FirstOrDefault(c => c.Height == height);
-            return blockInfo != null;
+            if (blockInfo != null)
+                return true;
+            
+            _logger?.Trace($"Not found cached data from chain {_targetChainId} at height {height}");
+            return false;
         }
 
         /// <summary>

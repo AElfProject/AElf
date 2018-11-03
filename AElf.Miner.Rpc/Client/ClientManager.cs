@@ -238,9 +238,10 @@ namespace AElf.Miner.Rpc.Client
                 var targetHeight = await GetTargetHeight(_.Key);
                 if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo))
                     continue;
-
+                
                 res.Add((SideChainBlockInfo) blockInfo);
                 await UpdateCrossChainInfo(blockInfo);
+                _logger.Trace($"Removed side chain block info at height {blockInfo.Height}");
             }
 
             return res;
