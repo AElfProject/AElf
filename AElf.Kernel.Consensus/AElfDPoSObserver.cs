@@ -49,8 +49,8 @@ namespace AElf.Kernel.Consensus
         {
             switch (value)
             {
-                case ConsensusBehavior.DoNothing:
-                    _logger?.Trace("Start a new round though this behavior doing nothing.");
+                case ConsensusBehavior.NoOperationPerformed:
+                    _logger?.Trace("DPoS NOP.");
                     break;
                 case ConsensusBehavior.InitializeAElfDPoS:
                     _miningWithInitializingAElfDPoSInformation();
@@ -82,7 +82,7 @@ namespace AElf.Kernel.Consensus
 
             _logger?.Trace($"Will produce extra block after {after} seconds due to recover mining process.");
 
-            return Observable.Return(ConsensusBehavior.DoNothing)
+            return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(recoverMining)
                 .Subscribe(this);
         }
@@ -102,7 +102,7 @@ namespace AElf.Kernel.Consensus
 
             var doNothingObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
-                .Select(_ => ConsensusBehavior.DoNothing);
+                .Select(_ => ConsensusBehavior.NoOperationPerformed);
 
             var timeSlot = infoOfMe.TimeSlot;
             var now = DateTime.UtcNow.ToTimestamp();
@@ -184,7 +184,7 @@ namespace AElf.Kernel.Consensus
                 }
             }
 
-            return Observable.Return(ConsensusBehavior.DoNothing)
+            return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(produceNormalBlock)
                 .Concat(publishInValue)
                 .Concat(produceExtraBlock)
