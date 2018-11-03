@@ -167,12 +167,12 @@ namespace AElf.Node.AElfChain
             {
                 if (inState.IsSyncing)
                 {
-                    _logger?.Trace("Will hang on mining due to starting syncing.");
+                    _logger?.Trace("SyncStateChanged - Will hang on mining due to starting syncing.");
                     _consensus?.Hang();
                 }
                 else
                 {
-                    _logger?.Trace("Will start / recover mining.");
+                    _logger?.Trace("SyncStateChanged - Will start / recover mining.");
                     _consensus?.Start();
                 }
             });
@@ -181,12 +181,12 @@ namespace AElf.Node.AElfChain
             {
                 if (inState.IsGenerated)
                 {
-                    _logger?.Trace("Will hang on mining due to starting syncing.");
+                    _logger?.Trace("ConsensusGenerated - Will hang on mining due to starting syncing.");
                     _consensus?.Hang();
                 }
                 else
                 {
-                    _logger?.Trace("Will start / recover mining.");
+                    _logger?.Trace("ConsensusGenerated - Will start / recover mining.");
                     _consensus?.Start();
                 }
             });

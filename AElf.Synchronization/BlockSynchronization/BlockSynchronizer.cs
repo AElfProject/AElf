@@ -189,6 +189,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 if (_minedBlock)
                 {
+                    MessageHub.Instance.Publish(new SyncStateChanged(false));
                     return executionResult;
                 }
 
