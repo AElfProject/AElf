@@ -10,6 +10,7 @@ using Grpc.Core;
 using NLog;
 using NServiceKit.Common.Extensions;
 using AElf.Common;
+using NLog.Fluent;
 
 namespace AElf.Miner.Rpc.Server
 {
@@ -86,6 +87,12 @@ namespace AElf.Miner.Rpc.Server
                             var info = body.IndexedInfo[i];
                             if (!info.ChainId.Equals(sideChainId))
                                 continue;
+                            var merklePath = tree.GenerateMerklePath(i);
+                            if (merklePath == null)
+                            {
+                                _logger?.Trace($"tree.Root == null: {tree.Root == null}");
+                                _logger?.Trace($"tree.LeafCount = {tree.LeafCount}, index = {i}");
+                            }
                             res.BlockInfo.IndexedBlockInfo.Add(info.Height, tree.GenerateMerklePath(i));
                         }
                     }
