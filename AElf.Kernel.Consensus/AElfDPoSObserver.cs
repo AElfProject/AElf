@@ -2,7 +2,6 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using AElf.Common.Attributes;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Common;

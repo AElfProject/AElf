@@ -1,6 +1,6 @@
 namespace AElf.Kernel.EventMessages
 {
-    public class RollBackStateChanged
+    public sealed class RollBackStateChanged
     {
         public bool DoingRollback { get; }
 
