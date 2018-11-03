@@ -25,11 +25,6 @@ namespace AElf.Database
             {
                 throw new ArgumentException("key is empty");
             }
-
-            if (bytes == null || bytes.Length == 0)
-            {
-                throw new ArgumentException("value is empty");
-            }
             
             _dictionary[key] = bytes;
             return Task.CompletedTask;
