@@ -44,6 +44,13 @@ namespace AElf.Configuration
             return attrs.Length > 0 ? ((ConfigFileAttribute) attrs[0]).FileName : t.Name;
         }
 
+        private static bool GetIsWatch<T>()
+        {
+            var t = typeof(T);
+            var attrs = t.GetCustomAttributes(typeof(ConfigFileAttribute), false);
+            return attrs.Length > 0 && ((ConfigFileAttribute) attrs[0]).IsWatch;
+        }
+
         private static T GetConfigInstance<T>(string name)
         {
             var configName = name.ToLower();
@@ -64,7 +71,10 @@ namespace AElf.Configuration
                     _configLock.ExitWriteLock();
                 }
 
-                FileWatcher.AddWatch(name);
+                if (GetIsWatch<T>())
+                {
+                    FileWatcher.AddWatch(name);
+                }
             }
 
             return (T) config.Value;

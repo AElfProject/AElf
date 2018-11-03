@@ -68,8 +68,8 @@ namespace AElf.Configuration.Tests
 
         public int IntValue { get; set; }
     }
-    
-    [ConfigFile(FileName = "test.json")]
+
+    [ConfigFile(FileName = "test.json", IsWatch = true)]
     public class TestConfig : ConfigBase<TestConfig>
     {
         public string StringValue { get; set; }

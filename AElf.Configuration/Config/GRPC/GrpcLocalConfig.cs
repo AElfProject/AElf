@@ -1,7 +1,7 @@
 ﻿
 namespace AElf.Configuration.Config.GRPC
 {
-    [ConfigFile(FileName = "grpclocal.json")]
+    [ConfigFile(FileName = "grpclocal.json",IsWatch = true)]
     public class GrpcLocalConfig : ConfigBase<GrpcLocalConfig>
     {
         public bool ClientToParentChain { get; set; }
