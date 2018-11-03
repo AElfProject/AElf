@@ -54,6 +54,15 @@ namespace AElf.Miner.Rpc.Server
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
                     var sideChainId = requestInfo.ChainId;
+                    var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
+                    if (currentHeight - requestedHeight < (ulong)GlobalConfig.InvertibleChainHeight)
+                    {
+                        await responseStream.WriteAsync(new ResponseParentChainBlockInfo
+                        {
+                            Success = false
+                        });
+                        continue;
+                    }
                     IBlock block = await BlockChain.GetBlockByHeightAsync(requestedHeight);
                     BlockHeader header = block?.Header;
                     BlockBody body = block?.Body;
@@ -77,27 +86,30 @@ namespace AElf.Miner.Rpc.Server
                         };
                         var tree = await _binaryMerkleTreeManager
                             .GetSideChainTransactionRootsMerkleTreeByHeightAsync(header?.ChainId, requestedHeight);
-                        //Todo: this is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
-                        /*body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
-                            .Select((info, index) =>
-                                new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
-                            .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));*/
-                        for (int i = 0; i < body?.IndexedInfo.Count; i++)
+                        if (tree != null)
                         {
-                            var info = body.IndexedInfo[i];
-                            if (!info.ChainId.Equals(sideChainId))
-                                continue;
-                            var merklePath = tree.GenerateMerklePath(i);
-                            if (merklePath == null)
+                            //Todo: this is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
+                            /*body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
+                                .Select((info, index) =>
+                                    new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
+                                .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));*/
+                            for (int i = 0; i < body?.IndexedInfo.Count; i++)
                             {
-                                _logger?.Trace($"tree.Root == null: {tree.Root == null}");
-                                _logger?.Trace($"tree.LeafCount = {tree.LeafCount}, index = {i}");
+                                var info = body.IndexedInfo[i];
+                                if (!info.ChainId.Equals(sideChainId))
+                                    continue;
+                                var merklePath = tree.GenerateMerklePath(i);
+                                if (merklePath == null)
+                                {
+                                    _logger?.Trace($"tree.Root == null: {tree.Root == null}");
+                                    _logger?.Trace($"tree.LeafCount = {tree.LeafCount}, index = {i}");
+                                }
+                                res.BlockInfo.IndexedBlockInfo.Add(info.Height, tree.GenerateMerklePath(i));
                             }
-                            res.BlockInfo.IndexedBlockInfo.Add(info.Height, tree.GenerateMerklePath(i));
                         }
+                        
                     }
 
-                    //_logger?.Log(LogLevel.Debug, $"Parent Chain Server responsed IndexedInfo message of height {requestedHeight}");
                     await responseStream.WriteAsync(res);
                 }
             }

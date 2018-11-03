@@ -239,6 +239,7 @@ namespace AElf.Synchronization.BlockSynchronization
                         Thread.VolatileWrite(ref _flag, 0);
                         return reExecutionResult2;
                     }
+                    Thread.Sleep(100);
                 } while (reExecutionResult2.IsFailed());
             }
 
