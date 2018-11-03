@@ -27,7 +27,7 @@ namespace AElf.Synchronization.BlockExecution
         AlreadyAppended,
 
         // Need to rollback
-        Failed = 101,
+        Fatal = 101,
     }
 
     public static class ExecutionResultExtensions

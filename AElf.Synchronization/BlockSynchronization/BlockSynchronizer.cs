@@ -42,6 +42,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static ulong _firstFutureBlockHeight;
 
+        private static bool _miningStarted;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -68,6 +70,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 MessageHub.Instance.Publish(new UnlinkableHeader(headers.Last()));
             });
+
+            MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => { _miningStarted = inState.IsMining; });
         }
 
         public async Task<BlockExecutionResult> ReceiveBlock(IBlock block)
@@ -185,15 +189,31 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // No need to rollback:
                 // Receive again to execute the same block.
-                var index = block.Index;
 
                 if (_minedBlock)
                 {
                     MessageHub.Instance.Publish(new SyncStateChanged(false));
+                    BlockExecutionResult reExecutionResult1;
+                    do
+                    {
+                        var reValidationResult = await _blockValidationService.ExecutingAgain(true)
+                            .ValidateBlockAsync(block, await GetChainContextAsync());
+                        if (reValidationResult.IsFailed())
+                        {
+                            break;
+                        }
+
+                        reExecutionResult1 = _blockExecutor.ExecuteBlock(block).Result;
+                        if (_blockSet.MultipleBlocksInOneIndex(block.Index))
+                        {
+                            Thread.VolatileWrite(ref _flag, 0);
+                            return reExecutionResult1;
+                        }
+                    } while (reExecutionResult1.IsFailed() && !_miningStarted);
                     return executionResult;
                 }
 
-                BlockExecutionResult reExecutionResult;
+                BlockExecutionResult reExecutionResult2;
                 do
                 {
                     var reValidationResult = await _blockValidationService.ExecutingAgain(true)
@@ -203,12 +223,13 @@ namespace AElf.Synchronization.BlockSynchronization
                         break;
                     }
 
-                    reExecutionResult = _blockExecutor.ExecuteBlock(block).Result;
-                    if (_blockSet.MultipleBlocksInOneIndex(index))
+                    reExecutionResult2 = _blockExecutor.ExecuteBlock(block).Result;
+                    if (_blockSet.MultipleBlocksInOneIndex(block.Index))
                     {
-                        return reExecutionResult;
+                        Thread.VolatileWrite(ref _flag, 0);
+                        return reExecutionResult2;
                     }
-                } while (reExecutionResult.IsFailed());
+                } while (reExecutionResult2.IsFailed());
             }
 
             _blockSet.Tell(block);
