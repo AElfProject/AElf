@@ -26,7 +26,7 @@ namespace AElf.Configuration
                 }
                 catch (Exception e)
                 {
-                    _logger.Error($"create {name} config instance error");
+                    _logger.Error($"create {name} config instance error:{e.Message}");
                     Value = CreateDefaultInstance(type);
                 }
             }

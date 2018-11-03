@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Common.Enums;
@@ -20,6 +21,20 @@ namespace AElf.Configuration
         private void MapOptions(CommandLineOptions opts)
         {
             ApplicationHelpers.SetDataDir(opts.DataDir);
+            
+            //database
+            if (!string.IsNullOrWhiteSpace(opts.DBType))
+            {
+                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
+            }
+            else
+            {
+                if (DatabaseConfig.Instance.Type == DatabaseType.InMemory)
+                {
+                    throw new ArgumentException("If you want to stored data in memory, specify it in the command line!");
+                }
+            }
+
             // Rpc
             RpcConfig.Instance.UseRpc = !opts.NoRpc;
             RpcConfig.Instance.Port = opts.RpcPort;

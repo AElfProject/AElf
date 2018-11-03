@@ -9,12 +9,7 @@ namespace AElf.Concurrency.Worker
     public class ConfigParser
     {
         public bool Success { get; private set; }
-        public IRunnerConfig RunnerConfig { get; private set; }
 
-        /// <summary>
-        /// chainId
-        /// </summary>
-        // public Hash ChainId { get; set; }
         public bool Parse(string[] args)
         {
             Parser.Default.ParseArguments<CliOptions>(args)
@@ -47,25 +42,6 @@ namespace AElf.Concurrency.Worker
             {
                 ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
             }
-            
-            // runner config
-//            RunnerConfig = new RunnerConfig
-//            {
-//                SdkDir = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location)
-//            };
-//
-//            if (opts.RunnerConfig != null)
-//            {
-//                using (var file = File.OpenText(opts.RunnerConfig))
-//                using (var reader = new JsonTextReader(file))
-//                {
-//                    var cfg = (JObject) JToken.ReadFrom(reader);
-//                    if (cfg.TryGetValue("csharp", out var j))
-//                    {
-//                        RunnerConfig = Runtime.CSharp.RunnerConfig.FromJObject((JObject) j);
-//                    }
-//                }
-//            }
         }
     }
 }

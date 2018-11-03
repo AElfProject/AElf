@@ -159,5 +159,12 @@ namespace AElf.Configuration
         public string ManagementSideChainServicePath { get; set; }
 
         #endregion
+        
+        #region Database
+        
+        [Option('t', "db.type", HelpText = "The type of database. Must in [InMemory, Redis, SSDB].")]
+        public string DBType { get; set; }
+        
+        #endregion
     }
 }
