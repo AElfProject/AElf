@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Synchronization.BlockExecution;
@@ -14,5 +12,6 @@ namespace AElf.Synchronization.BlockSynchronization
         void AddMinedBlock(IBlock block);
         IBlock GetBlockByHash(Hash blockHash);
         Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count);
+        Task ExecuteRemainingBlocks(ulong targetHeight);
     }
 }
