@@ -44,6 +44,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static bool _miningStarted;
 
+        private static bool _executingRemainingBlocks;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -119,6 +121,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public async Task ExecuteRemainingBlocks(ulong targetHeight)
         {
+            _executingRemainingBlocks = true;
             // Find new blocks from block set to execute
             var blocks = _blockSet.GetBlockByHeight(targetHeight);
             ulong i = 0;
@@ -131,9 +134,16 @@ namespace AElf.Synchronization.BlockSynchronization
                 foreach (var block in blocks)
                 {
                     blocks = _blockSet.GetBlockByHeight(targetHeight + i);
-                    await HandleValidBlock(block);
+                    var executionResult = await HandleValidBlock(block);
+                    if (executionResult.IsFailed())
+                    {
+                        _executingRemainingBlocks = false;
+                        return;
+                    }
                 }
             }
+
+            _executingRemainingBlocks = false;
         }
 
         public void AddMinedBlock(IBlock block)
@@ -190,7 +200,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 // No need to rollback:
                 // Receive again to execute the same block.
 
-                if (_minedBlock)
+                if (_minedBlock && !_executingRemainingBlocks)
                 {
                     MessageHub.Instance.Publish(new SyncStateChanged(false));
                     BlockExecutionResult reExecutionResult1;
