@@ -31,24 +31,6 @@ namespace AElf.Concurrency.Worker
         private void MapOptions(CliOptions opts)
         {   
             ApplicationHelpers.SetDataDir(opts.DataDir);
-            // Database
-            if (!string.IsNullOrWhiteSpace(opts.DBType))
-            {
-                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
-            }
-
-            if (!string.IsNullOrWhiteSpace(opts.DBHost))
-            {
-                DatabaseConfig.Instance.Host = opts.DBHost;
-            }
-
-            if (opts.DBPort.HasValue)
-            {
-                DatabaseConfig.Instance.Port = opts.DBPort.Value;
-            }
-
-            DatabaseConfig.Instance.Number = opts.DBNumber;
-            
             // Actor
             if (opts.ActorIsCluster.HasValue)
                 ActorConfig.Instance.IsCluster = opts.ActorIsCluster.Value;

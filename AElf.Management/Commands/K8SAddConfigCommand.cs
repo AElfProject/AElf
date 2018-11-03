@@ -85,8 +85,10 @@ namespace AElf.Management.Commands
             var config = new DatabaseConfig
             {
                 Type = DatabaseType.Redis,
-                Host = "set-redis-0.service-redis",
-                Port = 7001
+                Hosts = new Dictionary<string, DatabaseHost>
+                {
+                    {"Default",new DatabaseHost{Host = "set-redis-0.service-redis",Port = 7001,Number = 0}}
+                }
             };
 
             var result = JsonSerializer.Instance.Serialize(config);

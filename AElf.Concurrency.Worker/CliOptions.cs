@@ -8,23 +8,6 @@ namespace AElf.Concurrency.Worker
     {
         [Option("node.datadir", HelpText = "The directory the node uses to store data.")]
         public string DataDir { get; set; }
-
-        #region Database
-
-        // TODO: Find a way to generate help text or just use the enum DBType as its type.
-        [Option('t', "db.type", HelpText = "The type of database. Must in [InMemory, Redis, SSDB].")]
-        public string DBType { get; set; }
-
-        [Option("db.host", HelpText = "The IP address of database.")]
-        public string DBHost { get; set; }
-
-        [Option("db.port", HelpText = "The port of database.")]
-        public int? DBPort { get; set; }
-
-        [Option("db.number", Default = 0, HelpText = "The number of database.")]
-        public int DBNumber { get; set; }
-
-        #endregion
         
         #region Actor
 
