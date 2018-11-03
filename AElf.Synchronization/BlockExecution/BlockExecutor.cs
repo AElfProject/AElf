@@ -82,6 +82,8 @@ namespace AElf.Synchronization.BlockExecution
 
             var txnRes = new List<TransactionResult>();
             var readyTxs = new List<Transaction>();
+
+            BlockExecutionResult res = BlockExecutionResult.Fatal;
             try
             {
                 // get txn from pool
@@ -89,7 +91,8 @@ namespace AElf.Synchronization.BlockExecution
                 result = tuple.Item1;
                 if (result.IsFailed())
                 {
-                    return result;
+                    res = result;
+                    return res;
                 }
 
                 readyTxs = tuple.Item2;
@@ -109,35 +112,29 @@ namespace AElf.Synchronization.BlockExecution
                 var blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
-                    return BlockExecutionResult.AlreadyAppended;
+                    res = BlockExecutionResult.AlreadyAppended;
+                    return res;
                 }
 
                 result = await UpdateWorldState(block, txnRes);
                 if (result.IsFailed())
                 {
-                    return result;
+                    res = result;
+                    return res;
                 }
                 await UpdateCrossChainInfo(block);
                 await AppendBlock(block);
-                await InsertTxs(readyTxs, txnRes, block);
+                InsertTxs(txnRes, block);
 
                 await _txHub.OnNewBlock((Block)block);
 
-                return BlockExecutionResult.Success;
+                res = BlockExecutionResult.Success;
+                return res;
             }
             catch (Exception e)
             {
-                var res = BlockExecutionResult.Fatal;
-                if (e is InvalidCrossChainInfoException i)
-                {
-                    _logger?.Warn(e, $"Exception while execute block {block.BlockHashToHex}.");
-                    res = i.Result;
-                }
-                else
-                {
-                    _logger?.Error(e, "Exception while execute block {block.BlockHashToHex}.");
-                }
-
+                _logger?.Error(e, "Exception while execute block {block.BlockHashToHex}.");
+                
                 // TODO, no wait may need improve
                 Rollback(block, txnRes).ConfigureAwait(false);
 
@@ -148,7 +145,7 @@ namespace AElf.Synchronization.BlockExecution
                 MessageHub.Instance.Publish(new ExecutionStateChanged(false));
                 _current = null;
                 stopwatch.Stop();
-                _logger?.Info($"Execute block {block.BlockHashToHex} with txs {readyTxs.Count}, " +
+                _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
                               $"duration {stopwatch.ElapsedMilliseconds} ms.");
             }
         }
@@ -208,7 +205,7 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        private async Task<BlockExecutionResult> Prepare(IBlock block)
+        private BlockExecutionResult Prepare(IBlock block)
         {
             string errorLog = null;
             var res = BlockExecutionResult.PrepareSuccess;
@@ -258,7 +255,6 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidCrossChainInfoException"></exception>
         private async Task<Tuple<BlockExecutionResult, List<Transaction>>> CollectTransactions(IBlock block)
         {
             //string errorLog = null;
@@ -329,7 +325,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="block"></param>
         /// <param name="results"></param>
         /// <returns></returns>
-        private async Task<BlockExecutionResult> UpdateWorldState(IBlock block, IEnumerable<TransactionResult> results)
+        private BlockExecutionResult UpdateWorldState(IBlock block, IEnumerable<TransactionResult> results)
         {
             var root = new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
@@ -356,10 +352,9 @@ namespace AElf.Synchronization.BlockExecution
         /// <summary>
         /// Update database
         /// </summary>
-        /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
         /// <param name="block"></param>
-        private async Task InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults, IBlock block)
+        private void InsertTxs(List<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
@@ -377,7 +372,6 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidCrossChainInfoException"></exception>
         private async Task UpdateCrossChainInfo(IBlock block)
         {
             await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
@@ -432,15 +426,7 @@ namespace AElf.Synchronization.BlockExecution
         }
     }
 
-    internal class InvalidCrossChainInfoException : Exception
-    {
-        public BlockExecutionResult Result { get;}
-
-        public InvalidCrossChainInfoException(string message, BlockExecutionResult result) : base(message)
-        {
-            Result = result;
-        }
-    }
+    
     
     internal class InvalidBlockException : Exception
     {
