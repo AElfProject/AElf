@@ -127,7 +127,7 @@ namespace AElf.Synchronization.BlockExecution
             }
             catch (Exception e)
             {
-                var res = BlockExecutionResult.Failed;
+                var res = BlockExecutionResult.Fatal;
                 if (e is InvalidCrossChainInfoException i)
                 {
                     _logger?.Warn(e, $"Exception while execute block {block.BlockHashToHex}.");
