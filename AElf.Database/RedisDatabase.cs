@@ -28,6 +28,12 @@ namespace AElf.Database
             {
                 throw new ArgumentException("key is empty");
             }
+
+            if (bytes == null || bytes.Length == 0)
+            {
+                throw new ArgumentException("value is empty");
+            }
+
             await Task.FromResult(GetClient(database).Set(key, bytes));
         }
 

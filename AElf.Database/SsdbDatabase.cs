@@ -10,27 +10,39 @@ namespace AElf.Database
 {
     public class SsdbDatabase : IKeyValueDatabase
     {
-        //private readonly PooledRedisClientManager _client;
-
         private readonly ConcurrentDictionary<string, PooledRedisClientManager> _clientManagers = new ConcurrentDictionary<string, PooledRedisClientManager>();
-
-        public SsdbDatabase()
-        {
-            //_client = new PooledRedisClientManager($"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
-        }
 
         public async Task<byte[]> GetAsync(string database, string key)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+            
             return await Task.FromResult(GetClient(database).Get<byte[]>(key));
         }
 
         public async Task SetAsync(string database, string key, byte[] bytes)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+
+            if (bytes == null || bytes.Length == 0)
+            {
+                throw new ArgumentException("value is empty");
+            }
+            
             await Task.FromResult(GetClient(database).Set(key, bytes));
         }
 
         public async Task RemoveAsync(string database, string key)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
             await Task.FromResult(GetClient(database).Remove(key));
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,17 +11,36 @@ namespace AElf.Database
         
         public Task<byte[]> GetAsync(string database, string key)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+            
             return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : Task.FromResult<byte[]>(null);
         }
 
         public Task SetAsync(string database, string key, byte[] bytes)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+
+            if (bytes == null || bytes.Length == 0)
+            {
+                throw new ArgumentException("value is empty");
+            }
+            
             _dictionary[key] = bytes;
             return Task.CompletedTask;
         }
 
         public Task RemoveAsync(string database, string key)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
             _dictionary.TryRemove(key, out _);
             return Task.CompletedTask;
         }
