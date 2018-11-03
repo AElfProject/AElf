@@ -25,7 +25,7 @@ namespace AElf.Wallet.Rpc
                 if (_ks == null)
                 {
                     _ks = new AElfKeyStore(
-                        Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "rpc-managed-wallet")
+                        Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "rpc-managed-wallet")
                     );
                 }
 

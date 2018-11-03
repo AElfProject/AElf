@@ -20,7 +20,7 @@ namespace AElf.Configuration
 
         private void MapOptions(CommandLineOptions opts)
         {
-            ApplicationHelpers.SetDataDir(opts.DataDir);
+            ApplicationHelpers.SetConfigPath(opts.ConfigPath);
             
             //database
             if (!string.IsNullOrWhiteSpace(opts.DBType))

@@ -13,7 +13,7 @@ namespace AElf.ChainController
 {
     public class ChainAElfModule:IAElfModule
     {
-        private static readonly string FileFolder = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "chain");
+        private static readonly string FileFolder = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "chain");
         private static readonly string FilePath = Path.Combine(FileFolder, @"ChainInfo.json");
         
         public void Init(ContainerBuilder builder)

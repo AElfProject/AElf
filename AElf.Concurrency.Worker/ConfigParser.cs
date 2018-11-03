@@ -25,7 +25,7 @@ namespace AElf.Concurrency.Worker
 
         private void MapOptions(CliOptions opts)
         {   
-            ApplicationHelpers.SetDataDir(opts.DataDir);
+            ApplicationHelpers.SetConfigPath(opts.configPath);
             // Actor
             if (opts.ActorIsCluster.HasValue)
                 ActorConfig.Instance.IsCluster = opts.ActorIsCluster.Value;

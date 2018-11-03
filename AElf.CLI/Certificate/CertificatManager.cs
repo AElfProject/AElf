@@ -12,7 +12,7 @@ namespace AElf.CLI.Certificate
     public class CertificatManager
     {
         private readonly CertificateStore _certificateStore =
-            new CertificateStore(ApplicationHelpers.GetDefaultDataDir());
+            new CertificateStore(ApplicationHelpers.GetDefaultConfigPath());
 
         private const string GenCmd = "gen";
         private ScreenManager _screenManager;
@@ -41,11 +41,11 @@ namespace AElf.CLI.Certificate
         private void GenerateCertificate(string chainId, string ip)
         {
             var keyPair = _certificateStore.WriteKeyAndCertificate(chainId, ip);
-            var certPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), _certificateStore.FolderName,
+            var certPath = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), _certificateStore.FolderName,
                 chainId + _certificateStore.CertExtension);
             if (File.Exists(certPath))
                 _screenManager.PrintLine("[Certificate] " + certPath);
-            var keyPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), _certificateStore.FolderName,
+            var keyPath = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), _certificateStore.FolderName,
                 chainId + _certificateStore.KeyExtension);
             if (File.Exists(keyPath))
                 _screenManager.PrintLine("[Key] " + keyPath);

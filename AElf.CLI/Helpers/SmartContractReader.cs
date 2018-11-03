@@ -16,7 +16,7 @@ namespace AElf.CLI.Helpers
 
         public SmartContractReader()
         {
-            _dataDirectory = ApplicationHelpers.GetDefaultDataDir();
+            _dataDirectory = ApplicationHelpers.GetDefaultConfigPath();
         }
 
         public byte[] Read(string name)

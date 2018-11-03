@@ -29,9 +29,6 @@ namespace AElf.Configuration
         [Option("node.accountpassword", HelpText = "The password of the account key.")]
         public string NodeAccountPassword { get; set; }
 
-        [Option("node.datadir", HelpText = "The directory the node uses to store data.")]
-        public string DataDir { get; set; }
-
         [Option('e', "node.executor", Default = "simple", HelpText = "The type of txn executor. Must be in [simple, akka].")]
         public string ExecutorType { get; set; }
 
@@ -164,6 +161,13 @@ namespace AElf.Configuration
         
         [Option('t', "db.type", HelpText = "The type of database. Must in [InMemory, Redis, SSDB].")]
         public string DBType { get; set; }
+        
+        #endregion
+        
+        #region Config
+        
+        [Option("config.path", HelpText = "The directory the node uses to store config data.")]
+        public string ConfigPath { get; set; }
         
         #endregion
     }

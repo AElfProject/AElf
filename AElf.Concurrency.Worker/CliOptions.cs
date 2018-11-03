@@ -6,8 +6,8 @@ namespace AElf.Concurrency.Worker
 {
     public class CliOptions
     {
-        [Option("node.datadir", HelpText = "The directory the node uses to store data.")]
-        public string DataDir { get; set; }
+        [Option("config.path", HelpText = "The directory the node uses to store config data.")]
+        public string configPath { get; set; }
         
         #region Actor
 
