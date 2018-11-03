@@ -18,6 +18,7 @@ namespace AElf.ChainController
         private readonly ILogger _logger;
 
         private bool _isMining;
+        private bool _isExecuting;
         private bool _doingRollback;
 
         private bool _validatingOwnBlock;
@@ -30,19 +31,20 @@ namespace AElf.ChainController
 
             MessageHub.Instance.Subscribe<MiningStateChanged>(state => { _isMining = state.IsMining; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(state => { _doingRollback = state.DoingRollback; });
+            MessageHub.Instance.Subscribe<ExecutionStateChanged>(inState => { _isExecuting = inState.IsExecuting; });
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
         {
-            if (_isMining && !_validatingOwnBlock)
+            if ((_isMining || _isExecuting) && !_validatingOwnBlock)
             {
-                _logger?.Trace("Mining!");
+                _logger?.Trace("Mining or Executing!");
                 if (context.BlockHash.DumpHex() == block.BlockHashToHex)
                 {
                     return BlockValidationResult.AlreadyExecuted;
                 }
 
-                return BlockValidationResult.IsMining;
+                return BlockValidationResult.IsMiningOrExecuting;
             }
 
             if (_doingRollback)

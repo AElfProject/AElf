@@ -18,7 +18,6 @@ namespace AElf.Node
             var assembly = typeof(Node).Assembly;
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
             builder.RegisterType<Node>().As<INode>();
-            builder.RegisterType<P2PHandler>().PropertiesAutowired();
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
             builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();

@@ -26,7 +26,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
             Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
             NodeConfig.Instance.ChainId = "";
             
-            NetworkManager nm = new NetworkManager(null, peerManager.Object, null, null, null);
+            NetworkManager nm = new NetworkManager(peerManager.Object, null, null, null, null);
             
             // register peer 
             peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));
