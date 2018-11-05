@@ -53,7 +53,6 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            IBlockExecutor blockExecutor,
             ILogger logger)
         {
             _stateStore = stateStore;
