@@ -153,13 +153,13 @@ namespace AElf.Node.AElfChain
             {
                 if (option == UpdateConsensus.Update)
                 {
-                    _logger?.Trace("Will update consensus.");
+                    _logger?.Trace("UpdateConsensus - Update");
                     _consensus?.Update();
                 }
 
                 if (option == UpdateConsensus.Dispose)
                 {
-                    _logger?.Trace("Will stop mining.");
+                    _logger?.Trace("UpdateConsensus - Dispose");
                     _consensus?.Stop();
                 }
             });
@@ -168,26 +168,26 @@ namespace AElf.Node.AElfChain
             {
                 if (inState.IsSyncing)
                 {
-                    _logger?.Trace("Will hang on mining due to starting syncing.");
+                    _logger?.Trace("SyncStateChanged - Mining locked.");
                     _consensus?.Hang();
                 }
                 else
                 {
-                    _logger?.Trace("Will start / recover mining.");
+                    _logger?.Trace("SyncStateChanged - Mining unlocked.");
                     _consensus?.Start();
                 }
             });
 
-            MessageHub.Instance.Subscribe<ConsensusGenerated>(inState =>
+            MessageHub.Instance.Subscribe<LockMining>(inState =>
             {
-                if (inState.IsGenerated)
+                if (inState.Lock)
                 {
-                    _logger?.Trace("Will hang on mining due to starting syncing.");
+                    _logger?.Trace("ConsensusGenerated - Mining locked.");
                     _consensus?.Hang();
                 }
                 else
                 {
-                    _logger?.Trace("Will start / recover mining.");
+                    _logger?.Trace("ConsensusGenerated - Mining unlocked.");
                     _consensus?.Start();
                 }
             });

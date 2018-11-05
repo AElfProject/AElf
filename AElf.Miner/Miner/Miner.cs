@@ -76,9 +76,8 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// Mine process.
         /// </summary>
-        /// <param name="currentRoundInfo"></param>
         /// <returns></returns>
-        public async Task<IBlock> Mine(Round currentRoundInfo = null)
+        public async Task<IBlock> Mine()
         {
             try
             {
@@ -94,15 +93,11 @@ namespace AElf.Miner.Miner
                 if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
-                    var needFilter = currentRoundInfo != null;
-                    if (needFilter)
-                    {
-                        sysTxs = FilterDpos(sysTxs);
-                    }
+                    sysTxs = FilterDpos(sysTxs);
 
                     readyTxs = sysTxs;
                     _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
-                    traces = await ExecuteTransactions(sysTxs, noTimeout: true);
+                    traces = await ExecuteTransactions(sysTxs, true);
                     _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
                 }
 
@@ -118,7 +113,7 @@ namespace AElf.Miner.Miner
                 ExtractTransactionResults(readyTxs, traces, out var executed, out var rollback, out var results);
                 var block = await GenerateBlockAsync(Config.ChainId, results);
 
-                // We need at least check the txs count of this block.
+                // validate block before appending
                 var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
                 var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true)
                     .ValidateBlockAsync(block, chainContext);

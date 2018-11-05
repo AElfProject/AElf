@@ -4,13 +4,11 @@ namespace AElf.ChainController.EventMessages
 {
     public sealed class BlockExecuted
     {
-        public BlockExecuted(IBlock block, BlockValidationResult blockValidationResult)
+        public IBlock Block { get; }
+
+        public BlockExecuted(IBlock block)
         {
-            BlockValidationResult = blockValidationResult;
             Block = block;
         }
-
-        public BlockValidationResult BlockValidationResult { get; }
-        public IBlock Block { get; }
     }
 }

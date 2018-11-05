@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
@@ -15,26 +16,25 @@ namespace AElf.Miner.TxMemPool
     // ReSharper disable InconsistentNaming
     public class TransactionFilter
     {
-        private readonly Round _currentRoundInfo;
-        private readonly Address _myAddress;
         private Func<List<Transaction>, ILogger, List<Transaction>> _txFilter;
 
         private readonly ILogger _logger;
-        
+
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMe = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
             toRemove.AddRange(list.FindAll(tx => tx.From != Address.LoadHex(NodeConfig.Instance.NodeAccount)));
             return toRemove;
         };
-        
-        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMeCrossChain = (list, logger) =>
-        {
-            var toRemove = new List<Transaction>();
-            toRemove.AddRange(list.FindAll(tx => tx.From != Address.LoadHex(NodeConfig.Instance.NodeAccount)));
-            return toRemove.Where(t => t.Type == TransactionType.CrossChainBlockInfoTransaction).ToList();
-        };
-        
+
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMeCrossChain =
+            (list, logger) =>
+            {
+                var toRemove = new List<Transaction>();
+                toRemove.AddRange(list.FindAll(tx => tx.From != Address.LoadHex(NodeConfig.Instance.NodeAccount)));
+                return toRemove.Where(t => t.Type == TransactionType.CrossChainBlockInfoTransaction).ToList();
+            };
+
         /// <summary>
         /// If tx pool contains more than ore InitializeAElfDPoS tx:
         /// Keep the latest one.
@@ -71,10 +71,10 @@ namespace AElf.Miner.TxMemPool
                     list.FindAll(tx => tx.MethodName == ConsensusBehavior.PublishOutValueAndSignature.ToString())
                         .OrderBy(tx => tx.Time).Take(count - 1));
             }
-            
+
             toRemove.AddRange(
                 list.FindAll(tx => tx.MethodName != ConsensusBehavior.PublishOutValueAndSignature.ToString()));
-            
+
             if (count == 0)
             {
                 logger?.Warn("No PublishOutValueAndSignature tx in pool.");
@@ -82,7 +82,7 @@ namespace AElf.Miner.TxMemPool
 
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
-        
+
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneUpdateAElfDPoSTx = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
@@ -98,7 +98,7 @@ namespace AElf.Miner.TxMemPool
                 list.FindAll(tx =>
                     tx.MethodName != ConsensusBehavior.UpdateAElfDPoS.ToString() &&
                     tx.MethodName != ConsensusBehavior.PublishInValue.ToString()));
-            
+
             if (count == 0)
             {
                 logger?.Warn("No UpdateAElfDPoS tx in pool.");
@@ -109,30 +109,31 @@ namespace AElf.Miner.TxMemPool
 
         public TransactionFilter()
         {
-            _myAddress = Address.LoadHex(NodeConfig.Instance.NodeAccount);
-            
-            MessageHub.Instance.Subscribe<ConsensusStateChanged>(inState =>
+            MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
-                _logger?.Trace(
-                    $"Consensus state changed to {inState.ConsensusBehavior.ToString()}, " +
-                    "will reset dpos tx filter.");
-                switch (inState.ConsensusBehavior)
+                if (inState.IsMining)
                 {
-                    case ConsensusBehavior.InitializeAElfDPoS:
-                        _txFilter = null;
-                        _txFilter += _generatedByMe;
-                        _txFilter += _oneInitialTx;
-                        break;
-                    case ConsensusBehavior.PublishOutValueAndSignature:
-                        _txFilter = null;
-                        _txFilter += _generatedByMe;
-                        _txFilter += _onePublishOutValueTx;
-                        break;
-                    case ConsensusBehavior.UpdateAElfDPoS:
-                        _txFilter = null;
-                        _txFilter += _oneUpdateAElfDPoSTx;
-                        _txFilter += _generatedByMeCrossChain;
-                        break;
+                    _logger?.Trace(
+                        $"Consensus state changed to {inState.ConsensusBehavior.ToString()}, " +
+                        "will reset dpos tx filter.");
+                    switch (inState.ConsensusBehavior)
+                    {
+                        case ConsensusBehavior.InitializeAElfDPoS:
+                            _txFilter = null;
+                            _txFilter += _generatedByMe;
+                            _txFilter += _oneInitialTx;
+                            break;
+                        case ConsensusBehavior.PublishOutValueAndSignature:
+                            _txFilter = null;
+                            _txFilter += _generatedByMe;
+                            _txFilter += _onePublishOutValueTx;
+                            break;
+                        case ConsensusBehavior.UpdateAElfDPoS:
+                            _txFilter = null;
+                            _txFilter += _oneUpdateAElfDPoSTx;
+                            _txFilter += _generatedByMeCrossChain;
+                            break;
+                    }
                 }
             });
 
@@ -143,7 +144,7 @@ namespace AElf.Miner.TxMemPool
         {
             _logger?.Trace("Before");
             PrintTxList(txs);
-            
+
             var removeFromTxPool = new List<Transaction>();
 
             var filterList = _txFilter.GetInvocationList();
@@ -165,13 +166,13 @@ namespace AElf.Miner.TxMemPool
                     throw;
                 }
             }
-            
+
             _logger?.Trace("After");
             PrintTxList(txs);
 
             return removeFromTxPool;
         }
-        
+
         private void PrintTxList(IEnumerable<Transaction> txs)
         {
             _logger?.Trace("Txs list:");
