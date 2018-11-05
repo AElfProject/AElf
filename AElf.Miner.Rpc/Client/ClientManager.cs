@@ -104,7 +104,6 @@ namespace AElf.Miner.Rpc.Client
         private ulong GetParentChainTargetHeight()
         {
             var height = _crossChainInfo.GetParentChainCurrentHeight();
-            _logger.Trace($"parent heigh {height}");
             return height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
         }
         
@@ -278,69 +277,6 @@ namespace AElf.Miner.Rpc.Client
                    scb.Equals(blockInfo);
         }
         
-        /*/// <summary>
-        /// Check the first cached one with <param name="blockInfo"></param> and remove it.
-        /// </summary>
-        /// <param name="blockInfo"></param>
-        /// <returns>
-        /// Return true and remove the first cached one as <param name="blockInfo"></param>.
-        /// Return true if client for that chain is not existed which means the side chain is not available.
-        /// Return false if it is not same to cached element.
-        /// </returns>
-        public async Task<bool> TryUpdateAndRemoveSideChainBlockInfo(SideChainBlockInfo blockInfo)
-        {
-            if (blockInfo == null)
-                return true;
-            
-            if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId, out var client))
-            {
-                await UpdateCrossChainInfo(blockInfo);
-                return true;
-            }
-            if (client.Empty() || !client.First().Equals(blockInfo))
-                return false;
-            // TODO: this could be changed.
-            var res = client.TryTake(WaitingIntervalInMillisecond * 2, blockInfo.Height, out var scb);
-            if (!res || !scb.Equals(blockInfo))
-            {
-                // this should not happen in most cases
-                //client.ReCacheBlockInfo(scb);
-                return false;
-            }
-            await UpdateCrossChainInfo(blockInfo);
-            _logger?.Info($"Removed side chain Info from {scb.ChainId} at height {scb.Height}");
-            return true;
-        }*/
-        
-        /*/// <summary>
-        /// Check the first cached one with <param name="blockInfo"></param> and remove it.
-        /// </summary>
-        /// <param name="blockInfo"></param>
-        /// <returns>
-        /// Return true and remove the first cached one as <param name="blockInfo"></param>.
-        /// Return true if client for that parent chain is not existed which means the parent chain is not available.
-        /// Return false if it is not same or client for that chain is not existed.
-        /// </returns>
-        private bool TryRemoveParentChainBlockInfo(ParentChainBlockInfo blockInfo)
-        {
-            if (_clientToParentChain == null)
-                return true;
-            _logger?.Trace($"To remove parent chain info at height {blockInfo.Height}");
-
-            if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(blockInfo))
-                return false;
-            var res = _clientToParentChain.TryTake(WaitingIntervalInMillisecond * 2, blockInfo.Height, out var pcb);
-
-            if (!res || !pcb.Equals(blockInfo))
-            {
-                // this should not happen in most cases
-                //_clientToParentChain.ReCacheBlockInfo(pcb);
-                return false;
-            }
-            _logger?.Trace($"Removed parent chain info at height {pcb.Height}");
-            return true;
-        }*/
-
         /// <summary>
         /// Try to take first one in cached queue
         /// </summary>

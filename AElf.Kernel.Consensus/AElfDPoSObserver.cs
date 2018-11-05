@@ -99,7 +99,7 @@ namespace AElf.Kernel.Consensus
 //                               extraBlockTimeSlot.ToDateTime().ToString("HH:mm:ss"));
 //            }
 
-            var doNothingObservable = Observable
+            var nopObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
                 .Select(_ => ConsensusBehavior.NoOperationPerformed);
 
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Consensus
             else
             {
                 distanceToProduceNormalBlock = 0;
-                produceNormalBlock = doNothingObservable;
+                produceNormalBlock = nopObservable;
             }
 
             var distanceToPublishInValue = (extraBlockTimeSlot - now).Seconds;
@@ -142,16 +142,16 @@ namespace AElf.Kernel.Consensus
             }
             else
             {
-                publishInValue = doNothingObservable;
+                publishInValue = nopObservable;
             }
 
             IObservable<ConsensusBehavior> produceExtraBlock;
             if (distanceToPublishInValue < 0 && GlobalConfig.BlockProducerNumber != 1)
             {
-                produceExtraBlock = doNothingObservable;
+                produceExtraBlock = nopObservable;
                 if (GlobalConfig.BlockProducerNumber != 1)
                 {
-                    produceExtraBlock = doNothingObservable;
+                    produceExtraBlock = nopObservable;
                 }
             }
             else if (infoOfMe.IsEBP)

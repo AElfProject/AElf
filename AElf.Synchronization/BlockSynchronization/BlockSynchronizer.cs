@@ -46,6 +46,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static bool _executingRemainingBlocks;
 
+        private static IBlock _nextBlock;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -89,9 +91,15 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _firstFutureBlockHeight = block.Index;
                 }
+
                 _blockSet.AddBlock(block);
                 _logger?.Trace($"Added block {block.BlockHashToHex} to block cache cause this is a future block.");
                 return BlockExecutionResult.FutureBlock;
+            }
+
+            if (block.Index == await BlockChain.GetCurrentBlockHeightAsync() + 1)
+            {
+                _nextBlock = block;
             }
 
             return await HandleBlock(block);
@@ -104,7 +112,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (lockWasTaken)
             {
                 _logger?.Trace("Entered HandleBlock");
-                    
+
                 var blockValidationResult =
                     await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
 
@@ -112,10 +120,10 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     return await HandleValidBlock(block);
                 }
-                    
+
                 await HandleInvalidBlock(block, blockValidationResult);
             }
-            
+
             return BlockExecutionResult.NotExecuted;
         }
 
@@ -170,7 +178,7 @@ namespace AElf.Synchronization.BlockSynchronization
         private async Task<BlockExecutionResult> HandleValidBlock(IBlock block)
         {
             _logger?.Trace($"Valid block {block.BlockHashToHex}.");
-            
+
             _blockSet.AddBlock(block);
 
             var executionResult = await _blockExecutor.ExecuteBlock(block);
@@ -202,7 +210,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 if (_minedBlock && !_executingRemainingBlocks)
                 {
-                    MessageHub.Instance.Publish(new SyncStateChanged(false));
+                    MessageHub.Instance.Publish(new LockMining(false));
                     BlockExecutionResult reExecutionResult1;
                     do
                     {
@@ -220,6 +228,7 @@ namespace AElf.Synchronization.BlockSynchronization
                             return reExecutionResult1;
                         }
                     } while (reExecutionResult1.IsFailed() && !_miningStarted);
+
                     return executionResult;
                 }
 
@@ -249,9 +258,14 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Publish(UpdateConsensus.Update);
 
             Thread.VolatileWrite(ref _flag, 0);
-            
+
             // Notify the network layer the block has been executed.
             MessageHub.Instance.Publish(new BlockExecuted(block));
+
+            if (_nextBlock?.Header != null && _nextBlock.Index == block.Index + 1)
+            {
+                await ReceiveBlock(_nextBlock);
+            }
 
             if (block.Index + 1 == _firstFutureBlockHeight)
             {

@@ -177,9 +177,9 @@ namespace AElf.Node.AElfChain
                 }
             });
 
-            MessageHub.Instance.Subscribe<ConsensusGenerated>(inState =>
+            MessageHub.Instance.Subscribe<LockMining>(inState =>
             {
-                if (inState.IsGenerated)
+                if (inState.Lock)
                 {
                     _logger?.Trace("ConsensusGenerated - Mining locked.");
                     _consensus?.Hang();
