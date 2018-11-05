@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AElf.Configuration.Config.GRPC
 {
-    [ConfigFile(FileName = "grpcremote.json", IsWatch = true)]
+    [ConfigFile(FileName = "grpc-remote.json", IsWatch = true)]
     public class GrpcRemoteConfig : ConfigBase<GrpcRemoteConfig>
     {
         public Dictionary<string, Uri> ParentChain { get; set; }

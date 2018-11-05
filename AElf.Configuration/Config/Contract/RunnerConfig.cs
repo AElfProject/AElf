@@ -2,6 +2,7 @@
 
 namespace AElf.Configuration.Config.Contract
 {
+    [ConfigFile(FileName = "runner.json")]
     public class RunnerConfig:ConfigBase<RunnerConfig>
     {
         public string SdkDir { get; set; }
