@@ -12,7 +12,12 @@
     using Google.Protobuf;
     using ServiceStack;
 using    AElf.Common;
+    using AElf.Database;
     using AElf.Execution.Execution;
+    using AElf.Miner.TxMemPool;
+    using AElf.Runtime.CSharp;
+    using AElf.SmartContract.Metadata;
+    using NLog;
 
 namespace AElf.Contracts.SideChain.Tests
     {
@@ -28,7 +33,7 @@ namespace AElf.Contracts.SideChain.Tests
             }
     
             public Hash ChainId1 { get; } = Hash.FromString("ChainId1");
-            public IStateStore StateStore { get; }
+            public IStateStore StateStore { get; private set; }
             public ISmartContractManager SmartContractManager;
             public ISmartContractService SmartContractService;
             public IChainService ChainService;
@@ -37,20 +42,39 @@ namespace AElf.Contracts.SideChain.Tests
             private IChainCreationService _chainCreationService;
     
             private ISmartContractRunnerFactory _smartContractRunnerFactory;
-            
-            public MockSetup(IStateStore stateStore, IChainCreationService chainCreationService, DataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+            private ILogger _logger;
+            private IKeyValueDatabase _database;
+            private IDataStore _dataStore;
+
+            public MockSetup(ILogger logger)
             {
-                StateStore = stateStore;
-                _chainCreationService = chainCreationService;
-                _functionMetadataService = functionMetadataService;
-                _smartContractRunnerFactory = smartContractRunnerFactory;
-                SmartContractManager = new SmartContractManager(dataStore);
+                _logger = logger;
+                Initialize();
+            }
+    
+            private void Initialize()
+            {
+                NewStorage();
+                var transactionManager = new TransactionManager(_dataStore, _logger);
+                var transactionTraceManager = new TransactionTraceManager(_dataStore);
+                _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
+                var chainManagerBasic = new ChainManagerBasic(_dataStore);
+                ChainService = new ChainService(chainManagerBasic, new BlockManagerBasic(_dataStore),
+                    transactionManager, transactionTraceManager, _dataStore, StateStore);
+                _smartContractRunnerFactory = new SmartContractRunnerFactory();
+                var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
+                _smartContractRunnerFactory.AddRunner(0, runner);
+                _chainCreationService = new ChainCreationService(ChainService,
+                    new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
+                        StateStore, _functionMetadataService), _logger);
+                SmartContractManager = new SmartContractManager(_dataStore);
                 Task.Factory.StartNew(async () =>
                 {
                     await Init();
                 }).Unwrap().Wait();
-                SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
-                ChainService = new ChainService(new ChainManagerBasic(dataStore), new BlockManagerBasic(dataStore), new TransactionManager(dataStore), new TransactionTraceManager(dataStore), dataStore, stateStore);
+                SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateStore, _functionMetadataService);
+                ChainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore), new TransactionManager(_dataStore), new TransactionTraceManager(_dataStore), _dataStore, StateStore);
+                var chainContextService = new ChainContextService(ChainService);
                 new ServicePack()
                 {
                     ChainContextService = chainContextService,
@@ -59,7 +83,14 @@ namespace AElf.Contracts.SideChain.Tests
                     StateStore = StateStore
                 };
             }
-    
+
+            private void NewStorage()
+            {
+                var db = new InMemoryDatabase();
+                StateStore = new StateStore(db);
+                _dataStore = new DataStore(db);
+            }
+            
             public byte[] SideChainCode
             {
                 get

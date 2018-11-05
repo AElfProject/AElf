@@ -11,7 +11,6 @@ namespace AElf.ChainController.CrossChain
     public class CrossChainHelper
     {
         private readonly Hash _chainId;
-        private readonly IStateStore _stateStore;
 
         private Address SideChainContractAddress =>
             AddressHelpers.GetSystemContractAddress(Hash.LoadHex(NodeConfig.Instance.ChainId),
@@ -21,9 +20,8 @@ namespace AElf.ChainController.CrossChain
         public CrossChainHelper(Hash chainId, IStateStore stateStore)
         {
             _chainId = chainId;
-            _stateStore = stateStore;
             DataProvider = DataProvider.GetRootDataProvider(_chainId, SideChainContractAddress);
-            DataProvider.StateStore = _stateStore; 
+            DataProvider.StateStore = stateStore; 
         }
 
         /// <summary>
