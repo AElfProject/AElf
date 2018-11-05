@@ -32,7 +32,6 @@ namespace AElf.Node
 
                     ks.OpenAsync(NodeConfig.Instance.NodeAccount, pass, false);
 
-                    ManagementConfig.Instance.NodeAccountPassword = pass;
                     NodeConfig.Instance.NodeAccountPassword = pass;
 
                     nodeKey = ks.GetAccountKeyPair(NodeConfig.Instance.NodeAccount);

@@ -103,10 +103,7 @@ namespace AElf.Configuration
             {
                 ManagementConfig.Instance.SideChainServicePath = opts.ManagementSideChainServicePath;
             }
-
-            ManagementConfig.Instance.NodeAccount = opts.NodeAccount;
-            ManagementConfig.Instance.NodeAccount = opts.NodeAccountPassword;
-
+            
             LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }
     }
