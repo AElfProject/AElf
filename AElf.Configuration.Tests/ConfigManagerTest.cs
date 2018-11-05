@@ -27,7 +27,23 @@ namespace AElf.Configuration.Tests
             ChangeFile(fileName);
             Thread.Sleep(6000);
             
-            Assert.Equal(TestConfig.Instance.StringValue, "str-b");
+            Assert.Equal(TestConfig.Instance.StringValue, "str-a");
+            
+            DeleteFile(fileName);
+        }
+        
+        [Fact]
+        public void FileChangeTest2()
+        {
+            var fileName = "test-file-watch.json";
+            CheckAndCreateFile(fileName);
+
+            Assert.Equal(TestFileWatchConfig.Instance.StringValue, "str-a");
+
+            ChangeFile(fileName);
+            Thread.Sleep(6000);
+            
+            Assert.Equal(TestFileWatchConfig.Instance.StringValue, "str-b");
             
             DeleteFile(fileName);
         }
@@ -69,8 +85,14 @@ namespace AElf.Configuration.Tests
         public int IntValue { get; set; }
     }
 
-    [ConfigFile(FileName = "test.json", IsWatch = true)]
+    [ConfigFile(FileName = "test.json")]
     public class TestConfig : ConfigBase<TestConfig>
+    {
+        public string StringValue { get; set; }
+    }
+    
+    [ConfigFile(FileName = "test-file-watch.json", IsWatch = true)]
+    public class TestFileWatchConfig : ConfigBase<TestFileWatchConfig>
     {
         public string StringValue { get; set; }
     }
