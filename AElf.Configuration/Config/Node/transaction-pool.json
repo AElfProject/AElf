@@ -1,5 +1,5 @@
 ﻿{
-  "PoolLimitSize" : 1048576,
+  "PoolLimitSize" : 4096,
   "TxLimitSize" : 20480,
   "Minimal" : 1,
   "Maximal" : 1024,

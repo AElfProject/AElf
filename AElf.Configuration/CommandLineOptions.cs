@@ -7,8 +7,8 @@ namespace AElf.Configuration
     {
         #region Chain
 
-        [Option('n', "chain.new", Default = false, HelpText = "Create a new chain if true")]
-        public bool NewChain { get; set; }
+        [Option('n', "chain.new", HelpText = "Create a new chain if true")]
+        public bool? NewChain { get; set; }
 
         [Option("chain.coinbase", HelpText = "Miner coinbase when a new chain created")]
         public string CoinBase { get; set; }
@@ -29,7 +29,7 @@ namespace AElf.Configuration
         [Option("node.accountpassword", HelpText = "The password of the account key.")]
         public string NodeAccountPassword { get; set; }
 
-        [Option('e', "node.executor", Default = "simple", HelpText = "The type of txn executor. Must be in [simple, akka].")]
+        [Option('e', "node.executor", HelpText = "The type of txn executor. Must be in [simple, akka].")]
         public string ExecutorType { get; set; }
 
         #endregion
@@ -55,30 +55,30 @@ namespace AElf.Configuration
 
         #region Block
 
-        [Option("block.transactions", Default = 1024, HelpText = "Transaction count limit in one block")]
-        public int TxCountLimit { get; set; }
+        [Option("block.transactions", HelpText = "Transaction count limit in one block")]
+        public int? TxCountLimit { get; set; }
 
         #endregion
 
         #region Transaction
 
-        [Option("txpool.capacity", Default = (ulong) 4096, HelpText = "Transaction pool capacity limit")]
-        public ulong PoolCapacity { get; set; }
+        [Option("txpool.capacity", HelpText = "Transaction pool capacity limit")]
+        public ulong? PoolCapacity { get; set; }
 
-        [Option("txpool.fee", Default = (ulong) 0, HelpText = "Minimal fee for entry into pool")]
-        public ulong MinimalFee { get; set; }
+        [Option("txpool.fee", HelpText = "Minimal fee for entry into pool")]
+        public ulong? MinimalFee { get; set; }
 
         #endregion
 
         #region RPC
 
-        [Option("rpc.disable", Default = false, HelpText = "Starts the node without exposing the RPC interface.")]
-        public bool NoRpc { get; set; }
+        [Option("rpc.disable", HelpText = "Starts the node without exposing the RPC interface.")]
+        public bool? NoRpc { get; set; }
 
-        [Option("rpc.port", Default = 5000, HelpText = "The port that the RPC server.")]
-        public int RpcPort { get; set; }
+        [Option("rpc.port", HelpText = "The port that the RPC server.")]
+        public int? RpcPort { get; set; }
 
-        [Option("rpc.host", Default = "127.0.0.1", HelpText = "The port that the RPC server.")]
+        [Option("rpc.host", HelpText = "The port that the RPC server.")]
         public string RpcHost { get; set; }
 
         [Option(HelpText = "The absolute path where to store the peer database.")]
@@ -88,28 +88,28 @@ namespace AElf.Configuration
 
         #region Miner
 
-        [Option('m', "mine.enable", Default = false, HelpText = "To be a miner verification needed ")]
-        public bool IsMiner { get; set; }
+        [Option('m', "mine.enable", HelpText = "To be a miner verification needed ")]
+        public bool? IsMiner { get; set; }
 
         #endregion
 
         #region Consensus
 
-        [Option('g', "dpos.generator", Default = false, HelpText = "Is the one who will generate DPoS information")]
-        public bool IsConsensusInfoGenerator { get; set; }
+        [Option('g', "dpos.generator", HelpText = "Is the one who will generate DPoS information")]
+        public bool? IsConsensusInfoGenerator { get; set; }
 
-        [Option("consensus.type", Default = "AElfDPoS", HelpText = "Select the consensus type: AElfDPoS,PoTC or SingleNode")]
+        [Option("consensus.type", HelpText = "Select the consensus type: AElfDPoS,PoTC or SingleNode")]
         public string ConsensusType { get; set; }
 
-        [Option("dpos.interval", Default = 4000, HelpText = "Mining interval of AElf DPoS.")]
+        [Option("dpos.interval", HelpText = "Mining interval of AElf DPoS.")]
         // ReSharper disable once InconsistentNaming
-        public int AElfDPoSMiningInterval { get; set; }
+        public int? AElfDPoSMiningInterval { get; set; }
 
-        [Option("potc.count", Default = (ulong) 8000, HelpText = "Expected transactions count.")]
-        public ulong ExpectedTxsCount { get; set; }
+        [Option("potc.count", HelpText = "Expected transactions count.")]
+        public ulong? ExpectedTxsCount { get; set; }
 
-        [Option("single.interval", Default = 4000, HelpText = "Mining interval if use single node to test other logic.")]
-        public int MiningInterval { get; set; }
+        [Option("single.interval", HelpText = "Mining interval if use single node to test other logic.")]
+        public int? MiningInterval { get; set; }
 
         #endregion
 
@@ -152,7 +152,7 @@ namespace AElf.Configuration
         [Option("management.url", HelpText = "The url for the management api.")]
         public string ManagementUrl { get; set; }
 
-        [Option("management.sidechainservicepath", Default = "/api/sidechain", HelpText = "The path for the side chain service endpoint.")]
+        [Option("management.sidechainservicepath", HelpText = "The path for the side chain service endpoint.")]
         public string ManagementSideChainServicePath { get; set; }
 
         #endregion
@@ -168,8 +168,8 @@ namespace AElf.Configuration
         [Option("db.port", HelpText = "The port of database.")]
         public int? DBPort { get; set; }
 
-        [Option("db.number", Default = 0, HelpText = "The number of database.")]
-        public int DBNumber { get; set; }
+        [Option("db.number", HelpText = "The number of database.")]
+        public int? DBNumber { get; set; }
         
         #endregion
         

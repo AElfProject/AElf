@@ -75,5 +75,8 @@
     <None Update="Config\Chain\chain.json" Link="config\chain.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Config\RPC\rpc.json" Link="config\rpc.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

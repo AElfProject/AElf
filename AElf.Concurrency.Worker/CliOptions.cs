@@ -48,8 +48,8 @@ namespace AElf.Concurrency.Worker
         [Option("db.port", HelpText = "The port of database.")]
         public int? DBPort { get; set; }
 
-        [Option("db.number", Default = 0, HelpText = "The number of database.")]
-        public int DBNumber { get; set; }
+        [Option("db.number", HelpText = "The number of database.")]
+        public int? DBNumber { get; set; }
 
         #endregion
     }

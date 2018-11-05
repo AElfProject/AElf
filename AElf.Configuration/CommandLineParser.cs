@@ -32,7 +32,7 @@ namespace AElf.Configuration
                 {
                     DatabaseConfig.Instance.Hosts = new Dictionary<string, DatabaseHost>
                     {
-                        {"Default", new DatabaseHost {Host = opts.DBHost, Port = opts.DBPort.Value, Number = opts.DBNumber}}
+                        {"Default", new DatabaseHost {Host = opts.DBHost, Port = opts.DBPort.Value, Number = opts.DBNumber ?? 0}}
                     };
                 }
             }
@@ -45,9 +45,18 @@ namespace AElf.Configuration
             }
 
             // Rpc
-            RpcConfig.Instance.UseRpc = !opts.NoRpc;
-            RpcConfig.Instance.Port = opts.RpcPort;
-            RpcConfig.Instance.Host = opts.RpcHost;
+            if (opts.NoRpc.HasValue)
+            {
+                RpcConfig.Instance.UseRpc = !opts.NoRpc.Value;
+            }
+            if (opts.RpcPort.HasValue)
+            {
+                RpcConfig.Instance.Port = opts.RpcPort.Value;
+            }
+            if (!string.IsNullOrWhiteSpace(opts.RpcHost))
+            {
+                RpcConfig.Instance.Host = opts.RpcHost;
+            }
 
             // Network
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
@@ -62,16 +71,34 @@ namespace AElf.Configuration
             if (opts.Port.HasValue)
                 NetworkConfig.Instance.ListeningPort = opts.Port.Value;
 
-            NetworkConfig.Instance.NetAllowed = opts.NetAllowed;
-            NetworkConfig.Instance.NetWhitelist = opts.NetWhitelist.ToList();
+            if (!string.IsNullOrWhiteSpace(opts.NetAllowed))
+            {
+                NetworkConfig.Instance.NetAllowed = opts.NetAllowed;
+            }
+            if (opts.NetWhitelist != null && opts.NetWhitelist.Any())
+            {
+                NetworkConfig.Instance.NetWhitelist = opts.NetWhitelist.ToList();
+            }
 
-            ConsensusConfig.Instance.ConsensusType = ConsensusTypeHelper.GetType(opts.ConsensusType);
+            if (!string.IsNullOrWhiteSpace(opts.ConsensusType))
+            {
+                ConsensusConfig.Instance.ConsensusType = ConsensusTypeHelper.GetType(opts.ConsensusType);
+            }
 
             // tx pool config
-            TransactionPoolConfig.Instance.FeeThreshold = opts.MinimalFee;
-            TransactionPoolConfig.Instance.PoolLimitSize = opts.PoolCapacity;
-            TransactionPoolConfig.Instance.Maximal = opts.TxCountLimit;
-            
+            if (opts.MinimalFee.HasValue)
+            {
+                TransactionPoolConfig.Instance.FeeThreshold = opts.MinimalFee.Value;
+            }
+            if (opts.PoolCapacity.HasValue)
+            {
+                TransactionPoolConfig.Instance.PoolLimitSize = opts.PoolCapacity.Value;
+            }
+            if (opts.TxCountLimit.HasValue)
+            {
+                TransactionPoolConfig.Instance.Maximal = opts.TxCountLimit.Value;
+            }
+
             // chain config
             if (!string.IsNullOrWhiteSpace(opts.ChainId))
             {
@@ -79,13 +106,41 @@ namespace AElf.Configuration
             }
 
             // node config
-            NodeConfig.Instance.IsMiner = opts.IsMiner;
-            NodeConfig.Instance.ExecutorType = opts.ExecutorType;
-            NodeConfig.Instance.IsChainCreator = opts.NewChain;
-            NodeConfig.Instance.NodeName = opts.NodeName;
-            NodeConfig.Instance.NodeAccount = opts.NodeAccount;
-            NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
-            NodeConfig.Instance.ConsensusInfoGenerator = opts.IsConsensusInfoGenerator;
+            if (opts.IsMiner.HasValue)
+            {
+                NodeConfig.Instance.IsMiner = opts.IsMiner.Value;
+            }
+
+            if (!string.IsNullOrWhiteSpace(opts.ExecutorType))
+            {
+                NodeConfig.Instance.ExecutorType = opts.ExecutorType;
+            }
+
+            if (opts.NewChain.HasValue)
+            {
+                NodeConfig.Instance.IsChainCreator = opts.NewChain.Value;
+            }
+
+            if (!string.IsNullOrWhiteSpace(opts.NodeName))
+            {
+                NodeConfig.Instance.NodeName = opts.NodeName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(opts.NodeAccount))
+            {
+                NodeConfig.Instance.NodeAccount = opts.NodeAccount;
+            }
+
+            if (!string.IsNullOrWhiteSpace(opts.NodeAccountPassword))
+            {
+                NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
+            }
+
+            if (opts.IsConsensusInfoGenerator.HasValue)
+            {
+                NodeConfig.Instance.ConsensusInfoGenerator = opts.IsConsensusInfoGenerator.Value;
+            }
+
             // TODO: 
             NodeConfig.Instance.ConsensusKind = ConsensusKind.AElfDPoS;
 

@@ -51,7 +51,7 @@ namespace AElf.Concurrency.Worker
                 {
                     DatabaseConfig.Instance.Hosts = new Dictionary<string, DatabaseHost>
                     {
-                        {"Default", new DatabaseHost {Host = opts.DBHost, Port = opts.DBPort.Value, Number = opts.DBNumber}}
+                        {"Default", new DatabaseHost {Host = opts.DBHost, Port = opts.DBPort.Value, Number = opts.DBNumber ?? 0}}
                     };
                 }
             }
