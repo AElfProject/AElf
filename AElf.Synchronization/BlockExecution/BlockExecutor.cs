@@ -43,6 +43,8 @@ namespace AElf.Synchronization.BlockExecution
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
+            
+            Cts = new CancellationTokenSource();
         }
 
         /// <summary>
@@ -436,11 +438,6 @@ namespace AElf.Synchronization.BlockExecution
         public void FinishInitialSync()
         {
             _clientManager.UpdateRequestInterval();
-        }
-
-        public void Init()
-        {
-            Cts = new CancellationTokenSource();
         }
     }
 

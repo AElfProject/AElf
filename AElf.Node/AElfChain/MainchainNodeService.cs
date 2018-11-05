@@ -39,7 +39,6 @@ namespace AElf.Node.AElfChain
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockSynchronizer _blockSynchronizer;
-        private readonly IBlockExecutor _blockExecutor;
 
         private IBlockChain _blockChain;
         private IConsensus _consensus;
@@ -62,7 +61,6 @@ namespace AElf.Node.AElfChain
             _chainService = chainService;
             _txHub = hub;
             _logger = logger;
-            _blockExecutor = blockExecutor;
             _miner = miner;
             _blockSynchronizer = blockSynchronizer;
         }
@@ -188,7 +186,6 @@ namespace AElf.Node.AElfChain
             #region start
 
             _txHub.Start();
-            _blockExecutor.Init();
 
             if (NodeConfig.Instance.IsMiner)
             {
