@@ -8,6 +8,7 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -118,7 +119,7 @@ namespace AElf.Miner.Miner
                 var block = await GenerateBlockAsync(Config.ChainId, results);
 
                 // We need at least check the txs count of this block.
-                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
                 var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true)
                     .ValidateBlockAsync(block, chainContext);
                 if (blockValidationResult != BlockValidationResult.Success)

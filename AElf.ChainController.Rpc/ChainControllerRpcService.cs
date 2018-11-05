@@ -6,6 +6,7 @@ using AElf.ChainController.EventMessages;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
@@ -89,7 +90,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var chainId = NodeConfig.Instance.ChainId;
+                var chainId = ChainConfig.Instance.ChainId;
                 var basicContractZero = this.GetGenesisContractHash(SmartContractType.BasicContractZero);
                 var sideChainContract = this.GetGenesisContractHash(SmartContractType.SideChainContract);
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);

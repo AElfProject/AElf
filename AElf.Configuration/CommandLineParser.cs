@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Common.Enums;
+using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
@@ -62,11 +63,13 @@ namespace AElf.Configuration
             TransactionPoolConfig.Instance.FeeThreshold = opts.MinimalFee;
             TransactionPoolConfig.Instance.PoolLimitSize = opts.PoolCapacity;
             TransactionPoolConfig.Instance.Maximal = opts.TxCountLimit;
+            
+            // chain config
+            ChainConfig.Instance.ChainId = opts.ChainId;
 
             // node config
             NodeConfig.Instance.IsMiner = opts.IsMiner;
             NodeConfig.Instance.ExecutorType = opts.ExecutorType;
-            NodeConfig.Instance.ChainId = opts.ChainId;
             NodeConfig.Instance.IsChainCreator = opts.NewChain;
             NodeConfig.Instance.NodeName = opts.NodeName;
             NodeConfig.Instance.NodeAccount = opts.NodeAccount;

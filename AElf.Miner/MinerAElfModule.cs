@@ -2,6 +2,7 @@
 using AElf.Common.Application;
 using AElf.Common.Module;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc;
 using AElf.Miner.Rpc.Client;
@@ -26,7 +27,7 @@ namespace AElf.Miner
             }
             minerConfig.ChainId = new Hash()
             {
-                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId))
+                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId))
             };
             builder.RegisterModule(new MinerRpcAutofacModule());
 

@@ -7,7 +7,6 @@ namespace AElf.Configuration
     public class NodeConfig : ConfigBase<NodeConfig>
     {
         public bool IsMiner { get; set; }
-        public string ChainId { get; set; }
         public bool IsChainCreator { get; set; }
         public bool ConsensusInfoGenerator { get; set; }
         public string ExecutorType { get; set; }

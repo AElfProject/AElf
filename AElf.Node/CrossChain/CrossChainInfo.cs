@@ -1,6 +1,7 @@
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 
@@ -12,7 +13,7 @@ namespace AElf.Node.CrossChain
 
         public CrossChainInfo(IStateStore stateStore)
         {
-            var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
+            var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
             _crossChainHelper = new CrossChainHelper(chainId, stateStore);
         }
         

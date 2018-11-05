@@ -6,6 +6,7 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
@@ -29,7 +30,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadHex(NodeConfig.Instance.ChainId)));
+                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
 
         private bool _receivedBranchedBlock;
 
@@ -303,7 +304,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<IChainContext> GetChainContextAsync()
         {
-            var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
+            var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
             var blockchain = _chainService.GetBlockChain(chainId);
             IChainContext chainContext = new ChainContext
             {
