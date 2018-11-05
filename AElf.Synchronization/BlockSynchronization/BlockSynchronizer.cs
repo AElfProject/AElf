@@ -167,11 +167,8 @@ namespace AElf.Synchronization.BlockSynchronization
             _minedBlock = true;
 
             // Update DPoS process.
+            // TODO this can probably removed by subscribing to BlockMined in DPoS.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
-
-            // Basically notify the network layer that this node just mined a block
-            // and added to executed block list.
-            MessageHub.Instance.Publish(new BlockAddedToSet(block));
 
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
