@@ -1,9 +1,9 @@
 ﻿{
-  "FullNode":false,
   "IsMiner":false,
   "IsChainCreator":false,
   "ConsensusInfoGenerater":false,
   "NodeAccount":"",
   "NodeAccountPassword":"",
-  "ExecutorType":"simple"
+  "ExecutorType":"simple",
+  "NodeName":""
 }
