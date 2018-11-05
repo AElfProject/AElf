@@ -210,7 +210,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 if (_minedBlock && !_executingRemainingBlocks)
                 {
-                    MessageHub.Instance.Publish(new SyncStateChanged(false));
+                    MessageHub.Instance.Publish(new LockMining(false));
                     BlockExecutionResult reExecutionResult1;
                     do
                     {

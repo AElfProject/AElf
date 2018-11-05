@@ -258,7 +258,7 @@ namespace AElf.Kernel.Node
 
                     if (await Helper.HasGenerated())
                     {
-                        MessageHub.Instance.Publish(new ConsensusGenerated(true));
+                        MessageHub.Instance.Publish(new LockMining(true));
                         return;
                     }
 
