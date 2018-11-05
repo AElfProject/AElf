@@ -1,7 +1,6 @@
 ﻿{
   "FullNode":false,
   "IsMiner":false,
-  "ChainId":"",
   "IsChainCreator":false,
   "ConsensusInfoGenerater":false
 }
