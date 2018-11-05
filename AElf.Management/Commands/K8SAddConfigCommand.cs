@@ -35,9 +35,9 @@ namespace AElf.Management.Commands
                     {"miners.json", GetMinersConfigJson(arg)}, 
                     {"parallel.json", GetParallelConfigJson(arg)}, 
                     {"network.json", GetNetworkConfigJson(arg)},
-                    {"grpclocal.json",GetGrpcConfigJson(arg)},
-                    {"grpcremote.json",GetGrpcRemoteConfigJson(arg)},
-                    {"apikey.json",GetApiKeyConfig(arg)}
+                    {"grpc-local.json",GetGrpcConfigJson(arg)},
+                    {"grpc-remote.json",GetGrpcRemoteConfigJson(arg)},
+                    {"api-key.json",GetApiKeyConfig(arg)}
                 }
             };
 
@@ -47,9 +47,9 @@ namespace AElf.Management.Commands
             {
                 var config = K8SRequestHelper.GetClient().ReadNamespacedConfigMap(GlobalSetting.CommonConfigName, arg.MainChainId).Data;
 
-                var grpcRemoteConfig = JsonSerializer.Instance.Deserialize<GrpcRemoteConfig>(config["grpcremote.json"]);
+                var grpcRemoteConfig = JsonSerializer.Instance.Deserialize<GrpcRemoteConfig>(config["grpc-remote.json"]);
                 grpcRemoteConfig.ChildChains.Add(arg.SideChainId, new Uri {Port = GlobalSetting.GrpcPort, Address = arg.LauncherArg.ClusterIp});
-                config["grpcremote.json"] = JsonSerializer.Instance.Serialize(grpcRemoteConfig);
+                config["grpc-remote.json"] = JsonSerializer.Instance.Serialize(grpcRemoteConfig);
                 
                 var patch = new JsonPatchDocument<V1ConfigMap>();
                 patch.Replace(e => e.Data, config);
