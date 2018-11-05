@@ -228,7 +228,8 @@ namespace AElf.Synchronization.BlockSynchronization
                             return reExecutionResult1;
                         }
                     } while (reExecutionResult1.IsFailed() && !_miningStarted);
-
+                    
+                    Thread.VolatileWrite(ref _flag, 0);
                     return executionResult;
                 }
 
