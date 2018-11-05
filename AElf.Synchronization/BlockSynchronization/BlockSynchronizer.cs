@@ -91,19 +91,21 @@ namespace AElf.Synchronization.BlockSynchronization
                 return BlockExecutionResult.AlreadyReceived;
             }
 
-            if (block.Index > await BlockChain.GetCurrentBlockHeightAsync() + 1)
+            ulong blockIndex = await BlockChain.GetCurrentBlockHeightAsync();
+            
+            if (block.Index > blockIndex+1)
             {
                 if (_firstFutureBlockHeight == 0)
-                {
                     _firstFutureBlockHeight = block.Index;
-                }
 
                 _blockSet.AddBlock(block);
+                
                 _logger?.Trace($"Added block {block.BlockHashToHex} to block cache cause this is a future block.");
+                
                 return BlockExecutionResult.FutureBlock;
             }
 
-            if (block.Index == await BlockChain.GetCurrentBlockHeightAsync() + 1)
+            if (block.Index == blockIndex+1)
             {
                 _nextBlock = block;
             }
