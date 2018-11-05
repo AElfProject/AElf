@@ -32,7 +32,6 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-
         public int ExecutedBlockCount
         {
             get
@@ -60,7 +59,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private ReaderWriterLock _rwLock = new ReaderWriterLock();
 
-        private int _flag;
+        private static int _flag;
 
         public ulong KeepHeight { get; set; } = ulong.MaxValue;
 
@@ -194,7 +193,7 @@ namespace AElf.Synchronization.BlockSynchronization
                         _executedBlocks.RemoveKey(i);
                         _logger?.Trace($"Removed block of height {i} from executed block dict.");
                     }
-                    
+
                     var toRemove = _blockCache.Where(b => b.Index <= targetHeight).ToList();
                     if (!toRemove.Any())
                         return;
@@ -222,67 +221,78 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <returns></returns>
         public ulong AnyLongerValidChain(ulong currentHeight)
         {
-            var res = Interlocked.CompareExchange(ref _flag, 1, 0);
-            if (res == 1)
-                return 0;
-
-            PrintInvalidBlockList();
-
-            ulong forkHeight = 0;
-
-            var higherBlocks = _blockCache.Where(b => b.Index > currentHeight).OrderByDescending(b => b.Index)
-                .ToList();
-
-            if (higherBlocks.Any())
+            var lockWasTaken = false;
+            try
             {
-                _logger?.Trace("Find higher blocks in block set, will check whether there are longer valid chain.");
+                lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
+                if (!lockWasTaken) 
+                    return 0;
+                
+                PrintInvalidBlockList();
 
-                // Get the index of highest block in block set.
-                var blockToCheck = higherBlocks.First();
+                ulong forkHeight = 0;
 
-                while (true)
+                var higherBlocks = _blockCache.Where(b => b.Index > currentHeight).OrderByDescending(b => b.Index)
+                    .ToList();
+
+                if (higherBlocks.Any())
                 {
-                    _rwLock.AcquireReaderLock(100);
-                    try
+                    _logger?.Trace(
+                        "Find higher blocks in block set, will check whether there are longer valid chain.");
+
+                    // Get the index of highest block in block set.
+                    var blockToCheck = higherBlocks.First();
+
+                    while (true)
                     {
-                        // If a linkable block can be found in the invalid block list,
-                        // update blockToCheck and indexToCheck.
-                        if (_blockCache.Any(b => b.Index == blockToCheck.Index - 1 &&
-                                                 b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex()))
+                        _rwLock.AcquireReaderLock(100);
+                        try
                         {
-                            blockToCheck = _blockCache.FirstOrDefault(b =>
-                                b.Index == blockToCheck.Index - 1 &&
-                                b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex());
-                            if (blockToCheck?.Header == null)
+                            // If a linkable block can be found in the invalid block list,
+                            // update blockToCheck and indexToCheck.
+                            if (_blockCache.Any(b => b.Index == blockToCheck.Index - 1 &&
+                                                     b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash
+                                                         .DumpHex()))
+                            {
+                                blockToCheck = _blockCache.FirstOrDefault(b =>
+                                    b.Index == blockToCheck.Index - 1 &&
+                                    b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex());
+                                if (blockToCheck?.Header == null)
+                                {
+                                    break;
+                                }
+
+                                forkHeight = blockToCheck.Index;
+                            }
+                            else
                             {
                                 break;
                             }
-
-                            forkHeight = blockToCheck.Index;
                         }
-                        else
+                        finally
                         {
-                            break;
+                            _rwLock.ReleaseReaderLock();
                         }
-                    }
-                    finally
-                    {
-                        _rwLock.ReleaseReaderLock();
                     }
                 }
+
+                _logger?.Trace($"Fork height: {forkHeight}");
+                _logger?.Trace($"Current height: {currentHeight}");
+
+                if (forkHeight > currentHeight)
+                {
+                    _logger?.Trace("No proper fork height.");
+                }
+                    
+                return forkHeight <= currentHeight ? forkHeight : 0;
             }
-
-            _logger?.Trace($"Fork height: {forkHeight}");
-            _logger?.Trace($"Current height: {currentHeight}");
-
-            if (forkHeight > currentHeight)
+            finally
             {
-                _logger?.Trace("No proper fork height.");
+                if (lockWasTaken)
+                {
+                    Thread.VolatileWrite(ref _flag, 0);
+                }
             }
-
-            Interlocked.CompareExchange(ref _flag, 0, 1);
-
-            return forkHeight <= currentHeight ? forkHeight : 0;
         }
 
         public void InformRollback(ulong targetHeight, ulong currentHeight)
@@ -307,6 +317,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _rwLock.ReleaseWriterLock();
                 }
+
                 _logger?.Trace($"Removed block of height {block.Index} from executed block dict.");
                 _blockCache.Add(block);
                 _logger?.Trace($"Added block {block.BlockHashToHex} to block cache.");

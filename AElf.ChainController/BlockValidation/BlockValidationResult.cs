@@ -17,7 +17,7 @@ namespace AElf.ChainController
         Pending,
         UnknownReason,
         Unlinkable,
-        IsMiningOrExecuting,
+        IsExecuting,
         DoingRollback,
 
         // Unforgivable, discard
