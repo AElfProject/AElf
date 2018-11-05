@@ -65,7 +65,6 @@ namespace AElf.Configuration
 
             // node config
             NodeConfig.Instance.IsMiner = opts.IsMiner;
-            NodeConfig.Instance.FullNode = true;
             NodeConfig.Instance.ExecutorType = opts.ExecutorType;
             NodeConfig.Instance.ChainId = opts.ChainId;
             NodeConfig.Instance.IsChainCreator = opts.NewChain;

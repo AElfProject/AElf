@@ -6,7 +6,6 @@ namespace AElf.Configuration
     [ConfigFile(FileName = "node.json")]
     public class NodeConfig : ConfigBase<NodeConfig>
     {
-        public bool FullNode { get; set; }
         public bool IsMiner { get; set; }
         public string ChainId { get; set; }
         public bool IsChainCreator { get; set; }
