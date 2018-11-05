@@ -21,6 +21,7 @@ namespace AElf.Contracts.SideChain
         public static readonly string ParentChainBlockInfo = GlobalConfig.AElfParentChainBlockInfo;
         public static readonly string AElfBoundParentChainHeight = GlobalConfig.AElfBoundParentChainHeight;
         public static readonly string TxRootMerklePathInParentChain = GlobalConfig.AElfTxRootMerklePathInParentChain;
+        public static readonly string CurrentParentChainHeight = GlobalConfig.AElfCurrentParentChainHeight;
     }
 
     #endregion Field Names
@@ -103,6 +104,8 @@ namespace AElf.Contracts.SideChain
 
         private readonly Map<UInt64Value, MerklePath> _txRootMerklePathInParentChain =
             new Map<UInt64Value, MerklePath>(FieldNames.TxRootMerklePathInParentChain);
+
+        private readonly UInt64Field _currentParentChainHeight = new UInt64Field(FieldNames.CurrentParentChainHeight);
         
         #endregion Fields
         
@@ -181,6 +184,11 @@ namespace AElf.Contracts.SideChain
         public void WriteParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
         {
             ulong parentChainHeight = parentChainBlockInfo.Height;
+            var currentHeight = _currentParentChainHeight.GetValue();
+            var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight; 
+            Api.Assert(target == parentChainHeight,
+                $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
+            
             var key = new UInt64Value {Value = parentChainHeight};
             Api.Assert(_parentChainBlockInfo.GetValue(key) == null,
                 $"Already written parent chain block info at height {parentChainHeight}");
@@ -189,9 +197,11 @@ namespace AElf.Contracts.SideChain
                 BindParentChainHeight(_.Key, parentChainHeight);
                 AddIndexedTxRootMerklePathInParentChain(_.Key, _.Value);
             }
-//            _parentChainBlockInfo[key] = parentChainBlockInfo;
             _parentChainBlockInfo.SetValueAsync(key, parentChainBlockInfo).Wait();
-            Console.WriteLine("WriteParentChainBlockInfo success.");
+            _currentParentChainHeight.SetValue(parentChainHeight);
+            
+            // only for debug
+            Console.WriteLine($"WriteParentChainBlockInfo success at {parentChainHeight}");
         }
 
         public bool VerifyTransaction(Hash tx, MerklePath path, ulong parentChainHeight)

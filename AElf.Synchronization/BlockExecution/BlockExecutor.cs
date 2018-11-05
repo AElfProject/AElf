@@ -122,7 +122,7 @@ namespace AElf.Synchronization.BlockExecution
                     res = result;
                     return res;
                 }
-                await UpdateCrossChainInfo(block);
+                await UpdateCrossChainInfo(block, txnRes);
                 await AppendBlock(block);
                 InsertTxs(txnRes, block);
 
@@ -276,7 +276,7 @@ namespace AElf.Synchronization.BlockExecution
                     }
 
                     // for update
-                    block.ParentChainBlockInfo = parentBlockInfo;
+                    //block.ParentChainBlockInfo = parentBlockInfo;
                 }
 
                 readyTxs.Add(tx);
@@ -371,8 +371,9 @@ namespace AElf.Synchronization.BlockExecution
         /// Update cross chain block info, side chain block and parent block info if needed
         /// </summary>
         /// <param name="block"></param>
+        /// <param name="txnRes"></param>
         /// <returns></returns>
-        private async Task UpdateCrossChainInfo(IBlock block)
+        private async Task UpdateCrossChainInfo(IBlock block, List<TransactionResult> txnRes)
         {
             await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
                 block.Header.ChainId, block.Header.Index);
@@ -390,9 +391,13 @@ namespace AElf.Synchronization.BlockExecution
             }
 
             // update parent chain info
-            if(block.ParentChainBlockInfo != null)
+            /*if (block.ParentChainBlockInfo != null)
+            {
+                
                 await _chainManagerBasic.UpdateCurrentBlockHeightAsync(block.ParentChainBlockInfo.ChainId,
-                block.ParentChainBlockInfo.Height);
+                    block.ParentChainBlockInfo.Height);
+            }*/
+                
         }
 
         #endregion

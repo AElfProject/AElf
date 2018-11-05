@@ -41,7 +41,8 @@ namespace AElf.Common
         public const string AElfParentChainBlockInfo = "__ParentChainBlockInfo__";
         public const string AElfBoundParentChainHeight = "__BoundParentChainHeight__";
         public static readonly int AElfInitCrossChainRequestInterval = AElfDPoSMiningInterval / 1000;
-        
+        public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
+
         #endregion
 
         #region PoTC
@@ -64,5 +65,6 @@ namespace AElf.Common
         public const string TransactionReceiptPrefix = "rc";
 
         #endregion data key prefixes
+
     }
 }

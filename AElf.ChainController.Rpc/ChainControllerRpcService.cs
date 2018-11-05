@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
 using AElf.Configuration;
 using AElf.Kernel;
@@ -12,7 +13,6 @@ using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
-using AElf.Node.CrossChain;
 using AElf.RPC;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.CrossChain;
 using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
@@ -46,7 +47,7 @@ namespace AElf.Miner.Tests
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private IKeyValueDatabase _database;
         private readonly IDataStore _dataStore;
-        private readonly IStateStore _stateStore;
+        public readonly IStateStore StateStore;
         private IChainContextService _chainContextService;
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
@@ -57,7 +58,7 @@ namespace AElf.Miner.Tests
             _logger = logger;
             _database = database;
             _dataStore = dataStore;
-            _stateStore = stateStore;
+            StateStore = stateStore;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
             Initialize();
@@ -73,20 +74,20 @@ namespace AElf.Miner.Tests
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainManagerBasic = new ChainManagerBasic(_dataStore);
             _chainService = new ChainService(_chainManagerBasic, new BlockManagerBasic(_dataStore),
-                _transactionManager, _transactionTraceManager, _dataStore, _stateStore);
+                _transactionManager, _transactionTraceManager, _dataStore, StateStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);*/
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateStore,
-                    _functionMetadataService), _transactionTraceManager, _stateStore,
+                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, StateStore,
+                    _functionMetadataService), _transactionTraceManager, StateStore,
                 new ChainContextService(_chainService));
             
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
-                    _stateStore, _functionMetadataService), _logger);
+                    StateStore, _functionMetadataService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
             _chainContextService = new ChainContextService(_chainService);
@@ -263,7 +264,18 @@ namespace AElf.Miner.Tests
 
         public ClientManager MinerClientManager()
         {
-            return new ClientManager(_logger, MockChainManager().Object);
+            return new ClientManager(_logger, MockChainManager().Object, MockCrossChainInfo().Object);
+        }
+
+        public ulong GetTimes = 0;
+        private Mock<ICrossChainInfo> MockCrossChainInfo()
+        {
+            var mock = new Mock<ICrossChainInfo>();
+            mock.Setup(m => m.GetParentChainCurrentHeight()).Returns(() =>
+            {
+                return Task.FromResult(GetTimes);
+            });
+            return mock;
         }
 
         public void MockKeyPair(Hash chainId, string dir)
@@ -338,6 +350,5 @@ namespace AElf.Miner.Tests
             if(Directory.Exists(Path.Combine(dir, "certs")))
                 Directory.Delete(Path.Combine(dir, "certs"), true);
         }
-        
     }
 }

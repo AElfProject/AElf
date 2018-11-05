@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.ChainController.CrossChain;
 using AElf.Kernel;
-using AElf.Node.CrossChain;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Xunit;
@@ -89,16 +89,15 @@ namespace AElf.Contracts.SideChain.Tests
             });
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
             NodeConfig.Instance.ChainId = _mock.ChainId1.DumpHex();
-            var crossChainInfo = new CrossChainInfo(_mock.StateStore);
-            var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(_contract.SideChainContractAddress, 0);
+            var crossChainInfo = new CrossChainInfo(_mock.StateStore, _mock.ChainService);
+            var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(0);
             Assert.NotNull(merklepath);
             Assert.Equal(parentChainBlockInfo.IndexedBlockInfo[0], merklepath);
 
-            var boundHeight = crossChainInfo.GetBoundParentChainHeight(_contract.SideChainContractAddress, 0);
+            var boundHeight = crossChainInfo.GetBoundParentChainHeight(0);
             Assert.Equal(parentChainBlockRootInfo.Height, boundHeight);
 
-            var boundBlockInfo = crossChainInfo.GetBoundParentChainBlockInfo(_contract.SideChainContractAddress,
-                parentChainBlockRootInfo.Height);
+            var boundBlockInfo = crossChainInfo.GetBoundParentChainBlockInfo(parentChainBlockRootInfo.Height);
             Assert.Equal(parentChainBlockInfo, boundBlockInfo);
         }
 

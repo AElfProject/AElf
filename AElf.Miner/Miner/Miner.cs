@@ -88,7 +88,7 @@ namespace AElf.Miner.Miner
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
                 var traces = new List<TransactionTrace>();
-                ParentChainBlockInfo pcb = null; 
+                //ParentChainBlockInfo pcb = null; 
                 if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
 
@@ -100,7 +100,7 @@ namespace AElf.Miner.Miner
                     _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
 
                     // need check result of cross chain transaction 
-                    FindCrossChainInfo(sysTxs, traces, out pcb);
+                    //FindCrossChainInfo(sysTxs, traces, out pcb);
                 }
                 if (txGrp.TryGetValue(false, out var regRcpts))
                 {
@@ -129,10 +129,10 @@ namespace AElf.Miner.Miner
 
                 // insert to db
                 Update(results, block);
-                if (pcb != null)
+                /*if (pcb != null)
                 {
                     await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
-                }
+                }*/
                 await _txHub.OnNewBlock((Block)block);
                 MessageHub.Instance.Publish(new BlockMined(block));
                 GenerateTransactionWithParentChainBlockInfo().ConfigureAwait(false);

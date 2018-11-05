@@ -179,7 +179,7 @@ namespace AElf.Kernel.Node
 
         private async Task<Transaction> GenerateTransactionAsync(string methodName, IReadOnlyList<byte[]> parameters)
         {
-            _logger?.Trace("Entered generating tx.");
+            //_logger?.Trace("Entered generating tx.");
             var bn = await BlockChain.GetCurrentBlockHeightAsync();
             bn = bn > 4 ? bn - 4 : 0;
             var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
@@ -223,7 +223,7 @@ namespace AElf.Kernel.Node
             tx.Sig.R = ByteString.CopyFrom(signature.R);
             tx.Sig.S = ByteString.CopyFrom(signature.S);
 
-            _logger?.Trace("Leaving generating tx.");
+            //_logger?.Trace("Leaving generating tx.");
 
             return tx;
         }

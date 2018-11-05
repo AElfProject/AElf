@@ -3,6 +3,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AElf.ChainController;
+    using AElf.ChainController.CrossChain;
     using AElf.Execution;
     using AElf.Kernel;
     using AElf.Kernel.Managers;
@@ -30,6 +31,7 @@ namespace AElf.Contracts.SideChain.Tests
             public IStateStore StateStore { get; }
             public ISmartContractManager SmartContractManager;
             public ISmartContractService SmartContractService;
+            public IChainService ChainService;
             private IFunctionMetadataService _functionMetadataService;
     
             private IChainCreationService _chainCreationService;
@@ -48,7 +50,7 @@ namespace AElf.Contracts.SideChain.Tests
                     await Init();
                 }).Unwrap().Wait();
                 SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
-    
+                ChainService = new ChainService(new ChainManagerBasic(dataStore), new BlockManagerBasic(dataStore), new TransactionManager(dataStore), new TransactionTraceManager(dataStore), dataStore, stateStore);
                 new ServicePack()
                 {
                     ChainContextService = chainContextService,
