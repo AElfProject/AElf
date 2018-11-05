@@ -20,9 +20,9 @@ namespace AElf.ChainController
         
         public void Init(ContainerBuilder builder)
         {
-            string chainId;
             if (NodeConfig.Instance.IsChainCreator)
             {
+                string chainId;
                 if (string.IsNullOrWhiteSpace(ChainConfig.Instance.ChainId))
                 {
                     chainId = Hash.Generate().DumpHex();
