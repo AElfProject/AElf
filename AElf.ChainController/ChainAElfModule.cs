@@ -33,7 +33,7 @@ namespace AElf.ChainController
                     chainId = ChainConfig.Instance.ChainId;
                 }
 
-                var obj = new JObject(new JProperty("id", chainId));
+                var obj = new JObject(new JProperty("ChainId", chainId));
 
                 // write JSON directly to a file
                 if (!Directory.Exists(FileFolder))

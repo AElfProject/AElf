@@ -73,7 +73,10 @@ namespace AElf.Configuration
             TransactionPoolConfig.Instance.Maximal = opts.TxCountLimit;
             
             // chain config
-            ChainConfig.Instance.ChainId = opts.ChainId;
+            if (!string.IsNullOrWhiteSpace(opts.ChainId))
+            {
+                ChainConfig.Instance.ChainId = opts.ChainId;
+            }
 
             // node config
             NodeConfig.Instance.IsMiner = opts.IsMiner;
