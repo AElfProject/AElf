@@ -60,9 +60,9 @@ namespace AElf.Database
             {
                 if (string.IsNullOrWhiteSpace(database))
                 {
-                    foreach (var pooledRedisClientManager in _clientManagers.Values)
+                    foreach (var db in DatabaseConfig.Instance.Hosts)
                     {
-                        pooledRedisClientManager.GetCacheClient().Set<byte[]>("ping", null);
+                        GetClient(db.Key).Set<byte[]>("ping", null);
                     }
                 }
                 else

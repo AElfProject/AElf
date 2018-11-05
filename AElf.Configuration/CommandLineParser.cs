@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Common.Application;
@@ -27,6 +28,13 @@ namespace AElf.Configuration
             if (!string.IsNullOrWhiteSpace(opts.DBType))
             {
                 DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
+                if (!string.IsNullOrWhiteSpace(opts.DBHost) && opts.DBPort.HasValue)
+                {
+                    DatabaseConfig.Instance.Hosts = new Dictionary<string, DatabaseHost>
+                    {
+                        {"Default", new DatabaseHost {Host = opts.DBHost, Port = opts.DBPort.Value, Number = opts.DBNumber}}
+                    };
+                }
             }
             else
             {
