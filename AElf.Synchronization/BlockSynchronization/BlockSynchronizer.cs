@@ -8,6 +8,7 @@ using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
+using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
@@ -76,6 +77,11 @@ namespace AElf.Synchronization.BlockSynchronization
             });
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => { _miningStarted = inState.IsMining; });
+            
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
+            {
+                AddMinedBlock(inBlock.Block);
+            });
         }
 
         public async Task<BlockExecutionResult> ReceiveBlock(IBlock block)
@@ -237,6 +243,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     var reValidationResult = await _blockValidationService.ExecutingAgain(true)
                         .ValidateBlockAsync(block, await GetChainContextAsync());
+                    
                     if (reValidationResult.IsFailed())
                     {
                         break;
@@ -292,7 +299,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 _logger?.Warn("Received unlinkable block.");
 
-                MessageHub.Instance.Publish(new UnlinkableHeader(block.Header));
+                MessageHub.Instance.Publish(new UnlinkableHeader(block.Header)); // <===== return point
 
                 await ReviewBlockSet();
             }

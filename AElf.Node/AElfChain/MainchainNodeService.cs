@@ -252,10 +252,6 @@ namespace AElf.Node.AElfChain
                 await _blockSynchronizer.ReceiveBlock(inBlock.Block);
             });
 
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
-            {
-                _blockSynchronizer.AddMinedBlock(inBlock.Block);
-            });
             #endregion start
 
             MessageHub.Instance.Publish(new ChainInitialized(null));
