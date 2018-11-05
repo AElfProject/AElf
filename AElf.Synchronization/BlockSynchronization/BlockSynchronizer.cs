@@ -224,7 +224,7 @@ namespace AElf.Synchronization.BlockSynchronization
                             break;
                         }
 
-                        reExecutionResult1 = _blockExecutor.ExecuteBlock(block).Result;
+                        reExecutionResult1 = await _blockExecutor.ExecuteBlock(block);
                         if (_blockSet.MultipleBlocksInOneIndex(block.Index))
                         {
                             Thread.VolatileWrite(ref _flag, 0);
@@ -246,7 +246,7 @@ namespace AElf.Synchronization.BlockSynchronization
                         break;
                     }
 
-                    reExecutionResult2 = _blockExecutor.ExecuteBlock(block).Result;
+                    reExecutionResult2 = await _blockExecutor.ExecuteBlock(block);
                     if (_blockSet.MultipleBlocksInOneIndex(block.Index))
                     {
                         Thread.VolatileWrite(ref _flag, 0);
@@ -296,7 +296,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 _logger?.Warn("Received unlinkable block.");
 
-                MessageHub.Instance.Publish(new UnlinkableHeader(block.Header)); // <===== return point
+                MessageHub.Instance.Publish(new UnlinkableHeader(block.Header));
 
                 await ReviewBlockSet();
             }
