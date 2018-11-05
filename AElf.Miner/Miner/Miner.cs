@@ -84,7 +84,7 @@ namespace AElf.Miner.Miner
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
-
+                await GenerateTransactionWithParentChainBlockInfo();
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
                 var traces = new List<TransactionTrace>();
@@ -135,7 +135,6 @@ namespace AElf.Miner.Miner
                 }*/
                 await _txHub.OnNewBlock((Block)block);
                 MessageHub.Instance.Publish(new BlockMined(block));
-                GenerateTransactionWithParentChainBlockInfo().ConfigureAwait(false);
                 stopwatch.Stop();
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
@@ -233,7 +232,7 @@ namespace AElf.Miner.Miner
                 tx.Sig.R = ByteString.CopyFrom(signature.R);
                 tx.Sig.S = ByteString.CopyFrom(signature.S);
 
-                InsertTransactionToPool(tx).ConfigureAwait(false);
+                await InsertTransactionToPool(tx);
             }
             catch (Exception e)
             {
@@ -246,7 +245,7 @@ namespace AElf.Miner.Miner
             if (tx == null)
                 return;
             // insert to tx pool and broadcast
-            await _txHub.AddTransactionAsync(tx);
+            await _txHub.AddTransactionAsync(tx, skipValidation:true).ConfigureAwait(false);
         }
 
         /// <summary>
