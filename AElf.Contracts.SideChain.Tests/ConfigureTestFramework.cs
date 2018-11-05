@@ -37,7 +37,7 @@ namespace AElf.Contracts.SideChain.Tests
             builder.RegisterAssemblyTypes(assembly7).AsImplementedInterfaces();
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
 
-            builder.RegisterType<InMemoryDatabase>().As<IKeyValueDatabase>().SingleInstance();
+            builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());

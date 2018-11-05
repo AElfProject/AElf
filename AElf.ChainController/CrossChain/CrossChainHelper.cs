@@ -15,13 +15,23 @@ namespace AElf.ChainController.CrossChain
         private Address SideChainContractAddress =>
             AddressHelpers.GetSystemContractAddress(Hash.LoadHex(NodeConfig.Instance.ChainId),
                 SmartContractType.SideChainContract.ToString());
-        
-        private DataProvider DataProvider { get; }
+
+        private readonly IStateStore _stateStore;
+
+        private DataProvider DataProvider
+        {
+            get
+            {
+                var dp = DataProvider.GetRootDataProvider(_chainId, SideChainContractAddress);
+                dp.StateStore = _stateStore;
+                return dp;
+            }
+        }
+
         public CrossChainHelper(Hash chainId, IStateStore stateStore)
         {
             _chainId = chainId;
-            DataProvider = DataProvider.GetRootDataProvider(_chainId, SideChainContractAddress);
-            DataProvider.StateStore = stateStore; 
+            _stateStore = stateStore; 
         }
 
         /// <summary>

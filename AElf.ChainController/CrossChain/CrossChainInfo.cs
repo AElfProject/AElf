@@ -25,7 +25,7 @@ namespace AElf.ChainController.CrossChain
         /// <returns></returns>
         public MerklePath GetTxRootMerklePathInParentChain(ulong blockHeight)
         {
-            var bytes = _crossChainHelper.GetBytes<UInt64Value>(
+            var bytes = _crossChainHelper.GetBytes<MerklePath>(
                 Hash.FromMessage(new UInt64Value {Value = blockHeight}), GlobalConfig.AElfTxRootMerklePathInParentChain);
             return MerklePath.Parser.ParseFrom(bytes);
         }

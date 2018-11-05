@@ -43,7 +43,6 @@ namespace AElf.Contracts.SideChain.Tests
     
             private ISmartContractRunnerFactory _smartContractRunnerFactory;
             private ILogger _logger;
-            private IKeyValueDatabase _database;
             private IDataStore _dataStore;
 
             public MockSetup(ILogger logger)
@@ -74,14 +73,6 @@ namespace AElf.Contracts.SideChain.Tests
                 }).Unwrap().Wait();
                 SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateStore, _functionMetadataService);
                 ChainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore), new TransactionManager(_dataStore), new TransactionTraceManager(_dataStore), _dataStore, StateStore);
-                var chainContextService = new ChainContextService(ChainService);
-                new ServicePack()
-                {
-                    ChainContextService = chainContextService,
-                    SmartContractService = SmartContractService,
-                    ResourceDetectionService = null,
-                    StateStore = StateStore
-                };
             }
 
             private void NewStorage()
