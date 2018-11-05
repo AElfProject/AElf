@@ -148,48 +148,6 @@ namespace AElf.Node.AElfChain
                 await _txHub.AddTransactionAsync(inTx.Transaction);
             });
 
-            MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
-            {
-                if (option == UpdateConsensus.Update)
-                {
-                    _logger?.Trace("UpdateConsensus - Update");
-                    _consensus?.Update();
-                }
-
-                if (option == UpdateConsensus.Dispose)
-                {
-                    _logger?.Trace("UpdateConsensus - Dispose");
-                    _consensus?.Stop();
-                }
-            });
-
-            MessageHub.Instance.Subscribe<SyncStateChanged>(inState =>
-            {
-                if (inState.IsSyncing)
-                {
-                    _logger?.Trace("SyncStateChanged - Mining locked.");
-                    _consensus?.Hang();
-                }
-                else
-                {
-                    _logger?.Trace("SyncStateChanged - Mining unlocked.");
-                    _consensus?.Start();
-                }
-            });
-
-            MessageHub.Instance.Subscribe<LockMining>(inState =>
-            {
-                if (inState.Lock)
-                {
-                    _logger?.Trace("ConsensusGenerated - Mining locked.");
-                    _consensus?.Hang();
-                }
-                else
-                {
-                    _logger?.Trace("ConsensusGenerated - Mining unlocked.");
-                    _consensus?.Start();
-                }
-            });
             _txHub.Initialize();
         }
 
