@@ -89,7 +89,7 @@ namespace AElf.Contracts.SideChain.Tests
             });
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
             NodeConfig.Instance.ChainId = _mock.ChainId1.DumpHex();
-            var crossChainInfo = new CrossChainInfo(_mock.StateStore, _mock.ChainService);
+            var crossChainInfo = new CrossChainInfo(_mock.StateStore);
             var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(0);
             Assert.NotNull(merklepath);
             Assert.Equal(parentChainBlockInfo.IndexedBlockInfo[0], merklepath);

@@ -1,4 +1,5 @@
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
@@ -12,27 +13,31 @@ namespace AElf.ChainController.CrossChain
         private readonly Hash _chainId;
         private readonly IStateStore _stateStore;
 
+        private Address SideChainContractAddress =>
+            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(NodeConfig.Instance.ChainId),
+                SmartContractType.SideChainContract.ToString());
+        
+        private DataProvider DataProvider { get; }
         public CrossChainHelper(Hash chainId, IStateStore stateStore)
         {
             _chainId = chainId;
             _stateStore = stateStore;
+            DataProvider = DataProvider.GetRootDataProvider(_chainId, SideChainContractAddress);
+            DataProvider.StateStore = _stateStore; 
         }
 
         /// <summary>
         /// Assert: Related value has surely exists in database.
         /// </summary>
         /// <param name="keyHash"></param>
-        /// <param name="contractAddressHash"></param>
         /// <param name="resourceStr"></param>
         /// <returns></returns>
-        internal byte[] GetBytes<T>(Hash keyHash, Address contractAddressHash, string resourceStr = "") where T : IMessage, new()
+        internal byte[] GetBytes<T>(Hash keyHash, string resourceStr = "") where T : IMessage, new()
         {
             //Console.WriteLine("resourceStr: {0}", dataPath.ResourcePathHash.ToHex());
-            var dp = DataProvider.GetRootDataProvider(_chainId, contractAddressHash);
-            dp.StateStore = _stateStore;
             return resourceStr != ""
-                ? dp.GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
-                : dp.GetAsync<T>(keyHash).Result;
+                ? DataProvider.GetChild(resourceStr).GetAsync<T>(keyHash).Result
+                : DataProvider.GetAsync<T>(keyHash).Result;
         }
     }
 }

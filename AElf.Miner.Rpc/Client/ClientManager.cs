@@ -101,9 +101,9 @@ namespace AElf.Miner.Rpc.Client
             return height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
         }
         
-        private async Task<ulong> GetParentChainTargetHeight()
+        private ulong GetParentChainTargetHeight()
         {
-            var height = await _crossChainInfo.GetParentChainCurrentHeight();
+            var height = _crossChainInfo.GetParentChainCurrentHeight();
             _logger.Trace($"parent heigh {height}");
             return height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
         }
@@ -176,7 +176,7 @@ namespace AElf.Miner.Rpc.Client
                     throw new ChainInfoNotFoundException("Unable to get parent chain info.");
                 _clientToParentChain =
                     (ClientToParentChain) CreateClient(parent.ElementAt(0).Value, parent.ElementAt(0).Key, false);
-                var targetHeight = await GetParentChainTargetHeight() ;
+                var targetHeight = GetParentChainTargetHeight() ;
                 _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, targetHeight)
                     .ConfigureAwait(false);
                 _logger?.Info($"Created client to parent chain {parent.ElementAt(0).Key}");
@@ -357,7 +357,7 @@ namespace AElf.Miner.Rpc.Client
             if (chainId == null)
                 return null;
             Hash parentChainId = Hash.LoadHex(chainId);
-            ulong targetHeight = await GetParentChainTargetHeight();
+            ulong targetHeight = GetParentChainTargetHeight();
             _logger?.Trace($"To get pcb at height {targetHeight}");
             if (pcb != null && !(pcb.ChainId.Equals(parentChainId) && targetHeight == pcb.Height))
                 return null;

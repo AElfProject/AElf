@@ -271,10 +271,7 @@ namespace AElf.Miner.Tests
         private Mock<ICrossChainInfo> MockCrossChainInfo()
         {
             var mock = new Mock<ICrossChainInfo>();
-            mock.Setup(m => m.GetParentChainCurrentHeight()).Returns(() =>
-            {
-                return Task.FromResult(GetTimes);
-            });
+            mock.Setup(m => m.GetParentChainCurrentHeight()).Returns(() => GetTimes);
             return mock;
         }
 

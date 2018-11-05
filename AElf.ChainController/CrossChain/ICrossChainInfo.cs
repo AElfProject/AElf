@@ -8,7 +8,7 @@ namespace AElf.ChainController.CrossChain
     {
         MerklePath GetTxRootMerklePathInParentChain(ulong blockHeight);
         ParentChainBlockInfo GetBoundParentChainBlockInfo(ulong height);
-        ulong GetBoundParentChainHeight(ulong height);
-        Task<ulong> GetParentChainCurrentHeight();
+        ulong GetBoundParentChainHeight(ulong localChainHeight);
+        ulong GetParentChainCurrentHeight();
     }
 }
