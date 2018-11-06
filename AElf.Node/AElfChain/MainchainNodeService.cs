@@ -9,6 +9,7 @@ using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Enums;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
 using AElf.Kernel.Node;
@@ -135,7 +136,7 @@ namespace AElf.Node.AElfChain
         public void Initialize(NodeConfiguration conf)
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
-            _blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
+            _blockChain = _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
 
             SetupConsensus();
@@ -150,13 +151,13 @@ namespace AElf.Node.AElfChain
 
         public bool Start()
         {
-            if (string.IsNullOrWhiteSpace(NodeConfig.Instance.ChainId))
+            if (string.IsNullOrWhiteSpace(ChainConfig.Instance.ChainId))
             {
                 _logger?.Error("No chain id.");
                 return false;
             }
 
-            _logger?.Info($"Chain Id = {NodeConfig.Instance.ChainId}");
+            _logger?.Info($"Chain Id = {ChainConfig.Instance.ChainId}");
 
             #region setup
 
@@ -177,7 +178,7 @@ namespace AElf.Node.AElfChain
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Could not create the chain : {NodeConfig.Instance.ChainId}.");
+                _logger?.Error(e, $"Could not create the chain : {ChainConfig.Instance.ChainId}.");
             }
 
             #endregion setup
@@ -233,7 +234,7 @@ namespace AElf.Node.AElfChain
 
         private Address GetGenesisContractHash(SmartContractType contractType)
         {
-            return _chainCreationService.GenesisContractHash(Hash.LoadHex(NodeConfig.Instance.ChainId), contractType);
+            return _chainCreationService.GenesisContractHash(Hash.LoadHex(ChainConfig.Instance.ChainId), contractType);
         }
 
         private void LogGenesisContractInfo()
@@ -285,7 +286,7 @@ namespace AElf.Node.AElfChain
                 ContractHash = Hash.FromRawBytes(sideChainGenesisContractCode),
                 Type = (int) SmartContractType.SideChainContract
             };
-            var res = _chainCreationService.CreateNewChainAsync(Hash.LoadHex(NodeConfig.Instance.ChainId),
+            var res = _chainCreationService.CreateNewChainAsync(Hash.LoadHex(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg}).Result;
 
             _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");

@@ -2,6 +2,7 @@
 using AElf.ChainController;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;
@@ -26,7 +27,7 @@ namespace AElf.Kernel.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
+            ChainConfig.Instance.ChainId = Hash.Generate().DumpHex();
             NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
 
             var assembly1 = typeof(IDataProvider).Assembly;

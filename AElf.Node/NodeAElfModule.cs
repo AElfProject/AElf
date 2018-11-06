@@ -24,7 +24,7 @@ namespace AElf.Node
             {
                 try
                 {
-                    var ks = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
+                    var ks = new AElfKeyStore(ApplicationHelpers.GetDefaultConfigPath());
                     
                     var pass = string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccountPassword)
                         ? AskInvisible(NodeConfig.Instance.NodeAccount)
@@ -32,7 +32,6 @@ namespace AElf.Node
 
                     ks.OpenAsync(NodeConfig.Instance.NodeAccount, pass, false);
 
-                    ManagementConfig.Instance.NodeAccountPassword = pass;
                     NodeConfig.Instance.NodeAccountPassword = pass;
 
                     nodeKey = ks.GetAccountKeyPair(NodeConfig.Instance.NodeAccount);

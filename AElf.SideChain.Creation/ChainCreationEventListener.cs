@@ -21,6 +21,7 @@ using Newtonsoft.Json.Linq;
 using NLog;
 using SideChainInfo = AElf.Contracts.SideChain.SideChainInfo;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 
 namespace AElf.SideChain.Creation
 {
@@ -57,7 +58,7 @@ namespace AElf.SideChain.Creation
         private Address GetGenesisContractHash()
         {
             return ChainCreationService.GenesisContractHash(
-                Hash.LoadHex(NodeConfig.Instance.ChainId),
+                Hash.LoadHex(ChainConfig.Instance.ChainId),
                 SmartContractType.BasicContractZero);
         }
 

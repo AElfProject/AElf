@@ -2,6 +2,7 @@
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 
 namespace AElf.ChainController
 {
@@ -17,7 +18,7 @@ namespace AElf.ChainController
         {
             if (chainId == null)
             {
-                chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
+                chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
             }
             
             var blockchain = _chainService.GetBlockChain(chainId);

@@ -27,7 +27,7 @@ namespace AElf.Configuration
         {
             _fileNames = new HashSet<string>();
             _pendingFiles = new HashSet<string>();
-            var configPath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");
+            var configPath = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config");
             if (!Directory.Exists(configPath))
             {
                 Directory.CreateDirectory(configPath);

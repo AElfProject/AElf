@@ -12,6 +12,7 @@ using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Collections;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
 using AElf.Network;
@@ -90,7 +91,7 @@ namespace AElf.Node.Protocol
 
             _chainId = new Hash
             {
-                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId))
+                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId))
             };
 
             peerManager.PeerEvent += OnPeerAdded;
