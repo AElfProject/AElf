@@ -1,8 +1,10 @@
 ﻿using System.IO;
+using System.Linq;
 using AElf.Common.Application;
 using AElf.Common;
 using AElf.Common.Module;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using Autofac;
 using Easy.MessageHub;
 using Google.Protobuf;
@@ -13,24 +15,25 @@ namespace AElf.ChainController
 {
     public class ChainAElfModule:IAElfModule
     {
-        private static readonly string FileFolder = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "chain");
-        private static readonly string FilePath = Path.Combine(FileFolder, @"ChainInfo.json");
+        private static readonly string FileFolder = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config");
+        private static readonly string FilePath = Path.Combine(FileFolder, @"chain.json");
         
         public void Init(ContainerBuilder builder)
         {
-            Hash chainIdHash;
             if (NodeConfig.Instance.IsChainCreator)
             {
-                if (string.IsNullOrWhiteSpace(NodeConfig.Instance.ChainId))
+                string chainId;
+                if (string.IsNullOrWhiteSpace(ChainConfig.Instance.ChainId))
                 {
-                    chainIdHash = Hash.Generate();
+                    chainId = Hash.Generate().DumpHex();
+                    ChainConfig.Instance.ChainId = chainId;
                 }
                 else
                 {
-                    chainIdHash = Hash.LoadHex(NodeConfig.Instance.ChainId);
+                    chainId = ChainConfig.Instance.ChainId;
                 }
 
-                var obj = new JObject(new JProperty("id", chainIdHash.DumpHex()));
+                var obj = new JObject(new JProperty("ChainId", chainId));
 
                 // write JSON directly to a file
                 if (!Directory.Exists(FileFolder))
@@ -44,18 +47,6 @@ namespace AElf.ChainController
                     obj.WriteTo(writer);
                 }
             }
-            else
-            {
-                // read JSON directly from a file
-                using (var file = File.OpenText(FilePath))
-                using (var reader = new JsonTextReader(file))
-                {
-                    var chain = (JObject) JToken.ReadFrom(reader);
-                    chainIdHash = Hash.LoadHex(chain.GetValue("id").ToString());
-                }
-            }
-
-            NodeConfig.Instance.ChainId = chainIdHash.DumpHex();
 
             builder.RegisterModule(new ChainAutofacModule());
            
