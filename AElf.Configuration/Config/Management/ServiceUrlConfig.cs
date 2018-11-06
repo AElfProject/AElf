@@ -2,7 +2,7 @@
 
 namespace AElf.Configuration.Config.Management
 {
-    [ConfigFile(FileName = "serviceurl.json")]
+    [ConfigFile(FileName = "service-url.json",IsWatch = true)]
     public class ServiceUrlConfig:ConfigBase<ServiceUrlConfig>
     {
         public Dictionary<string, ServiceUrl> ServiceUrls { get; set; }

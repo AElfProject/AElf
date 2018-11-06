@@ -7,6 +7,7 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Miner.Miner;
@@ -19,6 +20,7 @@ using NLog;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Storages;
 using AElf.Synchronization.BlockSynchronization;
+using AElf.Synchronization.EventMessages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -44,7 +46,7 @@ namespace AElf.Kernel.Node
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadHex(NodeConfig.Instance.ChainId)));
+                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
 
         private readonly ILogger _logger;
 
@@ -58,7 +60,7 @@ namespace AElf.Kernel.Node
         private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
 
         public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
-            Hash.LoadHex(NodeConfig.Instance.ChainId),
+            Hash.LoadHex(ChainConfig.Instance.ChainId),
             SmartContractType.AElfDPoS.ToString());
 
         private static int _flag;
@@ -78,7 +80,7 @@ namespace AElf.Kernel.Node
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
-            Helper = new AElfDPoSHelper(Hash.LoadHex(NodeConfig.Instance.ChainId), Miners,
+            Helper = new AElfDPoSHelper(Hash.LoadHex(ChainConfig.Instance.ChainId), Miners,
                 ContractAddress, stateStore);
 
             var count = MinersConfig.Instance.Producers.Count;
@@ -93,6 +95,49 @@ namespace AElf.Kernel.Node
             {
                 AElfDPoSObserver.RecoverMining();
             }
+            
+            MessageHub.Instance.Subscribe<UpdateConsensus>(async option =>
+            {
+                if (option == UpdateConsensus.Update)
+                {
+                    _logger?.Trace("UpdateConsensus - Update");
+                    await Update();
+                }
+
+                if (option == UpdateConsensus.Dispose)
+                {
+                    _logger?.Trace("UpdateConsensus - Dispose");
+                    Stop();
+                }
+            });
+
+            MessageHub.Instance.Subscribe<SyncStateChanged>(async inState =>
+            {
+                if (inState.IsSyncing)
+                {
+                    _logger?.Trace("SyncStateChanged - Mining locked.");
+                    Hang();
+                }
+                else
+                {
+                    _logger?.Trace("SyncStateChanged - Mining unlocked.");
+                    await Start();
+                }
+            });
+
+            MessageHub.Instance.Subscribe<LockMining>(async inState =>
+            {
+                if (inState.Lock)
+                {
+                    _logger?.Trace("ConsensusGenerated - Mining locked.");
+                    Hang();
+                }
+                else
+                {
+                    _logger?.Trace("ConsensusGenerated - Mining unlocked.");
+                    await Start();
+                }
+            });
         }
 
         private static Miners Miners

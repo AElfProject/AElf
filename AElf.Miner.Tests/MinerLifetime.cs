@@ -18,6 +18,7 @@ using Moq;
 using AElf.Common;
 using Address = AElf.Common.Address;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
@@ -198,7 +199,7 @@ namespace AElf.Kernel.Tests.Miner
             // create miner
             var keypair = new KeyPairGenerator().Generate();
             var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
-            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
             NodeConfig.Instance.NodeAccount = keypair.GetAddressHex();
             var txPool = _mock.CreateTxPool();
             txPool.Start();
@@ -235,7 +236,7 @@ namespace AElf.Kernel.Tests.Miner
         public async Task SyncGenesisBlock_False_Rollback()
         {
             var chain = await _mock.CreateChain();
-            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
             NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
             
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
@@ -254,7 +255,6 @@ namespace AElf.Kernel.Tests.Miner
             var manager = _mock.MinerClientManager();
             var blockExecutor = _mock.GetBlockExecutor(manager);
 
-            blockExecutor.Init();
             var res = await blockExecutor.ExecuteBlock(block);
             Assert.NotEqual(BlockExecutionResult.Success, res);
 
@@ -403,7 +403,7 @@ namespace AElf.Kernel.Tests.Miner
             var minerConfig = _mock.GetMinerConfig(chain.Id, 10, keyPair.GetAddress().DumpByteArray());
             NodeConfig.Instance.ECKeyPair = keyPair;
             NodeConfig.Instance.NodeAccount = keyPair.GetAddressHex();
-            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
             var pool = _mock.CreateTxPool();
             pool.Start();
 

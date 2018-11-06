@@ -7,7 +7,9 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
+using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
@@ -30,7 +32,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadHex(NodeConfig.Instance.ChainId)));
+                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
 
         private bool _receivedBranchedBlock;
 
@@ -76,6 +78,11 @@ namespace AElf.Synchronization.BlockSynchronization
             });
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => { _miningStarted = inState.IsMining; });
+            
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
+            {
+                AddMinedBlock(inBlock.Block);
+            });
         }
 
         public async Task<BlockExecutionResult> ReceiveBlock(IBlock block)
@@ -85,19 +92,21 @@ namespace AElf.Synchronization.BlockSynchronization
                 return BlockExecutionResult.AlreadyReceived;
             }
 
-            if (block.Index > await BlockChain.GetCurrentBlockHeightAsync() + 1)
+            ulong blockIndex = await BlockChain.GetCurrentBlockHeightAsync();
+            
+            if (block.Index > blockIndex+1)
             {
                 if (_firstFutureBlockHeight == 0)
-                {
                     _firstFutureBlockHeight = block.Index;
-                }
 
                 _blockSet.AddBlock(block);
+                
                 _logger?.Trace($"Added block {block.BlockHashToHex} to block cache cause this is a future block.");
+                
                 return BlockExecutionResult.FutureBlock;
             }
 
-            if (block.Index == await BlockChain.GetCurrentBlockHeightAsync() + 1)
+            if (block.Index == blockIndex+1)
             {
                 _nextBlock = block;
             }
@@ -161,11 +170,8 @@ namespace AElf.Synchronization.BlockSynchronization
             _minedBlock = true;
 
             // Update DPoS process.
+            // TODO this can probably removed by subscribing to BlockMined in DPoS.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
-
-            // Basically notify the network layer that this node just mined a block
-            // and added to executed block list.
-            MessageHub.Instance.Publish(new BlockAddedToSet(block));
 
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
@@ -221,7 +227,7 @@ namespace AElf.Synchronization.BlockSynchronization
                             break;
                         }
 
-                        reExecutionResult1 = _blockExecutor.ExecuteBlock(block).Result;
+                        reExecutionResult1 = await _blockExecutor.ExecuteBlock(block);
                         if (_blockSet.MultipleBlocksInOneIndex(block.Index))
                         {
                             Thread.VolatileWrite(ref _flag, 0);
@@ -237,12 +243,13 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     var reValidationResult = await _blockValidationService.ExecutingAgain(true)
                         .ValidateBlockAsync(block, await GetChainContextAsync());
+                    
                     if (reValidationResult.IsFailed())
                     {
                         break;
                     }
 
-                    reExecutionResult2 = _blockExecutor.ExecuteBlock(block).Result;
+                    reExecutionResult2 = await _blockExecutor.ExecuteBlock(block);
                     if (_blockSet.MultipleBlocksInOneIndex(block.Index))
                     {
                         Thread.VolatileWrite(ref _flag, 0);
@@ -379,7 +386,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<IChainContext> GetChainContextAsync()
         {
-            var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
+            var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
             var blockchain = _chainService.GetBlockChain(chainId);
             IChainContext chainContext = new ChainContext
             {

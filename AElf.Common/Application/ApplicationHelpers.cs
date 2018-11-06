@@ -7,31 +7,31 @@ namespace AElf.Common.Application
     {
         private const string ApplicationFolderName = "aelf";
 
-        private static string _dataDir;
+        private static string _configPath;
 
         static ApplicationHelpers()
         {
-            _dataDir= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ApplicationFolderName);
+            _configPath= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ApplicationFolderName);
         }
 
-        public static string GetDefaultDataDir()
+        public static string GetDefaultConfigPath()
         {
-            return _dataDir;
+            return _configPath;
         }
 
-        public static void SetDataDir(string dataDir)
+        public static void SetConfigPath(string configPath)
         {
-            if (string.IsNullOrWhiteSpace(dataDir))
+            if (string.IsNullOrWhiteSpace(configPath))
             {
                 return;
             }
 
-            if (!Directory.Exists(dataDir))
+            if (!Directory.Exists(configPath))
             {
-                Directory.CreateDirectory(dataDir);
+                Directory.CreateDirectory(configPath);
             }
 
-            _dataDir = dataDir;
+            _configPath = configPath;
         }
     }
 }
