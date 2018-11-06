@@ -188,10 +188,12 @@ namespace AElf.Contracts.SideChain
             var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight; 
             Api.Assert(target == parentChainHeight,
                 $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
+            Console.WriteLine("ParentChainBlockInfo.Height is correct.");
             
             var key = new UInt64Value {Value = parentChainHeight};
             Api.Assert(_parentChainBlockInfo.GetValue(key) == null,
                 $"Already written parent chain block info at height {parentChainHeight}");
+            Console.WriteLine("Writing ParentChainBlockInfo..");
             foreach (var _ in parentChainBlockInfo.IndexedBlockInfo)
             {
                 BindParentChainHeight(_.Key, parentChainHeight);

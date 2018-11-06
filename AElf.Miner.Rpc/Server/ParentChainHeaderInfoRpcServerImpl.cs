@@ -104,7 +104,7 @@ namespace AElf.Miner.Rpc.Server
                                     _logger?.Trace($"tree.Root == null: {tree.Root == null}");
                                     _logger?.Trace($"tree.LeafCount = {tree.LeafCount}, index = {i}");
                                 }
-                                res.BlockInfo.IndexedBlockInfo.Add(info.Height, tree.GenerateMerklePath(i));
+                                res.BlockInfo.IndexedBlockInfo.Add(info.Height, merklePath);
                             }
                         }
                         

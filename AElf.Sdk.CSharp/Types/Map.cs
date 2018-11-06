@@ -74,7 +74,7 @@ namespace AElf.Sdk.CSharp.Types
         public async Task<TValue> GetValueAsync(TKey key)
         {
             var bytes = await DataProvider.GetAsync<TValue>(Hash.FromMessage(key));
-            return bytes == null ? default(TValue) : Api.Serializer.Deserialize<TValue>(bytes);
+            return bytes == null || bytes.Length == 0 ? default(TValue) : Api.Serializer.Deserialize<TValue>(bytes);
         }
 
 //        public async Task SetValueAsync(TKey key, TValue value)
