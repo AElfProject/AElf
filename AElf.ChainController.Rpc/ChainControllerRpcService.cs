@@ -6,6 +6,7 @@ using AElf.ChainController.EventMessages;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
@@ -89,7 +90,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var chainId = NodeConfig.Instance.ChainId;
+                var chainId = ChainConfig.Instance.ChainId;
                 var basicContractZero = this.GetGenesisContractHash(SmartContractType.BasicContractZero);
                 var sideChainContract = this.GetGenesisContractHash(SmartContractType.SideChainContract);
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
@@ -556,20 +557,20 @@ namespace AElf.ChainController.Rpc
             JToken id;
             try
             {
-                var valueBytes = KeyValueDatabase.GetAsync(key).Result;
-
                 object value;
 
                 if (key.StartsWith(GlobalConfig.StatePrefix))
                 {
                     type = "State";
                     id = key.Substring(GlobalConfig.StatePrefix.Length, key.Length - GlobalConfig.StatePrefix.Length);
+                    var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
                     value = StateValue.Create(valueBytes);
                 }
                 else if(key.StartsWith(GlobalConfig.TransactionReceiptPrefix))
                 {
                     type = "TransactionReceipt";
                     id = key.Substring(GlobalConfig.TransactionReceiptPrefix.Length, key.Length - GlobalConfig.TransactionReceiptPrefix.Length);
+                    var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
                     value = valueBytes?.Deserialize<TransactionReceipt>();
                 }
                 else
@@ -577,6 +578,7 @@ namespace AElf.ChainController.Rpc
                     var keyObj = Key.Parser.ParseFrom(ByteArrayHelpers.FromHexString(key));
                     type = keyObj.Type;
                     id = JObject.Parse(keyObj.ToString());
+                    var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
                     var obj = GetInstance(type);
                     obj.MergeFrom(valueBytes);
                     value = obj;

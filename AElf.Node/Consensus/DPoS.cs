@@ -7,6 +7,7 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Miner.Miner;
@@ -44,7 +45,7 @@ namespace AElf.Kernel.Node
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadHex(NodeConfig.Instance.ChainId)));
+                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
 
         private readonly ILogger _logger;
 
@@ -58,7 +59,7 @@ namespace AElf.Kernel.Node
         private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
 
         public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
-            Hash.LoadHex(NodeConfig.Instance.ChainId),
+            Hash.LoadHex(ChainConfig.Instance.ChainId),
             SmartContractType.AElfDPoS.ToString());
 
         private static int _flag;
@@ -78,7 +79,7 @@ namespace AElf.Kernel.Node
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
-            Helper = new AElfDPoSHelper(Hash.LoadHex(NodeConfig.Instance.ChainId), Miners,
+            Helper = new AElfDPoSHelper(Hash.LoadHex(ChainConfig.Instance.ChainId), Miners,
                 ContractAddress, stateStore);
 
             var count = MinersConfig.Instance.Producers.Count;
