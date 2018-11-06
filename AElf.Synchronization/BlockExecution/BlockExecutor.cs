@@ -87,7 +87,7 @@ namespace AElf.Synchronization.BlockExecution
             try
             {
                 // get txn from pool
-                var tuple = await CollectTransactions(block);
+                var tuple = CollectTransactions(block);
                 result = tuple.Item1;
                 if (result.IsFailed())
                 {
@@ -255,7 +255,7 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        private async Task<Tuple<BlockExecutionResult, List<Transaction>>> CollectTransactions(IBlock block)
+        private Tuple<BlockExecutionResult, List<Transaction>> CollectTransactions(IBlock block)
         {
             //string errorLog = null;
             var res = BlockExecutionResult.CollectTransactionsSuccess;
@@ -302,7 +302,8 @@ namespace AElf.Synchronization.BlockExecution
             try
             {
                 var cached = _clientManager.TryGetParentChainBlockInfo();
-                if (cached != null) return cached.Equals(parentBlockInfo);
+                if (cached != null) 
+                    return cached.Equals(parentBlockInfo);
                 _logger.Warn("Not found cached parent block info");
                 return false;
             }

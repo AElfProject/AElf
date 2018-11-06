@@ -20,7 +20,7 @@ namespace AElf.Miner.TxMemPool
 
         private delegate int WhoIsFirst(Transaction t1, Transaction t2);
 
-        private static readonly WhoIsFirst IsFirst = (t1, t2) => t1.Time.Nanos < t2.Time.Nanos ? -1 : 1;
+        private static readonly WhoIsFirst IsFirst = (t1, t2) => t1.Time.Nanos > t2.Time.Nanos ? -1 : 1;
         private readonly ILogger _logger;
 
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMe = (list, logger) =>
@@ -50,8 +50,9 @@ namespace AElf.Miner.TxMemPool
             crossChainTxnsFromMe.Sort((t1, t2) => IsFirst(t1, t2));
             var firstTxn = crossChainTxnsFromMe.FirstOrDefault();
             // only reserve first txn
-            if(firstTxn != null)
-                toRemove.AddRange(list.FindAll(t => !t.Equals(firstTxn)));
+            if (firstTxn != null)
+                toRemove.AddRange(list.FindAll(t =>
+                    t.Type == TransactionType.CrossChainBlockInfoTransaction && !t.Equals(firstTxn)));
             return toRemove;
         };
         
