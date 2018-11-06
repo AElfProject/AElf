@@ -33,9 +33,11 @@ namespace AElf.Management.Request
         public static T Request<T>(string url, object arg)
         {
             var content = JsonConvert.SerializeObject(arg);
-            var client = GetClient(url);
-            var result = DoRequest(client, content);
-
+            string result;
+            using (var client = GetClient(url))
+            {
+                result = DoRequest(client, content);
+            }
             return JsonConvert.DeserializeObject<T>(result);
         }
     }
