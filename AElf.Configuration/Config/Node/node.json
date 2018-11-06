@@ -1,7 +1,7 @@
 ﻿{
   "IsMiner":false,
   "IsChainCreator":false,
-  "ConsensusInfoGenerater":false,
+  "ConsensusInfoGenerator":false,
   "NodeAccount":"",
   "NodeAccountPassword":"",
   "ExecutorType":"simple",
