@@ -149,6 +149,7 @@ namespace AElf.Network.Peers
         public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey, int currentHeight)
         {
             _blockRequests = new List<TimedBlockRequest>();
+            _announcements = new List<Announce>();
 
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
@@ -165,8 +166,6 @@ namespace AElf.Network.Peers
             _messageWriter = writer;
 
             CurrentHeight = currentHeight;
-
-            _blocks = new List<PendingBlock>();
         }
 
         private void SetupHeartbeat()

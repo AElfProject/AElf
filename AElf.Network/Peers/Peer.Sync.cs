@@ -34,56 +34,144 @@ namespace AElf.Network.Peers
         public int RequestTimeout { get; set; } = DefaultRequestTimeout;
         public int MaxRequestRetries { get; set; } = 2;
 
+        private const int GenesisHeight = 1;
+
         private object _blockLock = new object();
-        private readonly List<PendingBlock> _blocks;
+        //private readonly List<PendingBlock> _blocks;
 
         private object _blockReqLock = new object();
         private List<TimedBlockRequest> _blockRequests;
-            
-        public event EventHandler SyncFinished;
+
+        private List<Announce> _announcements;
         
         private int _peerHeight = 0;
 
+        /// <summary>
+        /// When syncing history blocks this is the target height.
+        /// </summary>
         private int _syncTarget = 0;
+        
+        /// <summary>
+        /// When syncing history blocks this the currently requested height. 
+        /// </summary>
         private int _requestedHeight = 0;
 
-        private bool _isSyncing = false;
-        
-        public int KnownHeight
-        {
-            get { return _peerHeight; }
-        }
+        /// <summary>
+        /// True if syncing to height.
+        /// </summary>
+        public bool IsSyncingHistory => _syncTarget != 0;
 
-        public bool AnySyncing()
-        {
-            lock (_blockLock)
-            {
-                return _blocks.Any(b => b.IsRequesting);
-            }
-        }
+        /// <summary>
+        /// When syncing an annoucements, this is the current one.
+        /// </summary>
+        private Announce _syncedAnnouncement;
+
+        /// <summary>
+        /// True if syncing an annoucement.
+        /// </summary>
+        public bool IsSyncingAnnounced => _syncedAnnouncement != null;
+        
+        /// <summary>
+        /// Property that is true if we're currently syncing blocks from this peer.
+        /// 
+        /// </summary>
+        public bool IsSyncing => IsSyncingHistory || IsSyncingAnnounced;
+        
+        public int KnownHeight => _peerHeight; 
+        public int CurrentlyRequestedHeight => _requestedHeight;
+        public bool AnyStashed => _announcements.Any();
 
         /// <summary>
         /// Effectively triggers a sync session with this peer. The target height is specified
-        /// as a parameter so the target is not necessarily this peers current height.
+        /// as a parameter.
         /// </summary>
         /// <param name="start"></param>
         /// <param name="target"></param>
-        public void Sync(int start, int target)
+        public void SyncToHeight(int start, int target)
         {
-            // set sync session target
+
+            if (start <= GenesisHeight)
+            {
+                throw new InvalidOperationException("Cannot sync genesis height or lower.");
+            }
+            
+            if (IsSyncing)
+            {
+                throw new InvalidOperationException("The peer is already syncing, " +
+                                                    "this method should only be used to trigger an initial sync.");
+            }
+
+            // set sync state
             _syncTarget = target;
-            
-            _isSyncing = true;
-            
-            // start requesting 
-            RequestBlockByIndex(start);
-            
-            // Update currently requested height.
             _requestedHeight = start;
+            
+            // request 
+            RequestBlockByIndex(_requestedHeight);
             
             MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(true));
         }
 
+        /// <summary>
+        /// This method will request the next block based on the current value of <see cref="_currentBlock"/>.
+        /// If target was reached, the state is reset and the method returns false.
+        /// </summary>
+        /// <returns>Returns weither or no this call has completed the sync.</returns>
+        public bool SyncNextHistory()
+        {
+            if (_requestedHeight == _syncTarget)
+            {
+                _syncTarget = 0;
+                _requestedHeight = 0;
+                return false;
+            }
+
+            _requestedHeight++;
+            RequestBlockByIndex(_requestedHeight);
+
+            return true;
+        }
+
+        public void StashAnnouncement(Announce announce)
+        {
+            if (announce?.Id == null)
+                throw new ArgumentNullException($"{nameof(announce)} or its ID is null.");
+            
+            _announcements.Add(announce);
+        }
+
+        /// <summary>
+        /// Will trigger the request of the next annoucement. If there's no more announcements to sync
+        /// this method return false.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the this method is called with no currently synced announcement
+        /// and an empty cache the method throws.</exception>
+        public bool SyncNextAnnouncement()
+        {
+            if (!IsSyncingAnnounced && !_announcements.Any())
+                throw new InvalidOperationException($"Call to {nameof(SyncNextAnnouncement)} with no stashed annoucements.");
+
+            if (!_announcements.Any())
+            {
+                _syncedAnnouncement = null;
+                return false;
+            }
+
+            _syncedAnnouncement = _announcements.OrderBy(a => a.Height).First();
+            _announcements.Remove(_syncedAnnouncement);
+                
+            RequestBlockById(_syncedAnnouncement.Id.ToByteArray());
+            
+            return true;
+        }
+        
+        /*********************** OLD ***********************/
+        
+        // todo height update from announcement should be done somewhere else
+
+        /// <summary>
+        /// This method is used to update the height of the current peer.
+        /// </summary>
+        /// <param name="a"></param>
         public void OnAnnouncementMessage(Announce a)
         {
             if (a?.Id == null)
@@ -94,14 +182,14 @@ namespace AElf.Network.Peers
             
             try
             {
-                byte[] blockId = a.Id.ToByteArray();
-
-                lock (_blockLock)
-                {
-                    _blocks.Add(new PendingBlock(blockId, true, false));
-                }
-            
-                RequestBlockById(blockId);
+//                byte[] blockId = a.Id.ToByteArray();
+//
+//                lock (_blockLock)
+//                {
+//                    _blocks.Add(new PendingBlock(blockId, true, false));
+//                }
+//            
+//                RequestBlockById(blockId);
 
                 if (a.Height <= _peerHeight)
                 {
@@ -119,6 +207,10 @@ namespace AElf.Network.Peers
             }
         }
 
+        /// <summary>
+        /// This method is used to stop the timer for a block request.
+        /// </summary>
+        /// <param name="block"></param>
         public void OnBlockReceived(Block block)
         {
             byte[] blockHash = block.GetHashBytes();
@@ -137,68 +229,69 @@ namespace AElf.Network.Peers
                 }
             }
 
-            PendingBlock vBlock;
-            lock (_blockLock)
-            {
-                vBlock = _blocks.Where(b => b.IsRequesting).FirstOrDefault(b => b.BlockId.BytesEqual(blockHash));
-            }
+//            PendingBlock vBlock;
+//            lock (_blockLock)
+//            {
+//                vBlock = _blocks.Where(b => b.IsRequesting).FirstOrDefault(b => b.BlockId.BytesEqual(blockHash));
+//            }
 
-            if (vBlock != null)
-            {
-                vBlock.IsRequesting = false;
-                vBlock.IsValidating = true;
-            }
+//            if (vBlock != null)
+//            {
+//                vBlock.IsRequesting = false;
+//                vBlock.IsValidating = true;
+//            }
         }
         
-        public void OnNewBlockAccepted(IBlock block)
-        {
-            byte[] blockHash = block.GetHashBytes();
-            
-            // if we're syncing and one of the block we requested has been 
-            // accepted, we request the next.
-            if (_isSyncing)
-            {
-                int blockHeight = (int)block.Header.Index;
-                if (blockHeight >= _requestedHeight)
-                {
-                    if (blockHeight >= _syncTarget)
-                    {
-                        _logger?.Info($"[{this}] sync finished at {_syncTarget}.");
-                        
-                        EndSync();
-                    }
-                    else
-                    {
-                        int next = blockHeight + 1;
-                        
-                        // request next 
-                        RequestBlockByIndex(next);    
-                    }
-                }
-            }
-            else
-            {
-                lock (_blockLock)
-                {
-                    if (_blocks.Count == 0)
-                        return;
-                
-                    _blocks.RemoveAll(b => b.BlockId.BytesEqual(blockHash));
-                }
-            }
-        }
-
-        private void EndSync()
-        {
-            _syncTarget = 0;
-            _requestedHeight = 0;
-
-            _isSyncing = false;
-            
-            SyncFinished?.Invoke(this, EventArgs.Empty);
-            
-            MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
-        }
+        // TODO old block accepted, now block executed, logic moved higher level
+//        public void OnNewBlockAccepted(IBlock block)
+//        {
+//            byte[] blockHash = block.GetHashBytes();
+//            
+//            // if we're syncing and one of the block we requested has been 
+//            // accepted, we request the next.
+//            if (_isSyncing)
+//            {
+//                int blockHeight = (int)block.Header.Index;
+//                if (blockHeight >= _requestedHeight)
+//                {
+//                    if (blockHeight >= _syncTarget)
+//                    {
+//                        _logger?.Info($"[{this}] sync finished at {_syncTarget}.");
+//                        
+//                        EndSync();
+//                    }
+//                    else
+//                    {
+//                        int next = blockHeight + 1;
+//                        
+//                        // request next 
+//                        RequestBlockByIndex(next);    
+//                    }
+//                }
+//            }
+//            else
+//            {
+//                lock (_blockLock)
+//                {
+//                    if (_blocks.Count == 0)
+//                        return;
+//                
+//                    _blocks.RemoveAll(b => b.BlockId.BytesEqual(blockHash));
+//                }
+//            }
+//        }
+//
+//        private void EndSync()
+//        {
+//            _syncTarget = 0;
+//            _requestedHeight = 0;
+//
+//            _isSyncing = false;
+//            
+//            SyncFinished?.Invoke(this, EventArgs.Empty);
+//            
+//            MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
+//        }
         
         public void RequestHeaders(int headerIndex, int headerRequestCount)
         {
