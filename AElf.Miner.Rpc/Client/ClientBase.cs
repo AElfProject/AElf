@@ -182,11 +182,12 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="millisecondsTimeout"></param>
         /// <param name="height">the height of block info needed</param>
         /// <param name="blockInfo"></param>
+        /// <param name="cachingThreshold">Use <see cref="_cachedBoundedCapacity"/> as cache count threshold if true.</param>
         /// <returns></returns>
-        public bool TryTake(int millisecondsTimeout, ulong height, out IBlockInfo blockInfo)
+        public bool TryTake(int millisecondsTimeout, ulong height, out IBlockInfo blockInfo, bool cachingThreshold = false)
         {
             var first = First();
-            if (first != null && first.Height == height)
+            if (first != null && first.Height == height && (!cachingThreshold || ToBeIndexedInfoQueue.Count >= _cachedBoundedCapacity))
             {
                 var res = ToBeIndexedInfoQueue.TryTake(out blockInfo, millisecondsTimeout);
                 if(res)
@@ -200,7 +201,9 @@ namespace AElf.Miner.Rpc.Client
             
             blockInfo = CachedInfoQueue.FirstOrDefault(c => c.Height == height);
             if (blockInfo != null)
-                return true;
+                return !cachingThreshold ||
+                       ToBeIndexedInfoQueue.Count + CachedInfoQueue.Count(ci => ci.Height >= height) >=
+                       _cachedBoundedCapacity;
             
             _logger?.Trace($"Not found cached data from chain {_targetChainId} at height {height}");
             return false;

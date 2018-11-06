@@ -202,7 +202,7 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         private async Task GenerateTransactionWithParentChainBlockInfo()
         {
-            var parentChainBlockInfo = await GetParentChainBlockInfo();
+            var parentChainBlockInfo = GetParentChainBlockInfo();
             if (parentChainBlockInfo == null)
                 return;
             try
@@ -447,11 +447,11 @@ namespace AElf.Miner.Miner
         /// Get parent chain block info.
         /// </summary>
         /// <returns></returns>
-        private async Task<ParentChainBlockInfo> GetParentChainBlockInfo()
+        private ParentChainBlockInfo GetParentChainBlockInfo()
         {
             try
             {
-                var blocInfo = await _clientManager.TryGetParentChainBlockInfo();
+                var blocInfo = _clientManager.TryGetParentChainBlockInfo();
                 return blocInfo;
             }
             catch (Exception e)

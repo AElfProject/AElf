@@ -244,7 +244,7 @@ namespace AElf.Miner.Rpc.Client
                 // index only one block from one side chain.
                 // this could be changed later.
                 var targetHeight = await GetSideChainTargetHeight(_.Key);
-                if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo))
+                if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, cachingThreshold:true))
                     continue;
                 
                 res.Add((SideChainBlockInfo) blockInfo);
@@ -280,10 +280,11 @@ namespace AElf.Miner.Rpc.Client
         /// <summary>
         /// Try to take first one in cached queue
         /// </summary>
+        /// <param name="pcb"> Mining processing if it is null, synchronization processing otherwise.</param>
         /// <returns>
         /// return the first one cached by <see cref="ClientToParentChain"/>
         /// </returns>
-        public async Task<ParentChainBlockInfo> TryGetParentChainBlockInfo(ParentChainBlockInfo pcb = null)
+        public ParentChainBlockInfo TryGetParentChainBlockInfo(ParentChainBlockInfo pcb = null)
         {
             if (!GrpcLocalConfig.Instance.ClientToParentChain)
                 throw new ClientShutDownException("Client to parent chain is shut down");
@@ -298,7 +299,7 @@ namespace AElf.Miner.Rpc.Client
             if (pcb != null && !(pcb.ChainId.Equals(parentChainId) && targetHeight == pcb.Height))
                 return null;
 
-            if (!_clientToParentChain.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo))
+            if (!_clientToParentChain.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, pcb == null))
             {
                 return null;
             }

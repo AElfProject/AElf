@@ -268,7 +268,7 @@ namespace AElf.Synchronization.BlockExecution
                     // todo: verify transaction from address
                     var parentBlockInfo = (ParentChainBlockInfo) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(ParentChainBlockInfo)})[0];
-                    if (!await ValidateParentChainBlockInfoTransaction(parentBlockInfo))
+                    if (!ValidateParentChainBlockInfoTransaction(parentBlockInfo))
                     {
                         //errorLog = "Invalid parent chain block info.";
                         res = BlockExecutionResult.InvalidParentChainBlockInfo;
@@ -297,11 +297,11 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns>
         /// Return false if validation failed and then that block execution would fail.
         /// </returns>
-        private async Task<bool> ValidateParentChainBlockInfoTransaction(ParentChainBlockInfo parentBlockInfo)
+        private bool ValidateParentChainBlockInfoTransaction(ParentChainBlockInfo parentBlockInfo)
         {
             try
             {
-                var cached = await _clientManager.TryGetParentChainBlockInfo();
+                var cached = _clientManager.TryGetParentChainBlockInfo();
                 if (cached != null) return cached.Equals(parentBlockInfo);
                 _logger.Warn("Not found cached parent block info");
                 return false;
