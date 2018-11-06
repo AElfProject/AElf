@@ -40,7 +40,6 @@ namespace AElf.Node.AElfChain
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockSynchronizer _blockSynchronizer;
-        private readonly IBlockExecutor _blockExecutor;
 
         private IBlockChain _blockChain;
         private IConsensus _consensus;
@@ -55,7 +54,6 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            IBlockExecutor blockExecutor,
             ILogger logger)
         {
             _stateStore = stateStore;
@@ -63,7 +61,6 @@ namespace AElf.Node.AElfChain
             _chainService = chainService;
             _txHub = hub;
             _logger = logger;
-            _blockExecutor = blockExecutor;
             _miner = miner;
             _blockSynchronizer = blockSynchronizer;
         }
@@ -149,48 +146,6 @@ namespace AElf.Node.AElfChain
                 await _txHub.AddTransactionAsync(inTx.Transaction);
             });
 
-            MessageHub.Instance.Subscribe<UpdateConsensus>(option =>
-            {
-                if (option == UpdateConsensus.Update)
-                {
-                    _logger?.Trace("UpdateConsensus - Update");
-                    _consensus?.Update();
-                }
-
-                if (option == UpdateConsensus.Dispose)
-                {
-                    _logger?.Trace("UpdateConsensus - Dispose");
-                    _consensus?.Stop();
-                }
-            });
-
-            MessageHub.Instance.Subscribe<SyncStateChanged>(inState =>
-            {
-                if (inState.IsSyncing)
-                {
-                    _logger?.Trace("SyncStateChanged - Mining locked.");
-                    _consensus?.Hang();
-                }
-                else
-                {
-                    _logger?.Trace("SyncStateChanged - Mining unlocked.");
-                    _consensus?.Start();
-                }
-            });
-
-            MessageHub.Instance.Subscribe<LockMining>(inState =>
-            {
-                if (inState.Lock)
-                {
-                    _logger?.Trace("ConsensusGenerated - Mining locked.");
-                    _consensus?.Hang();
-                }
-                else
-                {
-                    _logger?.Trace("ConsensusGenerated - Mining unlocked.");
-                    _consensus?.Start();
-                }
-            });
             _txHub.Initialize();
         }
 
@@ -231,7 +186,6 @@ namespace AElf.Node.AElfChain
             #region start
 
             _txHub.Start();
-            _blockExecutor.Init();
 
             if (NodeConfig.Instance.IsMiner)
             {
@@ -253,10 +207,6 @@ namespace AElf.Node.AElfChain
                 await _blockSynchronizer.ReceiveBlock(inBlock.Block);
             });
 
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
-            {
-                _blockSynchronizer.AddMinedBlock(inBlock.Block);
-            });
             #endregion start
 
             MessageHub.Instance.Publish(new ChainInitialized(null));

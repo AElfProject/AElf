@@ -255,7 +255,6 @@ namespace AElf.Kernel.Tests.Miner
             var manager = _mock.MinerClientManager();
             var blockExecutor = _mock.GetBlockExecutor(manager);
 
-            blockExecutor.Init();
             var res = await blockExecutor.ExecuteBlock(block);
             Assert.NotEqual(BlockExecutionResult.Success, res);
 

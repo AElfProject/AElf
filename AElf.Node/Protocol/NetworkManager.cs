@@ -108,7 +108,7 @@ namespace AElf.Node.Protocol
                 await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
             });
 
-            MessageHub.Instance.Subscribe<BlockAddedToSet>(inBlock =>
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
             {
                 if (inBlock?.Block == null)
                 {

@@ -53,7 +53,6 @@ namespace AElf.Synchronization.Tests
         public IBlockSynchronizer GetBlockSynchronizer()
         {
             var executor = GetBlockExecutor();
-            executor.Init();
             return new BlockSynchronizer(GetChainService(), GetBlockValidationService(), executor,
                 new BlockSet());
         }
