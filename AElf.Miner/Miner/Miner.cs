@@ -233,6 +233,7 @@ namespace AElf.Miner.Miner
                 tx.Sig.S = ByteString.CopyFrom(signature.S);
 
                 await InsertTransactionToPool(tx);
+                _logger?.Trace($"Generated Cross chain info transaction {tx.GetHash()}");
             }
             catch (Exception e)
             {

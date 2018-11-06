@@ -359,7 +359,12 @@ namespace AElf.Miner.TxMemPool
                         var t = await _transactionManager.GetTransaction(txId);
                         tr = new TransactionReceipt(t);
                     }
-
+                    
+                    // cross chain type transaction should not be reverted.
+                    if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction 
+                        && tr.Transaction.To.Equals(SideChainContractAddress))
+                        continue;
+                    
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
                     tr.Status = TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus;
                     tr.ExecutedBlockNumber = 0;
