@@ -352,6 +352,11 @@ namespace AElf.Synchronization.BlockSynchronization
             // In case of the block set exists blocks that should be valid but didn't executed yet.
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
 
+            if (BlockSet.MaxHeight.HasValue && BlockSet.MaxHeight < currentHeight + ForkDetectionLength)
+            {
+                return;
+            }
+            
             // Detect longest chain and switch.
             var forkHeight = _blockSet.AnyLongerValidChain(currentHeight - ForkDetectionLength);
             if (forkHeight != 0)
