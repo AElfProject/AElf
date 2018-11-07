@@ -190,8 +190,11 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     for (var i = _executedBlocks.OrderBy(p => p.Key).FirstOrDefault().Key; i < targetHeight; i++)
                     {
-                        _executedBlocks.RemoveKey(i);
-                        _logger?.Trace($"Removed block of height {i} from executed block dict.");
+                        if (_executedBlocks.ContainsKey(i))
+                        {
+                            _executedBlocks.RemoveKey(i);
+                            _logger?.Trace($"Removed block of height {i} from executed block dict.");
+                        }
                     }
 
                     var toRemove = _blockCache.Where(b => b.Index <= targetHeight).ToList();
