@@ -9,8 +9,8 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Configuration;
-using Moq;
 using NLog;
+using AElf.Configuration.Config.Chain;
 
 namespace AElf.Contracts.SideChain.Tests
 {
@@ -95,7 +95,8 @@ namespace AElf.Contracts.SideChain.Tests
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
-            NodeConfig.Instance.ChainId = chainId.DumpHex();
+            
+            ChainConfig.Instance.ChainId = chainId.DumpHex();
             var crossChainInfo = new CrossChainInfo(Mock.StateStore);
             var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(0);
             Assert.NotNull(merklepath);
@@ -115,7 +116,7 @@ namespace AElf.Contracts.SideChain.Tests
         {
             Init();
             var chainId = Mock.ChainId1;
-            NodeConfig.Instance.ChainId = chainId.DumpHex();
+            ChainConfig.Instance.ChainId = chainId.DumpHex();
             _contract = new SideChainContractShim(Mock, AddressHelpers.GetSystemContractAddress(chainId, SmartContractType.SideChainContract.ToString()));
             ulong pHeight = 1;
             ParentChainBlockRootInfo pcbr1 = new ParentChainBlockRootInfo

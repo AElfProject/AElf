@@ -8,6 +8,7 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -117,8 +118,9 @@ namespace AElf.Miner.Miner
                 _logger?.Info($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
-                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
-                var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true).ValidateBlockAsync(block, chainContext);
+                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true)
+                    .ValidateBlockAsync(block, chainContext);
                 if (blockValidationResult != BlockValidationResult.Success)
                 {
                     _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");

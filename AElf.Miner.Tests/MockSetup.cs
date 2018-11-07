@@ -18,6 +18,7 @@ using Google.Protobuf;
 using Moq;
 using NLog;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Miner.Rpc.Client;
@@ -293,7 +294,7 @@ namespace AElf.Miner.Tests
             };
             
             var sideChainId = Hash.Generate();
-            NodeConfig.Instance.ChainId = sideChainId.DumpHex();
+            ChainConfig.Instance.ChainId = sideChainId.DumpHex();
             
             MockKeyPair(sideChainId, dir);
             GrpcLocalConfig.Instance.LocalSideChainServerPort = port;
@@ -327,7 +328,7 @@ namespace AElf.Miner.Tests
             GrpcLocalConfig.Instance.LocalParentChainServerPort = port;
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.ParentChainServer = true;
-            NodeConfig.Instance.ChainId = chainId.DumpHex();
+            ChainConfig.Instance.ChainId = chainId.DumpHex();
             
             return chainId;
         }

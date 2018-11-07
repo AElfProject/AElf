@@ -13,6 +13,8 @@ namespace AElf.Kernel.Managers
     {
         private readonly IKeyValueDatabase _database;
 
+        private const string _dbName = "TransactionReceipt";
+
         public TransactionReceiptManager(IKeyValueDatabase database)
         {
             _database = database;
@@ -25,18 +27,18 @@ namespace AElf.Kernel.Managers
 
         public async Task AddOrUpdateReceiptAsync(TransactionReceipt receipt)
         {
-            await _database.SetAsync(GetKey(receipt.TransactionId), receipt.ToByteArray());
+            await _database.SetAsync(_dbName,GetKey(receipt.TransactionId), receipt.ToByteArray());
         }
 
         public async Task AddOrUpdateReceiptsAsync(IEnumerable<TransactionReceipt> receipts)
         {
             var dict = receipts.ToDictionary(r => GetKey(r.TransactionId), r => r.ToByteArray());
-            await _database.PipelineSetAsync(dict);
+            await _database.PipelineSetAsync(_dbName,dict);
         }
 
         public async Task<TransactionReceipt> GetReceiptAsync(Hash txId)
         {
-            var res = await _database.GetAsync(GetKey(txId));
+            var res = await _database.GetAsync(_dbName,GetKey(txId));
             return res?.Deserialize<TransactionReceipt>();
         }
     }

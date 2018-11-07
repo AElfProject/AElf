@@ -33,13 +33,13 @@ namespace AElf.Management.Commands
         {
             if (string.IsNullOrWhiteSpace(arg.ChainAccount))
             {
-                var keyStore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
+                var keyStore = new AElfKeyStore(ApplicationHelpers.GetDefaultConfigPath());
                 var key = keyStore.Create(arg.AccountPassword);
                 arg.ChainAccount = key.GetAddressHex();
             }
 
             var fileName = arg.ChainAccount + ".ak";
-            var filePath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "keys", fileName);
+            var filePath = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "keys", fileName);
             var keyContent = File.ReadAllText(filePath);
 
             return new Dictionary<string, string> {{fileName, keyContent}};

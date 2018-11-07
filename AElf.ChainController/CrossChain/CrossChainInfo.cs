@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
@@ -14,7 +15,7 @@ namespace AElf.ChainController.CrossChain
 
         public CrossChainInfo(IStateStore stateStore)
         {
-            var chainId = Hash.LoadHex(NodeConfig.Instance.ChainId);
+            var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
             _crossChainHelper = new CrossChainHelper(chainId, stateStore);
         }
 

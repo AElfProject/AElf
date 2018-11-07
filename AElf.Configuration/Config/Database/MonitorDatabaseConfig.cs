@@ -1,6 +1,6 @@
 ﻿namespace AElf.Configuration
 {
-    [ConfigFile(FileName = "monitordatabase.json")]
+    [ConfigFile(FileName = "monitor-database.json")]
     public class MonitorDatabaseConfig:ConfigBase<MonitorDatabaseConfig>
     {
         public string Url { get; set; }

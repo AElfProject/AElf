@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using Grpc.Core;
 using NLog;
@@ -90,7 +91,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
+                    ChainId = Hash.LoadHex(ChainConfig.Instance.ChainId),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 //_logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
@@ -149,7 +150,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
+                    ChainId = Hash.LoadHex(ChainConfig.Instance.ChainId),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 

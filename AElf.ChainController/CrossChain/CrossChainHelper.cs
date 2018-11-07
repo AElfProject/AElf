@@ -1,5 +1,6 @@
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
@@ -13,7 +14,7 @@ namespace AElf.ChainController.CrossChain
         private readonly Hash _chainId;
 
         private Address SideChainContractAddress =>
-            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(NodeConfig.Instance.ChainId),
+            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
                 SmartContractType.SideChainContract.ToString());
 
         private readonly IStateStore _stateStore;

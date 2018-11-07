@@ -8,6 +8,7 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -45,6 +46,8 @@ namespace AElf.Synchronization.BlockExecution
             _txHub = txHub;
             _chainManagerBasic = chainManagerBasic;
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
+            
+            Cts = new CancellationTokenSource();
         }
 
         /// <summary>
@@ -109,7 +112,7 @@ namespace AElf.Synchronization.BlockExecution
                 txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
-                var blockChain = _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                var blockChain = _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
                     res = BlockExecutionResult.AlreadyAppended;
@@ -424,11 +427,6 @@ namespace AElf.Synchronization.BlockExecution
         public void FinishInitialSync()
         {
             _clientManager.UpdateRequestInterval();
-        }
-
-        public void Init()
-        {
-            Cts = new CancellationTokenSource();
         }
     }
 
