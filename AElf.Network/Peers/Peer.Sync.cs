@@ -11,22 +11,6 @@ using Google.Protobuf;
 
 namespace AElf.Network.Peers
 {
-    public class PendingBlock
-    {
-        public int BlockNum { get; set; }
-        public byte[] BlockId { get; set; }
-        
-        public bool IsValidating { get; set; }
-        public bool IsRequesting { get; set; }
-
-        public PendingBlock(byte[] blockId, bool isRequesting, bool isValidating)
-        {
-            BlockId = blockId;
-            IsValidating = isValidating;
-            IsRequesting = isRequesting;
-        }
-    }
-    
     public partial class Peer
     {
         public const int DefaultRequestTimeout = 2000;
@@ -36,25 +20,15 @@ namespace AElf.Network.Peers
 
         private const int GenesisHeight = 1;
 
-        private object _blockLock = new object();
-        //private readonly List<PendingBlock> _blocks;
+        private readonly object _blockReqLock = new object();
+        private readonly List<TimedBlockRequest> _blockRequests;
 
-        private object _blockReqLock = new object();
-        private List<TimedBlockRequest> _blockRequests;
-
-        private List<Announce> _announcements;
-        
-        private int _peerHeight = 0;
+        private readonly List<Announce> _announcements;
 
         /// <summary>
         /// When syncing history blocks this is the target height.
         /// </summary>
         private int _syncTarget = 0;
-        
-        /// <summary>
-        /// When syncing history blocks this the currently requested height. 
-        /// </summary>
-        private int _requestedHeight = 0;
 
         /// <summary>
         /// True if syncing to height.
@@ -77,8 +51,20 @@ namespace AElf.Network.Peers
         /// </summary>
         public bool IsSyncing => IsSyncingHistory || IsSyncingAnnounced;
         
-        public int KnownHeight => _peerHeight; 
-        public int CurrentlyRequestedHeight => _requestedHeight;
+        /// <summary>
+        /// Represents our best knowledge about the peers height. This is updated
+        /// based on the peers announcements.
+        /// </summary>
+        public int KnownHeight { get; private set; } = 0;
+
+        /// <summary>
+        /// When syncing history represents the currently requested block.
+        /// </summary>
+        public int CurrentlyRequestedHeight { get; private set; } = 0;
+
+        /// <summary>
+        /// Helper getter to probe for stashed announcements.
+        /// </summary>
         public bool AnyStashed => _announcements.Any();
 
         /// <summary>
@@ -103,10 +89,10 @@ namespace AElf.Network.Peers
 
             // set sync state
             _syncTarget = target;
-            _requestedHeight = start;
+            CurrentlyRequestedHeight = start;
             
             // request 
-            RequestBlockByIndex(_requestedHeight);
+            RequestBlockByIndex(CurrentlyRequestedHeight);
             
             MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(true));
         }
@@ -118,15 +104,15 @@ namespace AElf.Network.Peers
         /// <returns>Returns weither or no this call has completed the sync.</returns>
         public bool SyncNextHistory()
         {
-            if (_requestedHeight == _syncTarget)
+            if (CurrentlyRequestedHeight == _syncTarget)
             {
                 _syncTarget = 0;
-                _requestedHeight = 0;
+                CurrentlyRequestedHeight = 0;
                 return false;
             }
 
-            _requestedHeight++;
-            RequestBlockByIndex(_requestedHeight);
+            CurrentlyRequestedHeight++;
+            RequestBlockByIndex(CurrentlyRequestedHeight);
 
             return true;
         }
@@ -163,10 +149,6 @@ namespace AElf.Network.Peers
             
             return true;
         }
-        
-        /*********************** OLD ***********************/
-        
-        // todo height update from announcement should be done somewhere else
 
         /// <summary>
         /// This method is used to update the height of the current peer.
@@ -182,24 +164,15 @@ namespace AElf.Network.Peers
             
             try
             {
-//                byte[] blockId = a.Id.ToByteArray();
-//
-//                lock (_blockLock)
-//                {
-//                    _blocks.Add(new PendingBlock(blockId, true, false));
-//                }
-//            
-//                RequestBlockById(blockId);
-
-                if (a.Height <= _peerHeight)
+                if (a.Height <= KnownHeight)
                 {
                     // todo just log for now, but this is probably a protocol error.
-                    _logger?.Warn($"[{this}] current know heigth: {_peerHeight} announcement height {a.Height}.");
+                    _logger?.Warn($"[{this}] current know heigth: {KnownHeight} announcement height {a.Height}.");
                 }
             
-                _peerHeight = a.Height;
+                KnownHeight = a.Height;
             
-                _logger?.Trace($"[{this}] height increased: {_peerHeight}.");
+                _logger?.Trace($"[{this}] height increased: {KnownHeight}.");
             }
             catch (Exception e)
             {
@@ -228,70 +201,7 @@ namespace AElf.Network.Peers
                     _blockRequests.Remove(req);
                 }
             }
-
-//            PendingBlock vBlock;
-//            lock (_blockLock)
-//            {
-//                vBlock = _blocks.Where(b => b.IsRequesting).FirstOrDefault(b => b.BlockId.BytesEqual(blockHash));
-//            }
-
-//            if (vBlock != null)
-//            {
-//                vBlock.IsRequesting = false;
-//                vBlock.IsValidating = true;
-//            }
         }
-        
-        // TODO old block accepted, now block executed, logic moved higher level
-//        public void OnNewBlockAccepted(IBlock block)
-//        {
-//            byte[] blockHash = block.GetHashBytes();
-//            
-//            // if we're syncing and one of the block we requested has been 
-//            // accepted, we request the next.
-//            if (_isSyncing)
-//            {
-//                int blockHeight = (int)block.Header.Index;
-//                if (blockHeight >= _requestedHeight)
-//                {
-//                    if (blockHeight >= _syncTarget)
-//                    {
-//                        _logger?.Info($"[{this}] sync finished at {_syncTarget}.");
-//                        
-//                        EndSync();
-//                    }
-//                    else
-//                    {
-//                        int next = blockHeight + 1;
-//                        
-//                        // request next 
-//                        RequestBlockByIndex(next);    
-//                    }
-//                }
-//            }
-//            else
-//            {
-//                lock (_blockLock)
-//                {
-//                    if (_blocks.Count == 0)
-//                        return;
-//                
-//                    _blocks.RemoveAll(b => b.BlockId.BytesEqual(blockHash));
-//                }
-//            }
-//        }
-//
-//        private void EndSync()
-//        {
-//            _syncTarget = 0;
-//            _requestedHeight = 0;
-//
-//            _isSyncing = false;
-//            
-//            SyncFinished?.Invoke(this, EventArgs.Empty);
-//            
-//            MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
-//        }
         
         public void RequestHeaders(int headerIndex, int headerRequestCount)
         {
@@ -344,7 +254,7 @@ namespace AElf.Network.Peers
             
             EnqueueOutgoing(message, (_) =>
             {
-                blockRequest?.Start();
+                blockRequest.Start();
                 _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
             });            
         }
@@ -367,7 +277,7 @@ namespace AElf.Network.Peers
                     EnqueueOutgoing(req.Message, (_) =>
                     {
                         // last check for cancelation
-                        if (req == null || req.IsCanceled)
+                        if (req.IsCanceled)
                             return;
                         
                         req.Start();

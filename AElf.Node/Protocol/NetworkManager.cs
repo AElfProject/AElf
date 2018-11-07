@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Collections;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
 using AElf.Network;
@@ -47,11 +45,8 @@ namespace AElf.Node.Protocol
         public int RequestMaxRetry { get; set; } = DefaultRequestMaxRetry;
 
         #endregion
-
-        public event EventHandler MessageReceived;
         
         private readonly IPeerManager _peerManager;
-        private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly INodeService _nodeService;
@@ -65,9 +60,7 @@ namespace AElf.Node.Protocol
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
 
         internal IPeer CurrentSyncSource { get; set; }
-        private int _localHeight = 0;
-
-        private readonly Hash _chainId;
+        internal int LocalHeight = 0;
         
         private readonly object _syncLock = new object();
 
@@ -80,14 +73,9 @@ namespace AElf.Node.Protocol
             _blockSynchronizer = blockSynchronizer;
             _nodeService = nodeService;
 
-            _chainId = new Hash
-            {
-                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId))
-            };
-
             peerManager.PeerEvent += OnPeerAdded;
 
-            MessageHub.Instance.Subscribe<TransactionAddedToPool>(async inTx =>
+            MessageHub.Instance.Subscribe<TransactionAddedToPool>(inTx =>
             {
                 if (inTx?.Transaction == null)
                 {
@@ -100,7 +88,7 @@ namespace AElf.Node.Protocol
                 if (txHash != null)
                     _lastTxReceived.Enqueue(txHash);
 
-                await BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
+                BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
             });
 
             MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
@@ -121,7 +109,7 @@ namespace AElf.Node.Protocol
                 _logger?.Info($"Block produced, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}) with " +
                               $"{inBlock.Block.Body.TransactionsCount} txs, block height {inBlock.Block.Header.Index}.");
 
-                _localHeight++;
+                LocalHeight++;
             });
 
             MessageHub.Instance.Subscribe<BlockExecuted>(inBlock =>
@@ -132,7 +120,7 @@ namespace AElf.Node.Protocol
                     return;
                 }
                 
-                _localHeight++;
+                LocalHeight++;
 
                 var blockHash = inBlock.Block.GetHash().DumpByteArray();
                 var blockHeight = inBlock.Block.Header.Index;
@@ -271,9 +259,9 @@ namespace AElf.Node.Protocol
             _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
             _lastAnnouncementsReceived = new BoundedByteArrayQueue(MaxBlockHistory);
 
-            _localHeight = await _nodeService.GetCurrentBlockHeightAsync();
+            LocalHeight = await _nodeService.GetCurrentBlockHeightAsync();
 
-            _logger?.Info($"Network initialized at height {_localHeight}.");
+            _logger?.Info($"Network initialized at height {LocalHeight}.");
         }
 
         private void AnnounceBlock(IBlock block)
@@ -317,10 +305,10 @@ namespace AElf.Node.Protocol
                 // Sync if needed
                 lock (_syncLock)
                 {
-                    if (CurrentSyncSource == null && _localHeight < peerHeight)
+                    if (CurrentSyncSource == null && LocalHeight < peerHeight)
                     {
                         CurrentSyncSource = peer.Peer;
-                        CurrentSyncSource.SyncToHeight(_localHeight + 1, peerHeight);
+                        CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
                         
                         FireSyncStateChanged(true);
                     }
@@ -597,12 +585,6 @@ namespace AElf.Node.Protocol
 
         #endregion
 
-        public async Task<int> BroadcastBlock(byte[] hash, byte[] payload)
-        {
-            _lastBlocksReceived.Enqueue(hash);
-            return await BroadcastMessage(AElfProtocolMsgType.NewBlock, payload);
-        }
-
         /// <summary>
         /// This message broadcasts data to all of its peers. This creates and
         /// sends a <see cref="AElfPacketData"/> object with the provided pay-
@@ -611,7 +593,7 @@ namespace AElf.Node.Protocol
         /// <param name="messageMsgType"></param>
         /// <param name="payload"></param>
         /// <returns></returns>
-        public async Task<int> BroadcastMessage(AElfProtocolMsgType messageMsgType, byte[] payload)
+        private int BroadcastMessage(AElfProtocolMsgType messageMsgType, byte[] payload)
         {
             try
             {

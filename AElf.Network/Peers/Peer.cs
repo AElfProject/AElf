@@ -329,7 +329,7 @@ namespace AElf.Network.Peers
                 IPEndPoint remoteEndPoint = (IPEndPoint) _client.Client.RemoteEndPoint;
                 handshk.NodeInfo.IpAddress = remoteEndPoint.Address.ToString();
 
-                _peerHeight = handshk.Height;
+                KnownHeight = handshk.Height;
 
                 _pingPongTimer.Start();
             }

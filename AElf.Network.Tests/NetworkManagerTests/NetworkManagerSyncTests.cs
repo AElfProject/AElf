@@ -28,7 +28,6 @@ namespace AElf.Network.Tests.NetworkManagerTests
         public async Task OnPeerAdded_PeerLowerOrEqual_NoSync()
         {
             Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
-            ChainConfig.Instance.ChainId = "";
             
             Mock<IPeer> peer = CreateMockPeer(); // Peer at height 1
             
@@ -49,7 +48,6 @@ namespace AElf.Network.Tests.NetworkManagerTests
         public async Task OnPeerAdded_PeerHigher_Sync()
         {
             Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
-            ChainConfig.Instance.ChainId = "";
             
             // Peer at height 2
             Mock<IPeer> firstPeer = CreateMockPeer(2);
@@ -81,7 +79,6 @@ namespace AElf.Network.Tests.NetworkManagerTests
         public async Task OnPeerAdded_AlreadySyncing_NoSync()
         {
             Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
-            ChainConfig.Instance.ChainId = "";
             
             Mock<IPeer> firstPeer = CreateMockPeer(2); // Peer at height 1 - sync trigger
             Mock<IPeer> scdPeer = CreateMockPeer(1); // Peer at height 2 
@@ -100,6 +97,12 @@ namespace AElf.Network.Tests.NetworkManagerTests
             
             Assert.Equal(firstPeer.Object, nm.CurrentSyncSource);
         }
+
+        #endregion
+
+        #region Sync finish
+
+        
 
         #endregion
     }
