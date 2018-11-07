@@ -122,6 +122,7 @@ namespace AElf.Kernel
             MessageHub.Instance.Publish(new BranchRolledBack(blocks));
             _logger?.Trace("Finished rollback to " + height);
             MessageHub.Instance.Publish(new RollBackStateChanged(false));
+            MessageHub.Instance.Publish(new CatchingUpAfterRollback(true));
 
             return txs;
         }
