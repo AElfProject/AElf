@@ -218,6 +218,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 // No need to rollback:
                 // Receive again to execute the same block.
 
+                var currentBlockHash = await BlockChain.GetCurrentBlockHashAsync();
                 if (_minedBlock && !_executingRemainingBlocks)
                 {
                     MessageHub.Instance.Publish(new LockMining(false));
@@ -232,7 +233,7 @@ namespace AElf.Synchronization.BlockSynchronization
                         }
 
                         reExecutionResult1 = await _blockExecutor.ExecuteBlock(block);
-                        if (_blockSet.MultipleBlocksInOneIndex(block.Index))
+                        if (_blockSet.MultipleLinkableBlocksInOneIndex(block.Index, currentBlockHash.DumpHex()))
                         {
                             Thread.VolatileWrite(ref _flag, 0);
                             return reExecutionResult1;
@@ -255,7 +256,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     }
 
                     reExecutionResult2 = await _blockExecutor.ExecuteBlock(block);
-                    if (_blockSet.MultipleBlocksInOneIndex(block.Index))
+                    if (_blockSet.MultipleLinkableBlocksInOneIndex(block.Index, currentBlockHash.DumpHex()))
                     {
                         Thread.VolatileWrite(ref _flag, 0);
                         return reExecutionResult2;

@@ -327,9 +327,9 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        public bool MultipleBlocksInOneIndex(ulong index)
+        public bool MultipleLinkableBlocksInOneIndex(ulong index, string preBlockHash)
         {
-            return _blockCache.Count(b => b.Index == index) > 1;
+            return _blockCache.Count(b => b.Index == index && b.Header.PreviousBlockHash.DumpHex() == preBlockHash) > 1;
         }
 
         private void PrintInvalidBlockList()
