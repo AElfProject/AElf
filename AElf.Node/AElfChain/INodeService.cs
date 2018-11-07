@@ -7,7 +7,7 @@ namespace AElf.Node.AElfChain
     {
         void Initialize(NodeConfiguration conf);
         bool Start();
-        void Stop();
+        bool Stop();
         bool IsDPoSAlive();
         bool IsForked();
 

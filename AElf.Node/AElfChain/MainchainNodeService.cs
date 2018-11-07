@@ -214,9 +214,17 @@ namespace AElf.Node.AElfChain
             return true;
         }
 
-        public void Stop()
+        public bool Stop()
         {
-            //todo   
+            //_consensus.Stop();
+            _logger.Trace("mining stopped.");
+
+            //_blockSynchronizer.Stop();
+            _logger.Trace("block synchronizer stopped.");
+            
+            _logger.Trace("network stopped.");
+
+            return true;
         }
 
         public bool IsDPoSAlive()
