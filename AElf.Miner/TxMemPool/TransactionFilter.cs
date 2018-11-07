@@ -7,6 +7,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.EventMessages;
 using AElf.Miner.EventMessages;
 using Easy.MessageHub;
 using NLog;
@@ -22,6 +23,8 @@ namespace AElf.Miner.TxMemPool
 
         private static readonly WhoIsFirst IsFirst = (t1, t2) => t1.Time.Nanos > t2.Time.Nanos ? -1 : 1;
         private readonly ILogger _logger;
+
+        private static string _latestTx;
 
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMe = (list, logger) =>
         {
@@ -66,9 +69,7 @@ namespace AElf.Miner.TxMemPool
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.InitializeAElfDPoS.ToString());
             if (count > 1)
             {
-                toRemove.AddRange(
-                    list.FindAll(tx => tx.MethodName == ConsensusBehavior.InitializeAElfDPoS.ToString())
-                        .OrderBy(tx => tx.Time).Take(count - 1));
+                toRemove.AddRange(list.FindAll(tx => tx.GetHash().DumpHex() != _latestTx));
             }
 
             toRemove.AddRange(
@@ -88,9 +89,7 @@ namespace AElf.Miner.TxMemPool
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PublishOutValueAndSignature.ToString());
             if (count > 1)
             {
-                toRemove.AddRange(
-                    list.FindAll(tx => tx.MethodName == ConsensusBehavior.PublishOutValueAndSignature.ToString())
-                        .OrderBy(tx => tx.Time).Take(count - 1));
+                toRemove.AddRange(list.FindAll(tx => tx.GetHash().DumpHex() != _latestTx));
             }
 
             toRemove.AddRange(
@@ -110,9 +109,7 @@ namespace AElf.Miner.TxMemPool
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString());
             if (count > 1)
             {
-                toRemove.AddRange(
-                    list.FindAll(tx => tx.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString())
-                        .OrderBy(tx => tx.Time).Take(count - 1));
+                toRemove.AddRange(list.FindAll(tx => tx.GetHash().DumpHex() != _latestTx));
             }
 
             toRemove.AddRange(
@@ -130,6 +127,7 @@ namespace AElf.Miner.TxMemPool
 
         public TransactionFilter()
         {
+            MessageHub.Instance.Subscribe<DPoSTransactionGenerated>(inTxId => { _latestTx = inTxId.TransactionId; });
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
                 if (inState.IsMining)
