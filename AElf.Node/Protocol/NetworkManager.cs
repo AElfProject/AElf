@@ -67,8 +67,6 @@ namespace AElf.Node.Protocol
         internal IPeer CurrentSyncSource { get; set; }
         private int _localHeight = 0;
 
-        private bool _isSyncing = false;
-
         private readonly Hash _chainId;
         
         private readonly object _syncLock = new object();
@@ -192,14 +190,14 @@ namespace AElf.Node.Protocol
                     }
                 
                     CurrentSyncSource = null;
-                    SetSyncState(false);
+                    FireSyncStateChanged(false);
 
                     var newPeer = _peers.FirstOrDefault(p => p.AnyStashed);
 
                     if (newPeer != null)
                     {
                         newPeer.SyncNextAnnouncement();
-                        SetSyncState(true);
+                        FireSyncStateChanged(true);
                         _logger?.Debug($"Catching up with {newPeer} ");
                         return;
                     }
@@ -257,15 +255,9 @@ namespace AElf.Node.Protocol
             });
         }
 
-        private void SetSyncState(bool newState)
+        private void FireSyncStateChanged(bool newState)
         {
-            if (_isSyncing == newState)
-                return;
-
-            _isSyncing = newState;
             Task.Run(() => MessageHub.Instance.Publish(new SyncStateChanged(newState)));
-
-            _logger?.Trace($"Sync state changed {_isSyncing}.");
         }
 
         /// <summary>
@@ -330,7 +322,7 @@ namespace AElf.Node.Protocol
                         CurrentSyncSource = peer.Peer;
                         CurrentSyncSource.SyncToHeight(_localHeight + 1, peerHeight);
                         
-                        SetSyncState(true);
+                        FireSyncStateChanged(true);
                     }
                 }
             }
@@ -541,7 +533,7 @@ namespace AElf.Node.Protocol
                         CurrentSyncSource = peer;
                         CurrentSyncSource.SyncNextAnnouncement();
                         
-                        SetSyncState(true);
+                        FireSyncStateChanged(true);
                     }
                 }
                 
