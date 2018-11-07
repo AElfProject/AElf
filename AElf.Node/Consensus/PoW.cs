@@ -34,5 +34,10 @@ namespace AElf.Kernel.Node
         {
             throw new System.NotImplementedException();
         }
+        
+        public bool Shutdown()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

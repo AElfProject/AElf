@@ -216,7 +216,7 @@ namespace AElf.Node.AElfChain
 
         public bool Stop()
         {
-            //_consensus.Stop();
+            _consensus.Stop();
             _logger.Trace("mining stopped.");
 
             //_blockSynchronizer.Stop();

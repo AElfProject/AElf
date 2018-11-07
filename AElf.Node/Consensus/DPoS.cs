@@ -67,6 +67,8 @@ namespace AElf.Kernel.Node
 
         private static bool _hangOnMining;
 
+        private static bool _isShutdown;
+
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
@@ -77,6 +79,7 @@ namespace AElf.Kernel.Node
             _miner = miner;
             _chainService = chainService;
             _synchronizer = synchronizer;
+            _isShutdown = false;
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
@@ -286,6 +289,11 @@ namespace AElf.Kernel.Node
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
             
+            if (_isShutdown)
+            {
+                return;
+            }
+
             if (_hangOnMining)
             {
                 return;
@@ -346,6 +354,11 @@ namespace AElf.Kernel.Node
         {
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
+             
+            if (_isShutdown)
+            {
+                return;
+            }
             
             if (_hangOnMining)
             {
@@ -417,7 +430,12 @@ namespace AElf.Kernel.Node
         {
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(PublishInValue)}.");
-            
+             
+            if (_isShutdown)
+            {
+                return;
+            }
+
             if (_hangOnMining)
             {
                 return;
@@ -469,7 +487,12 @@ namespace AElf.Kernel.Node
         {
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
-            
+             
+            if (_isShutdown)
+            {
+                return;
+            }
+
             if (_hangOnMining)
             {
                 return;
@@ -574,6 +597,12 @@ namespace AElf.Kernel.Node
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
             await _txHub.AddTransactionAsync(tx, true);
+        }
+
+        public bool Shutdown()
+        {
+            _isShutdown = true;
+            return _isShutdown;
         }
     }
 }
