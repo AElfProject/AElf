@@ -104,6 +104,7 @@ namespace AElf.ChainController
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())
             {
+                _logger.Trace("Failed to execute tx Validation: " + trace.StdErr);
                 return BlockValidationResult.FailedToCheckConsensusInvalidation;
             }
 

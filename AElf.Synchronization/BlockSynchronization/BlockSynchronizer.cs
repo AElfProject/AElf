@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private const ulong BlockCacheLimit = 64;
 
-        private const ulong ForkDetectionLength = 4;
+        public static ulong ForkDetectionLength = 4;
 
         private bool _minedBlock;
 
@@ -51,6 +52,8 @@ namespace AElf.Synchronization.BlockSynchronization
         private static ulong _heightBeforeRollback;
 
         private static ulong _heightOfUnlinkableBlock;
+
+        private static ulong _latestHandleBlock;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
@@ -93,7 +96,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
             var currentBlockHeight = await BlockChain.GetCurrentBlockHeightAsync();
 
-            if (block.Index > currentBlockHeight + 1)
+            _latestHandleBlock = Math.Max(_latestHandleBlock, currentBlockHeight);
+
+            if (block.Index > _latestHandleBlock + 1)
             {
                 if (_firstFutureBlockHeight == 0)
                     _firstFutureBlockHeight = block.Index;
@@ -110,7 +115,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 return BlockExecutionResult.FutureBlock;
             }
 
-            if (block.Index == currentBlockHeight + 1)
+            if (block.Index == _latestHandleBlock + 1)
             {
                 _nextBlock = block;
             }
@@ -124,6 +129,7 @@ namespace AElf.Synchronization.BlockSynchronization
             var lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
             if (lockWasTaken)
             {
+                _latestHandleBlock = block.Index;
                 _logger?.Trace("Entered HandleBlock");
 
                 var blockValidationResult =

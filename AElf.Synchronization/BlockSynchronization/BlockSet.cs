@@ -220,9 +220,9 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <summary>
         /// Return the fork height if exists longer chain.
         /// </summary>
-        /// <param name="currentHeight"></param>
+        /// <param name="rollbackHeight"></param>
         /// <returns></returns>
-        public ulong AnyLongerValidChain(ulong currentHeight)
+        public ulong AnyLongerValidChain(ulong rollbackHeight)
         {
             var lockWasTaken = false;
             try
@@ -230,12 +230,14 @@ namespace AElf.Synchronization.BlockSynchronization
                 lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
                 if (!lockWasTaken) 
                     return 0;
+
+                var currentHeight = rollbackHeight + BlockSynchronizer.ForkDetectionLength;
                 
                 PrintInvalidBlockList();
 
                 ulong forkHeight = 0;
 
-                var higherBlocks = _blockCache.Where(b => b.Index > currentHeight).OrderByDescending(b => b.Index)
+                var higherBlocks = _blockCache.Where(b => b.Index > rollbackHeight).OrderByDescending(b => b.Index)
                     .ToList();
 
                 if (higherBlocks.Any())
