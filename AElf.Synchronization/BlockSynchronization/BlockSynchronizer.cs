@@ -35,7 +35,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private const ulong BlockCacheLimit = 64;
 
-        private const ulong ForkDetectionLength = 4;
+        public static ulong ForkDetectionLength = 4;
 
         private bool _minedBlock;
 
