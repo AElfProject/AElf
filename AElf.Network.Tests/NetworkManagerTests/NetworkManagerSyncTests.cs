@@ -1,9 +1,11 @@
 ﻿using System.Threading.Tasks;
+using AElf.ChainController.EventMessages;
 using AElf.Configuration.Config.Chain;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;
 using AElf.Node.AElfChain;
 using AElf.Node.Protocol;
+using Easy.MessageHub;
 using Moq;
 using Xunit;
 
@@ -58,11 +60,21 @@ namespace AElf.Network.Tests.NetworkManagerTests
             
             NetworkManager nm = new NetworkManager(peerManager.Object, null, chainService.Object, null);
             await nm.Start();
+
+            bool syncStateTrueWasFired = false;
+            bool syncStateValue = false;
+            MessageHub.Instance.Subscribe<SyncStateChanged>(syncChanged =>
+            {
+                syncStateTrueWasFired = true;
+                syncStateValue = syncChanged.IsSyncing;
+            });
             
             // register peer 
             peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));
             
             Assert.Equal(firstPeer.Object, nm.CurrentSyncSource);
+            Assert.True(syncStateTrueWasFired);
+            Assert.True(syncStateValue);
         }
         
         [Fact]
