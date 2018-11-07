@@ -200,8 +200,18 @@ namespace AElf.Node.Protocol
                 
                     _currentSyncSource = null;
                     SetSyncState(false);
-                    
-                    // todo Try and find another sync source
+
+                    var newPeer = _peers.FirstOrDefault(p => p.AnyStashed);
+
+                    if (newPeer != null)
+                    {
+                        newPeer.SyncNextAnnouncement();
+                        SetSyncState(true);
+                        _logger?.Debug($"Catching up with {newPeer} ");
+                        return;
+                    }
+
+                    _logger?.Debug("Catched up all peers.");
                 }
             });
 
