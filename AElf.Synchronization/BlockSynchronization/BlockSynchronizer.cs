@@ -32,7 +32,9 @@ namespace AElf.Synchronization.BlockSynchronization
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(ChainConfig.Instance.ChainId)));
 
-        private const ulong Limit = 4;
+        private const ulong BlockCacheLimit = 64;
+
+        private const ulong ForkDetectionLength = 4;
 
         private bool _minedBlock;
 
@@ -100,7 +102,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 _logger?.Trace($"Added block {block.BlockHashToHex} to block cache cause this is a future block.");
 
-                if (block.Index >= currentBlockHeight)
+                if (block.Index >= currentBlockHeight + ForkDetectionLength)
                 {
                     await ReviewBlockSet();
                 }
@@ -178,8 +180,8 @@ namespace AElf.Synchronization.BlockSynchronization
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
             {
-                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {Limit}.");
-                _blockSet.KeepHeight = Limit;
+                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {BlockCacheLimit}.");
+                _blockSet.KeepHeight = BlockCacheLimit;
             }
         }
 
