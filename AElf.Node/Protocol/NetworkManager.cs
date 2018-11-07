@@ -253,9 +253,9 @@ namespace AElf.Node.Protocol
                 anc.Id = ByteString.CopyFrom(block.GetHashBytes());
 
                 byte[] serializedMsg = anc.ToByteArray();
-                Message packet = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Announcement, serializedMsg);
+                //Message packet = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Announcement, serializedMsg);
 
-                BroadcastMessage(AElfProtocolMsgType.Announcement, anc.ToByteArray());
+                BroadcastMessage(AElfProtocolMsgType.Announcement, serializedMsg);
             }
             catch (Exception e)
             {
