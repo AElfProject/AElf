@@ -32,9 +32,7 @@ namespace AElf.Synchronization.BlockSynchronization
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(ChainConfig.Instance.ChainId)));
 
-        private bool _receivedBranchedBlock;
-
-        private const ulong Limit = 64;
+        private const ulong Limit = 4;
 
         private bool _minedBlock;
 
@@ -49,6 +47,8 @@ namespace AElf.Synchronization.BlockSynchronization
         private static IBlock _nextBlock;
 
         private static ulong _heightBeforeRollback;
+
+        private static ulong _heightOfUnlinkableBlock;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
@@ -89,21 +89,26 @@ namespace AElf.Synchronization.BlockSynchronization
                 return BlockExecutionResult.AlreadyReceived;
             }
 
-            ulong blockIndex = await BlockChain.GetCurrentBlockHeightAsync();
-            
-            if (block.Index > blockIndex+1)
+            var currentBlockHeight = await BlockChain.GetCurrentBlockHeightAsync();
+
+            if (block.Index > currentBlockHeight + 1)
             {
                 if (_firstFutureBlockHeight == 0)
                     _firstFutureBlockHeight = block.Index;
 
                 _blockSet.AddBlock(block);
-                
+
                 _logger?.Trace($"Added block {block.BlockHashToHex} to block cache cause this is a future block.");
-                
+
+                if (block.Index >= currentBlockHeight)
+                {
+                    await ReviewBlockSet();
+                }
+
                 return BlockExecutionResult.FutureBlock;
             }
 
-            if (block.Index == blockIndex+1)
+            if (block.Index == currentBlockHeight + 1)
             {
                 _nextBlock = block;
             }
@@ -240,7 +245,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     var reValidationResult = await _blockValidationService.ExecutingAgain(true)
                         .ValidateBlockAsync(block, await GetChainContextAsync());
-                    
+
                     if (reValidationResult.IsFailed())
                     {
                         break;
@@ -265,20 +270,30 @@ namespace AElf.Synchronization.BlockSynchronization
             // Notify the network layer the block has been executed.
             MessageHub.Instance.Publish(new BlockExecuted(block));
 
+            // In case of this synchronization run so long of time.
             if (_nextBlock?.Header != null && _nextBlock.Index == block.Index + 1)
             {
                 await ReceiveBlock(_nextBlock);
             }
 
+            // Sync future blocks.
             if (block.Index + 1 == _firstFutureBlockHeight)
             {
                 await ExecuteRemainingBlocks(_firstFutureBlockHeight);
             }
-            
-            if (_heightBeforeRollback != 0 && block.Index >= _heightBeforeRollback)
+
+            if (_heightBeforeRollback != 0)
             {
-                _heightBeforeRollback = 0;
-                MessageHub.Instance.Publish(new CatchingUpAfterRollback(false));
+                if (block.Index >= _heightBeforeRollback)
+                {
+                    _heightBeforeRollback = 0;
+                    _heightOfUnlinkableBlock = 0;
+                    MessageHub.Instance.Publish(new CatchingUpAfterRollback(false));
+                }
+                else
+                {
+                    MessageHub.Instance.Publish(new CatchingUpAfterRollback(true));
+                }
             }
 
             return BlockExecutionResult.Success;
@@ -289,7 +304,7 @@ namespace AElf.Synchronization.BlockSynchronization
             Thread.VolatileWrite(ref _flag, 0);
 
             _logger?.Warn($"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}.");
-            
+
             MessageHub.Instance.Publish(new LockMining(false));
 
             // Handle the invalid blocks according to their validation results.
@@ -300,13 +315,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (blockValidationResult == BlockValidationResult.Unlinkable)
             {
-                _receivedBranchedBlock = true;
+                _heightOfUnlinkableBlock = block.Index;
 
                 _logger?.Warn("Received unlinkable block.");
 
                 MessageHub.Instance.Publish(new UnlinkableHeader(block.Header));
-
-                await ReviewBlockSet();
             }
 
             // Received blocks from branched chain.
@@ -316,17 +329,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 await ReviewBlockSet();
             }
-
-            if (blockValidationResult == BlockValidationResult.Pending)
-            {
-                await ExecuteRemainingBlocks(await BlockChain.GetCurrentBlockHeightAsync() + 1);
-                MessageHub.Instance.Publish(UpdateConsensus.Dispose);
-            }
         }
 
         private async Task ReviewBlockSet()
         {
-            if (!_receivedBranchedBlock)
+            if (_heightOfUnlinkableBlock == 0)
             {
                 return;
             }
