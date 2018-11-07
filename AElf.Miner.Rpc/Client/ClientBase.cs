@@ -213,7 +213,7 @@ namespace AElf.Miner.Rpc.Client
         /// <summary>
         /// Cache block info lately removed.
         /// Dequeue one element if the cached count reaches <see cref="_cachedBoundedCapacity"/>
-        /// </summary>
+        /// </summary>                                                   
         /// <param name="blockInfo"></param>
         private void CacheBlockInfo(IBlockInfo blockInfo)
         {
