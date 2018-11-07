@@ -361,9 +361,11 @@ namespace AElf.Miner.TxMemPool
                         tr = new TransactionReceipt(t);
                     }
                     
-                    // cross chain type transaction should not be reverted.
+                    // cross chain type and dpos type transaction should not be reverted.
                     if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction 
-                        && tr.Transaction.To.Equals(SideChainContractAddress))
+                        && tr.Transaction.To.Equals(SideChainContractAddress) || 
+                        tr.Transaction.Type == TransactionType.DposTransaction 
+                        && tr.Transaction.To.Equals(DPosContractAddress))
                         continue;
                     
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
