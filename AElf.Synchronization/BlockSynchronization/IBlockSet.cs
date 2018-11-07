@@ -16,6 +16,6 @@ namespace AElf.Synchronization.BlockSynchronization
         List<IBlock> GetBlockByHeight(ulong height);
         ulong AnyLongerValidChain(ulong currentHeight);
         void InformRollback(ulong targetHeight, ulong currentHeight);
-        bool MultipleBlocksInOneIndex(ulong index);
+        bool MultipleLinkableBlocksInOneIndex(ulong index, string preBlockHash);
     }
 }
