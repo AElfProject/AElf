@@ -344,10 +344,10 @@ namespace AElf.Synchronization.BlockSynchronization
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
 
             // Detect longest chain and switch.
-            var forkHeight = _blockSet.AnyLongerValidChain(currentHeight);
+            var forkHeight = _blockSet.AnyLongerValidChain(currentHeight - ForkDetectionLength);
             if (forkHeight != 0)
             {
-                await RollbackToHeight(forkHeight, currentHeight);
+                await RollbackToHeight(forkHeight, currentHeight - ForkDetectionLength);
             }
         }
 
