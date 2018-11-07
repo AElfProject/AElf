@@ -571,7 +571,7 @@ namespace AElf.Node.Protocol
 
                 _lastBlocksReceived.Enqueue(blockHash);
 
-                peer.OnBlockReceived(block);
+                peer.StopBlockTimer(block);
 
                 return block;
             }

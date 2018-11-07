@@ -109,6 +109,7 @@ namespace AElf.Network.Peers
             {
                 SyncTarget = 0;
                 CurrentlyRequestedHeight = 0;
+                MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
                 return false;
             }
 
@@ -186,7 +187,7 @@ namespace AElf.Network.Peers
         /// This method is used to stop the timer for a block request.
         /// </summary>
         /// <param name="block"></param>
-        public void OnBlockReceived(Block block)
+        public void StopBlockTimer(Block block)
         {
             byte[] blockHash = block.GetHashBytes();
             int blockHeight = (int) block.Header.Index;
