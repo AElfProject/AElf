@@ -346,9 +346,7 @@ namespace AElf.Network.Peers
             {
                 blockRequest?.Start();
                 _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
-            });
-            
-            _logger?.Trace($"[{this}] block request enqueued {blockRequest}.");
+            });            
         }
 
         private void TimedRequestOnRequestTimedOut(object sender, EventArgs e)
