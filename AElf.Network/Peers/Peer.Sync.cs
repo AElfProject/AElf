@@ -21,29 +21,30 @@ namespace AElf.Network.Peers
         private const int GenesisHeight = 1;
 
         private readonly object _blockReqLock = new object();
-        private readonly List<TimedBlockRequest> _blockRequests;
+        
+        internal List<TimedBlockRequest> BlockRequests { get; }
 
         private readonly List<Announce> _announcements;
 
         /// <summary>
         /// When syncing history blocks this is the target height.
         /// </summary>
-        private int _syncTarget;
+        public int SyncTarget { get; private set; }
 
         /// <summary>
         /// True if syncing to height.
         /// </summary>
-        public bool IsSyncingHistory => _syncTarget != 0;
+        public bool IsSyncingHistory => SyncTarget != 0;
 
         /// <summary>
         /// When syncing an annoucements, this is the current one.
         /// </summary>
-        private Announce _syncedAnnouncement;
+        public Announce SyncedAnnouncement { get; private set; }
 
         /// <summary>
         /// True if syncing an annoucement.
         /// </summary>
-        public bool IsSyncingAnnounced => _syncedAnnouncement != null;
+        public bool IsSyncingAnnounced => SyncedAnnouncement != null;
         
         /// <summary>
         /// Property that is true if we're currently syncing blocks from this peer.
@@ -88,7 +89,7 @@ namespace AElf.Network.Peers
             }
 
             // set sync state
-            _syncTarget = target;
+            SyncTarget = target;
             CurrentlyRequestedHeight = start;
             
             // request 
@@ -104,9 +105,9 @@ namespace AElf.Network.Peers
         /// <returns>Returns weither or no this call has completed the sync.</returns>
         public bool SyncNextHistory()
         {
-            if (CurrentlyRequestedHeight == _syncTarget)
+            if (CurrentlyRequestedHeight == SyncTarget)
             {
-                _syncTarget = 0;
+                SyncTarget = 0;
                 CurrentlyRequestedHeight = 0;
                 return false;
             }
@@ -126,11 +127,12 @@ namespace AElf.Network.Peers
         }
 
         /// <summary>
-        /// Will trigger the request of the next annoucement. If there's no more announcements to sync
-        /// this method return false.
+        /// Will trigger the request for the next annoucement. If there's no more announcements to sync
+        /// this method return false. The only way to trigger the sync is to call this method with an
+        /// announcement previously added to the stash.
         /// </summary>
-        /// <exception cref="InvalidOperationException">If the this method is called with no currently synced announcement
-        /// and an empty cache the method throws.</exception>
+        /// <exception cref="InvalidOperationException">If this method is called when not syncing
+        /// and with an empty cache the method throws.</exception>
         public bool SyncNextAnnouncement()
         {
             if (!IsSyncingAnnounced && !_announcements.Any())
@@ -138,14 +140,14 @@ namespace AElf.Network.Peers
 
             if (!_announcements.Any())
             {
-                _syncedAnnouncement = null;
+                SyncedAnnouncement = null;
                 return false;
             }
 
-            _syncedAnnouncement = _announcements.OrderBy(a => a.Height).First();
-            _announcements.Remove(_syncedAnnouncement);
+            SyncedAnnouncement = _announcements.OrderBy(a => a.Height).First();
+            _announcements.Remove(SyncedAnnouncement);
                 
-            RequestBlockById(_syncedAnnouncement.Id.ToByteArray());
+            RequestBlockById(SyncedAnnouncement.Id.ToByteArray(), SyncedAnnouncement.Height);
             
             return true;
         }
@@ -193,12 +195,12 @@ namespace AElf.Network.Peers
 
             lock (_blockReqLock)
             {
-                TimedBlockRequest req = _blockRequests.FirstOrDefault(b => (b.IsById && b.Id.BytesEqual(blockHash)) || (!b.IsById && b.Height == blockHeight));
+                TimedBlockRequest req = BlockRequests.FirstOrDefault(b => (b.IsById && b.Id.BytesEqual(blockHash)) || (!b.IsById && b.Height == blockHeight));
 
                 if (req != null)
                 {
                     req.Cancel();
-                    _blockRequests.Remove(req);
+                    BlockRequests.Remove(req);
                 }
             }
         }
@@ -226,10 +228,10 @@ namespace AElf.Network.Peers
             SendTimedRequest(message, br);
         }
         
-        private void RequestBlockById(byte[] id)
+        private void RequestBlockById(byte[] id, int height = 0)
         {
             // Create the request object
-            BlockRequest br = new BlockRequest { Id = ByteString.CopyFrom(id) };
+            BlockRequest br = new BlockRequest { Id = ByteString.CopyFrom(id), Height = height};
             Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
 
             if (message.Payload == null)
@@ -249,7 +251,7 @@ namespace AElf.Network.Peers
 
             lock (_blockReqLock)
             {
-                _blockRequests.Add(blockRequest);
+                BlockRequests.Add(blockRequest);
             }
             
             EnqueueOutgoing(message, (_) =>
@@ -288,7 +290,7 @@ namespace AElf.Network.Peers
                 {
                     lock (_blockReqLock)
                     {
-                        _blockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
+                        BlockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
                     }
                     
                     _logger?.Warn($"[{this}] request failed {req}.");

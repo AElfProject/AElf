@@ -147,7 +147,7 @@ namespace AElf.Network.Peers
 
         public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey, int currentHeight)
         {
-            _blockRequests = new List<TimedBlockRequest>();
+            BlockRequests = new List<TimedBlockRequest>();
             _announcements = new List<Announce>();
 
             _pingPongTimer = new Timer();
