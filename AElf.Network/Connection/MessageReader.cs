@@ -136,7 +136,7 @@ namespace AElf.Network.Connection
                     }
                 }
             }
-            catch (PeerDisconnectedException e)
+            catch (PeerDisconnectedException)
             {
                 StreamClosed?.Invoke(this, EventArgs.Empty);
                 Close();

@@ -28,7 +28,7 @@ namespace AElf.Network.Peers
         /// <summary>
         /// When syncing history blocks this is the target height.
         /// </summary>
-        private int _syncTarget = 0;
+        private int _syncTarget;
 
         /// <summary>
         /// True if syncing to height.
@@ -55,12 +55,12 @@ namespace AElf.Network.Peers
         /// Represents our best knowledge about the peers height. This is updated
         /// based on the peers announcements.
         /// </summary>
-        public int KnownHeight { get; private set; } = 0;
+        public int KnownHeight { get; private set; }
 
         /// <summary>
         /// When syncing history represents the currently requested block.
         /// </summary>
-        public int CurrentlyRequestedHeight { get; private set; } = 0;
+        public int CurrentlyRequestedHeight { get; private set; }
 
         /// <summary>
         /// Helper getter to probe for stashed announcements.
@@ -98,7 +98,7 @@ namespace AElf.Network.Peers
         }
 
         /// <summary>
-        /// This method will request the next block based on the current value of <see cref="_currentBlock"/>.
+        /// This method will request the next block based on the current value of <see cref="CurrentlyRequestedHeight"/>.
         /// If target was reached, the state is reset and the method returns false.
         /// </summary>
         /// <returns>Returns weither or no this call has completed the sync.</returns>
