@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Collections;
-using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
@@ -22,10 +18,8 @@ using AElf.Network.Eventing;
 using AElf.Network.Peers;
 using AElf.Node.AElfChain;
 using AElf.Node.EventMessages;
-using AElf.Node.Protocol.Events;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
-using Akka.Dispatch;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
@@ -70,7 +64,7 @@ namespace AElf.Node.Protocol
 
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
 
-        private IPeer _currentSyncSource;
+        internal IPeer CurrentSyncSource { get; set; }
         private int _localHeight = 0;
 
         private bool _isSyncing = false;
@@ -155,29 +149,29 @@ namespace AElf.Node.Protocol
 
                 lock (_syncLock)
                 {
-                    if (_currentSyncSource == null)
+                    if (CurrentSyncSource == null)
                     {
                         _logger?.Warn("Unexpected situation, executed a block but no peer is currently syncing.");
                     }
-                    else if (!_currentSyncSource.IsSyncing)
+                    else if (!CurrentSyncSource.IsSyncing)
                     {
                         _logger?.Warn("We have a sync source but he is not in a syncing state.");
                     }
-                    else if (_currentSyncSource.IsSyncingHistory)
+                    else if (CurrentSyncSource.IsSyncingHistory)
                     {
-                        if ((int)blockHeight != _currentSyncSource.CurrentlyRequestedHeight)
+                        if ((int)blockHeight != CurrentSyncSource.CurrentlyRequestedHeight)
                             _logger?.Warn("Unexpected situation, the block executed was not the exepected height.");
                     
-                        bool hasReqNext = _currentSyncSource.SyncNextHistory();
+                        bool hasReqNext = CurrentSyncSource.SyncNextHistory();
 
                         if (hasReqNext)
                             return;
                     
                         _logger?.Trace("History block synced.");
                     
-                        if (_currentSyncSource.AnyStashed)
+                        if (CurrentSyncSource.AnyStashed)
                         {
-                            if (_currentSyncSource.SyncNextAnnouncement())
+                            if (CurrentSyncSource.SyncNextAnnouncement())
                             {
                                 _logger?.Trace("The current peer has some unsynced announcements - started sync.");
                                 return;
@@ -186,10 +180,10 @@ namespace AElf.Node.Protocol
                             _logger?.Warn("Failed to start announcement sync.");
                         }
                     }
-                    else if (_currentSyncSource.IsSyncingAnnounced)
+                    else if (CurrentSyncSource.IsSyncingAnnounced)
                     {
                         // todo check hash
-                        bool hasReqNext = _currentSyncSource.SyncNextAnnouncement();
+                        bool hasReqNext = CurrentSyncSource.SyncNextAnnouncement();
 
                         if (hasReqNext)
                             return;
@@ -197,7 +191,7 @@ namespace AElf.Node.Protocol
                         _logger?.Trace("Catched up to announcements.");
                     }
                 
-                    _currentSyncSource = null;
+                    CurrentSyncSource = null;
                     SetSyncState(false);
 
                     var newPeer = _peers.FirstOrDefault(p => p.AnyStashed);
@@ -222,7 +216,7 @@ namespace AElf.Node.Protocol
                     return;
                 }
 
-                IPeer target = _currentSyncSource ??
+                IPeer target = CurrentSyncSource ??
                                _peers.FirstOrDefault(p => p.KnownHeight >= (int) unlinkableHeaderMsg.Header.Index);
 
                 if (target == null)
@@ -242,7 +236,7 @@ namespace AElf.Node.Protocol
                     return;
                 }
 
-                IPeer target = _currentSyncSource ??
+                IPeer target = CurrentSyncSource ??
                                _peers.FirstOrDefault(p => p.KnownHeight >= (int) header.Header.Index);
 
                 if (target == null)
@@ -331,10 +325,10 @@ namespace AElf.Node.Protocol
                 // Sync if needed
                 lock (_syncLock)
                 {
-                    if (_currentSyncSource == null && _localHeight < peerHeight)
+                    if (CurrentSyncSource == null && _localHeight < peerHeight)
                     {
-                        _currentSyncSource = peer.Peer;
-                        _currentSyncSource.SyncToHeight(_localHeight + 1, peerHeight);
+                        CurrentSyncSource = peer.Peer;
+                        CurrentSyncSource.SyncToHeight(_localHeight + 1, peerHeight);
                         
                         SetSyncState(true);
                     }
@@ -542,10 +536,10 @@ namespace AElf.Node.Protocol
                 //SetSyncState(true);
                 lock (_syncLock)
                 {
-                    if (_currentSyncSource == null)
+                    if (CurrentSyncSource == null)
                     {
-                        _currentSyncSource = peer;
-                        _currentSyncSource.SyncNextAnnouncement();
+                        CurrentSyncSource = peer;
+                        CurrentSyncSource.SyncNextAnnouncement();
                         
                         SetSyncState(true);
                     }
