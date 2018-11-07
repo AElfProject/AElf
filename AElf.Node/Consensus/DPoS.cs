@@ -10,6 +10,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.EventMessages;
 using AElf.Miner.Miner;
 using AElf.Node;
 using AElf.Types.CSharp;
@@ -129,12 +130,26 @@ namespace AElf.Kernel.Node
             {
                 if (inState.Lock)
                 {
-                    _logger?.Trace("ConsensusGenerated - Mining locked.");
+                    _logger?.Trace("LockMining - Mining locked.");
                     Hang();
                 }
                 else
                 {
-                    _logger?.Trace("ConsensusGenerated - Mining unlocked.");
+                    _logger?.Trace("LockMining - Mining unlocked.");
+                    await Start();
+                }
+            });
+            
+            MessageHub.Instance.Subscribe<CatchingUpAfterRollback>(async inState =>
+            {
+                if (inState.IsCatchingUp)
+                {
+                    _logger?.Trace("CatchingUp - Mining locked.");
+                    Hang();
+                }
+                else
+                {
+                    _logger?.Trace("CatchingUp - Mining unlocked.");
                     await Start();
                 }
             });

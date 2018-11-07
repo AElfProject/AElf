@@ -1,14 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
-using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
+using AElf.Kernel.EventMessages;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
@@ -50,6 +48,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static IBlock _nextBlock;
 
+        private static ulong _heightBeforeRollback;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -78,11 +78,8 @@ namespace AElf.Synchronization.BlockSynchronization
             });
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => { _miningStarted = inState.IsMining; });
-            
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
-            {
-                AddMinedBlock(inBlock.Block);
-            });
+
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock => { AddMinedBlock(inBlock.Block); });
         }
 
         public async Task<BlockExecutionResult> ReceiveBlock(IBlock block)
@@ -279,6 +276,12 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 await ExecuteRemainingBlocks(_firstFutureBlockHeight);
             }
+            
+            if (_heightBeforeRollback != 0 && block.Index >= _heightBeforeRollback)
+            {
+                _heightBeforeRollback = 0;
+                MessageHub.Instance.Publish(new CatchingUpAfterRollback(false));
+            }
 
             return BlockExecutionResult.Success;
         }
@@ -288,6 +291,8 @@ namespace AElf.Synchronization.BlockSynchronization
             Thread.VolatileWrite(ref _flag, 0);
 
             _logger?.Warn($"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}.");
+            
+            MessageHub.Instance.Publish(new LockMining(false));
 
             // Handle the invalid blocks according to their validation results.
             if ((int) blockValidationResult < 100)
@@ -311,53 +316,13 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 _logger?.Warn("Received a block from branched chain.");
 
-                var linkableBlock = CheckLinkabilityOfBlock(block);
-                if (linkableBlock == null)
-                {
-                    return;
-                }
+                await ReviewBlockSet();
             }
 
             if (blockValidationResult == BlockValidationResult.Pending)
             {
                 await ExecuteRemainingBlocks(await BlockChain.GetCurrentBlockHeightAsync() + 1);
                 MessageHub.Instance.Publish(UpdateConsensus.Dispose);
-            }
-        }
-
-        /// <summary>
-        /// Return true if there exists a block in block set is linkable to provided block.
-        /// </summary>
-        /// <param name="block"></param>
-        /// <returns></returns>
-        private IBlock CheckLinkabilityOfBlock(IBlock block)
-        {
-            try
-            {
-                var checkIndex = block.Index - 1;
-                var checkBlocks = _blockSet.GetBlockByHeight(checkIndex);
-                if (checkBlocks == null || !checkBlocks.Any())
-                {
-                    // TODO: Launch a event to request missing blocks.
-
-                    return null;
-                }
-
-                foreach (var checkBlock in checkBlocks)
-                {
-                    if (checkBlock.BlockHashToHex == block.Header.PreviousBlockHash.DumpHex())
-                    {
-                        return checkBlock;
-                    }
-                }
-
-                return null;
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, $"Error while checking linkablity of block {block.BlockHashToHex} " +
-                                  $"in height {block.Index}");
-                return null;
             }
         }
 
@@ -381,6 +346,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task RollbackToHeight(ulong targetHeight, ulong currentHeight)
         {
+            _heightBeforeRollback = currentHeight;
             await BlockChain.RollbackToHeight(targetHeight - 1);
             _blockSet.InformRollback(targetHeight, currentHeight);
             await ExecuteRemainingBlocks(targetHeight);
