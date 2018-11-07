@@ -11,7 +11,7 @@ namespace AElf.Network
     {
         event EventHandler MessageReceived;
         
-        void Start();
+        Task Start();
 
         Task<int> BroadcastBlock(byte[] hash, byte[] payload);
     }

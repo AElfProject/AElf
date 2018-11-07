@@ -79,12 +79,11 @@ namespace AElf.Node.Protocol
         
         private readonly object _syncLock = new object();
 
-        public NetworkManager(IPeerManager peerManager, IChainService chainService, ILogger logger, IBlockSynchronizer blockSynchronizer, INodeService nodeService)
+        public NetworkManager(IPeerManager peerManager, IBlockSynchronizer blockSynchronizer, INodeService nodeService, ILogger logger)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
 
             _peerManager = peerManager;
-            _chainService = chainService;
             _logger = logger;
             _blockSynchronizer = blockSynchronizer;
             _nodeService = nodeService;
@@ -279,14 +278,14 @@ namespace AElf.Node.Protocol
         /// This method start the server that listens for incoming
         /// connections and sets up the manager.
         /// </summary>
-        public void Start()
+        public async Task Start()
         {
             // init the queue
             _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
             _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
             _lastAnnouncementsReceived = new BoundedByteArrayQueue(MaxBlockHistory);
 
-            _localHeight = (int) _chainService.GetBlockChain(_chainId).GetCurrentBlockHeightAsync().Result;
+            _localHeight = await _nodeService.GetCurrentBlockHeightAsync();
 
             _logger?.Info($"Network initialized at height {_localHeight}.");
         }
@@ -336,6 +335,7 @@ namespace AElf.Node.Protocol
                     {
                         _currentSyncSource = peer.Peer;
                         _currentSyncSource.SyncToHeight(_localHeight + 1, peerHeight);
+                        
                         SetSyncState(true);
                     }
                 }
