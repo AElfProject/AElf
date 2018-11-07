@@ -304,7 +304,7 @@ namespace AElf.Synchronization.BlockExecution
         {
             try
             {
-                var cached = _clientManager.TryGetParentChainBlockInfo();
+                var cached = _clientManager.TryGetParentChainBlockInfo(parentBlockInfo);
                 if (cached != null) 
                     return cached.Equals(parentBlockInfo);
                 _logger.Warn("Not found cached parent block info");
