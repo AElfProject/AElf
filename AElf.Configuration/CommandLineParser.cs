@@ -65,9 +65,6 @@ namespace AElf.Configuration
             if (opts.PeersDbPath != null)
                 NetworkConfig.Instance.PeersDbPath = opts.PeersDbPath;
 
-            if (opts.Peers != null)
-                NetworkConfig.Instance.Peers = opts.Peers.ToList();
-
             if (opts.Port.HasValue)
                 NetworkConfig.Instance.ListeningPort = opts.Port.Value;
 

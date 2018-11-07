@@ -13,8 +13,6 @@ namespace AElf.Configuration.Config.Network
             
         public List<string> Bootnodes { get; set; }
         
-        public List<string> Peers { get; set; }
-
         public string PeersDbPath { get; set; }
         
         /// <summary>
