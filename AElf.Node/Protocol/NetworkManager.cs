@@ -155,9 +155,10 @@ namespace AElf.Node.Protocol
                     
                         _logger?.Trace("History block synced.");
                     
+                        // If this peer still has announcements and the next one is the next block we need.
                         if (CurrentSyncSource.AnyStashed)
                         {
-                            if (CurrentSyncSource.SyncNextAnnouncement())
+                            if (CurrentSyncSource.SyncNextAnnouncement(LocalHeight+1))
                             {
                                 _logger?.Trace("The current peer has some unsynced announcements - started sync.");
                                 return;
@@ -169,27 +170,29 @@ namespace AElf.Node.Protocol
                     else if (CurrentSyncSource.IsSyncingAnnounced)
                     {
                         // todo check hash
-                        bool hasReqNext = CurrentSyncSource.SyncNextAnnouncement();
+                        bool hasReqNext = CurrentSyncSource.SyncNextAnnouncement(LocalHeight+1);
 
                         if (hasReqNext)
                             return;
                     
                         _logger?.Trace("Catched up to announcements.");
                     }
+
+                    var oldSyncSource = CurrentSyncSource;
                 
                     CurrentSyncSource = null;
                     FireSyncStateChanged(false);
 
-                    var newPeer = _peers.FirstOrDefault(p => p.AnyStashed);
-
-                    if (newPeer != null)
+                    foreach (var p in _peers.Where(p => p.AnyStashed && p != oldSyncSource))
                     {
-                        newPeer.SyncNextAnnouncement();
-                        FireSyncStateChanged(true);
-                        _logger?.Debug($"Catching up with {newPeer} ");
-                        return;
+                        if (p.SyncNextAnnouncement(LocalHeight + 1))
+                        {
+                            FireSyncStateChanged(true);
+                            _logger?.Debug($"Catching up with {p} ");
+                            return;
+                        }
                     }
-
+                    
                     _logger?.Debug("Catched up all peers.");
                 }
             });

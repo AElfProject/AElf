@@ -68,6 +68,11 @@ namespace AElf.Network.Peers
         /// </summary>
         public bool AnyStashed => _announcements.Any();
 
+        public int GetLowestAnnouncement()
+        {
+            return _announcements?.OrderBy(a => a.Height).FirstOrDefault()?.Height ?? 0;
+        }
+
         /// <summary>
         /// Effectively triggers a sync session with this peer. The target height is specified
         /// as a parameter.
@@ -134,7 +139,7 @@ namespace AElf.Network.Peers
         /// </summary>
         /// <exception cref="InvalidOperationException">If this method is called when not syncing
         /// and with an empty cache the method throws.</exception>
-        public bool SyncNextAnnouncement()
+        public bool SyncNextAnnouncement(int? expected = null)
         {
             if (!IsSyncingAnnounced && !_announcements.Any())
                 throw new InvalidOperationException($"Call to {nameof(SyncNextAnnouncement)} with no stashed annoucements.");
@@ -145,7 +150,16 @@ namespace AElf.Network.Peers
                 return false;
             }
 
-            SyncedAnnouncement = _announcements.OrderBy(a => a.Height).First();
+            var nextAnouncement = _announcements.OrderBy(a => a.Height).First();
+
+            if (expected.HasValue && expected.Value != nextAnouncement.Height)
+            {
+                SyncedAnnouncement = null;
+                _logger?.Trace("Not the expected value, cannot sync with this peer.");
+                return false;
+            }
+
+            SyncedAnnouncement = nextAnouncement;
             _announcements.Remove(SyncedAnnouncement);
                 
             RequestBlockById(SyncedAnnouncement.Id.ToByteArray(), SyncedAnnouncement.Height);

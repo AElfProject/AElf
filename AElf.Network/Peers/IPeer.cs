@@ -31,10 +31,11 @@ namespace AElf.Network.Peers
         void EnqueueOutgoing(Message msg, Action<Message> successCallback = null);
         
         void StashAnnouncement(Announce announce);
+        int GetLowestAnnouncement();
         
         void SyncToHeight(int start, int target);
         bool SyncNextHistory();
-        bool SyncNextAnnouncement();
+        bool SyncNextAnnouncement(int? expected = null);
 
         void RequestHeaders(int headerIndex, int headerRequestCount);
     }
