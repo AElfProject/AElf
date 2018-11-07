@@ -33,21 +33,33 @@ namespace AElf.Management.Services
         private void TimerOnElapsed(object sender, ElapsedEventArgs e)
         {
             var time = DateTime.Now;
-            Parallel.ForEach(ServiceUrlConfig.Instance.ServiceUrls.Keys, chainId =>
-                {
-                    var txPoolSize = _transactionService.GetPoolSize(chainId);
-                    _transactionService.RecordPoolSize(chainId, time, txPoolSize);
+//            Parallel.ForEach(ServiceUrlConfig.Instance.ServiceUrls.Keys, chainId =>
+//                {
+//                    var txPoolSize = _transactionService.GetPoolSize(chainId);
+//                    _transactionService.RecordPoolSize(chainId, time, txPoolSize);
+//
+//                    var isAlive = _nodeService.IsAlive(chainId);
+//                    var isForked = _nodeService.IsForked(chainId);
+//                    _nodeService.RecordPoolState(chainId, time, isAlive, isForked);
+//
+////                    var networkState = _networkService.GetPoolState(chainId);
+////                    _networkService.RecordPoolState(chainId, time, networkState.RequestPoolSize, networkState.ReceivePoolSize);
+//                    
+//                    _nodeService.RecordBlockInfo(chainId);
+//                }
+//            );
 
-                    var isAlive = _nodeService.IsAlive(chainId);
-                    var isForked = _nodeService.IsForked(chainId);
-                    _nodeService.RecordPoolState(chainId, time, isAlive, isForked);
+            foreach (var chainId in ServiceUrlConfig.Instance.ServiceUrls.Keys)
+            {
+                var txPoolSize = _transactionService.GetPoolSize(chainId);
+                _transactionService.RecordPoolSize(chainId, time, txPoolSize);
 
-//                    var networkState = _networkService.GetPoolState(chainId);
-//                    _networkService.RecordPoolState(chainId, time, networkState.RequestPoolSize, networkState.ReceivePoolSize);
+                var isAlive = _nodeService.IsAlive(chainId);
+                var isForked = _nodeService.IsForked(chainId);
+                _nodeService.RecordPoolState(chainId, time, isAlive, isForked);
                     
-                    _nodeService.RecordBlockInfo(chainId);
-                }
-            );
+                _nodeService.RecordBlockInfo(chainId);
+            }
         }
     }
 }
