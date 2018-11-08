@@ -21,6 +21,7 @@ using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
+using ServiceStack;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 
@@ -217,7 +218,7 @@ namespace AElf.Node.Protocol
                     return;
                 }
                 
-                _logger?.Trace($"Header nnlinkable, height {unlinkableHeaderMsg.Header.Index}.");
+                _logger?.Trace($"Header unlinkable, height {unlinkableHeaderMsg.Header.Index}.");
 
                 IPeer target = CurrentSyncSource ??
                                _peers.FirstOrDefault(p => p.KnownHeight >= (int) unlinkableHeaderMsg.Header.Index);
@@ -529,10 +530,16 @@ namespace AElf.Node.Protocol
 
                 if (bbh != null)
                     return;
+
+                if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory &&
+                    a.Height <= CurrentSyncSource.SyncTarget)
+                {
+                    _logger?.Trace($"Peer {peer} : ignoring announce {a.Height} because history sync will fetch (sync target {CurrentSyncSource.SyncTarget}).");
+                    return;
+                }
                 
                 peer.StashAnnouncement(a);
 
-                //SetSyncState(true);
                 lock (_syncLock)
                 {
                     if (CurrentSyncSource == null)

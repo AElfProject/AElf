@@ -32,7 +32,9 @@ namespace AElf.Network.Peers
         
         void StashAnnouncement(Announce announce);
         int GetLowestAnnouncement();
-        
+
+        int SyncTarget { get; }
+
         void SyncToHeight(int start, int target);
         bool SyncNextHistory();
         bool SyncNextAnnouncement(int? expected = null);
