@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Common.Module;
 using AElf.Kernel.Types.Common;
 using Autofac;
 using Easy.MessageHub;
+using NLog;
 
 namespace AElf.Launcher
 {
     public class LauncherAElfModule:IAElfModule
     {
+        private static readonly ILogger _logger = LogManager.GetLogger("Launcher");
         private int _stopped;
         private readonly AutoResetEvent _closing = new AutoResetEvent(false);
         private readonly Queue<TerminatedModuleEnum> _modules = new Queue<TerminatedModuleEnum>();
@@ -41,23 +44,38 @@ namespace AElf.Launcher
 
         private void OnModuleTerminated(TerminatedModule moduleTerminated)
         {
-            if (_modules.Count == 0)
+            if(_prepareTerminatedModule == moduleTerminated.Module)
             {
-                _closing.Set();
-            }
-            else if(_prepareTerminatedModule == moduleTerminated.Module)
-            {
-                PublishMessage();
+                _modules.Dequeue();
+                _logger.Trace($"{_prepareTerminatedModule.ToString()} stopped.");
             }
             else
             {
                 throw new Exception("Termination error");
             }
+            
+            if (_modules.Count == 0)
+            {
+                _logger.Trace("node will be shutdown after 5s.");
+                for (var i = 0; i < 5; i++)
+                {
+                    _logger.Trace($"{5-i}");
+                    Thread.Sleep(1000);
+                }
+
+                _closing.Set();
+            }
+            else
+            {
+                PublishMessage();
+            }
+            
         }
 
         private void PublishMessage()
         {
-            _prepareTerminatedModule = _modules.Dequeue();
+            _prepareTerminatedModule = _modules.Peek();
+            _logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}.");
             MessageHub.Instance.Publish(new TerminationSignal(_prepareTerminatedModule));
         }
     }
