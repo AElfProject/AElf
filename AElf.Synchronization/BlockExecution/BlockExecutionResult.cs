@@ -25,6 +25,7 @@ namespace AElf.Synchronization.BlockExecution
         IncorrectStateMerkleTree,
         FutureBlock,
         AlreadyAppended,
+        Terminated,
 
         // Need to rollback
         Fatal = 101,

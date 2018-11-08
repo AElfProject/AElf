@@ -9,6 +9,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
+using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
@@ -49,6 +50,8 @@ namespace AElf.Synchronization.BlockSynchronization
         private static bool _executingRemainingBlocks;
 
         private static IBlock _nextBlock;
+        
+        private static bool _terminated;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
@@ -59,6 +62,8 @@ namespace AElf.Synchronization.BlockSynchronization
             _blockSet = blockSet;
 
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
+
+            _terminated = false;
 
             MessageHub.Instance.Subscribe<HeadersReceived>(async inHeaders =>
             {
@@ -83,10 +88,24 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 AddMinedBlock(inBlock.Block);
             });
+            
+            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
+            {
+                if (signal.Module == TerminatedModuleEnum.BlockSynchronizer)
+                {
+                    _terminated = true;
+                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockSynchronizer));
+                }
+            });
         }
 
         public async Task<BlockExecutionResult> ReceiveBlock(IBlock block)
         {
+            if (_terminated)
+            {
+                return BlockExecutionResult.Terminated;
+            }
+
             if (_blockSet.IsBlockReceived(block.GetHash(), block.Index))
             {
                 return BlockExecutionResult.AlreadyReceived;
