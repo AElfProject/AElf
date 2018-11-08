@@ -1,5 +1,3 @@
-using AElf.Common;
-
 namespace AElf.Synchronization.BlockExecution
 {
     // ReSharper disable InconsistentNaming
@@ -15,7 +13,7 @@ namespace AElf.Synchronization.BlockExecution
         //     Haven't appended yet, can execute again
         InvalidSideChainInfo = 11,
         InvalidParentChainBlockInfo,
-        //    Simply cache
+        //     Simply cache
         ExecutionCancelled = 51,
         BlockIsNull,
         NoTransaction,

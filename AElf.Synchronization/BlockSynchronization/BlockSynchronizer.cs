@@ -19,25 +19,20 @@ namespace AElf.Synchronization.BlockSynchronization
 {
     public class BlockSynchronizer : IBlockSynchronizer
     {
+        // Some dependencies.
         private readonly IChainService _chainService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockExecutor _blockExecutor;
-
         private readonly IBlockSet _blockSet;
-
+        
         private IBlockChain _blockChain;
-
-        private readonly ILogger _logger;
-
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(ChainConfig.Instance.ChainId)));
+        
+        private readonly ILogger _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
-        private const ulong BlockCacheLimit = 64;
-
-        public static ulong ForkDetectionLength = 4;
-
-        private bool _minedBlock;
+        private NodeSyncState _nodeSyncState = NodeSyncState.InitialSync;
 
         private static int _flag;
 
@@ -64,8 +59,6 @@ namespace AElf.Synchronization.BlockSynchronization
             _blockValidationService = blockValidationService;
             _blockExecutor = blockExecutor;
             _blockSet = blockSet;
-
-            _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
             MessageHub.Instance.Subscribe<HeadersReceived>(async inHeaders =>
             {
@@ -111,7 +104,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 _logger?.Trace($"Added block {block.BlockHashToHex} to block cache cause this is a future block.");
 
-                if (block.Index >= currentBlockHeight + ForkDetectionLength)
+                if (block.Index >= currentBlockHeight + GlobalConfig.ForkDetectionLength)
                 {
                     _heightOfUnlinkableBlock = block.Index;
                     await ReviewBlockSet();
@@ -166,6 +159,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 foreach (var block in blocks)
                 {
                     blocks = _blockSet.GetBlockByHeight(targetHeight + i);
+                    currentBlockHash = await BlockChain.GetCurrentBlockHashAsync();
                     var executionResult = await HandleValidBlock(block);
                     if (executionResult.IsFailed())
                     {
@@ -180,9 +174,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public void AddMinedBlock(IBlock block)
         {
+            _nodeSyncState = NodeSyncState.MinedBlock;
+            
             _blockSet.Tell(block);
-
-            _minedBlock = true;
 
             // Update DPoS process.
             // TODO this can probably removed by subscribing to BlockMined in DPoS.
@@ -191,8 +185,8 @@ namespace AElf.Synchronization.BlockSynchronization
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
             {
-                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {BlockCacheLimit}.");
-                _blockSet.KeepHeight = BlockCacheLimit;
+                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
+                _blockSet.KeepHeight = GlobalConfig.BlockCacheLimit;
             }
         }
 
@@ -232,7 +226,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 // Receive again to execute the same block.
 
                 var currentBlockHash = await BlockChain.GetCurrentBlockHashAsync();
-                if (_minedBlock && !_executingRemainingBlocks)
+                if (_nodeSyncState == NodeSyncState.MinedBlock && !_executingRemainingBlocks)
                 {
                     Thread.Sleep(100);
                     MessageHub.Instance.Publish(new LockMining(false));
@@ -242,14 +236,14 @@ namespace AElf.Synchronization.BlockSynchronization
                         var reValidationResult = await _blockValidationService.ExecutingAgain(true)
                             .ValidateBlockAsync(block, await GetChainContextAsync());
                         
-                        _logger?.Trace($"Block execution result: {reValidationResult}.");
-
                         if (reValidationResult.IsFailed())
                         {
                             break;
                         }
 
                         reExecutionResult1 = await _blockExecutor.ExecuteBlock(block);
+                        _logger?.Trace($"Block execution result: {reExecutionResult1}.");
+
                         if (_blockSet.MultipleLinkableBlocksInOneIndex(block.Index, currentBlockHash.DumpHex()))
                         {
                             Thread.VolatileWrite(ref _flag, 0);
@@ -267,14 +261,13 @@ namespace AElf.Synchronization.BlockSynchronization
                     var reValidationResult = await _blockValidationService.ExecutingAgain(true)
                         .ValidateBlockAsync(block, await GetChainContextAsync());
 
-                    _logger?.Trace($"Block execution result: {reValidationResult}.");
-
                     if (reValidationResult.IsFailed())
                     {
                         break;
                     }
 
                     reExecutionResult2 = await _blockExecutor.ExecuteBlock(block);
+                    _logger?.Trace($"Block execution result: {reExecutionResult2}.");
                     if (_blockSet.MultipleLinkableBlocksInOneIndex(block.Index, currentBlockHash.DumpHex()))
                     {
                         Thread.VolatileWrite(ref _flag, 0);
@@ -372,13 +365,13 @@ namespace AElf.Synchronization.BlockSynchronization
             // In case of the block set exists blocks that should be valid but didn't executed yet.
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
 
-            if (BlockSet.MaxHeight.HasValue && BlockSet.MaxHeight < currentHeight + ForkDetectionLength)
+            if (BlockSet.MaxHeight.HasValue && BlockSet.MaxHeight < currentHeight + GlobalConfig.ForkDetectionLength)
             {
                 return;
             }
             
             // Detect longest chain and switch.
-            var forkHeight = _blockSet.AnyLongerValidChain(currentHeight - ForkDetectionLength);
+            var forkHeight = _blockSet.AnyLongerValidChain(currentHeight - GlobalConfig.ForkDetectionLength);
             // Execute next block.
             if (forkHeight == ulong.MaxValue)
             {
@@ -386,7 +379,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             else if (forkHeight != 0)
             {
-                await RollbackToHeight(forkHeight, currentHeight - ForkDetectionLength);
+                await RollbackToHeight(forkHeight, currentHeight - GlobalConfig.ForkDetectionLength);
             }
         }
 
