@@ -46,6 +46,8 @@ namespace AElf.Synchronization.BlockExecution
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
             
             Cts = new CancellationTokenSource();
+
+            MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
         }
 
         /// <summary>
@@ -55,6 +57,8 @@ namespace AElf.Synchronization.BlockExecution
 
         private string _current;
 
+        private static bool _isMining;
+
         /// <inheritdoc/>
         public async Task<BlockExecutionResult> ExecuteBlock(IBlock block)
         {
@@ -63,6 +67,13 @@ namespace AElf.Synchronization.BlockExecution
                 _logger?.Trace($"Prevent block {block.BlockHashToHex} from re-entering block execution, " +
                                $"for block {_current} is being executing.");
                 return BlockExecutionResult.Expelled;
+            }
+
+            if (_isMining)
+            {
+                _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution," + 
+                               "for this node is mining.");
+                return BlockExecutionResult.Mining;
             }
 
             _current = block.BlockHashToHex;

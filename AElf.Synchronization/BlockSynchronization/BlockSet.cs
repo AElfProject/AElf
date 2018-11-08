@@ -7,7 +7,6 @@ using AElf.Kernel;
 using Akka.Util.Internal;
 using NLog;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable FieldCanBeMadeReadOnly.Local

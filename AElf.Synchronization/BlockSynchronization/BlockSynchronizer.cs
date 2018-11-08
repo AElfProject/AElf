@@ -53,7 +53,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static ulong _heightOfUnlinkableBlock;
 
-        private static ulong _latestHandleBlock;
+        private static ulong _latestHandledValidBlock;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
@@ -96,9 +96,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
             var currentBlockHeight = await BlockChain.GetCurrentBlockHeightAsync();
 
-            _latestHandleBlock = Math.Max(_latestHandleBlock, currentBlockHeight);
+            _latestHandledValidBlock = Math.Max(_latestHandledValidBlock, currentBlockHeight);
 
-            if (block.Index > _latestHandleBlock + 1)
+            if (block.Index > _latestHandledValidBlock + 1)
             {
                 if (_firstFutureBlockHeight == 0)
                     _firstFutureBlockHeight = block.Index;
@@ -115,7 +115,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 return BlockExecutionResult.FutureBlock;
             }
 
-            if (block.Index == _latestHandleBlock + 1)
+            if (block.Index == _latestHandledValidBlock + 1)
             {
                 _nextBlock = block;
             }
@@ -129,7 +129,6 @@ namespace AElf.Synchronization.BlockSynchronization
             var lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
             if (lockWasTaken)
             {
-                _latestHandleBlock = block.Index;
                 _logger?.Trace("Entered HandleBlock");
 
                 var blockValidationResult =
@@ -193,7 +192,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<BlockExecutionResult> HandleValidBlock(IBlock block)
         {
-            _logger?.Trace($"Valid block {block.BlockHashToHex}.");
+            _latestHandledValidBlock = block.Index;
+            
+            _logger?.Trace($"Valid block {block.BlockHashToHex}. Height: **{block.Index}**");
 
             _blockSet.AddBlock(block);
 
@@ -312,7 +313,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             Thread.VolatileWrite(ref _flag, 0);
 
-            _logger?.Warn($"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}.");
+            _logger?.Warn($"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}. Height: **{block.Index}**");
 
             MessageHub.Instance.Publish(new LockMining(false));
 
@@ -342,6 +343,8 @@ namespace AElf.Synchronization.BlockSynchronization
             // A weird situation.
             if (blockValidationResult == BlockValidationResult.Pending)
             {
+                _heightOfUnlinkableBlock = block.Index;
+                
                 await ReviewBlockSet();
             }
         }
