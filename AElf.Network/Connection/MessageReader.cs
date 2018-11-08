@@ -85,7 +85,9 @@ namespace AElf.Network.Connection
                         if (!partialPacket.IsEnd)
                         {
                             _partialPacketBuffer.Add(partialPacket);
-                            _logger.Trace($"Received packet : {(MessageType) type}, length : {length}.");
+                            
+                            if (_partialPacketBuffer.Count == 0)
+                                _logger.Trace($"Received first packet: {partialPacket.Type}, total size: {partialPacket.TotalDataSize}.");
                         }
                         else
                         {

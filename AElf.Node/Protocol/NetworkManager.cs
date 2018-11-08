@@ -141,30 +141,30 @@ namespace AElf.Node.Protocol
                     }
                     else if (!CurrentSyncSource.IsSyncing)
                     {
-                        _logger?.Warn("We have a sync source but he is not in a syncing state.");
+                        _logger?.Warn($"{CurrentSyncSource} is sync source but not in sync state.");
                     }
                     else if (CurrentSyncSource.IsSyncingHistory)
                     {
                         if ((int)blockHeight != CurrentSyncSource.CurrentlyRequestedHeight)
-                            _logger?.Warn("Unexpected situation, the block executed was not the exepected height.");
+                            _logger?.Warn($"{CurrentSyncSource} unexpected situation, the block executed was not the exepected height.");
                     
                         bool hasReqNext = CurrentSyncSource.SyncNextHistory();
 
                         if (hasReqNext)
                             return;
                     
-                        _logger?.Trace("History block synced.");
+                        _logger?.Trace($"{CurrentSyncSource} history blocks synced, local height {LocalHeight}.");
                     
                         // If this peer still has announcements and the next one is the next block we need.
                         if (CurrentSyncSource.AnyStashed)
                         {
                             if (CurrentSyncSource.SyncNextAnnouncement(LocalHeight+1))
                             {
-                                _logger?.Trace("The current peer has some unsynced announcements - started sync.");
+                                _logger?.Trace($"{CurrentSyncSource} has the next block - started sync.");
                                 return;
                             }
                         
-                            _logger?.Warn("Failed to start announcement sync.");
+                            _logger?.Warn($"{CurrentSyncSource} Failed to start announcement sync.");
                         }
                     }
                     else if (CurrentSyncSource.IsSyncingAnnounced)
@@ -175,23 +175,35 @@ namespace AElf.Node.Protocol
                         if (hasReqNext)
                             return;
                     
-                        _logger?.Trace("Catched up to announcements.");
+                        _logger?.Trace($"Catched up to announcements with {CurrentSyncSource}.");
                     }
 
                     var oldSyncSource = CurrentSyncSource;
-                
+                    
+                    // At this point the current sync source either doesn't have the next announcement 
+                    // or has none at all.
                     CurrentSyncSource = null;
-                    FireSyncStateChanged(false);
 
+                    // Try and find a peer with an anouncement that corresponds to the next block we need.
                     foreach (var p in _peers.Where(p => p.AnyStashed && p != oldSyncSource))
                     {
                         if (p.SyncNextAnnouncement(LocalHeight + 1))
                         {
+                            CurrentSyncSource = p;
+                            
                             FireSyncStateChanged(true);
-                            _logger?.Debug($"Catching up with {p} ");
+                            _logger?.Debug($"Catching up with {p}.");
+                            
                             return;
                         }
                     }
+
+                    if (CurrentSyncSource != null)
+                    {
+                        _logger?.Error($"The current sync source {CurrentSyncSource} is not null even though sync should be finished.");
+                    }
+                    
+                    FireSyncStateChanged(false);
                     
                     _logger?.Debug("Catched up all peers.");
                 }
@@ -204,6 +216,8 @@ namespace AElf.Node.Protocol
                     _logger?.Warn("[event] message or header null.");
                     return;
                 }
+                
+                _logger?.Trace($"Header nnlinkable, height {unlinkableHeaderMsg.Header.Index}.");
 
                 IPeer target = CurrentSyncSource ??
                                _peers.FirstOrDefault(p => p.KnownHeight >= (int) unlinkableHeaderMsg.Header.Index);
@@ -224,6 +238,8 @@ namespace AElf.Node.Protocol
                     _logger?.Warn("[event] message or header null.");
                     return;
                 }
+                
+                _logger?.Trace($"Header accepted, height {header.Header.Index}.");
 
                 IPeer target = CurrentSyncSource ??
                                _peers.FirstOrDefault(p => p.KnownHeight >= (int) header.Header.Index);

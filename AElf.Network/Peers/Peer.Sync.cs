@@ -155,7 +155,8 @@ namespace AElf.Network.Peers
             if (expected.HasValue && expected.Value != nextAnouncement.Height)
             {
                 SyncedAnnouncement = null;
-                _logger?.Trace("Not the expected value, cannot sync with this peer.");
+                _logger?.Trace($"Sync not possible: expected {expected.Value}, current {nextAnouncement.Height}.");
+                
                 return false;
             }
 
