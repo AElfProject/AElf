@@ -66,15 +66,15 @@ namespace AElf.Synchronization.BlockExecution
         {
             if (_current != null)
             {
-                _logger?.Trace($"Prevent block {block.BlockHashToHex} from re-entering block execution, " +
-                               $"for block {_current} is being executing.");
+                _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution, " +
+                               $"for block {_current} is being executed.");
                 return BlockExecutionResult.Expelled;
             }
 
             if (_isMining)
             {
                 _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution," + 
-                               "for this node is mining.");
+                               "for this node is doing mining.");
                 return BlockExecutionResult.Mining;
             }
 
@@ -147,8 +147,7 @@ namespace AElf.Synchronization.BlockExecution
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while execute block {block.BlockHashToHex}.");
-                
+                _logger?.Error(e, $"Exception while execute block {block.BlockHashToHex}.");
                 // TODO, no wait may need improve
                 Rollback(block, txnRes).ConfigureAwait(false);
 

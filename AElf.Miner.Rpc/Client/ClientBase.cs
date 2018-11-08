@@ -94,7 +94,7 @@ namespace AElf.Miner.Rpc.Client
                     ChainId = Hash.LoadHex(ChainConfig.Instance.ChainId),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
-                //_logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
+                _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_realInterval);
             }
@@ -130,7 +130,7 @@ namespace AElf.Miner.Rpc.Client
                     var detail = e.Status.Detail;
                     _logger?.Error($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
                     await Task.Delay(UnavailableConnectionInterval);
-                    StartDuplexStreamingCall(cancellationToken, _next);
+                    StartDuplexStreamingCall(cancellationToken, _next).ConfigureAwait(false);
                     return;
                 }
                 _logger?.Error(e, "Miner client stooped with exception.");
