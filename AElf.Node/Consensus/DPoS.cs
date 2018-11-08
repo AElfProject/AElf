@@ -258,6 +258,7 @@ namespace AElf.Kernel.Node
                 Type = TransactionType.DposTransaction
             };
 
+            _logger?.Trace("parameters count: " + parameters.Count);
             tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters));
 
             var signer = new ECSigner();
