@@ -25,7 +25,7 @@ namespace AElf.Management.Request
             request.Content = c;
 
             var response = client.SendAsync(request).Result;
-            var result = response.Content.ReadAsStringAsync().Result;
+            var result = response.Content.ToString();
 
             return result;
         }

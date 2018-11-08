@@ -13,6 +13,7 @@ namespace AElf.Management.Services
         private readonly ITransactionService _transactionService;
         private readonly INodeService _nodeService;
         private readonly INetworkService _networkService;
+        private readonly Timer _timer;
 
         public RecrodService(IChainService chainService, ITransactionService transactionService, INodeService nodeService, INetworkService networkService)
         {
@@ -20,14 +21,14 @@ namespace AElf.Management.Services
             _transactionService = transactionService;
             _nodeService = nodeService;
             _networkService = networkService;
+            _timer = new Timer(ManagementConfig.Instance.MonitoringInterval * 1000);
+            _timer.Elapsed += TimerOnElapsed;
         }
 
         public void Start()
         {
             // Todo we should move it to monitor project,management website just receive and record
-            var timer = new Timer(ManagementConfig.Instance.MonitoringInterval * 1000);
-            timer.Elapsed += TimerOnElapsed;
-            timer.Start();
+            _timer.Start();
         }
 
         private void TimerOnElapsed(object sender, ElapsedEventArgs e)
