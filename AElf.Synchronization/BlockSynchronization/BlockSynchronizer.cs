@@ -340,6 +340,12 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 await ReviewBlockSet();
             }
+
+            // A weird situation.
+            if (blockValidationResult == BlockValidationResult.Pending)
+            {
+                await ReviewBlockSet();
+            }
         }
 
         private async Task ReviewBlockSet()
