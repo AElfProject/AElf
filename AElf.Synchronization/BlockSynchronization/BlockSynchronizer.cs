@@ -234,7 +234,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 var currentBlockHash = await BlockChain.GetCurrentBlockHashAsync();
                 if (_minedBlock && !_executingRemainingBlocks)
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(200);
                     MessageHub.Instance.Publish(new LockMining(false));
                     BlockExecutionResult reExecutionResult1;
                     do

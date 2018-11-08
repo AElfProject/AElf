@@ -296,7 +296,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     return ulong.MaxValue;
                 }
                 
-                return forkHeight <= currentHeight ? forkHeight : 0;54
+                return forkHeight <= currentHeight ? forkHeight : 0;
             }
             finally
             {
