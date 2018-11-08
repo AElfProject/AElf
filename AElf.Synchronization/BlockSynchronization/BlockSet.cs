@@ -289,7 +289,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _logger?.Trace("No proper fork height.");
                 }
-                    
+
+                if (currentHeight + 1 == forkHeight)
+                {
+                    return ulong.MaxValue;
+                }
+                
                 return forkHeight <= currentHeight ? forkHeight : 0;
             }
             finally

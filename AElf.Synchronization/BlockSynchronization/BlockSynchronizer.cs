@@ -370,7 +370,12 @@ namespace AElf.Synchronization.BlockSynchronization
             
             // Detect longest chain and switch.
             var forkHeight = _blockSet.AnyLongerValidChain(currentHeight - ForkDetectionLength);
-            if (forkHeight != 0)
+            // Execute next block.
+            if (forkHeight == ulong.MaxValue)
+            {
+                await ExecuteRemainingBlocks(currentHeight + 1);
+            }
+            else if (forkHeight != 0)
             {
                 await RollbackToHeight(forkHeight, currentHeight - ForkDetectionLength);
             }

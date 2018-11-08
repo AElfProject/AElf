@@ -275,7 +275,6 @@ namespace AElf.Kernel.Node
                         parameters[3], parameters[4]));
                     break;
             }
-
             var signer = new ECSigner();
             var signature = signer.Sign(_nodeKeyPair, tx.GetHash().DumpByteArray());
 
