@@ -152,7 +152,8 @@ namespace AElf.Synchronization.BlockSynchronization
             // Find new blocks from block set to execute
             var blocks = _blockSet.GetBlockByHeight(targetHeight);
             ulong i = 0;
-            while (blocks != null && blocks.Any())
+            var currentBlockHash = await BlockChain.GetCurrentBlockHashAsync();
+            while (blocks != null && blocks.Any(b => b.Header.PreviousBlockHash.DumpHex() == currentBlockHash.DumpHex()))
             {
                 _logger?.Trace($"Will get block of height {targetHeight + i} from block set to " +
                                $"execute - {blocks.Count} blocks.");

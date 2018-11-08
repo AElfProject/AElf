@@ -258,23 +258,7 @@ namespace AElf.Kernel.Node
                 Type = TransactionType.DposTransaction
             };
 
-            switch (parameters.Count)
-            {
-                case 2:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1]));
-                    break;
-                case 3:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2]));
-                    break;
-                case 4:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
-                        parameters[3]));
-                    break;
-                case 5:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
-                        parameters[3], parameters[4]));
-                    break;
-            }
+            tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters));
 
             var signer = new ECSigner();
             var signature = signer.Sign(_nodeKeyPair, tx.GetHash().DumpByteArray());
