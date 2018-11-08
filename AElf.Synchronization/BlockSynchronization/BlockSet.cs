@@ -52,7 +52,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private readonly ILogger _logger;
 
-        private static readonly List<IBlock> BlockCache = new List<IBlock>();
+        private static List<IBlock> BlockCache = new List<IBlock>();
 
         public static ulong? MaxHeight => BlockCache.OrderByDescending(b => b.Index).FirstOrDefault()?.Index;
 
@@ -83,6 +83,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 try
                 {
                     BlockCache.Add(block);
+                    BlockCache = BlockCache.OrderBy(b => b.Index).ToList();
                 }
                 finally
                 {
@@ -295,7 +296,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     return ulong.MaxValue;
                 }
                 
-                return forkHeight <= currentHeight ? forkHeight : 0;
+                return forkHeight <= currentHeight ? forkHeight : 0;54
             }
             finally
             {
@@ -343,7 +344,7 @@ namespace AElf.Synchronization.BlockSynchronization
         private void PrintInvalidBlockList()
         {
             var str = "\nInvalid Block List:\n";
-            foreach (var block in BlockCache)
+            foreach (var block in BlockCache.OrderBy(b => b.Index))
             {
                 str +=
                     $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}\n";

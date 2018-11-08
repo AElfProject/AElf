@@ -55,6 +55,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static ulong _latestHandledValidBlock;
 
+        private static bool _isExecuting;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet)
         {
@@ -85,6 +87,8 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => { _miningStarted = inState.IsMining; });
 
             MessageHub.Instance.Subscribe<BlockMined>(inBlock => { AddMinedBlock(inBlock.Block); });
+            
+            MessageHub.Instance.Subscribe<ExecutionStateChanged>(inState => { _isExecuting = inState.IsExecuting; });
         }
 
         public async Task<BlockExecutionResult> ReceiveBlock(IBlock block)
@@ -237,6 +241,9 @@ namespace AElf.Synchronization.BlockSynchronization
                     {
                         var reValidationResult = await _blockValidationService.ExecutingAgain(true)
                             .ValidateBlockAsync(block, await GetChainContextAsync());
+                        
+                        _logger?.Trace($"Block execution result: {reValidationResult}.");
+
                         if (reValidationResult.IsFailed())
                         {
                             break;
@@ -248,7 +255,7 @@ namespace AElf.Synchronization.BlockSynchronization
                             Thread.VolatileWrite(ref _flag, 0);
                             return reExecutionResult1;
                         }
-                    } while (reExecutionResult1.IsFailed() && !_miningStarted);
+                    } while (reExecutionResult1.CanExecuteAgain() && !_miningStarted);
 
                     return executionResult;
                 }
@@ -259,6 +266,8 @@ namespace AElf.Synchronization.BlockSynchronization
                     Thread.Sleep(100);
                     var reValidationResult = await _blockValidationService.ExecutingAgain(true)
                         .ValidateBlockAsync(block, await GetChainContextAsync());
+
+                    _logger?.Trace($"Block execution result: {reValidationResult}.");
 
                     if (reValidationResult.IsFailed())
                     {
@@ -271,7 +280,7 @@ namespace AElf.Synchronization.BlockSynchronization
                         Thread.VolatileWrite(ref _flag, 0);
                         return reExecutionResult2;
                     }
-                } while (reExecutionResult2.IsFailed());
+                } while (reExecutionResult2.CanExecuteAgain());
             }
 
             _blockSet.Tell(block);
@@ -355,7 +364,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task ReviewBlockSet()
         {
-            if (_heightOfUnlinkableBlock == 0)
+            if (_heightOfUnlinkableBlock == 0 || _isExecuting)
             {
                 return;
             }
