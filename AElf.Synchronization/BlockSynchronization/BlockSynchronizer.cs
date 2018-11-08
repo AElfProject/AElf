@@ -109,6 +109,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 if (block.Index >= currentBlockHeight + ForkDetectionLength)
                 {
+                    _heightOfUnlinkableBlock = block.Index;
                     await ReviewBlockSet();
                 }
 
