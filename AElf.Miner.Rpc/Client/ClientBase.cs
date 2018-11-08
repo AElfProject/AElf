@@ -206,7 +206,7 @@ namespace AElf.Miner.Rpc.Client
                        ToBeIndexedInfoQueue.Count + CachedInfoQueue.Count(ci => ci.Height >= height) >=
                        _cachedBoundedCapacity;
             
-            _logger?.Trace($"Not found cached data from chain {_targetChainId} at height {height}");
+            //_logger?.Trace($"Not found cached data from chain {_targetChainId} at height {height}");
             return false;
         }
 

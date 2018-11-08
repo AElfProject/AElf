@@ -295,7 +295,7 @@ namespace AElf.Miner.Rpc.Client
                 return null;
             Hash parentChainId = Hash.LoadHex(chainId);
             ulong targetHeight = GetParentChainTargetHeight();
-            _logger?.Trace($"To get pcb at height {targetHeight}");
+            // _logger?.Trace($"To get pcb at height {targetHeight}");
             if (pcb != null && !(pcb.ChainId.Equals(parentChainId) && targetHeight == pcb.Height))
                 return null;
 
