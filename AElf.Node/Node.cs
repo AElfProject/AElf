@@ -64,24 +64,5 @@ namespace AElf.Node
             _rpcServer.Start();
             return true;
         }
-
-        public bool Stop()
-        {
-            _logger.Trace("node will stop.");
-            _rpcServer.Stop();
-            _logger.Trace("rpc server stopped.");
-            
-            foreach (var service in _services)
-            {
-                var result = service.Stop();
-                if (!result)
-                {
-                    throw new Exception("failed to stop node");
-                }
-            }
-            
-            _logger.Trace("node stopped.");
-            return true;
-        }
     }
 }

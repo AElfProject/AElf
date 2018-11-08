@@ -5,6 +5,5 @@
         void Register(INodeService s);
         void Initialize(NodeConfiguration conf);
         bool Start();
-        bool Stop();
     }
 }
