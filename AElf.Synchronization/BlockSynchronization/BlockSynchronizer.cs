@@ -230,6 +230,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 var currentBlockHash = await BlockChain.GetCurrentBlockHashAsync();
                 if (_minedBlock && !_executingRemainingBlocks)
                 {
+                    Thread.Sleep(100);
                     MessageHub.Instance.Publish(new LockMining(false));
                     BlockExecutionResult reExecutionResult1;
                     do
@@ -256,6 +257,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 BlockExecutionResult reExecutionResult2;
                 do
                 {
+                    Thread.Sleep(100);
                     var reValidationResult = await _blockValidationService.ExecutingAgain(true)
                         .ValidateBlockAsync(block, await GetChainContextAsync());
 
