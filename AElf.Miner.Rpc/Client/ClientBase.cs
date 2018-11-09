@@ -94,7 +94,7 @@ namespace AElf.Miner.Rpc.Client
                     ChainId = Hash.LoadHex(ChainConfig.Instance.ChainId),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
-                _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
+                //_logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_realInterval);
             }
@@ -125,10 +125,10 @@ namespace AElf.Miner.Rpc.Client
             catch (RpcException e)
             {
                 var status = e.Status.StatusCode;
-                if (status == StatusCode.Unavailable)
+                if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
                 {
                     var detail = e.Status.Detail;
-                    _logger?.Error($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
+                    _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
                     await Task.Delay(UnavailableConnectionInterval);
                     StartDuplexStreamingCall(cancellationToken, _next).ConfigureAwait(false);
                     return;
