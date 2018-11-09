@@ -2,6 +2,7 @@
 
 namespace AElf.Configuration.Config.Consensus
 {
+    // ReSharper disable InconsistentNaming
     [ConfigFile(FileName = "consensus.json")]
     public class ConsensusConfig : ConfigBase<ConsensusConfig>
     {

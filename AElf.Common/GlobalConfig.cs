@@ -13,6 +13,7 @@ namespace AElf.Common
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
         public static readonly string GenesisBasicContract = "BasicContractZero";
+        public static int InvertibleChainHeight = 8;
 
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
@@ -40,7 +41,8 @@ namespace AElf.Common
         public const string AElfParentChainBlockInfo = "__ParentChainBlockInfo__";
         public const string AElfBoundParentChainHeight = "__BoundParentChainHeight__";
         public static readonly int AElfInitCrossChainRequestInterval = AElfDPoSMiningInterval / 1000;
-        
+        public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
+
         #endregion
 
         #region PoTC
@@ -63,5 +65,8 @@ namespace AElf.Common
         public const string TransactionReceiptPrefix = "rc";
 
         #endregion data key prefixes
+        public const ulong BlockCacheLimit = 64; 
+        
+        public const ulong ForkDetectionLength = 4;
     }
 }

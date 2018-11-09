@@ -48,6 +48,15 @@ namespace AElf.Miner.Rpc.Server
                 {
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
+                    var currentHeight = await LightChain.GetCurrentBlockHeightAsync();
+                    if (currentHeight - requestedHeight < (ulong)GlobalConfig.InvertibleChainHeight)
+                    {
+                        await responseStream.WriteAsync(new ResponseSideChainBlockInfo
+                        {
+                            Success = false
+                        });
+                        continue;
+                    }
                     var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);
                     var res = new ResponseSideChainBlockInfo
                     {
