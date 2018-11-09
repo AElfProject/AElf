@@ -2,7 +2,6 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using AElf.Common.Attributes;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Common;
@@ -49,8 +48,8 @@ namespace AElf.Kernel.Consensus
         {
             switch (value)
             {
-                case ConsensusBehavior.DoNothing:
-                    _logger?.Trace("Start a new round though this behavior doing nothing.");
+                case ConsensusBehavior.NoOperationPerformed:
+                    _logger?.Trace("DPoS NOP.");
                     break;
                 case ConsensusBehavior.InitializeAElfDPoS:
                     _miningWithInitializingAElfDPoSInformation();
@@ -82,27 +81,27 @@ namespace AElf.Kernel.Consensus
 
             _logger?.Trace($"Will produce extra block after {after} seconds due to recover mining process.");
 
-            return Observable.Return(ConsensusBehavior.DoNothing)
+            return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(recoverMining)
                 .Subscribe(this);
         }
 
         public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeSlot)
         {
-            _logger?.Trace("Extra block time slot of current round: " +
-                           extraBlockTimeSlot.ToDateTime().ToLocalTime().ToString("HH:mm:ss"));
-            if (extraBlockTimeSlot.ToDateTime() < DateTime.UtcNow)
-            {
-                extraBlockTimeSlot = extraBlockTimeSlot.ToDateTime()
-                    .AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * (GlobalConfig.BlockProducerNumber + 2))
-                    .ToTimestamp();
-                _logger?.Trace("Extra block time slot changed to: " +
-                               extraBlockTimeSlot.ToDateTime().ToString("HH:mm:ss"));
-            }
+//            _logger?.Trace("Extra block time slot of current round: " +
+//                           extraBlockTimeSlot.ToDateTime().ToLocalTime().ToString("HH:mm:ss"));
+//            if (extraBlockTimeSlot.ToDateTime() < DateTime.UtcNow)
+//            {
+//                extraBlockTimeSlot = extraBlockTimeSlot.ToDateTime()
+//                    .AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * (GlobalConfig.BlockProducerNumber + 2))
+//                    .ToTimestamp();
+//                _logger?.Trace("Extra block time slot changed to: " +
+//                               extraBlockTimeSlot.ToDateTime().ToString("HH:mm:ss"));
+//            }
 
-            var doNothingObservable = Observable
+            var nopObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
-                .Select(_ => ConsensusBehavior.DoNothing);
+                .Select(_ => ConsensusBehavior.NoOperationPerformed);
 
             var timeSlot = infoOfMe.TimeSlot;
             var now = DateTime.UtcNow.ToTimestamp();
@@ -123,7 +122,7 @@ namespace AElf.Kernel.Consensus
             else
             {
                 distanceToProduceNormalBlock = 0;
-                produceNormalBlock = doNothingObservable;
+                produceNormalBlock = nopObservable;
             }
 
             var distanceToPublishInValue = (extraBlockTimeSlot - now).Seconds;
@@ -143,16 +142,16 @@ namespace AElf.Kernel.Consensus
             }
             else
             {
-                publishInValue = doNothingObservable;
+                publishInValue = nopObservable;
             }
 
             IObservable<ConsensusBehavior> produceExtraBlock;
             if (distanceToPublishInValue < 0 && GlobalConfig.BlockProducerNumber != 1)
             {
-                produceExtraBlock = doNothingObservable;
+                produceExtraBlock = nopObservable;
                 if (GlobalConfig.BlockProducerNumber != 1)
                 {
-                    produceExtraBlock = doNothingObservable;
+                    produceExtraBlock = nopObservable;
                 }
             }
             else if (infoOfMe.IsEBP)
@@ -184,7 +183,7 @@ namespace AElf.Kernel.Consensus
                 }
             }
 
-            return Observable.Return(ConsensusBehavior.DoNothing)
+            return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(produceNormalBlock)
                 .Concat(publishInValue)
                 .Concat(produceExtraBlock)

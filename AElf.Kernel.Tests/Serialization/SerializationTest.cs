@@ -1,6 +1,7 @@
 ﻿using AElf.Common;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Serialization
@@ -47,6 +48,13 @@ namespace AElf.Kernel.Tests.Serialization
             System.Diagnostics.Debug.WriteLine(ass);
             var data = ByteArrayHelpers.FromHexString(ass);*/
             System.Diagnostics.Debug.WriteLine((ParentChainBlockInfo)(ParamsPacker.Unpack(bytes.ToByteArray(), new[] {typeof(ParentChainBlockInfo)})[0]));
+        }
+
+        [Fact]
+        public void DefaultValueTest()
+        {
+            var d = default(UInt64Value);
+            System.Diagnostics.Debug.WriteLine(default(UInt64Value));
         }
         
     }

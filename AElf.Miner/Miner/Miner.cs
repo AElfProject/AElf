@@ -8,6 +8,7 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -84,11 +85,11 @@ namespace AElf.Miner.Miner
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
-
+                await GenerateTransactionWithParentChainBlockInfo();
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
                 var traces = new List<TransactionTrace>();
-                ParentChainBlockInfo pcb = null; 
+                //ParentChainBlockInfo pcb = null; 
                 if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
 
@@ -100,7 +101,7 @@ namespace AElf.Miner.Miner
                     _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
 
                     // need check result of cross chain transaction 
-                    FindCrossChainInfo(sysTxs, traces, out pcb);
+                    //FindCrossChainInfo(sysTxs, traces, out pcb);
                 }
                 if (txGrp.TryGetValue(false, out var regRcpts))
                 {
@@ -117,8 +118,9 @@ namespace AElf.Miner.Miner
                 _logger?.Info($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
-                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
-                var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true).ValidateBlockAsync(block, chainContext);
+                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true)
+                    .ValidateBlockAsync(block, chainContext);
                 if (blockValidationResult != BlockValidationResult.Success)
                 {
                     _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
@@ -129,13 +131,12 @@ namespace AElf.Miner.Miner
 
                 // insert to db
                 Update(results, block);
-                if (pcb != null)
+                /*if (pcb != null)
                 {
                     await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
-                }
+                }*/
                 await _txHub.OnNewBlock((Block)block);
                 MessageHub.Instance.Publish(new BlockMined(block));
-                GenerateTransactionWithParentChainBlockInfo().ConfigureAwait(false);
                 stopwatch.Stop();
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
@@ -203,7 +204,7 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         private async Task GenerateTransactionWithParentChainBlockInfo()
         {
-            var parentChainBlockInfo = await GetParentChainBlockInfo();
+            var parentChainBlockInfo = GetParentChainBlockInfo();
             if (parentChainBlockInfo == null)
                 return;
             try
@@ -233,7 +234,8 @@ namespace AElf.Miner.Miner
                 tx.Sig.R = ByteString.CopyFrom(signature.R);
                 tx.Sig.S = ByteString.CopyFrom(signature.S);
 
-                InsertTransactionToPool(tx).ConfigureAwait(false);
+                await InsertTransactionToPool(tx);
+                _logger?.Trace($"Generated Cross chain info transaction {tx.GetHash()}");
             }
             catch (Exception e)
             {
@@ -246,7 +248,7 @@ namespace AElf.Miner.Miner
             if (tx == null)
                 return;
             // insert to tx pool and broadcast
-            await _txHub.AddTransactionAsync(tx);
+            await _txHub.AddTransactionAsync(tx, skipValidation:true).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -448,11 +450,11 @@ namespace AElf.Miner.Miner
         /// Get parent chain block info.
         /// </summary>
         /// <returns></returns>
-        private async Task<ParentChainBlockInfo> GetParentChainBlockInfo()
+        private ParentChainBlockInfo GetParentChainBlockInfo()
         {
             try
             {
-                var blocInfo = await _clientManager.TryGetParentChainBlockInfo();
+                var blocInfo = _clientManager.TryGetParentChainBlockInfo();
                 return blocInfo;
             }
             catch (Exception e)

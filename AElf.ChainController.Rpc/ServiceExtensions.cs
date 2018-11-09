@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -163,6 +164,11 @@ namespace AElf.ChainController.Rpc
             return r?.Transaction;
         }
 
+        internal static async Task<TransactionReceipt> GetTransactionReceipt(this Svc s, Hash txId)
+        {
+            return await s.TxHub.GetReceiptAsync(txId);
+        }
+
         internal static async Task<TransactionResult> GetTransactionResult(this Svc s, Hash txHash)
         {
             var res = await s.TransactionResultService.GetResultAsync(txHash);
@@ -185,7 +191,7 @@ namespace AElf.ChainController.Rpc
 
         internal static Address GetGenesisContractHash(this Svc s, SmartContractType contractType)
         {
-            return s.ChainCreationService.GenesisContractHash(Hash.LoadHex(NodeConfig.Instance.ChainId), contractType);
+            return s.ChainCreationService.GenesisContractHash(Hash.LoadHex(ChainConfig.Instance.ChainId), contractType);
         }
 
         internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
@@ -195,13 +201,13 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)
         {
-            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
             return chainContext.BlockHeight;
         }
 
         internal static async Task<Block> GetBlockAtHeight(this Svc s, ulong height)
         {
-            var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId));
+            var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHeightAsync(height);
         }
 
@@ -223,7 +229,7 @@ namespace AElf.ChainController.Rpc
                 TransactionId = tx.GetHash()
             };
 
-            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(NodeConfig.Instance.ChainId));
+            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
             var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
@@ -232,7 +238,7 @@ namespace AElf.ChainController.Rpc
                 BlockHeight = chainContext.BlockHeight
             };
 
-            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, Hash.LoadHex(NodeConfig.Instance.ChainId));
+            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, Hash.LoadHex(ChainConfig.Instance.ChainId));
 
             try
             {
@@ -248,20 +254,17 @@ namespace AElf.ChainController.Rpc
 
         internal static MerklePath GetTxRootMerklePathinParentChain(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetTxRootMerklePathInParentChain(
-                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+            return s.CrossChainInfo.GetTxRootMerklePathInParentChain(height);
         }
 
         internal static ParentChainBlockInfo GetParentChainBlockInfo(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetBoundParentChainBlockInfo(
-                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+            return s.CrossChainInfo.GetBoundParentChainBlockInfo(height);
         }
 
         internal static ulong GetBoundParentChainHeight(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetBoundParentChainHeight(
-                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+            return s.CrossChainInfo.GetBoundParentChainHeight(height);
         }
     }
     

@@ -1,59 +1,99 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Configuration;
+using NServiceKit.CacheAccess;
 using NServiceKit.Redis;
 
 namespace AElf.Database
 {
     public class SsdbDatabase : IKeyValueDatabase
     {
-        private readonly PooledRedisClientManager _client;
+        private readonly ConcurrentDictionary<string, PooledRedisClientManager> _clientManagers = new ConcurrentDictionary<string, PooledRedisClientManager>();
 
-        public SsdbDatabase()
+        public async Task<byte[]> GetAsync(string database, string key)
         {
-            _client = new PooledRedisClientManager($"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+            
+            return await Task.FromResult(GetClient(database).Get<byte[]>(key));
         }
 
-        public async Task<byte[]> GetAsync(string key)
+        public async Task SetAsync(string database, string key, byte[] bytes)
         {
-            return await Task.FromResult(_client.GetCacheClient().Get<byte[]>(key));
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+            
+            await Task.FromResult(GetClient(database).Set(key, bytes));
         }
 
-        public async Task SetAsync(string key, byte[] bytes)
+        public async Task RemoveAsync(string database, string key)
         {
-            await Task.FromResult(_client.GetCacheClient().Set(key, bytes));
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+            await Task.FromResult(GetClient(database).Remove(key));
         }
 
-        public async Task RemoveAsync(string key)
-        {
-            await Task.FromResult(_client.GetCacheClient().Remove(key));
-        }
-
-        public async Task<bool> PipelineSetAsync(Dictionary<string, byte[]> cache)
+        public async Task<bool> PipelineSetAsync(string database, Dictionary<string, byte[]> cache)
         {
             if (cache.Count == 0)
             {
                 return true;
             }
+
             return await Task.Factory.StartNew(() =>
             {
-                _client.GetCacheClient().SetAll(cache);
+                GetClient(database).SetAll(cache);
                 return true;
             });
         }
 
-        public bool IsConnected()
+        public bool IsConnected(string database = "")
         {
             try
             {
-                _client.GetCacheClient().Set<byte[]>("ping", null);
+                if (string.IsNullOrWhiteSpace(database))
+                {
+                    foreach (var db in DatabaseConfig.Instance.Hosts)
+                    {
+                        GetClient(db.Key).Set<byte[]>("ping", null);
+                    }
+                }
+                else
+                {
+                    GetClient(database).Set<byte[]>("ping", null);
+                }
+
                 return true;
             }
             catch (Exception ex)
             {
                 throw ex;
             }
+        }
+
+        private ICacheClient GetClient(string database)
+        {
+            if (string.IsNullOrWhiteSpace(database))
+            {
+                throw new ArgumentException("database is empty");
+            }
+
+            if (!_clientManagers.TryGetValue(database, out var client))
+            {
+                var databaseHost = DatabaseConfig.Instance.GetHost(database);
+                client = new PooledRedisClientManager($"{databaseHost.Host}:{databaseHost.Port}");
+                _clientManagers.TryAdd(database, client);
+            }
+
+            return client.GetCacheClient();
         }
     }
 }

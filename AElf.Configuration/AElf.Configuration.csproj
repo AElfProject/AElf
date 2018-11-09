@@ -36,13 +36,13 @@
     <None Update="Config\Database\database.json" Link="config\database.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Database\monitordatabase.json" Link="config\monitordatabase.json">
+    <None Update="Config\Database\monitor-database.json" Link="config\monitor-database.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Config\Node\miners.json" Link="config\miners.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Management\apikey.json" Link="config\apikey.json">
+    <None Update="Config\Management\api-key.json" Link="config\api-key.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Config\Network\network.json" Link="config\network.json">
@@ -51,13 +51,31 @@
     <None Update="Config\Node\node.json" Link="config\node.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Config\Node\transaction-pool.json" Link="config\transaction-pool.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Config\Management\management.json" Link="config\management.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\GRPC\grpclocal.json" Link="config\grpclocal.json">
+    <None Update="Config\Management\service-url.json" Link="config\service-url.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\GRPC\grpcremote.json" Link="config\grpcremote.json">
+    <None Update="Config\GRPC\grpc-local.json" Link="config\grpc-local.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\GRPC\grpc-remote.json" Link="config\grpc-remote.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Consensus\consensus.json" Link="config\consensus.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Contract\runner.json" Link="config\runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Chain\chain.json" Link="config\chain.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\RPC\rpc.json" Link="config\rpc.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

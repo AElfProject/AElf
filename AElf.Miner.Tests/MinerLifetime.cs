@@ -18,6 +18,7 @@ using Moq;
 using AElf.Common;
 using Address = AElf.Common.Address;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
@@ -198,7 +199,7 @@ namespace AElf.Kernel.Tests.Miner
             // create miner
             var keypair = new KeyPairGenerator().Generate();
             var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
-            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
             NodeConfig.Instance.NodeAccount = keypair.GetAddressHex();
             var txPool = _mock.CreateTxPool();
             txPool.Start();
@@ -235,7 +236,7 @@ namespace AElf.Kernel.Tests.Miner
         public async Task SyncGenesisBlock_False_Rollback()
         {
             var chain = await _mock.CreateChain();
-            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
             NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
             
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
@@ -254,7 +255,6 @@ namespace AElf.Kernel.Tests.Miner
             var manager = _mock.MinerClientManager();
             var blockExecutor = _mock.GetBlockExecutor(manager);
 
-            blockExecutor.Init();
             var res = await blockExecutor.ExecuteBlock(block);
             Assert.NotEqual(BlockExecutionResult.Success, res);
 
@@ -274,6 +274,7 @@ namespace AElf.Kernel.Tests.Miner
             _mock.ClearDirectory(dir);
             try
             {
+                GlobalConfig.InvertibleChainHeight = 0;
                 var port = 50052;
                 var address = "127.0.0.1";
                 var sideChainId = _mock.MockSideChainServer(port, address, dir);
@@ -336,6 +337,7 @@ namespace AElf.Kernel.Tests.Miner
             _mock.ClearDirectory(dir);
             try
             {
+                GlobalConfig.InvertibleChainHeight = 0;
                 var port = 50053;
                 var address = "127.0.0.1";
                 
@@ -364,8 +366,9 @@ namespace AElf.Kernel.Tests.Miner
                 manager.Init(dir, t);
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
+                
                 Thread.Sleep(t/2);
-                var result = await manager.TryGetParentChainBlockInfo();
+                var result = manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
@@ -373,18 +376,20 @@ namespace AElf.Kernel.Tests.Miner
                 //Assert.True(await manager.UpdateParentChainBlockInfo(result));
                 var chainManagerBasic = _mock.MockChainManager().Object;
                 await chainManagerBasic.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
+                _mock.GetTimes++;
                 
                 Thread.Sleep(t);
-                result = await manager.TryGetParentChainBlockInfo();
+                result = manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 1));
                 //Assert.True(await manager.UpdateParentChainBlockInfo(result));
                 await chainManagerBasic.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
+                _mock.GetTimes++;
 
                 Thread.Sleep(t);
-                result = await manager.TryGetParentChainBlockInfo();
+                result =  manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result.Height);
                 Assert.Equal(1, result.IndexedBlockInfo.Count);
@@ -400,13 +405,14 @@ namespace AElf.Kernel.Tests.Miner
         [Fact]
         public async Task MineWithIndexingSideChain()
         {
+            GlobalConfig.InvertibleChainHeight = 0;
             string dir = @"/tmp/minerpems";
             var chain = await _mock.CreateChain();
             var keyPair = new KeyPairGenerator().Generate();
             var minerConfig = _mock.GetMinerConfig(chain.Id, 10, keyPair.GetAddress().DumpByteArray());
             NodeConfig.Instance.ECKeyPair = keyPair;
             NodeConfig.Instance.NodeAccount = keyPair.GetAddressHex();
-            NodeConfig.Instance.ChainId = chain.Id.DumpHex();
+            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
             var pool = _mock.CreateTxPool();
             pool.Start();
 

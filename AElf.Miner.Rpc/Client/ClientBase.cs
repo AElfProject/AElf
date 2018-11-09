@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using Grpc.Core;
 using NLog;
@@ -90,7 +91,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
+                    ChainId = Hash.LoadHex(ChainConfig.Instance.ChainId),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 //_logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
@@ -124,12 +125,12 @@ namespace AElf.Miner.Rpc.Client
             catch (RpcException e)
             {
                 var status = e.Status.StatusCode;
-                if (status == StatusCode.Unavailable)
+                if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
                 {
                     var detail = e.Status.Detail;
-                    _logger?.Error($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
+                    _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
                     await Task.Delay(UnavailableConnectionInterval);
-                    StartDuplexStreamingCall(cancellationToken, _next);
+                    StartDuplexStreamingCall(cancellationToken, _next).ConfigureAwait(false);
                     return;
                 }
                 _logger?.Error(e, "Miner client stooped with exception.");
@@ -149,7 +150,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.LoadHex(NodeConfig.Instance.ChainId),
+                    ChainId = Hash.LoadHex(ChainConfig.Instance.ChainId),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 
@@ -182,11 +183,12 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="millisecondsTimeout"></param>
         /// <param name="height">the height of block info needed</param>
         /// <param name="blockInfo"></param>
+        /// <param name="cachingThreshold">Use <see cref="_cachedBoundedCapacity"/> as cache count threshold if true.</param>
         /// <returns></returns>
-        public bool TryTake(int millisecondsTimeout, ulong height, out IBlockInfo blockInfo)
+        public bool TryTake(int millisecondsTimeout, ulong height, out IBlockInfo blockInfo, bool cachingThreshold = false)
         {
             var first = First();
-            if (first != null && first.Height == height)
+            if (first != null && first.Height == height && (!cachingThreshold || ToBeIndexedInfoQueue.Count >= _cachedBoundedCapacity))
             {
                 var res = ToBeIndexedInfoQueue.TryTake(out blockInfo, millisecondsTimeout);
                 if(res)
@@ -200,16 +202,18 @@ namespace AElf.Miner.Rpc.Client
             
             blockInfo = CachedInfoQueue.FirstOrDefault(c => c.Height == height);
             if (blockInfo != null)
-                return true;
+                return !cachingThreshold ||
+                       ToBeIndexedInfoQueue.Count + CachedInfoQueue.Count(ci => ci.Height >= height) >=
+                       _cachedBoundedCapacity;
             
-            _logger?.Trace($"Not found cached data from chain {_targetChainId} at height {height}");
+            //_logger?.Trace($"Not found cached data from chain {_targetChainId} at height {height}");
             return false;
         }
 
         /// <summary>
         /// Cache block info lately removed.
         /// Dequeue one element if the cached count reaches <see cref="_cachedBoundedCapacity"/>
-        /// </summary>
+        /// </summary>                                                   
         /// <param name="blockInfo"></param>
         private void CacheBlockInfo(IBlockInfo blockInfo)
         {

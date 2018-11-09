@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -7,8 +8,10 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.EventMessages;
 using AElf.Miner.Miner;
 using AElf.Node;
 using AElf.Types.CSharp;
@@ -19,6 +22,7 @@ using NLog;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Storages;
 using AElf.Synchronization.BlockSynchronization;
+using AElf.Synchronization.EventMessages;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -44,7 +48,7 @@ namespace AElf.Kernel.Node
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadHex(NodeConfig.Instance.ChainId)));
+                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
 
         private readonly ILogger _logger;
 
@@ -58,7 +62,7 @@ namespace AElf.Kernel.Node
         private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
 
         public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
-            Hash.LoadHex(NodeConfig.Instance.ChainId),
+            Hash.LoadHex(ChainConfig.Instance.ChainId),
             SmartContractType.AElfDPoS.ToString());
 
         private static int _flag;
@@ -78,7 +82,7 @@ namespace AElf.Kernel.Node
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
-            Helper = new AElfDPoSHelper(Hash.LoadHex(NodeConfig.Instance.ChainId), Miners,
+            Helper = new AElfDPoSHelper(Hash.LoadHex(ChainConfig.Instance.ChainId), Miners,
                 ContractAddress, stateStore);
 
             var count = MinersConfig.Instance.Producers.Count;
@@ -93,6 +97,63 @@ namespace AElf.Kernel.Node
             {
                 AElfDPoSObserver.RecoverMining();
             }
+            
+            MessageHub.Instance.Subscribe<UpdateConsensus>(async option =>
+            {
+                if (option == UpdateConsensus.Update)
+                {
+                    _logger?.Trace("UpdateConsensus - Update");
+                    await Update();
+                }
+
+                if (option == UpdateConsensus.Dispose)
+                {
+                    _logger?.Trace("UpdateConsensus - Dispose");
+                    Stop();
+                }
+            });
+
+            MessageHub.Instance.Subscribe<SyncStateChanged>(async inState =>
+            {
+                if (inState.IsSyncing)
+                {
+                    _logger?.Trace("SyncStateChanged - Mining locked.");
+                    Hang();
+                }
+                else
+                {
+                    _logger?.Trace("SyncStateChanged - Mining unlocked.");
+                    await Start();
+                }
+            });
+
+            MessageHub.Instance.Subscribe<LockMining>(async inState =>
+            {
+                if (inState.Lock)
+                {
+                    _logger?.Trace("LockMining - Mining locked.");
+                    Hang();
+                }
+                else
+                {
+                    _logger?.Trace("LockMining - Mining unlocked.");
+                    await Start();
+                }
+            });
+            
+            MessageHub.Instance.Subscribe<CatchingUpAfterRollback>(async inState =>
+            {
+                if (inState.IsCatchingUp)
+                {
+                    _logger?.Trace("CatchingUp - Mining locked.");
+                    Hang();
+                }
+                else
+                {
+                    _logger?.Trace("CatchingUp - Mining unlocked.");
+                    await Start();
+                }
+            });
         }
 
         private static Miners Miners
@@ -177,55 +238,48 @@ namespace AElf.Kernel.Node
             }
         }
 
-        private async Task<Transaction> GenerateTransactionAsync(string methodName, IReadOnlyList<byte[]> parameters)
+        private async Task<Transaction> GenerateTransactionAsync(string methodName, List<byte[]> parameters)
         {
-            _logger?.Trace("Entered generating tx.");
-            var bn = await BlockChain.GetCurrentBlockHeightAsync();
-            bn = bn > 4 ? bn - 4 : 0;
-            var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
-            var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
-            var tx = new Transaction
+            try
             {
-                From = _nodeKeyPair.Address,
-                To = ContractAddress,
-                RefBlockNumber = bn,
-                RefBlockPrefix = ByteString.CopyFrom(bhPref),
-                MethodName = methodName,
-                Sig = new Signature
+                _logger?.Trace("Entered generating tx.");
+                var bn = await BlockChain.GetCurrentBlockHeightAsync();
+                bn = bn > 4 ? bn - 4 : 0;
+                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
+                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                var tx = new Transaction
                 {
-                    P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey)
-                },
-                Type = TransactionType.DposTransaction
-            };
+                    From = _nodeKeyPair.Address,
+                    To = ContractAddress,
+                    RefBlockNumber = bn,
+                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
+                    MethodName = methodName,
+                    Sig = new Signature
+                    {
+                        P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey)
+                    },
+                    Type = TransactionType.DposTransaction
+                };
 
-            switch (parameters.Count)
+                tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.Select(p => (object) p).ToArray()));
+
+                var signer = new ECSigner();
+                var signature = signer.Sign(_nodeKeyPair, tx.GetHash().DumpByteArray());
+
+                // Update the signature
+                tx.Sig.R = ByteString.CopyFrom(signature.R);
+                tx.Sig.S = ByteString.CopyFrom(signature.S);
+
+                _logger?.Trace("Leaving generating tx.");
+
+                return tx;
+            }
+            catch (Exception e)
             {
-                case 2:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1]));
-                    break;
-                case 3:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2]));
-                    break;
-                case 4:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
-                        parameters[3]));
-                    break;
-                case 5:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
-                        parameters[3], parameters[4]));
-                    break;
+                _logger?.Trace(e, "Error while during generating DPoS tx.");
             }
 
-            var signer = new ECSigner();
-            var signature = signer.Sign(_nodeKeyPair, tx.GetHash().DumpByteArray());
-
-            // Update the signature
-            tx.Sig.R = ByteString.CopyFrom(signature.R);
-            tx.Sig.S = ByteString.CopyFrom(signature.S);
-
-            _logger?.Trace("Leaving generating tx.");
-
-            return tx;
+            return null;
         }
 
         /// <summary>
@@ -258,7 +312,7 @@ namespace AElf.Kernel.Node
 
                     if (await Helper.HasGenerated())
                     {
-                        MessageHub.Instance.Publish(new ConsensusGenerated(true));
+                        MessageHub.Instance.Publish(new LockMining(true));
                         return;
                     }
 
@@ -274,6 +328,10 @@ namespace AElf.Kernel.Node
                     await BroadcastTransaction(txToInitializeAElfDPoS);
                     await Mine();
                 }
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Error in {nameof(MiningWithInitializingAElfDPoSInformation)}");
             }
             finally
             {
@@ -347,6 +405,10 @@ namespace AElf.Kernel.Node
                     await Mine();
                 }
             }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Error in {nameof(MiningWithInitializingAElfDPoSInformation)}");
+            }
             finally
             {
                 if (lockWasTaken)
@@ -405,6 +467,10 @@ namespace AElf.Kernel.Node
                     await BroadcastTransaction(txToPublishInValue);
                 }
             }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Error in {nameof(MiningWithInitializingAElfDPoSInformation)}");
+            }
             finally
             {
                 if (lockWasTaken)
@@ -458,6 +524,10 @@ namespace AElf.Kernel.Node
                     await BroadcastTransaction(txForExtraBlock);
                     await Mine();
                 }
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Error in {nameof(MiningWithInitializingAElfDPoSInformation)}");
             }
             finally
             {
@@ -521,8 +591,13 @@ namespace AElf.Kernel.Node
 
         private async Task BroadcastTransaction(Transaction tx)
         {
+            if (tx == null)
+            {
+                throw new ArgumentException(nameof(tx));
+            }
             if (tx.Type == TransactionType.DposTransaction)
             {
+                MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().DumpHex()));
                 _logger?.Trace(
                     $"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.DumpHex()}.");
             }

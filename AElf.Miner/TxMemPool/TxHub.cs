@@ -7,6 +7,7 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
@@ -35,7 +36,7 @@ namespace AElf.Miner.TxMemPool
 
         private IBlockChain BlockChain => _blockChain ??
                                           (_blockChain =
-                                              _chainService.GetBlockChain(Hash.LoadHex(NodeConfig.Instance.ChainId)));
+                                              _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId)));
 
         private ulong _curHeight;
 
@@ -53,11 +54,11 @@ namespace AElf.Miner.TxMemPool
         }
 
         private static Address DPosContractAddress =>
-            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(NodeConfig.Instance.ChainId),
+            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
                 SmartContractType.AElfDPoS.ToString());
 
         private static Address SideChainContractAddress =>
-            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(NodeConfig.Instance.ChainId),
+            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
                 SmartContractType.SideChainContract.ToString());
         
         private readonly List<Address> _systemAddresses = new List<Address>()
@@ -359,7 +360,14 @@ namespace AElf.Miner.TxMemPool
                         var t = await _transactionManager.GetTransaction(txId);
                         tr = new TransactionReceipt(t);
                     }
-
+                    
+                    // cross chain type and dpos type transaction should not be reverted.
+                    if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction
+                        && tr.Transaction.To.Equals(SideChainContractAddress) ||
+                        tr.Transaction.Type == TransactionType.DposTransaction
+                        && tr.Transaction.To.Equals(DPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
+                        continue;
+                    
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
                     tr.Status = TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus;
                     tr.ExecutedBlockNumber = 0;

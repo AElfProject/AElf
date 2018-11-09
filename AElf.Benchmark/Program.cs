@@ -77,27 +77,6 @@ namespace AElf.Benchmark
                     return;
                 }
 
-                try
-                {
-                    DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.Database);
-                }
-                catch (ArgumentException)
-                {
-                    Console.WriteLine(
-                        $"Database {opts.Database} not supported, use one of the following databases: [keyvalue, redis, ssdb]");
-                    return;
-                }
-
-                if (!string.IsNullOrWhiteSpace(opts.DbHost))
-                {
-                    DatabaseConfig.Instance.Host = opts.DbHost;
-                }
-
-                if (opts.DbPort.HasValue)
-                {
-                    DatabaseConfig.Instance.Port = opts.DbPort.Value;
-                }
-
                 if (opts.ConcurrencyLevel.HasValue)
                 {
                     ActorConfig.Instance.ConcurrencyLevel = opts.ConcurrencyLevel.Value;

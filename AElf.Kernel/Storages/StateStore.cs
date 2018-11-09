@@ -13,6 +13,8 @@ namespace AElf.Kernel.Storages
     public class StateStore : IStateStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
+        
+        private const string _dbName = "State";
 
         public StateStore(IKeyValueDatabase keyValueDatabase)
         {
@@ -39,7 +41,7 @@ namespace AElf.Kernel.Storages
                 }
 
                 var key = GetKey(path);
-                await _keyValueDatabase.SetAsync(key, value);
+                await _keyValueDatabase.SetAsync(_dbName,key, value);
             }
             catch (Exception e)
             {
@@ -58,7 +60,7 @@ namespace AElf.Kernel.Storages
                 }
 
                 var key = GetKey(path);
-                var res = await _keyValueDatabase.GetAsync(key);
+                var res = await _keyValueDatabase.GetAsync(_dbName,key);
 //                return res ?? new byte[0];
                 return res;
             }
@@ -74,7 +76,7 @@ namespace AElf.Kernel.Storages
             try
             {
                 var dict = pipelineSet.ToDictionary(kv => GetKey(kv.Key), kv => kv.Value);
-                return await _keyValueDatabase.PipelineSetAsync(dict);
+                return await _keyValueDatabase.PipelineSetAsync(_dbName,dict);
             }
             catch (Exception e)
             {

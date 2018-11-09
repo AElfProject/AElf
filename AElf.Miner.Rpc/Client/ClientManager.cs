@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController.CrossChain;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration.Config.GRPC;
@@ -27,7 +28,7 @@ namespace AElf.Miner.Rpc.Client
             new Dictionary<Hash, ClientToSideChain>();
 
         private ClientToParentChain _clientToParentChain;
-
+        private readonly ICrossChainInfo _crossChainInfo;
         private CertificateStore _certificateStore;
         private readonly ILogger _logger;
         private readonly IChainManagerBasic _chainManagerBasic;
@@ -41,10 +42,11 @@ namespace AElf.Miner.Rpc.Client
         /// </summary>
         private int WaitingIntervalInMillisecond => GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
 
-        public ClientManager(ILogger logger, IChainManagerBasic chainManagerBasic)
+        public ClientManager(ILogger logger, IChainManagerBasic chainManagerBasic, ICrossChainInfo crossChainInfo)
         {
             _logger = logger;
             _chainManagerBasic = chainManagerBasic;
+            _crossChainInfo = crossChainInfo;
             GrpcRemoteConfig.ConfigChanged += GrpcRemoteConfigOnConfigChanged;
         }
 
@@ -93,9 +95,15 @@ namespace AElf.Miner.Rpc.Client
             });
         }
 
-        private async Task<ulong> GetTargetHeight(Hash chainId)
+        private async Task<ulong> GetSideChainTargetHeight(Hash chainId)
         {
             var height = await _chainManagerBasic.GetCurrentBlockHeightAsync(chainId);
+            return height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
+        }
+        
+        private ulong GetParentChainTargetHeight()
+        {
+            var height = _crossChainInfo.GetParentChainCurrentHeight();
             return height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
         }
         
@@ -115,7 +123,7 @@ namespace AElf.Miner.Rpc.Client
             foreach (var sideChainId in ChildChains.Keys)
             {
                 var client = CreateClientToSideChain(sideChainId);
-                var height = await GetTargetHeight(Hash.LoadHex(sideChainId));
+                var height = await GetSideChainTargetHeight(Hash.LoadHex(sideChainId));
 
                 // keep-alive
                 client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height).ConfigureAwait(false);
@@ -167,7 +175,7 @@ namespace AElf.Miner.Rpc.Client
                     throw new ChainInfoNotFoundException("Unable to get parent chain info.");
                 _clientToParentChain =
                     (ClientToParentChain) CreateClient(parent.ElementAt(0).Value, parent.ElementAt(0).Key, false);
-                var targetHeight = await GetTargetHeight(Hash.LoadHex(parent.ElementAt(0).Key)) ;
+                var targetHeight = GetParentChainTargetHeight() ;
                 _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, targetHeight)
                     .ConfigureAwait(false);
                 _logger?.Info($"Created client to parent chain {parent.ElementAt(0).Key}");
@@ -235,8 +243,8 @@ namespace AElf.Miner.Rpc.Client
                 // take side chain info
                 // index only one block from one side chain.
                 // this could be changed later.
-                var targetHeight = await GetTargetHeight(_.Key);
-                if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo))
+                var targetHeight = await GetSideChainTargetHeight(_.Key);
+                if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, cachingThreshold:true))
                     continue;
                 
                 res.Add((SideChainBlockInfo) blockInfo);
@@ -264,81 +272,19 @@ namespace AElf.Miner.Rpc.Client
             if (!_clientsToSideChains.TryGetValue(scb.ChainId, out var client))
                 // TODO: this could be changed.
                 return true;
-            var targetHeight = GetTargetHeight(scb.ChainId).Result;
+            var targetHeight = GetSideChainTargetHeight(scb.ChainId).Result;
             return client.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo) &&
                    scb.Equals(blockInfo);
         }
         
-        /*/// <summary>
-        /// Check the first cached one with <param name="blockInfo"></param> and remove it.
-        /// </summary>
-        /// <param name="blockInfo"></param>
-        /// <returns>
-        /// Return true and remove the first cached one as <param name="blockInfo"></param>.
-        /// Return true if client for that chain is not existed which means the side chain is not available.
-        /// Return false if it is not same to cached element.
-        /// </returns>
-        public async Task<bool> TryUpdateAndRemoveSideChainBlockInfo(SideChainBlockInfo blockInfo)
-        {
-            if (blockInfo == null)
-                return true;
-            
-            if (!_clientsToSideChains.TryGetValue(blockInfo.ChainId, out var client))
-            {
-                await UpdateCrossChainInfo(blockInfo);
-                return true;
-            }
-            if (client.Empty() || !client.First().Equals(blockInfo))
-                return false;
-            // TODO: this could be changed.
-            var res = client.TryTake(WaitingIntervalInMillisecond * 2, blockInfo.Height, out var scb);
-            if (!res || !scb.Equals(blockInfo))
-            {
-                // this should not happen in most cases
-                //client.ReCacheBlockInfo(scb);
-                return false;
-            }
-            await UpdateCrossChainInfo(blockInfo);
-            _logger?.Info($"Removed side chain Info from {scb.ChainId} at height {scb.Height}");
-            return true;
-        }*/
-        
-        /*/// <summary>
-        /// Check the first cached one with <param name="blockInfo"></param> and remove it.
-        /// </summary>
-        /// <param name="blockInfo"></param>
-        /// <returns>
-        /// Return true and remove the first cached one as <param name="blockInfo"></param>.
-        /// Return true if client for that parent chain is not existed which means the parent chain is not available.
-        /// Return false if it is not same or client for that chain is not existed.
-        /// </returns>
-        private bool TryRemoveParentChainBlockInfo(ParentChainBlockInfo blockInfo)
-        {
-            if (_clientToParentChain == null)
-                return true;
-            _logger?.Trace($"To remove parent chain info at height {blockInfo.Height}");
-
-            if (_clientToParentChain.Empty() || !_clientToParentChain.First().Equals(blockInfo))
-                return false;
-            var res = _clientToParentChain.TryTake(WaitingIntervalInMillisecond * 2, blockInfo.Height, out var pcb);
-
-            if (!res || !pcb.Equals(blockInfo))
-            {
-                // this should not happen in most cases
-                //_clientToParentChain.ReCacheBlockInfo(pcb);
-                return false;
-            }
-            _logger?.Trace($"Removed parent chain info at height {pcb.Height}");
-            return true;
-        }*/
-
         /// <summary>
         /// Try to take first one in cached queue
         /// </summary>
+        /// <param name="pcb"> Mining processing if it is null, synchronization processing otherwise.</param>
         /// <returns>
         /// return the first one cached by <see cref="ClientToParentChain"/>
         /// </returns>
-        public async Task<ParentChainBlockInfo> TryGetParentChainBlockInfo(ParentChainBlockInfo pcb = null)
+        public ParentChainBlockInfo TryGetParentChainBlockInfo(ParentChainBlockInfo pcb = null)
         {
             if (!GrpcLocalConfig.Instance.ClientToParentChain)
                 throw new ClientShutDownException("Client to parent chain is shut down");
@@ -348,11 +294,12 @@ namespace AElf.Miner.Rpc.Client
             if (chainId == null)
                 return null;
             Hash parentChainId = Hash.LoadHex(chainId);
-            ulong targetHeight = await GetTargetHeight(parentChainId);
-            if (pcb != null && !pcb.ChainId.Equals(parentChainId) &&targetHeight != pcb.Height)
+            ulong targetHeight = GetParentChainTargetHeight();
+            // _logger?.Trace($"To get pcb at height {targetHeight}");
+            if (pcb != null && !(pcb.ChainId.Equals(parentChainId) && targetHeight == pcb.Height))
                 return null;
 
-            if (!_clientToParentChain.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo))
+            if (!_clientToParentChain.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, pcb == null))
             {
                 return null;
             }

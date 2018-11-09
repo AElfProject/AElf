@@ -7,6 +7,5 @@ namespace AElf.Synchronization.BlockExecution
     public interface IBlockExecutor
     {
         Task<BlockExecutionResult> ExecuteBlock(IBlock block);
-        void Init();
     }
 }

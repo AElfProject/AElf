@@ -590,7 +590,6 @@ namespace AElf.Kernel.Consensus
 
         public Round GetCurrentRoundInfo(UInt64Value currentRoundNumber = null)
         {
-            _logger?.Trace("Getting Current Round Information.");
             if (currentRoundNumber == null)
             {
                 currentRoundNumber = CurrentRoundNumber;
