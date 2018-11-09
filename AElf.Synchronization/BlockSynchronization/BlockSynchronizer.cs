@@ -352,7 +352,9 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 _heightOfUnlinkableBlock = block.Index;
                 
-                await ReviewBlockSet();
+                var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
+
+                await ExecuteRemainingBlocks(currentHeight + 1);
             }
         }
 
