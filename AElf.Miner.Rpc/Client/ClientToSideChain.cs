@@ -1,3 +1,4 @@
+using System;
 using AElf.Common.Attributes;
 using AElf.Common;
 using Grpc.Core;
@@ -18,12 +19,12 @@ namespace AElf.Miner.Rpc.Client
 
         protected override AsyncDuplexStreamingCall<RequestBlockInfo, ResponseSideChainBlockInfo> Call()
         {
-            return _client.IndexDuplexStreaming();
+            return _client.IndexDuplexStreaming(deadline: DateTime.Now.AddMilliseconds(1_000));
         }
 
         protected override AsyncServerStreamingCall<ResponseSideChainBlockInfo> Call(RequestBlockInfo requestBlockInfo)
         {
-            return _client.IndexServerStreaming(requestBlockInfo);
+            return _client.IndexServerStreaming(requestBlockInfo, deadline: DateTime.Now.AddMilliseconds(1_000));
         }
     }
 }
