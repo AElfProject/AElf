@@ -56,6 +56,19 @@ namespace AElf.Miner.TxMemPool
             }
         }
 
+        private static Address DPosContractAddress =>
+            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
+                SmartContractType.AElfDPoS.ToString());
+
+        private static Address SideChainContractAddress =>
+            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
+                SmartContractType.SideChainContract.ToString());
+        
+        private readonly List<Address> _systemAddresses = new List<Address>()
+        {
+            DPosContractAddress, SideChainContractAddress
+        };
+
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
             IChainService chainService,
             ITxSignatureVerifier signatureVerifier,
@@ -193,7 +206,7 @@ namespace AElf.Miner.TxMemPool
                 return;
             }
             
-            if (tr.IsExecutable)
+            if (tr.IsExecutable && tr.ToBeBroadCasted)
             {
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tr.Transaction));
             }
@@ -243,19 +256,15 @@ namespace AElf.Miner.TxMemPool
 
         private void IdentifyTransactionType(TransactionReceipt tr)
         {
-            var systemAddresses = new List<Address>()
-            {
-                AddressHelpers.GetSystemContractAddress(
-                    Hash.LoadHex(ChainConfig.Instance.ChainId),
-                    SmartContractType.AElfDPoS.ToString()),
-                AddressHelpers.GetSystemContractAddress(
-                    Hash.LoadHex(ChainConfig.Instance.ChainId),
-                    SmartContractType.SideChainContract.ToString())
-            };
-            if (systemAddresses.Contains(tr.Transaction.To))
+            if (_systemAddresses.Contains(tr.Transaction.To))
             {
                 tr.IsSystemTxn = true;
             }
+
+            // cross chain txn should not be  broadcasted
+            if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction 
+                && SideChainContractAddress.Equals(tr.Transaction.To))
+                tr.ToBeBroadCasted = false;
         }
 
         #endregion Private Methods
@@ -370,7 +379,14 @@ namespace AElf.Miner.TxMemPool
                         var t = await _transactionManager.GetTransaction(txId);
                         tr = new TransactionReceipt(t);
                     }
-
+                    
+                    // cross chain type and dpos type transaction should not be reverted.
+                    if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction
+                        && tr.Transaction.To.Equals(SideChainContractAddress) ||
+                        tr.Transaction.Type == TransactionType.DposTransaction
+                        && tr.Transaction.To.Equals(DPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
+                        continue;
+                    
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
                     tr.Status = TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus;
                     tr.ExecutedBlockNumber = 0;

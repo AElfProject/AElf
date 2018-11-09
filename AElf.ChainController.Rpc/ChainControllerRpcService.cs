@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
 using AElf.Configuration;
 using AElf.Kernel;
@@ -13,7 +14,6 @@ using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
-using AElf.Node.CrossChain;
 using AElf.RPC;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
@@ -366,14 +366,23 @@ namespace AElf.ChainController.Rpc
 
             try
             {
-                var transaction = await this.GetTransaction(txHash);
-
-                var txInfo = transaction == null
-                    ? new JObject {["tx"] = "Not Found"}
-                    : transaction.GetTransactionInfo();
-                if (transaction != null)
+                var receipt = await this.GetTransactionReceipt(txHash);
+                JObject txInfo = null;
+                if (receipt != null)
+                {
+                    var transaction = receipt.Transaction;
+                    txInfo = transaction.GetTransactionInfo();
                     ((JObject) txInfo["tx"]).Add("params",
                         String.Join(", ", await this.GetTransactionParameters(transaction)));
+                    ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
+                    ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
+                    ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
+                    ((JObject) txInfo["tx"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
+                }
+                else
+                {
+                    txInfo = new JObject {["tx"] = "Not Found"};
+                }
 
                 var txResult = await this.GetTransactionResult(txHash);
                 var response = new JObject

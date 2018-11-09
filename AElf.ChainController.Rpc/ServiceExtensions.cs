@@ -164,6 +164,11 @@ namespace AElf.ChainController.Rpc
             return r?.Transaction;
         }
 
+        internal static async Task<TransactionReceipt> GetTransactionReceipt(this Svc s, Hash txId)
+        {
+            return await s.TxHub.GetReceiptAsync(txId);
+        }
+
         internal static async Task<TransactionResult> GetTransactionResult(this Svc s, Hash txHash)
         {
             var res = await s.TransactionResultService.GetResultAsync(txHash);
@@ -249,20 +254,17 @@ namespace AElf.ChainController.Rpc
 
         internal static MerklePath GetTxRootMerklePathinParentChain(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetTxRootMerklePathInParentChain(
-                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+            return s.CrossChainInfo.GetTxRootMerklePathInParentChain(height);
         }
 
         internal static ParentChainBlockInfo GetParentChainBlockInfo(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetBoundParentChainBlockInfo(
-                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+            return s.CrossChainInfo.GetBoundParentChainBlockInfo(height);
         }
 
         internal static ulong GetBoundParentChainHeight(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetBoundParentChainHeight(
-                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+            return s.CrossChainInfo.GetBoundParentChainHeight(height);
         }
     }
     

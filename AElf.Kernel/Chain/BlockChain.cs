@@ -141,11 +141,12 @@ namespace AElf.Kernel
                         txs.Add(tx);
                     }
 
-                    var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
-                    await _dataStore.RemoveAsync<Hash>(h);
-                    await RollbackStateForBlock(block);
-                    blocks.Add((Block) block);
-                }
+                var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
+                await _dataStore.RemoveAsync<Hash>(h);
+                await RollbackSideChainInfo(block);
+                await RollbackStateForBlock(block);
+                blocks.Add((Block)block);
+            }
 
                 blocks.Reverse();
 
@@ -153,9 +154,10 @@ namespace AElf.Kernel
 
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
 
-                MessageHub.Instance.Publish(new BranchRolledBack(blocks));
-                _logger?.Trace("Finished rollback to " + height);
-                MessageHub.Instance.Publish(new RollBackStateChanged(false));
+            MessageHub.Instance.Publish(new BranchRolledBack(blocks));
+            _logger?.Trace("Finished rollback to " + height);
+            MessageHub.Instance.Publish(new RollBackStateChanged(false));
+            MessageHub.Instance.Publish(new CatchingUpAfterRollback(true));
 
                 return txs;
             }
@@ -170,6 +172,15 @@ namespace AElf.Kernel
             }
         }
 
+        private async Task RollbackSideChainInfo(IBlock block)
+        {
+            foreach (var info in block.Body.IndexedInfo)
+            {
+                await _chainManager.UpdateCurrentBlockHeightAsync(info.ChainId,
+                    info.Height > GlobalConfig.GenesisBlockHeight ? info.Height - 1 : 0);
+            }
+        }
+        
         private async Task RollbackStateForBlock(IBlock block)
         {
             var txIds = block.Body.Transactions;

@@ -35,7 +35,9 @@ namespace AElf.ABI.CSharp
                 },
                 {typeof(Hash), Hash.LoadHex},
                 {typeof(Address), Address.LoadHex},
-                {typeof(MerklePath), (s) => MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
+                {typeof(MerklePath), (s) => MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
+                {typeof(ParentChainBlockInfo), (s) => ParentChainBlockInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
+                {typeof(SideChainBlockInfo), (s) => SideChainBlockInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
             };
 
 
@@ -54,7 +56,9 @@ namespace AElf.ABI.CSharp
                 },
                 {typeof(Hash), obj=> ((Hash)obj).DumpHex()},
                 {typeof(Address), obj=> ((Address)obj).DumpHex()},
-                {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()}
+                {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()},
+                {typeof(ParentChainBlockInfo), obj => ((ParentChainBlockInfo) obj).ToByteArray().ToHex()},
+                {typeof(SideChainBlockInfo), obj => ((SideChainBlockInfo) obj).ToByteArray().ToHex()}
             };
 
         static StringInputParsers()
