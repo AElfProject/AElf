@@ -19,12 +19,12 @@ namespace AElf.Miner.Rpc.Client
 
         protected override AsyncDuplexStreamingCall<RequestBlockInfo, ResponseSideChainBlockInfo> Call()
         {
-            return _client.IndexDuplexStreaming(deadline: DateTime.UtcNow.AddMilliseconds(1_000));
+            return _client.IndexDuplexStreaming();
         }
 
         protected override AsyncServerStreamingCall<ResponseSideChainBlockInfo> Call(RequestBlockInfo requestBlockInfo)
         {
-            return _client.IndexServerStreaming(requestBlockInfo, deadline: DateTime.UtcNow.AddMilliseconds(1_000));
+            return _client.IndexServerStreaming(requestBlockInfo);
         }
     }
 }
