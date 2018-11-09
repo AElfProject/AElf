@@ -388,7 +388,10 @@ namespace AElf.Kernel.Node
 
                     var currentRoundNumber = Helper.CurrentRoundNumber;
 
-                    _logger?.Trace("Filling parameters of tx.");
+                    if (!_consensusData.Any())
+                    {
+                        return;
+                    }
 
                     var parameters = new List<byte[]>
                     {
