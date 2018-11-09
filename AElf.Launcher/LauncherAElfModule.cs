@@ -26,6 +26,8 @@ namespace AElf.Launcher
             _modules.Enqueue(TerminatedModuleEnum.TxPool);
             _modules.Enqueue(TerminatedModuleEnum.Mining);
             _modules.Enqueue(TerminatedModuleEnum.BlockSynchronizer);
+            _modules.Enqueue(TerminatedModuleEnum.BlockExecutor);
+            _modules.Enqueue(TerminatedModuleEnum.BlockRollback);
         }
 
         public void Run(ILifetimeScope scope)
@@ -44,38 +46,41 @@ namespace AElf.Launcher
 
         private void OnModuleTerminated(TerminatedModule moduleTerminated)
         {
-            if(_prepareTerminatedModule == moduleTerminated.Module)
+            Task.Run(() =>
             {
-                _modules.Dequeue();
-                _logger.Trace($"{_prepareTerminatedModule.ToString()} stopped.");
-            }
-            else
-            {
-                throw new Exception("Termination error");
-            }
-            
-            if (_modules.Count == 0)
-            {
-                _logger.Trace("node will be shutdown after 5s.");
-                for (var i = 0; i < 5; i++)
+                if (_prepareTerminatedModule == moduleTerminated.Module)
                 {
-                    _logger.Trace($"{5-i}");
-                    Thread.Sleep(1000);
+                    _modules.Dequeue();
+                    _logger.Trace($"{_prepareTerminatedModule.ToString()} stopped.");
+                }
+                else
+                {
+                    throw new Exception("Termination error");
                 }
 
-                _closing.Set();
-            }
-            else
-            {
-                PublishMessage();
-            }
-            
+                if (_modules.Count == 0)
+                {
+                    _logger.Trace("node will be shut down after 5s...");
+                    for (var i = 0; i < 5; i++)
+                    {
+                        _logger.Trace($"{5 - i}");
+                        Thread.Sleep(1000);
+                    }
+
+                    _logger.Trace("node is shut down.");
+                    _closing.Set();
+                }
+                else
+                {
+                    PublishMessage();
+                }
+            });
         }
 
         private void PublishMessage()
         {
             _prepareTerminatedModule = _modules.Peek();
-            _logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}.");
+            _logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}...");
             MessageHub.Instance.Publish(new TerminationSignal(_prepareTerminatedModule));
         }
     }

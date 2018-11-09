@@ -25,6 +25,8 @@
         Rpc,
         TxPool,
         Mining,
-        BlockSynchronizer
+        BlockSynchronizer,
+        BlockExecutor,
+        BlockRollback
     }
 }
