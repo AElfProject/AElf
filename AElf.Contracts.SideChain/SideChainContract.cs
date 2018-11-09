@@ -213,8 +213,8 @@ namespace AElf.Contracts.SideChain
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
             var rootCalculated =  path.ComputeRootWith(tx);
             var parentRoot = _parentChainBlockInfo.GetValue(key)?.Root?.SideChainTransactionsRoot;
-            Api.Assert((parentRoot??Hash.Zero).Equals(rootCalculated), "Transaction verification Failed");
-            return true;
+            //Api.Assert((parentRoot??Hash.Zero).Equals(rootCalculated), "Transaction verification Failed");
+            return (parentRoot??Hash.Zero).Equals(rootCalculated);
         }
 
         private void BindParentChainHeight(ulong childHeight, ulong parentHeight)
