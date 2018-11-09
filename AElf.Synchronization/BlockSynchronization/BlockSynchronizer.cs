@@ -159,13 +159,13 @@ namespace AElf.Synchronization.BlockSynchronization
                 foreach (var block in blocks)
                 {
                     blocks = _blockSet.GetBlockByHeight(targetHeight + i);
-                    currentBlockHash = await BlockChain.GetCurrentBlockHashAsync();
                     var executionResult = await HandleValidBlock(block);
                     if (executionResult.IsFailed())
                     {
                         _executingRemainingBlocks = false;
                         return;
                     }
+                    currentBlockHash = await BlockChain.GetCurrentBlockHashAsync();
                 }
             }
 
