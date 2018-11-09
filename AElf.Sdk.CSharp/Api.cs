@@ -67,14 +67,21 @@ namespace AElf.Sdk.CSharp
 
         public static Address GetContractZeroAddress()
         {
-            return AddressHelpers.GetSystemContractAddress(_smartContractContext.ChainId, GlobalConfig.GenesisBasicContract);
+            return AddressHelpers.GetSystemContractAddress(_smartContractContext.ChainId,
+                GlobalConfig.GenesisBasicContract);
+        }
+
+        public static Address GetSideChainContractAddress()
+        {
+            return AddressHelpers.GetSystemContractAddress(_smartContractContext.ChainId,
+                SmartContractType.SideChainContract.ToString());
         }
 
         public static Hash GetPreviousBlockHash()
         {
             return _transactionContext.PreviousBlockHash.ToReadOnly();
         }
-        
+
         public static ulong GetCurerntHeight()
         {
             return _transactionContext.BlockHeight;
@@ -94,6 +101,23 @@ namespace AElf.Sdk.CSharp
             }
 
             throw new InternalError("Failed to get owner of contract.\n" + _lastCallContext.Trace.StdErr);
+        }
+
+        public static bool VerifyTransaction(Hash txId, MerklePath merklePath, ulong parentChainHeight)
+        {
+            var scAddress = GetSideChainContractAddress();
+
+            if (scAddress == null)
+            {
+                throw new InternalError("No side chain contract was found.\n" + _lastCallContext.Trace.StdErr);
+            }
+
+            if (Call(scAddress, "VerifyTransaction", ParamsPacker.Pack(txId, merklePath, parentChainHeight)))
+            {
+                return GetCallResult().DeserializeToPbMessage<BoolValue>().Value;
+            }
+
+            return false;
         }
 
         public static IDataProvider GetDataProvider(string name)
@@ -120,7 +144,7 @@ namespace AElf.Sdk.CSharp
             _transactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
                 From = _transactionContext.Transaction.From,
-                To=contractAddress,
+                To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
             });
@@ -152,7 +176,7 @@ namespace AElf.Sdk.CSharp
                 }
                 finally
                 {
-                    await svc.PutExecutiveAsync(contractAddress, executive);    
+                    await svc.PutExecutiveAsync(contractAddress, executive);
                 }
             }).Unwrap().Wait();
 
