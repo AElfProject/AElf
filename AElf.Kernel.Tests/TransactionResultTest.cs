@@ -7,6 +7,7 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
 using NLog;
 
@@ -25,7 +26,7 @@ namespace AElf.Kernel.Tests
             ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
             ITransactionResultManager transactionResultManager, ITxHub txHub)
         {
-            NodeConfig.Instance.ChainId = Hash.Generate().DumpHex();
+            ChainConfig.Instance.ChainId = Hash.Generate().DumpHex();
             NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
             _transactionResultManager = transactionResultManager;
             _signatureVerifier = signatureVerifier;

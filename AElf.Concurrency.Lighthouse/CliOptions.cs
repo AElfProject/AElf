@@ -4,8 +4,8 @@ namespace AElf.Concurrency.Lighthouse
 {
     public class CliOptions
     {
-        [Option("node.datadir", HelpText = "The directory the node uses to store data.")]
-        public string DataDir { get; set; }
+        [Option("config.path", HelpText = "The directory the node uses to store config data.")]
+        public string ConfigPath { get; set; }
         
         #region Actor
 
