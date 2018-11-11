@@ -62,6 +62,8 @@ namespace AElf.Node.Protocol
 
         internal IPeer CurrentSyncSource { get; set; }
         internal int LocalHeight = 0;
+
+        internal int UnlinkableHeaderIndex = 0;
         
         private readonly object _syncLock = new object();
 
@@ -132,8 +134,12 @@ namespace AElf.Node.Protocol
                 _logger?.Trace($"Block accepted, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}), " +
                                $"block height {inBlock.Block.Header.Index}.");
 
-                AnnounceBlock(inBlock.Block);
-
+                
+                if (CurrentSyncSource == null || !CurrentSyncSource.IsSyncingHistory)
+                {
+                    AnnounceBlock(inBlock.Block);
+                }
+                
                 lock (_syncLock)
                 {
                     if (CurrentSyncSource == null)
@@ -217,7 +223,13 @@ namespace AElf.Node.Protocol
                     _logger?.Warn("[event] message or header null.");
                     return;
                 }
-                
+
+                if (UnlinkableHeaderIndex != 0)
+                {
+                    // Set state with the first occurence of the unlinkable block
+                    UnlinkableHeaderIndex = (int) unlinkableHeaderMsg.Header.Index;
+                }
+
                 _logger?.Trace($"Header unlinkable, height {unlinkableHeaderMsg.Header.Index}.");
 
                 IPeer target = CurrentSyncSource ??
@@ -239,11 +251,13 @@ namespace AElf.Node.Protocol
                     _logger?.Warn("[event] message or header null.");
                     return;
                 }
+
+                LocalHeight = (int) header.Header.Index - 1;
+                UnlinkableHeaderIndex = 0;
                 
                 _logger?.Trace($"Header accepted, height {header.Header.Index}.");
 
-                IPeer target = CurrentSyncSource ??
-                               _peers.FirstOrDefault(p => p.KnownHeight >= (int) header.Header.Index);
+                IPeer target = CurrentSyncSource ?? _peers.FirstOrDefault(p => p.KnownHeight >= (int)header.Header.Index);
 
                 if (target == null)
                 {
@@ -251,9 +265,18 @@ namespace AElf.Node.Protocol
                     return;
                 }
 
-                // StartSync(target, (int) header.Header.Index, target.KnownHeight);
-                // todo re-implement this logic
-                // todo current height is lower here
+                // Sync if needed
+//                lock (_syncLock)
+//                {
+                    // todo If we're syncing, cancel sync
+                    // todo clear any anoucements that are below ulinkable so that when it finishes
+                    // todo the node 
+//                    CurrentSyncSource = peer.Peer;
+//                    CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
+//                    
+//                    FireSyncStateChanged(true);
+                    
+                //}
             });
 
             MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
@@ -369,7 +392,17 @@ namespace AElf.Node.Protocol
                     
                     args.Block = block;
                 }
+                else if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory && args.Message.Type == (int)AElfProtocolMsgType.NewTransaction)
+                {
+                    return;
+                }
+
+                int cnt = _incomingJobs.Count();
                 
+                // todo better warning system needed 
+                if (cnt > 500)
+                    _logger?.Trace($"Queue size {cnt}");
+
                 _incomingJobs.Enqueue(args, 0);
             }
         }
