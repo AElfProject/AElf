@@ -122,22 +122,30 @@ namespace AElf.Node.Protocol
                     _logger?.Warn("[event] Block null.");
                     return;
                 }
+
+                // Note - This should not happen during header this
+                if (UnlinkableHeaderIndex != 0)
+                {
+                    return;
+                }
+
+                IBlock block = inBlock.Block;
                 
                 LocalHeight++;
 
-                var blockHash = inBlock.Block.GetHash().DumpByteArray();
-                var blockHeight = inBlock.Block.Header.Index;
+                var blockHash = block.GetHash().DumpByteArray();
+                var blockHeight = block.Header.Index;
 
                 if (blockHash != null)
                     _lastBlocksReceived.Enqueue(blockHash);
 
                 _logger?.Trace($"Block accepted, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}), " +
-                               $"block height {inBlock.Block.Header.Index}.");
+                               $"block height {block.Header.Index}.");
 
                 
                 if (CurrentSyncSource == null || !CurrentSyncSource.IsSyncingHistory)
                 {
-                    AnnounceBlock(inBlock.Block);
+                    AnnounceBlock(block);
                 }
                 
                 lock (_syncLock)
@@ -223,17 +231,49 @@ namespace AElf.Node.Protocol
                     _logger?.Warn("[event] message or header null.");
                     return;
                 }
-
-                if (UnlinkableHeaderIndex != 0)
+                
+                // The reception of this event means that the chain has discovered 
+                // that the current block it is trying to execute (height H) is 
+                // not linkable to the block we have at H-1.
+                
+                // At this point we stop all current syncing activities and repetedly 
+                // download previous headers to the block we couldn't link (in other 
+                // word "his branch") until we find a linkable block (at wich point 
+                // the HeaderAccepted event should be launched.
+                
+                // note that when this event is called, our knowledge of the local 
+                // height doesn't mean much.
+                
+                lock (_syncLock)
                 {
-                    // Set state with the first occurence of the unlinkable block
-                    UnlinkableHeaderIndex = (int) unlinkableHeaderMsg.Header.Index;
+                    // If this is already != 0, it means that the previous batch of 
+                    // headers was not linked and that more need to be requested. 
+                    if (UnlinkableHeaderIndex != 0)
+                    {
+                        // Set state with the first occurence of the unlinkable block
+                        UnlinkableHeaderIndex = (int) unlinkableHeaderMsg.Header.Index;
+                    }
+                    else
+                    {
+                        CurrentSyncSource = null;
+                        
+                        // Reset all syncing operations
+                        foreach (var peer in _peers)
+                        {
+                            peer.ResetSync();
+                        }
+
+                        LocalHeight = 0;
+                    }
                 }
 
                 _logger?.Trace($"Header unlinkable, height {unlinkableHeaderMsg.Header.Index}.");
 
-                IPeer target = CurrentSyncSource ??
-                               _peers.FirstOrDefault(p => p.KnownHeight >= (int) unlinkableHeaderMsg.Header.Index);
+                // Use the peer with the highest target to request headers.
+                IPeer target = _peers
+                    .Where(p => p.KnownHeight >= (int) unlinkableHeaderMsg.Header.Index)
+                    .OrderByDescending(p => p.KnownHeight)
+                    .FirstOrDefault();
 
                 if (target == null)
                 {
