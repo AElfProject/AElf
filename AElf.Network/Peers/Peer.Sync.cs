@@ -74,6 +74,17 @@ namespace AElf.Network.Peers
         }
 
         /// <summary>
+        /// Resets all sync related state, as if this peer had just connected.
+        /// </summary>
+        public void ResetSync()
+        {
+            SyncTarget = 0;
+            CurrentlyRequestedHeight = 0;
+            SyncedAnnouncement = null;
+            _announcements.Clear();
+        }
+
+        /// <summary>
         /// Effectively triggers a sync session with this peer. The target height is specified
         /// as a parameter.
         /// </summary>

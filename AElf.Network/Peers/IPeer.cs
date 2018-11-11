@@ -29,6 +29,8 @@ namespace AElf.Network.Peers
         NodeData DistantNodeData { get; }
         byte[] DistantNodeAddress { get; }
         void EnqueueOutgoing(Message msg, Action<Message> successCallback = null);
+
+        void ResetSync();
         
         void StashAnnouncement(Announce announce);
         int GetLowestAnnouncement();
