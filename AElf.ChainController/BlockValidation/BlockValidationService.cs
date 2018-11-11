@@ -60,7 +60,8 @@ namespace AElf.ChainController
             foreach (var filter in _filters)
             {
                 var result = await filter.ValidateBlockAsync(block, context);
-                _logger?.Trace($"Result of {filter.GetType().Name}: {result} - {block.BlockHashToHex}");
+                if(result != BlockValidationResult.Success)
+                    _logger?.Warn($"Result of {filter.GetType().Name}: {result} - {block.BlockHashToHex}");
                 resultCollection.Add(result);
             }
 

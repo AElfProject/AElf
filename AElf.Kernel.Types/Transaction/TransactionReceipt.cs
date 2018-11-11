@@ -13,5 +13,7 @@ namespace AElf.Kernel
         public bool IsExecutable => SignatureSt == Types.SignatureStatus.SignatureValid &&
                                   RefBlockSt == Types.RefBlockStatus.RefBlockValid &&
                                   Status == Types.TransactionStatus.UnknownTransactionStatus;
+
+        public bool ToBeBroadCasted { get; set; } = true;
     }
 }

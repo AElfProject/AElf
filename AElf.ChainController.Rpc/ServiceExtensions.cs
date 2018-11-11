@@ -254,20 +254,17 @@ namespace AElf.ChainController.Rpc
 
         internal static MerklePath GetTxRootMerklePathinParentChain(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetTxRootMerklePathInParentChain(
-                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+            return s.CrossChainInfo.GetTxRootMerklePathInParentChain(height);
         }
 
         internal static ParentChainBlockInfo GetParentChainBlockInfo(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetBoundParentChainBlockInfo(
-                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+            return s.CrossChainInfo.GetBoundParentChainBlockInfo(height);
         }
 
         internal static ulong GetBoundParentChainHeight(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetBoundParentChainHeight(
-                s.GetGenesisContractHash(SmartContractType.SideChainContract), height);
+            return s.CrossChainInfo.GetBoundParentChainHeight(height);
         }
     }
     
