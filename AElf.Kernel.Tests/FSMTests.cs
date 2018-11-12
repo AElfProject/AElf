@@ -30,5 +30,54 @@ namespace AElf.Kernel.Tests
             fsm.Process(5001);
             Assert.Equal(2, fsm.CurrentState);
         }
+
+        [Fact]
+        public void CallbackTest()
+        {
+            var flag = new Container();
+            
+            var fsm = new FSM<Season>();
+            fsm.AddState(Season.Spring)
+                .SetTimeout(1000)
+                .GoesTo(() => Season.Summer)
+                .OnLeaving(() => flag.Value += 1);
+            fsm.AddState(Season.Summer)
+                .SetTimeout(1000)
+                .GoesTo(() => Season.Autumn)
+                .OnEntering(() => flag.Value += 10);
+            fsm.AddState(Season.Autumn)
+                .SetTimeout(1000)
+                .GoesTo(() => Season.Winter)
+                .OnEntering(() => flag.Value += 100);
+            fsm.AddState(Season.Winter)
+                .SetTimeout(1000)
+                .GoesTo(() => Season.Spring)
+                .OnEntering(() => flag.Value += 1000);
+
+            fsm.CurrentState = Season.Spring;
+            fsm.Process(0);
+
+            fsm.Process(999);
+            Assert.Equal(0, flag.Value);
+            fsm.Process(1001);
+            Assert.Equal(11, flag.Value);
+            fsm.Process(2001);
+            Assert.Equal(111, flag.Value);
+            fsm.Process(3001);
+            Assert.Equal(1111, flag.Value);
+        }
+
+        enum Season
+        {
+            Spring,
+            Summer,
+            Autumn,
+            Winter
+        }
+
+        class Container
+        {
+            public int Value { get; set; }
+        }
     }
 }
