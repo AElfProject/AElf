@@ -37,6 +37,7 @@ namespace AElf.RPC
                     .UseUrls(url)
                     .ConfigureServices(sc =>
                     {
+                        sc.AddCors();
                         sc.AddSingleton(scope.Resolve<INetworkManager>());
                         sc.AddSingleton(scope.Resolve<IPeerManager>());
 
@@ -49,6 +50,7 @@ namespace AElf.RPC
                     })
                     .Configure(ab =>
                     {
+                        ab.UseCors(builder => { builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
                         ab.UseSignalR(routes => { routes.MapHub<NetworkHub>("/events/net"); });
 
                         RpcServerHelpers.Configure(ab, scope);
