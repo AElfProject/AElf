@@ -156,6 +156,11 @@ namespace AElf.Network.Peers
             Task.Run(() => StartProcessing()).ConfigureAwait(false);
         }
 
+        public Task Stop()
+        {
+            return Task.CompletedTask;
+        }
+
         public async Task<JObject> GetPeers()
         {
             var peers = new JObject

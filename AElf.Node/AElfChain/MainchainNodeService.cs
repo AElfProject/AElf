@@ -372,5 +372,10 @@ namespace AElf.Node.AElfChain
 
             return block;
         }
+
+        public async Task<int> GetCurrentBlockHeightAsync()
+        {
+             return (int) await _blockChain.GetCurrentBlockHeightAsync();
+        }
     }
 }
