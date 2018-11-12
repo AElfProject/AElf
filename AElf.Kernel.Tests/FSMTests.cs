@@ -1,3 +1,4 @@
+using System;
 using AElf.Common.FSM;
 using Xunit;
 
@@ -65,6 +66,48 @@ namespace AElf.Kernel.Tests
             Assert.Equal(111, flag.Value);
             fsm.Process(3001);
             Assert.Equal(1111, flag.Value);
+            fsm.Process(4001);
+            fsm.Process(5001);
+            Assert.Equal(1122, flag.Value);
+        }
+
+        [Fact]
+        public void NextStateSelectorTest()
+        {
+            var flag = new Container();
+            var fsm = new FSM<Season>();
+
+            var amIInBeijing = true;
+
+            Season Selector()
+            {
+                if (amIInBeijing)
+                {
+                    return Season.Winter;
+                }
+
+                return Season.Autumn;
+            }
+
+            fsm.AddState(Season.Summer)
+                .SetTimeout(1000)
+                .GoesTo(Selector);
+            fsm.AddState(Season.Autumn)
+                .SetTimeout(1000)
+                .GoesTo(() => Season.Winter)
+                .OnEntering(() => flag.Value += 100);
+            fsm.AddState(Season.Winter)
+                .SetTimeout(amIInBeijing ? 2000 : 1000)
+                .GoesTo(() => Season.Spring)
+                .OnEntering(() => flag.Value += 1000);
+            
+            fsm.CurrentState = Season.Summer;
+            fsm.Process(0);
+            
+            fsm.Process(999);
+            Assert.Equal(Season.Summer, fsm.CurrentState);
+            fsm.Process(1001);
+            Assert.Equal(Season.Winter, fsm.CurrentState);
         }
 
         enum Season
