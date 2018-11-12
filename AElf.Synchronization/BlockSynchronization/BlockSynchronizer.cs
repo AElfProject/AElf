@@ -5,19 +5,23 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
+using AElf.Common.FSM;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Types;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
+using Akka.Actor;
 using Easy.MessageHub;
 using NLog;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Synchronization.BlockSynchronization
 {
+    // ReSharper disable InconsistentNaming
     public class BlockSynchronizer : IBlockSynchronizer
     {
         // Some dependencies.
@@ -31,9 +35,9 @@ namespace AElf.Synchronization.BlockSynchronization
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(ChainConfig.Instance.ChainId)));
         
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
+        private readonly ILogger _logger;
 
-        private NodeSyncState _nodeSyncState = NodeSyncState.InitialSync;
+        private FSM<NodeState> _stateFSM;
 
         private static int _flag;
 
@@ -205,7 +209,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public void AddMinedBlock(IBlock block)
         {
-            _nodeSyncState = NodeSyncState.MinedBlock;
+            _stateFSM.CurrentState = NodeState.Caught;
             
             _blockSet.Tell(block);
 
@@ -257,7 +261,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 // Receive again to execute the same block.
 
                 var currentBlockHash = await BlockChain.GetCurrentBlockHashAsync();
-                if (_nodeSyncState == NodeSyncState.MinedBlock && !_executingRemainingBlocks)
+                if (_stateFSM.CurrentState.AsMiner() && !_executingRemainingBlocks)
                 {
                     Thread.Sleep(200);
                     MessageHub.Instance.Publish(new LockMining(false));
@@ -459,6 +463,14 @@ namespace AElf.Synchronization.BlockSynchronization
             }
 
             return blockHeaderList;
+        }
+
+        private void InitialNodeStateFSM()
+        {
+            _stateFSM = new FSM<NodeState>();
+            
+            _stateFSM.AddState(NodeState.Catching)
+                .
         }
     }
 }

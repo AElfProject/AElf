@@ -11,6 +11,14 @@ namespace AElf.Kernel.Types
         Catching,
         
         /// <summary>
+        /// Already mined at least one block.
+        /// Available next state:
+        /// HeaderValidating,
+        /// GeneratingConsensusTx
+        /// </summary>
+        Caught,
+        
+        /// <summary>
         /// Add this block to valid block cache if success. Actually we use this to maintain valid block cache.
         /// Maybe separate from other states.
         /// Available next state:
@@ -62,8 +70,16 @@ namespace AElf.Kernel.Types
         /// <summary>
         /// Doing rollback, can't do anything.
         /// Available next state:
-        /// Catching
+        /// Caught
         /// </summary>
         Reverting
+    }
+
+    public static class NodeStateExtensions
+    {
+        public static bool AsMiner(this NodeState nodeState)
+        {
+            return (int) nodeState > 0;
+        }
     }
 }

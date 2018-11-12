@@ -36,7 +36,7 @@ namespace AElf.Common.FSM
             return behaviour;
         }
 
-        public void Process(double time)
+        public void ProcessWithTime(double time)
         {
             _stateAge = _stateAge < 0 ? time : _stateAge;
             var total = time;
@@ -65,6 +65,11 @@ namespace AElf.Common.FSM
                 CurrentState = _currentStateBehaviour.NextStateSelector();
                 _stateAge = time;
             }
+        }
+
+        public void ProcessWithBlockHeight(ulong blockHeight)
+        {
+            
         }
 
         public void NextState()
