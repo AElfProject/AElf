@@ -45,10 +45,10 @@ namespace AElf.Common.FSM
 
             if (_currentStateBehaviour.Duration.HasValue)
             {
-                progress = Math.Max(0, Math.Min(1f, stateTime / _currentStateBehaviour.Duration.Value + 1000));
+                progress = Math.Max(0, Math.Min(1000, stateTime / _currentStateBehaviour.Duration.Value * 1000));
             }
             
-            var data = new FSMState<T>()
+            var data = new FSMState<T>
             {
                 FSM = this,
                 StateBehaviour = _currentStateBehaviour,
@@ -60,7 +60,7 @@ namespace AElf.Common.FSM
 
             _currentStateBehaviour.Invoke(data);
 
-            if (progress > 0 && _currentStateBehaviour.NextStateSelector != null)
+            if (progress >= 1000 && _currentStateBehaviour.NextStateSelector != null)
             {
                 CurrentState = _currentStateBehaviour.NextStateSelector();
                 _stateAge = time;
