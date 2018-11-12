@@ -15,5 +15,6 @@ namespace AElf.Node.AElfChain
 
         Task<Block> GetBlockFromHash(byte[] hash);
         Task<Block> GetBlockAtHeight(int height);
+        Task<int> GetCurrentBlockHeightAsync();
     }
 }

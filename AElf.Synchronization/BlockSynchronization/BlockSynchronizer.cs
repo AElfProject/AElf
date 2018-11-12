@@ -69,25 +69,35 @@ namespace AElf.Synchronization.BlockSynchronization
 
             MessageHub.Instance.Subscribe<HeadersReceived>(async inHeaders =>
             {
-                var headers = inHeaders.Headers.OrderByDescending(h => h.Index).ToList();
-                if (!headers.Any())
-                    return;
-                foreach (var blockHeader in headers)
+                if (inHeaders?.Headers == null || !inHeaders.Headers.Any())
                 {
-                    var correspondingBlockHeader = await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
-                    if (correspondingBlockHeader.BlockHashToHex != blockHeader.PreviousBlockHash.DumpHex())
-                        continue;
-                    MessageHub.Instance.Publish(new HeaderAccepted(blockHeader));
+                    _logger?.Warn("Null headers or header list is empty.");
                     return;
                 }
+                
+                var headers = inHeaders.Headers.OrderByDescending(h => h.Index).ToList();
+                
+                foreach (var blockHeader in headers)
+                {
+                    // Get previous block from the chain
+                    var correspondingBlockHeader = await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
+                    
+                    // If the hash of this previous block correponds to "previous block hash" of the current header
+                    // the link has been found
+                    if (correspondingBlockHeader.BlockHashToHex == blockHeader.PreviousBlockHash.DumpHex())
+                    {
+                        // Launch header accepted event and return
+                        MessageHub.Instance.Publish(new HeaderAccepted(blockHeader));
+                        return;
+                    }
+                }
 
+                // Launch unlinkable again with the last headers index 
                 MessageHub.Instance.Publish(new UnlinkableHeader(headers.Last()));
             });
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => { _miningStarted = inState.IsMining; });
-
             MessageHub.Instance.Subscribe<BlockMined>(inBlock => { AddMinedBlock(inBlock.Block); });
-            
             MessageHub.Instance.Subscribe<ExecutionStateChanged>(inState => { _isExecuting = inState.IsExecuting; });
             
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
