@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Kernel.Types.Common;
 using AElf.Network;
 using AElf.Network.Peers;
 using AElf.RPC.Hubs.Net;
 using Microsoft.AspNetCore.Hosting;
 using Autofac;
+using Easy.MessageHub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
@@ -19,6 +21,15 @@ namespace AElf.RPC
         public RpcServer(ILogger logger)
         {
             _logger = logger;
+            
+            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
+            {
+                if (signal.Module == TerminatedModuleEnum.Rpc)
+                {
+                    Stop();
+                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.Rpc));
+                }
+            });
         }
 
         public bool Init(ILifetimeScope scope, string rpcHost, int rpcPort)
@@ -37,6 +48,7 @@ namespace AElf.RPC
                     .UseUrls(url)
                     .ConfigureServices(sc =>
                     {
+                        sc.AddCors();
                         sc.AddSingleton(scope.Resolve<INetworkManager>());
                         sc.AddSingleton(scope.Resolve<IPeerManager>());
 
@@ -49,6 +61,7 @@ namespace AElf.RPC
                     })
                     .Configure(ab =>
                     {
+                        ab.UseCors(builder => { builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
                         ab.UseSignalR(routes => { routes.MapHub<NetworkHub>("/events/net"); });
 
                         RpcServerHelpers.Configure(ab, scope);
@@ -81,7 +94,7 @@ namespace AElf.RPC
 
         public void Stop()
         {
-            _host.StopAsync();
+             _host.StopAsync();
         }
     }
 }

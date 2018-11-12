@@ -214,9 +214,10 @@ namespace AElf.Node.AElfChain
             return true;
         }
 
-        public void Stop()
+        public bool Stop()
         {
-            //todo   
+            //todo
+            return true;
         }
 
         public bool IsDPoSAlive()
@@ -371,6 +372,11 @@ namespace AElf.Node.AElfChain
             }
 
             return block;
+        }
+
+        public async Task<int> GetCurrentBlockHeightAsync()
+        {
+             return (int) await _blockChain.GetCurrentBlockHeightAsync();
         }
     }
 }

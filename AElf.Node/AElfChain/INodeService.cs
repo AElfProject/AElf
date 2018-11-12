@@ -7,7 +7,7 @@ namespace AElf.Node.AElfChain
     {
         void Initialize(NodeConfiguration conf);
         bool Start();
-        void Stop();
+        bool Stop();
         bool IsDPoSAlive();
         bool IsForked();
 
@@ -15,5 +15,6 @@ namespace AElf.Node.AElfChain
 
         Task<Block> GetBlockFromHash(byte[] hash);
         Task<Block> GetBlockAtHeight(int height);
+        Task<int> GetCurrentBlockHeightAsync();
     }
 }

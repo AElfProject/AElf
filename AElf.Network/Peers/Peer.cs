@@ -39,10 +39,10 @@ namespace AElf.Network.Peers
 
     public enum RejectReason
     {
-        Auth_Timeout,
-        Auth_Invalid_handshake_msg,
-        Auth_Invalid_Key,
-        Auth_Invalid_Sig
+        AuthTimeout,
+        AuthInvalidHandshakeMsg,
+        AuthInvalidKey,
+        AuthInvalidSig
     }
 
     public enum DisconnectReason
@@ -110,7 +110,7 @@ namespace AElf.Network.Peers
         /// <summary>
         /// This nodes public key.
         /// </summary>
-        private ECKeyPair _nodeKey;
+        private readonly ECKeyPair _nodeKey;
 
         /// <summary>
         /// The underlying network client.
@@ -135,7 +135,6 @@ namespace AElf.Network.Peers
         public ECKeyPair DistantNodeKeyPair { get; private set; }
 
         public byte[] DistantNodeAddress => DistantNodeKeyPair?.GetAddress().DumpByteArray();
-
         public byte[] DistantPublicKey => _lastReceivedHandshake?.PublicKey.ToByteArray();
 
         [JsonProperty(PropertyName = "isBp")] public bool IsBp { get; internal set; }
@@ -144,11 +143,12 @@ namespace AElf.Network.Peers
 
         public ushort Port => DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort) 0;
 
-        public readonly int CurrentHeight = 0;
+        public readonly int CurrentHeight;
 
         public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey, int currentHeight)
         {
-            _blockRequests = new List<TimedBlockRequest>();
+            BlockRequests = new List<TimedBlockRequest>();
+            _announcements = new List<Announce>();
 
             _pingPongTimer = new Timer();
             _authTimer = new Timer();
@@ -165,8 +165,6 @@ namespace AElf.Network.Peers
             _messageWriter = writer;
 
             CurrentHeight = currentHeight;
-
-            _blocks = new List<PendingBlock>();
         }
 
         private void SetupHeartbeat()
@@ -309,7 +307,7 @@ namespace AElf.Network.Peers
 
             Dispose();
 
-            AuthFinished?.Invoke(this, new AuthFinishedArgs(RejectReason.Auth_Timeout));
+            AuthFinished?.Invoke(this, new AuthFinishedArgs(RejectReason.AuthTimeout));
         }
 
         /// <summary>
@@ -330,7 +328,7 @@ namespace AElf.Network.Peers
                 IPEndPoint remoteEndPoint = (IPEndPoint) _client.Client.RemoteEndPoint;
                 handshk.NodeInfo.IpAddress = remoteEndPoint.Address.ToString();
 
-                _peerHeight = handshk.Height;
+                KnownHeight = handshk.Height;
 
                 _pingPongTimer.Start();
             }
@@ -352,7 +350,7 @@ namespace AElf.Network.Peers
         {
             if (handshakeMsg == null)
             {
-                FireInvalidAuth(RejectReason.Auth_Invalid_handshake_msg);
+                FireInvalidAuth(RejectReason.AuthInvalidHandshakeMsg);
                 return;
             }
 
@@ -364,7 +362,7 @@ namespace AElf.Network.Peers
 
                 if (DistantNodeKeyPair == null)
                 {
-                    FireInvalidAuth(RejectReason.Auth_Invalid_Key);
+                    FireInvalidAuth(RejectReason.AuthInvalidKey);
                     return;
                 }
 
@@ -376,13 +374,13 @@ namespace AElf.Network.Peers
 
                 if (!sigValid)
                 {
-                    FireInvalidAuth(RejectReason.Auth_Invalid_Sig);
+                    FireInvalidAuth(RejectReason.AuthInvalidSig);
                     return;
                 }
             }
             catch (Exception)
             {
-                FireInvalidAuth(RejectReason.Auth_Invalid_Key);
+                FireInvalidAuth(RejectReason.AuthInvalidKey);
                 return;
             }
 

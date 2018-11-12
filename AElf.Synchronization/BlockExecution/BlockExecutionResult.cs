@@ -1,5 +1,3 @@
-using AElf.Common;
-
 namespace AElf.Synchronization.BlockExecution
 {
     // ReSharper disable InconsistentNaming
@@ -11,10 +9,11 @@ namespace AElf.Synchronization.BlockExecution
         CollectTransactionsSuccess,
         UpdateWorldStateSuccess,
 
-        // Haven't appended yet
+        // Add to cache
+        //     Haven't appended yet, can execute again
         InvalidSideChainInfo = 11,
         InvalidParentChainBlockInfo,
-        
+        //     Simply cache
         ExecutionCancelled = 51,
         BlockIsNull,
         NoTransaction,
@@ -25,9 +24,11 @@ namespace AElf.Synchronization.BlockExecution
         IncorrectStateMerkleTree,
         FutureBlock,
         AlreadyAppended,
+        Terminated,
+        Mining,
 
         // Need to rollback
-        Fatal = 101,
+        Fatal = 101
     }
 
     public static class ExecutionResultExtensions

@@ -10,7 +10,6 @@ namespace AElf.Network.Peers
         event EventHandler MessageReceived;
         event EventHandler PeerDisconnected;
         event EventHandler AuthFinished;
-        event EventHandler SyncFinished;
         
         string IpAddress { get; }
         ushort Port { get; }
@@ -18,16 +17,30 @@ namespace AElf.Network.Peers
         bool IsAuthentified { get; }
         bool IsBp { get; }
         int KnownHeight { get; }
+        
+        bool IsSyncingHistory { get; }
+        bool IsSyncingAnnounced { get; }
+        int CurrentlyRequestedHeight { get; }
+        bool AnyStashed { get; }
+        bool IsSyncing { get; }
 
         bool Start();
         
         NodeData DistantNodeData { get; }
         byte[] DistantNodeAddress { get; }
         void EnqueueOutgoing(Message msg, Action<Message> successCallback = null);
-        void Sync(int start, int target);
-        void OnNewBlockAccepted(IBlock block);
 
-        bool AnySyncing();
+        void ResetSync();
+        
+        void StashAnnouncement(Announce announce);
+        int GetLowestAnnouncement();
+
+        int SyncTarget { get; }
+
+        void SyncToHeight(int start, int target);
+        bool SyncNextHistory();
+        bool SyncNextAnnouncement(int? expected = null);
+
         void RequestHeaders(int headerIndex, int headerRequestCount);
     }
 }

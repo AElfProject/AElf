@@ -36,5 +36,10 @@ namespace AElf.Common.Collections
             var elem = _itemsCollection.Take();
             return elem.Value;
         }
+
+        public int Count()
+        {
+            return _itemsCollection.Count;
+        }
     }
 }

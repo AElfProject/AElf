@@ -7,7 +7,6 @@ using AElf.Kernel;
 using Akka.Util.Internal;
 using NLog;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable FieldCanBeMadeReadOnly.Local
@@ -53,7 +52,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private readonly ILogger _logger;
 
-        private readonly List<IBlock> _blockCache = new List<IBlock>();
+        private static List<IBlock> _blockCache = new List<IBlock>();
+
+        public static ulong? MaxHeight => _blockCache.OrderByDescending(b => b.Index).FirstOrDefault()?.Index;
 
         private readonly Dictionary<ulong, IBlock> _executedBlocks = new Dictionary<ulong, IBlock>();
 
@@ -82,6 +83,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 try
                 {
                     _blockCache.Add(block);
+                    _blockCache = _blockCache.OrderBy(b => b.Index).ToList();
                 }
                 finally
                 {
@@ -190,8 +192,11 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     for (var i = _executedBlocks.OrderBy(p => p.Key).FirstOrDefault().Key; i < targetHeight; i++)
                     {
-                        _executedBlocks.RemoveKey(i);
-                        _logger?.Trace($"Removed block of height {i} from executed block dict.");
+                        if (_executedBlocks.ContainsKey(i))
+                        {
+                            _executedBlocks.RemoveKey(i);
+                            _logger?.Trace($"Removed block of height {i} from executed block dict.");
+                        }
                     }
 
                     var toRemove = _blockCache.Where(b => b.Index <= targetHeight).ToList();
@@ -217,9 +222,9 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <summary>
         /// Return the fork height if exists longer chain.
         /// </summary>
-        /// <param name="currentHeight"></param>
+        /// <param name="rollbackHeight"></param>
         /// <returns></returns>
-        public ulong AnyLongerValidChain(ulong currentHeight)
+        public ulong AnyLongerValidChain(ulong rollbackHeight)
         {
             var lockWasTaken = false;
             try
@@ -227,12 +232,14 @@ namespace AElf.Synchronization.BlockSynchronization
                 lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
                 if (!lockWasTaken) 
                     return 0;
+
+                var currentHeight = rollbackHeight + GlobalConfig.ForkDetectionLength;
                 
                 PrintInvalidBlockList();
 
                 ulong forkHeight = 0;
 
-                var higherBlocks = _blockCache.Where(b => b.Index > currentHeight).OrderByDescending(b => b.Index)
+                var higherBlocks = _blockCache.Where(b => b.Index > rollbackHeight).OrderByDescending(b => b.Index)
                     .ToList();
 
                 if (higherBlocks.Any())
@@ -283,7 +290,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _logger?.Trace("No proper fork height.");
                 }
-                    
+
+                if (currentHeight + 1 == forkHeight)
+                {
+                    return ulong.MaxValue;
+                }
+                
                 return forkHeight <= currentHeight ? forkHeight : 0;
             }
             finally
@@ -324,15 +336,15 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        public bool MultipleBlocksInOneIndex(ulong index)
+        public bool MultipleLinkableBlocksInOneIndex(ulong index, string preBlockHash)
         {
-            return _blockCache.Count(b => b.Index == index) > 1;
+            return _blockCache.Count(b => b.Index == index && b.Header.PreviousBlockHash.DumpHex() == preBlockHash) > 1;
         }
 
         private void PrintInvalidBlockList()
         {
             var str = "\nInvalid Block List:\n";
-            foreach (var block in _blockCache)
+            foreach (var block in _blockCache.OrderBy(b => b.Index))
             {
                 str +=
                     $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}\n";

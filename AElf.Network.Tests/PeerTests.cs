@@ -92,7 +92,7 @@ namespace AElf.Network.Tests
             
             Assert.NotNull(authFinishedArgs);
             Assert.False(authFinishedArgs.IsAuthentified);
-            Assert.True(authFinishedArgs.Reason == RejectReason.Auth_Timeout);
+            Assert.True(authFinishedArgs.Reason == RejectReason.AuthTimeout);
             Assert.False(p.IsAuthentified);
         }
         

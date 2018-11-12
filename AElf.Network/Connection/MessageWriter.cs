@@ -84,7 +84,7 @@ namespace AElf.Network.Connection
                 {
                     job = _outboundMessages.Take();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Dispose(); // if already disposed will do nothing 
                     break;
