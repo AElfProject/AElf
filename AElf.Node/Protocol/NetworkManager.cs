@@ -21,7 +21,6 @@ using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 
@@ -52,7 +51,7 @@ namespace AElf.Node.Protocol
         private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly INodeService _nodeService;
 
-        private readonly List<IPeer> _peers = new List<IPeer>();
+        private readonly List<IPeer> _peers;
 
         private BoundedByteArrayQueue _lastBlocksReceived;
         private BoundedByteArrayQueue _lastTxReceived;
@@ -61,15 +60,16 @@ namespace AElf.Node.Protocol
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
 
         internal IPeer CurrentSyncSource { get; set; }
-        internal int LocalHeight = 0;
+        internal int LocalHeight;
 
-        internal int UnlinkableHeaderIndex = 0;
+        internal int UnlinkableHeaderIndex;
         
         private readonly object _syncLock = new object();
 
         public NetworkManager(IPeerManager peerManager, IBlockSynchronizer blockSynchronizer, INodeService nodeService, ILogger logger)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
+            _peers = new List<IPeer>();
 
             _peerManager = peerManager;
             _logger = logger;
@@ -125,9 +125,7 @@ namespace AElf.Node.Protocol
 
                 // Note - This should not happen during header this
                 if (UnlinkableHeaderIndex != 0)
-                {
                     return;
-                }
 
                 IBlock block = inBlock.Block;
                 
@@ -292,31 +290,46 @@ namespace AElf.Node.Protocol
                     return;
                 }
 
-                LocalHeight = (int) header.Header.Index - 1;
-                UnlinkableHeaderIndex = 0;
-                
-                _logger?.Trace($"Header accepted, height {header.Header.Index}.");
-
-                IPeer target = CurrentSyncSource ?? _peers.FirstOrDefault(p => p.KnownHeight >= (int)header.Header.Index);
-
-                if (target == null)
+                if (UnlinkableHeaderIndex != 0)
                 {
-                    _logger?.Warn("[event] no peers to sync from.");
+                    _logger?.Warn("[event] HeaderAccepted but network module not in recovery mode.");
                     return;
                 }
 
-                // Sync if needed
-//                lock (_syncLock)
-//                {
-                    // todo If we're syncing, cancel sync
-                    // todo clear any anoucements that are below ulinkable so that when it finishes
-                    // todo the node 
-//                    CurrentSyncSource = peer.Peer;
-//                    CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
-//                    
-//                    FireSyncStateChanged(true);
+                lock (_syncLock)
+                {
+                    // Local height reset 
+                    LocalHeight = (int) header.Header.Index - 1;
                     
-                //}
+                    // Reset Unlinkable header state
+                    UnlinkableHeaderIndex = 0;
+                    
+                    _logger?.Trace($"[event] header accepted, height {header.Header.Index}, local height reset to {header.Header.Index - 1}.");
+                    
+                    // Use the peer with the highest target that is higher than our height.
+                    IPeer target = _peers
+                        .Where(p => p.KnownHeight > LocalHeight)
+                        .OrderByDescending(p => p.KnownHeight)
+                        .FirstOrDefault();
+    
+                    if (target == null)
+                    {
+                        _logger?.Warn("[event] no peers to sync from.");
+                        return;
+                    }
+
+                    if (CurrentSyncSource != null)
+                    {
+                        // todo possible sync reset
+                        _logger?.Warn("[event] current sync source is not null");
+                        return;
+                    }
+                    
+                    CurrentSyncSource = target;
+                    CurrentSyncSource.SyncToHeight(LocalHeight + 1, target.KnownHeight);
+                    
+                    FireSyncStateChanged(true);
+                }
             });
 
             MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
