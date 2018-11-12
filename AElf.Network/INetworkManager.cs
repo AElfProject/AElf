@@ -5,5 +5,6 @@ namespace AElf.Network
     public interface INetworkManager
     {
         Task Start();
+        Task Stop();
     }
 }

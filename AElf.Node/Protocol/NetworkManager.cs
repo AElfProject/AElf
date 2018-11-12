@@ -23,13 +23,14 @@ using Google.Protobuf;
 using NLog;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
-
 namespace AElf.Node.Protocol
 {
     [LoggerName(nameof(NetworkManager))]
     public class NetworkManager : INetworkManager
     {
         #region Settings
+
+        public const int JobQueueWarningLimit = 100;
 
         public const int DefaultHeaderRequestCount = 3;
         public const int DefaultMaxBlockHistory = 15;
@@ -295,6 +296,13 @@ namespace AElf.Node.Protocol
                     _logger?.Warn("[event] HeaderAccepted but network module not in recovery mode.");
                     return;
                 }
+                
+                if (CurrentSyncSource != null)
+                {
+                    // todo possible sync reset
+                    _logger?.Warn("[event] current sync source is not null");
+                    return;
+                }
 
                 lock (_syncLock)
                 {
@@ -315,13 +323,6 @@ namespace AElf.Node.Protocol
                     if (target == null)
                     {
                         _logger?.Warn("[event] no peers to sync from.");
-                        return;
-                    }
-
-                    if (CurrentSyncSource != null)
-                    {
-                        // todo possible sync reset
-                        _logger?.Warn("[event] current sync source is not null");
                         return;
                     }
                     
@@ -360,6 +361,11 @@ namespace AElf.Node.Protocol
             _logger?.Info($"Network initialized at height {LocalHeight}.");
         }
 
+        public async Task Stop()
+        {
+            await _peerManager.Stop();
+        }
+
         private void AnnounceBlock(IBlock block)
         {
             if (block?.Header == null)
@@ -370,12 +376,11 @@ namespace AElf.Node.Protocol
 
             try
             {
-                Announce anc = new Announce();
-                anc.Height = (int) block.Header.Index;
-                anc.Id = ByteString.CopyFrom(block.GetHashBytes());
-
-                byte[] serializedMsg = anc.ToByteArray();
-                Message packet = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Announcement, serializedMsg);
+                Announce anc = new Announce
+                {
+                    Height = (int) block.Header.Index,
+                    Id = ByteString.CopyFrom(block.GetHashBytes())
+                };
 
                 BroadcastMessage(AElfProtocolMsgType.Announcement, anc.ToByteArray());
             }
@@ -413,7 +418,7 @@ namespace AElf.Node.Protocol
         }
 
         /// <summary>
-        /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
+        /// Callback for when a Peer fires a <see cref="IPeer.PeerDisconnected"/> event. It unsubscribes
         /// the manager from the events and removes it from the list.
         /// </summary>
         /// <param name="sender"></param>
@@ -451,10 +456,8 @@ namespace AElf.Node.Protocol
                 }
 
                 int cnt = _incomingJobs.Count();
-                
-                // todo better warning system needed 
-                if (cnt > 500)
-                    _logger?.Trace($"Queue size {cnt}");
+                if (cnt > JobQueueWarningLimit)
+                    _logger?.Warn($"Large job queue size: {cnt}");
 
                 _incomingJobs.Enqueue(args, 0);
             }
@@ -499,17 +502,16 @@ namespace AElf.Node.Protocol
             switch (msgType)
             {
                 case AElfProtocolMsgType.Announcement:
-                    HandleAnnouncement(msgType, args.Message, args.Peer);
+                    HandleAnnouncement(args.Message, args.Peer);
                     break;
                 case AElfProtocolMsgType.Block:
                     MessageHub.Instance.Publish(new BlockReceived(args.Block));
                     break;
-                // New transaction issue from a broadcast.
                 case AElfProtocolMsgType.NewTransaction:
-                    HandleNewTransaction(msgType, args.Message, args.Peer);
+                    HandleNewTransaction(args.Message);
                     break;
                 case AElfProtocolMsgType.Headers:
-                    HandleHeaders(msgType, args.Message, args.Peer);
+                    HandleHeaders(args.Message);
                     break;
                 case AElfProtocolMsgType.RequestBlock:
                     await HandleBlockRequestJob(args);
@@ -584,7 +586,7 @@ namespace AElf.Node.Protocol
             }
         }
 
-        private void HandleHeaders(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        private void HandleHeaders(Message msg)
         {
             try
             {
@@ -597,7 +599,7 @@ namespace AElf.Node.Protocol
             }
         }
 
-        private void HandleAnnouncement(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        private void HandleAnnouncement(Message msg, Peer peer)
         {
             try
             {
@@ -637,7 +639,7 @@ namespace AElf.Node.Protocol
                     }
                 }
                 
-                // todo move completely inside peer class.
+                // todo - impr - move completely inside peer class.
                 peer.OnAnnouncementMessage(a);
             }
             catch (Exception e)
@@ -646,7 +648,7 @@ namespace AElf.Node.Protocol
             }
         }
 
-        private void HandleNewTransaction(AElfProtocolMsgType msgType, Message msg, Peer peer)
+        private void HandleNewTransaction(Message msg)
         {
             try
             {
@@ -699,54 +701,30 @@ namespace AElf.Node.Protocol
 
         /// <summary>
         /// This message broadcasts data to all of its peers. This creates and
-        /// sends a <see cref="AElfPacketData"/> object with the provided pay-
-        /// load and message type.
+        /// sends an object with the provided pay-load and message type.
         /// </summary>
         /// <param name="messageMsgType"></param>
         /// <param name="payload"></param>
         /// <returns></returns>
-        private int BroadcastMessage(AElfProtocolMsgType messageMsgType, byte[] payload)
-        {
-            try
-            {
-                Message packet = NetRequestFactory.CreateMessage(messageMsgType, payload);
-                return BroadcastMessage(packet);
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Error while sending a message to the peers.");
-                return 0;
-            }
-        }
-
-        public int BroadcastMessage(Message message)
+        private void BroadcastMessage(AElfProtocolMsgType messageMsgType, byte[] payload)
         {
             if (_peers == null || !_peers.Any())
-                return 0;
-
-            int count = 0;
-
+            {
+                _logger?.Warn("Cannot broadcast - no peers.");
+                return;
+            }
+            
             try
             {
+                Message message = NetRequestFactory.CreateMessage(messageMsgType, payload);
+                
                 foreach (var peer in _peers)
-                {
-                    try
-                    {
-                        peer.EnqueueOutgoing(message); //todo
-                        count++;
-                    }
-                    catch (Exception e)
-                    {
-                        _logger?.Error(e, "Error while enqueue outgoing message.");
-                    }
-                }
+                    peer.EnqueueOutgoing(message);
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while sending a message to the peers.");
             }
-
-            return count;
         }
     }
 }

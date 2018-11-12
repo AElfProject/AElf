@@ -10,6 +10,7 @@ namespace AElf.Network.Peers
         event EventHandler PeerEvent;
         
         void Start();
+        Task Stop();
         
         // RPC methods
         Task<JObject> GetPeers();
