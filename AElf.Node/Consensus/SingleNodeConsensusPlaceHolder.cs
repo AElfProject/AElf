@@ -60,5 +60,10 @@ namespace AElf.Kernel.Node
             //await _p2p.BroadcastBlock(block);
             _logger.Trace("Single node mining end.");
         }
+        
+        public bool Shutdown()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

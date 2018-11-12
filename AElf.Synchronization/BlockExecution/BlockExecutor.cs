@@ -12,6 +12,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types.Common;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using AElf.Types.CSharp;
@@ -34,6 +35,10 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ITxHub _txHub;
         private readonly IChainManagerBasic _chainManagerBasic;
 
+        private static bool _executing;
+        private static bool _prepareTerminated;
+        private static bool _terminated;
+
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic)
@@ -50,6 +55,26 @@ namespace AElf.Synchronization.BlockExecution
             Cts = new CancellationTokenSource();
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
+
+            _executing = false;
+            _prepareTerminated = false;
+            _terminated = false;
+            
+            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
+            {
+                if (signal.Module == TerminatedModuleEnum.BlockExecutor)
+                {
+                    if (!_executing)
+                    {
+                        _terminated = true;
+                        MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockExecutor));
+                    }
+                    else
+                    {
+                        _prepareTerminated = true;
+                    }
+                }
+            });
         }
 
         /// <summary>
@@ -92,7 +117,11 @@ namespace AElf.Synchronization.BlockExecution
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            MessageHub.Instance.Publish(new ExecutionStateChanged(true));
+            _executing = true;
+            if (_terminated)
+            {
+                return BlockExecutionResult.Terminated;
+            }
 
             var txnRes = new List<TransactionResult>();
             var readyTxs = new List<Transaction>();
@@ -100,6 +129,8 @@ namespace AElf.Synchronization.BlockExecution
             BlockExecutionResult res = BlockExecutionResult.Fatal;
             try
             {
+                MessageHub.Instance.Publish(new ExecutionStateChanged(true));
+
                 // get txn from pool
                 var tuple = CollectTransactions(block);
                 result = tuple.Item1;
@@ -157,6 +188,12 @@ namespace AElf.Synchronization.BlockExecution
             {
                 MessageHub.Instance.Publish(new ExecutionStateChanged(false));
                 _current = null;
+                _executing = false;
+                if (_prepareTerminated)
+                {
+                    _terminated = true;
+                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockExecutor));
+                }
                 stopwatch.Stop();
                 _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
                               $"duration {stopwatch.ElapsedMilliseconds} ms.");

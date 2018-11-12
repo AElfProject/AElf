@@ -214,9 +214,10 @@ namespace AElf.Node.AElfChain
             return true;
         }
 
-        public void Stop()
+        public bool Stop()
         {
-            //todo   
+            //todo
+            return true;
         }
 
         public bool IsDPoSAlive()

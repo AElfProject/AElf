@@ -12,6 +12,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using Easy.MessageHub;
@@ -37,6 +38,8 @@ namespace AElf.Miner.TxMemPool
         private IBlockChain BlockChain => _blockChain ??
                                           (_blockChain =
                                               _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId)));
+        
+        private static bool _terminated;
 
         private ulong _curHeight;
 
@@ -76,12 +79,23 @@ namespace AElf.Miner.TxMemPool
             _chainService = chainService;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
+
+            _terminated = false;
         }
 
         public void Initialize()
         {
             MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
                 await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
+            
+            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
+            {
+                if (signal.Module == TerminatedModuleEnum.TxPool)
+                {
+                    _terminated = true;
+                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.TxPool));
+                }
+            });
         }
 
         public void Start()
@@ -95,6 +109,11 @@ namespace AElf.Miner.TxMemPool
 
         public async Task AddTransactionAsync(Transaction transaction, bool skipValidation = false)
         {
+            if (_terminated)
+            {
+                return;
+            }
+
             var tr = new TransactionReceipt(transaction);
             if (skipValidation)
             {

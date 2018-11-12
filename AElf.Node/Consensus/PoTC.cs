@@ -72,5 +72,10 @@ namespace AElf.Kernel.Node
         {
             return true;
         }
+        
+        public bool Shutdown()
+        {
+            return false;
+        }
     }
 }

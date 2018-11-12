@@ -21,6 +21,7 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types.Common;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 
@@ -69,6 +70,9 @@ namespace AElf.Kernel.Node
 
         private static bool _hangOnMining;
 
+        private static bool _prepareTerminated;
+        private static bool _terminated;
+
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
@@ -79,6 +83,8 @@ namespace AElf.Kernel.Node
             _miner = miner;
             _chainService = chainService;
             _synchronizer = synchronizer;
+            _prepareTerminated = false;
+            _terminated = false;
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
@@ -152,6 +158,14 @@ namespace AElf.Kernel.Node
                 {
                     _logger?.Trace("CatchingUp - Mining unlocked.");
                     await Start();
+                }
+            });
+
+            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
+            {
+                if (signal.Module == TerminatedModuleEnum.Mining)
+                {
+                    _prepareTerminated = true;
                 }
             });
         }
@@ -229,6 +243,12 @@ namespace AElf.Kernel.Node
             {
                 var block = await _miner.Mine();
 
+                if (_prepareTerminated)
+                {
+                    _terminated = true;
+                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.Mining));
+                }
+
                 return block;
             }
             catch (Exception e)
@@ -295,7 +315,7 @@ namespace AElf.Kernel.Node
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
             
-            if (_hangOnMining)
+            if (_hangOnMining || _terminated)
             {
                 return;
             }
@@ -359,8 +379,8 @@ namespace AElf.Kernel.Node
         {
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
-            
-            if (_hangOnMining)
+             
+            if (_hangOnMining || _terminated)
             {
                 return;
             }
@@ -435,7 +455,7 @@ namespace AElf.Kernel.Node
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(PublishInValue)}.");
             
-            if (_hangOnMining)
+            if (_hangOnMining || _terminated)
             {
                 return;
             }
@@ -493,8 +513,8 @@ namespace AElf.Kernel.Node
         {
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
-            
-            if (_hangOnMining)
+             
+            if (_hangOnMining || _terminated)
             {
                 return;
             }
@@ -607,6 +627,12 @@ namespace AElf.Kernel.Node
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
             await _txHub.AddTransactionAsync(tx, true);
+        }
+
+        public bool Shutdown()
+        {
+            _terminated = true;
+            return _terminated;
         }
     }
 }

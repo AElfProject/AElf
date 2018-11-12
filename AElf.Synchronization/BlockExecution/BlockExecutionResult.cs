@@ -24,11 +24,11 @@ namespace AElf.Synchronization.BlockExecution
         IncorrectStateMerkleTree,
         FutureBlock,
         AlreadyAppended,
+        Terminated,
         Mining,
 
         // Need to rollback
         Fatal = 101
-        ,
     }
 
     public static class ExecutionResultExtensions

@@ -134,7 +134,6 @@ namespace AElf.Management.Commands
         {
             var config = new NetworkConfig();
             config.Bootnodes=new List<string>();
-            config.Peers = new List<string>();
 
             if (arg.LauncherArg.Bootnodes != null && arg.LauncherArg.Bootnodes.Any())
             {
