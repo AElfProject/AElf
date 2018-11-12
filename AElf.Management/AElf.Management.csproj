@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="InfluxDB.Net.Core" Version="1.1.22-beta" />
     <PackageReference Include="KubernetesClient" Version="1.2.3-g3551f03258" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
   <ItemGroup>
