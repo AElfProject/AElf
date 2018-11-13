@@ -43,7 +43,7 @@ namespace AElf.Common.FSM
             return this;
         }
 
-        public FSMStateBehaviour<T> TransferTo(Func<T> stateTransferFunction)
+        public FSMStateBehaviour<T> SetTransferFunction(Func<T> stateTransferFunction)
         {
             StateTransferFunction = stateTransferFunction;
             return this;

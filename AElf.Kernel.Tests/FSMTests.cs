@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests
             var fsm = new FSM<int>();
             fsm.AddState(1)
                 .SetTimeout(5000)
-                .TransferTo(() => 2);
+                .SetTransferFunction(() => 2);
             fsm.AddState(2);
 
             fsm.CurrentState = 1;
@@ -43,19 +43,19 @@ namespace AElf.Kernel.Tests
             var fsm = new FSM<Season>();
             fsm.AddState(Season.Spring)
                 .SetTimeout(1000)
-                .TransferTo(() => Season.Summer)
+                .SetTransferFunction(() => Season.Summer)
                 .OnLeaving(() => flag.Value += 1);
             fsm.AddState(Season.Summer)
                 .SetTimeout(1000)
-                .TransferTo(() => Season.Autumn)
+                .SetTransferFunction(() => Season.Autumn)
                 .OnEntering(() => flag.Value += 10);
             fsm.AddState(Season.Autumn)
                 .SetTimeout(1000)
-                .TransferTo(() => Season.Winter)
+                .SetTransferFunction(() => Season.Winter)
                 .OnEntering(() => flag.Value += 100);
             fsm.AddState(Season.Winter)
                 .SetTimeout(1000)
-                .TransferTo(() => Season.Spring)
+                .SetTransferFunction(() => Season.Spring)
                 .OnEntering(() => flag.Value += 1000);
 
             fsm.CurrentState = Season.Spring;
@@ -94,14 +94,14 @@ namespace AElf.Kernel.Tests
 
             fsm.AddState(Season.Summer)
                 .SetTimeout(1000)
-                .TransferTo(StateTransferFunction);
+                .SetTransferFunction(StateTransferFunction);
             fsm.AddState(Season.Autumn)
                 .SetTimeout(1000)
-                .TransferTo(() => Season.Winter)
+                .SetTransferFunction(() => Season.Winter)
                 .OnEntering(() => flag.Value += 100);
             fsm.AddState(Season.Winter)
                 .SetTimeout(amIInBeijing ? 2000 : 1000)
-                .TransferTo(() => Season.Spring)
+                .SetTransferFunction(() => Season.Spring)
                 .OnEntering(() => flag.Value += 1000);
 
             fsm.CurrentState = Season.Summer;
@@ -114,7 +114,7 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
-        public void NodeStateTest_CatchingToCaught()
+        public void NodeStateTest_CatchingToMining()
         {
             _fsm = new FSM<NodeState>();
 
@@ -125,26 +125,26 @@ namespace AElf.Kernel.Tests
                     return NodeState.BlockValidating;
                 }
 
-                if (_fsm.StateEvent == StateEvent.BlockMined)
+                if (_fsm.StateEvent == StateEvent.MiningStart)
                 {
-                    return NodeState.Caught;
+                    return NodeState.GeneratingConsensusTx;
                 }
 
                 return NodeState.Catching;
             }
             
             _fsm.AddState(NodeState.Catching)
-                .TransferTo(TransferFromCatching)
+                .SetTransferFunction(TransferFromCatching)
                 .OnEntering(LogWhenEntering)
                 .OnEntering(FindMoreBlockHeadersToValidate)
                 .OnLeaving(LogWhenLeaving);
-            _fsm.AddState(NodeState.Caught);
+            _fsm.AddState(NodeState.GeneratingConsensusTx);
             _fsm.AddState(NodeState.BlockValidating);
 
             _fsm.CurrentState = NodeState.Catching;
-            _fsm.ProcessWithStateEvent(StateEvent.BlockMined);
+            _fsm.ProcessWithStateEvent(StateEvent.MiningStart);
 
-            Assert.Equal(NodeState.Caught, _fsm.CurrentState);
+            Assert.Equal(NodeState.GeneratingConsensusTx, _fsm.CurrentState);
         }
 
         [Fact]
@@ -168,7 +168,7 @@ namespace AElf.Kernel.Tests
             }
 
             _fsm.AddState(NodeState.BlockValidating)
-                .TransferTo(TransferFromBlockValidating)
+                .SetTransferFunction(TransferFromBlockValidating)
                 .OnEntering(LogWhenEntering)
                 .OnLeaving(LogWhenLeaving);
             _fsm.AddState(NodeState.Catching);

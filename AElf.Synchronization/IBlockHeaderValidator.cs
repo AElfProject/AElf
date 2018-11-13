@@ -3,7 +3,7 @@ using AElf.Kernel;
 
 namespace AElf.Synchronization
 {
-    public interface IBlockHeaderValidationService
+    public interface IBlockHeaderValidator
     {
         Task<bool> CheckLinkabilityAsync(BlockHeader blockHeader);
         Task<BlockHeaderValidationResult> ValidateBlockHeaderAsync(BlockHeader blockHeader);

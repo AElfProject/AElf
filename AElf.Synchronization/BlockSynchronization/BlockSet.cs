@@ -160,7 +160,7 @@ namespace AElf.Synchronization.BlockSynchronization
             return block;
         }
 
-        public List<IBlock> GetBlockByHeight(ulong height)
+        public List<IBlock> GetBlocksByHeight(ulong height)
         {
             _rwLock.AcquireReaderLock(100);
             try

@@ -5,41 +5,31 @@ namespace AElf.Kernel.Types
         /// <summary>
         /// Catching (other) BPs, can't mining.
         /// Available next state:
-        /// HeaderValidating,
-        /// GeneratingConsensusTx
+        /// BlockValidating - (ValidBlockHeader)
+        /// GeneratingConsensusTx - (MiningStart)
         /// </summary>
         Catching,
         
         /// <summary>
         /// Already mined at least one block.
         /// Available next state:
-        /// HeaderValidating,
-        /// GeneratingConsensusTx
+        /// BlockValidating - (ValidBlockHeader)
+        /// GeneratingConsensusTx - (MiningStart)
         /// </summary>
         Caught,
         
         /// <summary>
-        /// Add this block to valid block cache if success. Actually we use this to maintain valid block cache.
-        /// Maybe separate from other states.
-        /// Available next state:
-        /// BlockValidating,
-        /// GeneratingConsensusTx,
-        /// Reverting
-        /// </summary>
-        HeaderValidating,
-        
-        /// <summary>
         /// Execute this block if success.
         /// Available next state:
-        /// BlockExecuting,
-        /// GeneratingConsensusTx
+        /// BlockExecuting - (ValidBlock)
+        /// GeneratingConsensusTx - (MiningStart)
         /// </summary>
         BlockValidating,
         
         /// <summary>
         /// Executing block, can be cancelled.
         /// Available next state:
-        /// BlockAppending,
+        /// BlockAppending - 
         /// Reverting
         /// </summary>
         BlockExecuting,

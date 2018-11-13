@@ -5,15 +5,17 @@ namespace AElf.Common.FSM
         NoOperationPerformed,
 
         ValidBlockHeader,
-        InvalidBlockHeader,
 
         ValidBlock,
         InvalidBlock,
 
-        BlockExecuted,
-        BlockNotExecuted, //Can execute again
+        TxExecuted,
+        TxNotExecuted, //Can execute again
+        
+        BlockAppended,
 
-        BlockMined,
-
+        MiningStart,
+        ConsensusTxGenerated,
+        MiningEnd
     }
 }
