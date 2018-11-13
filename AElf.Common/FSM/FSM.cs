@@ -6,7 +6,7 @@ namespace AElf.Common.FSM
     // ReSharper disable InconsistentNaming
     public class FSM<T>
     {
-        private Dictionary<T, FSMStateBehaviour<T>> _states = new Dictionary<T, FSMStateBehaviour<T>>();
+        private readonly Dictionary<T, FSMStateBehaviour<T>> _states = new Dictionary<T, FSMStateBehaviour<T>>();
 
         private T _currentState;
 
@@ -25,6 +25,8 @@ namespace AElf.Common.FSM
             }
         }
 
+        public StateEvent StateEvent { get; set; }
+
         private FSMStateBehaviour<T> _currentStateBehaviour;
 
         private double _stateAge = -1000;
@@ -38,7 +40,9 @@ namespace AElf.Common.FSM
 
         public void ProcessWithTime(double time)
         {
+            // Initial state age for current state.
             _stateAge = _stateAge < 0 ? time : _stateAge;
+            
             var total = time;
             var stateTime = total - _stateAge;
             var progress = 0d;
@@ -48,7 +52,7 @@ namespace AElf.Common.FSM
                 progress = Math.Max(0, Math.Min(1000, stateTime / _currentStateBehaviour.Duration.Value * 1000));
             }
             
-            var data = new FSMState<T>
+            var data = new FSMStateData<T>
             {
                 FSM = this,
                 StateBehaviour = _currentStateBehaviour,
@@ -60,23 +64,28 @@ namespace AElf.Common.FSM
 
             _currentStateBehaviour.Invoke(data);
 
-            if (progress >= 1000 && _currentStateBehaviour.NextStateSelector != null)
+            if (progress >= 1000 && _currentStateBehaviour.StateTransferFunction != null)
             {
-                CurrentState = _currentStateBehaviour.NextStateSelector();
+                CurrentState = _currentStateBehaviour.StateTransferFunction();
                 _stateAge = time;
             }
         }
 
-        public void ProcessWithBlockHeight(ulong blockHeight)
+        public void ProcessWithStateEvent(StateEvent stateEvent)
         {
-            
+            StateEvent = stateEvent;
+
+            if (_currentStateBehaviour.StateTransferFunction != null)
+            {
+                CurrentState = _currentStateBehaviour.StateTransferFunction();
+            }
         }
 
         public void NextState()
         {
             if (_currentStateBehaviour != null)
             {
-                CurrentState = _currentStateBehaviour.NextStateSelector();
+                CurrentState = _currentStateBehaviour.StateTransferFunction();
             }
         }
     }

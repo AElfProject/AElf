@@ -14,7 +14,6 @@ using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
-using Akka.Actor;
 using Easy.MessageHub;
 using NLog;
 
@@ -469,8 +468,6 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             _stateFSM = new FSM<NodeState>();
             
-            _stateFSM.AddState(NodeState.Catching)
-                .
         }
     }
 }

@@ -6,13 +6,13 @@ namespace AElf.Common.FSM
     // ReSharper disable once InconsistentNaming
     public class FSMStateBehaviour<T>
     {
-        private List<Action<FSMState<T>>> _processCallbacks = new List<Action<FSMState<T>>>();
-        private List<Action> _enterCallbackList = new List<Action>();
-        private List<Action> _leaveCallbackList = new List<Action>();
+        private readonly List<Action<FSMStateData<T>>> _processCallbacks = new List<Action<FSMStateData<T>>>();
+        private readonly List<Action> _enterCallbackList = new List<Action>();
+        private readonly List<Action> _leaveCallbackList = new List<Action>();
 
         public T State { get; set; }
         public double? Duration { get; set; }
-        public Func<T> NextStateSelector { get; set; }
+        public Func<T> StateTransferFunction { get; set; }
         
         public FSMStateBehaviour(T state)
         {
@@ -31,7 +31,7 @@ namespace AElf.Common.FSM
             return this;
         }
 
-        public FSMStateBehaviour<T> AddCallback(Action<FSMState<T>> callback)
+        public FSMStateBehaviour<T> AddCallback(Action<FSMStateData<T>> callback)
         {
             _processCallbacks.Add(callback);
             return this;
@@ -43,13 +43,13 @@ namespace AElf.Common.FSM
             return this;
         }
 
-        public FSMStateBehaviour<T> GoesTo(Func<T> nextStateSelector)
+        public FSMStateBehaviour<T> TransferTo(Func<T> stateTransferFunction)
         {
-            NextStateSelector = nextStateSelector;
+            StateTransferFunction = stateTransferFunction;
             return this;
         }
 
-        public void Invoke(FSMState<T> data)
+        public void Invoke(FSMStateData<T> data)
         {
             foreach (var callback in _processCallbacks)
             {

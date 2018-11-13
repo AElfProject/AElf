@@ -1,5 +1,6 @@
 using System;
 using AElf.Common.FSM;
+using AElf.Kernel.Types;
 using Xunit;
 
 namespace AElf.Kernel.Tests
@@ -7,17 +8,19 @@ namespace AElf.Kernel.Tests
     // ReSharper disable InconsistentNaming
     public class FSMTest
     {
+        private FSM<NodeState> _fsm;
+
         [Fact]
         public void TimeoutTest()
         {
             var fsm = new FSM<int>();
             fsm.AddState(1)
                 .SetTimeout(5000)
-                .GoesTo(() => 2);
+                .TransferTo(() => 2);
             fsm.AddState(2);
 
             fsm.CurrentState = 1;
-            
+
             fsm.ProcessWithTime(0);
             Assert.Equal(1, fsm.CurrentState);
             fsm.ProcessWithTime(1000);
@@ -36,23 +39,23 @@ namespace AElf.Kernel.Tests
         public void CallbackTest()
         {
             var flag = new Container();
-            
+
             var fsm = new FSM<Season>();
             fsm.AddState(Season.Spring)
                 .SetTimeout(1000)
-                .GoesTo(() => Season.Summer)
+                .TransferTo(() => Season.Summer)
                 .OnLeaving(() => flag.Value += 1);
             fsm.AddState(Season.Summer)
                 .SetTimeout(1000)
-                .GoesTo(() => Season.Autumn)
+                .TransferTo(() => Season.Autumn)
                 .OnEntering(() => flag.Value += 10);
             fsm.AddState(Season.Autumn)
                 .SetTimeout(1000)
-                .GoesTo(() => Season.Winter)
+                .TransferTo(() => Season.Winter)
                 .OnEntering(() => flag.Value += 100);
             fsm.AddState(Season.Winter)
                 .SetTimeout(1000)
-                .GoesTo(() => Season.Spring)
+                .TransferTo(() => Season.Spring)
                 .OnEntering(() => flag.Value += 1000);
 
             fsm.CurrentState = Season.Spring;
@@ -79,7 +82,7 @@ namespace AElf.Kernel.Tests
 
             var amIInBeijing = true;
 
-            Season Selector()
+            Season StateTransferFunction()
             {
                 if (amIInBeijing)
                 {
@@ -91,23 +94,104 @@ namespace AElf.Kernel.Tests
 
             fsm.AddState(Season.Summer)
                 .SetTimeout(1000)
-                .GoesTo(Selector);
+                .TransferTo(StateTransferFunction);
             fsm.AddState(Season.Autumn)
                 .SetTimeout(1000)
-                .GoesTo(() => Season.Winter)
+                .TransferTo(() => Season.Winter)
                 .OnEntering(() => flag.Value += 100);
             fsm.AddState(Season.Winter)
                 .SetTimeout(amIInBeijing ? 2000 : 1000)
-                .GoesTo(() => Season.Spring)
+                .TransferTo(() => Season.Spring)
                 .OnEntering(() => flag.Value += 1000);
-            
+
             fsm.CurrentState = Season.Summer;
             fsm.ProcessWithTime(0);
-            
+
             fsm.ProcessWithTime(999);
             Assert.Equal(Season.Summer, fsm.CurrentState);
             fsm.ProcessWithTime(1001);
             Assert.Equal(Season.Winter, fsm.CurrentState);
+        }
+
+        [Fact]
+        public void NodeStateTest_CatchingToCaught()
+        {
+            _fsm = new FSM<NodeState>();
+
+            NodeState TransferFromCatching()
+            {
+                if (_fsm.StateEvent == StateEvent.ValidBlockHeader)
+                {
+                    return NodeState.BlockValidating;
+                }
+
+                if (_fsm.StateEvent == StateEvent.BlockMined)
+                {
+                    return NodeState.Caught;
+                }
+
+                return NodeState.Catching;
+            }
+            
+            _fsm.AddState(NodeState.Catching)
+                .TransferTo(TransferFromCatching)
+                .OnEntering(LogWhenEntering)
+                .OnEntering(FindMoreBlockHeadersToValidate)
+                .OnLeaving(LogWhenLeaving);
+            _fsm.AddState(NodeState.Caught);
+            _fsm.AddState(NodeState.BlockValidating);
+
+            _fsm.CurrentState = NodeState.Catching;
+            _fsm.ProcessWithStateEvent(StateEvent.BlockMined);
+
+            Assert.Equal(NodeState.Caught, _fsm.CurrentState);
+        }
+
+        [Fact]
+        public void NodeStateTest_BlockValidatingToBlockExecuting()
+        {
+            _fsm = new FSM<NodeState>();
+            
+            NodeState TransferFromBlockValidating()
+            {
+                if (_fsm.StateEvent == StateEvent.ValidBlock)
+                {
+                    return NodeState.BlockExecuting;
+                }
+
+                if (_fsm.StateEvent == StateEvent.InvalidBlock)
+                {
+                    return NodeState.Catching;
+                }
+
+                return NodeState.BlockValidating;
+            }
+
+            _fsm.AddState(NodeState.BlockValidating)
+                .TransferTo(TransferFromBlockValidating)
+                .OnEntering(LogWhenEntering)
+                .OnLeaving(LogWhenLeaving);
+            _fsm.AddState(NodeState.Catching);
+            _fsm.AddState(NodeState.BlockExecuting);
+
+            _fsm.CurrentState = NodeState.BlockValidating;
+            _fsm.ProcessWithStateEvent(StateEvent.ValidBlock);
+            
+            Assert.Equal(NodeState.BlockExecuting, _fsm.CurrentState);
+        }
+
+        private void LogWhenEntering()
+        {
+            Console.WriteLine($"Entering {_fsm.CurrentState.ToString()}");
+        }
+
+        private void LogWhenLeaving()
+        {
+            Console.WriteLine($"Leaving {_fsm.CurrentState.ToString()}");
+        }
+
+        private void FindMoreBlockHeadersToValidate()
+        {
         }
 
         enum Season
@@ -118,7 +202,7 @@ namespace AElf.Kernel.Tests
             Winter
         }
 
-        class Container
+        private class Container
         {
             public int Value { get; set; }
         }

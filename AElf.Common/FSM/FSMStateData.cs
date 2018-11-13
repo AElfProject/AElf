@@ -1,7 +1,7 @@
 namespace AElf.Common.FSM
 {
     // ReSharper disable InconsistentNaming
-    public class FSMState<T>
+    public class FSMStateData<T>
     {
         /// <summary>
         /// Comes from.

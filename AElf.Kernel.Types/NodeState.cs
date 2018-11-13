@@ -39,23 +39,32 @@ namespace AElf.Kernel.Types
         /// <summary>
         /// Executing block, can be cancelled.
         /// Available next state:
-        /// BlockExecuting2,
+        /// BlockAppending,
         /// Reverting
         /// </summary>
-        BlockExecuting1,
+        BlockExecuting,
         
         /// <summary>
         /// Executing block, can't be cancelled.
         /// Available next state:
-        /// HeaderValidating
+        /// HeaderValidating,
+        /// GeneratingConsensusTx
         /// </summary>
-        BlockExecuting2,
+        BlockAppending,
         
         /// <summary>
+        /// Maybe waiting for side chain information.
+        /// Available next state:
+        /// HeaderValidating,
+        /// GeneratingConsensusTx
+        /// </summary>
+        ExecutingLoop,
+        
+        /// <summary>   
         /// Mining, can be cancelled.
         /// Available next state:
         /// ProducingBlock,
-        /// BlockExecuting1
+        /// BlockExecuting
         /// </summary>
         GeneratingConsensusTx,
         
