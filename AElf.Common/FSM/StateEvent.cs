@@ -2,15 +2,15 @@ namespace AElf.Common.FSM
 {
     public enum StateEvent
     {
-        NoOperationPerformed,
-
         ValidBlockHeader,
+        ForkDetected,
+        RollbackFinished,
 
         ValidBlock,
         InvalidBlock,
 
-        TxExecuted,
-        TxNotExecuted, //Can execute again
+        StateUpdated,
+        StateNotUpdated, //Can execute again
         
         BlockAppended,
 

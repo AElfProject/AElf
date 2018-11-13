@@ -30,7 +30,6 @@ namespace AElf.Synchronization.BlockSynchronization
         private readonly IBlockHeaderValidator _blockHeaderValidator;
         private readonly IBlockExecutor _blockExecutor;
         private readonly IBlockSet _blockSet;
-        private readonly NodeStateFSM _nodeStateFSM;
 
         private IBlockChain _blockChain;
 
@@ -70,9 +69,8 @@ namespace AElf.Synchronization.BlockSynchronization
             _blockExecutor = blockExecutor;
             _blockSet = blockSet;
             _blockHeaderValidator = blockHeaderValidator;
-            _nodeStateFSM = new NodeStateFSM();
 
-            _stateFSM = _nodeStateFSM.Create();
+            _stateFSM = new NodeStateFSM().Create();
             _stateFSM.CurrentState = NodeState.Catching;
 
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
@@ -110,8 +108,21 @@ namespace AElf.Synchronization.BlockSynchronization
                 MessageHub.Instance.Publish(new UnlinkableHeader(headers.Last()));
             });
 
-            MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => { _miningStarted = inState.IsMining; });
+            MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
+            {
+                _miningStarted = inState.IsMining;
+                if (inState.IsMining)
+                {
+                    MessageHub.Instance.Publish(StateEvent.MiningStart);
+                }
+                else
+                {
+                    MessageHub.Instance.Publish(StateEvent.MiningEnd);
+                }
+            });
+            
             MessageHub.Instance.Subscribe<BlockMined>(inBlock => { AddMinedBlock(inBlock.Block); });
+            
             MessageHub.Instance.Subscribe<ExecutionStateChanged>(inState => { _isExecuting = inState.IsExecuting; });
 
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
@@ -125,7 +136,8 @@ namespace AElf.Synchronization.BlockSynchronization
         }
 
         /// <summary>
-        /// The entrance of block syncing. First step is to validate block header of this block.
+        /// The entrance of block syncing.
+        /// First step is to validate block header of this block.
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
@@ -147,7 +159,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (blockHeaderValidationResult == BlockHeaderValidationResult.Success)
             {
                 // Catching -> BlockValidating
-                // 
+                // Caught -> BlockValidating
                 MessageHub.Instance.Publish(StateEvent.ValidBlockHeader);
                 await HandleBlock(block);
             }
@@ -518,7 +530,7 @@ namespace AElf.Synchronization.BlockSynchronization
             while (_stateFSM.CurrentState == NodeState.ExecutingLoop)
             {
                 var blocks = _blockSet.GetBlocksByHeight(height).Where(b =>
-                    _blockHeaderValidator.CheckLinkabilityAsync(b.Header).Result);
+                    _blockHeaderValidator.ValidateBlockHeaderAsync(b.Header).Result == BlockHeaderValidationResult.Success);
                 foreach (var block in blocks)
                 {
                     await _blockExecutor.ExecuteBlock(block);
