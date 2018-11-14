@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -8,6 +7,7 @@ using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
@@ -93,6 +93,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
+                if (inState.ConsensusBehavior == ConsensusBehavior.PublishInValue)
+                {
+                    return;
+                }
+                
                 if (inState.IsMining)
                 {
                     MessageHub.Instance.Publish(StateEvent.MiningStart);
@@ -339,7 +344,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 foreach (var block in blocks)
                 {
                     await _blockExecutor.ExecuteBlock(block);
-                    Thread.Sleep(200);
                 }
 
                 if (_terminated)

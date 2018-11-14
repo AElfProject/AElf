@@ -293,8 +293,11 @@ namespace AElf.Kernel.Node
                 tx.Sig.S = ByteString.CopyFrom(signature.S);
 
                 _logger?.Trace("Leaving generating tx.");
-                
-                MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
+
+                if (tx.MethodName != ConsensusBehavior.PublishInValue.ToString())
+                {
+                    MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
+                }
 
                 return tx;
             }
