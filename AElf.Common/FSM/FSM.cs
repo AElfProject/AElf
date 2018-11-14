@@ -38,7 +38,7 @@ namespace AElf.Common.FSM
             return behaviour;
         }
 
-        public void ProcessWithTime(double time)
+        public void ProcessWithNumber(double time)
         {
             // Initial state age for current state.
             _stateAge = _stateAge < 0 ? time : _stateAge;

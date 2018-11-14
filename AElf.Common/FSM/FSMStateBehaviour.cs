@@ -13,7 +13,7 @@ namespace AElf.Common.FSM
         public T State { get; set; }
         public double? Duration { get; set; }
         public Func<T> StateTransferFunction { get; set; }
-        
+
         public FSMStateBehaviour(T state)
         {
             State = state;
@@ -24,7 +24,7 @@ namespace AElf.Common.FSM
             _enterCallbackList.Add(callback);
             return this;
         }
-        
+
         public FSMStateBehaviour<T> OnLeaving(Action callback)
         {
             _leaveCallbackList.Add(callback);
@@ -36,7 +36,7 @@ namespace AElf.Common.FSM
             _processCallbacks.Add(callback);
             return this;
         }
-        
+
         public FSMStateBehaviour<T> SetTimeout(double duration)
         {
             Duration = duration;
@@ -64,7 +64,7 @@ namespace AElf.Common.FSM
                 callback();
             }
         }
-        
+
         public void Leaving()
         {
             foreach (var callback in _leaveCallbackList)

@@ -26,9 +26,10 @@ namespace AElf.Synchronization.BlockExecution
         AlreadyAppended,
         Terminated,
         Mining,
+        IncorrectNodeState,
 
         // Need to rollback
-        Fatal = 101
+        Fatal = 101,
     }
 
     public static class ExecutionResultExtensions

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
+using AElf.Common.FSM;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
@@ -108,6 +109,8 @@ namespace AElf.Synchronization.BlockExecution
             var result = Prepare(block);
             if (result.IsFailed())
             {
+                // BlockExecuting -> ExecutingLoop
+                MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 _current = null;
                 return result;
             }
@@ -168,11 +171,15 @@ namespace AElf.Synchronization.BlockExecution
                     return res;
                 }
                 await UpdateCrossChainInfo(block, txnRes);
+                
+                // BlockExecuting -> BlockAppending
+                MessageHub.Instance.Publish(StateEvent.StateUpdated);
+                
                 await AppendBlock(block);
                 InsertTxs(txnRes, block);
 
                 await _txHub.OnNewBlock((Block)block);
-
+                
                 res = BlockExecutionResult.Success;
                 return res;
             }

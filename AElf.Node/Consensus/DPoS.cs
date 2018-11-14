@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
+using AElf.Common.FSM;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
@@ -262,6 +263,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
+
                 _logger?.Trace("Entered generating tx.");
                 var bn = await BlockChain.GetCurrentBlockHeightAsync();
                 bn = bn > 4 ? bn - 4 : 0;
@@ -291,6 +293,8 @@ namespace AElf.Kernel.Node
                 tx.Sig.S = ByteString.CopyFrom(signature.S);
 
                 _logger?.Trace("Leaving generating tx.");
+                
+                MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
 
                 return tx;
             }

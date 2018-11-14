@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
@@ -27,18 +28,20 @@ namespace AElf.Synchronization
             _chainService = chainService;
         }
 
-        public Task<bool> CheckLinkabilityAsync(BlockHeader blockHeader)
+        public async Task<bool> CheckLinkabilityAsync(BlockHeader blockHeader)
         {
-            var previousBlocks = _blockSet.GetBlocksByHeight(blockHeader.Index - 1);
+            var previousBlocks = new List<IBlock>();
+            previousBlocks.Add(await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1));
+            previousBlocks.AddRange(_blockSet.GetBlocksByHeight(blockHeader.Index - 1));
             foreach (var previousBlock in previousBlocks)
             {
                 if (previousBlock.BlockHashToHex == blockHeader.PreviousBlockHash.DumpHex())
                 {
-                    return Task.FromResult(true);
+                    return true;
                 }
             }
 
-            return Task.FromResult(false);
+            return false;
         }
 
         public async Task<BlockHeaderValidationResult> ValidateBlockHeaderAsync(BlockHeader blockHeader)

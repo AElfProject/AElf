@@ -1,5 +1,7 @@
 using AElf.Common.FSM;
 using AElf.Kernel.Types;
+using AElf.Synchronization.EventMessages;
+using Easy.MessageHub;
 using NLog;
 
 namespace AElf.Synchronization
@@ -60,6 +62,7 @@ namespace AElf.Synchronization
             _fsm.AddState(NodeState.Catching)
                 .SetTransferFunction(TransferFromCatching)
                 .OnEntering(LogWhenEntering)
+                .OnEntering(() => MessageHub.Instance.Publish(new EnteringCatchingOrCaughtState()))
                 .OnLeaving(LogWhenLeaving);
         }
 
@@ -89,6 +92,7 @@ namespace AElf.Synchronization
             _fsm.AddState(NodeState.Caught)
                 .SetTransferFunction(TransferFromCaught)
                 .OnEntering(LogWhenEntering)
+                .OnEntering(() => MessageHub.Instance.Publish(new EnteringCatchingOrCaughtState()))
                 .OnLeaving(LogWhenLeaving);
         }
 

@@ -180,7 +180,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
 
-            return null;
+            return new List<IBlock>();
         }
 
         private void RemoveOldBlocks(ulong targetHeight)

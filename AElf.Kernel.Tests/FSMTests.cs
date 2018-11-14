@@ -21,17 +21,17 @@ namespace AElf.Kernel.Tests
 
             fsm.CurrentState = 1;
 
-            fsm.ProcessWithTime(0);
+            fsm.ProcessWithNumber(0);
             Assert.Equal(1, fsm.CurrentState);
-            fsm.ProcessWithTime(1000);
+            fsm.ProcessWithNumber(1000);
             Assert.Equal(1, fsm.CurrentState);
-            fsm.ProcessWithTime(2000);
+            fsm.ProcessWithNumber(2000);
             Assert.Equal(1, fsm.CurrentState);
-            fsm.ProcessWithTime(3000);
+            fsm.ProcessWithNumber(3000);
             Assert.Equal(1, fsm.CurrentState);
-            fsm.ProcessWithTime(4000);
+            fsm.ProcessWithNumber(4000);
             Assert.Equal(1, fsm.CurrentState);
-            fsm.ProcessWithTime(5001);
+            fsm.ProcessWithNumber(5001);
             Assert.Equal(2, fsm.CurrentState);
         }
 
@@ -59,18 +59,18 @@ namespace AElf.Kernel.Tests
                 .OnEntering(() => flag.Value += 1000);
 
             fsm.CurrentState = Season.Spring;
-            fsm.ProcessWithTime(0);
+            fsm.ProcessWithNumber(0);
 
-            fsm.ProcessWithTime(999);
+            fsm.ProcessWithNumber(999);
             Assert.Equal(0, flag.Value);
-            fsm.ProcessWithTime(1001);
+            fsm.ProcessWithNumber(1001);
             Assert.Equal(11, flag.Value);
-            fsm.ProcessWithTime(2001);
+            fsm.ProcessWithNumber(2001);
             Assert.Equal(111, flag.Value);
-            fsm.ProcessWithTime(3001);
+            fsm.ProcessWithNumber(3001);
             Assert.Equal(1111, flag.Value);
-            fsm.ProcessWithTime(4001);
-            fsm.ProcessWithTime(5001);
+            fsm.ProcessWithNumber(4001);
+            fsm.ProcessWithNumber(5001);
             Assert.Equal(1122, flag.Value);
         }
 
@@ -105,11 +105,11 @@ namespace AElf.Kernel.Tests
                 .OnEntering(() => flag.Value += 1000);
 
             fsm.CurrentState = Season.Summer;
-            fsm.ProcessWithTime(0);
+            fsm.ProcessWithNumber(0);
 
-            fsm.ProcessWithTime(999);
+            fsm.ProcessWithNumber(999);
             Assert.Equal(Season.Summer, fsm.CurrentState);
-            fsm.ProcessWithTime(1001);
+            fsm.ProcessWithNumber(1001);
             Assert.Equal(Season.Winter, fsm.CurrentState);
         }
 

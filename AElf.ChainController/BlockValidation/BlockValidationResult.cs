@@ -11,7 +11,6 @@ namespace AElf.ChainController
         NotBP = 11,
         InvalidTimeSlot,
         FailedToCheckConsensusInvalidation,
-        FailedToGetBlockByHeight,
         FailedToCheckChainContextInvalidation,
         BranchedBlock,
         Pending,
