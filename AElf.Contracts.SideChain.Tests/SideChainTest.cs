@@ -139,7 +139,7 @@ namespace AElf.Contracts.SideChain.Tests
             var parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);
             
-            Transaction t = new Transaction
+            Transaction t1 = new Transaction
             {
                 From = Address.FromString("1"),
                 To = Address.FromString("2"),
@@ -153,16 +153,65 @@ namespace AElf.Contracts.SideChain.Tests
                 RefBlockNumber = 0,
                 RefBlockPrefix = ByteString.Empty
             };
-            var list = new List<Hash> {t.GetHash(), Hash.FromString("a"), Hash.FromString("b"), Hash.FromString("c")};
-            var bmt = new BinaryMerkleTree();
-            bmt.AddNodes(list);
-            var root = bmt.ComputeRootHash();
+            var hashCount = 10;
+
+            var list1 = new List<Hash> {t1.GetHash()};
+            for (int i = 0; i < hashCount; i++)
+            {
+                list1.Add(Hash.Generate());
+            }
+            
+            var bmt1 = new BinaryMerkleTree();
+            bmt1.AddNodes(list1);
+            var root1 = bmt1.ComputeRootHash();
+            var sc1BlockInfo = new SideChainBlockInfo
+            {
+                Height = pHeight,
+                BlockHeaderHash = Hash.Generate(),
+                ChainId = Hash.Generate(),
+                TransactionMKRoot = root1
+            };
+            
+            Transaction t2 = new Transaction
+            {
+                From = Address.FromString("3"),
+                To = Address.FromString("4"),
+                MethodName = "test",
+                Sig = new Signature
+                {
+                    P = ByteString.Empty,
+                    R = ByteString.Empty,
+                },
+                Params = ByteString.Empty,
+                RefBlockNumber = 1,
+                RefBlockPrefix = ByteString.Empty
+            };
+            var list2 = new List<Hash> {t2.GetHash(), Hash.FromString("d"), Hash.FromString("e"), Hash.FromString("f"), Hash.FromString("a"), Hash.FromString("b"), Hash.FromString("c")};
+            var bmt2 = new BinaryMerkleTree();
+            bmt2.AddNodes(list2);
+            var root2 = bmt2.ComputeRootHash();
+            var sc2BlockInfo = new SideChainBlockInfo
+            {
+                Height = pHeight,
+                BlockHeaderHash = Hash.Generate(),
+                ChainId = Hash.Generate(),
+                TransactionMKRoot = root2
+            };
+            
+            var block = new Block
+            {
+                Header = new BlockHeader(),
+                Body = new BlockBody()
+            };
+            block.Body.IndexedInfo.Add(new List<SideChainBlockInfo>{sc1BlockInfo, sc2BlockInfo});
+            block.Body.CalculateMerkleTreeRoots();
+            
             pHeight = 2;
             ParentChainBlockRootInfo parentChainBlockRootInfo = new ParentChainBlockRootInfo
             {
                 ChainId = chainId,
                 Height = pHeight,
-                SideChainTransactionsRoot = root,
+                SideChainTransactionsRoot = block.Body.SideChainTransactionsRoot,
                 SideChainBlockHeadersRoot = Hash.FromString("SideChainBlockHeadersRoot")
             };
             
@@ -170,14 +219,26 @@ namespace AElf.Contracts.SideChain.Tests
             {
                 Root = parentChainBlockRootInfo
             };
+            var tree = block.Body.BinaryMerkleTreeForSideChainTransactionRoots;
+            var pathForTx1 = bmt1.GenerateMerklePath(0);
+            Assert.Equal(root1, pathForTx1.ComputeRootWith(t1.GetHash()));
+            var pathForSc1Block = tree.GenerateMerklePath(0);
+            pathForTx1.Path.AddRange(pathForSc1Block.Path);
             
-            parentChainBlockInfo.IndexedBlockInfo.Add(1, bmt.GenerateMerklePath(0));
+            var pathForTx2 = bmt2.GenerateMerklePath(0);
+            var pathForSc2Block = tree.GenerateMerklePath(1);
+            pathForTx2.Path.AddRange(pathForSc2Block.Path);
+            
+            //parentChainBlockInfo.IndexedBlockInfo.Add(1, tree.GenerateMerklePath(0));
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
             //crossChainInfo = new CrossChainInfo(Mock.StateStore);
             parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);
             
-            var b = await _contract.VerifyTransaction(t.GetHash(), bmt.GenerateMerklePath(0), parentChainBlockRootInfo.Height);
+            var b = await _contract.VerifyTransaction(t1.GetHash(), pathForTx1, parentChainBlockRootInfo.Height);
+            Assert.True(b);
+            
+            b = await _contract.VerifyTransaction(t2.GetHash(), pathForTx2, parentChainBlockRootInfo.Height);
             Assert.True(b);
         }
     }

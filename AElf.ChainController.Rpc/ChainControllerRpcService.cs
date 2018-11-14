@@ -287,7 +287,7 @@ namespace AElf.ChainController.Rpc
                 ulong boundParentChainHeight = 0;
                 try
                 {
-                    merklePathInParentChain = this.GetTxRootMerklePathinParentChain(txResult.BlockNumber);
+                    merklePathInParentChain = this.GetTxRootMerklePathInParentChain(txResult.BlockNumber);
                     boundParentChainHeight = this.GetBoundParentChainHeight(txResult.BlockNumber);
                 }
                 catch (Exception e)
