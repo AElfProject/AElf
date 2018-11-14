@@ -252,7 +252,7 @@ namespace AElf.ChainController.Rpc
             return trace.RetVal.ToFriendlyBytes();
         }
 
-        internal static MerklePath GetTxRootMerklePathinParentChain(this Svc s, ulong height)
+        internal static MerklePath GetTxRootMerklePathInParentChain(this Svc s, ulong height)
         {
             return s.CrossChainInfo.GetTxRootMerklePathInParentChain(height);
         }

@@ -191,7 +191,7 @@ namespace AElf.CLI.Wallet
 
         public Transaction SignTransaction(Transaction tx)
         {
-            string addr = tx.From.Value.ToHex();
+            string addr = tx.From.Value.ToHex(true);
             
             ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
 
