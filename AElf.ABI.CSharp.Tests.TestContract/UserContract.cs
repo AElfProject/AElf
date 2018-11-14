@@ -1,12 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Sdk.CSharp.Types;
-using AElf.Kernel;
-using AElf.Kernel.Types;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using AElf.Common;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ABI.CSharp.Tests
 {
     public class Account : UserType
@@ -48,11 +46,6 @@ namespace AElf.ABI.CSharp.Tests
                 Name = account.Name
             }.Fire();
             return account.Name;
-        }
-
-        private void PrivateMethodNotExposed()
-        {
-
         }
     }
 }

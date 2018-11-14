@@ -1,13 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.Kernel.Types;
-using AElf.Sdk.CSharp;
+﻿using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp;
 using AElf.Common;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ABI.CSharp.Tests
 {
     public class UserBaseContract : CSharpSmartContract, IStandard

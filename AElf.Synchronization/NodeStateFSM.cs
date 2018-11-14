@@ -270,13 +270,13 @@ namespace AElf.Synchronization
 
         private void WhenEnteringState()
         {
-            _logger?.Trace($"Entering State {_fsm.CurrentState.ToString()}");
+            _logger?.Trace($"[NodeState] Entering State {_fsm.CurrentState.ToString()}");
             MessageHub.Instance.Publish(new EnteringState(_fsm.CurrentState));
         }
 
         private void WhenLeavingState()
         {
-            _logger?.Trace($"Leaving State {_fsm.CurrentState.ToString()}");
+            _logger?.Trace($"[NodeState] Leaving State {_fsm.CurrentState.ToString()}");
             MessageHub.Instance.Publish(new LeavingState(_fsm.CurrentState));
         }
 

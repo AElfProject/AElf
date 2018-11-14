@@ -1,11 +1,6 @@
-﻿using System;
-using AElf.Kernel;
-using AElf.Sdk.CSharp;
-using AElf.ABI.CSharp;
-using AElf.Kernel.Types;
-using AElf.Types.CSharp;
-using AElf.Common;
+﻿using AElf.Common;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ABI.CSharp.Tests
 {
     public class Transfered : AElf.Sdk.CSharp.Event
