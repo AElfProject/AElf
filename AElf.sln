@@ -127,8 +127,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Synchronization", "AEl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Synchronization.Tests", "AElf.Synchronization.Tests\AElf.Synchronization.Tests.csproj", "{4911DE70-A3F1-4B05-B2F7-89C0F285E91F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FSM.Test", "FSM.Test\FSM.Test.csproj", "{B45D18C1-05DA-4DAD-B05B-CE47D26E0EC9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -379,10 +377,6 @@ Global
 		{4911DE70-A3F1-4B05-B2F7-89C0F285E91F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4911DE70-A3F1-4B05-B2F7-89C0F285E91F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4911DE70-A3F1-4B05-B2F7-89C0F285E91F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B45D18C1-05DA-4DAD-B05B-CE47D26E0EC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B45D18C1-05DA-4DAD-B05B-CE47D26E0EC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B45D18C1-05DA-4DAD-B05B-CE47D26E0EC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B45D18C1-05DA-4DAD-B05B-CE47D26E0EC9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

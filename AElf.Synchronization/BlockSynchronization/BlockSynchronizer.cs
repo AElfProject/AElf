@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -38,15 +39,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private readonly FSM<NodeState> _stateFSM;
 
-        private static int _flag;
-
-        private static bool _executingRemainingBlocks;
-
         private static bool _terminated;
-
-        private static ulong _heightOfUnlinkableBlock;
-
-        private static bool _isExecuting;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet, IBlockHeaderValidator blockHeaderValidator)
@@ -117,8 +110,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 AddMinedBlock(inBlock.Block); 
             });
             
-            MessageHub.Instance.Subscribe<ExecutionStateChanged>(inState => { _isExecuting = inState.IsExecuting; });
-
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
             {
                 if (signal.Module == TerminatedModuleEnum.BlockSynchronizer)
@@ -257,8 +248,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task HandleInvalidBlock(IBlock block, BlockValidationResult blockValidationResult)
         {
-            Thread.VolatileWrite(ref _flag, 0);
-
             _logger?.Warn(
                 $"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}. Height: *{block.Index}*");
 
@@ -342,6 +331,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task KeepExecutingBlocksOfHeight(ulong height)
         {
+            MessageHub.Instance.Publish(new LockMining(false));
             while (_stateFSM.CurrentState == NodeState.ExecutingLoop)
             {
                 var blocks = _blockSet.GetBlocksByHeight(height).Where(b =>
@@ -350,6 +340,11 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     await _blockExecutor.ExecuteBlock(block);
                     Thread.Sleep(200);
+                }
+
+                if (_terminated)
+                {
+                    return;
                 }
             }
         }
