@@ -180,13 +180,19 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
-        public void Convert()
+        public void MerklePathTest()
         {
-            double a = 120.0;
-            var b = a % 1000 % 100 / 10;
-            System.Diagnostics.Debug.WriteLine(b);
+            int leaveCount = new Random().Next(100);
+            var hashes = CreateLeaves(leaveCount);
+            var bmt = new BinaryMerkleTree();
+            bmt.AddNodes(hashes);
+            var root = bmt.ComputeRootHash();
+            int index = new Random().Next(leaveCount);
+            var path =bmt.GenerateMerklePath(index);
+            var calculatedRoot = path.ComputeRootWith(hashes[index]);
+            Assert.Equal(root, calculatedRoot);
         }
-
+        
         /*[Fact]
         public void Verify()
         {
@@ -203,6 +209,17 @@ namespace AElf.Kernel.Tests
         private List<Hash> CreateLeaves(IEnumerable<string> buffers)
         {
             return buffers.Select(Hash.FromString).ToList();
+        }
+        
+        private List<Hash> CreateLeaves(int i)
+        {
+            List<Hash> res = new List<Hash>();
+            for (int j = 0; j < i; j++)
+            {
+                res.Add(Hash.Generate());
+            }
+
+            return res;
         }
 
         private Hash CreateLeaf(string buffer)
