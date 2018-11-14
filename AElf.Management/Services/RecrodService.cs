@@ -52,14 +52,21 @@ namespace AElf.Management.Services
 
             foreach (var chainId in ServiceUrlConfig.Instance.ServiceUrls.Keys)
             {
-                var txPoolSize = _transactionService.GetPoolSize(chainId);
-                _transactionService.RecordPoolSize(chainId, time, txPoolSize);
+                try
+                {
+                    var txPoolSize = _transactionService.GetPoolSize(chainId);
+                    //_transactionService.RecordPoolSize(chainId, time, txPoolSize);
 
-                var isAlive = _nodeService.IsAlive(chainId);
-                var isForked = _nodeService.IsForked(chainId);
-                _nodeService.RecordPoolState(chainId, time, isAlive, isForked);
+                    var isAlive = _nodeService.IsAlive(chainId);
+                    var isForked = _nodeService.IsForked(chainId);
+                    //_nodeService.RecordPoolState(chainId, time, isAlive, isForked);
                     
-                _nodeService.RecordBlockInfo(chainId);
+                    //_nodeService.RecordBlockInfo(chainId);
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception);
+                }
             }
         }
     }
