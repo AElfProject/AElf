@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +7,6 @@ using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Kernel.EventMessages;
 using AElf.Kernel.Types;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
@@ -43,21 +40,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static int _flag;
 
-        private static ulong _firstFutureBlockHeight;
-
-        private static bool _miningStarted;
-
         private static bool _executingRemainingBlocks;
-
-        private static IBlock _nextBlock;
 
         private static bool _terminated;
 
-        private static ulong _heightBeforeRollback;
-
         private static ulong _heightOfUnlinkableBlock;
-
-        private static ulong _latestHandledValidBlock;
 
         private static bool _isExecuting;
 
@@ -96,7 +83,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     // Get previous block from the chain
                     var correspondingBlockHeader = await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
 
-                    // If the hash of this previous block correponds to "previous block hash" of the current header
+                    // If the hash of this previous block corresponds to "previous block hash" of the current header
                     // the link has been found
                     if (correspondingBlockHeader.BlockHashToHex == blockHeader.PreviousBlockHash.DumpHex())
                     {
@@ -112,7 +99,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
-                _miningStarted = inState.IsMining;
                 if (inState.IsMining)
                 {
                     MessageHub.Instance.Publish(StateEvent.MiningStart);
@@ -123,7 +109,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
             });
             
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock => { AddMinedBlock(inBlock.Block); });
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
+            {
+                // Update DPoS process.
+                MessageHub.Instance.Publish(UpdateConsensus.Update);
+                AddMinedBlock(inBlock.Block); 
+            });
             
             MessageHub.Instance.Subscribe<ExecutionStateChanged>(inState => { _isExecuting = inState.IsExecuting; });
 
@@ -210,7 +201,6 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             
             var currentBlockHeight = await BlockChain.GetCurrentBlockHeightAsync();
-            _logger?.Trace($"Will get blocks of height {currentBlockHeight + 1} to execute.");
             var nextBlocks = _blockSet.GetBlocksByHeight(currentBlockHeight + 1);
             foreach (var nextBlock in nextBlocks)
             {
@@ -281,13 +271,13 @@ namespace AElf.Synchronization.BlockSynchronization
                 await KeepExecutingBlocksOfHeight(block.Index);
             }
             
-            // Notify the network layer the block has been executed.
-            MessageHub.Instance.Publish(new BlockExecuted(block));
-            
             _blockSet.Tell(block);
 
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
+            
+            // Notify the network layer the block has been executed.
+            MessageHub.Instance.Publish(new BlockExecuted(block));
             
             // BlockAppending -> Catching / Caught
             MessageHub.Instance.Publish(StateEvent.BlockAppended);
@@ -458,13 +448,7 @@ namespace AElf.Synchronization.BlockSynchronization
         
         public void AddMinedBlock(IBlock block)
         {
-            _stateFSM.CurrentState = NodeState.Caught;
-
             _blockSet.Tell(block);
-
-            // Update DPoS process.
-            // TODO this can probably removed by subscribing to BlockMined in DPoS.
-            MessageHub.Instance.Publish(UpdateConsensus.Update);
 
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
@@ -505,7 +489,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task RollbackToHeight(ulong targetHeight, ulong currentHeight)
         {
-            _heightBeforeRollback = currentHeight;
             await BlockChain.RollbackToHeight(targetHeight - 1);
             _blockSet.InformRollback(targetHeight, currentHeight);
             await ExecuteRemainingBlocks(targetHeight);

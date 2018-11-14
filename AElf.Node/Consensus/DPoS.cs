@@ -470,6 +470,7 @@ namespace AElf.Kernel.Node
                 lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
                 if (lockWasTaken)
                 {
+                    MessageHub.Instance.Publish(new DPoSStateChanged(ConsensusBehavior.PublishInValue, true));
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(PublishInValue)}.");
 
                     var currentRoundNumber = Helper.CurrentRoundNumber;
@@ -501,6 +502,8 @@ namespace AElf.Kernel.Node
                 {
                     Thread.VolatileWrite(ref _flag, 0);
                 }
+                
+                MessageHub.Instance.Publish(new DPoSStateChanged(ConsensusBehavior.PublishInValue, false));
 
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(PublishInValue)}.");
             }
