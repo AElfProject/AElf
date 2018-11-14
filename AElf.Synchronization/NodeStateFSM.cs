@@ -56,9 +56,8 @@ namespace AElf.Synchronization
 
             _fsm.AddState(NodeState.Catching)
                 .SetTransferFunction(TransferFromCatching)
-                .OnEntering(LogWhenEntering)
-                .OnEntering(() => MessageHub.Instance.Publish(new EnteringCatchingOrCaughtState()))
-                .OnLeaving(LogWhenLeaving);
+                .OnEntering(WhenEnteringState)
+                .OnLeaving(WhenLeavingState);
         }
 
         private void AddCaught()
@@ -86,9 +85,8 @@ namespace AElf.Synchronization
 
             _fsm.AddState(NodeState.Caught)
                 .SetTransferFunction(TransferFromCaught)
-                .OnEntering(LogWhenEntering)
-                .OnEntering(() => MessageHub.Instance.Publish(new EnteringCatchingOrCaughtState()))
-                .OnLeaving(LogWhenLeaving);
+                .OnEntering(WhenEnteringState)
+                .OnLeaving(WhenLeavingState);
         }
 
         private void AddBlockValidating()
@@ -116,8 +114,8 @@ namespace AElf.Synchronization
 
             _fsm.AddState(NodeState.BlockValidating)
                 .SetTransferFunction(TransferFromBlockValidating)
-                .OnEntering(LogWhenEntering)
-                .OnLeaving(LogWhenLeaving);
+                .OnEntering(WhenEnteringState)
+                .OnLeaving(WhenLeavingState);
         }
 
         private void AddBlockExecuting()
@@ -145,8 +143,8 @@ namespace AElf.Synchronization
 
             _fsm.AddState(NodeState.BlockExecuting)
                 .SetTransferFunction(TransferFromBlockExecuting)
-                .OnEntering(LogWhenEntering)
-                .OnLeaving(LogWhenLeaving);
+                .OnEntering(WhenEnteringState)
+                .OnLeaving(WhenLeavingState);
         }
 
         private void AddBlockAppending()
@@ -164,8 +162,8 @@ namespace AElf.Synchronization
 
             _fsm.AddState(NodeState.BlockAppending)
                 .SetTransferFunction(TransferFromAddBlockAppending)
-                .OnEntering(LogWhenEntering)
-                .OnLeaving(LogWhenLeaving);
+                .OnEntering(WhenEnteringState)
+                .OnLeaving(WhenLeavingState);
         }
 
         private void AddGeneratingConsensusTx()
@@ -193,8 +191,8 @@ namespace AElf.Synchronization
 
             _fsm.AddState(NodeState.GeneratingConsensusTx)
                 .SetTransferFunction(TransferFromAddGeneratingConsensusTx)
-                .OnEntering(LogWhenEntering)
-                .OnLeaving(LogWhenLeaving);
+                .OnEntering(WhenEnteringState)
+                .OnLeaving(WhenLeavingState);
         }
 
         private void AddProducingBlock()
@@ -212,8 +210,8 @@ namespace AElf.Synchronization
 
             _fsm.AddState(NodeState.ProducingBlock)
                 .SetTransferFunction(TransferFromAddProducingBlock)
-                .OnEntering(LogWhenEntering)
-                .OnLeaving(LogWhenLeaving);
+                .OnEntering(WhenEnteringState)
+                .OnLeaving(WhenLeavingState);
         }
 
         private void AddExecutingLoop()
@@ -246,8 +244,8 @@ namespace AElf.Synchronization
 
             _fsm.AddState(NodeState.ExecutingLoop)
                 .SetTransferFunction(TransferFromAddExecutingLoop)
-                .OnEntering(LogWhenEntering)
-                .OnLeaving(LogWhenLeaving);
+                .OnEntering(WhenEnteringState)
+                .OnLeaving(WhenLeavingState);
         }
 
         private void AddReverting()
@@ -256,6 +254,7 @@ namespace AElf.Synchronization
             {
                 if (_fsm.StateEvent == StateEvent.RollbackFinished)
                 {
+                    _caught = false;
                     return NodeState.Catching;
                 }
 
@@ -265,18 +264,20 @@ namespace AElf.Synchronization
 
             _fsm.AddState(NodeState.Reverting)
                 .SetTransferFunction(TransferFromAddReverting)
-                .OnEntering(LogWhenEntering)
-                .OnLeaving(LogWhenLeaving);
+                .OnEntering(WhenEnteringState)
+                .OnLeaving(WhenLeavingState);
         }
 
-        private void LogWhenEntering()
+        private void WhenEnteringState()
         {
             _logger?.Trace($"Entering State {_fsm.CurrentState.ToString()}");
+            MessageHub.Instance.Publish(new EnteringState(_fsm.CurrentState));
         }
 
-        private void LogWhenLeaving()
+        private void WhenLeavingState()
         {
             _logger?.Trace($"Leaving State {_fsm.CurrentState.ToString()}");
+            MessageHub.Instance.Publish(new LeavingState(_fsm.CurrentState));
         }
 
         private void UnexpectedLog(StateEvent @event)

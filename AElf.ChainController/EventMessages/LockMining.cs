@@ -1,6 +1,6 @@
 namespace AElf.ChainController.EventMessages
 {
-    public class LockMining
+    public sealed class LockMining
     {
         public bool Lock { get; }
 

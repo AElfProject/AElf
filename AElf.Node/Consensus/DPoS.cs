@@ -23,7 +23,6 @@ using NLog;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Common;
-using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 
 // ReSharper disable once CheckNamespace
@@ -44,7 +43,6 @@ namespace AElf.Kernel.Node
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
-        private readonly IBlockSynchronizer _synchronizer;
 
         private IBlockChain _blockChain;
 
@@ -77,13 +75,11 @@ namespace AElf.Kernel.Node
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner,
-            IChainService chainService, IBlockSynchronizer synchronizer)
+        public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner, IChainService chainService)
         {
             _txHub = txHub;
             _miner = miner;
             _chainService = chainService;
-            _synchronizer = synchronizer;
             _prepareTerminated = false;
             _terminated = false;
 
@@ -120,6 +116,7 @@ namespace AElf.Kernel.Node
                 }
             });
 
+            // TODO: Reconsider this.
             MessageHub.Instance.Subscribe<SyncStateChanged>(async inState =>
             {
                 if (inState.IsSyncing)
@@ -144,20 +141,6 @@ namespace AElf.Kernel.Node
                 else
                 {
                     _logger?.Trace("LockMining - Mining unlocked.");
-                    await Start();
-                }
-            });
-            
-            MessageHub.Instance.Subscribe<CatchingUpAfterRollback>(async inState =>
-            {
-                if (inState.IsCatchingUp)
-                {
-                    _logger?.Trace("CatchingUp - Mining locked.");
-                    Hang();
-                }
-                else
-                {
-                    _logger?.Trace("CatchingUp - Mining unlocked.");
                     await Start();
                 }
             });

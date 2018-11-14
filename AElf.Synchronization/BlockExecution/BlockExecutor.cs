@@ -481,8 +481,6 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager.UpdateRequestInterval();
         }
     }
-
-    
     
     internal class InvalidBlockException : Exception
     {
