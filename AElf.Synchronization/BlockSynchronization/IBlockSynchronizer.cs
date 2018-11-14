@@ -9,9 +9,7 @@ namespace AElf.Synchronization.BlockSynchronization
     public interface IBlockSynchronizer
     {
         Task ReceiveBlock(IBlock block);
-        void AddMinedBlock(IBlock block);
         IBlock GetBlockByHash(Hash blockHash);
         Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count);
-        Task ExecuteRemainingBlocks(ulong targetHeight);
     }
 }

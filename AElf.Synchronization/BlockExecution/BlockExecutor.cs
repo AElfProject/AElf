@@ -109,8 +109,6 @@ namespace AElf.Synchronization.BlockExecution
             var result = Prepare(block);
             if (result.IsFailed())
             {
-                // BlockExecuting -> ExecutingLoop
-                MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 _current = null;
                 return result;
             }

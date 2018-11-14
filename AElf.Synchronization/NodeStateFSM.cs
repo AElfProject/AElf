@@ -50,11 +50,6 @@ namespace AElf.Synchronization
                     return NodeState.GeneratingConsensusTx;
                 }
 
-                if (_fsm.StateEvent == StateEvent.ForkDetected)
-                {
-                    return NodeState.Reverting;
-                }
-
                 UnexpectedLog(_fsm.StateEvent);
                 return NodeState.Catching;
             }
@@ -110,7 +105,7 @@ namespace AElf.Synchronization
                     return _caught ? NodeState.Caught : NodeState.Catching;
                 }
                 
-                if (_fsm.StateEvent == StateEvent.ForkDetected)
+                if (_fsm.StateEvent == StateEvent.ForkDetected && _caught)
                 {
                     return NodeState.Reverting;
                 }
@@ -139,7 +134,7 @@ namespace AElf.Synchronization
                     return NodeState.ExecutingLoop;
                 }
                 
-                if (_fsm.StateEvent == StateEvent.ForkDetected)
+                if (_fsm.StateEvent == StateEvent.ForkDetected && _caught)
                 {
                     return NodeState.Reverting;
                 }
@@ -185,6 +180,11 @@ namespace AElf.Synchronization
                 if (_fsm.StateEvent == StateEvent.ForkDetected)
                 {
                     return NodeState.Reverting;
+                }
+
+                if (_fsm.StateEvent == StateEvent.MiningEnd)
+                {
+                    return NodeState.Caught;
                 }
 
                 UnexpectedLog(_fsm.StateEvent);
@@ -235,7 +235,7 @@ namespace AElf.Synchronization
                     return NodeState.GeneratingConsensusTx;
                 }
                 
-                if (_fsm.StateEvent == StateEvent.ForkDetected)
+                if (_fsm.StateEvent == StateEvent.ForkDetected && _caught)
                 {
                     return NodeState.Reverting;
                 }

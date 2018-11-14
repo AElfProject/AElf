@@ -52,6 +52,10 @@ namespace AElf.Synchronization
             
             if (blockHeader.Index > currentHeight + 1)
             {
+                if (blockHeader.Index >= currentHeight + GlobalConfig.ForkDetectionLength)
+                {
+                    return BlockHeaderValidationResult.MaybeForked;
+                }
                 return BlockHeaderValidationResult.FutureBlock;
             }
 

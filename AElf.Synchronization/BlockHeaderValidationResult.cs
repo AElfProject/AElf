@@ -9,6 +9,7 @@ namespace AElf.Synchronization
         Success,
 
         AlreadyExecuted,
-        
+
+        MaybeForked
     }
 }
