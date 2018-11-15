@@ -90,13 +90,6 @@ namespace AElf.Synchronization.BlockExecution
         /// <inheritdoc/>
         public async Task<BlockExecutionResult> ExecuteBlock(IBlock block)
         {
-            if (_current != null)
-            {
-                _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution, " +
-                               $"for block {_current} is being executed.");
-                return BlockExecutionResult.Expelled;
-            }
-
             if (_isMining)
             {
                 _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution," + 

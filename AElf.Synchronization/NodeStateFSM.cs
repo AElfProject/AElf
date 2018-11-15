@@ -12,13 +12,15 @@ namespace AElf.Synchronization
     {
         private readonly ILogger _logger = LogManager.GetLogger(nameof(NodeStateFSM));
 
-        private FSM<NodeState> _fsm;
+        private FSM _fsm;
 
         private bool _caught;
 
-        public FSM<NodeState> Create()
+        private object _;
+
+        public FSM Create()
         {
-            _fsm = new FSM<NodeState>();
+            _fsm = new FSM();
             AddStates();
             return _fsm;
         }
@@ -38,24 +40,24 @@ namespace AElf.Synchronization
 
         private void AddCatching()
         {
-            NodeState TransferFromCatching()
+            int TransferFromCatching()
             {
                 if (_fsm.StateEvent == StateEvent.ValidBlockHeader)
                 {
-                    return NodeState.BlockValidating;
+                    return (int) NodeState.BlockValidating;
                 }
 
                 if (_fsm.StateEvent == StateEvent.MiningStart)
                 {
                     _caught = true;
-                    return NodeState.GeneratingConsensusTx;
+                    return (int) NodeState.GeneratingConsensusTx;
                 }
 
                 UnexpectedStateEvent(_fsm.StateEvent);
-                return NodeState.Catching;
+                return (int) NodeState.Catching;
             }
 
-            _fsm.AddState(NodeState.Catching)
+            _fsm.AddState((int) NodeState.Catching)
                 .SetTransferFunction(TransferFromCatching)
                 .OnEntering(WhenEnteringState)
                 .OnLeaving(WhenLeavingState);
@@ -63,28 +65,28 @@ namespace AElf.Synchronization
 
         private void AddCaught()
         {
-            NodeState TransferFromCaught()
+            int TransferFromCaught()
             {
                 if (_fsm.StateEvent == StateEvent.ValidBlockHeader)
                 {
-                    return NodeState.BlockValidating;
+                    return (int) NodeState.BlockValidating;
                 }
 
                 if (_fsm.StateEvent == StateEvent.MiningStart)
                 {
-                    return NodeState.GeneratingConsensusTx;
+                    return (int) NodeState.GeneratingConsensusTx;
                 }
-                
-                if (_fsm.StateEvent == StateEvent.ForkDetected)
+
+                if (_fsm.StateEvent == StateEvent.LongerChainDetected)
                 {
-                    return NodeState.Reverting;
+                    return (int) NodeState.Reverting;
                 }
 
                 UnexpectedStateEvent(_fsm.StateEvent);
-                return NodeState.Caught;
+                return (int) NodeState.Caught;
             }
 
-            _fsm.AddState(NodeState.Caught)
+            _fsm.AddState((int) NodeState.Caught)
                 .SetTransferFunction(TransferFromCaught)
                 .OnEntering(WhenEnteringState)
                 .OnLeaving(WhenLeavingState);
@@ -92,28 +94,28 @@ namespace AElf.Synchronization
 
         private void AddBlockValidating()
         {
-            NodeState TransferFromBlockValidating()
+            int TransferFromBlockValidating()
             {
                 if (_fsm.StateEvent == StateEvent.ValidBlock)
                 {
-                    return NodeState.BlockExecuting;
+                    return (int) NodeState.BlockExecuting;
                 }
 
                 if (_fsm.StateEvent == StateEvent.InvalidBlock)
                 {
-                    return _caught ? NodeState.Caught : NodeState.Catching;
+                    return (int) (_caught ? NodeState.Caught : NodeState.Catching);
                 }
-                
-                if (_fsm.StateEvent == StateEvent.ForkDetected && _caught)
+
+                if (_fsm.StateEvent == StateEvent.LongerChainDetected && _caught)
                 {
-                    return NodeState.Reverting;
+                    return (int) NodeState.Reverting;
                 }
 
                 UnexpectedStateEvent(_fsm.StateEvent);
-                return NodeState.BlockValidating;
+                return (int) NodeState.BlockValidating;
             }
 
-            _fsm.AddState(NodeState.BlockValidating)
+            _fsm.AddState((int) NodeState.BlockValidating)
                 .SetTransferFunction(TransferFromBlockValidating)
                 .OnEntering(WhenEnteringState)
                 .OnLeaving(WhenLeavingState);
@@ -121,31 +123,36 @@ namespace AElf.Synchronization
 
         private void AddBlockExecuting()
         {
-            NodeState TransferFromBlockExecuting()
+            int TransferFromBlockExecuting()
             {
                 if (_fsm.StateEvent == StateEvent.StateUpdated)
                 {
-                    return NodeState.BlockAppending;
+                    return (int) NodeState.BlockAppending;
                 }
 
                 if (_fsm.StateEvent == StateEvent.StateNotUpdated)
                 {
-                    return NodeState.ExecutingLoop;
+                    return (int) NodeState.ExecutingLoop;
                 }
-                
-                if (_fsm.StateEvent == StateEvent.ForkDetected)
+
+                if (_fsm.StateEvent == StateEvent.LongerChainDetected)
                 {
                     if (_caught)
                     {
-                        return NodeState.Reverting;
+                        return (int) NodeState.Reverting;
                     }
                 }
 
+                if (_fsm.StateEvent == StateEvent.BlockAppended)
+                {
+                    return (int) (_caught ? NodeState.Caught : NodeState.Catching);
+                }
+
                 UnexpectedStateEvent(_fsm.StateEvent);
-                return NodeState.BlockExecuting;
+                return (int) NodeState.BlockExecuting;
             }
 
-            _fsm.AddState(NodeState.BlockExecuting)
+            _fsm.AddState((int) NodeState.BlockExecuting)
                 .SetTransferFunction(TransferFromBlockExecuting)
                 .OnEntering(WhenEnteringState)
                 .OnLeaving(WhenLeavingState);
@@ -153,18 +160,18 @@ namespace AElf.Synchronization
 
         private void AddBlockAppending()
         {
-            NodeState TransferFromAddBlockAppending()
+            int TransferFromAddBlockAppending()
             {
                 if (_fsm.StateEvent == StateEvent.BlockAppended)
                 {
-                    return _caught ? NodeState.Caught : NodeState.Catching;
+                    return (int) (_caught ? NodeState.Caught : NodeState.Catching);
                 }
 
                 UnexpectedStateEvent(_fsm.StateEvent);
-                return NodeState.BlockAppending;
+                return (int) NodeState.BlockAppending;
             }
 
-            _fsm.AddState(NodeState.BlockAppending)
+            _fsm.AddState((int) NodeState.BlockAppending)
                 .SetTransferFunction(TransferFromAddBlockAppending)
                 .OnEntering(WhenEnteringState)
                 .OnLeaving(WhenLeavingState);
@@ -172,28 +179,28 @@ namespace AElf.Synchronization
 
         private void AddGeneratingConsensusTx()
         {
-            NodeState TransferFromAddGeneratingConsensusTx()
+            int TransferFromAddGeneratingConsensusTx()
             {
                 if (_fsm.StateEvent == StateEvent.ConsensusTxGenerated)
                 {
-                    return NodeState.ProducingBlock;
+                    return (int) NodeState.ProducingBlock;
                 }
-                
-                if (_fsm.StateEvent == StateEvent.ForkDetected)
+
+                if (_fsm.StateEvent == StateEvent.LongerChainDetected)
                 {
-                    return NodeState.Reverting;
+                    return (int) NodeState.Reverting;
                 }
 
                 if (_fsm.StateEvent == StateEvent.MiningEnd)
                 {
-                    return NodeState.Caught;
+                    return (int) NodeState.Caught;
                 }
 
                 UnexpectedStateEvent(_fsm.StateEvent);
-                return NodeState.GeneratingConsensusTx;
+                return (int) NodeState.GeneratingConsensusTx;
             }
 
-            _fsm.AddState(NodeState.GeneratingConsensusTx)
+            _fsm.AddState((int) NodeState.GeneratingConsensusTx)
                 .SetTransferFunction(TransferFromAddGeneratingConsensusTx)
                 .OnEntering(WhenEnteringState)
                 .OnLeaving(WhenLeavingState);
@@ -201,18 +208,18 @@ namespace AElf.Synchronization
 
         private void AddProducingBlock()
         {
-            NodeState TransferFromAddProducingBlock()
+            int TransferFromAddProducingBlock()
             {
                 if (_fsm.StateEvent == StateEvent.MiningEnd)
                 {
-                    return NodeState.Caught;
+                    return (int) NodeState.Caught;
                 }
 
                 UnexpectedStateEvent(_fsm.StateEvent);
-                return NodeState.ProducingBlock;
+                return (int) NodeState.ProducingBlock;
             }
 
-            _fsm.AddState(NodeState.ProducingBlock)
+            _fsm.AddState((int) NodeState.ProducingBlock)
                 .SetTransferFunction(TransferFromAddProducingBlock)
                 .OnEntering(WhenEnteringState)
                 .OnLeaving(WhenLeavingState);
@@ -220,33 +227,34 @@ namespace AElf.Synchronization
 
         private void AddExecutingLoop()
         {
-            NodeState TransferFromAddExecutingLoop()
+            int TransferFromAddExecutingLoop()
             {
                 if (_fsm.StateEvent == StateEvent.ValidBlockHeader)
                 {
-                    return NodeState.ExecutingLoop;
+                    return (int) NodeState.ExecutingLoop;
                 }
 
                 if (_fsm.StateEvent == StateEvent.StateUpdated)
                 {
-                    return NodeState.BlockAppending;
+                    // Directly to default state instead of going to BlockAppending.
+                    return (int) (_caught ? NodeState.Caught : NodeState.Catching);
                 }
 
                 if (_fsm.StateEvent == StateEvent.MiningStart)
                 {
-                    return NodeState.GeneratingConsensusTx;
+                    return (int) NodeState.GeneratingConsensusTx;
                 }
-                
-                if (_fsm.StateEvent == StateEvent.ForkDetected && _caught)
+
+                if (_fsm.StateEvent == StateEvent.LongerChainDetected && _caught)
                 {
-                    return NodeState.Reverting;
+                    return (int) NodeState.Reverting;
                 }
 
                 UnexpectedStateEvent(_fsm.StateEvent);
-                return NodeState.ExecutingLoop;
+                return (int) NodeState.ExecutingLoop;
             }
 
-            _fsm.AddState(NodeState.ExecutingLoop)
+            _fsm.AddState((int) NodeState.ExecutingLoop)
                 .SetTransferFunction(TransferFromAddExecutingLoop)
                 .OnEntering(WhenEnteringState)
                 .OnLeaving(WhenLeavingState);
@@ -254,19 +262,19 @@ namespace AElf.Synchronization
 
         private void AddReverting()
         {
-            NodeState TransferFromAddReverting()
+            int TransferFromAddReverting()
             {
                 if (_fsm.StateEvent == StateEvent.RollbackFinished)
                 {
                     _caught = false;
-                    return NodeState.Catching;
+                    return (int) NodeState.Catching;
                 }
 
                 UnexpectedStateEvent(_fsm.StateEvent);
-                return NodeState.ProducingBlock;
+                return (int) NodeState.ProducingBlock;
             }
 
-            _fsm.AddState(NodeState.Reverting)
+            _fsm.AddState((int) NodeState.Reverting)
                 .SetTransferFunction(TransferFromAddReverting)
                 .OnEntering(WhenEnteringState)
                 .OnLeaving(WhenLeavingState);
@@ -274,25 +282,25 @@ namespace AElf.Synchronization
 
         private void WhenEnteringState()
         {
-            _logger?.Trace($"[NodeState] Entering State {_fsm.CurrentState.ToString()}");
-            MessageHub.Instance.Publish(new EnteringState(_fsm.CurrentState));
+            _logger?.Trace($"[NodeState] Entering State {((NodeState) _fsm.CurrentState).ToString()}");
+            MessageHub.Instance.Publish(new EnteringState((NodeState) _fsm.CurrentState));
         }
 
         private void WhenLeavingState()
         {
-            _logger?.Trace($"[NodeState] Leaving State {_fsm.CurrentState.ToString()}");
-            MessageHub.Instance.Publish(new LeavingState(_fsm.CurrentState));
+            _logger?.Trace($"[NodeState] Leaving State {((NodeState) _fsm.CurrentState).ToString()}");
+            MessageHub.Instance.Publish(new LeavingState((NodeState) _fsm.CurrentState));
         }
 
         private void UnexpectedStateEvent(StateEvent @event)
         {
-            if (_fsm.CurrentState.ShouldLockMiningWhenEntering())
+            if (((NodeState) _fsm.CurrentState).ShouldLockMiningWhenEntering())
             {
                 MessageHub.Instance.Publish(new LockMining(false));
             }
-            
+
             _logger?.Trace(
-                $"Unexpected state event {@event.ToString()}. Current state is {_fsm.CurrentState.ToString()}");
+                $"Unexpected state event {@event.ToString()}. Current state is {((NodeState) _fsm.CurrentState).ToString()}");
         }
     }
 }

@@ -118,7 +118,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, "Failed to get DPoS mining interval.\n");
+                    //_logger?.Error(e, "Failed to get DPoS mining interval.\n");
                     return new SInt32Value {Value = GlobalConfig.AElfDPoSMiningInterval};
                 }
             }

@@ -3,7 +3,7 @@ namespace AElf.Common.FSM
     public enum StateEvent
     {
         ValidBlockHeader,
-        ForkDetected,
+        LongerChainDetected, //Maybe still in the same chain but will use this to fire fork detection
         RollbackFinished,
 
         ValidBlock,

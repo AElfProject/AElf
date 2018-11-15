@@ -9,12 +9,12 @@ namespace AElf.Kernel.Tests
     // ReSharper disable InconsistentNaming
     public class FSMTest
     {
-        private FSM<NodeState> _fsm;
+        private FSM _fsm;
 
         [Fact]
         public void TimeoutTest()
         {
-            var fsm = new FSM<int>();
+            var fsm = new FSM();
             fsm.AddState(1)
                 .SetTimeout(5000)
                 .SetTransferFunction(() => 2);
@@ -41,25 +41,25 @@ namespace AElf.Kernel.Tests
         {
             var flag = new Container();
 
-            var fsm = new FSM<Season>();
-            fsm.AddState(Season.Spring)
+            var fsm = new FSM();
+            fsm.AddState((int) Season.Spring)
                 .SetTimeout(1000)
-                .SetTransferFunction(() => Season.Summer)
+                .SetTransferFunction(() => (int) Season.Summer)
                 .OnLeaving(() => flag.Value += 1);
-            fsm.AddState(Season.Summer)
+            fsm.AddState((int) Season.Summer)
                 .SetTimeout(1000)
-                .SetTransferFunction(() => Season.Autumn)
+                .SetTransferFunction(() => (int) Season.Autumn)
                 .OnEntering(() => flag.Value += 10);
-            fsm.AddState(Season.Autumn)
+            fsm.AddState((int) Season.Autumn)
                 .SetTimeout(1000)
-                .SetTransferFunction(() => Season.Winter)
+                .SetTransferFunction(() => (int) Season.Winter)
                 .OnEntering(() => flag.Value += 100);
-            fsm.AddState(Season.Winter)
+            fsm.AddState((int) Season.Winter)
                 .SetTimeout(1000)
-                .SetTransferFunction(() => Season.Spring)
+                .SetTransferFunction(() => (int) Season.Spring)
                 .OnEntering(() => flag.Value += 1000);
 
-            fsm.CurrentState = Season.Spring;
+            fsm.CurrentState = (int) Season.Spring;
             fsm.ProcessWithNumber(0);
 
             fsm.ProcessWithNumber(999);
@@ -79,106 +79,106 @@ namespace AElf.Kernel.Tests
         public void NextStateSelectorTest()
         {
             var flag = new Container();
-            var fsm = new FSM<Season>();
+            var fsm = new FSM();
 
             var amIInBeijing = true;
 
-            Season StateTransferFunction()
+            int StateTransferFunction()
             {
                 if (amIInBeijing)
                 {
-                    return Season.Winter;
+                    return (int) Season.Winter;
                 }
 
-                return Season.Autumn;
+                return (int) Season.Autumn;
             }
 
-            fsm.AddState(Season.Summer)
+            fsm.AddState((int) Season.Summer)
                 .SetTimeout(1000)
                 .SetTransferFunction(StateTransferFunction);
-            fsm.AddState(Season.Autumn)
+            fsm.AddState((int) Season.Autumn)
                 .SetTimeout(1000)
-                .SetTransferFunction(() => Season.Winter)
+                .SetTransferFunction(() => (int) Season.Winter)
                 .OnEntering(() => flag.Value += 100);
-            fsm.AddState(Season.Winter)
+            fsm.AddState((int) Season.Winter)
                 .SetTimeout(amIInBeijing ? 2000 : 1000)
-                .SetTransferFunction(() => Season.Spring)
+                .SetTransferFunction(() => (int) Season.Spring)
                 .OnEntering(() => flag.Value += 1000);
 
-            fsm.CurrentState = Season.Summer;
+            fsm.CurrentState = (int) Season.Summer;
             fsm.ProcessWithNumber(0);
 
             fsm.ProcessWithNumber(999);
-            Assert.Equal(Season.Summer, fsm.CurrentState);
+            Assert.Equal((int) Season.Summer, fsm.CurrentState);
             fsm.ProcessWithNumber(1001);
-            Assert.Equal(Season.Winter, fsm.CurrentState);
+            Assert.Equal((int) Season.Winter, fsm.CurrentState);
         }
 
         [Fact]
         public void NodeStateTest_CatchingToMining()
         {
-            _fsm = new FSM<NodeState>();
+            _fsm = new FSM();
 
-            NodeState TransferFromCatching()
+            int TransferFromCatching()
             {
                 if (_fsm.StateEvent == StateEvent.ValidBlockHeader)
                 {
-                    return NodeState.BlockValidating;
+                    return (int) NodeState.BlockValidating;
                 }
 
                 if (_fsm.StateEvent == StateEvent.MiningStart)
                 {
-                    return NodeState.GeneratingConsensusTx;
+                    return (int) NodeState.GeneratingConsensusTx;
                 }
 
-                return NodeState.Catching;
+                return (int) NodeState.Catching;
             }
             
-            _fsm.AddState(NodeState.Catching)
+            _fsm.AddState((int) NodeState.Catching)
                 .SetTransferFunction(TransferFromCatching)
                 .OnEntering(LogWhenEntering)
                 .OnEntering(FindMoreBlockHeadersToValidate)
                 .OnLeaving(LogWhenLeaving);
-            _fsm.AddState(NodeState.GeneratingConsensusTx);
-            _fsm.AddState(NodeState.BlockValidating);
+            _fsm.AddState((int) NodeState.GeneratingConsensusTx);
+            _fsm.AddState((int) NodeState.BlockValidating);
 
-            _fsm.CurrentState = NodeState.Catching;
+            _fsm.CurrentState = (int) NodeState.Catching;
             _fsm.ProcessWithStateEvent(StateEvent.MiningStart);
 
-            Assert.Equal(NodeState.GeneratingConsensusTx, _fsm.CurrentState);
+            Assert.Equal((int) NodeState.GeneratingConsensusTx, _fsm.CurrentState);
         }
 
         [Fact]
         public void NodeStateTest_BlockValidatingToBlockExecuting()
         {
-            _fsm = new FSM<NodeState>();
+            _fsm = new FSM();
             
-            NodeState TransferFromBlockValidating()
+            int TransferFromBlockValidating()
             {
                 if (_fsm.StateEvent == StateEvent.ValidBlock)
                 {
-                    return NodeState.BlockExecuting;
+                    return (int) NodeState.BlockExecuting;
                 }
 
                 if (_fsm.StateEvent == StateEvent.InvalidBlock)
                 {
-                    return NodeState.Catching;
+                    return (int)  NodeState.Catching;
                 }
 
-                return NodeState.BlockValidating;
+                return (int) NodeState.BlockValidating;
             }
 
-            _fsm.AddState(NodeState.BlockValidating)
+            _fsm.AddState((int) NodeState.BlockValidating)
                 .SetTransferFunction(TransferFromBlockValidating)
                 .OnEntering(LogWhenEntering)
                 .OnLeaving(LogWhenLeaving);
-            _fsm.AddState(NodeState.Catching);
-            _fsm.AddState(NodeState.BlockExecuting);
+            _fsm.AddState((int) NodeState.Catching);
+            _fsm.AddState((int) NodeState.BlockExecuting);
 
-            _fsm.CurrentState = NodeState.BlockValidating;
+            _fsm.CurrentState = (int) NodeState.BlockValidating;
             _fsm.ProcessWithStateEvent(StateEvent.ValidBlock);
             
-            Assert.Equal(NodeState.BlockExecuting, _fsm.CurrentState);
+            Assert.Equal((int) NodeState.BlockExecuting, _fsm.CurrentState);
         }
 
         private void LogWhenEntering()
