@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -38,6 +39,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static bool _terminated;
 
+        private NodeState CurrentState => (NodeState) _stateFSM.CurrentState;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet, IBlockHeaderValidator blockHeaderValidator)
         {
@@ -54,7 +57,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
             _terminated = false;
 
-            MessageHub.Instance.Subscribe<StateEvent>(e => { _stateFSM.ProcessWithStateEvent(e); });
+            MessageHub.Instance.Subscribe<StateEvent>(e =>
+            {
+                _stateFSM.ProcessWithStateEvent(e); 
+                MessageHub.Instance.Publish(new FSMStateChanged(CurrentState));
+            });
 
             MessageHub.Instance.Subscribe<EnteringState>(async inState =>
             {
@@ -173,6 +180,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
             // Notify the network layer the block has been accepted.
             MessageHub.Instance.Publish(new BlockAccepted(block));
+
+            if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
+            {
+                return;
+            }
 
             var blockHeaderValidationResult =
                 await _blockHeaderValidator.ValidateBlockHeaderAsync(block.Header);
@@ -385,14 +397,29 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <returns></returns>
         private async Task KeepExecutingBlocksOfHeight(ulong height)
         {
+            _logger?.Trace("Entered KeepExecutingBlocksOfHeight");
+            int i = 0;
+            
             while (_stateFSM.CurrentState == (int) NodeState.ExecutingLoop)
             {
+                i++;
                 var blocks = _blockSet.GetBlocksByHeight(height).Where(b =>
                     _blockHeaderValidator.ValidateBlockHeaderAsync(b.Header).Result ==
                     BlockHeaderValidationResult.Success);
+                
                 foreach (var block in blocks)
                 {
-                    await _blockExecutor.ExecuteBlock(block);
+                    var res = await _blockExecutor.ExecuteBlock(block);
+                    
+                    if (res.IsSuccess())
+                    {
+                        MessageHub.Instance.Publish(StateEvent.BlockAppended);
+                    }
+                    
+                    if (new Random().Next(10000) % 1000 == 0)
+                    {
+                        _logger?.Trace($"Execution result == {res.ToString()}");
+                    }
                 }
 
                 if (_terminated)

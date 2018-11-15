@@ -74,7 +74,9 @@ namespace AElf.Common
         /// Available next state:
         /// Caught
         /// </summary>
-        Reverting
+        Reverting,
+        
+        Stay
     }
 
     public static class NodeStateExtensions

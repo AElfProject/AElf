@@ -106,7 +106,7 @@ namespace AElf.Synchronization.BlockExecution
                 return result;
             }
 
-            _logger?.Trace($"Executing block {block.GetHash()}");
+            //_logger?.Trace($"Executing block {block.GetHash()}");
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -164,6 +164,7 @@ namespace AElf.Synchronization.BlockExecution
                 await UpdateCrossChainInfo(block, txnRes);
                 
                 // BlockExecuting -> BlockAppending
+                // ExecutingLoop -> BlockAppending
                 MessageHub.Instance.Publish(StateEvent.StateUpdated);
                 
                 await AppendBlock(block);
@@ -397,6 +398,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns></returns>
         private async Task AppendBlock(IBlock block)
         {
+            _logger?.Trace($"AppendingBlock {block.BlockHashToHex}");
             var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
             await blockchain.AddBlocksAsync(new List<IBlock> {block});
         }

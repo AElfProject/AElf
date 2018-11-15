@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NLog;
 
 namespace AElf.Common.FSM
 {
@@ -30,6 +31,8 @@ namespace AElf.Common.FSM
         private FSMStateBehaviour _currentStateBehaviour;
 
         private int _stateAge = -1000;
+
+        private readonly ILogger _logger = LogManager.GetLogger(nameof(FSM));
 
         public FSMStateBehaviour AddState(int state)
         {
@@ -73,8 +76,14 @@ namespace AElf.Common.FSM
 
         public void ProcessWithStateEvent(StateEvent stateEvent)
         {
+            _logger?.Trace($"[StateEvent] {stateEvent.ToString()}");
             StateEvent = stateEvent;
 
+            if ((NodeState) CurrentState == NodeState.Stay)
+            {
+                return;
+            }
+            
             if (_currentStateBehaviour.StateTransferFunction != null)
             {
                 var nextState = _currentStateBehaviour.StateTransferFunction();

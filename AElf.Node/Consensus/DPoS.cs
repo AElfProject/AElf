@@ -55,6 +55,9 @@ namespace AElf.Kernel.Node
 
         private static int _lockNumber;
 
+        private NodeState _currentState = NodeState.Catching;
+        private NodeState CurrentState => _currentState;
+
         /// <summary>
         /// In Value and Out Value.
         /// </summary>
@@ -135,6 +138,8 @@ namespace AElf.Kernel.Node
                     _prepareTerminated = true;
                 }
             });
+
+            MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { _currentState = inState.CurrentState; });
         }
 
         private static Miners Miners
@@ -293,6 +298,11 @@ namespace AElf.Kernel.Node
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
 
             if (_terminated)
+            {
+                return;
+            }
+
+            if (CurrentState != NodeState.Catching && CurrentState !=NodeState.Caught && CurrentState != NodeState.ExecutingLoop)
             {
                 return;
             }

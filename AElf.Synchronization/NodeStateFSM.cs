@@ -53,8 +53,7 @@ namespace AElf.Synchronization
                     return (int) NodeState.GeneratingConsensusTx;
                 }
 
-                UnexpectedStateEvent(_fsm.StateEvent);
-                return (int) NodeState.Catching;
+                return (int) NodeState.Stay;
             }
 
             _fsm.AddState((int) NodeState.Catching)
@@ -82,8 +81,7 @@ namespace AElf.Synchronization
                     return (int) NodeState.Reverting;
                 }
 
-                UnexpectedStateEvent(_fsm.StateEvent);
-                return (int) NodeState.Caught;
+                return (int) NodeState.Stay;
             }
 
             _fsm.AddState((int) NodeState.Caught)
@@ -111,8 +109,7 @@ namespace AElf.Synchronization
                     return (int) NodeState.Reverting;
                 }
 
-                UnexpectedStateEvent(_fsm.StateEvent);
-                return (int) NodeState.BlockValidating;
+                return (int) NodeState.Stay;
             }
 
             _fsm.AddState((int) NodeState.BlockValidating)
@@ -148,8 +145,7 @@ namespace AElf.Synchronization
                     return (int) (_caught ? NodeState.Caught : NodeState.Catching);
                 }
 
-                UnexpectedStateEvent(_fsm.StateEvent);
-                return (int) NodeState.BlockExecuting;
+                return (int) NodeState.Stay;
             }
 
             _fsm.AddState((int) NodeState.BlockExecuting)
@@ -167,8 +163,7 @@ namespace AElf.Synchronization
                     return (int) (_caught ? NodeState.Caught : NodeState.Catching);
                 }
 
-                UnexpectedStateEvent(_fsm.StateEvent);
-                return (int) NodeState.BlockAppending;
+                return (int) NodeState.Stay;
             }
 
             _fsm.AddState((int) NodeState.BlockAppending)
@@ -196,8 +191,7 @@ namespace AElf.Synchronization
                     return (int) NodeState.Caught;
                 }
 
-                UnexpectedStateEvent(_fsm.StateEvent);
-                return (int) NodeState.GeneratingConsensusTx;
+                return (int) NodeState.Stay;
             }
 
             _fsm.AddState((int) NodeState.GeneratingConsensusTx)
@@ -215,8 +209,7 @@ namespace AElf.Synchronization
                     return (int) NodeState.Caught;
                 }
 
-                UnexpectedStateEvent(_fsm.StateEvent);
-                return (int) NodeState.ProducingBlock;
+                return (int) NodeState.Stay;
             }
 
             _fsm.AddState((int) NodeState.ProducingBlock)
@@ -236,8 +229,7 @@ namespace AElf.Synchronization
 
                 if (_fsm.StateEvent == StateEvent.StateUpdated)
                 {
-                    // Directly to default state instead of going to BlockAppending.
-                    return (int) (_caught ? NodeState.Caught : NodeState.Catching);
+                    return (int) NodeState.BlockAppending;
                 }
 
                 if (_fsm.StateEvent == StateEvent.MiningStart)
@@ -250,8 +242,7 @@ namespace AElf.Synchronization
                     return (int) NodeState.Reverting;
                 }
 
-                UnexpectedStateEvent(_fsm.StateEvent);
-                return (int) NodeState.ExecutingLoop;
+                return (int) NodeState.Stay;
             }
 
             _fsm.AddState((int) NodeState.ExecutingLoop)
@@ -270,8 +261,7 @@ namespace AElf.Synchronization
                     return (int) NodeState.Catching;
                 }
 
-                UnexpectedStateEvent(_fsm.StateEvent);
-                return (int) NodeState.ProducingBlock;
+                return (int) NodeState.Stay;
             }
 
             _fsm.AddState((int) NodeState.Reverting)
@@ -290,17 +280,6 @@ namespace AElf.Synchronization
         {
             _logger?.Trace($"[NodeState] Leaving State {((NodeState) _fsm.CurrentState).ToString()}");
             MessageHub.Instance.Publish(new LeavingState((NodeState) _fsm.CurrentState));
-        }
-
-        private void UnexpectedStateEvent(StateEvent @event)
-        {
-            if (((NodeState) _fsm.CurrentState).ShouldLockMiningWhenEntering())
-            {
-                MessageHub.Instance.Publish(new LockMining(false));
-            }
-
-            _logger?.Trace(
-                $"Unexpected state event {@event.ToString()}. Current state is {((NodeState) _fsm.CurrentState).ToString()}");
         }
     }
 }
