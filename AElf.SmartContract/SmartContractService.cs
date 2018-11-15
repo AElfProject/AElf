@@ -14,6 +14,7 @@ using AElf.Types.CSharp;
 using Type = System.Type;
 using AElf.Common;
 using AElf.Kernel.Storages;
+using Akka.Util.Internal;
 
 namespace AElf.SmartContract
 {
@@ -22,6 +23,7 @@ namespace AElf.SmartContract
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
+        private readonly ConcurrentDictionary<Address, int> _contractVersions = new ConcurrentDictionary<Address, int>();
         private readonly IStateStore _stateStore;
         private readonly IFunctionMetadataService _functionMetadataService;
 
@@ -42,6 +44,14 @@ namespace AElf.SmartContract
                 _executivePools[account] = pool;
             }
             return pool;
+        }
+
+        private void ClearPool(Address address)
+        {
+            if (_executivePools.ContainsKey(address))
+            {
+                _executivePools[address] = new ConcurrentBag<IExecutive>();
+            }
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId)
@@ -114,6 +124,7 @@ namespace AElf.SmartContract
             }
             
             await _smartContractManager.InsertAsync(contractAddress, registration);
+            _contractVersions.AddOrSet(contractAddress, registration.Version);
         }
         
         public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
@@ -131,8 +142,8 @@ namespace AElf.SmartContract
 //            }
             await _smartContractManager.InsertAsync(contractAddress, registration);
             
-            // Todo update assembly
-            
+            _contractVersions.AddOrSet(contractAddress, registration.Version);
+            ClearPool(contractAddress);
         }
 
         public async Task<IMessage> GetAbiAsync(Address account, string name = null)

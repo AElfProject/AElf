@@ -133,6 +133,7 @@ namespace AElf.Contracts.Genesis
                 Category = category,
                 Owner = creator,
                 ContractName = contractName,
+                Version = 1,
                 ContractHash = contractHash
             };
             _contractInfos[contractAddress] = info;
@@ -141,7 +142,8 @@ namespace AElf.Contracts.Genesis
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash
+                ContractHash = contractHash,
+                Version = info.Version
             };
 
             await Api.DeployContractAsync(contractAddress, reg);
@@ -170,12 +172,17 @@ namespace AElf.Contracts.Genesis
             
             var contractHash = Hash.FromRawBytes(code);
             Api.Assert(!existContract.ContractHash.Equals(contractHash),"Contract is not exist.");
+
+            existContract.Version = existContract.Version + 1;
+            existContract.ContractHash = contractHash;
+            _contractInfos.SetValue(contractAddress, existContract);
             
             var reg = new SmartContractRegistration
             {
                 Category = existContract.Category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash
+                ContractHash = contractHash,
+                Version = existContract.Version
             };
 
             await Api.UpdateContractAsync(contractAddress, reg);
