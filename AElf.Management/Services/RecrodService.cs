@@ -55,17 +55,17 @@ namespace AElf.Management.Services
                 try
                 {
                     var txPoolSize = _transactionService.GetPoolSize(chainId);
-                    //_transactionService.RecordPoolSize(chainId, time, txPoolSize);
+                    _transactionService.RecordPoolSize(chainId, time, txPoolSize);
 
                     var isAlive = _nodeService.IsAlive(chainId);
                     var isForked = _nodeService.IsForked(chainId);
-                    //_nodeService.RecordPoolState(chainId, time, isAlive, isForked);
+                    _nodeService.RecordPoolState(chainId, time, isAlive, isForked);
                     
-                    //_nodeService.RecordBlockInfo(chainId);
+                    _nodeService.RecordBlockInfo(chainId);
                 }
                 catch (Exception exception)
                 {
-                    Console.WriteLine(exception);
+                    //Console.WriteLine(exception);
                 }
             }
         }
