@@ -193,8 +193,11 @@ namespace AElf.Synchronization.BlockExecution
                     MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockExecutor));
                 }
                 stopwatch.Stop();
-                _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
-                              $"duration {stopwatch.ElapsedMilliseconds} ms.");
+                if (!res.CanExecuteAgain())
+                {
+                    _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
+                                  $"duration {stopwatch.ElapsedMilliseconds} ms.");
+                }
             }
         }
 
@@ -352,7 +355,7 @@ namespace AElf.Synchronization.BlockExecution
                 var cached = _clientManager.TryGetParentChainBlockInfo(parentBlockInfo);
                 if (cached != null) 
                     return cached.Equals(parentBlockInfo);
-                _logger.Warn("Not found cached parent block info");
+                //_logger.Warn("Not found cached parent block info");
                 return false;
             }
             catch (Exception e)
