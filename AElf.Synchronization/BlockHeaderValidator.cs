@@ -67,7 +67,6 @@ namespace AElf.Synchronization
                 }
                 
                 var localCurrentBlock = await BlockChain.GetBlockByHeightAsync(currentHeight);
-                _logger?.Trace($"Local current block: {localCurrentBlock.BlockHashToHex}");
                 if (localCurrentBlock.BlockHashToHex != blockHeader.PreviousBlockHash.DumpHex())
                 {
                     return BlockHeaderValidationResult.Branched;
