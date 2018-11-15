@@ -78,6 +78,8 @@ namespace AElf.Runtime.CSharp
             }
         }
 
+        public int ContractVersion { get; set; }
+
         public IExecutive SetMaxCallDepth(int maxCallDepth)
         {
             _maxCallDepth = maxCallDepth;

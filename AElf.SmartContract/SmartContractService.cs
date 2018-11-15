@@ -54,6 +54,16 @@ namespace AElf.SmartContract
             }
         }
 
+        private int GetContractVersion(Address address)
+        {
+            if (!_contractVersions.TryGetValue(address, out var version))
+            {
+                version = _smartContractManager.GetAsync(address).Result.Version;
+                _contractVersions.TryAdd(address, version);
+            }
+            return version;
+        }
+
         public async Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId)
         {
             var pool = GetPoolFor(contractAddress);
@@ -77,7 +87,7 @@ namespace AElf.SmartContract
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
-
+            executive.ContractVersion = reg.Version;
             executive.SetStateStore(_stateStore);
             
             executive.SetSmartContractContext(new SmartContractContext()
@@ -93,9 +103,13 @@ namespace AElf.SmartContract
 
         public async Task PutExecutiveAsync(Address account, IExecutive executive)
         {
-            executive.SetTransactionContext(new TransactionContext());
-            executive.SetDataCache(new Dictionary<DataPath, StateCache>());
-            GetPoolFor(account).Add(executive);
+            if (executive.ContractVersion == GetContractVersion(account))
+            {
+                executive.SetTransactionContext(new TransactionContext());
+                executive.SetDataCache(new Dictionary<DataPath, StateCache>());
+                GetPoolFor(account).Add(executive);
+            }
+
             await Task.CompletedTask;
         }
 
