@@ -30,6 +30,18 @@ namespace AElf.Contracts.Genesis.Tests
                 return code;
             }
         }
+        private byte[] CodeNew
+        {
+            get
+            {
+                byte[] code;
+                using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Benchmark.TestContract/bin/Debug/netstandard2.0/AElf.Benchmark.TestContract.dll")))
+                {
+                    code = file.ReadFully();
+                }
+                return code;
+            }
+        }
         
         public ContractZeroTest(TestContractShim contractShim)
         {
@@ -40,7 +52,7 @@ namespace AElf.Contracts.Genesis.Tests
         public void Test()
         {
             // deploy contract
-            _contractShim.DeploySmartContract(0, Code);
+             _contractShim.DeploySmartContract(0, "AElf.Contracts.Token", Code);
             Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal);
             
             // get the address of deployed contract
@@ -56,7 +68,11 @@ namespace AElf.Contracts.Genesis.Tests
             _contractShim.ChangeContractOwner(address, newOwner);
             _contractShim.GetContractOwner(address);
             var queryNewOwner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
-            Assert.Equal(newOwner, queryNewOwner);     
+            Assert.Equal(newOwner, queryNewOwner);
+
+            _contractShim.UpdateSmartContract(address, CodeNew);
+            Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal);
+            Assert.True(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToBool());
         }
     }
 }
