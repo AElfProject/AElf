@@ -1,6 +1,6 @@
 using AElf.ChainController.EventMessages;
+using AElf.Common;
 using AElf.Common.FSM;
-using AElf.Kernel.Types;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using NLog;
@@ -133,9 +133,12 @@ namespace AElf.Synchronization
                     return NodeState.ExecutingLoop;
                 }
                 
-                if (_fsm.StateEvent == StateEvent.ForkDetected && _caught)
+                if (_fsm.StateEvent == StateEvent.ForkDetected)
                 {
-                    return NodeState.Reverting;
+                    if (_caught)
+                    {
+                        return NodeState.Reverting;
+                    }
                 }
 
                 UnexpectedStateEvent(_fsm.StateEvent);

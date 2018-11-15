@@ -341,7 +341,7 @@ namespace AElf.Node.AElfChain
                 return null;
             }
             
-            var block = (Block) await _chainService.GetBlockChain(Hash.Default).GetBlockByHeightAsync((ulong)height);
+            var block = (Block) await _blockChain.GetBlockByHeightAsync((ulong)height);
             return block != null ? await FillBlockWithTransactionList(block) : null;
         }
         

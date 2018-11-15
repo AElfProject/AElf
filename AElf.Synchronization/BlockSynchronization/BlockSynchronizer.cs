@@ -7,7 +7,6 @@ using AElf.Common.FSM;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Types;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;

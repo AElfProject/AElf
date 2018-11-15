@@ -1,4 +1,4 @@
-namespace AElf.Kernel.Types
+namespace AElf.Common
 {
     public enum NodeState
     {

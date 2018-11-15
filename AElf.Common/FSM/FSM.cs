@@ -77,7 +77,8 @@ namespace AElf.Common.FSM
 
             if (_currentStateBehaviour.StateTransferFunction != null)
             {
-                CurrentState = _currentStateBehaviour.StateTransferFunction();
+                var nextState = _currentStateBehaviour.StateTransferFunction();
+                CurrentState = nextState;
             }
         }
 

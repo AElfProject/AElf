@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace AElf.Common.FSM
 {
     // ReSharper disable InconsistentNaming

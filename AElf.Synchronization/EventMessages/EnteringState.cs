@@ -1,4 +1,4 @@
-using AElf.Kernel.Types;
+using AElf.Common;
 
 namespace AElf.Synchronization.EventMessages
 {

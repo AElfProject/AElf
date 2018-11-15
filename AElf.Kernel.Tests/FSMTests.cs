@@ -1,4 +1,5 @@
 using System;
+using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Kernel.Types;
 using Xunit;
