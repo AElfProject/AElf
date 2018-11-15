@@ -130,7 +130,7 @@ namespace AElf.Miner.Rpc.Client
                 {
                     var detail = e.Status.Detail;
                     _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
-                    while (_channel.State != ChannelState.Ready)
+                    while (_channel.State != ChannelState.Ready && _channel.State != ChannelState.Idle)
                     {
                         _logger?.Warn($"Channel state: {_channel.State}");
                         await Task.Delay(UnavailableConnectionInterval);
