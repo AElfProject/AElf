@@ -1,4 +1,5 @@
-﻿using AElf.Kernel;
+﻿using AElf.ChainController.CrossChain;
+using AElf.Kernel;
 using Autofac;
 
 namespace AElf.ChainController
@@ -12,6 +13,7 @@ namespace AElf.ChainController
             builder.RegisterType<ChainCreationService>().As<IChainCreationService>();
             builder.RegisterType<ChainContextService>().As<IChainContextService>();
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
+            builder.RegisterType<CrossChainInfo>().As<ICrossChainInfo>().SingleInstance();
         }
     }
 }

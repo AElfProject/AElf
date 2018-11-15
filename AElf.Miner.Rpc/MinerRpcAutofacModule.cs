@@ -2,8 +2,9 @@ using AElf.Configuration;
  using AElf.Miner.Rpc.Server;
  using Autofac;
  using AElf.Common;
- 
- namespace AElf.Miner.Rpc
+using AElf.Configuration.Config.Chain;
+
+namespace AElf.Miner.Rpc
  {
      public class MinerRpcAutofacModule : Module
      {
@@ -11,11 +12,11 @@ using AElf.Configuration;
          {
              builder.RegisterType<SideChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
              {
-                 impl.Instance.Init(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                 impl.Instance.Init(Hash.LoadHex(ChainConfig.Instance.ChainId));
              });
              builder.RegisterType<ParentChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
              {
-                 impl.Instance.Init(Hash.LoadHex(NodeConfig.Instance.ChainId));
+                 impl.Instance.Init(Hash.LoadHex(ChainConfig.Instance.ChainId));
              });
          }
      }

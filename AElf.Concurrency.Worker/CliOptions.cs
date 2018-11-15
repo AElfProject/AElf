@@ -6,25 +6,8 @@ namespace AElf.Concurrency.Worker
 {
     public class CliOptions
     {
-        [Option("node.datadir", HelpText = "The directory the node uses to store data.")]
-        public string DataDir { get; set; }
-
-        #region Database
-
-        // TODO: Find a way to generate help text or just use the enum DBType as its type.
-        [Option('t', "db.type", HelpText = "The type of database. Must in [InMemory, Redis, SSDB].")]
-        public string DBType { get; set; }
-
-        [Option("db.host", HelpText = "The IP address of database.")]
-        public string DBHost { get; set; }
-
-        [Option("db.port", HelpText = "The port of database.")]
-        public int? DBPort { get; set; }
-
-        [Option("db.number", Default = 0, HelpText = "The number of database.")]
-        public int DBNumber { get; set; }
-
-        #endregion
+        [Option("config.path", HelpText = "The directory the node uses to store config data.")]
+        public string configPath { get; set; }
         
         #region Actor
 
@@ -50,6 +33,23 @@ namespace AElf.Concurrency.Worker
 
         [Option("runner.config", HelpText = "The path to the runner config in json format.")]
         public string RunnerConfig { get; set; }
+
+        #endregion
+        
+        #region Database
+
+        // TODO: Find a way to generate help text or just use the enum DBType as its type.
+        [Option('t', "db.type", HelpText = "The type of database. Must in [InMemory, Redis, SSDB].")]
+        public string DBType { get; set; }
+
+        [Option("db.host", HelpText = "The IP address of database.")]
+        public string DBHost { get; set; }
+
+        [Option("db.port", HelpText = "The port of database.")]
+        public int? DBPort { get; set; }
+
+        [Option("db.number", HelpText = "The number of database.")]
+        public int? DBNumber { get; set; }
 
         #endregion
     }

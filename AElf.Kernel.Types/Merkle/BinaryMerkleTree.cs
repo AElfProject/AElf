@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using Google.Protobuf;
+using NLog.Targets;
 
 namespace AElf.Kernel
 {
@@ -75,9 +77,11 @@ namespace AElf.Kernel
                 Nodes.Add(Hash.FromTwoHashes(left, right));
                 if (++newAdded != nodeToAdd) 
                     continue;
-                // complete one row
-                if (Nodes.Count % 2 == 1 && nodeToAdd != 1)
+                
+                // complete this row
+                if (nodeToAdd % 2 == 1 && nodeToAdd != 1)
                 {
+                    nodeToAdd++;
                     Nodes.Add(Nodes.Last());
                 }
                 // start a new row

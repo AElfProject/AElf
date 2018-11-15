@@ -75,7 +75,7 @@ namespace AElf.Management.Helper
         private static void SaveConfigToFile()
         {
             var configJson =  JsonSerializer.Instance.Serialize(ServiceUrlConfig.Instance);
-            File.WriteAllText(Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config", "serviceurl.json"), configJson);
+            File.WriteAllText(Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config", "service-url.json"), configJson);
         }
     }
 }

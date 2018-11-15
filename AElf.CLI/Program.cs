@@ -24,7 +24,7 @@ namespace AElf.CLI
             MetaName = "AElf data directory",
             HelpText = "The directory the node uses to store data.",
             Default = "")]
-        public string DataDir { get; set; }
+        public string ConfigPath { get; set; }
     }
 
     class Program
@@ -40,11 +40,11 @@ namespace AElf.CLI
             ).WithParsed(
                 result => { cmdOptions = result; });
             
-            ApplicationHelpers.SetDataDir(cmdOptions.DataDir);
+            ApplicationHelpers.SetConfigPath(cmdOptions.ConfigPath);
             
             ScreenManager screenManager = new ScreenManager();
 
-            AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
+            AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultConfigPath());
             AccountManager accountManager = new AccountManager(kstore, screenManager);
             CertificatManager certificatManager = new CertificatManager(screenManager);
 

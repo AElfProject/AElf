@@ -11,5 +11,6 @@ namespace AElf.Kernel.Node
         void Recover();
         Task Update();
         bool IsAlive();
-    }
+        bool Shutdown();
+    }    
 }

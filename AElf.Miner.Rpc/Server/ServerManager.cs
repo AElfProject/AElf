@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Miner.Rpc.Exceptions;
@@ -43,7 +44,7 @@ namespace AElf.Miner.Rpc.Server
         /// <exception cref="PrivateKeyException"></exception>
         private KeyCertificatePair GenerateKeyCertificatePair()
         {
-            string ch = NodeConfig.Instance.ChainId;
+            string ch = ChainConfig.Instance.ChainId;
             string certificate = _certificateStore.GetCertificate(ch);
             if(certificate == null)
                 throw new CertificateException("Unable to load Certificate.");

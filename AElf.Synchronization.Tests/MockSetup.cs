@@ -30,6 +30,7 @@ namespace AElf.Synchronization.Tests
         private IFunctionMetadataService _functionMetadataService;
         private IExecutingService _concurrencyExecutingService;
         private ITxHub _txHub;
+        private IChainManagerBasic _chainManagerBasic;
 
         private IBlockSynchronizer _blockSynchronizer;
 
@@ -48,12 +49,12 @@ namespace AElf.Synchronization.Tests
                     _functionMetadataService), _transactionTraceManager, _stateStore,
                 new ChainContextService(GetChainService()));
             _txHub = txHub;
+            _chainManagerBasic = new ChainManagerBasic(dataStore);
         }
 
         public IBlockSynchronizer GetBlockSynchronizer()
         {
             var executor = GetBlockExecutor();
-            executor.Init();
             return new BlockSynchronizer(GetChainService(), GetBlockValidationService(), executor,
                 new BlockSet());
         }
@@ -100,7 +101,7 @@ namespace AElf.Synchronization.Tests
         public IBlockExecutor GetBlockExecutor()
         {
             return new BlockExecutor(GetChainService(), _concurrencyExecutingService, 
-                _transactionResultManager, null, null, _txHub);
+                _transactionResultManager, null, null, _txHub, _chainManagerBasic);
         }
     }
 }

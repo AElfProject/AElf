@@ -21,7 +21,7 @@ namespace AElf.Management.Commands
                 },
                 Data = new Dictionary<string, string>
                 {
-                    {"ChainInfo.json", "{\"id\":\"" + arg.SideChainId + "\"}"}
+                    {"chain.json", "{\"id\":\"" + arg.SideChainId + "\"}"}
                 }
             };
 

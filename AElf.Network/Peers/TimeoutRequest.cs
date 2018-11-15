@@ -12,13 +12,6 @@ namespace AElf.Network.Peers
         public const int DefaultMaxRetry = 2;
         
         public event EventHandler RequestTimedOut;
-        
-        private volatile bool _requestCanceled;
-
-        public bool IsCanceled 
-        {
-            get { return _requestCanceled; }
-        }
 
         public bool HasTimedOut { get; private set; } = true;
 
@@ -107,9 +100,6 @@ namespace AElf.Network.Peers
 
         private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
         {
-            if (_requestCanceled) 
-                return;
-
             // set this to true so the request can be used with another 
             // peer if needed.
             HasTimedOut = true;

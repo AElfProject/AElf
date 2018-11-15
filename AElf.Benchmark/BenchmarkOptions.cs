@@ -34,15 +34,6 @@ namespace AElf.Benchmark
         
         [Option(Default = 10, HelpText = "how many time to repeat the benchmark to get more stable result, default is 10")]
         public int RepeatTime { get; set; }
-        
-        [Option(HelpText = "which database to choose [keyvalue (in-memory), redis, ssdb], default is keyvalue")]
-        public string Database { get; set; }
-
-        [Option(HelpText = "host of the database, default is 127.0.0.1")]
-        public string DbHost { get; set; }
-        
-        [Option(HelpText = "port of the database, default is 8888")]
-        public int? DbPort { get; set; }
 
         [Option("conlevel", Hidden = true, HelpText = "ConcurrencyLevel, used to limit the group count of the result of grouper")]
         public int? ConcurrencyLevel { get; set; }

@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
-using AElf.Node.CrossChain;
 using AElf.RPC;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
@@ -89,7 +90,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var chainId = NodeConfig.Instance.ChainId;
+                var chainId = ChainConfig.Instance.ChainId;
                 var basicContractZero = this.GetGenesisContractHash(SmartContractType.BasicContractZero);
                 var sideChainContract = this.GetGenesisContractHash(SmartContractType.SideChainContract);
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
@@ -286,7 +287,7 @@ namespace AElf.ChainController.Rpc
                 ulong boundParentChainHeight = 0;
                 try
                 {
-                    merklePathInParentChain = this.GetTxRootMerklePathinParentChain(txResult.BlockNumber);
+                    merklePathInParentChain = this.GetTxRootMerklePathInParentChain(txResult.BlockNumber);
                     boundParentChainHeight = this.GetBoundParentChainHeight(txResult.BlockNumber);
                 }
                 catch (Exception e)
@@ -365,14 +366,23 @@ namespace AElf.ChainController.Rpc
 
             try
             {
-                var transaction = await this.GetTransaction(txHash);
-
-                var txInfo = transaction == null
-                    ? new JObject {["tx"] = "Not Found"}
-                    : transaction.GetTransactionInfo();
-                if (transaction != null)
+                var receipt = await this.GetTransactionReceipt(txHash);
+                JObject txInfo = null;
+                if (receipt != null)
+                {
+                    var transaction = receipt.Transaction;
+                    txInfo = transaction.GetTransactionInfo();
                     ((JObject) txInfo["tx"]).Add("params",
                         String.Join(", ", await this.GetTransactionParameters(transaction)));
+                    ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
+                    ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
+                    ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
+                    ((JObject) txInfo["tx"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
+                }
+                else
+                {
+                    txInfo = new JObject {["tx"] = "Not Found"};
+                }
 
                 var txResult = await this.GetTransactionResult(txHash);
                 var response = new JObject
@@ -556,20 +566,20 @@ namespace AElf.ChainController.Rpc
             JToken id;
             try
             {
-                var valueBytes = KeyValueDatabase.GetAsync(key).Result;
-
                 object value;
 
                 if (key.StartsWith(GlobalConfig.StatePrefix))
                 {
                     type = "State";
                     id = key.Substring(GlobalConfig.StatePrefix.Length, key.Length - GlobalConfig.StatePrefix.Length);
+                    var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
                     value = StateValue.Create(valueBytes);
                 }
                 else if(key.StartsWith(GlobalConfig.TransactionReceiptPrefix))
                 {
                     type = "TransactionReceipt";
                     id = key.Substring(GlobalConfig.TransactionReceiptPrefix.Length, key.Length - GlobalConfig.TransactionReceiptPrefix.Length);
+                    var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
                     value = valueBytes?.Deserialize<TransactionReceipt>();
                 }
                 else
@@ -577,6 +587,7 @@ namespace AElf.ChainController.Rpc
                     var keyObj = Key.Parser.ParseFrom(ByteArrayHelpers.FromHexString(key));
                     type = keyObj.Type;
                     id = JObject.Parse(keyObj.ToString());
+                    var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
                     var obj = GetInstance(type);
                     obj.MergeFrom(valueBytes);
                     value = obj;

@@ -1,5 +1,6 @@
 ﻿using AElf.ChainController.EventMessages;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;
@@ -24,9 +25,9 @@ namespace AElf.Network.Tests.NetworkManagerTests
             firstPeer.Setup(m => m.KnownHeight).Returns(2);
             
             Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
-            NodeConfig.Instance.ChainId = "";
+            ChainConfig.Instance.ChainId = "";
             
-            NetworkManager nm = new NetworkManager(peerManager.Object, null, null, null, null);
+            NetworkManager nm = new NetworkManager(peerManager.Object, null, null, null);
             
             // register peer 
             peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));

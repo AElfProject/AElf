@@ -14,16 +14,8 @@ namespace AElf.Network.Tests.NetworkManagerTests
         {
             TimeoutRequest request = new TimeoutRequest(0, null, 1000);
             var ex = Assert.Throws<InvalidOperationException>(() => request.TryPeer(null));
-            Assert.Equal(ex.Message, "Peer cannot be null.");
+            Assert.Equal("Peer cannot be null.", ex.Message);
         }
-        
-//        [Fact]
-//        public void TryPeer_FireWithNullMessage_ThrowsException()
-//        {
-//            TimeoutRequest request = new TimeoutRequest(new byte[0], null, 1000);
-//            var ex = Assert.Throws<InvalidOperationException>(() => request.TryPeer(new Peer(1234)));
-//            Assert.Equal(ex.Message, "RequestMessage cannot be null.");
-//        }
         
         [Fact]
         public void TryPeer_ShouldEnqueueMessage()
