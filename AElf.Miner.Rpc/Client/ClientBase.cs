@@ -110,37 +110,43 @@ namespace AElf.Miner.Rpc.Client
         public async Task StartDuplexStreamingCall(CancellationToken cancellationToken, ulong next)
         {
             _next = Math.Max(next, ToBeIndexedInfoQueue.LastOrDefault()?.Height?? -1 + 1);
-            try
+            
+            using (var call = Call())
             {
-                using (var call = Call())
+                try
                 {
                     // response reader task
                     var responseReaderTask = ReadResponse(call);
 
                     // request in loop
                     await RequestLoop(call, cancellationToken);
-                    await call.RequestStream.CompleteAsync();
                     await responseReaderTask;
                 }
-            }
-            catch (RpcException e)
-            {
-                var status = e.Status.StatusCode;
-                if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
+                catch (RpcException e)
                 {
-                    var detail = e.Status.Detail;
-                    _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
-                    while (_channel.State != ChannelState.Ready && _channel.State != ChannelState.Idle)
+                    var status = e.Status.StatusCode;
+                    if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
                     {
-                        _logger?.Warn($"Channel state: {_channel.State}");
-                        await Task.Delay(UnavailableConnectionInterval);
+                        var detail = e.Status.Detail;
+                        _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
+                        while (_channel.State != ChannelState.Ready && _channel.State != ChannelState.Idle)
+                        {
+                            _logger?.Warn($"Channel state: {_channel.State}");
+                            await Task.Delay(UnavailableConnectionInterval);
+                        }
+
+                        StartDuplexStreamingCall(cancellationToken, _next).ConfigureAwait(false);
+                        return;
                     }
-                    
-                    StartDuplexStreamingCall(cancellationToken, _next).ConfigureAwait(false);
-                    return;
+
+                    _logger?.Error(e, "Miner client stooped with exception.");
+                    throw;
                 }
-                _logger?.Error(e, "Miner client stooped with exception.");
-                throw;
+                finally
+                {
+                    await call.RequestStream.CompleteAsync();
+                }
+                
             }
         }
 
