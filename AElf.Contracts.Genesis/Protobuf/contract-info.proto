@@ -6,6 +6,8 @@ import "common.proto";
 
 message ContractInfo
 {
-    Address Owner = 1;
-    uint64 SerialNumber = 2;
+    int32 Category = 1;
+    Address Owner = 2;
+    string ContractName =3;
+    Hash ContractHash = 4;
 }

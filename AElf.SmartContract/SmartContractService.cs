@@ -115,6 +115,25 @@ namespace AElf.SmartContract
             
             await _smartContractManager.InsertAsync(contractAddress, registration);
         }
+        
+        public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
+        {
+            // get runnner
+            var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
+            runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
+
+            // Todo update metadata
+//            if (ParallelConfig.Instance.IsParallelEnable)
+//            {
+//                var contractType = runner.GetContractType(registration);
+//                var contractTemplate = runner.ExtractMetadata(contractType);
+//                await _functionMetadataService.DeployContract(chainId, contractAddress, contractTemplate);
+//            }
+            await _smartContractManager.InsertAsync(contractAddress, registration);
+            
+            // Todo update assembly
+            
+        }
 
         public async Task<IMessage> GetAbiAsync(Address account, string name = null)
         {

@@ -7,33 +7,33 @@ namespace AElf.Contracts.Genesis
 {
     public partial class ContractInfo
     {
-        private Address _address = null;
-
-        public Address Address
-        {
-            get
-            {
-                if (_address == null)
-                {
-                    _address = GetAddress();
-                }
-
-                return _address;
-            }
-        }
-
-        private Address GetAddress()
-        {
-            return Address.FromRawBytes(
-                Hash.FromTwoHashes(
-                    Api.GetChainId(),
-                    Hash.FromMessage(
-                        new UInt64Value()
-                        {
-                            Value = SerialNumber
-                        })
-                ).ToByteArray()
-            );
-        }
+//        private Address _address = null;
+//
+//        public Address Address
+//        {
+//            get
+//            {
+//                if (_address == null)
+//                {
+//                    _address = GetAddress();
+//                }
+//
+//                return _address;
+//            }
+//        }
+//
+//        private Address GetAddress()
+//        {
+//            return Address.FromRawBytes(
+//                Hash.FromTwoHashes(
+//                    Api.GetChainId(),
+//                    Hash.FromMessage(
+//                        new UInt64Value()
+//                        {
+//                            Value = SerialNumber
+//                        })
+//                ).ToByteArray()
+//            );
+//        }
     }
 }

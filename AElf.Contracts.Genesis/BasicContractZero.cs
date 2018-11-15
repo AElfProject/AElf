@@ -89,14 +89,13 @@ namespace AElf.Contracts.Genesis
 
     #endregion Customized Field Types
 
-    public class BasicContractZero : CSharpSmartContract, ISmartContractZero
+    public class BasicContractZero : CSharpSmartContract//, ISmartContractZero
     {
         #region Fields
 
         private readonly ContractSerialNumber _contractSerialNumber = ContractSerialNumber.Instance;
 
-        private readonly Map<Address, ContractInfo> _contractInfos =
-            new Map<Address, ContractInfo>(FieldNames.ContractInfos);
+        private readonly Map<Address, ContractInfo> _contractInfos = new Map<Address, ContractInfo>(FieldNames.ContractInfos);
 
         #endregion Fields
 
@@ -118,30 +117,35 @@ namespace AElf.Contracts.Genesis
             return info.ToString();
         }
 
-        public async Task<byte[]> DeploySmartContract(int category, byte[] code)
+        public async Task<byte[]> DeploySmartContract(int category, string contractName, byte[] code)
         {
-            ulong serialNumber = _contractSerialNumber.Increment().Value;
-
+            
+            var contractAddress = Address.FromRawBytes(contractName.CalculateHash());
+            var isExistContract = _contractInfos.TryGet(contractAddress, out _);
+            
+            Api.Assert(!isExistContract,"Contract is exist.");
+            
             Address creator = Api.GetTransaction().From;
+            var contractHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
             {
+                Category = category,
                 Owner = creator,
-                SerialNumber = serialNumber
+                ContractName = contractName,
+                ContractHash = contractHash
             };
-
-            var address = info.Address;
-
-            _contractInfos[address] = info;
+            _contractInfos[contractAddress] = info;
 
             var reg = new SmartContractRegistration
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.FromRawBytes(code)
+                ContractHash = contractHash
             };
 
-            await Api.DeployContractAsync(address, reg);
+            await Api.DeployContractAsync(contractAddress, reg);
+            
 
             /*
             // TODO: Enable back
@@ -153,10 +157,30 @@ namespace AElf.Contracts.Genesis
                 CodeHash = SHA256.Create().ComputeHash(code)
             }.Fire();
             */
+            Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.DumpHex());
+            Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.DumpHex());
+            return contractAddress.DumpByteArray();
+        }
 
-            Console.WriteLine($"SerialNumber: {info.SerialNumber}");
-            Console.WriteLine("BasicContractZero - Deployment success: " + address.DumpHex());
-            return address.DumpByteArray();
+        public async Task<bool> UpdateSmartContract(Address contractAddress, byte[] code)
+        {
+            var isExistContract = _contractInfos.TryGet(contractAddress, out var existContract);
+            
+            Api.Assert(isExistContract,"Contract is not exist.");
+            
+            var contractHash = Hash.FromRawBytes(code);
+            Api.Assert(!existContract.ContractHash.Equals(contractHash),"Contract is not exist.");
+            
+            var reg = new SmartContractRegistration
+            {
+                Category = existContract.Category,
+                ContractBytes = ByteString.CopyFrom(code),
+                ContractHash = contractHash
+            };
+
+            await Api.UpdateContractAsync(contractAddress, reg);
+            
+            return true;
         }
 
         public void ChangeContractOwner(Address contractAddress, Address newOwner)
