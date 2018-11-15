@@ -59,30 +59,41 @@ namespace AElf.Synchronization.BlockSynchronization
 
             MessageHub.Instance.Subscribe<EnteringState>(async inState =>
             {
-                if (inState.NodeState == NodeState.Catching || inState.NodeState == NodeState.Caught)
+                if (inState.NodeState.ShouldLockMiningWhenEntering())
                 {
-                    await ReceiveNextValidBlock();
+                    MessageHub.Instance.Publish(new LockMining(true));
                 }
-
-                if (inState.NodeState == NodeState.ExecutingLoop)
+                
+                switch (inState.NodeState)
                 {
-                    // This node is free to mine a block during executing maybe-incorrect block again and again.
-                    MessageHub.Instance.Publish(new LockMining(false));
-                }
-
-                if (inState.NodeState == NodeState.Reverting)
-                {
-                    await HandleFork();
+                    case NodeState.Catching:
+                        await ReceiveNextValidBlock();
+                        break;
+                    
+                    case NodeState.Caught:
+                        await ReceiveNextValidBlock();
+                        break;
+                    
+                    case NodeState.ExecutingLoop:
+                        // This node is free to mine a block during executing maybe-incorrect block again and again.
+                        MessageHub.Instance.Publish(new LockMining(false));
+                        break;
+                    
+                    case NodeState.GeneratingConsensusTx:
+                        MessageHub.Instance.Publish(new LockMining(false));
+                        break;
+                    
+                    case NodeState.Reverting:
+                        await HandleFork();
+                        break;
                 }
             });
 
-            MessageHub.Instance.Subscribe<LeavingState>(async inState =>
+            MessageHub.Instance.Subscribe<LeavingState>(inState =>
             {
-                if (inState.NodeState == NodeState.Reverting)
+                if (inState.NodeState.ShouldUnlockMiningWhenLeaving())
                 {
-                    // Hang on the mining processes when the rollback finished,
-                    // because this node need to catch up other nodes.
-                    MessageHub.Instance.Publish(new LockMining(true));
+                    MessageHub.Instance.Publish(new LockMining(false));
                 }
             });
 
@@ -123,14 +134,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     return;
                 }
 
-                if (inState.IsMining)
-                {
-                    MessageHub.Instance.Publish(StateEvent.MiningStart);
-                }
-                else
-                {
-                    MessageHub.Instance.Publish(StateEvent.MiningEnd);
-                }
+                MessageHub.Instance.Publish(inState.IsMining ? StateEvent.MiningStart : StateEvent.MiningEnd);
             });
 
             MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
@@ -168,6 +172,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 _blockSet.AddBlock(block);
             }
 
+            // Notify the network layer the block has been accepted.
+            MessageHub.Instance.Publish(new BlockAccepted(block));
+
             var blockHeaderValidationResult =
                 await _blockHeaderValidator.ValidateBlockHeaderAsync(block.Header);
 
@@ -198,7 +205,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        public async Task ReceiveNextValidBlock()
+        private async Task ReceiveNextValidBlock()
         {
             if (_stateFSM.CurrentState != NodeState.Catching && _stateFSM.CurrentState != NodeState.Caught)
             {
@@ -270,9 +277,6 @@ namespace AElf.Synchronization.BlockSynchronization
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
 
-            // Notify the network layer the block has been executed.
-            MessageHub.Instance.Publish(new BlockExecuted(block));
-
             // BlockAppending -> Catching / Caught
             MessageHub.Instance.Publish(StateEvent.BlockAppended);
 
@@ -293,7 +297,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        public void AddMinedBlock(IBlock block)
+        private void AddMinedBlock(IBlock block)
         {
             _blockSet.Tell(block);
 

@@ -54,7 +54,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static List<IBlock> _blockCache = new List<IBlock>();
 
-        public static ulong? MaxHeight => _blockCache.OrderByDescending(b => b.Index).FirstOrDefault()?.Index;
+        //public static ulong? MaxHeight => _blockCache.OrderByDescending(b => b.Index).FirstOrDefault()?.Index;
 
         private readonly Dictionary<ulong, IBlock> _executedBlocks = new Dictionary<ulong, IBlock>();
 

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -32,8 +31,7 @@ namespace AElf.Synchronization
 
         public async Task<bool> CheckLinkabilityAsync(BlockHeader blockHeader)
         {
-            var previousBlocks = new List<IBlock>();
-            previousBlocks.Add(await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1));
+            var previousBlocks = new List<IBlock> {await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1)};
             previousBlocks.AddRange(_blockSet.GetBlocksByHeight(blockHeader.Index - 1));
             foreach (var previousBlock in previousBlocks)
             {

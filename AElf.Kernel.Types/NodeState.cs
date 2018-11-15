@@ -8,21 +8,24 @@ namespace AElf.Kernel.Types
         /// BlockValidating - (ValidBlockHeader)
         /// GeneratingConsensusTx - (MiningStart)
         /// </summary>
-        Catching,
+        Catching = 1,
         
         /// <summary>
         /// Already mined at least one block.
         /// Available next state:
         /// BlockValidating - (ValidBlockHeader)
         /// GeneratingConsensusTx - (MiningStart)
+        /// Reverting - (ForkDetected)
         /// </summary>
         Caught,
         
         /// <summary>
         /// Execute this block if success.
+        /// Can't mining during this process.
         /// Available next state:
         /// BlockExecuting - (ValidBlock)
         /// GeneratingConsensusTx - (MiningStart)
+        /// Catching / Caught - (ForkDetected & _caught)
         /// </summary>
         BlockValidating,
         
@@ -48,7 +51,7 @@ namespace AElf.Kernel.Types
         /// HeaderValidating,
         /// GeneratingConsensusTx
         /// </summary>
-        ExecutingLoop,
+        ExecutingLoop = 10,
         
         /// <summary>   
         /// Mining, can be cancelled.
@@ -76,9 +79,14 @@ namespace AElf.Kernel.Types
 
     public static class NodeStateExtensions
     {
-        public static bool AsMiner(this NodeState nodeState)
+        public static bool ShouldLockMiningWhenEntering(this NodeState nodeState)
         {
-            return (int) nodeState > 0;
+            return (int) nodeState < 10 || nodeState == NodeState.Reverting;
+        }
+        
+        public static bool ShouldUnlockMiningWhenLeaving(this NodeState nodeState)
+        {
+            return (int) nodeState < 10;
         }
     }
 }

@@ -21,7 +21,7 @@ namespace AElf.Kernel
         private readonly IStateStore _stateStore;
 
         private readonly ILogger _logger;
-        private static bool _dongRollback;
+        private static bool _doingRollback;
         private static bool _prepareTerminated;
         private static bool _terminated;
 
@@ -34,7 +34,7 @@ namespace AElf.Kernel
             _transactionTraceManager = transactionTraceManager;
             _stateStore = stateStore;
 
-            _dongRollback = false;
+            _doingRollback = false;
             _prepareTerminated = false;
             _terminated = false;
 
@@ -44,7 +44,7 @@ namespace AElf.Kernel
             {
                 if (signal.Module == TerminatedModuleEnum.BlockRollback)
                 {
-                    if (!_dongRollback)
+                    if (!_doingRollback)
                     {
                         _terminated = true;
                         MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockRollback));
@@ -110,7 +110,7 @@ namespace AElf.Kernel
         {
             try
             {
-                _dongRollback = true;
+                _doingRollback = true;
                 var txs = new List<Transaction>();
 
                 if (_terminated)
@@ -162,7 +162,7 @@ namespace AElf.Kernel
             }
             finally
             {
-                _dongRollback = false;
+                _doingRollback = false;
                 if (_prepareTerminated)
                 {
                     _terminated = true;

@@ -7,8 +7,8 @@ namespace AElf.Kernel.Node
     {
         Task Start();
         void Stop();
-        void Hang();
-        void Recover();
+        void IncrementLockNumber();
+        void DecrementLockNumber();
         Task Update();
         bool IsAlive();
         bool Shutdown();

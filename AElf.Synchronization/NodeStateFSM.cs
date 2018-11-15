@@ -1,3 +1,4 @@
+using AElf.ChainController.EventMessages;
 using AElf.Common.FSM;
 using AElf.Kernel.Types;
 using AElf.Synchronization.EventMessages;
@@ -50,7 +51,7 @@ namespace AElf.Synchronization
                     return NodeState.GeneratingConsensusTx;
                 }
 
-                UnexpectedLog(_fsm.StateEvent);
+                UnexpectedStateEvent(_fsm.StateEvent);
                 return NodeState.Catching;
             }
 
@@ -79,7 +80,7 @@ namespace AElf.Synchronization
                     return NodeState.Reverting;
                 }
 
-                UnexpectedLog(_fsm.StateEvent);
+                UnexpectedStateEvent(_fsm.StateEvent);
                 return NodeState.Caught;
             }
 
@@ -108,7 +109,7 @@ namespace AElf.Synchronization
                     return NodeState.Reverting;
                 }
 
-                UnexpectedLog(_fsm.StateEvent);
+                UnexpectedStateEvent(_fsm.StateEvent);
                 return NodeState.BlockValidating;
             }
 
@@ -137,7 +138,7 @@ namespace AElf.Synchronization
                     return NodeState.Reverting;
                 }
 
-                UnexpectedLog(_fsm.StateEvent);
+                UnexpectedStateEvent(_fsm.StateEvent);
                 return NodeState.BlockExecuting;
             }
 
@@ -156,7 +157,7 @@ namespace AElf.Synchronization
                     return _caught ? NodeState.Caught : NodeState.Catching;
                 }
 
-                UnexpectedLog(_fsm.StateEvent);
+                UnexpectedStateEvent(_fsm.StateEvent);
                 return NodeState.BlockAppending;
             }
 
@@ -185,7 +186,7 @@ namespace AElf.Synchronization
                     return NodeState.Caught;
                 }
 
-                UnexpectedLog(_fsm.StateEvent);
+                UnexpectedStateEvent(_fsm.StateEvent);
                 return NodeState.GeneratingConsensusTx;
             }
 
@@ -204,7 +205,7 @@ namespace AElf.Synchronization
                     return NodeState.Caught;
                 }
 
-                UnexpectedLog(_fsm.StateEvent);
+                UnexpectedStateEvent(_fsm.StateEvent);
                 return NodeState.ProducingBlock;
             }
 
@@ -238,7 +239,7 @@ namespace AElf.Synchronization
                     return NodeState.Reverting;
                 }
 
-                UnexpectedLog(_fsm.StateEvent);
+                UnexpectedStateEvent(_fsm.StateEvent);
                 return NodeState.ExecutingLoop;
             }
 
@@ -258,7 +259,7 @@ namespace AElf.Synchronization
                     return NodeState.Catching;
                 }
 
-                UnexpectedLog(_fsm.StateEvent);
+                UnexpectedStateEvent(_fsm.StateEvent);
                 return NodeState.ProducingBlock;
             }
 
@@ -280,8 +281,13 @@ namespace AElf.Synchronization
             MessageHub.Instance.Publish(new LeavingState(_fsm.CurrentState));
         }
 
-        private void UnexpectedLog(StateEvent @event)
+        private void UnexpectedStateEvent(StateEvent @event)
         {
+            if (_fsm.CurrentState.ShouldLockMiningWhenEntering())
+            {
+                MessageHub.Instance.Publish(new LockMining(false));
+            }
+            
             _logger?.Trace(
                 $"Unexpected state event {@event.ToString()}. Current state is {_fsm.CurrentState.ToString()}");
         }

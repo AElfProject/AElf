@@ -2,14 +2,14 @@ namespace AElf.Synchronization
 {
     public enum BlockHeaderValidationResult
     {
-        FutureBlock,
-
-        Unlinkable,
-        Branched,
         Success,
 
-        AlreadyExecuted,
+        Unlinkable,
 
+        FutureBlock,
+        Branched,
+        AlreadyExecuted,
+        
         MaybeForked
     }
 }

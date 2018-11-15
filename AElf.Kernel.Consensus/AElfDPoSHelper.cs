@@ -206,7 +206,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<bool> HasGenerated()
+        public async Task<bool> DPoSInformationGenerated()
         {
             var bytes = await DataProvider.GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString));
             return bytes != null && bytes.Length > 0;
