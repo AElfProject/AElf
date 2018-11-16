@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -7,12 +8,19 @@ namespace AElf.Management.Request
 {
     public class HttpRequestHelper
     {
+        private static ConcurrentDictionary<string, HttpClient> _clients = new ConcurrentDictionary<string, HttpClient>();
+
         private static HttpClient GetClient(string serverUrl)
         {
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(serverUrl);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.ConnectionClose = true;
+            if (!_clients.TryGetValue(serverUrl, out var client))
+            {
+                client = new HttpClient();
+                client.BaseAddress = new Uri(serverUrl);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.ConnectionClose = true;
+
+                _clients.TryAdd(serverUrl, client);
+            }
 
             return client;
         }
@@ -33,9 +41,7 @@ namespace AElf.Management.Request
         public static T Request<T>(string url, object arg)
         {
             var content = JsonConvert.SerializeObject(arg);
-            var client = GetClient(url);
-            var result = DoRequest(client, content);
-
+            var result = DoRequest(GetClient(url), content);
             return JsonConvert.DeserializeObject<T>(result);
         }
     }
