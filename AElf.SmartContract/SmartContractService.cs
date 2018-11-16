@@ -141,22 +141,25 @@ namespace AElf.SmartContract
             _contractVersions.AddOrSet(contractAddress, registration.Version);
         }
         
-        public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
+        public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration newRegistration, bool isPrivileged)
         {
             // get runnner
-            var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
-            runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
+            var runner = _smartContractRunnerFactory.GetRunner(newRegistration.Category);
+            runner.CodeCheck(newRegistration.ContractBytes.ToByteArray(), isPrivileged);
 
-            // Todo update metadata
-//            if (ParallelConfig.Instance.IsParallelEnable)
-//            {
-//                var contractType = runner.GetContractType(registration);
-//                var contractTemplate = runner.ExtractMetadata(contractType);
-//                await _functionMetadataService.DeployContract(chainId, contractAddress, contractTemplate);
-//            }
-            await _smartContractManager.InsertAsync(contractAddress, registration);
+            if (ParallelConfig.Instance.IsParallelEnable)
+            {
+                var oldRegistration = await _smartContractManager.GetAsync(contractAddress);
+                var oldContractType = runner.GetContractType(oldRegistration);
+                var oldContractTemplate = runner.ExtractMetadata(oldContractType);
+                
+                var newContractType = runner.GetContractType(newRegistration);
+                var newContractTemplate = runner.ExtractMetadata(newContractType);
+                await _functionMetadataService.UpdateContract(chainId, contractAddress, newContractTemplate, oldContractTemplate);
+            }
+            await _smartContractManager.InsertAsync(contractAddress, newRegistration);
             
-            _contractVersions.AddOrSet(contractAddress, registration.Version);
+            _contractVersions.AddOrSet(contractAddress, newRegistration.Version);
             ClearPool(contractAddress);
         }
 
