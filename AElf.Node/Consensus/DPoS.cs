@@ -55,8 +55,7 @@ namespace AElf.Kernel.Node
 
         private static int _lockNumber;
 
-        private NodeState _currentState = NodeState.Catching;
-        private NodeState CurrentState => _currentState;
+        private NodeState CurrentState { get; set; } = NodeState.Catching;
 
         /// <summary>
         /// In Value and Out Value.
@@ -139,7 +138,7 @@ namespace AElf.Kernel.Node
                 }
             });
 
-            MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { _currentState = inState.CurrentState; });
+            MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { CurrentState = inState.CurrentState; });
         }
 
         private static Miners Miners
@@ -302,7 +301,7 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            if (CurrentState != NodeState.Catching && CurrentState !=NodeState.Caught && CurrentState != NodeState.ExecutingLoop)
+            if (!CurrentState.AbleToMine())
             {
                 return;
             }
@@ -375,6 +374,11 @@ namespace AElf.Kernel.Node
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
 
             if (_terminated)
+            {
+                return;
+            }
+            
+            if (!CurrentState.AbleToMine())
             {
                 return;
             }
@@ -459,6 +463,11 @@ namespace AElf.Kernel.Node
             {
                 return;
             }
+            
+            if (!CurrentState.AbleToMine())
+            {
+                return;
+            }
 
             var lockWasTaken = false;
             try
@@ -524,6 +533,11 @@ namespace AElf.Kernel.Node
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
 
             if (_terminated)
+            {
+                return;
+            }
+            
+            if (!CurrentState.AbleToMine())
             {
                 return;
             }

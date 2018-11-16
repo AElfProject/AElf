@@ -13,21 +13,17 @@ namespace AElf.Synchronization.BlockExecution
         //     Haven't appended yet, can execute again
         InvalidSideChainInfo = 11,
         InvalidParentChainBlockInfo,
-        
+
         //     Simply cache
         ExecutionCancelled = 51,
         BlockIsNull,
         NoTransaction,
         TooManyTxsForParentChainBlock,
-        NotExecuted,
-        AlreadyReceived,
-        Expelled,
-        IncorrectStateMerkleTree,
-        FutureBlock,
         AlreadyAppended,
         Terminated,
         Mining,
         IncorrectNodeState,
+        IncorrectStateMerkleTree,
 
         // Need to rollback
         Fatal = 101,

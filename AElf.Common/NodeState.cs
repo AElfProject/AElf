@@ -90,5 +90,12 @@ namespace AElf.Common
         {
             return (int) nodeState < 10;
         }
+
+        public static bool AbleToMine(this NodeState nodeState)
+        {
+            return nodeState == NodeState.Catching ||
+                   nodeState == NodeState.Caught ||
+                   nodeState == NodeState.ExecutingLoop;
+        }
     }
 }

@@ -22,6 +22,7 @@ namespace AElf.Synchronization
         {
             _fsm = new FSM();
             AddStates();
+            _fsm.CurrentState = (int) NodeState.Catching;
             return _fsm;
         }
 

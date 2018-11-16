@@ -51,7 +51,6 @@ namespace AElf.Synchronization.BlockSynchronization
             _blockHeaderValidator = blockHeaderValidator;
 
             _stateFSM = new NodeStateFSM().Create();
-            _stateFSM.CurrentState = (int) NodeState.Catching;
 
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
