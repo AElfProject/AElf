@@ -42,6 +42,11 @@ namespace AElf.Node.AElfChain
         private readonly IBlockSynchronizer _blockSynchronizer;
 
         private IBlockChain _blockChain;
+
+        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
+                                              _chainService.GetBlockChain(
+                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
+        
         private IConsensus _consensus;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
@@ -136,7 +141,6 @@ namespace AElf.Node.AElfChain
         public void Initialize(NodeConfiguration conf)
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
-            _blockChain = _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
 
             SetupConsensus();
@@ -165,7 +169,7 @@ namespace AElf.Node.AElfChain
             {
                 LogGenesisContractInfo();
 
-                var curHash = _blockChain.GetCurrentBlockHashAsync().Result;
+                var curHash = BlockChain.GetCurrentBlockHashAsync().Result;
 
                 var chainExists = curHash != null && !curHash.Equals(Hash.Genesis);
 
@@ -341,7 +345,7 @@ namespace AElf.Node.AElfChain
                 return null;
             }
             
-            var block = (Block) await _blockChain.GetBlockByHeightAsync((ulong)height);
+            var block = (Block) await BlockChain.GetBlockByHeightAsync((ulong)height);
             return block != null ? await FillBlockWithTransactionList(block) : null;
         }
         
@@ -376,7 +380,7 @@ namespace AElf.Node.AElfChain
 
         public async Task<int> GetCurrentBlockHeightAsync()
         {
-             return (int) await _blockChain.GetCurrentBlockHeightAsync();
+             return (int) await BlockChain.GetCurrentBlockHeightAsync();
         }
     }
 }
