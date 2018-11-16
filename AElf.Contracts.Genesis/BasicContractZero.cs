@@ -93,17 +93,9 @@ namespace AElf.Contracts.Genesis
     {
         #region Fields
 
-        private readonly ContractSerialNumber _contractSerialNumber = ContractSerialNumber.Instance;
-
         private readonly Map<Address, ContractInfo> _contractInfos = new Map<Address, ContractInfo>(FieldNames.ContractInfos);
 
         #endregion Fields
-
-        [View]
-        public ulong CurrentContractSerialNumber()
-        {
-            return _contractSerialNumber.Value;
-        }
 
         [View]
         public string GetContractInfoFor(Address contractAddress)
