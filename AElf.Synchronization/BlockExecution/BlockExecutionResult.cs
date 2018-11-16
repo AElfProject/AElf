@@ -13,22 +13,20 @@ namespace AElf.Synchronization.BlockExecution
         //     Haven't appended yet, can execute again
         InvalidSideChainInfo = 11,
         InvalidParentChainBlockInfo,
+
         //     Simply cache
         ExecutionCancelled = 51,
         BlockIsNull,
         NoTransaction,
         TooManyTxsForParentChainBlock,
-        NotExecuted,
-        AlreadyReceived,
-        Expelled,
-        IncorrectStateMerkleTree,
-        FutureBlock,
         AlreadyAppended,
         Terminated,
         Mining,
+        IncorrectNodeState,
+        IncorrectStateMerkleTree,
 
         // Need to rollback
-        Fatal = 101
+        Fatal = 101,
     }
 
     public static class ExecutionResultExtensions
@@ -40,7 +38,7 @@ namespace AElf.Synchronization.BlockExecution
 
         public static bool CanExecuteAgain(this BlockExecutionResult result)
         {
-            return (int) result > 10;
+            return (int) result > 10 && (int) result < 50;
         }
 
         public static bool IsFailed(this BlockExecutionResult result)

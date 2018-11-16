@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
+using AElf.Common.FSM;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
@@ -89,13 +90,6 @@ namespace AElf.Synchronization.BlockExecution
         /// <inheritdoc/>
         public async Task<BlockExecutionResult> ExecuteBlock(IBlock block)
         {
-            if (_current != null)
-            {
-                _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution, " +
-                               $"for block {_current} is being executed.");
-                return BlockExecutionResult.Expelled;
-            }
-
             if (_isMining)
             {
                 _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution," + 
@@ -112,7 +106,7 @@ namespace AElf.Synchronization.BlockExecution
                 return result;
             }
 
-            _logger?.Trace($"Executing block {block.GetHash()}");
+            //_logger?.Trace($"Executing block {block.GetHash()}");
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -168,11 +162,16 @@ namespace AElf.Synchronization.BlockExecution
                     return res;
                 }
                 await UpdateCrossChainInfo(block, txnRes);
+                
+                // BlockExecuting -> BlockAppending
+                // ExecutingLoop -> BlockAppending
+                MessageHub.Instance.Publish(StateEvent.StateUpdated);
+                
                 await AppendBlock(block);
                 InsertTxs(txnRes, block);
 
                 await _txHub.OnNewBlock((Block)block);
-
+                
                 res = BlockExecutionResult.Success;
                 return res;
             }
@@ -195,8 +194,11 @@ namespace AElf.Synchronization.BlockExecution
                     MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockExecutor));
                 }
                 stopwatch.Stop();
-                _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
-                              $"duration {stopwatch.ElapsedMilliseconds} ms.");
+                if (!res.CanExecuteAgain())
+                {
+                    _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
+                                  $"duration {stopwatch.ElapsedMilliseconds} ms.");
+                }
             }
         }
 
@@ -354,7 +356,7 @@ namespace AElf.Synchronization.BlockExecution
                 var cached = _clientManager.TryGetParentChainBlockInfo(parentBlockInfo);
                 if (cached != null) 
                     return cached.Equals(parentBlockInfo);
-                _logger.Warn("Not found cached parent block info");
+                //_logger.Warn("Not found cached parent block info");
                 return false;
             }
             catch (Exception e)
@@ -396,6 +398,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns></returns>
         private async Task AppendBlock(IBlock block)
         {
+            _logger?.Trace($"AppendingBlock {block.BlockHashToHex}");
             var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
             await blockchain.AddBlocksAsync(new List<IBlock> {block});
         }
@@ -476,8 +479,6 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager.UpdateRequestInterval();
         }
     }
-
-    
     
     internal class InvalidBlockException : Exception
     {

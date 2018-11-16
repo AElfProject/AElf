@@ -26,9 +26,10 @@ namespace AElf.Miner.Rpc.Client
         private BlockingCollection<IBlockInfo> ToBeIndexedInfoQueue { get; } =
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
         private Queue<IBlockInfo> CachedInfoQueue { get; } = new Queue<IBlockInfo>();
-        
-        protected ClientBase(ILogger logger, Hash targetChainId, int interval, int cachedBoundedCapacity)
+        private Channel _channel;
+        protected ClientBase(Channel channel, ILogger logger, Hash targetChainId, int interval, int cachedBoundedCapacity)
         {
+            _channel = channel;
             _logger = logger;
             _targetChainId = targetChainId;
             _interval = interval;
@@ -94,7 +95,7 @@ namespace AElf.Miner.Rpc.Client
                     ChainId = Hash.LoadHex(ChainConfig.Instance.ChainId),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
-                //_logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
+                _logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_realInterval);
             }
@@ -109,32 +110,43 @@ namespace AElf.Miner.Rpc.Client
         public async Task StartDuplexStreamingCall(CancellationToken cancellationToken, ulong next)
         {
             _next = Math.Max(next, ToBeIndexedInfoQueue.LastOrDefault()?.Height?? -1 + 1);
-            try
+            
+            using (var call = Call())
             {
-                using (var call = Call())
+                try
                 {
                     // response reader task
                     var responseReaderTask = ReadResponse(call);
 
                     // request in loop
                     await RequestLoop(call, cancellationToken);
-                    await call.RequestStream.CompleteAsync();
                     await responseReaderTask;
                 }
-            }
-            catch (RpcException e)
-            {
-                var status = e.Status.StatusCode;
-                if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
+                catch (RpcException e)
                 {
-                    var detail = e.Status.Detail;
-                    _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
-                    await Task.Delay(UnavailableConnectionInterval);
-                    StartDuplexStreamingCall(cancellationToken, _next).ConfigureAwait(false);
-                    return;
+                    var status = e.Status.StatusCode;
+                    if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
+                    {
+                        var detail = e.Status.Detail;
+                        _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpHex()}.");
+                        while (_channel.State != ChannelState.Ready && _channel.State != ChannelState.Idle)
+                        {
+                            _logger?.Warn($"Channel state: {_channel.State}");
+                            await Task.Delay(UnavailableConnectionInterval);
+                        }
+
+                        StartDuplexStreamingCall(cancellationToken, _next).ConfigureAwait(false);
+                        return;
+                    }
+
+                    _logger?.Error(e, "Miner client stooped with exception.");
+                    throw;
                 }
-                _logger?.Error(e, "Miner client stooped with exception.");
-                throw;
+                finally
+                {
+                    await call.RequestStream.CompleteAsync();
+                }
+                
             }
         }
 
@@ -238,7 +250,7 @@ namespace AElf.Miner.Rpc.Client
         /// </summary>
         private int IndexedInfoQueueCount => ToBeIndexedInfoQueue.Count;
 
-        protected abstract AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> Call();
+        protected abstract AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> Call(int milliSeconds = 0);
         protected abstract AsyncServerStreamingCall<TResponse> Call(RequestBlockInfo requestBlockInfo);
     }
 

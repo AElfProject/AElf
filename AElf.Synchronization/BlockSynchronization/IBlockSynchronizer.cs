@@ -8,10 +8,8 @@ namespace AElf.Synchronization.BlockSynchronization
 {
     public interface IBlockSynchronizer
     {
-        Task<BlockExecutionResult> ReceiveBlock(IBlock block);
-        void AddMinedBlock(IBlock block);
+        Task ReceiveBlock(IBlock block);
         IBlock GetBlockByHash(Hash blockHash);
         Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count);
-        Task ExecuteRemainingBlocks(ulong targetHeight);
     }
 }

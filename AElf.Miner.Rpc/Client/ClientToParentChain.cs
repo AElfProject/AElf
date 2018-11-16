@@ -3,6 +3,8 @@ using AElf.Common.Attributes;
 using AElf.Common;
 using Grpc.Core;
 using NLog;
+using ServiceStack;
+
 namespace AElf.Miner.Rpc.Client
 {
     [LoggerName("ClientToParentChain")]
@@ -11,14 +13,16 @@ namespace AElf.Miner.Rpc.Client
         private readonly ParentChainBlockInfoRpc.ParentChainBlockInfoRpcClient _client;
 
         public ClientToParentChain(Channel channel, ILogger logger, Hash targetChainId, int interval,  int cachedBoundedCapacity) 
-            : base(logger, targetChainId, interval, cachedBoundedCapacity)
+            : base(channel, logger, targetChainId, interval, cachedBoundedCapacity)
         {
             _client = new ParentChainBlockInfoRpc.ParentChainBlockInfoRpcClient(channel);
         }
 
-        protected override AsyncDuplexStreamingCall<RequestBlockInfo, ResponseParentChainBlockInfo> Call()
+        protected override AsyncDuplexStreamingCall<RequestBlockInfo, ResponseParentChainBlockInfo> Call(int milliSeconds = 0)
         {
-            return _client.RecordDuplexStreaming();
+            return milliSeconds == 0
+                ? _client.RecordDuplexStreaming()
+                : _client.RecordDuplexStreaming(deadline: DateTime.UtcNow.AddMilliseconds(milliSeconds));
         }
 
         protected override AsyncServerStreamingCall<ResponseParentChainBlockInfo> Call(RequestBlockInfo requestBlockInfo)
