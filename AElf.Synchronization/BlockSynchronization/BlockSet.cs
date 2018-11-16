@@ -157,7 +157,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
 
-            return block;
+            return block?.Body == null ? null : block;
         }
 
         public List<IBlock> GetBlocksByHeight(ulong height)
