@@ -253,6 +253,9 @@ paket-files/
 .idea/
 *.sln.iml
 
+# Visual Studio Code
+.vscode
+
 # CodeRush
 .cr/
 
@@ -265,3 +268,9 @@ __pycache__/
 slnx.sqlite
 /AElf.Kernel/MerkleTree.cs
 /AElf.Kernel/MerkleNode.cs
+
+# Generated Protobuf classes
+*.g.cs
+*plugin
+*Grpc.cs
+ChainInfo.json

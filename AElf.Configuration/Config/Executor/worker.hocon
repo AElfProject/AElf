@@ -1,0 +1,31 @@
+manager {
+    system-name: "AElfSystem"
+}
+
+akka {
+    actor {
+        provider = cluster
+        serializers {
+            hyperion = "Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion"
+            bytes = "Akka.Serialization.ByteArraySerializer"
+        }
+        serialization-bindings {
+            "System.Object" = hyperion
+            "System.Byte[]" = bytes
+        }
+    }
+    remote {
+        dot-netty.tcp {
+            hostname = "127.0.0.1"
+            port = 32551
+            maximum-frame-size = 300000000b
+            send-buffer-size = 300000000b
+            receive-buffer-size = 300000000b
+            enable-pooling = false
+        }
+    }
+    cluster {
+        seed-nodes = ["akka.tcp://AElfSystem@127.0.0.1:32551", "akka.tcp://AElfSystem@127.0.0.1:32552"]
+        roles = ["worker"]
+    }
+}

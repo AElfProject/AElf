@@ -1,0 +1,9 @@
+﻿{
+  "IsMiner":false,
+  "IsChainCreator":false,
+  "ConsensusInfoGenerator":false,
+  "NodeAccount":"",
+  "NodeAccountPassword":"",
+  "ExecutorType":"simple",
+  "NodeName":""
+}

@@ -1,0 +1,14 @@
+manager {
+    system-name: "AElfSystem"
+}
+
+akka {
+    actor {
+        deployment {
+            /router {
+                  router = round-robin-group
+                  routees.paths = ["/user/worker"]
+            }
+        }
+    }
+}
