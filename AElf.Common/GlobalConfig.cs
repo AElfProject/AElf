@@ -45,12 +45,6 @@ namespace AElf.Common
 
         #endregion
 
-        #region PoTC
-
-        public static ulong ExpectedTransactionCount = 8000;
-
-        #endregion
-
         #region Single node test
 
         public static int SingleNodeTestMiningInterval = 4000;
