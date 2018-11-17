@@ -43,19 +43,6 @@ namespace AElf.SmartContract
                 pool = new ConcurrentBag<IExecutive>();
                 _executivePools[account] = pool;
             }
-            else
-            {
-                var currentContractVersion = GetContractVersion(account);
-                foreach (var executive in pool)
-                {
-                    if (executive.ContractVersion == currentContractVersion)
-                    {
-                        continue;
-                    }
-                    ClearPool(account);
-                    break;
-                }
-            }
 
             return pool;
         }
@@ -174,6 +161,7 @@ namespace AElf.SmartContract
             await _smartContractManager.InsertAsync(contractAddress, newRegistration);
             
             _contractVersions.AddOrSet(contractAddress, newRegistration.Version);
+            ClearPool(contractAddress);
         }
 
         public async Task<IMessage> GetAbiAsync(Address account, string name = null)
