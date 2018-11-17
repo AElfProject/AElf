@@ -1,9 +1,11 @@
+using System.Threading;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using NLog;
+using NLog.Fluent;
 
 namespace AElf.Synchronization
 {
@@ -15,6 +17,8 @@ namespace AElf.Synchronization
         private FSM _fsm;
 
         private bool _caught;
+
+        private int _inAState;
 
         public FSM Create()
         {
@@ -265,12 +269,24 @@ namespace AElf.Synchronization
         {
             _logger?.Trace($"[NodeState] Entering State {((NodeState) _fsm.CurrentState).ToString()}");
             MessageHub.Instance.Publish(new EnteringState((NodeState) _fsm.CurrentState));
+            
+            if (_inAState == 1)
+            {
+                _logger?.Trace("Unexpected entering of current state.");
+            }
+            Interlocked.Add(ref _inAState, 1);
         }
 
         private void WhenLeavingState()
         {
             _logger?.Trace($"[NodeState] Leaving State {((NodeState) _fsm.CurrentState).ToString()}");
             MessageHub.Instance.Publish(new LeavingState((NodeState) _fsm.CurrentState));
+            
+            if (_inAState == 0)
+            {
+                _logger?.Trace("Unexpected leaving of current state.");
+            }
+            Interlocked.Add(ref _inAState, 0);
         }
     }
 }
