@@ -12,6 +12,7 @@ using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
+using Akka.Actor;
 using Easy.MessageHub;
 using NLog;
 
@@ -58,7 +59,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
             {
-                _stateFSM.ProcessWithStateEvent(e); 
+                _stateFSM.ProcessWithStateEvent(e);
                 MessageHub.Instance.Publish(new FSMStateChanged(CurrentState));
             });
 
@@ -68,26 +69,26 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     MessageHub.Instance.Publish(new LockMining(true));
                 }
-                
+
                 switch (inState.NodeState)
                 {
                     case NodeState.Catching:
                         await ReceiveNextValidBlock();
                         break;
-                    
+
                     case NodeState.Caught:
                         await ReceiveNextValidBlock();
                         break;
-                    
+
                     case NodeState.ExecutingLoop:
                         // This node is free to mine a block during executing maybe-incorrect block again and again.
                         MessageHub.Instance.Publish(new LockMining(false));
                         break;
-                    
+
                     case NodeState.GeneratingConsensusTx:
                         MessageHub.Instance.Publish(new LockMining(false));
                         break;
-                    
+
                     case NodeState.Reverting:
                         await HandleFork();
                         break;
@@ -228,7 +229,8 @@ namespace AElf.Synchronization.BlockSynchronization
             foreach (var nextBlock in nextBlocks)
             {
                 await ReceiveBlock(nextBlock);
-                if (_stateFSM.CurrentState != (int) NodeState.Catching && _stateFSM.CurrentState != (int) NodeState.Caught)
+                if (_stateFSM.CurrentState != (int) NodeState.Catching &&
+                    _stateFSM.CurrentState != (int) NodeState.Caught)
                 {
                     break;
                 }
@@ -254,6 +256,8 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             else
             {
+                // BlockValidating -> Catching / Caught
+                MessageHub.Instance.Publish(StateEvent.InvalidBlock);
                 await HandleInvalidBlock(block, blockValidationResult);
             }
         }
@@ -293,7 +297,7 @@ namespace AElf.Synchronization.BlockSynchronization
             return BlockExecutionResult.Success;
         }
 
-        private async Task HandleInvalidBlock(IBlock block, BlockValidationResult blockValidationResult)
+        private Task HandleInvalidBlock(IBlock block, BlockValidationResult blockValidationResult)
         {
             _logger?.Warn(
                 $"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}. Height: *{block.Index}*");
@@ -305,6 +309,8 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 _blockSet.AddBlock(block);
             }
+
+            return Task.CompletedTask;
         }
 
         private void AddMinedBlock(IBlock block)
@@ -397,24 +403,22 @@ namespace AElf.Synchronization.BlockSynchronization
         private async Task KeepExecutingBlocksOfHeight(ulong height)
         {
             _logger?.Trace("Entered KeepExecutingBlocksOfHeight");
-            int i = 0;
-            
+
             while (_stateFSM.CurrentState == (int) NodeState.ExecutingLoop)
             {
-                i++;
                 var blocks = _blockSet.GetBlocksByHeight(height).Where(b =>
                     _blockHeaderValidator.ValidateBlockHeaderAsync(b.Header).Result ==
                     BlockHeaderValidationResult.Success);
-                
+
                 foreach (var block in blocks)
                 {
                     var res = await _blockExecutor.ExecuteBlock(block);
-                    
+
                     if (res.IsSuccess())
                     {
                         MessageHub.Instance.Publish(StateEvent.BlockAppended);
                     }
-                    
+
                     if (new Random().Next(10000) % 1000 == 0)
                     {
                         _logger?.Trace($"Execution result == {res.ToString()}");
@@ -430,7 +434,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private void IncorrectStateLog(string methodName)
         {
-            _logger?.Trace($"Incorrect fsm state: {((NodeState) _stateFSM.CurrentState).ToString()} in method {methodName}");
+            _logger?.Trace(
+                $"Incorrect fsm state: {((NodeState) _stateFSM.CurrentState).ToString()} in method {methodName}");
         }
     }
 }
