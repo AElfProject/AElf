@@ -131,17 +131,9 @@ namespace AElf.Synchronization
                     return (int) NodeState.ExecutingLoop;
                 }
 
-                if (_fsm.StateEvent == StateEvent.LongerChainDetected)
+                if (_fsm.StateEvent == StateEvent.LongerChainDetected && _caught)
                 {
-                    if (_caught)
-                    {
-                        return (int) NodeState.Reverting;
-                    }
-                }
-
-                if (_fsm.StateEvent == StateEvent.BlockAppended)
-                {
-                    return (int) (_caught ? NodeState.Caught : NodeState.Catching);
+                    return (int) NodeState.Reverting;
                 }
 
                 return (int) NodeState.Stay;

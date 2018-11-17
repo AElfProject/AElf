@@ -299,6 +299,11 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             }
         }
 
+        public async Task UpdateMiner(List<byte[]> args)
+        {
+            
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// Checking steps:
