@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         /// <summary>
         /// Current block producers / miners.
         /// </summary>
-        public PbField<Miners> BlockProducerField;
+        public PbField<OngoingMiners> OngoingMinersField;
         
         /// <summary>
         /// DPoS information of each round.
