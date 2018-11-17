@@ -13,7 +13,7 @@ namespace AElf.Common
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
         public static readonly string GenesisBasicContract = "BasicContractZero";
-        public static int InvertibleChainHeight = 8;
+        public static int InvertibleChainHeight = 4;
 
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;

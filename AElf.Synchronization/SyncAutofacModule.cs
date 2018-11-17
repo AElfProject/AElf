@@ -11,7 +11,7 @@ namespace AElf.Synchronization
         {
             builder.RegisterType<BlockSynchronizer>().As<IBlockSynchronizer>().SingleInstance();
             builder.RegisterType<BlockExecutor>().As<IBlockExecutor>().SingleInstance();
-            
+            builder.RegisterType<BlockHeaderValidator>().As<IBlockHeaderValidator>().SingleInstance();
         }
     }
 }

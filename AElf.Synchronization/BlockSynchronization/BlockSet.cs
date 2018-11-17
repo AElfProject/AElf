@@ -54,7 +54,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static List<IBlock> _blockCache = new List<IBlock>();
 
-        public static ulong? MaxHeight => _blockCache.OrderByDescending(b => b.Index).FirstOrDefault()?.Index;
+        //public static ulong? MaxHeight => _blockCache.OrderByDescending(b => b.Index).FirstOrDefault()?.Index;
 
         private readonly Dictionary<ulong, IBlock> _executedBlocks = new Dictionary<ulong, IBlock>();
 
@@ -157,10 +157,10 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
 
-            return block;
+            return block?.Body == null ? null : block;
         }
 
-        public List<IBlock> GetBlockByHeight(ulong height)
+        public List<IBlock> GetBlocksByHeight(ulong height)
         {
             _rwLock.AcquireReaderLock(100);
             try
@@ -180,7 +180,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
 
-            return null;
+            return new List<IBlock>();
         }
 
         private void RemoveOldBlocks(ulong targetHeight)
@@ -224,7 +224,7 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         /// <param name="rollbackHeight"></param>
         /// <returns></returns>
-        public ulong AnyLongerValidChain(ulong rollbackHeight)
+        public ulong      AnyLongerValidChain(ulong rollbackHeight)
         {
             var lockWasTaken = false;
             try
@@ -290,11 +290,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _logger?.Trace("No proper fork height.");
                 }
-
-                if (currentHeight + 1 == forkHeight)
-                {
-                    return ulong.MaxValue;
-                }
                 
                 return forkHeight <= currentHeight ? forkHeight : 0;
             }
@@ -307,6 +302,12 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
+        /// <summary>
+        /// Remove blocks attending rollback from executed blocks,
+        /// and add them back to block cache.
+        /// </summary>
+        /// <param name="targetHeight"></param>
+        /// <param name="currentHeight"></param>
         public void InformRollback(ulong targetHeight, ulong currentHeight)
         {
             var toRemove = new List<IBlock>();
@@ -334,11 +335,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 _blockCache.Add(block);
                 _logger?.Trace($"Added block {block.BlockHashToHex} to block cache.");
             }
-        }
-
-        public bool MultipleLinkableBlocksInOneIndex(ulong index, string preBlockHash)
-        {
-            return _blockCache.Count(b => b.Index == index && b.Header.PreviousBlockHash.DumpHex() == preBlockHash) > 1;
         }
 
         private void PrintInvalidBlockList()

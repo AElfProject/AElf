@@ -154,8 +154,6 @@ namespace AElf.Miner.TxMemPool
         public List<TransactionReceipt> GetReceiptsForAsync(IEnumerable<Transaction> transactions)
         {
             var trs = new List<TransactionReceipt>();
-            // TODO: Check if parallelization is needed
-            // maybe it is needed
             List<Task> tasks = new List<Task>();
             foreach (var txn in transactions)
             {

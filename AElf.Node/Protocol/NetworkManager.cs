@@ -120,7 +120,7 @@ namespace AElf.Node.Protocol
                 LocalHeight++;
             });
 
-            MessageHub.Instance.Subscribe<BlockExecuted>(inBlock =>
+            MessageHub.Instance.Subscribe<BlockAccepted>(inBlock =>
             {
                 if (inBlock?.Block == null)
                 {

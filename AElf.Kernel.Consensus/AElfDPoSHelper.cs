@@ -118,7 +118,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, "Failed to get DPoS mining interval.\n");
+                    //_logger?.Error(e, "Failed to get DPoS mining interval.\n");
                     return new SInt32Value {Value = GlobalConfig.AElfDPoSMiningInterval};
                 }
             }
@@ -206,7 +206,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<bool> HasGenerated()
+        public async Task<bool> DPoSInformationGenerated()
         {
             var bytes = await DataProvider.GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString));
             return bytes != null && bytes.Length > 0;

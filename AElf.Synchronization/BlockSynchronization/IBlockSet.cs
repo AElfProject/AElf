@@ -13,9 +13,8 @@ namespace AElf.Synchronization.BlockSynchronization
         void Tell(IBlock currentExecutedBlock);
         bool IsBlockReceived(Hash blockHash, ulong height);
         IBlock GetBlockByHash(Hash blockHash);
-        List<IBlock> GetBlockByHeight(ulong height);
+        List<IBlock> GetBlocksByHeight(ulong height);
         ulong AnyLongerValidChain(ulong rollbackHeight);
         void InformRollback(ulong targetHeight, ulong currentHeight);
-        bool MultipleLinkableBlocksInOneIndex(ulong index, string preBlockHash);
     }
 }
