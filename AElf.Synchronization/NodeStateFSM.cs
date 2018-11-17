@@ -16,8 +16,6 @@ namespace AElf.Synchronization
 
         private bool _caught;
 
-        private object _;
-
         public FSM Create()
         {
             _fsm = new FSM();
