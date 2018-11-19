@@ -47,5 +47,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         /// Basically the hash value is calculated from signatures of all the BPs.
         /// </summary>
         public Map<UInt64Value, Int64Value> RoundHashMap;
+        
+        
     }
 }

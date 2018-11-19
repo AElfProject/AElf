@@ -12,7 +12,6 @@ using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
-using Akka.Actor;
 using Easy.MessageHub;
 using NLog;
 
@@ -40,7 +39,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static bool _terminated;
 
-        private NodeState CurrentState => (NodeState) _stateFSM.CurrentState;
+        private NodeState CurrentState => _stateFSM.CurrentState;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet, IBlockHeaderValidator blockHeaderValidator)
@@ -435,7 +434,7 @@ namespace AElf.Synchronization.BlockSynchronization
         private void IncorrectStateLog(string methodName)
         {
             _logger?.Trace(
-                $"Incorrect fsm state: {((NodeState) _stateFSM.CurrentState).ToString()} in method {methodName}");
+                $"Incorrect fsm state: {_stateFSM.CurrentState.ToString()} in method {methodName}");
         }
     }
 }

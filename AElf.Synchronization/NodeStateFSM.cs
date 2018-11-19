@@ -1,4 +1,3 @@
-using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Synchronization.EventMessages;
