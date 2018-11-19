@@ -86,7 +86,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.Zero,
+                Version = 1
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
@@ -100,7 +101,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, ContractCodes.TestContractName, code))
             };
 
             var txnCtxt = new TransactionContext
@@ -120,7 +121,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.FromRawBytes(code)
+                ContractHash = Hash.FromRawBytes(code),
+                Version = 1
             };
             var copy = await _smartContractManager.GetAsync(address);
 
@@ -150,7 +152,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(1, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(1,ContractCodes.TestContractName, code))
             };
 
             var txnCtxt = new TransactionContext()
