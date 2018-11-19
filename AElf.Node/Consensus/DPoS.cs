@@ -209,7 +209,7 @@ namespace AElf.Kernel.Node
         {
             if (_lockNumber <= 0)
             {
-                _logger?.Trace("Can't decrese lock number when it's less than 1.");
+                //_logger?.Trace("Can't decrease lock number when it's less than 1.");
                 return;
             }
 

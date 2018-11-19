@@ -1,11 +1,9 @@
 using System.Threading;
-using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using NLog;
-using NLog.Fluent;
 
 namespace AElf.Synchronization
 {
@@ -272,8 +270,8 @@ namespace AElf.Synchronization
 
         private void WhenEnteringState()
         {
-            _logger?.Trace($"[NodeState] Entering State {((NodeState) _fsm.CurrentState).ToString()}");
-            MessageHub.Instance.Publish(new EnteringState((NodeState) _fsm.CurrentState));
+            _logger?.Trace($"[NodeState] Entering State {_fsm.CurrentState.ToString()}");
+            MessageHub.Instance.Publish(new EnteringState(_fsm.CurrentState));
             
             if (_inAState == 1)
             {
@@ -284,8 +282,8 @@ namespace AElf.Synchronization
 
         private void WhenLeavingState()
         {
-            _logger?.Trace($"[NodeState] Leaving State {((NodeState) _fsm.CurrentState).ToString()}");
-            MessageHub.Instance.Publish(new LeavingState((NodeState) _fsm.CurrentState));
+            _logger?.Trace($"[NodeState] Leaving State {_fsm.CurrentState.ToString()}");
+            MessageHub.Instance.Publish(new LeavingState(_fsm.CurrentState));
             
             if (_inAState == 0)
             {

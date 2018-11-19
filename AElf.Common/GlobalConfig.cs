@@ -25,14 +25,15 @@ namespace AElf.Common
         public static int AElfDPoSMiningInterval = 2000;
         public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
         public const int AElfWaitFirstRoundTime = 8000;
-        public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
-        public const string AElfDPoSOngoingMinersString = "AElfBlockProducer";
-        public const string AElfDPoSInformationString = "AElfDPoSInformation";
-        public const string AElfDPoSExtraBlockProducerString = "AElfExtraBlockProducer";
-        public const string AElfDPoSExtraBlockTimeSlotString = "AElfExtraBlockTimeSlot";
-        public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
-        public const string AElfDPoSMiningIntervalString = "AElfDPoSMiningInterval";
-        public const string AElfDPoSMiningRoundHashMapString = "AElfDPoSMiningRoundHashMap";
+        public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
+        public const string AElfDPoSOngoingMinersString = "__AElfBlockProducer__";
+        public const string AElfDPoSInformationString = "__AElfDPoSInformation__";
+        public const string AElfDPoSExtraBlockProducerString = "__AElfExtraBlockProducer__";
+        public const string AElfDPoSExtraBlockTimeSlotString = "__AElfExtraBlockTimeSlot__";
+        public const string AElfDPoSFirstPlaceOfEachRoundString = "__AElfFirstPlaceOfEachRound__";
+        public const string AElfDPoSMiningIntervalString = "__AElfDPoSMiningInterval__";
+        public const string AElfDPoSMiningRoundHashMapString = "__AElfDPoSMiningRoundHashMap__";
+        public const string AElfDPoSBalanceMapString = "__AElfDPoSBalanceMapString__";
 
         #endregion
 

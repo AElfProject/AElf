@@ -27,6 +27,7 @@ namespace AElf.Contracts.Consensus
             EBPMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSExtraBlockProducerString),
             FirstPlaceMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString),
             RoundHashMap = new Map<UInt64Value, Int64Value>(GlobalConfig.AElfDPoSMiningRoundHashMapString),
+            BalanceMap = new Map<Address, UInt64Value>(GlobalConfig.AElfDPoSBalanceMapString)
         });
 
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval,

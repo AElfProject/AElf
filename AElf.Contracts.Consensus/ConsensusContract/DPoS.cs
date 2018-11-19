@@ -52,6 +52,8 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private readonly Map<UInt64Value, Int64Value> _roundHashMap;
 
+        private readonly Map<Address, UInt64Value> _balanceMap;
+
         #endregion
 
         public DPoS(AElfDPoSFieldMapCollection collection)
@@ -64,6 +66,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             _firstPlaceMap = collection.FirstPlaceMap;
             _miningIntervalField = collection.MiningIntervalField;
             _roundHashMap = collection.RoundHashMap;
+            _balanceMap = collection.BalanceMap;
         }
 
         /// <inheritdoc />

@@ -1,4 +1,5 @@
-﻿using AElf.Kernel;
+﻿using AElf.Common;
+using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -47,7 +48,10 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         /// Basically the hash value is calculated from signatures of all the BPs.
         /// </summary>
         public Map<UInt64Value, Int64Value> RoundHashMap;
-        
-        
+
+        /// <summary>
+        /// Balances of each address.
+        /// </summary>
+        public Map<Address, UInt64Value> BalanceMap;
     }
 }
