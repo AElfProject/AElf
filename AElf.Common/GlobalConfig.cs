@@ -26,7 +26,7 @@ namespace AElf.Common
         public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
-        public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
+        public const string AElfDPoSOngoingMinersString = "AElfBlockProducer";
         public const string AElfDPoSInformationString = "AElfDPoSInformation";
         public const string AElfDPoSExtraBlockProducerString = "AElfExtraBlockProducer";
         public const string AElfDPoSExtraBlockTimeSlotString = "AElfExtraBlockTimeSlot";
@@ -42,12 +42,6 @@ namespace AElf.Common
         public const string AElfBoundParentChainHeight = "__BoundParentChainHeight__";
         public static readonly int AElfInitCrossChainRequestInterval = AElfDPoSMiningInterval / 1000;
         public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
-
-        #endregion
-
-        #region PoTC
-
-        public static ulong ExpectedTransactionCount = 8000;
 
         #endregion
 

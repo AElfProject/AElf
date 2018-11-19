@@ -1,8 +1,11 @@
+using System.Threading;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using NLog;
+using NLog.Fluent;
 
 namespace AElf.Synchronization
 {
@@ -14,6 +17,8 @@ namespace AElf.Synchronization
         private FSM<NodeState> _fsm;
 
         private bool _caught;
+        
+        private int _inAState;
 
         public FSM<NodeState>Create()
         {
@@ -130,12 +135,9 @@ namespace AElf.Synchronization
                     return NodeState.ExecutingLoop;
                 }
 
-                if (_fsm.StateEvent == StateEvent.LongerChainDetected)
+                if (_fsm.StateEvent == StateEvent.LongerChainDetected && _caught)
                 {
-                    if (_caught)
-                    {
-                        return NodeState.Reverting;
-                    }
+                    return NodeState.Reverting;
                 }
 
                 if (_fsm.StateEvent == StateEvent.BlockAppended)
@@ -270,14 +272,26 @@ namespace AElf.Synchronization
 
         private void WhenEnteringState()
         {
-            _logger?.Trace($"[NodeState] Entering State {_fsm.CurrentState.ToString()}");
-            MessageHub.Instance.Publish(new EnteringState(_fsm.CurrentState));
+            _logger?.Trace($"[NodeState] Entering State {((NodeState) _fsm.CurrentState).ToString()}");
+            MessageHub.Instance.Publish(new EnteringState((NodeState) _fsm.CurrentState));
+            
+            if (_inAState == 1)
+            {
+                _logger?.Trace("Unexpected entering of current state.");
+            }
+            Interlocked.Add(ref _inAState, 1);
         }
 
         private void WhenLeavingState()
         {
-            _logger?.Trace($"[NodeState] Leaving State {_fsm.CurrentState.ToString()}");
-            MessageHub.Instance.Publish(new LeavingState(_fsm.CurrentState));
+            _logger?.Trace($"[NodeState] Leaving State {((NodeState) _fsm.CurrentState).ToString()}");
+            MessageHub.Instance.Publish(new LeavingState((NodeState) _fsm.CurrentState));
+            
+            if (_inAState == 0)
+            {
+                _logger?.Trace("Unexpected leaving of current state.");
+            }
+            Interlocked.Add(ref _inAState, 0);
         }
     }
 }

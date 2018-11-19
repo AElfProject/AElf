@@ -38,7 +38,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private readonly UInt64Field _currentRoundNumberField;
 
-        private readonly PbField<Miners> _blockProducerField;
+        private readonly PbField<OngoingMiners> _ongoingMinersField;
 
         private readonly Map<UInt64Value, Round> _dPoSInfoMap;
 
@@ -57,7 +57,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         public DPoS(AElfDPoSFieldMapCollection collection)
         {
             _currentRoundNumberField = collection.CurrentRoundNumberField;
-            _blockProducerField = collection.BlockProducerField;
+            _ongoingMinersField = collection.OngoingMinersField;
             _dPoSInfoMap = collection.DPoSInfoMap;
             _eBPMap = collection.EBPMap;
             _timeForProducingExtraBlockField = collection.TimeForProducingExtraBlockField;
@@ -299,6 +299,11 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             }
         }
 
+        public async Task UpdateMiners(List<byte[]> args)
+        {
+            
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// Checking steps:
@@ -380,7 +385,14 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 ConsoleWriteLine(nameof(Initialize), $"Set Miner: {bp}");
             }
 
-            await _blockProducerField.SetAsync(miners);
+            await UpdateOngoingMiners(miners);
+        }
+
+        private async Task UpdateOngoingMiners(Miners miners)
+        {
+            var ongoingMiners = await _ongoingMinersField.GetAsync();
+            ongoingMiners.UpdateMiners(miners);
+            await _ongoingMinersField.SetAsync(ongoingMiners);
         }
 
         private async Task UpdateCurrentRoundNumber(ulong currentRoundNumber)
@@ -558,8 +570,8 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private bool IsBlockProducer(StringValue accountAddress)
         {
-            var blockProducer = _blockProducerField.GetValue();
-            return blockProducer.Nodes.Contains(accountAddress.Value);
+            var miners = _ongoingMinersField.GetValue().GetCurrentMiners(CurrentRoundNumber);
+            return miners.Nodes.Contains(accountAddress.Value);
         }
 
         #endregion

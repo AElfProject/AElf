@@ -18,12 +18,6 @@ namespace AElf.Kernel
                 GlobalConfig.AElfDPoSMiningInterval = ConsensusConfig.Instance.DPoSMiningInterval;
             }
 
-            if (ConsensusConfig.Instance.ConsensusType == ConsensusType.PoTC)
-            {
-                GlobalConfig.BlockProducerNumber = 1;
-                GlobalConfig.ExpectedTransactionCount = ConsensusConfig.Instance.ExpectedTransactionCount;
-            }
-
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.SingleNode)
             {
                 GlobalConfig.BlockProducerNumber = 1;
