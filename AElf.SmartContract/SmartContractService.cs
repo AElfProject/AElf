@@ -47,7 +47,7 @@ namespace AElf.SmartContract
             return pool;
         }
 
-        private void ClearPool(Address address)
+        public void ClearPool(Address address)
         {
             if (_executivePools.ContainsKey(address))
             {

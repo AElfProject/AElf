@@ -4,6 +4,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Akka.Actor;
+using Address = AElf.Common.Address;
 
 namespace AElf.Execution.Execution
 {
@@ -147,6 +148,11 @@ namespace AElf.Execution.Execution
         public List<Transaction> Transactions { get; }
         public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
         public Hash DisambiguationHash { get; }
+    }
+
+    public sealed class UpdateContractMessage
+    {
+        public List<Address> ContractAddress { get; set; }
     }
 
 //    public sealed class TransactionResultMessage

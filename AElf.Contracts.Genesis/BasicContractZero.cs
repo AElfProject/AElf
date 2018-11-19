@@ -116,6 +116,8 @@ namespace AElf.Contracts.Genesis
             var isExistContract = _contractInfos.TryGet(contractAddress, out _);
             
             Api.Assert(!isExistContract,"Contract is exist.");
+
+            Api.GetChainId();
             
             Address creator = Api.GetTransaction().From;
             var contractHash = Hash.FromRawBytes(code);

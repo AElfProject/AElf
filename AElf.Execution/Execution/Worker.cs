@@ -87,6 +87,13 @@ namespace AElf.Execution
                     _cancellationTokenSource?.Cancel();
                     Sender.Tell(JobExecutionCancelAckMessage.Instance);
                     break;
+                
+                case UpdateContractMessage updateContractMessage:
+                    foreach (var address in updateContractMessage.ContractAddress)
+                    {
+                        _servicePack.SmartContractService.ClearPool(address);
+                    }
+                    break;
 
 /*
  Temporarily disabled.
