@@ -36,7 +36,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private readonly ILogger _logger;
 
-        private readonly FSM _stateFSM;
+        private readonly FSM<NodeState> _stateFSM;
 
         private static bool _terminated;
 
@@ -218,7 +218,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task ReceiveNextValidBlock()
         {
-            if (_stateFSM.CurrentState != (int) NodeState.Catching && _stateFSM.CurrentState != (int) NodeState.Caught)
+            if (_stateFSM.CurrentState != NodeState.Catching && _stateFSM.CurrentState != NodeState.Caught)
             {
                 IncorrectStateLog(nameof(ReceiveNextValidBlock));
                 return;
@@ -229,8 +229,8 @@ namespace AElf.Synchronization.BlockSynchronization
             foreach (var nextBlock in nextBlocks)
             {
                 await ReceiveBlock(nextBlock);
-                if (_stateFSM.CurrentState != (int) NodeState.Catching &&
-                    _stateFSM.CurrentState != (int) NodeState.Caught)
+                if (_stateFSM.CurrentState != NodeState.Catching &&
+                    _stateFSM.CurrentState != NodeState.Caught)
                 {
                     break;
                 }
@@ -239,7 +239,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task HandleBlock(IBlock block)
         {
-            if (_stateFSM.CurrentState != (int) NodeState.BlockValidating)
+            if (_stateFSM.CurrentState != NodeState.BlockValidating)
             {
                 IncorrectStateLog(nameof(HandleBlock));
                 return;
@@ -267,7 +267,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger?.Warn(
                 $"Valid block {block.BlockHashToHex}. Height: *{block.Index}*");
 
-            if (_stateFSM.CurrentState != (int) NodeState.BlockExecuting)
+            if (_stateFSM.CurrentState != NodeState.BlockExecuting)
             {
                 IncorrectStateLog(nameof(HandleValidBlock));
                 return BlockExecutionResult.IncorrectNodeState;
@@ -404,7 +404,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             _logger?.Trace("Entered KeepExecutingBlocksOfHeight");
 
-            while (_stateFSM.CurrentState == (int) NodeState.ExecutingLoop)
+            while (_stateFSM.CurrentState == NodeState.ExecutingLoop)
             {
                 var blocks = _blockSet.GetBlocksByHeight(height).Where(b =>
                     _blockHeaderValidator.ValidateBlockHeaderAsync(b.Header).Result ==

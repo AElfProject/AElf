@@ -1,32 +1,30 @@
-using System.Collections.Generic;
-
 namespace AElf.Common.FSM
 {
     // ReSharper disable InconsistentNaming
-    public class FSMStateData
+    public class FSMStateData<T>
     {
         /// <summary>
         /// Comes from.
         /// </summary>
-        public FSM FSM { get; set; }
+        public FSM<T> FSM { get; set; }
 
         /// <summary>
         /// Related behaviour.
         /// </summary>
-        public FSMStateBehaviour StateBehaviour { get; set; }
+        public FSMStateBehaviour<T> StateBehaviour { get; set; }
 
         /// <summary>
         /// Current state.
         /// </summary>
-        public int CurrentState { get; set; }
+        public T CurrentState { get; set; }
 
         /// <summary>
         /// Age of this state.
         /// </summary>
-        public int Age { get; set; }
+        public double Age { get; set; }
 
-        public int AbsTime { get; set; }
+        public double AbsTime { get; set; }
 
-        public int Progress { get; set; }
+        public double Progress { get; set; }
     }
 }
