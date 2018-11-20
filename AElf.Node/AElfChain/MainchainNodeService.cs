@@ -59,13 +59,14 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            ILogger logger)
+            ILogger logger, IConsensus consensus)
         {
             _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _txHub = hub;
             _logger = logger;
+            _consensus = consensus;
             _miner = miner;
             _blockSynchronizer = blockSynchronizer;
         }
@@ -142,8 +143,6 @@ namespace AElf.Node.AElfChain
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
-
-            SetupConsensus();
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
@@ -297,31 +296,10 @@ namespace AElf.Node.AElfChain
             _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");
         }
 
-        private void SetupConsensus()
-        {
-            if (_consensus != null)
-            {
-                _logger?.Trace("Consensus has already initialized.");
-                return;
-            }
-
-            switch (ConsensusConfig.Instance.ConsensusType)
-            {
-                case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService);
-                    break;
-
-                case ConsensusType.SingleNode:
-                    _consensus = new StandaloneNodeConsensusPlaceHolder();
-                    break;
-            }
-        }
-
         private void StartMining()
         {
             if (NodeConfig.Instance.IsMiner)
             {
-                SetupConsensus();
                 _consensus?.Start();
             }
         }

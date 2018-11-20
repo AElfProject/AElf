@@ -600,7 +600,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private async Task<ulong> GetTicketCount(Address address)
         {
-            var balance = (await _balanceMap.GetValueAsync(address)).RemainingVotes;
+            var balance = (await _balanceMap.GetValueAsync(address)).RemainingTickets;
             return balance >= GlobalConfig.LockTokenForElection ? balance - GlobalConfig.LockTokenForElection : 0;
         }
 

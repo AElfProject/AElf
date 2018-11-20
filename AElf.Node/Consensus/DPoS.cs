@@ -12,6 +12,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Managers;
 using AElf.Miner.Miner;
 using AElf.Node;
 using AElf.Types.CSharp;
@@ -62,11 +63,13 @@ namespace AElf.Kernel.Node
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
-        private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
+        private readonly NodeKeyPair _nodeKeyPair;
 
         public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
             Hash.LoadHex(ChainConfig.Instance.ChainId),
             SmartContractType.AElfDPoS.ToString());
+
+        private readonly IMinersManager _minersManager;
 
         private static int _flag;
 
@@ -77,13 +80,16 @@ namespace AElf.Kernel.Node
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner, IChainService chainService)
+        public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager)
         {
             _txHub = txHub;
             _miner = miner;
             _chainService = chainService;
+            _minersManager = minersManager;
             _prepareTerminated = false;
             _terminated = false;
+
+            _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 

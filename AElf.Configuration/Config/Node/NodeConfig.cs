@@ -1,8 +1,10 @@
 ﻿using AElf.Common;
 using AElf.Cryptography.ECDSA;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Configuration
 {
+    // ReSharper disable InconsistentNaming
     [ConfigFile(FileName = "node.json")]
     public class NodeConfig : ConfigBase<NodeConfig>
     {

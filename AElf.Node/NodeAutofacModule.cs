@@ -24,9 +24,17 @@ namespace AElf.Node
             builder.RegisterGeneric(typeof(EqualityIndex<,>)).As(typeof(IEqualityIndex<>));
             builder.RegisterGeneric(typeof(ComparisionIndex<,>)).As(typeof(IComparisionIndex<>));
 
-            if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
+            switch (ConsensusConfig.Instance.ConsensusType)
             {
-                builder.RegisterType<DPoS>().As<IConsensus>().SingleInstance();
+                case ConsensusType.AElfDPoS:
+                    builder.RegisterType<DPoS>().As<IConsensus>().SingleInstance();
+                    break;
+                case ConsensusType.PoW:
+                    builder.RegisterType<PoW>().As<IConsensus>().SingleInstance();
+                    break;
+                case ConsensusType.SingleNode:
+                    builder.RegisterType<StandaloneNodeConsensusPlaceHolder>().As<IConsensus>().SingleInstance();
+                    break;
             }
         }
     }
