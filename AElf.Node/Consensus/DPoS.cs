@@ -213,8 +213,8 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            Interlocked.Add(ref 
-                , -1);
+            Interlocked.Add(ref _lockNumber, -1);
+            
             _logger?.Trace($"Lock number decrement: {_lockNumber}");
         }
 
