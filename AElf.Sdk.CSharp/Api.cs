@@ -82,7 +82,7 @@ namespace AElf.Sdk.CSharp
             return _transactionContext.PreviousBlockHash.ToReadOnly();
         }
 
-        public static ulong GetCurerntHeight()
+        public static ulong GetCurrentHeight()
         {
             return _transactionContext.BlockHeight;
         }

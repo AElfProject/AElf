@@ -29,7 +29,6 @@ namespace AElf.Miner
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
 //            builder.RegisterType<NewTxHub>().SingleInstance();
             builder.RegisterType<TxHub>().As<ITxHub>().As<TxHub>().SingleInstance();
-            builder.RegisterType<TxValidator>().As<ITxValidator>().SingleInstance();
         }
     }
 }

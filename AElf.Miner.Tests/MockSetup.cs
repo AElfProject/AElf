@@ -136,7 +136,6 @@ namespace AElf.Miner.Tests
         
         internal ITxHub CreateTxPool()
         {
-            var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
             return new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _signatureVerifier, _refBlockValidator);
 //            return new TxPool(_logger, new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
         }

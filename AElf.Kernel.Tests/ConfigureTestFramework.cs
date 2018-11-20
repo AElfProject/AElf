@@ -63,7 +63,6 @@ namespace AElf.Kernel.Tests
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
-            builder.RegisterType<TxValidator>().As<ITxValidator>();
             builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
             builder.RegisterType<TxHub>().As<ITxHub>();

@@ -11,6 +11,7 @@ using AElf.Common;
 using AElf.Configuration;
 using NLog;
 using AElf.Configuration.Config.Chain;
+using AElf.Miner.TxMemPool;
 
 namespace AElf.Contracts.SideChain.Tests
 {
@@ -138,21 +139,23 @@ namespace AElf.Contracts.SideChain.Tests
             var crossChainInfo = new CrossChainInfo(Mock.StateStore);
             var parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);
-            
+
+            var sig = new Sig
+            {
+                P = ByteString.Empty,
+                R = ByteString.Empty,
+            };
             Transaction t1 = new Transaction
             {
                 From = Address.FromString("1"),
                 To = Address.FromString("2"),
                 MethodName = "test",
-                Sig = new Signature
-                {
-                    P = ByteString.Empty,
-                    R = ByteString.Empty,
-                },
+                
                 Params = ByteString.Empty,
                 RefBlockNumber = 0,
                 RefBlockPrefix = ByteString.Empty
             };
+            t1.Sigs.Add(sig);
             var hashCount = 10;
 
             var list1 = new List<Hash> {t1.GetHash()};
@@ -171,21 +174,23 @@ namespace AElf.Contracts.SideChain.Tests
                 ChainId = Hash.Generate(),
                 TransactionMKRoot = root1
             };
-            
+
+            var sig2 = new Sig
+            {
+                P = ByteString.Empty,
+                R = ByteString.Empty,
+            };
             Transaction t2 = new Transaction
             {
                 From = Address.FromString("3"),
                 To = Address.FromString("4"),
                 MethodName = "test",
-                Sig = new Signature
-                {
-                    P = ByteString.Empty,
-                    R = ByteString.Empty,
-                },
+                
                 Params = ByteString.Empty,
                 RefBlockNumber = 1,
                 RefBlockPrefix = ByteString.Empty
             };
+            t2.Sigs.Add(sig2);
             var list2 = new List<Hash> {t2.GetHash(), Hash.FromString("d"), Hash.FromString("e"), Hash.FromString("f"), Hash.FromString("a"), Hash.FromString("b"), Hash.FromString("c")};
             var bmt2 = new BinaryMerkleTree();
             bmt2.AddNodes(list2);

@@ -139,28 +139,29 @@ namespace AElf.ChainController
                 return null;
             }
 
+            var sig = new Sig
+            {
+                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
+            };
             var tx = new Transaction
             {
                 From = keyPair.GetAddress(),
                 To = contractAccountHash,
                 IncrementId = 0,
                 MethodName = "Validation",
-                Sig = new Signature
-                {
-                    P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
-                },
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(
                     new StringValue {Value = recipientAddress.RemoveHexPrefix()}.ToByteArray(),
                     timestamp.ToByteArray(),
                     new Int64Value {Value = roundId}))
             };
+            tx.Sigs.Add(sig);
 
             var signer = new ECSigner();
             var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
 
             // Update the signature
-            tx.Sig.R = ByteString.CopyFrom(signature.R);
-            tx.Sig.S = ByteString.CopyFrom(signature.S);
+            sig.R = ByteString.CopyFrom(signature.R);
+            sig.S = ByteString.CopyFrom(signature.S);
 
             return tx;
         }
