@@ -12,5 +12,6 @@ namespace AElf.Kernel.Node
         Task Update();
         bool IsAlive();
         bool Shutdown();
+        void FillConsensusWithKeyPair();
     }    
 }

@@ -63,7 +63,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
-        private readonly NodeKeyPair _nodeKeyPair;
+        private NodeKeyPair _nodeKeyPair;
 
         public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
             Hash.LoadHex(ChainConfig.Instance.ChainId),
@@ -88,8 +88,6 @@ namespace AElf.Kernel.Node
             _minersManager = minersManager;
             _prepareTerminated = false;
             _terminated = false;
-
-            _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
@@ -669,6 +667,11 @@ namespace AElf.Kernel.Node
         {
             _terminated = true;
             return _terminated;
+        }
+
+        public void FillConsensusWithKeyPair()
+        {
+            _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
         }
 
         private bool MiningLocked()

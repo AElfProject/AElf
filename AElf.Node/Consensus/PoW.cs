@@ -39,5 +39,10 @@ namespace AElf.Kernel.Node
         {
             throw new System.NotImplementedException();
         }
+
+        public void FillConsensusWithKeyPair()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

@@ -143,6 +143,7 @@ namespace AElf.Node.AElfChain
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
+            _consensus.FillConsensusWithKeyPair();
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
