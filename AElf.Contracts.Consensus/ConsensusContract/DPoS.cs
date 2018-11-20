@@ -7,7 +7,6 @@ using AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Types;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -574,7 +573,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         private bool IsBlockProducer(StringValue accountAddress)
         {
             var miners = _ongoingMinersField.GetValue().GetCurrentMiners(CurrentRoundNumber);
-            return miners.Nodes.Contains(accountAddress.Value);
+            return miners.Nodes.Contains(Address.LoadHex(accountAddress.Value));
         }
 
         #endregion

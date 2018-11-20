@@ -91,7 +91,7 @@ namespace AElf.ABI.CSharp
             }
             catch (Exception e)
             {
-                throw new Exception("No valid smart contract found.");
+                throw new Exception("No valid smart contract found.", e);
             }
             
             return GetTypePaths(children);

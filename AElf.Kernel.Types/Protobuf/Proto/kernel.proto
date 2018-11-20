@@ -266,12 +266,12 @@ message OngoingMiners {
 
 message Miners {
     uint64 TakeEffectRoundNumber = 1;
-    repeated string Nodes = 2;
+    repeated Address Nodes = 2;
 }
 
 message BlockProducer {
     int32 Order = 1;
-    bool IsEBP = 2; //EBP = Extra Block Producer
+    bool IsEBP = 2; //EBP := Extra Block Producer
     Hash InValue = 3;
     Hash OutValue = 4;
     Hash Signature = 5;

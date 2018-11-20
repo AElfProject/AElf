@@ -167,8 +167,8 @@ namespace AElf.Kernel.Consensus
         /// <summary>
         /// Get block producer information of current round.
         /// </summary>
-        /// <param name="accountAddress"></param>
-        public BlockProducer this[string accountAddress]
+        /// <param name="accountAddressHex"></param>
+        public BlockProducer this[string accountAddressHex]
         {
             get
             {
@@ -177,7 +177,11 @@ namespace AElf.Kernel.Consensus
                     var bytes = GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber),
                         GlobalConfig.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
-                    return round.BlockProducers[accountAddress];
+                    if (round.BlockProducers.ContainsKey(accountAddressHex))
+                        return round.BlockProducers[accountAddressHex];
+                    
+                    _logger.Error("No such Block Producer in current round.");
+                    return default(BlockProducer);
                 }
                 catch (Exception e)
                 {
@@ -186,6 +190,8 @@ namespace AElf.Kernel.Consensus
                 }
             }
         }
+
+        public BlockProducer this[Address accountAddress] => this[accountAddress.DumpHex()];
 
         private Round this[UInt64Value roundNumber]
         {
@@ -214,12 +220,12 @@ namespace AElf.Kernel.Consensus
 
         public AElfDPoSInformation GenerateInfoForFirstTwoRounds()
         {
-            var dict = new Dictionary<string, int>();
+            var dict = new Dictionary<Address, int>();
 
             // First round
             foreach (var node in _miners.Nodes)
             {
-                dict.Add(node, node[0]);
+                dict.Add(node, node.DumpHex()[0]);
             }
 
             var sortedMiningNodes =
@@ -246,15 +252,15 @@ namespace AElf.Kernel.Consensus
                 bpInfo.TimeSlot =
                     GetTimestampOfUtcNow(i * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfWaitFirstRoundTime);
 
-                infosOfRound1.BlockProducers.Add(enumerable[i], bpInfo);
+                infosOfRound1.BlockProducers.Add(enumerable[i].DumpHex(), bpInfo);
             }
 
             // Second round
-            dict = new Dictionary<string, int>();
+            dict = new Dictionary<Address, int>();
 
             foreach (var node in _miners.Nodes)
             {
-                dict.Add(node, node[0]);
+                dict.Add(node, node.DumpHex()[0]);
             }
 
             sortedMiningNodes =
@@ -282,7 +288,7 @@ namespace AElf.Kernel.Consensus
                                                        GlobalConfig.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
-                infosOfRound2.BlockProducers.Add(enumerable[i], bpInfo);
+                infosOfRound2.BlockProducers.Add(enumerable[i].DumpHex(), bpInfo);
             }
 
             infosOfRound1.RoundNumber = 1;
@@ -340,7 +346,7 @@ namespace AElf.Kernel.Consensus
                 var add = Hash.Default;
                 foreach (var node in _miners.Nodes)
                 {
-                    var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[node].Signature;
+                    var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[node.DumpHex()].Signature;
                     add = Hash.FromTwoHashes(add, lastSignature);
                 }
 
@@ -372,7 +378,7 @@ namespace AElf.Kernel.Consensus
                         s = Hash.Generate();
                     }
 
-                    signatureDict[s] = node;
+                    signatureDict[s] = node.DumpHex();
                 }
 
                 foreach (var sig in signatureDict.Keys)
@@ -446,7 +452,7 @@ namespace AElf.Kernel.Consensus
 
                 var nextEBP = _miners.Nodes[order];
 
-                return new StringValue {Value = nextEBP.RemoveHexPrefix()};
+                return new StringValue {Value = nextEBP.DumpHex().RemoveHexPrefix()};
             }
             catch (Exception e)
             {

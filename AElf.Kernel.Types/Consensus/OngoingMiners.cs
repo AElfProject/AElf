@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable CheckNamespace
@@ -28,7 +29,7 @@ namespace AElf.Kernel
                 .First(m => m.TakeEffectRoundNumber >= roundNumber);
         }
 
-        public void UpdateMiners(UInt64Value takeEffectRoundNumber, IEnumerable<string> nextMinersAddresses)
+        public void UpdateMiners(UInt64Value takeEffectRoundNumber, IEnumerable<Address> nextMinersAddresses)
         {
             if (Miners.Any(m => m.TakeEffectRoundNumber == takeEffectRoundNumber.Value))
             {

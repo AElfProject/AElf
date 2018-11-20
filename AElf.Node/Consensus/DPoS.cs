@@ -150,8 +150,8 @@ namespace AElf.Kernel.Node
 
                 foreach (var bp in dict.Values)
                 {
-                    var b = bp["address"].RemoveHexPrefix();
-                    miners.Nodes.Add(b);
+                    var address = bp["address"];
+                    miners.Nodes.Add(Address.LoadHex(address));
                 }
 
                 return miners;
@@ -173,7 +173,7 @@ namespace AElf.Kernel.Node
             _consensusInitialized = true;
 
             // Check whether this node contained BP list.
-            if (!Miners.Nodes.Contains(_nodeKeyPair.Address.DumpHex().RemoveHexPrefix()))
+            if (!Miners.Nodes.Contains(_nodeKeyPair.Address))
             {
                 return;
             }
@@ -606,7 +606,7 @@ namespace AElf.Kernel.Node
             }
 
             // Update observer.
-            var address = _nodeKeyPair.Address.DumpHex().RemoveHexPrefix();
+            var address = _nodeKeyPair.Address;
             var miners = Helper.Miners;
             if (!miners.Nodes.Contains(address))
             {

@@ -161,7 +161,7 @@ namespace AElf.Network.Peers
             return Task.CompletedTask;
         }
 
-        public async Task<JObject> GetPeers()
+        public Task<JObject> GetPeers()
         {
             var peers = new JObject
             {
@@ -172,7 +172,7 @@ namespace AElf.Network.Peers
                 peers["peers"] = JArray.Parse(JsonConvert.SerializeObject(_peers));
             }
 
-            return peers;
+            return Task.FromResult(peers);
         }
 
         private void StartProcessing()
