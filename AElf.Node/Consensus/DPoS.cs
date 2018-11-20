@@ -214,7 +214,6 @@ namespace AElf.Kernel.Node
             }
 
             Interlocked.Add(ref _lockNumber, -1);
-            
             _logger?.Trace($"Lock number decrement: {_lockNumber}");
         }
 
