@@ -21,8 +21,9 @@ namespace AElf.Common
 
         #region AElf DPoS
 
+        public const ulong LockTokenForElection = 100_000;
         public const int AElfDPoSLogRoundCount = 1;
-        public static int AElfDPoSMiningInterval = 2000;
+        public static int AElfDPoSMiningInterval = 4000;
         public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
@@ -34,6 +35,7 @@ namespace AElf.Common
         public const string AElfDPoSMiningIntervalString = "__AElfDPoSMiningInterval__";
         public const string AElfDPoSMiningRoundHashMapString = "__AElfDPoSMiningRoundHashMap__";
         public const string AElfDPoSBalanceMapString = "__AElfDPoSBalanceMapString__";
+        public const string AElfDPoSCandidatesString = "__AElfDPoSCandidatesString__";
 
         #endregion
 

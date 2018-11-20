@@ -7,6 +7,7 @@ using AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Types;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -14,6 +15,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 {
     // ReSharper disable UnusedMember.Global
     // ReSharper disable InconsistentNaming
+    // ReSharper disable MemberCanBeMadeStatic.Local
     public class DPoS : IConsensus
     {
         public ConsensusType Type => ConsensusType.AElfDPoS;
@@ -51,7 +53,9 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private readonly Map<UInt64Value, Int64Value> _roundHashMap;
 
-        private readonly Map<Address, UInt64Value> _balanceMap;
+        private readonly Map<Address, Tickets> _balanceMap;
+
+        private readonly PbField<Candidates> _candidatesField;
 
         #endregion
 
@@ -66,6 +70,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             _miningIntervalField = collection.MiningIntervalField;
             _roundHashMap = collection.RoundHashMap;
             _balanceMap = collection.BalanceMap;
+            _candidatesField = collection.CandidatesFiled;
         }
 
         /// <inheritdoc />
@@ -303,7 +308,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         public async Task UpdateMiners(List<byte[]> args)
         {
-            
+
         }
 
         /// <inheritdoc />
@@ -372,7 +377,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                     return 3;
                 }
             }
-            
+
             return 0;
         }
 
@@ -384,7 +389,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         {
             foreach (var bp in miners.Nodes)
             {
-                ConsoleWriteLine(nameof(Initialize), $"Set Miner: {bp}");
+                ConsoleWriteLine(nameof(Initialize), $"Set miner {bp} to state store.");
             }
 
             await UpdateOngoingMiners(miners);
@@ -576,17 +581,38 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             return miners.Nodes.Contains(Address.LoadHex(accountAddress.Value));
         }
 
+        private async Task<List<Address>> GetVictories()
+        {
+            var candidates = await _candidatesField.GetAsync();
+            var nodes = new List<Node>();
+            foreach (var candidate in candidates.Nodes)
+            {
+                var ticketCount = await GetTicketCount(candidate);
+                nodes.Add(new Node
+                {
+                    Address = candidate,
+                    TicketCount = ticketCount
+                });
+            }
+
+            return nodes.OrderByDescending(n => n.TicketCount).Take(17).Select(n => n.Address).ToList();
+        }
+
+        private async Task<ulong> GetTicketCount(Address address)
+        {
+            var balance = (await _balanceMap.GetValueAsync(address)).RemainingVotes;
+            return balance >= GlobalConfig.LockTokenForElection ? balance - GlobalConfig.LockTokenForElection : 0;
+        }
+
         #endregion
 
         #region Utilities
 
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private DateTime GetLocalTime()
         {
             return DateTime.UtcNow.ToLocalTime();
         }
 
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));

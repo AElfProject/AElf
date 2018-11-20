@@ -41,10 +41,10 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var miners =
-                        Miners.Parser.ParseFrom(
-                            GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSOngoingMinersString)));
-                    return miners;
+                    var ongoingMiners =
+                        OngoingMiners.Parser.ParseFrom(
+                            GetBytes<OngoingMiners>(Hash.FromString(GlobalConfig.AElfDPoSOngoingMinersString)));
+                    return ongoingMiners.GetCurrentMiners(CurrentRoundNumber);
                 }
                 catch (Exception)
                 {

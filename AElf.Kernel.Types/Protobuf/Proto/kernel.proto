@@ -264,6 +264,21 @@ message OngoingMiners {
     repeated Miners Miners = 1;
 }
 
+message Candidates {
+    repeated Address Nodes = 1;
+}
+
+message Tickets {
+    uint64 RemainingTickets = 1;
+    repeated VotingRecord VotingRecord = 2;
+}
+
+message VotingRecord {
+    Address From = 1;
+    Address To = 2;
+    uint64 Tickets = 3;
+}
+
 message Miners {
     uint64 TakeEffectRoundNumber = 1;
     repeated Address Nodes = 2;

@@ -22,12 +22,13 @@ namespace AElf.Contracts.Consensus
             OngoingMinersField = new PbField<OngoingMiners>(GlobalConfig.AElfDPoSOngoingMinersString),
             TimeForProducingExtraBlockField = new PbField<Timestamp>(GlobalConfig.AElfDPoSExtraBlockTimeSlotString),
             MiningIntervalField = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString),
+            CandidatesFiled = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
             
             DPoSInfoMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSInformationString),
             EBPMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSExtraBlockProducerString),
             FirstPlaceMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString),
             RoundHashMap = new Map<UInt64Value, Int64Value>(GlobalConfig.AElfDPoSMiningRoundHashMapString),
-            BalanceMap = new Map<Address, UInt64Value>(GlobalConfig.AElfDPoSBalanceMapString)
+            BalanceMap = new Map<Address, Tickets>(GlobalConfig.AElfDPoSBalanceMapString)
         });
 
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval,
