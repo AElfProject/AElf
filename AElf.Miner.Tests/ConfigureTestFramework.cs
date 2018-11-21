@@ -32,7 +32,7 @@ namespace AElf.Miner.Tests
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
             ChainConfig.Instance.ChainId = Hash.Generate().DumpHex();
-            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
+            NodeConfig.Instance.NodeAccount = Address.Generate().GetFormatted();
 
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());

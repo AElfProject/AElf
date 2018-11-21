@@ -114,7 +114,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             
             Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
-            var address = Address.FromRawBytes(txnCtxt.Trace.RetVal.Data.DeserializeToBytes());
+            var address = Address.FromBytes(txnCtxt.Trace.RetVal.Data.DeserializeToBytes());
 
             var regExample = new SmartContractRegistration
             {
@@ -162,11 +162,11 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             await executive.SetTransactionContext(txnCtxt).Apply();
             await txnCtxt.Trace.CommitChangesAsync(_stateStore);
 
-            var bs = txnCtxt.Trace.RetVal;
-            var address = Address.FromRawBytes(bs.Data.DeserializeToBytes());
+            var returnVal = txnCtxt.Trace.RetVal;
+            var address = Address.FromBytes(returnVal.Data.DeserializeToBytes());
 
             #region initialize account balance
-            var account = Address.FromRawBytes(Hash.Generate().ToByteArray());
+            var account = Address.Generate();
             var txnInit = new Transaction
             {
                 From = Address.Zero,

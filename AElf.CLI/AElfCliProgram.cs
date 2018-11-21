@@ -20,6 +20,7 @@ using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using Base58Check;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ProtoBuf;
@@ -56,6 +57,8 @@ namespace AElf.CLI
         private readonly int _port;
 
         private string _genesisAddress;
+        private string _chainId;
+        private string _chainPrefix;
             
         private static readonly RpcCalls Rpc = new RpcCalls();
         
@@ -94,6 +97,9 @@ namespace AElf.CLI
             _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
+
+            _chainId = "e738e1";
+            _accountManager.SetChainId(_chainId);
         }
         
         public void StartRepl()
@@ -108,7 +114,6 @@ namespace AElf.CLI
             {
                 //string command = _screenManager.GetCommand();
                 string command = ReadLine.Read("aelf> ");
-                
                 
                 if (string.IsNullOrWhiteSpace(command))
                     continue;
@@ -547,6 +552,16 @@ namespace AElf.CLI
                         if (j["result"]?["BasicContractZero"] != null)
                         {
                             _genesisAddress = j["result"]["BasicContractZero"].ToString();
+                        }
+                        
+                        if (j["result"]?["chain_id"] != null)
+                        {
+                            _chainId = j["result"]["chain_id"].ToString();
+
+                            var chainPrefixBase58 =
+                                Base58CheckEncoding.Encode(ByteArrayHelpers.FromHexString(_chainId));
+
+                            _accountManager.SetChainId(_chainId);
                         }
                         
                         string toPrint = def.GetPrintString(JObject.FromObject(j));

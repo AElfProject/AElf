@@ -155,7 +155,7 @@ namespace AElf.Contracts.Genesis
             */
 
             Console.WriteLine($"SerialNumber: {info.SerialNumber}");
-            Console.WriteLine("BasicContractZero - Deployment success: " + address.DumpHex());
+            Console.WriteLine("BasicContractZero - Deployment success: " + address.GetFormatted());
             return address.DumpByteArray();
         }
 

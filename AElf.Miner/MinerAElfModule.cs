@@ -22,7 +22,7 @@ namespace AElf.Miner
             {
                 minerConfig = new MinerConfig
                 {
-                    CoinBase =Address.LoadHex(NodeConfig.Instance.NodeAccount) 
+                    CoinBase =Address.ParseAddress(NodeConfig.Instance.NodeAccount) 
                 };
             }
             minerConfig.ChainId = new Hash()

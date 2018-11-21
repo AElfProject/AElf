@@ -39,7 +39,7 @@ namespace AElf.Kernel.Tests.Concurrency
                 100,
                 0
             };
-            var addresses = Enumerable.Range(0, balances.Count).Select(x => Address.FromRawBytes(Hash.Generate().ToByteArray())).ToList();
+            var addresses = Enumerable.Range(0, balances.Count).Select(x => Address.Generate()).ToList();
 
             foreach (var addbal in addresses.Zip(balances, Tuple.Create))
             {
@@ -97,7 +97,7 @@ namespace AElf.Kernel.Tests.Concurrency
                 300,
                 0
             };
-            var addresses = Enumerable.Range(0, balances.Count).Select(x => Address.FromRawBytes(Hash.Generate().ToByteArray())).ToList();
+            var addresses = Enumerable.Range(0, balances.Count).Select(x => Address.Generate()).ToList();
 
             foreach (var addbal in addresses.Zip(balances, Tuple.Create))
             {

@@ -1,4 +1,5 @@
 ﻿using AElf.Common;
+using Base58Check;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
@@ -24,16 +25,7 @@ namespace AElf.Contracts.Genesis
 
         private Address GetAddress()
         {
-            return Address.FromRawBytes(
-                Hash.FromTwoHashes(
-                    Api.GetChainId(),
-                    Hash.FromMessage(
-                        new UInt64Value()
-                        {
-                            Value = SerialNumber
-                        })
-                ).ToByteArray()
-            );
+            return Address.BuildContractAddress(Api.GetChainId().DumpByteArray(), Name);
         }
     }
 }

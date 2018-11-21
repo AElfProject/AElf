@@ -84,7 +84,7 @@ namespace AElf.Sdk.CSharp.Tests
 
             DataProvider1 = DataProvider.GetRootDataProvider(
                 chain1.Id,
-                Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
+                Address.Generate() // todo warning adr contract adress
             );
             DataProvider1.StateStore = StateStore;
         }

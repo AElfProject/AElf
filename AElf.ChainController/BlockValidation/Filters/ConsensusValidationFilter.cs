@@ -22,10 +22,16 @@ namespace AElf.ChainController
     {
         private readonly ISmartContractService _smartContractService;
         private readonly ILogger _logger;
+        
+        private readonly Address _nodeAddress;
+        private readonly ECKeyPair _nodeKeyPair;
 
         public ConsensusBlockValidationFilter(ISmartContractService smartContractService)
         {
             _smartContractService = smartContractService;
+            
+            _nodeAddress = Address.ParseAddress(NodeConfig.Instance.NodeAccount);
+            _nodeKeyPair = NodeConfig.Instance.ECKeyPair;
             
             _logger = LogManager.GetLogger(nameof(ConsensusBlockValidationFilter));
         }
@@ -56,17 +62,25 @@ namespace AElf.ChainController
             // Get BP address
             var uncompressedPrivateKey = block.Header.P.ToByteArray();
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
-            var address = recipientKeyPair.GetAddress().DumpHex();
+            
+            // Assuming he is on the same chain
+            
+            // todo warning adr
+//            var address = "ELF_" + _nodeAddress.ChainId + "_" + recipientKeyPair.GetEncodedPublicKey(); 
+            var address = "mock"; 
 
             // Get the address of consensus contract
             var contractAccountHash =
                 AddressHelpers.GetSystemContractAddress(context.ChainId, SmartContractType.AElfDPoS.ToString());
+            
             var timestampOfBlock = block.Header.Time;
 
             long roundId = 1;
-            var updateTx =
-                block.Body.TransactionList.Where(t => t.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString())
-                    .ToList();
+            
+            var updateTx = block.Body.TransactionList
+                .Where(t => t.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString())
+                .ToList();
+            
             if (updateTx.Count > 0)
             {
                 if (updateTx.Count > 1)
@@ -78,22 +92,20 @@ namespace AElf.ChainController
                     new[] {typeof(Round), typeof(Round), typeof(StringValue)})[1]).RoundId;
             }
 
-            //Formulate an Executive and execute a transaction of checking time slot of this block producer
-            TransactionTrace trace;
+            // Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
+            
+            TransactionTrace trace;
+            
             try
             {
-                var tx = GetTxToVerifyBlockProducer(contractAccountHash, NodeConfig.Instance.ECKeyPair, address,
-                    timestampOfBlock, roundId);
+                var tx = GetTxToVerifyBlockProducer(contractAccountHash, address, timestampOfBlock, roundId);
+                
                 if (tx == null)
-                {
                     return BlockValidationResult.FailedToCheckConsensusInvalidation;
-                }
 
-                var tc = new TransactionContext
-                {
-                    Transaction = tx
-                };
+                var tc = new TransactionContext { Transaction = tx };
+                
                 await executive.SetTransactionContext(tc).Apply();
                 trace = tc.Trace;
             }
@@ -101,6 +113,7 @@ namespace AElf.ChainController
             {
                 _smartContractService.PutExecutiveAsync(contractAccountHash, executive).Wait();
             }
+            
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())
             {
@@ -130,10 +143,9 @@ namespace AElf.ChainController
             return BlockValidationResult.IncorrectPoWResult;
         }
 
-        private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair,
-            string recipientAddress, Timestamp timestamp, long roundId)
+        private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, string recipientAddress, Timestamp timestamp, long roundId)
         {
-            if (contractAccountHash == null || keyPair == null || recipientAddress == null)
+            if (contractAccountHash == null || _nodeKeyPair == null || recipientAddress == null)
             {
                 _logger?.Error("Something wrong happened to consensus verification filter.");
                 return null;
@@ -141,13 +153,13 @@ namespace AElf.ChainController
 
             var tx = new Transaction
             {
-                From = keyPair.GetAddress(),
+                From = _nodeAddress,
                 To = contractAccountHash,
                 IncrementId = 0,
                 MethodName = "Validation",
                 Sig = new Signature
                 {
-                    P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
+                    P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded())
                 },
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(
                     new StringValue {Value = recipientAddress.RemoveHexPrefix()}.ToByteArray(),
@@ -156,7 +168,7 @@ namespace AElf.ChainController
             };
 
             var signer = new ECSigner();
-            var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
+            var signature = signer.Sign(_nodeKeyPair, tx.GetHash().DumpByteArray());
 
             // Update the signature
             tx.Sig.R = ByteString.CopyFrom(signature.R);

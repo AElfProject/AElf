@@ -1,10 +1,16 @@
 namespace AElf.Common
 {
-    // ReSharper disable InconsistentNaming
     public static class GlobalConfig
     {
-        public static int AddressLength = 18;
+        public static string AElfAddressPrefix = "ELF";
+        
+        public static int ChainIdLength = 3;
+        public static int ContractAddressHashLength = 18;
+        
+        public static int AddressHashLength = 32; // length of sha256
+        
         public const ulong GenesisBlockHeight = 1;
+        
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
         public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";

@@ -12,6 +12,7 @@ using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using ProtoBuf;
+using Hash = AElf.Common.Hash;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 
 namespace AElf.CLI.Wallet
@@ -25,10 +26,17 @@ namespace AElf.CLI.Wallet
         private AElfKeyStore _keyStore;
         private ScreenManager _screenManager;
 
+        private string _chainId;
+
         public AccountManager(AElfKeyStore keyStore, ScreenManager screenManager)
         {
             _screenManager = screenManager;
             _keyStore = keyStore;
+        }
+
+        public void SetChainId(string chainId)
+        {
+            _chainId = chainId;
         }
 
         private readonly List<string> _subCommands = new List<string>()
@@ -123,6 +131,12 @@ namespace AElf.CLI.Wallet
                 return;
             }
 
+            if (tryOpen == AElfKeyStore.Errors.WrongAccountFormat)
+            {
+                _screenManager.PrintError("account wrong format!");
+                return;
+            }
+
             if (tryOpen == AElfKeyStore.Errors.None)
             {
                 _screenManager.PrintLine("account successfully unlocked!");
@@ -136,13 +150,16 @@ namespace AElf.CLI.Wallet
         private void CreateNewAccount()
         {
             var password = _screenManager.AskInvisible("password: ");
-            var keypair = _keyStore.Create(password);
-            if (keypair != null)
+            var keypair = _keyStore.Create(password, _chainId);
+            var pubKey = keypair.GetEncodedPublicKey();
+            
+            var addr = Address.FromPublicKey(ByteArrayHelpers.FromHexString(_chainId), pubKey);
+            
+            if (addr != null)
             {
-                _screenManager.PrintLine("Account pub key: " + keypair.GetEncodedPublicKey().ToHex(true));
-                _screenManager.PrintLine("Account address: 0x" + keypair.GetAddressHex());
+                _screenManager.PrintLine("Account pub key: " + pubKey.ToHex());
+                _screenManager.PrintLine("Account address: " + addr.GetFormatted());
             }
-                
         }
 
         private void ListAccounts()

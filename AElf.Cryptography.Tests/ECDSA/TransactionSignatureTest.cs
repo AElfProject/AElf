@@ -16,18 +16,12 @@ namespace AElf.Cryptography.Tests.ECDSA
         [Fact]
         public void SignAndVerifyTransaction()
         {
-            byte[] fromAdress = CryptoHelpers.RandomFill(ADR_LENGTH);
-            byte[] toAdress = CryptoHelpers.RandomFill(ADR_LENGTH);
-            
             // Generate the key pair 
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
-
-
-            ;
             
             Transaction tx = new Transaction();
-            tx.From = Address.FromRawBytes(fromAdress);
-            tx.To = Address.FromRawBytes(toAdress);
+            tx.From = Address.Generate();
+            tx.To = Address.Generate();
             tx.Sig = new Signature
             {
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())

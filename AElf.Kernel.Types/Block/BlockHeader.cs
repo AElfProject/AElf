@@ -58,7 +58,7 @@ namespace AElf.Kernel
 
         public Hash GetDisambiguationHash()
         {
-            return HashHelpers.GetDisambiguationHash(Index, Address.FromRawBytes(P.ToByteArray()));
+            return HashHelpers.GetDisambiguationHash(Index, Hash.FromRawBytes(P.ToByteArray()));
         }
     }
 }

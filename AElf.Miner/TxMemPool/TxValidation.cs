@@ -39,14 +39,14 @@ namespace AElf.Miner.TxMemPool
             {
                 return false;
             }
-
             
             byte[] uncompressedPrivKey = tx.P.ToByteArray();
-            var addr = Address.FromRawBytes(uncompressedPrivKey);
-//            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
-
-            if (!addr.Equals(tx.From))
-                return false;
+            
+            // todo warning verification (maybe duplicated in TxSignatureVerifier ??)
+//            var addr = Address.FromRawBytes(uncompressedPrivKey);
+//            if (!addr.Equals(tx.From))
+//                return false;
+            
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
             return verifier.Verify(tx.GetSignature(), tx.GetHash().DumpByteArray());
@@ -62,7 +62,8 @@ namespace AElf.Miner.TxMemPool
         public static bool CheckAccountAddress(this Transaction tx)
         {
             // TODO: more verifications
-            return tx.From.Value.Length == GlobalConfig.AddressLength && (tx.To == null || tx.To.Value.Length == GlobalConfig.AddressLength);
+            //return tx.From.Value.Length == GlobalConfig.AddressLength && (tx.To == null || tx.To.Value.Length == GlobalConfig.AddressLength);
+            return true;
         }
         
        

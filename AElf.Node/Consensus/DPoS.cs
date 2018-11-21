@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,7 +12,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Miner.Miner;
-using AElf.Node;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
@@ -24,6 +22,7 @@ using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Common;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
+using Base58Check;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -60,7 +59,10 @@ namespace AElf.Kernel.Node
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
-        private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
+        private readonly ECKeyPair _nodeKey;
+        private readonly Address _nodeAddress;
+
+        private readonly Hash _chainId;
 
         public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
             Hash.LoadHex(ChainConfig.Instance.ChainId),
@@ -79,6 +81,14 @@ namespace AElf.Kernel.Node
         public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner,
             IChainService chainService, IBlockSynchronizer synchronizer)
         {
+            _nodeKey = NodeConfig.Instance.ECKeyPair;
+            _chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
+            
+            string b58ChainPrefix = Base58CheckEncoding.Encode(_chainId.DumpByteArray());
+            
+            // todo warning adr
+            //_nodeAddress = Address.FromPublicKey(_nodeKey.GetEncodedPublicKey(), b58ChainPrefix.Substring(0, 4));
+            
             _txHub = txHub;
             _miner = miner;
             _chainService = chainService;
@@ -174,6 +184,7 @@ namespace AElf.Kernel.Node
         {
             get
             {
+                // todo warning adr
                 var dict = MinersConfig.Instance.Producers;
                 var miners = new Miners();
 
@@ -201,7 +212,7 @@ namespace AElf.Kernel.Node
             isMining = true;
 
             // Check whether this node contained BP list.
-            if (!Miners.Nodes.Contains(_nodeKeyPair.Address.DumpHex().RemoveHexPrefix()))
+            if (!Miners.Nodes.Contains(_nodeAddress.GetFormatted()))
             {
                 return;
             }
@@ -269,14 +280,14 @@ namespace AElf.Kernel.Node
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
                 var tx = new Transaction
                 {
-                    From = _nodeKeyPair.Address,
+                    From = _nodeAddress,
                     To = ContractAddress,
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = methodName,
                     Sig = new Signature
                     {
-                        P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey)
+                        P = ByteString.CopyFrom(_nodeKey.GetEncodedPublicKey())
                     },
                     Type = TransactionType.DposTransaction
                 };
@@ -284,7 +295,7 @@ namespace AElf.Kernel.Node
                 tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.Select(p => (object) p).ToArray()));
 
                 var signer = new ECSigner();
-                var signature = signer.Sign(_nodeKeyPair, tx.GetHash().DumpByteArray());
+                var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
 
                 // Update the signature
                 tx.Sig.R = ByteString.CopyFrom(signature.R);
@@ -413,10 +424,10 @@ namespace AElf.Kernel.Node
                     var parameters = new List<byte[]>
                     {
                         Helper.CurrentRoundNumber.ToByteArray(),
-                        new StringValue {Value = _nodeKeyPair.Address.DumpHex().RemoveHexPrefix()}.ToByteArray(),
+                        new StringValue { Value = _nodeAddress.GetFormatted() }.ToByteArray(),
                         _consensusData.Pop().ToByteArray(),
                         signature.ToByteArray(),
-                        new Int64Value {Value = Helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
+                        new Int64Value { Value = Helper.GetCurrentRoundInfo().RoundId }.ToByteArray()
                     };
 
                     var txToPublishOutValueAndSignature =
@@ -478,7 +489,7 @@ namespace AElf.Kernel.Node
                     var parameters = new List<byte[]>
                     {
                         currentRoundNumber.ToByteArray(),
-                        new StringValue {Value = _nodeKeyPair.Address.DumpHex().RemoveHexPrefix()}.ToByteArray(),
+                        new StringValue { Value = _nodeAddress.GetFormatted() }.ToByteArray(),
                         _consensusData.Pop().ToByteArray(),
                         new Int64Value {Value = Helper.GetCurrentRoundInfo(currentRoundNumber).RoundId}.ToByteArray()
                     };
@@ -577,7 +588,7 @@ namespace AElf.Kernel.Node
             }
 
             // Update observer.
-            var address = _nodeKeyPair.Address.DumpHex().RemoveHexPrefix();
+            var address =_nodeAddress.GetFormatted();
             var miners = Helper.Miners;
             if (!miners.Nodes.Contains(address))
             {
@@ -619,13 +630,14 @@ namespace AElf.Kernel.Node
             {
                 MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().DumpHex()));
                 _logger?.Trace(
-                    $"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.DumpHex()}.");
+                    $"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.GetFormatted()}.");
             }
 
-            if (tx.From.Equals(_nodeKeyPair.Address))
+            if (tx.From.Equals(_nodeAddress))
                 _logger?.Trace(
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
+            
             await _txHub.AddTransactionAsync(tx, true);
         }
 

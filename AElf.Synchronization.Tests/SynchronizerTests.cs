@@ -93,7 +93,7 @@ namespace AElf.Synchronization.Tests
 
             var txPrint = new Transaction()
             {
-                From = keyPair.GetAddress(),
+                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey(), "ABCD"),
                 To = contractAddressZero,
                 MethodName = "Print",
                 Params = ByteString.CopyFrom(new Parameters()

@@ -99,8 +99,8 @@ namespace AElf.ChainController.Rpc
                     ["result"] =
                         new JObject
                         {
-                            [SmartContractType.BasicContractZero.ToString()] = basicContractZero.DumpHex(),
-                            [SmartContractType.SideChainContract.ToString()] = sideChainContract.DumpHex(),
+                            [SmartContractType.BasicContractZero.ToString()] = basicContractZero.GetFormatted(),
+                            [SmartContractType.SideChainContract.ToString()] = sideChainContract.GetFormatted(),
                             ["chain_id"] = chainId
                         }
                 };
@@ -123,7 +123,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var addrHash =Address.LoadHex(address);
+                var addrHash =Address.ParseAddress(address);
 
                 var abi = await this.GetContractAbi(addrHash);
 
@@ -151,7 +151,7 @@ namespace AElf.ChainController.Rpc
             Address addr;
             try
             {
-                addr = Address.LoadHex(address);
+                addr = Address.ParseAddress(address);
             }
             catch (Exception e)
             {

@@ -108,10 +108,11 @@ namespace AElf.Kernel.Tests
 
             var address = info.Address;
             // calculate new account address
+            // todo warning addr
             var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId);
             
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("TestContractZero: Deployment success, {0}", account.DumpHex());
+            Console.WriteLine("TestContractZero: Deployment success, {0}", account.GetFormatted());
             return account.DumpByteArray();
 
         }

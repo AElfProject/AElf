@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -21,6 +23,7 @@ using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
+using Base58Check;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
@@ -137,7 +140,7 @@ namespace AElf.Node.AElfChain
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
             _blockChain = _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
-            NodeConfig.Instance.ECKeyPair = conf.KeyPair;
+            NodeConfig.Instance.ECKeyPair = conf.KeyPair; // todo config should not be set here 
 
             SetupConsensus();
 
@@ -190,7 +193,6 @@ namespace AElf.Node.AElfChain
             if (NodeConfig.Instance.IsMiner)
             {
                 _miner.Init();
-                _logger?.Debug($"Coinbase = {_miner.Coinbase.DumpHex()}");
             }
 
             Thread.Sleep(1000);
@@ -235,22 +237,26 @@ namespace AElf.Node.AElfChain
 
         private Address GetGenesisContractHash(SmartContractType contractType)
         {
-            return _chainCreationService.GenesisContractHash(Hash.LoadHex(ChainConfig.Instance.ChainId), contractType);
+            byte[] chainIdBytes = ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId);
+            byte[] toHash = ByteArrayHelpers.Combine(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId), Encoding.UTF8.GetBytes(contractType.ToString()));
+            var hash = SHA256.Create().ComputeHash(SHA256.Create().ComputeHash(toHash));
+
+            return Address.FromPublicKey(chainIdBytes, hash);
         }
 
         private void LogGenesisContractInfo()
         {
             var genesis = GetGenesisContractHash(SmartContractType.BasicContractZero);
-            _logger?.Debug($"Genesis contract address = {genesis.DumpHex()}");
+            _logger?.Debug($"Genesis contract address = {genesis.GetFormatted()}");
 
             var tokenContractAddress = GetGenesisContractHash(SmartContractType.TokenContract);
-            _logger?.Debug($"Token contract address = {tokenContractAddress.DumpHex()}");
+            _logger?.Debug($"Token contract address = {tokenContractAddress.GetFormatted()}");
 
             var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
-            _logger?.Debug($"DPoS contract address = {consensusAddress.DumpHex()}");
+            _logger?.Debug($"DPoS contract address = {consensusAddress.GetFormatted()}");
 
             var sidechainContractAddress = GetGenesisContractHash(SmartContractType.SideChainContract);
-            _logger?.Debug($"SideChain contract address = {sidechainContractAddress.DumpHex()}");
+            _logger?.Debug($"SideChain contract address = {sidechainContractAddress.GetFormatted()}");
         }
 
         private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero,

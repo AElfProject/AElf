@@ -34,6 +34,7 @@ namespace AElf.Contracts.Token.Tests
         public void Test()
         {
             _contract.GetContractOwner(AddressHelpers.GetSystemContractAddress(_mock.ChainId1, SmartContractType.BasicContractZero.ToString()));
+            
             Assert.True(_contract.TransactionContext.Trace.StdErr.IsNullOrEmpty());
             var owner = _contract.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
 

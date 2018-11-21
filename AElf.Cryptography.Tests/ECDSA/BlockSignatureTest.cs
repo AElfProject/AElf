@@ -19,8 +19,8 @@ namespace AElf.Cryptography.Tests.ECDSA
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
         
             Transaction tx = new Transaction();
-            tx.From = Address.FromRawBytes(CryptoHelpers.RandomFill(ADR_LENGTH));
-            tx.To = Address.FromRawBytes(CryptoHelpers.RandomFill(ADR_LENGTH));
+            tx.From = Address.Generate();
+            tx.To = Address.Generate();
             
             Block block = new Block();
             block.AddTransaction(tx);

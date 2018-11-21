@@ -184,7 +184,7 @@ namespace AElf.Kernel
         private async Task RollbackStateForBlock(IBlock block)
         {
             var txIds = block.Body.Transactions;
-            var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index, Address.FromRawBytes(block.Header.P.ToByteArray()));
+            var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index, Hash.FromRawBytes(block.Header.P.ToByteArray()));
             await RollbackStateForTransactions(txIds, disambiguationHash);
         }
 

@@ -84,7 +84,7 @@ namespace AElf.Contracts.Token.Tests
             var tc = await PrepareTransactionContextAsync(tx);
             await executive0.SetTransactionContext(tc).Apply();
             await CommitChangesAsync(tc.Trace);
-            TokenContractAddress = Address.FromRawBytes(tc.Trace.RetVal.ToFriendlyBytes());
+            TokenContractAddress = Address.FromBytes(tc.Trace.RetVal.ToFriendlyBytes());
         }
 
         #region ABI (Public) Methods

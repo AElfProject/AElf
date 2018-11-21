@@ -38,7 +38,7 @@ namespace AElf.Contracts.SideChain.Tests
             _contract = new SideChainContractShim(Mock, AddressHelpers.GetSystemContractAddress(Mock.ChainId1, SmartContractType.SideChainContract.ToString()));
 //            var chainId = Hash.Generate();
             var chainId = Hash.FromString("Chain1");
-            var lockedAddress = Address.FromRawBytes(Hash.FromString("LockedAddress1").ToByteArray());
+            var lockedAddress = Address.Generate();
             ulong lockedToken = 10000;
             // create new chain
             var bytes = await _contract.CreateSideChain(chainId, lockedAddress, lockedToken);

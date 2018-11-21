@@ -32,21 +32,24 @@ namespace AElf.Miner.Miner
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
+        private int _timeoutMilliseconds;
+        
+        private readonly ILogger _logger;
         private readonly ITxHub _txHub;
-        private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private int _timeoutMilliseconds;
-        private readonly ILogger _logger;
-        private IBlockChain _blockChain;
-        private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
-        private readonly ServerManager _serverManager;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
+        
+        private IBlockChain _blockChain;
+        
+        private readonly ClientManager _clientManager;
+        private readonly ServerManager _serverManager;
+
         private Address _producerAddress;
-        private readonly IChainManagerBasic _chainManagerBasic;
+        private ECKeyPair _keyPair;
 
         private IMinerConfig Config { get; }
 
@@ -57,7 +60,7 @@ namespace AElf.Miner.Miner
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
-            IBlockValidationService blockValidationService, IChainContextService chainContextService, IChainManagerBasic chainManagerBasic)
+            IBlockValidationService blockValidationService, IChainContextService chainContextService)
         {
             Config = config;
             _txHub = txHub;
@@ -70,7 +73,6 @@ namespace AElf.Miner.Miner
             _serverManager = serverManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
-            _chainManagerBasic = chainManagerBasic;
             _txFilter = new TransactionFilter();
         }
 
@@ -179,7 +181,7 @@ namespace AElf.Miner.Miner
                 if (cts.IsCancellationRequested)
                     return null;
                 var disambiguationHash =
-                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), Hash.FromRawBytes(_keyPair.GetEncodedPublicKey()));
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
@@ -215,7 +217,7 @@ namespace AElf.Miner.Miner
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
                 var tx = new Transaction
                 {
-                    From = _keyPair.GetAddress(),
+                    From = _producerAddress,
                     To = AddressHelpers.GetSystemContractAddress(Config.ChainId,
                         SmartContractType.SideChainContract.ToString()),
                     RefBlockNumber = bn,
@@ -471,9 +473,11 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init()
         {
-            _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
+            _producerAddress = Address.ParseAddress(NodeConfig.Instance.NodeAccount);
             _keyPair = NodeConfig.Instance.ECKeyPair;
-            _producerAddress = Address.FromRawBytes(_keyPair.GetEncodedPublicKey());
+
+            _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
+            
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
         }
 

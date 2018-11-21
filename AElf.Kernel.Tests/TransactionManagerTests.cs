@@ -24,8 +24,8 @@ namespace AElf.Kernel.Tests
         {
             await _manager.AddTransactionAsync(new Transaction
             {
-                From = Address.FromRawBytes(Hash.Generate().ToByteArray()),
-                To = Address.FromRawBytes(Hash.Generate().ToByteArray())
+                From = Address.Generate(),
+                To = Address.Generate()
             });
         }
 
@@ -43,8 +43,8 @@ namespace AElf.Kernel.Tests
             keyPair = keyPair ?? new KeyPairGenerator().Generate();
 
             var tx = new Transaction();
-            tx.From = keyPair.GetAddress();
-            tx.To = adrTo ?? Address.FromRawBytes(Hash.Generate().ToByteArray());
+            tx.From = Address.Generate();
+            tx.To = adrTo ?? Address.Generate();
             tx.IncrementId = nonce;
             tx.Sig = new Signature
             {

@@ -28,7 +28,7 @@ namespace AElf.Kernel.Tests
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
             ChainConfig.Instance.ChainId = Hash.Generate().DumpHex();
-            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
+            //NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
 
             var assembly1 = typeof(IDataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();

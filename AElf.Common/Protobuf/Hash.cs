@@ -228,7 +228,7 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Hash LoadByteArray(byte[] bytes)
         {
-            if (bytes.Length != 32)
+            if (bytes.Length != 32 && bytes.Length != GlobalConfig.ChainIdLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(bytes));
             }

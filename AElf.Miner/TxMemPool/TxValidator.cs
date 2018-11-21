@@ -73,6 +73,7 @@ namespace AElf.Miner.TxMemPool
                 return TxValidation.TxInsertionAndBroadcastingError.InvalidSignature;
             }
 
+            // todo: address verification, for now this does nothing
             if (!tx.CheckAccountAddress())
             {
                 return TxValidation.TxInsertionAndBroadcastingError.WrongAddress;

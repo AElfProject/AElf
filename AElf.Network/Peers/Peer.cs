@@ -134,7 +134,7 @@ namespace AElf.Network.Peers
 
         public ECKeyPair DistantNodeKeyPair { get; private set; }
 
-        public byte[] DistantNodeAddress => DistantNodeKeyPair?.GetAddress().DumpByteArray();
+        public byte[] DistantNodeAddress => DistantNodeKeyPair?.GetEncodedPublicKey(); // todo readd
         public byte[] DistantPublicKey => _lastReceivedHandshake?.PublicKey.ToByteArray();
 
         [JsonProperty(PropertyName = "isBp")] public bool IsBp { get; internal set; }
