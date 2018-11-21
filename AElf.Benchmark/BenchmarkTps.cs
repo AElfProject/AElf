@@ -79,7 +79,7 @@ namespace AElf.Benchmark
             {
                 code = file.ReadFully();
             }
-            _contractHash = Prepare(code).Result;
+            _contractHash = Prepare(options.ContractDll,code).Result;
             
         }
 
@@ -232,7 +232,7 @@ namespace AElf.Benchmark
             return (ulong)n;
         }
 
-        public async Task<Address> Prepare(byte[] contractCode)
+        public async Task<Address> Prepare(string contractName,byte[] contractCode)
         {
             //create smart contact zero
             var reg = new SmartContractRegistration
@@ -256,7 +256,7 @@ namespace AElf.Benchmark
                 To = contractAddressZero,
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(1, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(1,contractName, code))
             };
             
             var txnCtxt = new TransactionContext()

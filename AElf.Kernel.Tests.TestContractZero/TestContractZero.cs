@@ -85,28 +85,18 @@ namespace AElf.Kernel.Tests
         private object _deployLock;        
 
         [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{"${this}._deployLock"})]
-        public async Task<byte[]> DeploySmartContract(int category, byte[] contract)
+        public async Task<byte[]> DeploySmartContract(int category, string contractName, byte[] contract)
         {
             SmartContractRegistration registration = new SmartContractRegistration
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(contract),
-                ContractHash = Hash.FromRawBytes(contract)  
+                ContractHash = Hash.FromRawBytes(contract),
+                Version = 1
             };
             
             var tx = Api.GetTransaction();
-            
-            ulong serialNumber = _serialNumber.Increment().Value;
-
-            var creator = Api.GetTransaction().From;
-
-            var info = new ContractInfo()
-            {
-                Owner = creator,
-                ContractHash = Hash.FromRawBytes(contract)  
-            };
-
-            var address = new Address();
+           
             // calculate new account address
             var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId);
             
