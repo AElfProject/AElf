@@ -57,11 +57,11 @@ namespace AElf.Miner.TxMemPool
         }
 
         private static Address DPosContractAddress =>
-            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
+            Address.BuildContractAddress(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId),
                 SmartContractType.AElfDPoS.ToString());
 
         private static Address SideChainContractAddress =>
-            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
+            Address.BuildContractAddress(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId),
                 SmartContractType.SideChainContract.ToString());
         
         private readonly List<Address> _systemAddresses = new List<Address>()

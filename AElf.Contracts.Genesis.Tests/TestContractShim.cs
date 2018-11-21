@@ -38,7 +38,7 @@ namespace AElf.Contracts.Genesis.Tests
             Executive = task.Result;
         }
 
-        public byte[] DeploySmartContract(int category, byte[] code)
+        public byte[] DeploySmartContract(int category, string name, byte[] code)
         {
             var tx = new Transaction
             {
@@ -46,7 +46,27 @@ namespace AElf.Contracts.Genesis.Tests
                 To = Address,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(category, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(category, name, code))
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
+        }
+        
+        public byte[] UpdateSmartContract(Address address, byte[] code)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = Address,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "UpdateSmartContract",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(address, code))
             };
 
             TransactionContext = new TransactionContext

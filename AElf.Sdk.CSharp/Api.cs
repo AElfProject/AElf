@@ -57,6 +57,13 @@ namespace AElf.Sdk.CSharp
             await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration,
                 false);
         }
+        
+        public static async Task UpdateContractAsync(Address address, SmartContractRegistration registration)
+        {
+            Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
+            await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration,
+                false);
+        }
 
         #endregion Privileged API
 

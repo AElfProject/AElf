@@ -14,6 +14,7 @@ using AElf.Types.CSharp;
 using Type = System.Type;
 using AElf.Common;
 using AElf.Kernel.Storages;
+using Akka.Util.Internal;
 
 namespace AElf.SmartContract
 {
@@ -22,6 +23,7 @@ namespace AElf.SmartContract
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
+        private readonly ConcurrentDictionary<Address, int> _contractVersions = new ConcurrentDictionary<Address, int>();
         private readonly IStateStore _stateStore;
         private readonly IFunctionMetadataService _functionMetadataService;
 
@@ -42,6 +44,24 @@ namespace AElf.SmartContract
                 _executivePools[account] = pool;
             }
             return pool;
+        }
+
+        private void ClearPool(Address address)
+        {
+            if (_executivePools.ContainsKey(address))
+            {
+                _executivePools[address] = new ConcurrentBag<IExecutive>();
+            }
+        }
+
+        private int GetContractVersion(Address address)
+        {
+            if (!_contractVersions.TryGetValue(address, out var version))
+            {
+                version = _smartContractManager.GetAsync(address).Result.Version;
+                _contractVersions.TryAdd(address, version);
+            }
+            return version;
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId)
@@ -67,7 +87,7 @@ namespace AElf.SmartContract
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
-
+            executive.ContractVersion = reg.Version;
             executive.SetStateStore(_stateStore);
             
             executive.SetSmartContractContext(new SmartContractContext()
@@ -83,9 +103,13 @@ namespace AElf.SmartContract
 
         public async Task PutExecutiveAsync(Address account, IExecutive executive)
         {
-            executive.SetTransactionContext(new TransactionContext());
-            executive.SetDataCache(new Dictionary<DataPath, StateCache>());
-            GetPoolFor(account).Add(executive);
+            if (executive.ContractVersion == GetContractVersion(account))
+            {
+                executive.SetTransactionContext(new TransactionContext());
+                executive.SetDataCache(new Dictionary<DataPath, StateCache>());
+                GetPoolFor(account).Add(executive);
+            }
+
             await Task.CompletedTask;
         }
 
@@ -114,6 +138,26 @@ namespace AElf.SmartContract
             }
             
             await _smartContractManager.InsertAsync(contractAddress, registration);
+            _contractVersions.AddOrSet(contractAddress, registration.Version);
+        }
+        
+        public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
+        {
+            // get runnner
+            var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
+            runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
+
+            // Todo update metadata
+//            if (ParallelConfig.Instance.IsParallelEnable)
+//            {
+//                var contractType = runner.GetContractType(registration);
+//                var contractTemplate = runner.ExtractMetadata(contractType);
+//                await _functionMetadataService.DeployContract(chainId, contractAddress, contractTemplate);
+//            }
+            await _smartContractManager.InsertAsync(contractAddress, registration);
+            
+            _contractVersions.AddOrSet(contractAddress, registration.Version);
+            ClearPool(contractAddress);
         }
 
         public async Task<IMessage> GetAbiAsync(Address account, string name = null)

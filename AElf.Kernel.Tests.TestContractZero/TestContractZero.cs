@@ -103,10 +103,10 @@ namespace AElf.Kernel.Tests
             var info = new ContractInfo()
             {
                 Owner = creator,
-                SerialNumber = serialNumber
+                ContractHash = Hash.FromRawBytes(contract)  
             };
 
-            var address = info.Address;
+            var address = new Address();
             // calculate new account address
             // todo warning addr
             var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId);
