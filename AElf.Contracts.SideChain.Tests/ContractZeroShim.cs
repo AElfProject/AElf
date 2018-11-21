@@ -37,7 +37,7 @@ namespace AElf.Contracts.SideChain.Tests
             Executive = task.Result;
         }
 
-        public byte[] DeploySmartContract(int category, byte[] code)
+        public byte[] DeploySmartContract(int category, string contractName, byte[] code)
         {
             var tx = new Transaction
             {
@@ -45,7 +45,7 @@ namespace AElf.Contracts.SideChain.Tests
                 To = Address,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(category, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(category, contractName, code))
             };
 
             TransactionContext = new TransactionContext()

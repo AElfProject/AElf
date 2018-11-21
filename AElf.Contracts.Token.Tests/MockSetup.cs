@@ -68,12 +68,14 @@ namespace AElf.Contracts.Token.Tests
             };
         }
 
+        public string TokenName => "AElf.Contracts.Token";
+
         public byte[] TokenCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll")))
+                using (FileStream file = File.OpenRead(Path.GetFullPath($"../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/{TokenName}.dll")))
                 {
                     code = file.ReadFully();
                 }

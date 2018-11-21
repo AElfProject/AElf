@@ -31,5 +31,7 @@ namespace AElf.SmartContract
         /// <param name="transaction"></param>
         /// <returns></returns>
         Task<IEnumerable<string>> GetInvokingParams(Transaction transaction);
+
+        void ClearPool(Address address);
     }
 }

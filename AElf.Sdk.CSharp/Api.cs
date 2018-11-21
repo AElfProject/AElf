@@ -61,7 +61,7 @@ namespace AElf.Sdk.CSharp
         public static async Task UpdateContractAsync(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
-            await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration,
+            await _smartContractContext.SmartContractService.UpdateContractAsync(GetChainId(), address, registration,
                 false);
         }
 

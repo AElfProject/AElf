@@ -12,6 +12,7 @@ using AElf.Execution.Scheduling;
 using AElf.SmartContract;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Address = AElf.Common.Address;
 
 namespace AElf.Execution
 {
@@ -39,8 +40,25 @@ namespace AElf.Execution
             List<List<Transaction>> groups;
             Dictionary<Transaction, Exception> failedTxs;
 
-            var dposTxs = transactions.Where(tx => tx.Type == TransactionType.DposTransaction).ToList();
-            var normalTxs = transactions.Where(tx => tx.Type != TransactionType.DposTransaction).ToList();
+            var dposTxs = new List<Transaction>();
+            var normalTxs = new List<Transaction>();
+            var contactTxs = new List<Transaction>();
+
+            foreach (var tx in transactions)
+            {
+                if (tx.Type == TransactionType.DposTransaction)
+                {
+                    dposTxs.Add(tx);
+                }
+                else if(tx.To == Address.Zero)
+                {
+                    contactTxs.Add(tx);
+                }
+                else
+                {
+                    normalTxs.Add(tx);
+                }
+            }
 
             //disable parallel module by default because it doesn't finish yet (don't support contract call)
             if (ParallelConfig.Instance.IsParallelEnable)
@@ -60,9 +78,28 @@ namespace AElf.Execution
             var tasks = groups.Select(
                 txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, disambiguationHash), token)
             ).ToArray();
+            var contractResult = _singlExecutingService.ExecuteAsync(contactTxs, chainId, new CancellationToken());
             
             var results = dposResult.Result;
             results.AddRange((await Task.WhenAll(tasks)).SelectMany(x => x).ToList());
+            results.AddRange(contractResult.Result);
+
+            if (ActorConfig.Instance.IsCluster)
+            {
+                var contractAddresses = new List<Address>();
+                foreach (var tx in contactTxs)
+                {
+                    if (tx.MethodName == "UpdateSmartContract")
+                    {
+                        contractAddresses.Add(tx.To);
+                    }
+                }
+
+                if (contractAddresses.Count > 0)
+                {
+                    _actorEnvironment.Requestor.Tell(new UpdateContractMessage {ContractAddress = contractAddresses});
+                }
+            }
 
             foreach (var failed in failedTxs)
             {

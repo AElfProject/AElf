@@ -89,21 +89,13 @@ namespace AElf.Contracts.Genesis
 
     #endregion Customized Field Types
 
-    public class BasicContractZero : CSharpSmartContract//, ISmartContractZero
+    public class BasicContractZero : CSharpSmartContract, ISmartContractZero
     {
         #region Fields
-
-        private readonly ContractSerialNumber _contractSerialNumber = ContractSerialNumber.Instance;
 
         private readonly Map<Address, ContractInfo> _contractInfos = new Map<Address, ContractInfo>(FieldNames.ContractInfos);
 
         #endregion Fields
-
-        [View]
-        public ulong CurrentContractSerialNumber()
-        {
-            return _contractSerialNumber.Value;
-        }
 
         [View]
         public string GetContractInfoFor(Address contractAddress)
@@ -123,6 +115,8 @@ namespace AElf.Contracts.Genesis
             var isExistContract = _contractInfos.TryGet(contractAddress, out _);
             
             Api.Assert(!isExistContract,"Contract is exist.");
+
+            Api.GetChainId();
             
             Address creator = Api.GetTransaction().From;
             var contractHash = Hash.FromRawBytes(code);
