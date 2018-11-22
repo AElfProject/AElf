@@ -179,13 +179,12 @@ namespace AElf.Kernel.Node
         {
             get
             {
-                // todo warning adr
                 var dict = MinersConfig.Instance.Producers;
                 var miners = new Miners();
 
                 foreach (var bp in dict.Values)
                 {
-                    var b = bp["address"].RemoveHexPrefix();
+                    var b = bp["address"];
                     miners.Nodes.Add(b);
                 }
 

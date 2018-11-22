@@ -58,7 +58,6 @@ namespace AElf.CLI
 
         private string _genesisAddress;
         private string _chainId;
-        private string _chainPrefix;
             
         private static readonly RpcCalls Rpc = new RpcCalls();
         

@@ -237,8 +237,8 @@ namespace AElf.Node.AElfChain
 
         private Address GetGenesisContractHash(SmartContractType contractType)
         {
-            byte[] chainIdBytes = ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId);
-            byte[] toHash = ByteArrayHelpers.Combine(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId), Encoding.UTF8.GetBytes(contractType.ToString()));
+            byte[] chainIdBytes = Hash.LoadBase58(ChainConfig.Instance.ChainId).DumpByteArray();
+            byte[] toHash = ByteArrayHelpers.Combine(chainIdBytes, Encoding.UTF8.GetBytes(contractType.ToString()));
             var hash = SHA256.Create().ComputeHash(SHA256.Create().ComputeHash(toHash));
 
             return Address.FromPublicKey(chainIdBytes, hash);

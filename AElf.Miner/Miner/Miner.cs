@@ -473,7 +473,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init()
         {
-            _producerAddress = Address.ParseAddress(NodeConfig.Instance.NodeAccount);
+            _producerAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
             _keyPair = NodeConfig.Instance.ECKeyPair;
 
             _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;

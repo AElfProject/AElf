@@ -164,8 +164,8 @@ namespace AElf.Runtime.CSharp.Tests
             
             var refA = new Dictionary<string, Address>(new []
             {
-                new KeyValuePair<string, Address>("ContractC", Address.FromString("ELF_1234_TestContractC")), // todo warning adr contract adress
-                new KeyValuePair<string, Address>("_contractB", Address.FromString("ELF_1234_TestContractB")), // todo warning adr contract adress
+                new KeyValuePair<string, Address>("ContractC", Address.FromString("ELF_1234_TestContractC")), 
+                new KeyValuePair<string, Address>("_contractB", Address.FromString("ELF_1234_TestContractB")), 
             });
             
             var groundTruthTemplateA = new ContractMetadataTemplate(typeof(TestContractA).FullName, groundTruthResA,

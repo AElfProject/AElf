@@ -72,7 +72,7 @@ namespace AElf.Cryptography
                 if (String.CompareOrdinal(split[0], "ELF") != 0)
                     return Errors.WrongAccountFormat;
 
-                if (split[1].Length != 6)
+                if (split[1].Length != 4)
                     return Errors.WrongAccountFormat;
                 
                 if (_openAccounts.Any(x => x.AccountName == address))
@@ -179,7 +179,7 @@ namespace AElf.Cryptography
             string fullPath = null;
             try
             {
-                var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(chainId), keyPair.GetEncodedPublicKey());
+                var address = Address.FromPublicKey(chainId.DecodeBase58(), keyPair.GetEncodedPublicKey());
                 fullPath = GetKeyFileFullPath(address.GetFormatted());
             }
             catch (Exception e)

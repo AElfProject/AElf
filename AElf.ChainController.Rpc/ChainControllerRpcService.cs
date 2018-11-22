@@ -123,7 +123,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var addrHash =Address.ParseAddress(address);
+                var addrHash =Address.Parse(address);
 
                 var abi = await this.GetContractAbi(addrHash);
 
@@ -151,7 +151,7 @@ namespace AElf.ChainController.Rpc
             Address addr;
             try
             {
-                addr = Address.ParseAddress(address);
+                addr = Address.Parse(address);
             }
             catch (Exception e)
             {

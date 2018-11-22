@@ -195,7 +195,7 @@ namespace AElf.Common
             };
         }
 
-        public static Address ParseAddress(string inputStr)
+        public static Address Parse(string inputStr)
         {
             string[] split = inputStr.Split('_');
 

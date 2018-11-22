@@ -30,7 +30,7 @@ namespace AElf.ChainController
         {
             _smartContractService = smartContractService;
             
-            _nodeAddress = Address.ParseAddress(NodeConfig.Instance.NodeAccount);
+            _nodeAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
             _nodeKeyPair = NodeConfig.Instance.ECKeyPair;
             
             _logger = LogManager.GetLogger(nameof(ConsensusBlockValidationFilter));

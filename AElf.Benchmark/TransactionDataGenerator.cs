@@ -174,7 +174,7 @@ namespace AElf.Benchmark
                 string addrStr;
                 while ((addrStr = sr.ReadLine()) != null)
                 {
-                    KeyList.Add(Address.ParseAddress(addrStr));
+                    KeyList.Add(Address.Parse(addrStr));
                 }
 
                 if (KeyList.Count != _maxTxNumber + _maxGroupNumber)

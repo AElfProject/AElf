@@ -153,7 +153,7 @@ namespace AElf.CLI.Wallet
             var keypair = _keyStore.Create(password, _chainId);
             var pubKey = keypair.GetEncodedPublicKey();
             
-            var addr = Address.FromPublicKey(ByteArrayHelpers.FromHexString(_chainId), pubKey);
+            var addr = Address.FromPublicKey(_chainId.DecodeBase58(), pubKey);
             
             if (addr != null)
             {

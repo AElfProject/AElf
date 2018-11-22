@@ -112,7 +112,7 @@ namespace AElf.Network.Peers
             {
                 foreach (var bp in producers.Values)
                 {
-                    byte[] key = ByteArrayHelpers.FromHexString(bp["address"]);
+                    byte[] key = Address.Parse(bp["address"]).DumpByteArray();
                     _bpAddresses.Add(key);
                 }
             }
