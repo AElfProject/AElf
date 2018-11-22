@@ -22,9 +22,6 @@ namespace AElf.Execution
         private readonly IActorEnvironment _actorEnvironment;
         private readonly IExecutingService _singlExecutingService;
 
-        // TODO: Move it to config
-        public int TimeoutMilliSeconds { get; set; } = int.MaxValue;
-
         public ParallelTransactionExecutingService(IActorEnvironment actorEnvironment, IGrouper grouper,ServicePack servicePack)
         {
             _actorEnvironment = actorEnvironment;
@@ -123,11 +120,6 @@ namespace AElf.Execution
                 ExecutionStatus = ExecutionStatus.Canceled,
                 StdErr = "Execution Canceled"
             }).ToList();
-        }
-
-        private void CancelExecutions()
-        {
-            _actorEnvironment.Requestor.Tell(JobExecutionCancelMessage.Instance);
         }
     }
 }
