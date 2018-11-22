@@ -2,12 +2,15 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
+using NLog;
 
 // ReSharper disable CheckNamespace
 namespace AElf.Kernel
 {
     public partial class OngoingMiners
     {
+        private readonly ILogger _logger = LogManager.GetLogger(nameof(OngoingMiners));
+        
         /// <summary>
         /// Need to check the count of miners after.
         /// </summary>
@@ -31,7 +34,7 @@ namespace AElf.Kernel
 
         public void UpdateMiners(UInt64Value takeEffectRoundNumber, IEnumerable<Address> nextMinersAddresses)
         {
-            if (Miners.Any(m => m.TakeEffectRoundNumber == takeEffectRoundNumber.Value))
+            if (Miners.Any(m => m.TakeEffectRoundNumber >= takeEffectRoundNumber.Value))
             {
                 return;
             }
@@ -46,7 +49,7 @@ namespace AElf.Kernel
         
         public void UpdateMiners(Miners nextMiners)
         {
-            if (Miners.Contains(nextMiners))
+            if (Miners.Any() && Miners.Contains(nextMiners))
             {
                 return;
             }

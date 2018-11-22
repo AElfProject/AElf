@@ -387,9 +387,11 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private async Task InitializeBlockProducer(Miners miners)
         {
+            miners.TakeEffectRoundNumber = CurrentRoundNumber + 1;
+
             foreach (var bp in miners.Nodes)
             {
-                ConsoleWriteLine(nameof(Initialize), $"Set miner {bp} to state store.");
+                ConsoleWriteLine(nameof(Initialize), $"Set miner {bp.DumpHex()} to state store");
             }
 
             await UpdateOngoingMiners(miners);
@@ -398,6 +400,10 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         private async Task UpdateOngoingMiners(Miners miners)
         {
             var ongoingMiners = await _ongoingMinersField.GetAsync();
+            if (ongoingMiners == null)
+            {
+                ongoingMiners = new OngoingMiners();
+            }
             ongoingMiners.UpdateMiners(miners);
             await _ongoingMinersField.SetAsync(ongoingMiners);
         }

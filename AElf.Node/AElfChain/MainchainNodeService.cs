@@ -47,7 +47,7 @@ namespace AElf.Node.AElfChain
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(ChainConfig.Instance.ChainId)));
         
-        private IConsensus _consensus;
+        private readonly IConsensus _consensus;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
@@ -201,7 +201,6 @@ namespace AElf.Node.AElfChain
 
             if (NodeConfig.Instance.ConsensusInfoGenerator)
             {
-                StartMining();
                 // Start directly.
                 _consensus?.Start();
             }
