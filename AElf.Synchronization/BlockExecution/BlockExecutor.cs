@@ -123,8 +123,6 @@ namespace AElf.Synchronization.BlockExecution
             BlockExecutionResult res = BlockExecutionResult.Fatal;
             try
             {
-                MessageHub.Instance.Publish(new ExecutionStateChanged(true));
-
                 // get txn from pool
                 var tuple = CollectTransactions(block);
                 result = tuple.Item1;
@@ -185,7 +183,6 @@ namespace AElf.Synchronization.BlockExecution
             }
             finally
             {
-                MessageHub.Instance.Publish(new ExecutionStateChanged(false));
                 _current = null;
                 _executing = false;
                 if (_prepareTerminated)
