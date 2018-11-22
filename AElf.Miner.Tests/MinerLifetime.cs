@@ -130,7 +130,7 @@ namespace AElf.Kernel.Tests.Miner
                 To = contractAddressZero,
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack((int)0,ContractCodes.TestContractName, code)),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack((int)0, code)),
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1,
                 Type = TransactionType.ContractTransaction

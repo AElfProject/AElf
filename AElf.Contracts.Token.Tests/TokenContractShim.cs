@@ -78,7 +78,7 @@ namespace AElf.Contracts.Token.Tests
                 To = address0,
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(1,_mock.TokenName, _mock.TokenCode))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(1, _mock.TokenCode))
             };
 
             var tc = await PrepareTransactionContextAsync(tx);
