@@ -43,6 +43,7 @@ namespace AElf.Execution
             var dposTxs = new List<Transaction>();
             var normalTxs = new List<Transaction>();
             var contactTxs = new List<Transaction>();
+            var contractZeroAddress = AddressHelpers.GetSystemContractAddress(chainId, SmartContractType.BasicContractZero.ToString());
 
             foreach (var tx in transactions)
             {
@@ -50,7 +51,7 @@ namespace AElf.Execution
                 {
                     dposTxs.Add(tx);
                 }
-                else if(tx.To == Address.Zero)
+                else if(tx.To.Equals(contractZeroAddress))
                 {
                     contactTxs.Add(tx);
                 }

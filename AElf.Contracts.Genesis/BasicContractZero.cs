@@ -99,14 +99,6 @@ namespace AElf.Contracts.Genesis
 
         #endregion Fields
 
-        public BasicContractZero()
-        {
-            _contractInfos.SetValue(Address.FromRawBytes("0".CalculateHash()), null);
-            _contractInfos.SetValue(Address.FromRawBytes("1".CalculateHash()), null);
-            _contractInfos.SetValue(Address.FromRawBytes("2".CalculateHash()), null);
-            _contractInfos.SetValue(Address.FromRawBytes("3".CalculateHash()), null);
-        }
-
         [View]
         public ulong CurrentContractSerialNumber()
         {

@@ -35,6 +35,7 @@ namespace AElf.Execution.Execution
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<DataPath, StateCache>();
             var traces = new List<TransactionTrace>();
+            transactions = SortTransactions(chainId, transactions);
             foreach (var transaction in transactions)
             {
                 var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
@@ -61,6 +62,27 @@ namespace AElf.Execution.Execution
 
 //            await _stateDictator.ApplyCachedDataAction(stateCache);
             return traces;
+        }
+
+        private List<Transaction> SortTransactions(Hash chainId, List<Transaction> transactions)
+        {
+            var contractZeroAddress = AddressHelpers.GetSystemContractAddress(chainId, SmartContractType.BasicContractZero.ToString());
+            var result = new List<Transaction>();
+            var contractTxs = new List<Transaction>();
+            foreach (var tx in transactions)
+            {
+                if (tx.To.Equals(contractZeroAddress))
+                {
+                    contractTxs.Add(tx);
+                }
+                else
+                {
+                    result.Add(tx);
+                }
+            }
+            result.AddRange(contractTxs);
+            
+            return result;
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
