@@ -324,8 +324,8 @@ namespace AElf.CLI
                             _screenManager.PrintError(MethodNotFound);
                             return;
                         }
-                        
-                        byte[] serializedParams = meth.SerializeParams(new List<string> {"1", filename, hex} );
+
+                        byte[] serializedParams = meth.SerializeParams(new List<string> {"1", hex});
             
                         Transaction t = new Transaction();
                         t = CreateTransaction(parsedCmd.Args.ElementAt(1), _genesisAddress, 
