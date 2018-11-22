@@ -33,73 +33,55 @@ namespace AElf.Execution
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken token, Hash disambiguationHash=null)
+            CancellationToken token, Hash disambiguationHash=null, TransactionType transactionType = TransactionType.ContractTransaction)
         {
             token.Register(() => _actorEnvironment.Requestor.Tell(JobExecutionCancelMessage.Instance));
 
             List<List<Transaction>> groups;
-            Dictionary<Transaction, Exception> failedTxs;
+            Dictionary<Transaction, Exception> failedTxs=new Dictionary<Transaction, Exception>();
+            var results = new List<TransactionTrace>();
 
-            var dposTxs = new List<Transaction>();
-            var normalTxs = new List<Transaction>();
-            var contactTxs = new List<Transaction>();
-            var contractZeroAddress = AddressHelpers.GetSystemContractAddress(chainId, SmartContractType.BasicContractZero.ToString());
-
-            foreach (var tx in transactions)
+            if (transactionType == TransactionType.DposTransaction || transactionType == TransactionType.ContractDeployTransaction)
             {
-                if (tx.Type == TransactionType.DposTransaction)
+                results = await _singlExecutingService.ExecuteAsync(transactions, chainId, token);
+                
+                if (ActorConfig.Instance.IsCluster)
                 {
-                    dposTxs.Add(tx);
-                }
-                else if(tx.To.Equals(contractZeroAddress))
-                {
-                    contactTxs.Add(tx);
-                }
-                else
-                {
-                    normalTxs.Add(tx);
-                }
-            }
+                    var contractAddresses = new List<Address>();
+                    foreach (var tx in transactions)
+                    {
+                        if (tx.MethodName == "UpdateSmartContract")
+                        {
+                            contractAddresses.Add(tx.To);
+                        }
+                    }
 
-            //disable parallel module by default because it doesn't finish yet (don't support contract call)
-            if (ParallelConfig.Instance.IsParallelEnable)
-            {
-                var groupRes = await _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins,
-                    ActorConfig.Instance.ConcurrencyLevel, chainId, normalTxs);
-                groups = groupRes.Item1;
-                failedTxs = groupRes.Item2;
+                    if (contractAddresses.Count > 0)
+                    {
+                        _actorEnvironment.Requestor.Tell(new UpdateContractMessage {ContractAddress = contractAddresses});
+                    }
+                }
             }
             else
             {
-                groups = new List<List<Transaction>> {normalTxs};
-                failedTxs = new Dictionary<Transaction, Exception>();
-            }
-
-            var dposResult = _singlExecutingService.ExecuteAsync(dposTxs, chainId, token);
-            var tasks = groups.Select(
-                txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, disambiguationHash), token)
-            ).ToArray();
-            var contractResult = _singlExecutingService.ExecuteAsync(contactTxs, chainId, new CancellationToken());
-            
-            var results = dposResult.Result;
-            results.AddRange((await Task.WhenAll(tasks)).SelectMany(x => x).ToList());
-            results.AddRange(contractResult.Result);
-
-            if (ActorConfig.Instance.IsCluster)
-            {
-                var contractAddresses = new List<Address>();
-                foreach (var tx in contactTxs)
+                //disable parallel module by default because it doesn't finish yet (don't support contract call)
+                if (ParallelConfig.Instance.IsParallelEnable)
                 {
-                    if (tx.MethodName == "UpdateSmartContract")
-                    {
-                        contractAddresses.Add(tx.To);
-                    }
+                    var groupRes = await _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins,
+                        ActorConfig.Instance.ConcurrencyLevel, chainId, transactions);
+                    groups = groupRes.Item1;
+                    failedTxs = groupRes.Item2;
                 }
-
-                if (contractAddresses.Count > 0)
+                else
                 {
-                    _actorEnvironment.Requestor.Tell(new UpdateContractMessage {ContractAddress = contractAddresses});
+                    groups = new List<List<Transaction>> {transactions};
                 }
+                
+                var tasks = groups.Select(
+                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, disambiguationHash), token)
+                ).ToArray();
+
+                results = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
             }
 
             foreach (var failed in failedTxs)

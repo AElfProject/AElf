@@ -97,7 +97,7 @@ namespace AElf.Miner.Miner
                     _txFilter.Execute(sysTxs);
 
                     _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
-                    traces = await ExecuteTransactions(sysTxs, true);
+                    traces = await ExecuteTransactions(sysTxs, true, TransactionType.DposTransaction);
                     _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
 
                     // need check result of cross chain transaction 
@@ -105,10 +105,29 @@ namespace AElf.Miner.Miner
                 }
                 if (txGrp.TryGetValue(false, out var regRcpts))
                 {
-                    var regTxs = regRcpts.Select(x => x.Transaction).ToList();
+                    var contractZeroAddress = AddressHelpers.GetSystemContractAddress(Config.ChainId, SmartContractType.BasicContractZero.ToString());
+                    var regTxs = new List<Transaction>();
+                    var contractTxs = new List<Transaction>();
+
+                    foreach (var regRcpt in regRcpts)
+                    {
+                        if (regRcpt.Transaction.To.Equals(contractZeroAddress))
+                        {
+                            contractTxs.Add(regRcpt.Transaction);
+                        }
+                        else
+                        {
+                            regTxs.Add(regRcpt.Transaction);
+                        }
+                    }
+                    
                     _logger?.Trace($"Start executing {regTxs.Count} regular transactions.");
                     traces.AddRange(await ExecuteTransactions(regTxs));
                     _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
+                    
+                    _logger?.Trace($"Start executing {regTxs.Count} contract transactions.");
+                    traces.AddRange(await ExecuteTransactions(contractTxs, transactionType: TransactionType.ContractDeployTransaction));
+                    _logger?.Trace($"Finish executing {regTxs.Count} contract transactions.");
                 }
 
                 ExtractTransactionResults(traces, out var results);
@@ -151,7 +170,7 @@ namespace AElf.Miner.Miner
         }
        
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false)
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false, TransactionType transactionType = TransactionType.ContractTransaction)
         {
             using (var cts = new CancellationTokenSource())
             using (var timer = new Timer(s =>
@@ -185,7 +204,8 @@ namespace AElf.Miner.Miner
                     ? new List<TransactionTrace>()
                     : await _executingService.ExecuteAsync(txs, Config.ChainId,
                         noTimeout ? CancellationToken.None : cts.Token,
-                        disambiguationHash);
+                        disambiguationHash,
+                        transactionType);
 
                 return traces;
             }
