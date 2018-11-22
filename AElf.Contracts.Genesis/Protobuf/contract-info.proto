@@ -8,7 +8,5 @@ message ContractInfo
 {
     int32 Category = 1;
     Address Owner = 2;
-    string ContractName =3;
-    int32 Version=4;
-    Hash ContractHash = 5;
+    Hash ContractHash = 3;
 }

@@ -86,8 +86,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero,
-                Version = 1
+                ContractHash = Hash.Zero
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
@@ -121,8 +120,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.FromRawBytes(code),
-                Version = 1
+                ContractHash = Hash.FromRawBytes(code)
             };
             var copy = await _smartContractManager.GetAsync(address);
 

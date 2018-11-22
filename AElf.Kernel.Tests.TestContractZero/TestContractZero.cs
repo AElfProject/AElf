@@ -85,14 +85,13 @@ namespace AElf.Kernel.Tests
         private object _deployLock;        
 
         [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{"${this}._deployLock"})]
-        public async Task<byte[]> DeploySmartContract(int category, string contractName, byte[] contract)
+        public async Task<byte[]> DeploySmartContract(int category, byte[] contract)
         {
             SmartContractRegistration registration = new SmartContractRegistration
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(contract),
                 ContractHash = Hash.FromRawBytes(contract),
-                Version = 1
             };
             
             var tx = Api.GetTransaction();

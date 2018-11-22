@@ -23,7 +23,7 @@ namespace AElf.SmartContract
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
-        private readonly ConcurrentDictionary<Address, int> _contractVersions = new ConcurrentDictionary<Address, int>();
+        private readonly ConcurrentDictionary<Address, Hash> _contractHashs = new ConcurrentDictionary<Address, Hash>();
         private readonly IStateStore _stateStore;
         private readonly IFunctionMetadataService _functionMetadataService;
 
@@ -55,14 +55,14 @@ namespace AElf.SmartContract
             }
         }
 
-        private int GetContractVersion(Address address)
+        private Hash GetContractVersion(Address address)
         {
-            if (!_contractVersions.TryGetValue(address, out var version))
+            if (!_contractHashs.TryGetValue(address, out var hash))
             {
-                version = _smartContractManager.GetAsync(address).Result.Version;
-                _contractVersions.TryAdd(address, version);
+                hash = _smartContractManager.GetAsync(address).Result.ContractHash;
+                _contractHashs.TryAdd(address, hash);
             }
-            return version;
+            return hash;
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId)
@@ -88,7 +88,7 @@ namespace AElf.SmartContract
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
-            executive.ContractVersion = reg.Version;
+            executive.ContractHash = reg.ContractHash;
             executive.SetStateStore(_stateStore);
             
             executive.SetSmartContractContext(new SmartContractContext()
@@ -104,7 +104,7 @@ namespace AElf.SmartContract
 
         public async Task PutExecutiveAsync(Address account, IExecutive executive)
         {
-            if (executive.ContractVersion == GetContractVersion(account))
+            if (executive.ContractHash.Equals(GetContractVersion(account)))
             {
                 executive.SetTransactionContext(new TransactionContext());
                 executive.SetDataCache(new Dictionary<DataPath, StateCache>());
@@ -139,7 +139,7 @@ namespace AElf.SmartContract
             }
             
             await _smartContractManager.InsertAsync(contractAddress, registration);
-            _contractVersions.AddOrSet(contractAddress, registration.Version);
+            _contractHashs.AddOrSet(contractAddress, registration.ContractHash);
         }
         
         public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration newRegistration, bool isPrivileged)
@@ -160,7 +160,7 @@ namespace AElf.SmartContract
             }
             await _smartContractManager.InsertAsync(contractAddress, newRegistration);
             
-            _contractVersions.AddOrSet(contractAddress, newRegistration.Version);
+            _contractHashs.AddOrSet(contractAddress, newRegistration.ContractHash);
             ClearPool(contractAddress);
         }
 

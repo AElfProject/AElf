@@ -57,7 +57,7 @@ namespace AElf.Common
 
         #endregion
 
-        public static ulong BasicContractZeroSerialNumber = 0;
+        public static ulong BasicContractZeroSerialNumber = 100;
 
         #region data key prefixes
 
