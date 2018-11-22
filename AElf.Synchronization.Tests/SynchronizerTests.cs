@@ -86,7 +86,7 @@ namespace AElf.Synchronization.Tests
         public List<Transaction> CreateTx(Hash chainId)
         {
             var contractAddressZero =
-                AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
+                ContractHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
 
             var keyPair = new KeyPairGenerator().Generate();
             var signer = new ECSigner();

@@ -105,7 +105,7 @@ namespace AElf.Miner.Miner
                 }
                 if (txGrp.TryGetValue(false, out var regRcpts))
                 {
-                    var contractZeroAddress = AddressHelpers.GetSystemContractAddress(Config.ChainId, SmartContractType.BasicContractZero.ToString());
+                    var contractZeroAddress = ContractHelpers.GetGenesisBasicContractAddress(Config.ChainId);
                     var regTxs = new List<Transaction>();
                     var contractTxs = new List<Transaction>();
 
@@ -236,8 +236,7 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
-                    To = AddressHelpers.GetSystemContractAddress(Config.ChainId,
-                        SmartContractType.SideChainContract.ToString()),
+                    To = ContractHelpers.GetSideChainContractAddress(Config.ChainId),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",

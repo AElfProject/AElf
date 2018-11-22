@@ -62,9 +62,7 @@ namespace AElf.Kernel.Node
 
         private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
 
-        public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
-            Hash.LoadHex(ChainConfig.Instance.ChainId),
-            SmartContractType.AElfDPoS.ToString());
+        public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
 
         private static int _flag;
 

@@ -68,10 +68,7 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            string name = null;
-            if (reg.Category == 0)
-                name = ((SmartContractType) reg.Type).ToString();
-            var abiModule = GetAbiModule(reg, name);
+            var abiModule = GetAbiModule(reg);
 
             // TODO: Change back
             var types = assembly.GetTypes();
@@ -100,7 +97,7 @@ namespace AElf.Runtime.CSharp
             var code = reg.ContractBytes.ToByteArray();
             if (reg.Category == 0)
             {
-                name = ((SmartContractType) reg.Type).ToString();
+                name = ContractHelpers.GetSystemContractName(reg.SerialNumber);
             }
 
             var abiModule = Generator.GetABIModule(code, name);
