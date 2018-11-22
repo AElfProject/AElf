@@ -334,7 +334,7 @@ namespace AElf.ChainController.Rpc
                 }
                 return new JObject
                 {
-                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpHex(),
+                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
                     ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.DumpHex(),
                     ["parent_height"] = merklePathInParentChain.Height
                 };
@@ -465,7 +465,7 @@ namespace AElf.ChainController.Rpc
                         ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.DumpHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
-                        ["ChainId"] = blockinfo.Header.ChainId.DumpHex(),
+                        ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),
                         //["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                     },
                     ["Body"] = new JObject

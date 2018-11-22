@@ -43,7 +43,7 @@ namespace AElf.Wallet.Rpc
             try
             {
                 var chainPrefixBase58 =
-                    Base58CheckEncoding.Encode(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId));
+                    Base58CheckEncoding.EncodePlain(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId));
 
                 var chainPrefix = chainPrefixBase58.Substring(0, 4);
                 

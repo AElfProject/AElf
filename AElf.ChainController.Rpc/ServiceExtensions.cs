@@ -191,7 +191,7 @@ namespace AElf.ChainController.Rpc
 
         internal static Address GetGenesisContractHash(this Svc s, SmartContractType contractType)
         {
-            return s.ChainCreationService.GenesisContractHash(Hash.LoadHex(ChainConfig.Instance.ChainId), contractType);
+            return s.ChainCreationService.GenesisContractHash(Hash.LoadBase58(ChainConfig.Instance.ChainId), contractType);
         }
 
         internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
@@ -201,13 +201,13 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)
         {
-            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             return chainContext.BlockHeight;
         }
 
         internal static async Task<Block> GetBlockAtHeight(this Svc s, ulong height)
         {
-            var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var blockchain = s.ChainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHeightAsync(height);
         }
 
@@ -229,7 +229,7 @@ namespace AElf.ChainController.Rpc
                 TransactionId = tx.GetHash()
             };
 
-            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
@@ -238,7 +238,7 @@ namespace AElf.ChainController.Rpc
                 BlockHeight = chainContext.BlockHeight
             };
 
-            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
             try
             {

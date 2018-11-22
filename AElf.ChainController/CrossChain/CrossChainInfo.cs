@@ -15,7 +15,7 @@ namespace AElf.ChainController.CrossChain
 
         public CrossChainInfo(IStateStore stateStore)
         {
-            var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
+            var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
             _crossChainHelper = new CrossChainHelper(chainId, stateStore);
         }
 

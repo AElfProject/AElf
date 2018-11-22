@@ -98,9 +98,6 @@ namespace AElf.CLI
             _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
-
-            _chainId = "e738e1";
-            _accountManager.SetChainId(_chainId);
         }
         
         public void StartRepl()
@@ -664,10 +661,6 @@ namespace AElf.CLI
                         if (j["result"]?["chain_id"] != null)
                         {
                             _chainId = j["result"]["chain_id"].ToString();
-
-                            var chainPrefixBase58 =
-                                Base58CheckEncoding.Encode(ByteArrayHelpers.FromHexString(_chainId));
-
                             _accountManager.SetChainId(_chainId);
                         }
                         

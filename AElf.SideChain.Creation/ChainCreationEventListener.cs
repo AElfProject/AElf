@@ -58,7 +58,7 @@ namespace AElf.SideChain.Creation
         private Address GetGenesisContractHash()
         {
             return ChainCreationService.GenesisContractHash(
-                Hash.LoadHex(ChainConfig.Instance.ChainId),
+                Hash.LoadBase58(ChainConfig.Instance.ChainId),
                 SmartContractType.BasicContractZero);
         }
 
@@ -147,11 +147,11 @@ namespace AElf.SideChain.Creation
     
         private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash sideChainId, Hash parentChainId)
         {
-            var chainId = parentChainId.DumpHex();
+            var chainId = parentChainId.DumpBase58();
             var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + chainId;
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var deployArg = new DeployArg();
-            deployArg.SideChainId = sideChainId.DumpHex();
+            deployArg.SideChainId = sideChainId.DumpBase58();
             deployArg.AccountPassword = "123";
             deployArg.LauncherArg.IsConsensusInfoGenerator = true;
             deployArg.LighthouseArg.IsCluster = false;

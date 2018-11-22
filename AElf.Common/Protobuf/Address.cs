@@ -174,7 +174,7 @@ namespace AElf.Common
                     $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
             }
 
-            string chainId = Value.Take(3).ToArray().ToHex();
+            string chainId = Base58CheckEncoding.EncodePlain(Value.Take(3).ToArray());
             string pubKeyHash = Base58CheckEncoding.Encode(Value.Skip(3).ToArray());
             
             return string.IsNullOrEmpty(_formattedAddress) 
@@ -189,11 +189,6 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Address FromBytes(byte[] bytes)
         {
-            if (bytes.Length != GlobalConfig.AddressHashLength)
-            {
-                throw new ArgumentOutOfRangeException(nameof(bytes));
-            }
-
             return new Address
             {
                 Value = ByteString.CopyFrom(bytes)
@@ -213,7 +208,7 @@ namespace AElf.Common
             if (split[1].Length != 4)
                 return null;
             
-            return new Address(ByteArrayHelpers.FromHexString(split[1]), Base58CheckEncoding.Decode(split[2]));
+            return new Address(Base58CheckEncoding.DecodePlain(split[1]), Base58CheckEncoding.Decode(split[2]));
         }
         
         #endregion Load and dump

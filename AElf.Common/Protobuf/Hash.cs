@@ -220,6 +220,11 @@ namespace AElf.Common
             return Value.ToByteArray().ToHex();
         }
 
+        public string DumpBase58()
+        {
+            return Value.ToByteArray().ToPlainBase58();
+        }
+
         /// <summary>
         /// Loads the content value from 32-byte long byte array.
         /// </summary>
@@ -248,6 +253,12 @@ namespace AElf.Common
         public static Hash LoadHex(string hex)
         {
             var bytes = ByteArrayHelpers.FromHexString(hex);
+            return LoadByteArray(bytes);
+        }
+
+        public static Hash LoadBase58(string b58str)
+        {
+            var bytes = b58str.DecodeBase58();
             return LoadByteArray(bytes);
         }
 

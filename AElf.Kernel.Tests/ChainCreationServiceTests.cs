@@ -31,8 +31,8 @@ namespace AElf.Kernel.Tests
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.FromRawBytes(SmartContractZeroCode)
             };
-            var chain = await _service.CreateNewChainAsync(Hash.FromString("Hello"), new List<SmartContractRegistration>{reg});
-            Assert.Equal(Hash.FromString("Hello").DumpHex(), chain.Id.DumpHex());
+            var chain = await _service.CreateNewChainAsync(Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }), new List<SmartContractRegistration>{reg});
+            Assert.Equal(Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }).DumpBase58(), chain.Id.DumpBase58());
         }
     }
 }

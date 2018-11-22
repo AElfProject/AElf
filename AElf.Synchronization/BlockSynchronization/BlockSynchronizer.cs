@@ -29,7 +29,7 @@ namespace AElf.Synchronization.BlockSynchronization
         private IBlockChain _blockChain;
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
+                                                  Hash.LoadBase58(ChainConfig.Instance.ChainId)));
         
         private readonly ILogger _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
@@ -427,7 +427,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<IChainContext> GetChainContextAsync()
         {
-            var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
+            var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
             var blockchain = _chainService.GetBlockChain(chainId);
             IChainContext chainContext = new ChainContext
             {

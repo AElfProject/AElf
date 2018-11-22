@@ -10,9 +10,16 @@ namespace AElf.Common
             return Address.BuildContractAddress(chainId.DumpByteArray(), contractName);
         }
         
-        public static Address BuildAddress(byte[] key, string chainPrefix)
+        // Test only
+        public static Address BuildAddress(byte[] key)
         {
-            return Address.FromPublicKey(key, new byte[] {});
+            return Address.FromPublicKey(new byte[] {0x01, 0x02, 0x03}, key);
+        }
+        
+        // Test only 
+        public static Address BuildAddress(byte[] chainId, byte[] key)
+        {
+            return Address.FromPublicKey(chainId, key);
         }
     }
 }

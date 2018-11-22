@@ -27,8 +27,8 @@ namespace AElf.Kernel.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            ChainConfig.Instance.ChainId = (new byte[] {0x01, 0x02, 0x03 }).ToHex();
-            NodeConfig.Instance.NodeAccount = Address.FromString("ELF_1234_TestContractA").GetFormatted();
+            ChainConfig.Instance.ChainId = "kPBx";
+            NodeConfig.Instance.NodeAccount = Address.FromString("ELF_kPBx_TestContractA").GetFormatted();
 
             var assembly1 = typeof(IDataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();

@@ -37,7 +37,7 @@ namespace AElf.Miner.TxMemPool
 
         private IBlockChain BlockChain => _blockChain ??
                                           (_blockChain =
-                                              _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId)));
+                                              _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId)));
         
         private static bool _terminated;
 
@@ -57,11 +57,11 @@ namespace AElf.Miner.TxMemPool
         }
 
         private static Address DPosContractAddress =>
-            Address.BuildContractAddress(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId),
+            Address.BuildContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId).DumpByteArray(),
                 SmartContractType.AElfDPoS.ToString());
 
         private static Address SideChainContractAddress =>
-            Address.BuildContractAddress(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId),
+            Address.BuildContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId).DumpByteArray(),
                 SmartContractType.SideChainContract.ToString());
         
         private readonly List<Address> _systemAddresses = new List<Address>()

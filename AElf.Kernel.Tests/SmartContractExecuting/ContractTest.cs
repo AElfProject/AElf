@@ -17,6 +17,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
     [UseAutofacTestFramework]
     public class ContractTest
     {
+        // todo warning this test obviously uses bad  
+        
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
         private static int _incrementId;
@@ -37,8 +39,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         private IFunctionMetadataService _functionMetadataService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
-
-        private Hash ChainId { get; } = Hash.Generate();
 
         public ContractTest(IStateStore stateStore,
             IChainCreationService chainCreationService, IChainService chainService,
@@ -63,6 +63,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task SmartContractZeroByCreation()
         {
+            Hash ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+        
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -82,6 +84,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task DeployUserContract()
         {
+            Hash ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x04 });
+            
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -132,6 +136,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task Invoke()
         {
+            Hash ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x05 });
+            
             var reg = new SmartContractRegistration
             {
                 Category = 0,

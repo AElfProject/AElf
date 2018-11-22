@@ -31,7 +31,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [Fact]
         public async Task TestDepolyContract()
         {   
-            var chainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
+            var chainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x06});
             var runner = _smartContractRunnerFactory.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);
@@ -234,7 +234,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [Fact]
         public async Task TestEmptyContract()
         {
-            var chainId = Hash.Generate();
+            var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x07 });
             var runner = _smartContractRunnerFactory.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);
@@ -251,13 +251,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             var refNonAttrContractTemplate = runner.ExtractMetadata(refNonAttrContractType);
             
             
-            var contract1Addr = Address.FromString("TestNonAttrContract1"); // 0x3f77405cbfe1e48e2fa0e4bf6a4e5917f768
-            var contract2Addr = Address.FromString("TestNonAttrContract2"); // 0xb4e0cc36ede5d518fbabd1ed5498093e4b71
-            var refContractAddr = Address.FromString("TestRefNonAttrContract"); // 0x7c7f78ecc9f78be2a502e5bf9f22112c6a47
+            var contract1Addr = Address.FromString("ELF_1234_TestNonAttrContract1"); // 0x3f77405cbfe1e48e2fa0e4bf6a4e5917f768
+            var contract2Addr = Address.FromString("ELF_1234_TestNonAttrContract2"); // 0xb4e0cc36ede5d518fbabd1ed5498093e4b71
+            var refContractAddr = Address.FromString("ELF_1234_TestRefNonAttrContract"); // 0x7c7f78ecc9f78be2a502e5bf9f22112c6a47
             
             var addrA = Address.FromString("TestContractA"); // 0x46c86551bca0e3120ca0f831f53d8cb55ac7
-            var addrB = Address.FromString("TestContractB"); // 0xea0e38633e550dc4b7914010c2d7c95086ee
-            var addrC = Address.FromString("TestContractC"); // 0x053f751c35f7c681be14bcee03085dc8a309
+            var addrB = Address.FromString("ELF_1234_TestContractB"); // 0xea0e38633e550dc4b7914010c2d7c95086ee
+            var addrC = Address.FromString("ELF_1234_TestContractC"); // 0x053f751c35f7c681be14bcee03085dc8a309
             
             await _functionMetadataService.DeployContract(chainId, addrC, contractCTemplate);
             await _functionMetadataService.DeployContract(chainId, addrB, contractBTemplate);
@@ -743,13 +743,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
     public class TestRefNonAttrContract : CSharpSmartContract
     {
-        [SmartContractReference("ref1", "0x3f77405cbfe1e48e2fa0e4bf6a4e5917f768")]
+        [SmartContractReference("ref1", "ELF_1234_TestNonAttrContract1")]
         public TestNonAttrContract1 ref1;
         
-        [SmartContractReference("ref2", "0xb4e0cc36ede5d518fbabd1ed5498093e4b71")]
+        [SmartContractReference("ref2", "ELF_1234_TestNonAttrContract2")]
         public TestNonAttrContract2 ref2;
 
-        [SmartContractReference("refc", "0x053f751c35f7c681be14bcee03085dc8a309")]
+        [SmartContractReference("refc", "ELF_1234_TestContractC")]
         public TestContractC refc;
 
         [SmartContractFieldData("${this}.localRes", DataAccessMode.AccountSpecific)]

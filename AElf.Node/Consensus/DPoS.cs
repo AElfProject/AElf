@@ -48,7 +48,7 @@ namespace AElf.Kernel.Node
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
+                                                  Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58())));
 
         private readonly ILogger _logger;
 
@@ -65,7 +65,7 @@ namespace AElf.Kernel.Node
         private readonly Hash _chainId;
 
         public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
-            Hash.LoadHex(ChainConfig.Instance.ChainId),
+            Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()),
             SmartContractType.AElfDPoS.ToString());
 
         private static int _flag;
@@ -82,12 +82,8 @@ namespace AElf.Kernel.Node
             IChainService chainService, IBlockSynchronizer synchronizer)
         {
             _nodeKey = NodeConfig.Instance.ECKeyPair;
-            _chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
-            
-            string b58ChainPrefix = Base58CheckEncoding.Encode(_chainId.DumpByteArray());
-            
-            // todo warning adr
-            //_nodeAddress = Address.FromPublicKey(_nodeKey.GetEncodedPublicKey(), b58ChainPrefix.Substring(0, 4));
+            _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
+            _nodeAddress = Address.FromPublicKey(_chainId.DumpByteArray(), _nodeKey.GetEncodedPublicKey());
             
             _txHub = txHub;
             _miner = miner;
@@ -98,8 +94,7 @@ namespace AElf.Kernel.Node
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
-            Helper = new AElfDPoSHelper(Hash.LoadHex(ChainConfig.Instance.ChainId), Miners,
-                ContractAddress, stateStore);
+            Helper = new AElfDPoSHelper(_chainId, Miners, ContractAddress, stateStore);
 
             var count = MinersConfig.Instance.Producers.Count;
 

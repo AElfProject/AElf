@@ -112,6 +112,8 @@ namespace AElf.Contracts.Genesis
         public async Task<byte[]> DeploySmartContract(int category, string contractName, byte[] code)
         {
             var contractAddress = Address.BuildContractAddress(Api.GetChainId().DumpByteArray(), contractName);
+            Console.WriteLine("BasicContractZero - ChainId: " + Api.GetChainId().DumpHex() + "Name : " + contractName);
+            
             var isExistContract = _contractInfos.TryGet(contractAddress, out _);
             
             Api.Assert(!isExistContract,"Contract is exist.");
@@ -155,6 +157,7 @@ namespace AElf.Contracts.Genesis
 
             Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.DumpHex());
             Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
+            
             return contractAddress.DumpByteArray();
         }
         

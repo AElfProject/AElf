@@ -98,7 +98,7 @@ namespace AElf.Miner.Tests
 
         public async Task<IChain> CreateChain()
         {            
-            var chainId = Hash.Generate();
+            var chainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -186,7 +186,7 @@ namespace AElf.Miner.Tests
                 MerkleTreeRootOfTransactions = Hash.Generate(),
                 SideChainTransactionsRoot = Hash.Generate(),
                 SideChainBlockHeadersRoot = Hash.Generate(),
-                ChainId = Hash.Generate(),
+                ChainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId()),
                 PreviousBlockHash = Hash.Generate(),
                 MerkleTreeRootOfWorldState = Hash.Generate()
             };
@@ -205,7 +205,7 @@ namespace AElf.Miner.Tests
             return new SideChainBlockInfo
             {
                 Height = height,
-                ChainId = chainId ?? Hash.Generate(),
+                ChainId = chainId ?? Hash.LoadByteArray(ChainHelpers.GetRandomChainId()),
                 TransactionMKRoot = Hash.Generate(),
                 BlockHeaderHash = Hash.Generate()
             };
@@ -280,7 +280,7 @@ namespace AElf.Miner.Tests
         {
             
             var certificateStore = new CertificateStore(dir);
-            var name = chainId.DumpHex();
+            var name = chainId.DumpBase58();
             var keyPair = certificateStore.WriteKeyAndCertificate(name, "127.0.0.1");
         }
         
@@ -293,8 +293,8 @@ namespace AElf.Miner.Tests
                 MockBlockHeader()
             };
             
-            var sideChainId = Hash.Generate();
-            ChainConfig.Instance.ChainId = sideChainId.DumpHex();
+            var sideChainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            ChainConfig.Instance.ChainId = sideChainId.DumpBase58();
             
             MockKeyPair(sideChainId, dir);
             GrpcLocalConfig.Instance.LocalSideChainServerPort = port;
@@ -308,7 +308,7 @@ namespace AElf.Miner.Tests
         public Hash MockParentChainServer(int port, string address, string dir, Hash chainId = null)
         {
             
-            chainId = chainId??Hash.Generate();
+            chainId = chainId??Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
             
             _headers = new List<IBlockHeader>
             {
@@ -328,7 +328,7 @@ namespace AElf.Miner.Tests
             GrpcLocalConfig.Instance.LocalParentChainServerPort = port;
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.ParentChainServer = true;
-            ChainConfig.Instance.ChainId = chainId.DumpHex();
+            ChainConfig.Instance.ChainId = chainId.DumpBase58();
             
             return chainId;
         }

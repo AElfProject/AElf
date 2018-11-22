@@ -139,7 +139,7 @@ namespace AElf.Node.AElfChain
         public void Initialize(NodeConfiguration conf)
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
-            _blockChain = _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             NodeConfig.Instance.ECKeyPair = conf.KeyPair; // todo config should not be set here 
 
             SetupConsensus();
@@ -297,7 +297,7 @@ namespace AElf.Node.AElfChain
                 Type = (int) SmartContractType.SideChainContract,
                 Version = 1
             };
-            var res = _chainCreationService.CreateNewChainAsync(Hash.LoadHex(ChainConfig.Instance.ChainId),
+            var res = _chainCreationService.CreateNewChainAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg}).Result;
 
             _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");

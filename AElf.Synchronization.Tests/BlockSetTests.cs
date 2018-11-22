@@ -91,7 +91,7 @@ namespace AElf.Synchronization.Tests
                 MerkleTreeRootOfTransactions = Hash.Generate(),
                 SideChainTransactionsRoot = Hash.Generate(),
                 SideChainBlockHeadersRoot = Hash.Generate(),
-                ChainId = Hash.Generate(),
+                ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }),
                 PreviousBlockHash = preBlockHash,
                 MerkleTreeRootOfWorldState = Hash.Generate()
             };

@@ -25,7 +25,7 @@ namespace AElf.ChainController
                 string chainId;
                 if (string.IsNullOrWhiteSpace(ChainConfig.Instance.ChainId))
                 {
-                    chainId = Hash.Generate().DumpHex();
+                    chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }).DumpBase58();
                     ChainConfig.Instance.ChainId = chainId;
                 }
                 else

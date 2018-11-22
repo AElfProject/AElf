@@ -21,6 +21,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
+using NServiceKit.Text;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Kernel.Tests.Miner
@@ -64,7 +65,7 @@ namespace AElf.Kernel.Tests.Miner
             
             var txPrint = new Transaction()
             {
-                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey(), "ABCD"),
+                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey()),
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "Print",
@@ -123,14 +124,14 @@ namespace AElf.Kernel.Tests.Miner
             
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
+            
             var txnDep = new Transaction()
             {
-                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey(), "ABCD"),
+                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey()),
                 To = contractAddressZero,
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack((int)0,ContractCodes.TestContractName, code)),
-                
                 Fee = TxPoolConfig.Default.FeeThreshold + 1,
                 Type = TransactionType.ContractTransaction
             };
@@ -147,7 +148,7 @@ namespace AElf.Kernel.Tests.Miner
             
             var txInv_1 = new Transaction
             {
-                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey(), "ABCD"),
+                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey()),
                 To = contractAddressZero,
                 IncrementId = 1,
                 MethodName = "Print",
@@ -166,7 +167,7 @@ namespace AElf.Kernel.Tests.Miner
             
             var txInv_2 = new Transaction
             {
-                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey(), "ABCD"),
+                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey()),
                 To = contractAddressZero,
                 IncrementId =txInv_1.IncrementId,
                 MethodName = "Print",
@@ -197,9 +198,9 @@ namespace AElf.Kernel.Tests.Miner
             var chain = await _mock.CreateChain();
             // create miner
             var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, AddressHelpers.BuildAddress(keypair.GetEncodedPublicKey(), "ABCD").DumpByteArray());
-            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
-            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(keypair.GetEncodedPublicKey(), "ABCD").GetFormatted();
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, AddressHelpers.BuildAddress(keypair.GetEncodedPublicKey()).DumpByteArray());
+            ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
+            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(keypair.GetEncodedPublicKey()).GetFormatted();
             var txPool = _mock.CreateTxPool();
             txPool.Start();
 
@@ -224,7 +225,7 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
-            Address addr = AddressHelpers.BuildAddress(keypair.GetEncodedPublicKey(), "ABCD");
+            Address addr = AddressHelpers.BuildAddress(keypair.GetEncodedPublicKey());
             // Assert.Equal(minerconfig.CoinBase, addr); 
             
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
@@ -236,7 +237,7 @@ namespace AElf.Kernel.Tests.Miner
         public async Task SyncGenesisBlock_False_Rollback()
         {
             var chain = await _mock.CreateChain();
-            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
+            ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
             NodeConfig.Instance.NodeAccount = Address.Generate().GetFormatted();
             
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
@@ -290,7 +291,7 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
                 {
                     {
-                        sideChainId.DumpHex(), new Uri{
+                        sideChainId.DumpBase58(), new Uri{
                             Address = address,
                             Port = port
                         }
@@ -356,7 +357,7 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcRemoteConfig.Instance.ParentChain = new Dictionary<string, Uri>
                 {
                     {
-                        parentChainId.DumpHex(), new Uri{
+                        parentChainId.DumpBase58(), new Uri{
                             Address = address,
                             Port = port
                         }
@@ -412,10 +413,10 @@ namespace AElf.Kernel.Tests.Miner
             
             var minerConfig = _mock.GetMinerConfig(chain.Id, 10, null);
             
-            NodeConfig.Instance.ECKeyPair = keyPair;
-            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey(), "ABCD").GetFormatted();
+            ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
             
-            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
+            NodeConfig.Instance.ECKeyPair = keyPair;
+            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(chain.Id.DumpByteArray(), keyPair.GetEncodedPublicKey()).GetFormatted();
             
             var pool = _mock.CreateTxPool();
             pool.Start();
@@ -441,7 +442,7 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
                 {
                     {
-                        sideChainId.DumpHex(), new Uri{
+                        sideChainId.DumpBase58(), new Uri{
                             Address = address,
                             Port = sidePort
                         }

@@ -120,7 +120,7 @@ namespace AElf.Miner.Miner
                 _logger?.Info($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
-                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var blockValidationResult = await _blockValidationService.ValidatingOwnBlock(true)
                     .ValidateBlockAsync(block, chainContext);
                 if (blockValidationResult != BlockValidationResult.Success)

@@ -27,7 +27,7 @@ namespace AElf.ChainController.Rpc
             var res = new JObject();
             foreach (var sideChainIndexedInfo in block.Body.IndexedInfo)
             {
-                res.Add(sideChainIndexedInfo.ChainId.DumpHex(), new JObject
+                res.Add(sideChainIndexedInfo.ChainId.DumpBase58(), new JObject
                 {
                     {"Height", sideChainIndexedInfo.Height},
                     {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.DumpHex()},

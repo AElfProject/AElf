@@ -31,8 +31,8 @@ namespace AElf.Runtime.CSharp.Tests
             return (ulong)n;
         }
 
-        public Hash ChainId1 { get; } = Hash.Generate();
-        public Hash ChainId2 { get; } = Hash.Generate();
+        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+        public Hash ChainId2 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x04 });
         public ISmartContractService SmartContractService;
 
         public IStateStore StateStore;
