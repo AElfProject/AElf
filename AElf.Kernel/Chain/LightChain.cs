@@ -10,6 +10,7 @@ using Akka.Util;
 using Easy.MessageHub;
 using NLog;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class LightChain : ILightChain

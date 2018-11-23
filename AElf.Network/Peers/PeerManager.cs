@@ -137,7 +137,7 @@ namespace AElf.Network.Peers
             if (!_isBp)
                 _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
 
-            // Add the provided bootnodes
+            // Add the provided boot nodes
             if (NetworkConfig.Instance.Bootnodes != null && NetworkConfig.Instance.Bootnodes.Any())
             {
                 // todo add jobs

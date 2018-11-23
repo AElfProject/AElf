@@ -177,11 +177,11 @@ namespace AElf.Node.AElfChain
 
                 var curHash = BlockChain.GetCurrentBlockHashAsync().Result;
 
-                var chainExists = curHash != null && !curHash.Equals(Hash.Genesis);
+                var chainExistence = curHash != null && !curHash.Equals(Hash.Genesis);
 
-                if (!chainExists)
+                if (!chainExistence)
                 {
-                    // Creation of the chain if it doesn't already exist
+                    // Create the chain if it doesn't exist
                     CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero,
                         SideChainGenesisContractZero);
                 }
@@ -197,7 +197,7 @@ namespace AElf.Node.AElfChain
 
             _txHub.Start();
 
-            if (NodeConfig.Instance.IsMiner)
+            if (NodeConfig.Instance.WillingToMine)
             {
                 _miner.Init();
                 _logger?.Debug($"Coinbase = {_miner.Coinbase.DumpHex()}");
@@ -305,7 +305,7 @@ namespace AElf.Node.AElfChain
 
         private void StartMining()
         {
-            if (NodeConfig.Instance.IsMiner)
+            if (NodeConfig.Instance.WillingToMine)
             {
                 _consensus?.Start();
             }

@@ -100,7 +100,7 @@ namespace AElf.Kernel.Node
             _logger?.Info("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
             _logger?.Info("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
 
-            if (GlobalConfig.BlockProducerNumber == 1 && NodeConfig.Instance.IsMiner)
+            if (GlobalConfig.BlockProducerNumber == 1 && NodeConfig.Instance.WillingToMine)
             {
                 AElfDPoSObserver.RecoverMining();
             }

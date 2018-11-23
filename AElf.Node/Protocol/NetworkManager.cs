@@ -331,7 +331,7 @@ namespace AElf.Node.Protocol
                     }
                     
                     CurrentSyncSource = target;
-                    CurrentSyncSource.SyncToHeight(LocalHeight + 1, target.KnownHeight);
+                    CurrentSyncSource?.SyncToHeight(LocalHeight + 1, target.KnownHeight);
                     
                     FireSyncStateChanged(true);
                 }
