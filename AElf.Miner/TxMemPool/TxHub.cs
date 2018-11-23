@@ -56,17 +56,20 @@ namespace AElf.Miner.TxMemPool
             }
         }
 
-        private static Address DPosContractAddress =>
-            Address.BuildContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId).DumpByteArray(),
-                SmartContractType.AElfDPoS.ToString());
+//        private static Address DPosContractAddress =>
+//            ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
-        private static Address SideChainContractAddress =>
-            Address.BuildContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId).DumpByteArray(),
-                SmartContractType.SideChainContract.ToString());
+        private static Address DPosContractAddress;
+
+//        private static Address SideChainContractAddress =>
+//            ContractHelpers.GetSideChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+        
+        private static Address SideChainContractAddress;
         
         private readonly List<Address> _systemAddresses = new List<Address>()
         {
-            DPosContractAddress, SideChainContractAddress
+            DPosContractAddress, 
+            SideChainContractAddress
         };
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
@@ -81,6 +84,12 @@ namespace AElf.Miner.TxMemPool
             _refBlockValidator = refBlockValidator;
 
             _terminated = false;
+
+            DPosContractAddress =
+                ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            
+            SideChainContractAddress = 
+                ContractHelpers.GetSideChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
         }
 
         public void Initialize()

@@ -115,14 +115,14 @@ namespace AElf.Contracts.SideChain.Tests
                     Category = 0,
                     ContractBytes = ByteString.CopyFrom(SideChainCode),
                     ContractHash = Hash.FromRawBytes(SideChainCode),
-                    Type = (int)SmartContractType.SideChainContract
+                    SerialNumber = GlobalConfig.SideChainContract
                 };
                 var reg0 = new SmartContractRegistration
                 {
                     Category = 0,
                     ContractBytes = ByteString.CopyFrom(SCZeroContractCode),
                     ContractHash = Hash.FromRawBytes(SCZeroContractCode),
-                    Type = (int)SmartContractType.BasicContractZero
+                    SerialNumber = GlobalConfig.GenesisBasicContract
                 };
     
                 var chain1 =

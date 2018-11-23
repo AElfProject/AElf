@@ -189,11 +189,6 @@ namespace AElf.ChainController.Rpc
             return res;
         }
 
-        internal static Address GetGenesisContractHash(this Svc s, SmartContractType contractType)
-        {
-            return s.ChainCreationService.GenesisContractHash(Hash.LoadBase58(ChainConfig.Instance.ChainId), contractType);
-        }
-
         internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
         {
             return await s.SmartContractService.GetInvokingParams(tx);

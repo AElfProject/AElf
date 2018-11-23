@@ -67,8 +67,13 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Address BuildContractAddress(byte[] chainId, ulong serialNumber)
         {
-            var hash = Hash.FromTwoHashes(Hash.LoadByteArray(chainId), Hash.FromRawBytes(new UInt64Value{ Value = serialNumber}.ToByteArray()));
+            var hash = Hash.FromTwoHashes(Hash.LoadByteArray(chainId), Hash.FromRawBytes(serialNumber.ToBytes()));
             return new Address(chainId, hash.DumpByteArray());
+        }
+
+        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        {
+            return BuildContractAddress(chainId.DumpByteArray(), serialNumber);
         }
 
         /// <summary>

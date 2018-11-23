@@ -56,7 +56,7 @@ namespace AElf.Contracts.Genesis.Tests
             Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal);
             
             // get the address of deployed contract
-            var address = Address.BuildContractAddress(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToBytes(), new byte[]{});
+            var address = Address.BuildContractAddress(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToBytes(), 1);
             
             // query owner
             _contractShim.GetContractOwner(address);

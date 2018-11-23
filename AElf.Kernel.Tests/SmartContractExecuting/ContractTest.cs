@@ -74,7 +74,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
            
-            var contractAddressZero = AddressHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
+            var contractAddressZero = ContractHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
             var copy = await _smartContractManager.GetAsync(contractAddressZero);
 
             // throw exception if not registered
@@ -96,7 +96,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
             
             var code = ExampleContractCode;
-            var contractAddressZero = AddressHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
+            var contractAddressZero = ContractHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
 
             var txnDep = new Transaction()
             {
@@ -128,7 +128,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             var copy = await _smartContractManager.GetAsync(address);
 
-            Assert.Equal(regExample, copy);
+            Assert.Equal(regExample.ContractHash, copy.ContractHash);
+            Assert.Equal(regExample.ContractBytes, copy.ContractBytes);
         }
 
         [Fact]
@@ -141,14 +142,14 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero,
-                Type = (int)SmartContractType.BasicContractZero
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
 
             var code = ExampleContractCode;
 
-            var contractAddressZero = AddressHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
+            var contractAddressZero = ContractHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
 
             var txnDep = new Transaction()
             {

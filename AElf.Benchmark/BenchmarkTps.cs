@@ -240,11 +240,11 @@ namespace AElf.Benchmark
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.FromRawBytes(SmartContractZeroCode),
-                Type = (int)SmartContractType.BasicContractZero
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId,
                 new List<SmartContractRegistration> {reg});
-            var contractAddressZero = _chainCreationService.GenesisContractHash(ChainId, SmartContractType.BasicContractZero);
+            var contractAddressZero = ContractHelpers.GetGenesisBasicContractAddress(ChainId);
             
             
             //deploy token contract

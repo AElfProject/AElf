@@ -90,18 +90,17 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var chainId = ChainConfig.Instance.ChainId;
-                var basicContractZero = this.GetGenesisContractHash(SmartContractType.BasicContractZero);
-                var sideChainContract = this.GetGenesisContractHash(SmartContractType.SideChainContract);
+                var basicContractZero = ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId)); 
+                var sideChainContract = ContractHelpers.GetSideChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId)); 
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject()
                 {
                     ["result"] =
                         new JObject
                         {
-                            [SmartContractType.BasicContractZero.ToString()] = basicContractZero.GetFormatted(),
-                            [SmartContractType.SideChainContract.ToString()] = sideChainContract.GetFormatted(),
-                            ["chain_id"] = chainId
+                            ["BasicContractZero"] = basicContractZero.GetFormatted(),
+                            ["SideChainContract"] = sideChainContract.GetFormatted(),
+                            ["chain_id"] = ChainConfig.Instance.ChainId
                         }
                 };
 

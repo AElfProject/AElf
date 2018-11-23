@@ -1,3 +1,5 @@
+using System;
+
 namespace AElf.Common
 {
     public static class GlobalConfig
@@ -18,7 +20,11 @@ namespace AElf.Common
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
-        public static readonly string GenesisBasicContract = "BasicContractZero";
+        public static readonly UInt64 GenesisBasicContract = 0;
+        public static readonly UInt64 ConsensusContract = 1;
+        public static readonly UInt64 TokenContract = 2;
+        public static readonly UInt64 SideChainContract = 3;
+        
         public static int InvertibleChainHeight = 8;
 
         public static int BlockProducerNumber = 17;

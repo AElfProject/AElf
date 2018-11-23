@@ -103,14 +103,14 @@ namespace AElf.Contracts.Token.Tests
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(TokenCode),
                 ContractHash = Hash.FromRawBytes(TokenCode),
-                Type = (int)SmartContractType.TokenContract
+                SerialNumber = GlobalConfig.TokenContract
             };
             var reg0 = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SCZeroContractCode),
                 ContractHash = Hash.FromRawBytes(SCZeroContractCode),
-                Type = (int)SmartContractType.BasicContractZero
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
 
             var chain1 =

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -64,9 +65,7 @@ namespace AElf.Kernel.Node
 
         private readonly Hash _chainId;
 
-        public Address ContractAddress => AddressHelpers.GetSystemContractAddress(
-            Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()),
-            SmartContractType.AElfDPoS.ToString());
+        public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
         private static int _flag;
 

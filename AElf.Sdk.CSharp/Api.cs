@@ -74,14 +74,12 @@ namespace AElf.Sdk.CSharp
 
         public static Address GetContractZeroAddress()
         {
-            return AddressHelpers.GetSystemContractAddress(_smartContractContext.ChainId,
-                GlobalConfig.GenesisBasicContract);
+            return ContractHelpers.GetGenesisBasicContractAddress(_smartContractContext.ChainId);
         }
 
         public static Address GetSideChainContractAddress()
         {
-            return AddressHelpers.GetSystemContractAddress(_smartContractContext.ChainId,
-                SmartContractType.SideChainContract.ToString());
+            return ContractHelpers.GetSideChainContractAddress(_smartContractContext.ChainId);
         }
 
         public static Hash GetPreviousBlockHash()

@@ -127,6 +127,7 @@ namespace AElf.Contracts.Genesis
 
             var info = new ContractInfo
             {
+                SerialNumber = serialNumber,
                 Category = category,
                 Owner = creator,
                 ContractHash = contractHash
@@ -137,7 +138,8 @@ namespace AElf.Contracts.Genesis
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash
+                ContractHash = contractHash,
+                SerialNumber = serialNumber
             };
 
             await Api.DeployContractAsync(contractAddress, reg);
