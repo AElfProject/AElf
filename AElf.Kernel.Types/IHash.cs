@@ -11,5 +11,4 @@ namespace AElf.Kernel
     {
         ByteString Value { get; set; }
     }
-
 }

@@ -79,7 +79,7 @@ namespace AElf.Kernel.Consensus
                 .Timer(after)
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
-            _logger?.Trace($"Will produce extra block after {after} seconds due to recover mining process.");
+            _logger?.Trace($"Will produce extra block after {after.Seconds} seconds due to recover mining process.");
 
             return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(recoverMining)

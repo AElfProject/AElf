@@ -2,8 +2,6 @@
 using AElf.ABI.CSharp;
 using Google.Protobuf;
 using Newtonsoft.Json;
-using AElf.Kernel;
-using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Xunit;
 using AElf.Common;

@@ -30,7 +30,8 @@ namespace AElf.Node.Protocol
     {
         #region Settings
 
-        public const int JobQueueWarningLimit = 100;
+        // todo better detection 
+        // public const int JobQueueWarningLimit = 1000;
 
         public const int DefaultHeaderRequestCount = 3;
         public const int DefaultMaxBlockHistory = 15;
@@ -92,6 +93,9 @@ namespace AElf.Node.Protocol
                 if (txHash != null)
                     _lastTxReceived.Enqueue(txHash);
 
+                if (_peers == null || !_peers.Any())
+                    return;
+
                 BroadcastMessage(AElfProtocolMsgType.NewTransaction, inTx.Transaction.Serialize());
             });
 
@@ -116,7 +120,7 @@ namespace AElf.Node.Protocol
                 LocalHeight++;
             });
 
-            MessageHub.Instance.Subscribe<BlockExecuted>(inBlock =>
+            MessageHub.Instance.Subscribe<BlockAccepted>(inBlock =>
             {
                 if (inBlock?.Block == null)
                 {
@@ -373,6 +377,9 @@ namespace AElf.Node.Protocol
                 _logger?.Error("Block or block header is null.");
                 return;
             }
+            
+            if (_peers == null || !_peers.Any())
+                return;
 
             try
             {
@@ -454,10 +461,6 @@ namespace AElf.Node.Protocol
                 {
                     return;
                 }
-
-                int cnt = _incomingJobs.Count();
-                if (cnt > JobQueueWarningLimit)
-                    _logger?.Warn($"Large job queue size: {cnt}");
 
                 _incomingJobs.Enqueue(args, 0);
             }
@@ -623,6 +626,12 @@ namespace AElf.Node.Protocol
                     a.Height <= CurrentSyncSource.SyncTarget)
                 {
                     _logger?.Trace($"Peer {peer} : ignoring announce {a.Height} because history sync will fetch (sync target {CurrentSyncSource.SyncTarget}).");
+                    return;
+                }
+
+                if (UnlinkableHeaderIndex != 0)
+                {
+                    _logger?.Trace($"Peer {peer} : ignoring announce {a.Height} because we're syncing unlinkable.");
                     return;
                 }
                 

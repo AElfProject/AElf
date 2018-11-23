@@ -33,12 +33,12 @@ namespace AElf.Kernel.Node
             throw new System.NotImplementedException();
         }
 
-        public void Hang()
+        public void IncrementLockNumber()
         {
             throw new System.NotImplementedException();
         }
 
-        public void Recover()
+        public void DecrementLockNumber()
         {
             throw new System.NotImplementedException();
         }

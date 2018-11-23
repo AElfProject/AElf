@@ -15,13 +15,13 @@ using NServiceKit.Common.Extensions;
 namespace AElf.Kernel
 {
     public class BlockChain : LightChain, IBlockChain
-    {    
+    {
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IStateStore _stateStore;
 
         private readonly ILogger _logger;
-        private static bool _rollbacking;
+        private static bool _doingRollback;
         private static bool _prepareTerminated;
         private static bool _terminated;
 
@@ -34,17 +34,17 @@ namespace AElf.Kernel
             _transactionTraceManager = transactionTraceManager;
             _stateStore = stateStore;
 
-            _rollbacking = false;
+            _doingRollback = false;
             _prepareTerminated = false;
             _terminated = false;
-            
+
             _logger = LogManager.GetLogger(nameof(BlockChain));
-            
+
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
             {
                 if (signal.Module == TerminatedModuleEnum.BlockRollback)
                 {
-                    if (!_rollbacking)
+                    if (!_doingRollback)
                     {
                         _terminated = true;
                         MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockRollback));
@@ -110,7 +110,7 @@ namespace AElf.Kernel
         {
             try
             {
-                _rollbacking = true;
+                _doingRollback = true;
                 var txs = new List<Transaction>();
 
                 if (_terminated)
@@ -118,12 +118,12 @@ namespace AElf.Kernel
                     return txs;
                 }
 
-                _logger?.Trace("Will rollback to " + height);
                 MessageHub.Instance.Publish(new RollBackStateChanged(true));
+
+                _logger?.Trace("Will rollback to " + height);
 
                 var currentHash = await GetCurrentBlockHashAsync();
                 var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
-
 
                 if (currentHeight <= height)
                 {
@@ -141,12 +141,12 @@ namespace AElf.Kernel
                         txs.Add(tx);
                     }
 
-                var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
-                await _dataStore.RemoveAsync<Hash>(h);
-                await RollbackSideChainInfo(block);
-                await RollbackStateForBlock(block);
-                blocks.Add((Block)block);
-            }
+                    var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
+                    await _dataStore.RemoveAsync<Hash>(h);
+                    await RollbackSideChainInfo(block);
+                    await RollbackStateForBlock(block);
+                    blocks.Add((Block) block);
+                }
 
                 blocks.Reverse();
 
@@ -154,16 +154,15 @@ namespace AElf.Kernel
 
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
 
-            MessageHub.Instance.Publish(new BranchRolledBack(blocks));
-            _logger?.Trace("Finished rollback to " + height);
-            MessageHub.Instance.Publish(new RollBackStateChanged(false));
-            MessageHub.Instance.Publish(new CatchingUpAfterRollback(true));
+                MessageHub.Instance.Publish(new BranchRolledBack(blocks));
+                _logger?.Trace("Finished rollback to " + height);
+                MessageHub.Instance.Publish(new RollBackStateChanged(false));
 
                 return txs;
             }
             finally
             {
-                _rollbacking = false;
+                _doingRollback = false;
                 if (_prepareTerminated)
                 {
                     _terminated = true;
@@ -180,11 +179,12 @@ namespace AElf.Kernel
                     info.Height > GlobalConfig.GenesisBlockHeight ? info.Height - 1 : 0);
             }
         }
-        
+
         private async Task RollbackStateForBlock(IBlock block)
         {
             var txIds = block.Body.Transactions;
-            var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index, Address.FromRawBytes(block.Header.P.ToByteArray()));
+            var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index,
+                Address.FromRawBytes(block.Header.P.ToByteArray()));
             await RollbackStateForTransactions(txIds, disambiguationHash);
         }
 

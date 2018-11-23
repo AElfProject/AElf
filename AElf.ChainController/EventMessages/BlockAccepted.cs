@@ -2,11 +2,11 @@ using AElf.Kernel;
 
 namespace AElf.ChainController.EventMessages
 {
-    public sealed class BlockExecuted
+    public sealed class BlockAccepted
     {
         public IBlock Block { get; }
 
-        public BlockExecuted(IBlock block)
+        public BlockAccepted(IBlock block)
         {
             Block = block;
         }
