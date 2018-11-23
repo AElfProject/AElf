@@ -23,7 +23,7 @@ namespace AElf.SmartContract
 
         Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
         
-        Task<IMessage> GetAbiAsync(Address account, string name = null);
+        Task<IMessage> GetAbiAsync(Address account);
         
         /// <summary>
         /// return invoking parameters in one tx

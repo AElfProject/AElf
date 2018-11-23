@@ -164,10 +164,10 @@ namespace AElf.SmartContract
             ClearPool(contractAddress);
         }
 
-        public async Task<IMessage> GetAbiAsync(Address account, string name = null)
+        public async Task<IMessage> GetAbiAsync(Address account)
         {
             var reg = await _smartContractManager.GetAsync(account);
-            return GetAbiAsync(reg, name);
+            return GetAbiAsync(reg);
         }
 
         /// <inheritdoc/>
@@ -187,10 +187,10 @@ namespace AElf.SmartContract
             return method.DeserializeParams(parameters);
         }
 
-        private IMessage GetAbiAsync(SmartContractRegistration reg, string name = null)
+        private IMessage GetAbiAsync(SmartContractRegistration reg)
         {
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
-            return runner.GetAbi(reg, name);
+            return runner.GetAbi(reg);
         }
     }
 }

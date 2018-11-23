@@ -10,7 +10,7 @@ namespace AElf.ABI.CSharp
 {
     public class Generator
     {
-        public static Module GetABIModule(byte[] code, string name = null)
+        public static Module GetABIModule(byte[] code)
         {
             var module = new Module();
             using (var monoModule = ModuleDefinition.ReadModule(new MemoryStream(code)))
@@ -22,8 +22,8 @@ namespace AElf.ABI.CSharp
                     container.AddType(t);
                 }
             
-                var contractTypePath = container.GetSmartContractTypePath(name);
-                module.Name = name ?? contractTypePath.Last().FullName;
+                var contractTypePath = container.GetSmartContractTypePath();
+                module.Name = contractTypePath.Last().FullName;
                 module.Methods.AddRange(GetMethods(contractTypePath));
                 module.Events.AddRange(GetEvents(container));
                 module.Types_.AddRange(GetTypes(container));
