@@ -46,8 +46,8 @@ namespace AElf.Node.AElfChain
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
                                                   Hash.LoadHex(ChainConfig.Instance.ChainId)));
-        
-        private IConsensus _consensus;
+
+        private readonly IConsensus _consensus;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
@@ -59,7 +59,9 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            ILogger logger, IConsensus consensus)
+            IConsensus consensus,
+            ILogger logger
+            )
         {
             _stateStore = stateStore;
             _chainCreationService = chainCreationService;
@@ -77,7 +79,8 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisTokenContractAssemblyName}.dll");
+                var contractZeroDllPath =
+                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisTokenContractAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
@@ -93,7 +96,8 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisConsensusContractAssemblyName}.dll");
+                var contractZeroDllPath =
+                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisConsensusContractAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
@@ -109,7 +113,8 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSmartContractZeroAssemblyName}.dll");
+                var contractZeroDllPath =
+                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSmartContractZeroAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
@@ -125,7 +130,8 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSideChainContractAssemblyName}.dll");
+                var contractZeroDllPath =
+                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSideChainContractAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
@@ -311,7 +317,7 @@ namespace AElf.Node.AElfChain
         {
             return await _blockSynchronizer.GetBlockHeaderList(index, count);
         }
-        
+
         public async Task<Block> GetBlockAtHeight(int height)
         {
             if (height <= 0)
@@ -319,11 +325,11 @@ namespace AElf.Node.AElfChain
                 _logger?.Warn($"Cannot get block - height {height} is not valid.");
                 return null;
             }
-            
-            var block = (Block) await BlockChain.GetBlockByHeightAsync((ulong)height);
+
+            var block = (Block) await BlockChain.GetBlockByHeightAsync((ulong) height);
             return block != null ? await FillBlockWithTransactionList(block) : null;
         }
-        
+
         public async Task<Block> GetBlockFromHash(byte[] hash)
         {
             if (hash == null || hash.Length <= 0)
@@ -331,16 +337,16 @@ namespace AElf.Node.AElfChain
                 _logger?.Warn("Cannot get block - invalid hash.");
                 return null;
             }
-            
+
             return await GetBlockFromHash(Hash.LoadByteArray(hash));
         }
-        
+
         public async Task<Block> GetBlockFromHash(Hash hash)
         {
             var block = await Task.Run(() => (Block) _blockSynchronizer.GetBlockByHash(hash));
             return block != null ? await FillBlockWithTransactionList(block) : null;
         }
-        
+
         private async Task<Block> FillBlockWithTransactionList(Block block)
         {
             block.Body.TransactionList.Clear();
@@ -355,7 +361,7 @@ namespace AElf.Node.AElfChain
 
         public async Task<int> GetCurrentBlockHeightAsync()
         {
-             return (int) await BlockChain.GetCurrentBlockHeightAsync();
+            return (int) await BlockChain.GetCurrentBlockHeightAsync();
         }
     }
 }

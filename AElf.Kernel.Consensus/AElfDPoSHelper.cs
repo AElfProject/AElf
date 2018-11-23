@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Common.Extensions;
-using AElf.Common.Attributes;
+using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
@@ -13,23 +13,24 @@ using NLog;
 
 namespace AElf.Kernel.Consensus
 {
-    // TODO: Cache
     // ReSharper disable InconsistentNaming
+    // ReSharper disable MemberCanBeMadeStatic.Local
     public class AElfDPoSHelper
     {
-        private readonly Hash _chainId;
-        private readonly Miners _miners;
-        private readonly ILogger _logger;
-        private readonly Address _contractAddressHash;
-        private readonly IStateStore _stateStore;
+        private static Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
 
-        public AElfDPoSInformation DpoSInformation { get; private set; }
+        private static Address ContractAddress =>
+            AddressHelpers.GetSystemContractAddress(ChainId, SmartContractType.AElfDPoS.ToString());
+        
+        private readonly IMinersManager _minersManager;
+        private readonly ILogger _logger;
+        private readonly IStateStore _stateStore;
 
         private DataProvider DataProvider
         {
             get
             {
-                var dp = DataProvider.GetRootDataProvider(_chainId, _contractAddressHash);
+                var dp = DataProvider.GetRootDataProvider(ChainId, ContractAddress);
                 dp.StateStore = _stateStore;
                 return dp;
             }
@@ -59,10 +60,8 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    //_logger?.Trace("Getting Current Round Number.");
                     var number = UInt64Value.Parser.ParseFrom(
                         GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber)));
-                    //_logger?.Trace("Current Round Number: " + number.Value);
                     return number;
                 }
                 catch (Exception)
@@ -116,7 +115,7 @@ namespace AElf.Kernel.Consensus
                     return SInt32Value.Parser.ParseFrom(
                         GetBytes<SInt32Value>(Hash.FromString(GlobalConfig.AElfDPoSMiningIntervalString)));
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     //_logger?.Error(e, "Failed to get DPoS mining interval.\n");
                     return new SInt32Value {Value = GlobalConfig.AElfDPoSMiningInterval};
@@ -154,12 +153,10 @@ namespace AElf.Kernel.Consensus
                 : DataProvider.GetAsync<T>(keyHash).Result;
         }
 
-        public AElfDPoSHelper(Hash chainId, Miners miners, Address contractAddressHash, IStateStore stateStore)
+        public AElfDPoSHelper(IStateStore stateStore, IMinersManager minersManager)
         {
-            _chainId = chainId;
-            _miners = miners;
-            _contractAddressHash = contractAddressHash;
             _stateStore = stateStore;
+            _minersManager = minersManager;
 
             _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
         }
@@ -645,7 +642,6 @@ namespace AElf.Kernel.Consensus
         /// </summary>
         /// <param name="offset">minutes</param>
         /// <returns></returns>
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private Timestamp GetTimestampOfUtcNow(int offset = 0)
         {
             return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
