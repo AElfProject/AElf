@@ -1,12 +1,11 @@
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 
-namespace AElf.Miner.TxMemPool
+namespace AElf.Kernel.Types.Transaction
 {
     public class TxSignatureVerifier : ITxSignatureVerifier
     {
-        public bool Verify(Transaction tx)
+        public bool Verify(Kernel.Transaction tx)
         {
             if (tx.Sigs == null || tx.Sigs.Count == 0)
             {
