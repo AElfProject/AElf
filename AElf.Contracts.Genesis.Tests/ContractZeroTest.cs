@@ -52,7 +52,7 @@ namespace AElf.Contracts.Genesis.Tests
         public void Test()
         {
             // deploy contract
-             _contractShim.DeploySmartContract(0, "AElf.Contracts.Token", Code);
+             _contractShim.DeploySmartContract(0, Code);
             Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal);
             
             // get the address of deployed contract

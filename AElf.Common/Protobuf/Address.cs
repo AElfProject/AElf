@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Base58Check;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
@@ -64,9 +65,9 @@ namespace AElf.Common
         /// <param name="contractName"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Address BuildContractAddress(byte[] chainId, string contractName)
+        public static Address BuildContractAddress(byte[] chainId, ulong serialNumber)
         {
-            var hash = Hash.FromTwoHashes(Hash.LoadByteArray(chainId), Hash.FromString(contractName));
+            var hash = Hash.FromTwoHashes(Hash.LoadByteArray(chainId), Hash.FromRawBytes(new UInt64Value{ Value = serialNumber}.ToByteArray()));
             return new Address(chainId, hash.DumpByteArray());
         }
 

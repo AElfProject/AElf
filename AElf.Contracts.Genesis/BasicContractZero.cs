@@ -94,9 +94,17 @@ namespace AElf.Contracts.Genesis
         #region Fields
 
         private readonly Map<Address, ContractInfo> _contractInfos = new Map<Address, ContractInfo>(FieldNames.ContractInfos);
+        
+        private readonly ContractSerialNumber _contractSerialNumber = ContractSerialNumber.Instance;
 
         #endregion Fields
 
+        [View]
+        public ulong CurrentContractSerialNumber()
+        {
+            return _contractSerialNumber.Value;
+        }
+        
         [View]
         public string GetContractInfoFor(Address contractAddress)
         {
@@ -109,26 +117,18 @@ namespace AElf.Contracts.Genesis
             return info.ToString();
         }
 
-        public async Task<byte[]> DeploySmartContract(int category, string contractName, byte[] code)
+        public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
-            var contractAddress = Address.BuildContractAddress(Api.GetChainId().DumpByteArray(), contractName);
-            Console.WriteLine("BasicContractZero - ChainId: " + Api.GetChainId().DumpHex() + "Name : " + contractName);
+            var serialNumber = _contractSerialNumber.Increment().Value;
+            var contractAddress = Address.BuildContractAddress(Api.GetChainId().DumpByteArray(), serialNumber);
             
-            var isExistContract = _contractInfos.TryGet(contractAddress, out _);
-            
-            Api.Assert(!isExistContract,"Contract is exist.");
-
-            Api.GetChainId();
-            
-            Address creator = Api.GetTransaction().From;
+            var creator = Api.GetTransaction().From;
             var contractHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
             {
                 Category = category,
                 Owner = creator,
-                ContractName = contractName,
-                Version = 1,
                 ContractHash = contractHash
             };
             _contractInfos[contractAddress] = info;
@@ -137,12 +137,10 @@ namespace AElf.Contracts.Genesis
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash,
-                Version = info.Version
+                ContractHash = contractHash
             };
 
             await Api.DeployContractAsync(contractAddress, reg);
-            
 
             /*
             // TODO: Enable back
@@ -154,13 +152,11 @@ namespace AElf.Contracts.Genesis
                 CodeHash = SHA256.Create().ComputeHash(code)
             }.Fire();
             */
-
             Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.DumpHex());
             Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
-            
             return contractAddress.DumpByteArray();
         }
-        
+
         public async Task<bool> UpdateSmartContract(Address contractAddress, byte[] code)
         {
             var isExistContract = _contractInfos.TryGet(contractAddress, out var existContract);
@@ -168,9 +164,8 @@ namespace AElf.Contracts.Genesis
             Api.Assert(isExistContract,"Contract is not exist.");
             
             var contractHash = Hash.FromRawBytes(code);
-            Api.Assert(!existContract.ContractHash.Equals(contractHash),"Contract is not exist.");
+            Api.Assert(!existContract.ContractHash.Equals(contractHash),"Contract is not changed.");
 
-            existContract.Version = existContract.Version + 1;
             existContract.ContractHash = contractHash;
             _contractInfos.SetValue(contractAddress, existContract);
             
@@ -178,8 +173,7 @@ namespace AElf.Contracts.Genesis
             {
                 Category = existContract.Category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash,
-                Version = existContract.Version
+                ContractHash = contractHash
             };
 
             await Api.UpdateContractAsync(contractAddress, reg);
