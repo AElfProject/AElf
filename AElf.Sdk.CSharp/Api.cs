@@ -150,6 +150,17 @@ namespace AElf.Sdk.CSharp
             });
         }
 
+        public static void SendInlineFromSelf(Address contractAddress, string methodName, params object[] args)
+        {
+            _transactionContext.Trace.InlineTransactions.Add(new Transaction()
+            {
+                From = GetContractAddress(),
+                To = contractAddress,
+                MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+            });
+        }
+
         public static bool Call(Address contractAddress, string methodName, byte[] args)
         {
             _lastCallContext = new TransactionContext()
