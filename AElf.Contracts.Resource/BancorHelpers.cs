@@ -1,6 +1,7 @@
 using System;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Resource
 {
@@ -8,30 +9,36 @@ namespace AElf.Contracts.Resource
     {
         public static ulong BuyResourceFromExchange(this ResourceContract c, string resourceType, ulong paidElf)
         {
-            ResourceContract.AssertCorrectResourceType(resourceType);
-            var rt = new StringValue() {Value = resourceType};
-            var connector = c.ConnectorPairs[rt];
-            var tokensIssued = ToSmartToken(paidElf, connector.ElfBalance);
-            var resourcePayout = FromSmartToken(tokensIssued,connector.ResBalance);
-            connector.ElfBalance += paidElf;
-            connector.ResBalance -= resourcePayout;
-            c.ConnectorPairs[rt] = connector;
-            return resourcePayout;
+            checked
+            {
+                ResourceContract.AssertCorrectResourceType(resourceType);
+                var rt = new StringValue() {Value = resourceType};
+                var connector = c.ConnectorPairs[rt];
+                var tokensIssued = ToSmartToken(paidElf, connector.ElfBalance);
+                var resourcePayout = FromSmartToken(tokensIssued, connector.ResBalance);
+                connector.ElfBalance += paidElf;
+                connector.ResBalance -= resourcePayout;
+                c.ConnectorPairs[rt] = connector;
+                return resourcePayout;
+            }
         }
 
         public static ulong SellResourceToExchange(this ResourceContract c, string resourceType, ulong paidRes)
         {
-            ResourceContract.AssertCorrectResourceType(resourceType);
-            var rt = new StringValue() {Value = resourceType};
-            var connector = c.ConnectorPairs[rt];
-            var tokensIssued = ToSmartToken(paidRes, connector.ResBalance);
-            var elfPayout = FromSmartToken(tokensIssued,connector.ElfBalance);
-            connector.ElfBalance -= elfPayout;
-            connector.ResBalance += paidRes;
-            c.ConnectorPairs[rt] = connector;
-            return elfPayout;
+            checked
+            {
+                ResourceContract.AssertCorrectResourceType(resourceType);
+                var rt = new StringValue() {Value = resourceType};
+                var connector = c.ConnectorPairs[rt];
+                var tokensIssued = ToSmartToken(paidRes, connector.ResBalance);
+                var elfPayout = FromSmartToken(tokensIssued, connector.ElfBalance);
+                connector.ElfBalance -= elfPayout;
+                connector.ResBalance += paidRes;
+                c.ConnectorPairs[rt] = connector;
+                return elfPayout;
+            }
         }
-        
+
         private static ulong ToSmartToken(ulong connected, ulong balance)
         {
             var s = 10000000000.0;

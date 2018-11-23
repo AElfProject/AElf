@@ -50,7 +50,7 @@ namespace AElf.Contracts.Resource
         {
             return ElfTokenAddress.GetValue().DumpByteArray();
         }
-        
+
         [View]
         public ulong GetResourceBalance(Address address, string resourceType)
         {
@@ -73,6 +73,14 @@ namespace AElf.Contracts.Resource
             var i = Initialized.GetValue();
             Api.Assert(!i, $"Already initialized {i}.");
             ElfTokenAddress.SetValue(elfTokenAddress);
+            foreach (var resourceType in ResourceTypes)
+            {
+                var rt = new StringValue() {Value = resourceType};
+                var c = ConnectorPairs[rt];
+                c.ElfBalance = 1000000;
+                ConnectorPairs[rt] = c;
+            }
+
             Initialized.SetValue(true);
         }
 
@@ -83,6 +91,7 @@ namespace AElf.Contracts.Resource
             var rt = new StringValue() {Value = resourceType};
             var connector = ConnectorPairs[rt];
             connector.ResBalance = newCap;
+            ConnectorPairs[rt] = connector;
         }
 
         public void BuyResource(string resourceType, ulong paidElf)
@@ -95,7 +104,7 @@ namespace AElf.Contracts.Resource
                 Type = (UserResourceKey.Types.ResourceType) Enum.Parse(typeof(UserResourceKey.Types.ResourceType),
                     resourceType)
             };
-            UserResources[urk] = UserResources[urk] + payout;
+            UserResources[urk] = UserResources[urk].Add(payout);
             ElfToken.TransferByUser(Api.GetContractAddress(), paidElf);
         }
 
@@ -109,7 +118,7 @@ namespace AElf.Contracts.Resource
                 Type = (UserResourceKey.Types.ResourceType) Enum.Parse(typeof(UserResourceKey.Types.ResourceType),
                     resourceType)
             };
-            UserResources[urk] = UserResources[urk] - resToSell;
+            UserResources[urk] = UserResources[urk].Sub(resToSell);
             ElfToken.TransferByContract(Api.GetTransaction().From, elfToReceive);
         }
 

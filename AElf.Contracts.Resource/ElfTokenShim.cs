@@ -17,12 +17,12 @@ namespace AElf.Contracts.Resource
 
         public void TransferByUser(Address to, ulong amount)
         {
-            Api.SendInline(Address, "Transfer", amount);
+            Api.SendInline(Address, "Transfer", to, amount);
         }
 
         public void TransferByContract(Address to, ulong amount)
         {
-            Api.SendInlineFromSelf(Address, "Transfer", amount);
+            Api.SendInlineFromSelf(Address, "Transfer", to, amount);
         }
     }
 }
