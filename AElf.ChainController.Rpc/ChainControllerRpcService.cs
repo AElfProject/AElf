@@ -90,7 +90,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var basicContractZero = ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)); 
+                var basicContractZero = ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)); 
                 var sideChainContract = ContractHelpers.GetSideChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)); 
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject()
