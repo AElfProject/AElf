@@ -22,9 +22,6 @@ namespace AElf.Cryptography.Tests.ECDSA
             // Generate the key pair 
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
 
-
-            ;
-            
             Transaction tx = new Transaction();
             tx.From = Address.FromRawBytes(fromAdress);
             tx.To = Address.FromRawBytes(toAdress);

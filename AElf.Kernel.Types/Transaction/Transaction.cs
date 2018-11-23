@@ -54,14 +54,16 @@ namespace AElf.Kernel
             {
                 From = From.Clone(),
                 To = To.Clone(),
-                IncrementId = IncrementId,
-                RefBlockNumber = RefBlockNumber,
-                RefBlockPrefix = RefBlockPrefix,
                 MethodName = MethodName,
                 Type = Type
             };
             if (Params.Length != 0)
                 txData.Params = Params;
+            if (Type == TransactionType.MsigTransaction) 
+                return txData.ToByteArray();
+            txData.IncrementId = IncrementId;
+            txData.RefBlockNumber = RefBlockNumber;
+            txData.RefBlockPrefix = RefBlockPrefix;
             return txData.ToByteArray();
         }
     }

@@ -89,7 +89,7 @@ namespace AElf.Contracts.Genesis
 
     #endregion Customized Field Types
 
-    public class BasicContractZero : CSharpSmartContract, ISmartContractZero
+    public class BasicContractZero : CSharpSmartContract, ISmartContractZero 
     {
         #region Fields
 
@@ -97,6 +97,7 @@ namespace AElf.Contracts.Genesis
 
         private readonly Map<Address, ContractInfo> _contractInfos =
             new Map<Address, ContractInfo>(FieldNames.ContractInfos);
+        
 
         #endregion Fields
 

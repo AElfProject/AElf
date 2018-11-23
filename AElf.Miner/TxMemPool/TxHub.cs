@@ -13,6 +13,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Common;
+using AElf.Kernel.Types.Transaction;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using Easy.MessageHub;

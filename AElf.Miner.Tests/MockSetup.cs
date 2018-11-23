@@ -21,6 +21,7 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution.Execution;
+using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;

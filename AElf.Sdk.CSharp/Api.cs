@@ -4,6 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Types.Auth;
+using AElf.Kernel.Types.Transaction;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -92,6 +94,13 @@ namespace AElf.Sdk.CSharp
             return _smartContractContext.ContractAddress.ToReadOnly();
         }
 
+        
+        public static List<Reviewer> GetSystemReviewers()
+        {
+            // TODO: Get current miners and chain creators
+            throw new NotImplementedException();
+        }
+        
         public static Address GetContractOwner()
         {
             if (Call(GetContractZeroAddress(), "GetContractOwner",
@@ -195,6 +204,11 @@ namespace AElf.Sdk.CSharp
             return new byte[] { };
         }
 
+        public static bool VerifySignature(Transaction proposedTxn)
+        {
+            return new TxSignatureVerifier().Verify(proposedTxn);
+        }
+        
         #endregion Transaction API
 
         #region Utility API
@@ -222,5 +236,11 @@ namespace AElf.Sdk.CSharp
         }
 
         #endregion Diagonstics API
+
+
+        public static void SendDeferredTransaction()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

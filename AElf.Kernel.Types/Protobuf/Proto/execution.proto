@@ -4,7 +4,6 @@ option csharp_namespace = "AElf.Execution";
 
 import "common.proto";
 import "kernel.proto";
-import "smartcontract.proto";
 
 message TransactionTraceMessage
 {

@@ -1,4 +1,5 @@
-﻿using AElf.Miner.Miner;
+﻿using AElf.Kernel.Types.Transaction;
+using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using Autofac;
 
