@@ -6,6 +6,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Consensus;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
@@ -60,9 +61,9 @@ namespace AElf.ChainController
             }
 
             // Get BP address
+            // todo temp solution
             var uncompressedPrivateKey = block.Header.P.ToByteArray();
-            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
-            var address = "";
+            var address = Address.FromPublicKey(ChainConfig.Instance.ChainId.DecodeBase58(), uncompressedPrivateKey);
 
             // Get the address of consensus contract
             var contractAccountHash = ContractHelpers.GetConsensusContractAddress(context.ChainId);
@@ -137,7 +138,7 @@ namespace AElf.ChainController
         }
 
         private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair,
-            string recipientAddress, Timestamp timestamp, long roundId)
+            Address recipientAddress, Timestamp timestamp, long roundId)
         {
             if (contractAccountHash == null || keyPair == null || recipientAddress == null)
             {
@@ -147,7 +148,7 @@ namespace AElf.ChainController
 
             var tx = new Transaction
             {
-                From = Address.Zero,
+                From = contractAccountHash,
                 To = contractAccountHash,
                 IncrementId = 0,
                 MethodName = "Validation",
@@ -156,7 +157,7 @@ namespace AElf.ChainController
                     P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
                 },
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(
-                    new StringValue {Value = recipientAddress.RemoveHexPrefix()}.ToByteArray(),
+                    new StringValue {Value = recipientAddress.GetFormatted()}.ToByteArray(),
                     timestamp.ToByteArray(),
                     new Int64Value {Value = roundId}))
             };
