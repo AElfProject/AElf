@@ -157,7 +157,7 @@ namespace AElf.Contracts.Authorization
             proposedTxn.RefBlockPrefix = ByteString.CopyFrom(Api.GetPreviousBlockHash().Value.ToByteArray());
 
             // send deferred transaction
-            Api.SendDeferredTransaction();
+            Api.SendDeferredTransaction(proposedTxn);
             return proposedTxn.GetHash();
         }
         
@@ -194,7 +194,7 @@ namespace AElf.Contracts.Authorization
             return false;
         }*/
 
-        private void CheckAuthorization(Proposal proposal,Auth auth)
+        private void CheckAuthorization(Proposal proposal, Auth auth)
         {
             var from = Api.GetTransaction().From;
             Api.Assert(proposal.Proposer.Equals(from), "Proposal not created by sender.");

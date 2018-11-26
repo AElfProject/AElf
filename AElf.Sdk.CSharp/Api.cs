@@ -243,9 +243,9 @@ namespace AElf.Sdk.CSharp
         #endregion Diagonstics API
 
 
-        public static void SendDeferredTransaction()
+        public static void SendDeferredTransaction(Transaction deferredTxn)
         {
-            throw new NotImplementedException();
+            _transactionContext.Trace.DeferredTransaction = deferredTxn;
         }
     }
 }

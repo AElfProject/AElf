@@ -14,6 +14,7 @@ namespace AElf.Kernel.Types.Transaction
 
             if (tx.Sigs.Count == 1)
             {
+                // Check the address of signer if only one signer.
                 var pubKey = tx.Sigs[0].P.ToByteArray();
                 var addr = Address.FromRawBytes(pubKey);
 
@@ -21,12 +22,12 @@ namespace AElf.Kernel.Types.Transaction
                     return false;
             }
             
-            foreach (var s in tx.Sigs)
+            foreach (var sig in tx.Sigs)
             {
-                var pubKey = s.P.ToByteArray();
+                var pubKey = sig.P.ToByteArray();
                 var keyPair = ECKeyPair.FromPublicKey(pubKey);
                 var verifier = new ECVerifier(keyPair);
-                var signature = new ECSignature(s.R.ToByteArray(), s.S.ToByteArray());
+                var signature = new ECSignature(sig.R.ToByteArray(), sig.S.ToByteArray());
                 if(verifier.Verify(signature, tx.GetHash().DumpByteArray()))
                     continue;
                 return false;

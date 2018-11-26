@@ -237,6 +237,11 @@ namespace AElf.Synchronization.BlockExecution
                     res.StateHash = trace.GetSummarizedStateHash();
                 }
 
+                if (trace.DeferredTransaction != null)
+                {
+                    _txHub.AddTransactionAsync(trace.DeferredTransaction).ConfigureAwait(false);
+                    res.DeferredTxnId = trace.DeferredTransaction.GetHash();
+                }
                 results.Add(res);
             }
 

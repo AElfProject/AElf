@@ -297,6 +297,14 @@ namespace AElf.Miner.Miner
                             Index = index++
                         };
                         txRes.UpdateBloom();
+                        
+                        // insert deferred txn to transaction pool and wait for execution 
+                        if (trace.DeferredTransaction != null)
+                        {
+                            InsertTransactionToPool(trace.DeferredTransaction).ConfigureAwait(false);
+                            txRes.DeferredTxnId = trace.DeferredTransaction.GetHash();
+                        }
+                            
                         results.Add(txRes);
                         break;
                     case ExecutionStatus.ContractError:
