@@ -565,6 +565,7 @@ namespace AElf.Kernel.Consensus
         public void SyncMiningInterval()
         {
             GlobalConfig.AElfDPoSMiningInterval = MiningInterval.Value;
+            _logger?.Info($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
         }
 
         public void LogDPoSInformation(ulong height)
@@ -581,6 +582,7 @@ namespace AElf.Kernel.Consensus
             {
                 currentRoundNumber = CurrentRoundNumber;
             }
+            
             return currentRoundNumber.Value != 0 ? this[currentRoundNumber] : null;
         }
 

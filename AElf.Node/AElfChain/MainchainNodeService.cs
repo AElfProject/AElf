@@ -12,6 +12,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
 using AElf.Miner.EventMessages;
@@ -35,7 +36,6 @@ namespace AElf.Node.AElfChain
         private readonly ILogger _logger;
 
         private readonly ITxHub _txHub;
-        private readonly IStateStore _stateStore;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
@@ -52,8 +52,9 @@ namespace AElf.Node.AElfChain
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
 
+        private bool _forkFlag;
+        
         public MainchainNodeService(
-            IStateStore stateStore,
             ITxHub hub,
             IChainCreationService chainCreationService,
             IBlockSynchronizer blockSynchronizer,
@@ -63,7 +64,6 @@ namespace AElf.Node.AElfChain
             ILogger logger
             )
         {
-            _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _txHub = hub;
@@ -212,6 +212,9 @@ namespace AElf.Node.AElfChain
                 await _blockSynchronizer.ReceiveBlock(inBlock.Block);
             });
 
+            MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
+            MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });
+
             #endregion start
 
             MessageHub.Instance.Publish(new ChainInitialized());
@@ -230,10 +233,9 @@ namespace AElf.Node.AElfChain
             return _consensus.IsAlive();
         }
 
-        // TODO: 
         public bool IsForked()
         {
-            return false;
+            return _forkFlag;
         }
 
         #region private methods

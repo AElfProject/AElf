@@ -185,14 +185,14 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            if (!await _helper.DPoSInformationGenerated())
+            var miners = await _minersManager.GetMiners();
+            if (miners == null || miners.IsEmpty())
             {
-                AElfDPoSObserver.Initialization();
+                ConsensusDisposable = AElfDPoSObserver.Initialization();
                 return;
             }
 
             _helper.SyncMiningInterval();
-            _logger?.Info($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
 
             if (_helper.CanRecoverDPoSInformation())
             {

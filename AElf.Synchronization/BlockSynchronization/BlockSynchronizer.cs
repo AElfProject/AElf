@@ -211,6 +211,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (blockHeaderValidationResult == BlockHeaderValidationResult.Branched)
             {
+                
                 MessageHub.Instance.Publish(new LockMining(false));
             }
         }

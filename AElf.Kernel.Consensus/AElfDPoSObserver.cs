@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Common;
+using AElf.Configuration.Config.Consensus;
 
 namespace AElf.Kernel.Consensus
 {
@@ -66,9 +67,12 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public void Initialization()
+        public IDisposable Initialization()
         {
-            Observable.Return(ConsensusBehavior.InitializeAElfDPoS).Subscribe(this);
+            var delayInitialize = Observable
+                .Timer(TimeSpan.FromSeconds(ConsensusConfig.Instance.DPoSMiningInterval * 2.5))
+                .Select(_ => ConsensusBehavior.InitializeAElfDPoS);
+            return Observable.Return(ConsensusBehavior.NoOperationPerformed).Concat(delayInitialize).Subscribe(this);
         }
 
         public IDisposable RecoverMining()
@@ -88,17 +92,6 @@ namespace AElf.Kernel.Consensus
 
         public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeSlot)
         {
-//            _logger?.Trace("Extra block time slot of current round: " +
-//                           extraBlockTimeSlot.ToDateTime().ToLocalTime().ToString("HH:mm:ss"));
-//            if (extraBlockTimeSlot.ToDateTime() < DateTime.UtcNow)
-//            {
-//                extraBlockTimeSlot = extraBlockTimeSlot.ToDateTime()
-//                    .AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * (GlobalConfig.BlockProducerNumber + 2))
-//                    .ToTimestamp();
-//                _logger?.Trace("Extra block time slot changed to: " +
-//                               extraBlockTimeSlot.ToDateTime().ToString("HH:mm:ss"));
-//            }
-
             var nopObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
                 .Select(_ => ConsensusBehavior.NoOperationPerformed);
