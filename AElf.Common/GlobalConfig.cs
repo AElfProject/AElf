@@ -17,7 +17,6 @@ namespace AElf.Common
 
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
-        public const int AElfLogInterval = 900;
 
         #region AElf DPoS
 
