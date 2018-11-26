@@ -9,6 +9,7 @@ using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -470,7 +471,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init()
         {
-            _timeoutMilliseconds = GlobalConfig.AElfDPoSMiningInterval * 3 / 4;
+            _timeoutMilliseconds = ConsensusConfig.Instance.DPoSMiningInterval * 3 / 4;
             _keyPair = NodeConfig.Instance.ECKeyPair;
             _producerAddress = Address.FromRawBytes(_keyPair.GetEncodedPublicKey());
             _blockChain = _chainService.GetBlockChain(Config.ChainId);

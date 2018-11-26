@@ -13,11 +13,6 @@ namespace AElf.Kernel
     {
         public void Init(ContainerBuilder builder)
         {
-            if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
-            {
-                GlobalConfig.AElfDPoSMiningInterval = ConsensusConfig.Instance.DPoSMiningInterval;
-            }
-
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.PoTC)
             {
                 GlobalConfig.BlockProducerNumber = 1;

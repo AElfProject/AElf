@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.ChainController.CrossChain;
 using AElf.Common;
 using AElf.Common.Attributes;
+using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
@@ -88,10 +89,10 @@ namespace AElf.Miner.Rpc.Client
         /// </summary>
         public void UpdateRequestInterval()
         {
-            _clientToParentChain?.UpdateRequestInterval(GlobalConfig.AElfDPoSMiningInterval);
+            _clientToParentChain?.UpdateRequestInterval(ConsensusConfig.Instance.DPoSMiningInterval);
             _clientsToSideChains.AsParallel().ForEach(kv =>
             {
-                kv.Value.UpdateRequestInterval(GlobalConfig.AElfDPoSMiningInterval);
+                kv.Value.UpdateRequestInterval(ConsensusConfig.Instance.DPoSMiningInterval);
             });
         }
 

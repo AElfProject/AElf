@@ -21,7 +21,6 @@ namespace AElf.Common
         #region AElf DPoS
 
         public const int AElfDPoSLogRoundCount = 1;
-        public static int AElfDPoSMiningInterval = 2000;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
         public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
