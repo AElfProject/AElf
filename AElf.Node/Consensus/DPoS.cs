@@ -53,6 +53,8 @@ namespace AElf.Kernel.Node
 
         private static AElfDPoSHelper Helper;
 
+        private static DPoSInfoProvider Provider;
+
         private static int _lockNumber;
 
         private NodeState CurrentState { get; set; } = NodeState.Catching;
@@ -90,6 +92,8 @@ namespace AElf.Kernel.Node
             Helper = new AElfDPoSHelper(Hash.LoadHex(ChainConfig.Instance.ChainId), Miners,
                 ContractAddress, stateStore);
 
+            Provider = new DPoSInfoProvider(stateStore);
+            
             var count = MinersConfig.Instance.Producers.Count;
 
             GlobalConfig.BlockProducerNumber = count;
@@ -590,6 +594,7 @@ namespace AElf.Kernel.Node
 
         public async Task Update()
         {
+            _logger?.Trace("Distance " + Provider.GetDistanceToTimeSlot());
             Helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
             if (ConsensusMemory == Helper.CurrentRoundNumber.Value)

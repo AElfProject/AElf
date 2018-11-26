@@ -23,8 +23,6 @@ namespace AElf.Kernel.Consensus
         private readonly Address _contractAddressHash;
         private readonly IStateStore _stateStore;
 
-        public AElfDPoSInformation DpoSInformation { get; private set; }
-
         private DataProvider DataProvider
         {
             get

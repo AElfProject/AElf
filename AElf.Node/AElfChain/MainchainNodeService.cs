@@ -311,10 +311,6 @@ namespace AElf.Node.AElfChain
                     _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService);
                     break;
 
-                case ConsensusType.PoTC:
-                    _consensus = new PoTC(_miner, _txHub);
-                    break;
-
                 case ConsensusType.SingleNode:
                     _consensus = new StandaloneNodeConsensusPlaceHolder();
                     break;
