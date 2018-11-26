@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using AElf.Common.Module;
+using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Types.Common;
 using Autofac;
 using Easy.MessageHub;
@@ -17,6 +19,7 @@ namespace AElf.Launcher
         private readonly AutoResetEvent _closing = new AutoResetEvent(false);
         private readonly Queue<TerminatedModuleEnum> _modules = new Queue<TerminatedModuleEnum>();
         private TerminatedModuleEnum _prepareTerminatedModule;
+        private static System.Timers.Timer _timer;
         
         public void Init(ContainerBuilder builder)
         {
@@ -28,6 +31,15 @@ namespace AElf.Launcher
             _modules.Enqueue(TerminatedModuleEnum.BlockSynchronizer);
             _modules.Enqueue(TerminatedModuleEnum.BlockExecutor);
             _modules.Enqueue(TerminatedModuleEnum.BlockRollback);
+
+            _timer = new System.Timers.Timer(ConsensusConfig.Instance.DPoSMiningInterval * 2);
+            _timer.AutoReset = false;
+            _timer.Elapsed += TimerOnElapsed;
+        }
+
+        private void TimerOnElapsed(object sender, ElapsedEventArgs e)
+        {
+            OnModuleTerminated(new TerminatedModule(_prepareTerminatedModule));
         }
 
         public void Run(ILifetimeScope scope)
@@ -48,6 +60,7 @@ namespace AElf.Launcher
         {
             Task.Run(() =>
             {
+                _timer.Stop();
                 if (_prepareTerminatedModule == moduleTerminated.Module)
                 {
                     _modules.Dequeue();
@@ -60,14 +73,14 @@ namespace AElf.Launcher
 
                 if (_modules.Count == 0)
                 {
-                    _logger.Trace("node will be shut down after 5s...");
+                    _logger.Trace("node will be closed after 5s...");
                     for (var i = 0; i < 5; i++)
                     {
                         _logger.Trace($"{5 - i}");
                         Thread.Sleep(1000);
                     }
 
-                    _logger.Trace("node is shut down.");
+                    _logger.Trace("node is closed.");
                     _closing.Set();
                 }
                 else
@@ -82,6 +95,8 @@ namespace AElf.Launcher
             _prepareTerminatedModule = _modules.Peek();
             _logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}...");
             MessageHub.Instance.Publish(new TerminationSignal(_prepareTerminatedModule));
+            
+            _timer.Start();
         }
     }
 }
