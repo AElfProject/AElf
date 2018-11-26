@@ -91,22 +91,11 @@ namespace AElf.Kernel.Tests
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(contract),
-                ContractHash = Hash.FromRawBytes(contract)  
+                ContractHash = Hash.FromRawBytes(contract),
             };
             
             var tx = Api.GetTransaction();
-            
-            ulong serialNumber = _serialNumber.Increment().Value;
-
-            var creator = Api.GetTransaction().From;
-
-            var info = new ContractInfo()
-            {
-                Owner = creator,
-                SerialNumber = serialNumber
-            };
-
-            var address = info.Address;
+           
             // calculate new account address
             var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId);
             

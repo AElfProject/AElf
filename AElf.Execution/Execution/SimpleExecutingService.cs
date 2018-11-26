@@ -30,7 +30,7 @@ namespace AElf.Execution.Execution
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken cancellationToken, Hash disambiguationHash=null)
+            CancellationToken cancellationToken, Hash disambiguationHash=null, TransactionType transactionType = TransactionType.ContractTransaction)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<DataPath, StateCache>();

@@ -56,7 +56,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public List<Transaction> CreateTx(Hash chainId)
         {
-            var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
+            var contractAddressZero = ContractHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
             Console.WriteLine($"zero {contractAddressZero}");
             var code = ExampleContractCode;
             
@@ -118,7 +118,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public List<Transaction> CreateTxs(Hash chainId)
         {
-            var contractAddressZero = AddressHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
+            var contractAddressZero = ContractHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
 
             var code = ExampleContractCode;
             

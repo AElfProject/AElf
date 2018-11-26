@@ -20,7 +20,10 @@ namespace AElf.SmartContract
         /// <param name="isPrivileged">Whether the contract is a privileged (system) one.</param>
         /// <returns></returns>
         Task DeployContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
-        Task<IMessage> GetAbiAsync(Address account, string name = null);
+
+        Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
+        
+        Task<IMessage> GetAbiAsync(Address account);
         
         /// <summary>
         /// return invoking parameters in one tx
@@ -28,5 +31,7 @@ namespace AElf.SmartContract
         /// <param name="transaction"></param>
         /// <returns></returns>
         Task<IEnumerable<string>> GetInvokingParams(Transaction transaction);
+
+        void ClearPool(Address address);
     }
 }

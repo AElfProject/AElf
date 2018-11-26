@@ -14,8 +14,7 @@ namespace AElf.ChainController.CrossChain
         private readonly Hash _chainId;
 
         private Address SideChainContractAddress =>
-            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
-                SmartContractType.SideChainContract.ToString());
+            ContractHelpers.GetSideChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
 
         private readonly IStateStore _stateStore;
 

@@ -57,6 +57,13 @@ namespace AElf.Sdk.CSharp
             await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration,
                 false);
         }
+        
+        public static async Task UpdateContractAsync(Address address, SmartContractRegistration registration)
+        {
+            Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
+            await _smartContractContext.SmartContractService.UpdateContractAsync(GetChainId(), address, registration,
+                false);
+        }
 
         #endregion Privileged API
 
@@ -67,14 +74,12 @@ namespace AElf.Sdk.CSharp
 
         public static Address GetContractZeroAddress()
         {
-            return AddressHelpers.GetSystemContractAddress(_smartContractContext.ChainId,
-                GlobalConfig.GenesisBasicContract);
+            return ContractHelpers.GetGenesisBasicContractAddress(_smartContractContext.ChainId);
         }
 
         public static Address GetSideChainContractAddress()
         {
-            return AddressHelpers.GetSystemContractAddress(_smartContractContext.ChainId,
-                SmartContractType.SideChainContract.ToString());
+            return ContractHelpers.GetSideChainContractAddress(_smartContractContext.ChainId);
         }
 
         public static Hash GetPreviousBlockHash()
