@@ -59,6 +59,7 @@ namespace AElf.CLI
             program.RegisterCommand(new SendTransactionCmd());
             program.RegisterCommand(new LoadContractAbiCmd());
             program.RegisterCommand(new DeployContractCommand());
+            program.RegisterCommand(new UpdateContractCommand());
             program.RegisterCommand(new GetTxResultCmd());
             program.RegisterCommand(new GetGenesisContractAddressCmd());
             program.RegisterCommand(new GetDeserializedResultCmd());

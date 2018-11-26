@@ -25,7 +25,7 @@ namespace AElf.Contracts.Token.Tests
         
         public Address Address
         {
-            get => AddressHelpers.GetSystemContractAddress(_mock.ChainId1, SmartContractType.TokenContract.ToString());
+            get => ContractHelpers.GetTokenContractAddress(_mock.ChainId1);
         }
         
         public ContractZeroShim(MockSetup mock)

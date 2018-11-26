@@ -59,8 +59,7 @@ namespace AElf.ChainController
             var address = recipientKeyPair.GetAddress().DumpHex();
 
             // Get the address of consensus contract
-            var contractAccountHash =
-                AddressHelpers.GetSystemContractAddress(context.ChainId, SmartContractType.AElfDPoS.ToString());
+            var contractAccountHash = ContractHelpers.GetConsensusContractAddress(context.ChainId);
             var timestampOfBlock = block.Header.Time;
 
             long roundId = 1;

@@ -58,16 +58,15 @@ namespace AElf.Miner.TxMemPool
         }
 
         private static Address DPosContractAddress =>
-            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
-                SmartContractType.AElfDPoS.ToString());
+            ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
 
         private static Address SideChainContractAddress =>
-            AddressHelpers.GetSystemContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId),
-                SmartContractType.SideChainContract.ToString());
+            ContractHelpers.GetSideChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
         
         private readonly List<Address> _systemAddresses = new List<Address>()
         {
-            DPosContractAddress, SideChainContractAddress
+            DPosContractAddress, 
+            SideChainContractAddress
         };
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,

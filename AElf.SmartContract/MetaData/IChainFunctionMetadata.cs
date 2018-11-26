@@ -20,6 +20,8 @@ namespace AElf.SmartContract
         /// <returns>True when success, false when something is wrong (usually is cannot find record with respect to functionName in the parameter otherFunctionsCallByThis)</returns>
         Task DeployNewContract(Hash chainID, Address contractAddr, ContractMetadataTemplate contractMetadataTemplate);
 
+        Task UpdateContract(Hash chainId, Address contractAddr, ContractMetadataTemplate oldContractMetadataTemplate, ContractMetadataTemplate newContractMetadataTemplate);
+
         /// <summary>
         /// Get a function's metadata, throw  if this function is not found in the map.
         /// TODO: need to be async when this access datastore

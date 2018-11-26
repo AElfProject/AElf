@@ -40,6 +40,16 @@ namespace AElf.SmartContract.Metadata
             _logger?.Info($"Metadata of contract {contractMetadataTemplate.FullName} are extracted successfully.");
         }
 
+        public async Task UpdateContract(Hash chainId, Address address, ContractMetadataTemplate oldContractMetadataTemplate, ContractMetadataTemplate newContractMetadataTemplate)
+        {
+            if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
+            {
+                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore, _logger));
+            }
+
+            await chainFuncMetadata.UpdateContract(chainId, address, oldContractMetadataTemplate, newContractMetadataTemplate);
+        }
+
         public async Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string addrFunctionName)
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))

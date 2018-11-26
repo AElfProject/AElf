@@ -23,7 +23,7 @@ namespace AElf.Contracts.Genesis.Tests
             get => Address.Zero;
         }
 
-        private Address Address => AddressHelpers.GetSystemContractAddress(_mock.ChainId1, GlobalConfig.GenesisBasicContract);
+        private Address Address => ContractHelpers.GetSystemContractAddress(_mock.ChainId1, GlobalConfig.GenesisBasicContract);
         
         public TestContractShim(MockSetup mock)
         {
@@ -47,6 +47,26 @@ namespace AElf.Contracts.Genesis.Tests
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(category, code))
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
+        }
+        
+        public byte[] UpdateSmartContract(Address address, byte[] code)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = Address,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "UpdateSmartContract",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(address, code))
             };
 
             TransactionContext = new TransactionContext

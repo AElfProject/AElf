@@ -36,7 +36,7 @@ namespace AElf.ChainController
                 // SmartContractZero address can be derived from ChainId
                 foreach (var reg in smartContractRegistration)
                 {
-                    var contractAddress = GenesisContractHash(chainId, (SmartContractType) reg.Type);
+                    var contractAddress = ContractHelpers.GetSystemContractAddress(chainId, reg.SerialNumber);
                     await _smartContractService.DeployContractAsync(chainId, contractAddress, reg, true);
                 }
                 
@@ -58,11 +58,6 @@ namespace AElf.ChainController
                 _logger.Error("CreateNewChainAsync Error: " + e);
                 return null;
             }
-        }
-
-        public Address GenesisContractHash(Hash chainId, SmartContractType contractType)
-        {
-            return AddressHelpers.GetSystemContractAddress(chainId, contractType.ToString());
         }
     }
 }

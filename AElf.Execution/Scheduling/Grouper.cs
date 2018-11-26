@@ -103,7 +103,7 @@ namespace AElf.Execution.Scheduling
                 "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}], There are also {4} transactions failed retriving resource", chainId.DumpHex(),
                 transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count)), failedTxs.Count));
             
-            return new Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>(result, failedTxs);;
+            return new Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>(result, failedTxs);
         }
 
         public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId, List<Transaction> transactions)
