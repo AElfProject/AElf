@@ -120,7 +120,7 @@ namespace AElf.Kernel.Node
                 }
             });
 
-            MessageHub.Instance.Subscribe<LockMining>(async inState =>
+            MessageHub.Instance.Subscribe<LockMining>(inState =>
             {
                 if (inState.Lock)
                 {
@@ -128,7 +128,7 @@ namespace AElf.Kernel.Node
                 }
                 else
                 {
-                    await Start();
+                    DecrementLockNumber();
                 }
             });
 
@@ -171,7 +171,6 @@ namespace AElf.Kernel.Node
             // Consensus information already generated.
             if (ConsensusDisposable != null)
             {
-                DecrementLockNumber();
                 return;
             }
 
@@ -186,7 +185,7 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            if (NodeConfig.Instance.ConsensusInfoGenerator && !await _helper.DPoSInformationGenerated())
+            if (!await _helper.DPoSInformationGenerated())
             {
                 AElfDPoSObserver.Initialization();
                 return;
@@ -311,13 +310,6 @@ namespace AElf.Kernel.Node
 
             if (!CurrentState.AbleToMine())
             {
-                return;
-            }
-
-            if (await _helper.DPoSInformationGenerated())
-            {
-                _logger?.Trace($"Failed to enter {nameof(MiningWithInitializingAElfDPoSInformation)} because " +
-                               $"DPoS information already generated.");
                 return;
             }
 
@@ -616,7 +608,7 @@ namespace AElf.Kernel.Node
             // Update observer.
             var address = _nodeKeyPair.Address;
             var miners = _helper.Miners;
-            if (!miners.Nodes.Contains(address))
+            if (!miners.Contains(address))
             {
                 return;
             }

@@ -201,17 +201,12 @@ namespace AElf.Node.AElfChain
             {
                 _miner.Init();
                 _logger?.Debug($"Coinbase = {_miner.Coinbase.DumpHex()}");
-            }
-
-            Thread.Sleep(1000);
-
-            if (NodeConfig.Instance.ConsensusInfoGenerator)
-            {
-                StartMining();
-                // Start directly.
+                
                 _consensus?.Start();
             }
 
+            //Thread.Sleep(1000);
+            
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
                 await _blockSynchronizer.ReceiveBlock(inBlock.Block);
@@ -219,7 +214,7 @@ namespace AElf.Node.AElfChain
 
             #endregion start
 
-            MessageHub.Instance.Publish(new ChainInitialized(null));
+            MessageHub.Instance.Publish(new ChainInitialized());
 
             return true;
         }
@@ -301,14 +296,6 @@ namespace AElf.Node.AElfChain
                 new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg}).Result;
 
             _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");
-        }
-
-        private void StartMining()
-        {
-            if (NodeConfig.Instance.WillingToMine)
-            {
-                _consensus?.Start();
-            }
         }
 
         #endregion private methods
