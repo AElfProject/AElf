@@ -23,7 +23,7 @@ namespace AElf.Common
 
         public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 2000;
-        public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
+        public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 3 / 4;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
         public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
