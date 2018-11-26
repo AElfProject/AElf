@@ -1,12 +1,13 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel;
 using Google.Protobuf;
 
-namespace AElf.ChainController.MSig
+namespace AElf.SmartContract.Proposal
 {
     public interface IAuthorizationInfo
     {
         bool CheckAuthority(Address mSigAddress, IEnumerable<ByteString> pubKeys);
+        bool CheckAuthority(Transaction transaction);
     }
 }

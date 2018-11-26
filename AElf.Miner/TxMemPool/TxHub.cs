@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.EventMessages;
-using AElf.ChainController.MSig;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
@@ -17,6 +15,7 @@ using AElf.Kernel.Types.Common;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
+using AElf.SmartContract.Proposal;
 using Easy.MessageHub;
 using NLog;
 using Org.BouncyCastle.Crypto.Engines;
@@ -226,7 +225,7 @@ namespace AElf.Miner.TxMemPool
             {
                 // check msig account authorization
                 var validAuthorization =
-                _authorizationInfo.CheckAuthority(tr.Transaction.From, tr.Transaction.Sigs.Select(sig => sig.P));
+                    _authorizationInfo.CheckAuthority(tr.Transaction);
                 if (!validAuthorization)
                 {
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;

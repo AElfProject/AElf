@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Auth;
-using AElf.SmartContract;
 using Google.Protobuf;
 
-namespace AElf.ChainController.MSig
+namespace AElf.SmartContract.Proposal
 {
     public class AuthorizationInfo : IAuthorizationInfo
     {
@@ -20,6 +19,13 @@ namespace AElf.ChainController.MSig
             var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
             _crossChainHelper = new ContractInfoHelper(chainId, stateStore);
         }
+        
+        public bool CheckAuthority(Transaction transaction)
+        {
+            return transaction.Sigs.Count == 1 ||
+                   CheckAuthority(transaction.From, transaction.Sigs.Select(sig => sig.P));
+        }
+        
         public bool CheckAuthority(Address mSigAddress, IEnumerable<ByteString> pubKeys)
         {
             var bytes = _crossChainHelper.GetBytes<Auth>(AuthorizationContractAddress,

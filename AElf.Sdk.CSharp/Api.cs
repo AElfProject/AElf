@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -11,6 +12,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 using AElf.Sdk.CSharp.ReadOnly;
+using AElf.SmartContract.Proposal;
 
 namespace AElf.Sdk.CSharp
 {
@@ -23,6 +25,7 @@ namespace AElf.Sdk.CSharp
         private static ISmartContractContext _smartContractContext;
         private static ITransactionContext _transactionContext;
         private static ITransactionContext _lastCallContext;
+        private static IAuthorizationInfo _authorizationInfo;
 
         public static ProtobufSerializer Serializer { get; } = new ProtobufSerializer();
 
@@ -39,6 +42,10 @@ namespace AElf.Sdk.CSharp
             _transactionContext = transactionContext;
         }
 
+        public static void SetAuthorizationInfo(IAuthorizationInfo authorizationInfo)
+        {
+            _authorizationInfo = authorizationInfo;
+        }
         #endregion Setters used by runner and executor
 
         #region Getters used by contract
@@ -82,6 +89,11 @@ namespace AElf.Sdk.CSharp
         public static Address GetSideChainContractAddress()
         {
             return ContractHelpers.GetSideChainContractAddress(_smartContractContext.ChainId);
+        }
+        
+        public static Address GetAuthorizationContractAddress()
+        {
+            return ContractHelpers.GetAuthorizationContractAddress(_smartContractContext.ChainId);
         }
 
         public static Hash GetPreviousBlockHash()
@@ -235,9 +247,9 @@ namespace AElf.Sdk.CSharp
 
         #region Diagonstics API
 
-        public static void Sleep(int milliSedonds)
+        public static void Sleep(int milliSeconds)
         {
-            Thread.Sleep(milliSedonds);
+            Thread.Sleep(milliSeconds);
         }
 
         #endregion Diagonstics API
@@ -246,6 +258,13 @@ namespace AElf.Sdk.CSharp
         public static void SendDeferredTransaction(Transaction deferredTxn)
         {
             _transactionContext.Trace.DeferredTransaction = deferredTxn;
+        }
+
+        public static bool CheckAuthority()
+        {
+            // No need to verify signature again if it is not multi sig account.
+            return _transactionContext.Transaction.Sigs.Count == 1 ||
+                   _authorizationInfo.CheckAuthority(_transactionContext.Transaction);
         }
     }
 }

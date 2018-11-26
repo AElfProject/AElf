@@ -13,6 +13,7 @@ using Type = System.Type;
 using Module = AElf.ABI.CSharp.Module;
 using Method = AElf.ABI.CSharp.Method;
 using AElf.SmartContract;
+using AElf.SmartContract.Proposal;
 
 namespace AElf.Runtime.CSharp
 {
@@ -63,8 +64,11 @@ namespace AElf.Runtime.CSharp
 
         private delegate void SetTransactionContextHandler(ITransactionContext transactionContext);
 
+        private delegate void SetAuthorizationInfo(IAuthorizationInfo authorizationInfo);
+
         private SetSmartContractContextHandler _setSmartContractContextHandler;
         private SetTransactionContextHandler _setTransactionContextHandler;
+        private SetAuthorizationInfo _setAuthorizationInfo;
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
@@ -104,17 +108,19 @@ namespace AElf.Runtime.CSharp
         {
             var scc = ApiType.GetMethod("SetSmartContractContext", BindingFlags.Public | BindingFlags.Static);
             var stc = ApiType.GetMethod("SetTransactionContext", BindingFlags.Public | BindingFlags.Static);
+            var sai = ApiType.GetMethod("SetAuthorizationInfo", BindingFlags.Public | BindingFlags.Static);
             var scch = Delegate.CreateDelegate(typeof(SetSmartContractContextHandler), scc);
             var stch = Delegate.CreateDelegate(typeof(SetTransactionContextHandler), stc);
+            var saih = Delegate.CreateDelegate(typeof(SetAuthorizationInfo), sai);
 
-            if (scch == null || stch == null)
+            if (scch == null || stch == null || saih == null)
             {
                 throw new InvalidOperationException("Input is not a valid Api type");
             }
 
             _setSmartContractContextHandler = (SetSmartContractContextHandler) scch;
             _setTransactionContextHandler = (SetTransactionContextHandler) stch;
-
+            _setAuthorizationInfo = (SetAuthorizationInfo) saih;
             return this;
         }
 
@@ -146,6 +152,7 @@ namespace AElf.Runtime.CSharp
             }
 
             _setTransactionContextHandler(transactionContext);
+            _setAuthorizationInfo(new AuthorizationInfo(_stateStore));
             _currentTransactionContext = transactionContext;
             return this;
         }
