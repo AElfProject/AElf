@@ -55,7 +55,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         public Map<Address, Tickets> BalanceMap;
 
         /// <summary>
-        /// The nodes wanna join the election for BP.
+        /// The nodes declared join the election for BP.
         /// </summary>
         public PbField<Candidates> CandidatesFiled;
     }

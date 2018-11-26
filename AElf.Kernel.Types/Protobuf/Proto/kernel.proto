@@ -276,7 +276,7 @@ message Tickets {
 message VotingRecord {
     Address From = 1;
     Address To = 2;
-    uint64 Tickets = 3;
+    uint64 TicketsCount = 3;
 }
 
 message Miners {

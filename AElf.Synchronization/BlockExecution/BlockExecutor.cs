@@ -148,6 +148,12 @@ namespace AElf.Synchronization.BlockExecution
                 txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
+                _logger?.Trace("Transaction Results:");
+                foreach (var re in txnRes)
+                {
+                    _logger?.Trace(re.StateHash.DumpHex);
+                }
+
                 var blockChain = _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
@@ -384,6 +390,7 @@ namespace AElf.Synchronization.BlockExecution
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
+                _logger?.Trace($"{root.DumpHex()} != {block.Header.MerkleTreeRootOfWorldState.DumpHex()}");
                 _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
                 res = BlockExecutionResult.IncorrectStateMerkleTree;
             }

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Common.Extensions;
-using AElf.Common.Attributes;
+using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
@@ -13,43 +13,28 @@ using NLog;
 
 namespace AElf.Kernel.Consensus
 {
-    // TODO: Cache
     // ReSharper disable InconsistentNaming
+    // ReSharper disable MemberCanBeMadeStatic.Local
     public class AElfDPoSHelper
     {
-        private readonly Hash _chainId;
-        private readonly Miners _miners;
+        private static Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
+
+        private static Address ContractAddress =>
+            AddressHelpers.GetSystemContractAddress(ChainId, SmartContractType.AElfDPoS.ToString());
+        
+        private readonly IMinersManager _minersManager;
         private readonly ILogger _logger;
-        private readonly Address _contractAddressHash;
         private readonly IStateStore _stateStore;
 
-        public AElfDPoSInformation DpoSInformation { get; private set; }
+        public List<Address> Miners => _minersManager.GetMiners().Result.Nodes.ToList();
 
         private DataProvider DataProvider
         {
             get
             {
-                var dp = DataProvider.GetRootDataProvider(_chainId, _contractAddressHash);
+                var dp = DataProvider.GetRootDataProvider(ChainId, ContractAddress);
                 dp.StateStore = _stateStore;
                 return dp;
-            }
-        }
-
-        public Miners Miners
-        {
-            get
-            {
-                try
-                {
-                    var ongoingMiners =
-                        OngoingMiners.Parser.ParseFrom(
-                            GetBytes<OngoingMiners>(Hash.FromString(GlobalConfig.AElfDPoSOngoingMinersString)));
-                    return ongoingMiners.GetCurrentMiners(CurrentRoundNumber);
-                }
-                catch (Exception)
-                {
-                    return new Miners();
-                }
             }
         }
 
@@ -59,10 +44,8 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    //_logger?.Trace("Getting Current Round Number.");
                     var number = UInt64Value.Parser.ParseFrom(
                         GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber)));
-                    //_logger?.Trace("Current Round Number: " + number.Value);
                     return number;
                 }
                 catch (Exception)
@@ -116,7 +99,7 @@ namespace AElf.Kernel.Consensus
                     return SInt32Value.Parser.ParseFrom(
                         GetBytes<SInt32Value>(Hash.FromString(GlobalConfig.AElfDPoSMiningIntervalString)));
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     //_logger?.Error(e, "Failed to get DPoS mining interval.\n");
                     return new SInt32Value {Value = GlobalConfig.AElfDPoSMiningInterval};
@@ -154,12 +137,10 @@ namespace AElf.Kernel.Consensus
                 : DataProvider.GetAsync<T>(keyHash).Result;
         }
 
-        public AElfDPoSHelper(Hash chainId, Miners miners, Address contractAddressHash, IStateStore stateStore)
+        public AElfDPoSHelper(IStateStore stateStore, IMinersManager minersManager)
         {
-            _chainId = chainId;
-            _miners = miners;
-            _contractAddressHash = contractAddressHash;
             _stateStore = stateStore;
+            _minersManager = minersManager;
 
             _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
         }
@@ -223,7 +204,7 @@ namespace AElf.Kernel.Consensus
             var dict = new Dictionary<Address, int>();
 
             // First round
-            foreach (var node in _miners.Nodes)
+            foreach (var node in Miners)
             {
                 dict.Add(node, node.DumpHex()[0]);
             }
@@ -237,7 +218,7 @@ namespace AElf.Kernel.Consensus
 
             var infosOfRound1 = new Round();
 
-            var selected = _miners.Nodes.Count / 2;
+            var selected = Miners.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
                 var bpInfo = new BlockProducer {IsEBP = false};
@@ -258,7 +239,7 @@ namespace AElf.Kernel.Consensus
             // Second round
             dict = new Dictionary<Address, int>();
 
-            foreach (var node in _miners.Nodes)
+            foreach (var node in Miners)
             {
                 dict.Add(node, node.DumpHex()[0]);
             }
@@ -274,7 +255,7 @@ namespace AElf.Kernel.Consensus
 
             var addition = enumerable.Count * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfDPoSMiningInterval;
 
-            selected = _miners.Nodes.Count / 2;
+            selected = Miners.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
                 var bpInfo = new BlockProducer {IsEBP = false};
@@ -344,7 +325,7 @@ namespace AElf.Kernel.Consensus
             try
             {
                 var add = Hash.Default;
-                foreach (var node in _miners.Nodes)
+                foreach (var node in Miners)
                 {
                     var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[node.DumpHex()].Signature;
                     add = Hash.FromTwoHashes(add, lastSignature);
@@ -368,9 +349,9 @@ namespace AElf.Kernel.Consensus
                 var signatureDict = new Dictionary<Hash, string>();
                 var orderDict = new Dictionary<int, string>();
 
-                var blockProducerCount = _miners.Nodes.Count;
+                var blockProducerCount = Miners.Count;
 
-                foreach (var node in _miners.Nodes)
+                foreach (var node in Miners)
                 {
                     var s = this[node].Signature;
                     if (s == null)
@@ -447,10 +428,10 @@ namespace AElf.Kernel.Consensus
 
                 var sigNum = BitConverter.ToUInt64(
                     BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
-                var blockProducerCount = _miners.Nodes.Count;
+                var blockProducerCount = Miners.Count;
                 var order = GetModulus(sigNum, blockProducerCount);
 
-                var nextEBP = _miners.Nodes[order];
+                var nextEBP = Miners[order];
 
                 return new StringValue {Value = nextEBP.DumpHex().RemoveHexPrefix()};
             }
@@ -645,7 +626,6 @@ namespace AElf.Kernel.Consensus
         /// </summary>
         /// <param name="offset">minutes</param>
         /// <returns></returns>
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private Timestamp GetTimestampOfUtcNow(int offset = 0)
         {
             return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));

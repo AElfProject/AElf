@@ -331,7 +331,7 @@ namespace AElf.Node.Protocol
                     }
                     
                     CurrentSyncSource = target;
-                    CurrentSyncSource.SyncToHeight(LocalHeight + 1, target.KnownHeight);
+                    CurrentSyncSource?.SyncToHeight(LocalHeight + 1, target.KnownHeight);
                     
                     FireSyncStateChanged(true);
                 }
@@ -578,7 +578,7 @@ namespace AElf.Node.Protocol
                     req.Id = args.Message.Id;
 
                 // Send response
-                args.Peer.EnqueueOutgoing(req, (_) =>
+                args.Peer.EnqueueOutgoing(req, _ =>
                 {
                     _logger?.Debug($"Block sent {{ hash: {b.BlockHashToHex}, to: {args.Peer} }}");
                 });

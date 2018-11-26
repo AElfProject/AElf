@@ -89,7 +89,7 @@ namespace AElf.Configuration
         #region Miner
 
         [Option('m', "mine.enable", HelpText = "To be a miner verification needed ")]
-        public bool? IsMiner { get; set; }
+        public bool? WillingToMine { get; set; }
 
         #endregion
 
