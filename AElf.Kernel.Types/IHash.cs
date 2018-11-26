@@ -4,7 +4,6 @@ using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    /// <inheritdoc cref="" />
     /// <summary>
     /// Hash result
     /// </summary>
@@ -12,5 +11,4 @@ namespace AElf.Kernel
     {
         ByteString Value { get; set; }
     }
-
 }

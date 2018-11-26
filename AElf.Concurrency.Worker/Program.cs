@@ -1,9 +1,14 @@
 ﻿using System;
+using System.IO;
+using AElf.ChainController;
+using AElf.Common;
+using AElf.Configuration.Config.Contract;
 using AElf.Database;
 using AElf.Execution;
-using AElf.Kernel.Modules.AutofacModule;
-using AElf.Launcher;
-using AElf.Network.Config;
+using AElf.Execution.Execution;
+using AElf.Kernel;
+using AElf.Miner;
+using AElf.Network;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Autofac;
@@ -25,38 +30,36 @@ namespace AElf.Concurrency.Worker
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Exception while parse config.");
                 throw;
             }
 
             if (!parsed)
                 return;
 
-            var netConf = confParser.NetConfig;
-            var isMiner = confParser.IsMiner;
-
-            var runner = new SmartContractRunner(confParser.RunnerConfig);
+            RunnerConfig.Instance.SdkDir = Path.GetDirectoryName(typeof(RunnerAElfModule).Assembly.Location);
+            var runner = new SmartContractRunner();
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
 
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, netConf, smartContractRunnerFactory);
+            var container = SetupIocContainer(true, smartContractRunnerFactory);
             if (container == null)
             {
-                _logger.Error("IoC setup failed");
+                _logger.Error("IoC setup failed.");
                 return;
             }
 
             if (!CheckDBConnect(container))
             {
-                _logger.Error("Database connection failed");
+                _logger.Error("Database connection failed.");
                 return;
             }
 
             using (var scope = container.BeginLifetimeScope())
             {
-                var service = scope.Resolve<IConcurrencyExecutingService>();
+                var service = scope.Resolve<ActorEnvironment>();
                 service.InitWorkActorSystem();
                 Console.WriteLine("Press Control + C to terminate.");
                 Console.CancelKeyPress += async (sender, eventArgs) => { await service.StopAsync(); };
@@ -64,28 +67,24 @@ namespace AElf.Concurrency.Worker
             }
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, IAElfNetworkConfig netConf,
-            SmartContractRunnerFactory smartContractRunnerFactory)
+        private static IContainer SetupIocContainer(bool isMiner, SmartContractRunnerFactory smartContractRunnerFactory)
         {
             var builder = new ContainerBuilder();
 
-            builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
+            //builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
 
             // Module registrations
-            builder.RegisterModule(new TransactionManagerModule());
-            builder.RegisterModule(new LoggerModule());
-            builder.RegisterModule(new DatabaseModule());
-            builder.RegisterModule(new NetworkModule(netConf, isMiner));
-            builder.RegisterModule(new RpcServerModule());
-            builder.RegisterModule(new MinerModule(null));
-            builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new StorageModule());
-            builder.RegisterModule(new ServicesModule());
-            builder.RegisterModule(new ManagersModule());
-            builder.RegisterModule(new MetadataModule());
+            builder.RegisterModule(new LoggerAutofacModule());
+            builder.RegisterModule(new DatabaseAutofacModule());
+            builder.RegisterModule(new NetworkAutofacModule());
+            builder.RegisterModule(new MinerAutofacModule(null));
+            builder.RegisterModule(new ChainAutofacModule());
+            builder.RegisterModule(new KernelAutofacModule());
+            builder.RegisterModule(new SmartContractAutofacModule());
 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
-
+            builder.RegisterType<ServicePack>().PropertiesAutowired();
+            builder.RegisterType<ActorEnvironment>().SingleInstance();
             IContainer container;
             try
             {
@@ -102,7 +101,15 @@ namespace AElf.Concurrency.Worker
         private static bool CheckDBConnect(IComponentContext container)
         {
             var db = container.Resolve<IKeyValueDatabase>();
-            return db.IsConnected();
+            try
+            {
+                return db.IsConnected();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                return false;
+            }
         }
     }
 }

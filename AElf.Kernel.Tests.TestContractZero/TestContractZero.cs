@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
@@ -24,16 +24,16 @@ namespace AElf.Kernel.Tests
 
         public class ContractHasBeenDeployed : Event
         {
-            [Indexed] public Hash Creator;
+            [Indexed] public Address Creator;
 
-            [Indexed] public Hash Address;
+            [Indexed] public Address Address;
         }
 
         public class OwnerHasBeenChanged : Event
         {
-            [Indexed] public Hash Address;
-            [Indexed] public Hash OldOwner;
-            [Indexed] public Hash NewOwner;
+            [Indexed] public Address Address;
+            [Indexed] public Address OldOwner;
+            [Indexed] public Address NewOwner;
         }
     
         #endregion Events
@@ -91,28 +91,18 @@ namespace AElf.Kernel.Tests
             {
                 Category = category,
                 ContractBytes = ByteString.CopyFrom(contract),
-                ContractHash = contract.CalculateHash() // maybe no usage  
+                ContractHash = Hash.FromRawBytes(contract),
             };
             
             var tx = Api.GetTransaction();
-            
-            ulong serialNumber = _serialNumber.Increment().Value;
-
-            Hash creator = Api.GetTransaction().From;
-
-            var info = new ContractInfo()
-            {
-                Owner = creator,
-                SerialNumer = serialNumber
-            };
-
-            var address = info.Address;
+           
             // calculate new account address
-            var account = ResourcePath.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
+            var account = DataPath.CalculateAccountAddress(tx.From, tx.IncrementId);
             
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success, {0}", account.ToHex());
-            return account.GetHashBytes();
+            Console.WriteLine("TestContractZero: Deployment success, {0}", account.DumpHex());
+            return account.DumpByteArray();
+
         }
 
         public void Print(string name)

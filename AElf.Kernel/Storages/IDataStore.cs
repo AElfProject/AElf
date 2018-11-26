@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Google.Protobuf;
+using AElf.Common;
 
 namespace AElf.Kernel.Storages
 {
     public interface IDataStore
     {
-        Task SetDataAsync<T>(Hash pointerHash, byte[] data) where T : IMessage;
-        Task<byte[]> GetDataAsync<T>(Hash pointerHash) where T : IMessage;
-        Task<bool> PipelineSetDataAsync<T>(Dictionary<Hash, byte[]> pipelineSet) where T : IMessage;
+        Task InsertAsync<T>(Hash pointerHash, T obj) where T : IMessage;
+        Task<T> GetAsync<T>(Hash pointerHash) where T : IMessage, new();
+        Task RemoveAsync<T>(Hash txId) where T : IMessage;
     }
 }

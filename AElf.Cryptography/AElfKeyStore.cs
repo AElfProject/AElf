@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
-using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
@@ -24,12 +22,12 @@ namespace AElf.Cryptography
 
         private const string _algo = "AES-256-CFB";
         private readonly string _dataDirectory;
-        
+
         // IsOpen not used.
         public bool IsOpen { get; private set; }
 
         private readonly List<OpenAccount> _openAccounts;
-        
+
         private readonly TimeSpan _defaultTimeoutToClose = TimeSpan.FromMinutes(10);
 
         public enum Errors
@@ -38,7 +36,7 @@ namespace AElf.Cryptography
             AccountAlreadyUnlocked = 1,
             WrongPassword = 2
         }
-        
+
         public AElfKeyStore(string dataDirectory)
         {
             _dataDirectory = dataDirectory;
@@ -48,7 +46,7 @@ namespace AElf.Cryptography
         private void OpenAsync(string address, string password, TimeSpan? timeoutToClose)
         {
             ECKeyPair kp = ReadKeyPairAsync(address, password);
-            
+
             OpenAccount acc = new OpenAccount();
             acc.KeyPair = kp;
 
@@ -57,7 +55,7 @@ namespace AElf.Cryptography
                 Timer t = new Timer(CloseAccount, acc, timeoutToClose.Value, timeoutToClose.Value);
                 acc.CloseTimer = t;
             }
-            
+
             _openAccounts.Add(acc);
         }
 
@@ -91,7 +89,7 @@ namespace AElf.Cryptography
             openAccount.Close();
             _openAccounts.Remove(openAccount);
         }
-        
+
         public ECKeyPair GetAccountKeyPair(string address)
         {
             return _openAccounts.FirstOrDefault(oa => oa.Address.Replace("0x", "").Equals(address.Replace("0x", "")))?.KeyPair;
@@ -127,7 +125,7 @@ namespace AElf.Cryptography
 
                 if (p == null)
                     return null;
-                
+
                 ECKeyPair kp = new ECKeyPair((ECPrivateKeyParameters) p.Private, (ECPublicKeyParameters) p.Public);
 
                 return kp;
@@ -142,13 +140,12 @@ namespace AElf.Cryptography
             }
             catch (PemException pemEx)
             {
-                throw new InvalidPasswordException("Invalid password", pemEx);
+                throw new InvalidPasswordException("Invalid password.", pemEx);
             }
             catch (Exception e)
             {
+                throw new Exception("Unknown error.", e);
             }
-
-            return null;
         }
 
         private bool WriteKeyPair(ECKeyPair keyPair, string password)
@@ -162,15 +159,16 @@ namespace AElf.Cryptography
                 Console.WriteLine("Invalid password.");
                 return false;
             }
-                
-            
+
             // Ensure path exists
             GetOrCreateKeystoreDir();
-            
+
             string fullPath = null;
             try
             {
-                var address = keyPair.GetAddressHex();
+                Address.FromRawBytes(keyPair.GetEncodedPublicKey());
+                var address = Address.FromRawBytes(keyPair.GetEncodedPublicKey()).Value.ToByteArray().ToHex();
+//                var address = keyPair.GetAddressHex();
                 fullPath = GetKeyFileFullPath(address);
             }
             catch (Exception e)
@@ -178,9 +176,9 @@ namespace AElf.Cryptography
                 Console.WriteLine("Could not calculate the address from the keypair.", e);
                 return false;
             }
-            
+
             var akp = new AsymmetricCipherKeyPair(keyPair.PublicKey, keyPair.PrivateKey);
-            
+
             using (var writer = File.CreateText(fullPath))
             {
                 var pw = new PemWriter(writer);
@@ -190,7 +188,7 @@ namespace AElf.Cryptography
 
             return true;
         }
-        
+
         /// <summary>
         /// Return the full path of the files 
         /// </summary>

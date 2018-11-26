@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using Google.Protobuf;
 using AElf.Types.CSharp;
@@ -31,14 +32,14 @@ namespace AElf.Sdk.CSharp.Types
         {
             if (value != null)
             {
-                await Api.GetDataProvider("").SetAsync(_name.CalculateHash(), value.Pack().ToByteArray());
+                await Api.GetDataProvider("").SetAsync<UserTypeHolder>(Hash.FromString(_name), value.Pack().ToByteArray());
             }
         }
 
         public async Task<T> GetAsync()
         {
             var obj = (T)Activator.CreateInstance(typeof(T));
-            byte[] bytes = await Api.GetDataProvider("").GetAsync(_name.CalculateHash());
+            byte[] bytes = await Api.GetDataProvider("").GetAsync<UserTypeHolder>(Hash.FromString(_name));
             var userTypeValue = Api.Serializer.Deserialize<UserTypeHolder>(bytes);
             obj.Unpack(userTypeValue);
             return obj;

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-using AElf.Kernel;
+using AElf.Common;
 
 namespace AElf.CLI.Helpers
 {

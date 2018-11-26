@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
@@ -10,13 +10,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
     <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.frameworks.autofac" Version="0.1.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-    <Exec Command="protoc --proto_path=./Protobuf
-                          --csharp_out=./Protobuf/Generated
-                          --csharp_opt=file_extension=.g.cs
-                         ./Protobuf/ParamsPackerTests.proto" />
+    <Exec Command="protoc --proto_path=./Protobuf --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs ./Protobuf/ParamsPackerTests.proto" />
   </Target>
   <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
     <ItemGroup>

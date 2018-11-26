@@ -9,25 +9,43 @@ namespace AElf.Database
     {
         private readonly ConcurrentDictionary<string, byte[]> _dictionary = new ConcurrentDictionary<string, byte[]>();
         
-        public Task<byte[]> GetAsync(string key, Type type)
+        public Task<byte[]> GetAsync(string database, string key)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+            
             return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : Task.FromResult<byte[]>(null);
         }
 
-        public Task SetAsync(string key, byte[] bytes)
+        public Task SetAsync(string database, string key, byte[] bytes)
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+            
             _dictionary[key] = bytes;
             return Task.CompletedTask;
         }
 
-        public Task RemoveAsync(string key)
+        public Task RemoveAsync(string database, string key)
         {
-            _dictionary.TryRemove(key, out var _);
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key is empty");
+            }
+            _dictionary.TryRemove(key, out _);
             return Task.CompletedTask;
         }
 
-        public async Task<bool> PipelineSetAsync(Dictionary<string, byte[]> cache)
+        public async Task<bool> PipelineSetAsync(string database, Dictionary<string, byte[]> cache)
         {
+            if (cache.Count == 0)
+            {
+                return true;
+            }
             return await Task.Factory.StartNew(() =>
             {
                 foreach (var change in cache)
@@ -39,7 +57,7 @@ namespace AElf.Database
             });
         }
 
-        public bool IsConnected()
+        public bool IsConnected(string database = "")
         {
             return true;
         }

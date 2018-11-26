@@ -3,12 +3,18 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
+using AElf.Common;
+using AElf.Common.Enums;
+using AElf.Execution;
 using AElf.Configuration;
 using AElf.Database;
-using AElf.Execution;
-using AElf.Kernel.Modules.AutofacModule;
+using AElf.Execution.Execution;
+using AElf.Execution.Scheduling;
+using AElf.Kernel;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
+using Akka.Actor;
 using Autofac;
 using CommandLine;
 
@@ -71,30 +77,6 @@ namespace AElf.Benchmark
                     return;
                 }
 
-                if (!string.IsNullOrWhiteSpace(opts.Database) || DatabaseConfig.Instance.Type == DatabaseType.InMemory)
-                {
-                    try
-                    {
-                        DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.Database);
-                    }
-                    catch (ArgumentException)
-                    {
-                        Console.WriteLine(
-                            $"Database {opts.Database} not supported, use one of the following databases: [keyvalue, redis, ssdb]");
-                        return;
-                    }
-                }
-
-                if (!string.IsNullOrWhiteSpace(opts.DbHost))
-                {
-                    DatabaseConfig.Instance.Host = opts.DbHost;
-                }
-
-                if (opts.DbPort.HasValue)
-                {
-                    DatabaseConfig.Instance.Port = opts.DbPort.Value;
-                }
-
                 if (opts.ConcurrencyLevel.HasValue)
                 {
                     ActorConfig.Instance.ConcurrencyLevel = opts.ConcurrencyLevel.Value;
@@ -104,16 +86,12 @@ namespace AElf.Benchmark
                 ParallelConfig.Instance.IsParallelEnable = true;
 
                 var builder = new ContainerBuilder();
-                builder.RegisterModule(new MainModule());
-                builder.RegisterModule(new WorldStateDictatorModule());
-                builder.RegisterModule(new DatabaseModule());
-                builder.RegisterModule(new LoggerModule());
-                builder.RegisterModule(new StorageModule());
-                builder.RegisterModule(new ServicesModule());
-                builder.RegisterModule(new ManagersModule());
-                builder.RegisterModule(new MetadataModule());
-                builder.RegisterType(typeof(ConcurrencyExecutingService)).As<IConcurrencyExecutingService>()
-                    .SingleInstance();
+                //builder.RegisterModule(new MainModule());
+                builder.RegisterModule(new DatabaseAutofacModule());
+                builder.RegisterModule(new LoggerAutofacModule());
+                builder.RegisterModule(new ChainAutofacModule());
+                builder.RegisterModule(new KernelAutofacModule());
+                builder.RegisterModule(new SmartContractAutofacModule());
                 builder.RegisterType<Benchmarks>().WithParameter("options", opts);
                 var runner = new SmartContractRunner(opts.SdkDir);
                 SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -121,6 +99,18 @@ namespace AElf.Benchmark
                 smartContractRunnerFactory.AddRunner(1, runner);
                 builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
 
+                if (ParallelConfig.Instance.IsParallelEnable)
+                {
+                    builder.RegisterType<Grouper>().As<IGrouper>();
+                    builder.RegisterType<ServicePack>().As<ServicePack>().PropertiesAutowired();
+                    builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
+                    builder.RegisterType<ParallelTransactionExecutingService>().As<IExecutingService>();
+                }
+                else
+                {
+                    builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
+                }
+                
                 var container = builder.Build();
 
                 if (container == null)
@@ -137,11 +127,22 @@ namespace AElf.Benchmark
 
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
-                    concurrencySercice.InitActorSystem();
+                    if (ParallelConfig.Instance.IsParallelEnable)
+                    {
+                        var actorEnv = scope.Resolve<IActorEnvironment>();
+                        try
+                        {
+                            actorEnv.InitActorSystem();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                           
+                    }
 
                     var benchmarkTps = scope.Resolve<Benchmarks>();
-
+                    await benchmarkTps.InitContract();
                     Thread.Sleep(200); //sleep 200 ms to let async console print in order 
                     await benchmarkTps.BenchmarkEvenGroup();
                 }
@@ -159,7 +160,15 @@ namespace AElf.Benchmark
         private static bool CheckDbConnect(IComponentContext container)
         {
             var db = container.Resolve<IKeyValueDatabase>();
-            return db.IsConnected();
+            try
+            {
+                return db.IsConnected();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
         }
     }
 }

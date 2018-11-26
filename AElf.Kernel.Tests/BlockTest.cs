@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -7,69 +8,41 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {
     [UseAutofacTestFramework]
     public class BlockTest
     {
-        private readonly IBlockManager _blockManager;
-        private readonly ChainTest _chainTest;
         private readonly IChainCreationService _chainCreationService;
-        private readonly IChainManager _chainManager;
+        private readonly IChainService _chainService;
 
-        public BlockTest(IBlockManager blockManager, ChainTest chainTest, IChainCreationService chainCreationService, IChainManager chainManager)
+        public BlockTest(IChainService chainService, IChainCreationService chainCreationService)
         {
-            _blockManager = blockManager;
             //_smartContractZero = smartContractZero;
-            _chainTest = chainTest;
             _chainCreationService = chainCreationService;
-            _chainManager = chainManager;
+            _chainService = chainService;
         }
 
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
-
-        [Fact]
-        public async Task GetNextBlockTest()
-        {
-            var chain = await CreateChain();
-            
-            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            await _chainManager.AppendBlockToChainAsync(block1);
-            await _blockManager.AddBlockAsync(block1);
-            
-            var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
-            await _chainManager.AppendBlockToChainAsync(block2);
-            await _blockManager.AddBlockAsync(block2);
-
-            var blockOfHeight2 = await _blockManager.GetNextBlockOf(chain.Id, block1.GetHash());
-            
-            Assert.Equal(block2, blockOfHeight2);
-        }
-
+        private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
+        
         [Fact]
         public async Task GetBlockByHeightTest()
         {
             var chain = await CreateChain();
-            
-            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            await _chainManager.AppendBlockToChainAsync(block1);
-            await _blockManager.AddBlockAsync(block1);
-            
-            var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
-            await _chainManager.AppendBlockToChainAsync(block2);
-            await _blockManager.AddBlockAsync(block2);
+            var blockchain = _chainService.GetBlockChain(chain.Id);
 
-            var blockOfHeight1 = await _blockManager.GetBlockByHeight(chain.Id, 1);
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, GlobalConfig.GenesisBlockHeight + 1);
+            await blockchain.AddBlocksAsync(new List<IBlock> {block1});
+            
+            var block2 = CreateBlock(block1.GetHash(), chain.Id, GlobalConfig.GenesisBlockHeight + 2);
+            await blockchain.AddBlocksAsync(new List<IBlock> {block2});
+
+            var blockOfHeight1 = await blockchain.GetBlockByHeightAsync(GlobalConfig.GenesisBlockHeight + 1);
             Assert.Equal(block1, blockOfHeight1);
 
-            var blockOfHeight2 = await _blockManager.GetBlockByHeight(chain.Id, 2);
+            var blockOfHeight2 = await blockchain.GetBlockByHeightAsync(GlobalConfig.GenesisBlockHeight + 2);
             Assert.Equal(block2, blockOfHeight2);
 
         }
@@ -84,7 +57,7 @@ namespace AElf.Kernel.Tests
             };
 
             var chainId = Hash.Generate();
-            return await _chainCreationService.CreateNewChainAsync(chainId, reg);
+            return await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
         }
      
        [Fact]
@@ -103,9 +76,13 @@ namespace AElf.Kernel.Tests
         {
             var chain = await CreateChain();
 
-            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            await _blockManager.AddBlockAsync(block);
-            var b = await _blockManager.GetBlockAsync(block.GetHash());
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, GlobalConfig.GenesisBlockHeight + 1);
+            var blockchain = _chainService.GetBlockChain(chain.Id);
+            await blockchain.AddBlocksAsync(new List<IBlock>() {block});
+            Console.WriteLine("getting " + block.GetHash());
+            var b = await blockchain.GetBlockByHashAsync(block.GetHash());
+//            await _blockManager.AddBlockAsync(block);
+//            var b = await _blockManager.GetBlockAsync(block.GetHash());
             Assert.Equal(b, block);
         }
         
@@ -114,10 +91,10 @@ namespace AElf.Kernel.Tests
             Interlocked.CompareExchange(ref preBlockHash, Hash.Genesis, null);
             
             var block = new Block(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
+            block.AddTransaction(FakeTransaction());
+            block.AddTransaction(FakeTransaction());
+            block.AddTransaction(FakeTransaction());
+            block.AddTransaction(FakeTransaction());
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
@@ -130,6 +107,14 @@ namespace AElf.Kernel.Tests
             
             return block;
         }
-        
+
+        private Transaction FakeTransaction()
+        {
+            return new Transaction
+            {
+                From = Address.Generate(),
+                To = Address.Generate()
+            };
+        }
     }
 }

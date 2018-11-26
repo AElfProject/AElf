@@ -13,28 +13,29 @@ namespace AElf.ABI.CSharp
         public static Module GetABIModule(byte[] code)
         {
             var module = new Module();
-            var monoModule = ModuleDefinition.ReadModule(new MemoryStream(code));
-
-            Container container = new Container("AElf.Sdk.CSharp.CSharpSmartContract", "AElf.Sdk.CSharp.Event",
-                typeof(UserType).FullName);
-            foreach (var t in monoModule.GetTypes())
+            using (var monoModule = ModuleDefinition.ReadModule(new MemoryStream(code)))
             {
-                container.AddType(t);
+                Container container = new Container("AElf.Sdk.CSharp.CSharpSmartContract", "AElf.Sdk.CSharp.Event",
+                    typeof(UserType).FullName);
+                foreach (var t in monoModule.GetTypes())
+                {
+                    container.AddType(t);
+                }
+            
+                var contractTypePath = container.GetSmartContractTypePath();
+                module.Name = contractTypePath.Last().FullName;
+                module.Methods.AddRange(GetMethods(contractTypePath));
+                module.Events.AddRange(GetEvents(container));
+                module.Types_.AddRange(GetTypes(container));
+
+                return module;                
             }
-
-            var contractTypePath = container.GetSmartContractTypePath();
-            module.Name = contractTypePath.Last().FullName;
-            module.Methods.AddRange(GetMethods(container));
-            module.Events.AddRange(GetEvents(container));
-            module.Types_.AddRange(GetTypes(container));
-
-            return module;
         }
 
-        private static IEnumerable<Method> GetMethods(Container container)
+        private static IEnumerable<Method> GetMethods(IEnumerable<TypeDefinition> contractTypePath)
         {
             List<Method> methods = new List<Method>();
-            foreach (var sc in container.GetSmartContractTypePath())
+            foreach (var sc in contractTypePath)
             {
                 methods.AddRange(GetMethodsFromType(sc));
             }

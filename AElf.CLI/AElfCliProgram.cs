@@ -1,32 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 using AElf.ABI.CSharp;
+using AElf.CLI.Certificate;
 using AElf.CLI.Command;
+using AElf.CLI.Command.Account;
+using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Helpers;
 using AElf.CLI.Http;
 using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
 using AElf.CLI.Screen;
+using AElf.CLI.Streaming;
 using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Asn1.Misc;
 using ProtoBuf;
 using ServiceStack;
-using Globals = AElf.Kernel.Globals;
 using Method = AElf.CLI.Data.Protobuf.Method;
 using Module = AElf.CLI.Data.Protobuf.Module;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
-using Type = System.Type;
+using TransactionType = AElf.CLI.Data.Protobuf.TransactionType;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace AElf.CLI
 {
@@ -50,7 +52,8 @@ namespace AElf.CLI
     public class AElfCliProgram
     {
 
-        private string _rpcAddress;
+        private readonly string _rpcAddress;
+        private readonly int _port;
 
         private string _genesisAddress;
             
@@ -61,7 +64,7 @@ namespace AElf.CLI
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
         
         private const string ExitReplCommand = "quit";
-        private const string ServerConnError = "Could not connect to server.";
+        private const string ServerConnError = "Unable to connect to server.";
         private const string AbiNotLoaded = "ABI not loaded.";
         private const string NotConnected = "Please connect-blockchain first.";
         private const string InvalidTransaction = "Invalid transaction data.";
@@ -69,22 +72,26 @@ namespace AElf.CLI
         private const string ConnectionNeeded = "Please connect_chain first.";
         private const string NoReplyContentError = "Failed. Pleas check input.";
         private const string DeploySmartContract = "DeploySmartContract";
+        private const string UpdateSmartContract = "UpdateSmartContract";
         private const string WrongInputFormat = "Invalid input format.";
         private const string UriFormatEroor = "Invalid uri format.";
         
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
+        private readonly CertificatManager _certificatManager;
 
         private readonly Dictionary<string, Module> _loadedModules;
         
-        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, string host = "http://localhost:5000")
+        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, CertificatManager certificatManager, string host = "http://localhost:5000")
         {
             _rpcAddress = host;
+            _port = int.Parse(host.Split(':')[2]);
             
             _screenManager = screenManager;
             _cmdParser = cmdParser;
             _accountManager = accountManager;
+            _certificatManager = certificatManager;
             _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
@@ -114,6 +121,23 @@ namespace AElf.CLI
                 {
                     Stop();
                     break;
+                }
+
+                if (command.StartsWith("sub events") )
+                {
+                    string[] splitOnSpaces = command.Split(' ');
+
+                    if (splitOnSpaces.Length == 3)
+                    {
+                        EventMonitor mon = new EventMonitor(_port, splitOnSpaces[2]);
+                        mon.Start().GetResult();
+                        Console.ReadKey();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Sub events - incorrect arguments");
+                            
+                    }
                 }
                 
                 CmdParseResult parsedCmd = _cmdParser.Parse(command);
@@ -211,12 +235,14 @@ namespace AElf.CLI
                                 return;
                             }
                             parsedCmd.Args.Add(_genesisAddress);
+                            //parsedCmd.Args.Add(Globals.GenesisBasicContract);
                         }
 
                         var addr = parsedCmd.Args.ElementAt(0);
                         Module m = null;
                         if (!_loadedModules.TryGetValue(addr, out m))
                         {
+                            
                             string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
                             if (resp == null)
@@ -282,10 +308,7 @@ namespace AElf.CLI
                         byte[] sc = screader.Read(filename);
                         string hex = sc.ToHex();
 
-                        var name = Globals.GenesisSmartContractZeroAssemblyName + Globals.GenesisSmartContractLastName;
-                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
-            
-                        if (m == null)
+                        if (!_loadedModules.TryGetValue(_genesisAddress, out var m))
                         {
                             _screenManager.PrintError(AbiNotLoaded);
                             return;
@@ -298,12 +321,14 @@ namespace AElf.CLI
                             _screenManager.PrintError(MethodNotFound);
                             return;
                         }
-                        
-                        byte[] serializedParams = meth.SerializeParams(new List<string> {"1", hex} );
+
+                        byte[] serializedParams = meth.SerializeParams(new List<string> {"1", hex});
             
                         Transaction t = new Transaction();
-                        t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, parsedCmd.Args.ElementAt(1),
-                            DeploySmartContract, serializedParams);
+                        t = CreateTransaction(parsedCmd.Args.ElementAt(1), _genesisAddress, 
+                            DeploySmartContract, serializedParams, TransactionType.ContractTransaction);
+
+                        t = t.AddBlockReference(_rpcAddress);
                         
                         MemoryStream ms = new MemoryStream();
                         Serializer.Serialize(ms, t);
@@ -311,15 +336,13 @@ namespace AElf.CLI
                         byte[] toSig = SHA256.Create().ComputeHash(b);
                         ECSigner signer = new ECSigner();
                         ECSignature signature;
-                        ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(2));
+                        ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(1));
                         if (kp == null)
-                            throw new AccountLockedException(parsedCmd.Args.ElementAt(2));
+                            throw new AccountLockedException(parsedCmd.Args.ElementAt(1));
                         signature = signer.Sign(kp, toSig);
                         
                         // Update the signature
-                        t.R = signature.R;
-                        t.S = signature.S;
-                        t.P = kp.PublicKey.Q.GetEncoded();
+                        t.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
                         
                         var resp = SignAndSendTransaction(t);
                         
@@ -358,7 +381,109 @@ namespace AElf.CLI
                             _screenManager.PrintError(WrongInputFormat);
                             return;
                         }
+                        return;
+                    }
+                    
+                }
+                
+                if (def is UpdateContractCommand ucc)
+                {
+                    if (_genesisAddress == null)
+                    {
+                        _screenManager.PrintError(NotConnected);
+                        return;
+                    }
+                    
+                    try
+                    {
+                        string err = ucc.Validate(parsedCmd);
+                        if (!string.IsNullOrEmpty(err))
+                        {
+                            _screenManager.PrintLine(err);
+                            return;
+                        }
+            
+                        //string cat = parsedCmd.Args.ElementAt(0);
+                        string filename = parsedCmd.Args.ElementAt(1);
+                        
+                        // Read sc bytes
+                        SmartContractReader screader = new SmartContractReader();
+                        byte[] sc = screader.Read(filename);
+                        string hex = sc.ToHex();
 
+                        if (!_loadedModules.TryGetValue(_genesisAddress, out var m))
+                        {
+                            _screenManager.PrintError(AbiNotLoaded);
+                            return;
+                        }
+            
+                        Method meth = m.Methods.FirstOrDefault(mt => mt.Name.Equals(UpdateSmartContract));
+                        
+                        if (meth == null)
+                        {
+                            _screenManager.PrintError(MethodNotFound);
+                            return;
+                        }
+                        
+                        byte[] serializedParams = meth.SerializeParams(new List<string> {parsedCmd.Args.ElementAt(0), hex} );
+            
+                        Transaction t = new Transaction();
+                        t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, 
+                            UpdateSmartContract, serializedParams, TransactionType.ContractTransaction);
+
+                        t = t.AddBlockReference(_rpcAddress);
+                        
+                        MemoryStream ms = new MemoryStream();
+                        Serializer.Serialize(ms, t);
+                        byte[] b = ms.ToArray();
+                        byte[] toSig = SHA256.Create().ComputeHash(b);
+                        ECSigner signer = new ECSigner();
+                        ECSignature signature;
+                        ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(2));
+                        if (kp == null)
+                            throw new AccountLockedException(parsedCmd.Args.ElementAt(2));
+                        signature = signer.Sign(kp, toSig);
+                        
+                        // Update the signature
+                        t.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
+                        
+                        var resp = SignAndSendTransaction(t);
+                        
+                        if (resp == null)
+                        { 
+                            _screenManager.PrintError(ServerConnError);
+                            return;
+                        }
+                        if (resp.IsEmpty())
+                        {
+                            _screenManager.PrintError(NoReplyContentError);
+                            return;
+                        }
+                        JObject jObj = JObject.Parse(resp);
+                        
+                        string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
+                        _screenManager.PrintLine(toPrint);
+                        return;
+
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is ContractLoadedException || e is AccountLockedException)
+                        {
+                            _screenManager.PrintError(e.Message);
+                            return;
+                        }
+
+                        if (e is InvalidTransactionException)
+                        {
+                            _screenManager.PrintError(InvalidTransaction);
+                            return;
+                        }
+                        if (e is JsonReaderException)
+                        {
+                            _screenManager.PrintError(WrongInputFormat);
+                            return;
+                        }
                         return;
                     }
                     
@@ -399,6 +524,9 @@ namespace AElf.CLI
                             
                             JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
                             tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
+                            tr.type = TransactionType.ContractTransaction;
+
+                            tr = tr.AddBlockReference(_rpcAddress);
 
                             _accountManager.SignTransaction(tr);
                             var resp = SignAndSendTransaction(tr);
@@ -478,9 +606,13 @@ namespace AElf.CLI
                             string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
                             _screenManager.PrintLine(toPrint);
                     }
-                    else
+                    else if (def is AccountCmd)
                     {
                         _accountManager.ProcessCommand(parsedCmd);
+                    }
+                    else if (def is CertificateCmd)
+                    {
+                        _certificatManager.ProcCmd(parsedCmd);
                     }
                 }
                 else
@@ -489,12 +621,14 @@ namespace AElf.CLI
                     {
                         // RPC
                         HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
-                        string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+                        string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString(), def.GetUrl());
+                        
                         if (resp == null)
                         { 
                             _screenManager.PrintError(ServerConnError);
                             return;
                         }
+                        
                         if (resp.IsEmpty())
                         {
                             _screenManager.PrintError(NoReplyContentError);
@@ -504,16 +638,18 @@ namespace AElf.CLI
                         JObject jObj = JObject.Parse(resp);
                         
                         var j = jObj["result"];
+                        
                         if (j["error"] != null)
                         {
                             _screenManager.PrintLine(j["error"].ToString());
                             return;
                         }
                         
-                        if (j["result"]["genesis_contract"] != null)
+                        if (j["result"]?["BasicContractZero"] != null)
                         {
-                            _genesisAddress = j["result"]["genesis_contract"].ToString();
+                            _genesisAddress = j["result"]["BasicContractZero"].ToString();
                         }
+                        
                         string toPrint = def.GetPrintString(JObject.FromObject(j));
                         
                         _screenManager.PrintLine(toPrint);
@@ -537,16 +673,17 @@ namespace AElf.CLI
             }
         }
 
-        private Transaction CreateTransaction(string elementAt, string genesisAddress, string incrementid, string methodName, byte[] serializedParams)
+        private Transaction CreateTransaction(string elementAt, string genesisAddress,
+            string methodName, byte[] serializedParams, TransactionType contracttransaction)
         {
             try
             {
                 Transaction t = new Transaction();
                 t.From = ByteArrayHelpers.FromHexString(elementAt);
                 t.To = ByteArrayHelpers.FromHexString(genesisAddress);
-                t.IncrementId = Convert.ToUInt64(incrementid);
                 t.MethodName = methodName;
                 t.Params = serializedParams;
+                t.type = contracttransaction;
                 return t;
             }
             catch (Exception e)
@@ -612,7 +749,6 @@ namespace AElf.CLI
                 Transaction tr = new Transaction();
                 tr.From = ByteArrayHelpers.FromHexString(j["from"].ToString());
                 tr.To = ByteArrayHelpers.FromHexString(j["to"].ToString());
-                tr.IncrementId = j["incr"].ToObject<ulong>();
                 tr.MethodName = j["method"].ToObject<string>();
                 return tr;
             }

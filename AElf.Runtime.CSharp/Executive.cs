@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Type = System.Type;
@@ -40,7 +43,7 @@ namespace AElf.Runtime.CSharp
                 {"string", InvokeHandlers.ForStringReturnType},
                 {"byte[]", InvokeHandlers.ForBytesReturnType}
             };
-        
+
         private readonly Dictionary<string, RetVal.Types.RetType> _retTypes =
             new Dictionary<string, RetVal.Types.RetType>()
             {
@@ -65,7 +68,8 @@ namespace AElf.Runtime.CSharp
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
-        private IWorldStateDictator _worldStateDictator;
+        private IStateStore _stateStore;
+        private int _maxCallDepth = 4;
 
         public Executive(Module abiModule)
         {
@@ -75,15 +79,24 @@ namespace AElf.Runtime.CSharp
             }
         }
 
-        public IExecutive SetWorldStateManager(IWorldStateDictator worldStateDictator)
+        public Hash ContractHash { get; set; }
+
+        public IExecutive SetMaxCallDepth(int maxCallDepth)
         {
-            _worldStateDictator = worldStateDictator;
+            _maxCallDepth = maxCallDepth;
             return this;
         }
 
-        public void SetDataCache(Dictionary<Hash, StateCache> cache)
+        public IExecutive SetStateStore(IStateStore stateStore)
+        {
+            _stateStore = stateStore;
+            return this;
+        }
+
+        public void SetDataCache(Dictionary<DataPath, StateCache> cache)
         {
             _currentSmartContractContext.DataProvider.StateCache = cache;
+            _currentSmartContractContext.DataProvider.ClearCache();
         }
 
         // ReSharper disable once InconsistentNaming
@@ -137,8 +150,15 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public async Task Apply(bool autoCommit)
+        public async Task Apply()
         {
+            if (_currentTransactionContext.CallDepth > _maxCallDepth)
+            {
+                _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                _currentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
+                return;
+            }
+
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = _currentTransactionContext.Transaction.MethodName;
 
@@ -161,12 +181,13 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearTentativeCache();
                         var retVal = await handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
                     }
                     catch (Exception ex)
                     {
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                         _currentTransactionContext.Trace.StdErr += "\n" + ex;
                     }
                 }
@@ -181,35 +202,39 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearTentativeCache();
                         var retVal = handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
+                    }
+                    catch (TargetInvocationException ex) when (ex.InnerException.GetType().Namespace == "AElf.Sdk.CSharp")
+                    {
+                        _currentTransactionContext.Trace.StdErr += ex.InnerException.Message;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                     }
                     catch (Exception ex)
                     {
                         _currentTransactionContext.Trace.StdErr += "\n" + ex;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                     }
                 }
 
-                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful())
+                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() &&
+                    _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
-                    _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider
-                        .GetValueChanges());
-                    if (autoCommit)
+                    var changes = _currentSmartContractContext.DataProvider.GetChanges().Select(kv=>new StateChange()
                     {
-                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateDictator,
-                            _currentSmartContractContext.ChainId);
-                        await _worldStateDictator.ApplyCachedDataAction(changeDict,
-                            _currentSmartContractContext.ChainId);
-                        _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
-                    }
+                        StatePath = kv.Key,
+                        StateValue = kv.Value
+                    });
+                    _currentTransactionContext.Trace.StateChanges.AddRange(changes);
                 }
             }
             catch (Exception ex)
             {
+                _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
                 _currentTransactionContext.Trace.StdErr += ex + "\n";
             }
-
+            
             var e = _currentTransactionContext.Trace.EndTime = DateTime.UtcNow;
             _currentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
@@ -221,7 +246,7 @@ namespace AElf.Runtime.CSharp
 
         private readonly Dictionary<Method, Func<byte[], RetVal>> _handlersCache =
             new Dictionary<Method, Func<byte[], RetVal>>();
-        
+
         /// <summary>
         /// Get async handler from cache or by reflection.
         /// </summary>
@@ -237,7 +262,7 @@ namespace AElf.Runtime.CSharp
             var methodInfo = _smartContract.GetType().GetMethod(methodAbi.Name);
 
             _retTypes.TryGetValue(methodAbi.ReturnType, out var retType);
-            
+
             if (!_asyncApplyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
             {
                 if (methodInfo.ReturnType.GenericTypeArguments[0].IsPbMessageType())
@@ -263,13 +288,13 @@ namespace AElf.Runtime.CSharp
                 var parameters = ParamsPacker.Unpack(paramsBytes,
                     methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
                 var msg = await applyHandler(methodInfo, contract, parameters);
-                return new RetVal()
+                return new RetVal
                 {
                     Type = retType,
                     Data = msg.ToByteString()
                 };
             };
-
+            _asyncHandlersCache[methodAbi] = handler;
             return handler;
         }
 
@@ -286,7 +311,7 @@ namespace AElf.Runtime.CSharp
             }
 
             _retTypes.TryGetValue(methodAbi.ReturnType, out var retType);
-            
+
             var methodInfo = _smartContract.GetType().GetMethod(methodAbi.Name);
             if (!_applyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
             {
@@ -320,10 +345,10 @@ namespace AElf.Runtime.CSharp
                     Data = msg.ToByteString()
                 };
             };
-
+            _handlersCache[methodAbi] = handler;
             return handler;
         }
-        
+
         #endregion
     }
 }

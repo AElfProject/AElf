@@ -3,6 +3,7 @@ using AElf.Kernel;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.Cryptography.Tests.ECDSA
 {
@@ -25,20 +26,23 @@ namespace AElf.Cryptography.Tests.ECDSA
             ;
             
             Transaction tx = new Transaction();
-            tx.From = new Hash(fromAdress);
-            tx.To = new Hash(toAdress);
-            tx.P =  ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            tx.From = Address.FromRawBytes(fromAdress);
+            tx.To = Address.FromRawBytes(toAdress);
+            tx.Sig = new Signature
+            {
+                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
+            };
             
             // Serialize and hash the transaction
             Hash hash = tx.GetHash();
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
-            tx.R = ByteString.CopyFrom(signature.R);
-            tx.S = ByteString.CopyFrom(signature.S);
+            tx.Sig.R = ByteString.CopyFrom(signature.R);
+            tx.Sig.S = ByteString.CopyFrom(signature.S);
             
             // Serialize as for sending over the network
             byte[] serializedTx = tx.Serialize();
@@ -50,12 +54,12 @@ namespace AElf.Cryptography.Tests.ECDSA
             // Serialize and hash the transaction
             Hash dHash = dTx.GetHash();
             
-            byte[] uncompressedPrivKey = tx.P.ToByteArray();
+            byte[] uncompressedPrivKey = tx.Sig.P.ToByteArray();
 
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
             
-            Assert.True(verifier.Verify(dTx.GetSignature(), dHash.GetHashBytes()));
+            Assert.True(verifier.Verify(dTx.GetSignature(), dHash.DumpByteArray()));
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Akka.Util.Internal.Collections;
@@ -14,7 +14,7 @@ namespace AElf.Benchmark
 {
     public class TransactionDataGenerator
     {
-        public List<Hash> KeyList;
+        public List<Address> KeyList;
         private int _maxTxNumber;
         private int _maxGroupNumber;
 
@@ -43,40 +43,40 @@ namespace AElf.Benchmark
             _maxTxNumber = opts.TxNumber;
             _maxGroupNumber = opts.GroupRange.ElementAt(1);
             Console.WriteLine($"Generate account for {_maxTxNumber} from scratch");
-            KeyList = new List<Hash>();
+            KeyList = new List<Address>();
             for (int i = 0; i < _maxTxNumber + _maxGroupNumber; i++)
             {
-                KeyList.Add(Hash.Generate().ToAccount());
+                KeyList.Add(Address.FromRawBytes(Hash.Generate().ToByteArray()));
             }
         }
 
-        private IEnumerable<KeyValuePair<Hash, Hash>> GenerateTransferAddressPair(int txCount, double conflictRate, ref Iterator<Hash> keyDictIter)
+        private IEnumerable<KeyValuePair<Address, Address>> GenerateTransferAddressPair(int txCount, double conflictRate, ref Iterator<Address> keyDictIter)
         {
             if (txCount > _maxTxNumber) throw new InvalidParameterException();
-            var txAccountList = new List<KeyValuePair<Hash, Hash>>();
+            var txAccountList = new List<KeyValuePair<Address, Address>>();
             
             int conflictTxCount = (int) (conflictRate * txCount);
             var conflictKeyPair = keyDictIter.Next();
-            var conflictAddr = new Hash(conflictKeyPair);
+            var conflictAddr = conflictKeyPair;
 
             
             for (int i = 0; i < conflictTxCount; i++)
             {
                 var senderKp = keyDictIter.Next();
-                txAccountList.Add(new KeyValuePair<Hash, Hash>(senderKp, conflictAddr));
+                txAccountList.Add(new KeyValuePair<Address, Address>(senderKp, conflictAddr));
             }
 
             for (int i = 0; i < txCount - conflictTxCount; i++)
             {
                 var senderKp = keyDictIter.Next();
                 var receiverKp = keyDictIter.Next();
-                txAccountList.Add(new KeyValuePair<Hash, Hash>(senderKp, receiverKp));
+                txAccountList.Add(new KeyValuePair<Address, Address>(senderKp, receiverKp));
             }
 
             return txAccountList;
         }
         
-        public List<ITransaction> GetTxsWithOneConflictGroup(Hash contractAddr, int txNumber, double conflictRate)
+        public List<Transaction> GetTxsWithOneConflictGroup(Address contractAddr, int txNumber, double conflictRate)
         {
             var keyDictIter = KeyList.Iterator();
             
@@ -86,12 +86,12 @@ namespace AElf.Benchmark
             return txList;
         }
 
-        public List<ITransaction> GetMultipleGroupTx(int txNumber, int groupCount, Hash contractAddr)
+        public List<Transaction> GetMultipleGroupTx(int txNumber, int groupCount, Address contractAddr)
         {
             if(txNumber > _maxTxNumber)  throw new InvalidParameterException();
             int txNumPerGroup = txNumber / groupCount;
             var keyDictIter = KeyList.Iterator();
-            List<ITransaction> txList = new List<ITransaction>();
+            List<Transaction> txList = new List<Transaction>();
             for (int i = 0; i < groupCount; i++)
             {
                 var addrPair = GenerateTransferAddressPair(txNumPerGroup, 1, ref keyDictIter);
@@ -102,9 +102,9 @@ namespace AElf.Benchmark
             return txList;
         }
         
-        public List<ITransaction> GenerateTransferTransactions(Hash tokenContractAddr, IEnumerable<KeyValuePair<Hash, Hash>> transferAddressPairs)
+        public List<Transaction> GenerateTransferTransactions(Address tokenContractAddr, IEnumerable<KeyValuePair<Address, Address>> transferAddressPairs)
         {
-            var resList = new List<ITransaction>();
+            var resList = new List<Transaction>();
             foreach (var addressPair in transferAddressPairs)
             {
                 Transaction tx = new Transaction()
@@ -170,11 +170,11 @@ namespace AElf.Benchmark
                     return false;
                 }
             
-                KeyList = new List<Hash>();
+                KeyList = new List<Address>();
                 string addrStr;
                 while ((addrStr = sr.ReadLine()) != null)
                 {
-                    KeyList.Add(new Hash(ByteArrayHelpers.FromHexString(addrStr)));
+                    KeyList.Add(Address.LoadHex(addrStr));
                 }
 
                 if (KeyList.Count != _maxTxNumber + _maxGroupNumber)

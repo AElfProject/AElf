@@ -4,7 +4,7 @@ using System.Linq;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
@@ -40,7 +40,10 @@ namespace AElf.CLI.Command
         
         public override JObject BuildRequest(CmdParseResult parsedCmd)
         {
-            var reqParams = new JObject { ["address"] = parsedCmd.Args.ElementAt(0) };
+            var reqParams = new JObject
+            {
+                ["address"] = parsedCmd.Args.ElementAt(0)
+            };
             var req = JsonRpcHelpers.CreateRequest(reqParams, "get_contract_abi", 1);
 
             return req;

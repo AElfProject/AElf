@@ -1,6 +1,7 @@
 ﻿using System;
 using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
@@ -14,7 +15,7 @@ namespace AElf.Kernel
             {
                 Header = new BlockHeader
                 {
-                    Index = 0,
+                    Index = GlobalConfig.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Genesis,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
@@ -26,10 +27,7 @@ namespace AElf.Kernel
             // Genesis block is empty
             // TODO: Maybe add info like Consensus protocol in Genesis block
 
-            
-            block.FillTxsMerkleTreeRootInHeader();
-            block.Body.BlockHeader = block.Header.GetHash();
-            
+            block.Complete();          
             Block = block;
 
             return this;

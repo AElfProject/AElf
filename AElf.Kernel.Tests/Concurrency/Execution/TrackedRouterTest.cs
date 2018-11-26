@@ -8,12 +8,12 @@ using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using AElf.Execution;
+using AElf.Execution.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-/*
- Temporarily disabled.
- TODO: https://github.com/AElfProject/AElf/issues/338
+ /*Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338 */
     [UseAutofacTestFramework]
     public class TrackedRouterTest : TestKitBase
     {
@@ -24,11 +24,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             _mock = mock;
         }
 
-        [Fact]
+        [Fact(Skip = "Ignore for now")]
         public void ThreeJobsExecutionTest()
         {
             // As there are only two workers, the third job will fail
-            var job = new List<ITransaction>() {_mock.GetSleepTxn1(1000)};
+            var job = new List<Transaction>() {_mock.GetSleepTxn1(1000)};
 
             _mock.Router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _mock.Router));
             _mock.Router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _mock.Router));
@@ -36,31 +36,31 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             // The third job fails
             FishForMessage(
-                (msg) =>
+                msg =>
                     msg is JobExecutionStatus js &&
                     js.RequestId == 2 &&
                     js.Status == JobExecutionStatus.RequestStatus.FailedDueToNoAvailableWorker
             );
             
             FishForMessage(
-                (msg) =>
+                msg =>
                     msg is JobExecutionStatus js &&
                     js.Status == JobExecutionStatus.RequestStatus.Completed
             );
 
             FishForMessage(
-                (msg) =>
+                msg =>
                     msg is JobExecutionStatus js &&
                     js.Status == JobExecutionStatus.RequestStatus.Completed
             );
 
         }
         
-        [Fact]
+        [Fact(Skip = "Ignore for now")]
         public void WorkerBecomeIdleExecutionTest()
         {
             // As there are only two workers, the third job will fail
-            var job = new List<ITransaction>() {_mock.GetSleepTxn1(1000)};
+            var job = new List<Transaction>() {_mock.GetSleepTxn1(1000)};
 
             _mock.Router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _mock.Router));
             _mock.Router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _mock.Router));
@@ -88,5 +88,4 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             );
         }
     }
-*/
 }

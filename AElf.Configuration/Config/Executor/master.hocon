@@ -25,6 +25,7 @@ akka {
             bytes = "Akka.Serialization.ByteArraySerializer"
         }
         serialization-bindings {
+            "Google.Protobuf.IMessage, Google.Protobuf" = proto
             "System.Object" = hyperion
             "System.Byte[]" = bytes
         }
@@ -41,6 +42,6 @@ akka {
     }
     cluster {
         seed-nodes = ["akka.tcp://AElfSystem@127.0.0.1:32551"]
-        roles = ["manager"]
+        roles = ["master"]
     }
 }

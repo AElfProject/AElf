@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj">
       <Project>{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}</Project>
       <Name>AElf.Kernel.Tests</Name>
@@ -19,6 +18,7 @@
     <PackageReference Include="ServiceStack" Version="5.1.0" />
     <PackageReference Include="Shouldly" Version="2.8.3" />
     <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.frameworks.autofac" Version="0.1.0" />
     <PackageReference Include="xunit.runner.console" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />

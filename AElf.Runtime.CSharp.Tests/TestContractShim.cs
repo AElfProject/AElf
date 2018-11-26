@@ -3,13 +3,14 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using AElf.Types.CSharp;
+using AElf.Common;
 
 namespace AElf.Runtime.CSharp.Tests
 {
     public class TestContractShim
     {
         private MockSetup _mock;
-        private Hash ContractAddress
+        private Address ContractAddress
         {
             get
             {
@@ -54,7 +55,7 @@ namespace AElf.Runtime.CSharp.Tests
                 {
                     ChainId = _mock.ChainId1,
                     ContractAddress = _mock.ContractAddress1,
-                    DataProvider = new TentativeDataProvider( _mock.DataProvider1.GetDataProvider()),
+                    DataProvider = _mock.DataProvider1,
                     SmartContractService = _mock.SmartContractService
                 });
             }
@@ -67,17 +68,17 @@ namespace AElf.Runtime.CSharp.Tests
                 {
                     ChainId = _mock.ChainId2,
                     ContractAddress = _mock.ContractAddress2,
-                    DataProvider = new TentativeDataProvider( _mock.DataProvider2.GetDataProvider()),
+                    DataProvider = _mock.DataProvider2,
                     SmartContractService = _mock.SmartContractService
                 });
             }
         }
 
-        public bool Initialize(Hash account, ulong qty)
+        public bool Initialize(Address account, ulong qty)
         {
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "Initialize",
@@ -87,7 +88,8 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateStore).Wait();
 
             return true;
         }
@@ -96,11 +98,11 @@ namespace AElf.Runtime.CSharp.Tests
         {
         }
 
-        public bool Transfer(Hash from, Hash to, ulong qty)
+        public bool Transfer(Address from, Address to, ulong qty)
         {
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "Transfer",
@@ -111,16 +113,17 @@ namespace AElf.Runtime.CSharp.Tests
                 Transaction = tx
             };
             
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             
             return tc.Trace.RetVal.Data.DeserializeToBool();
         }
 
-        public ulong GetBalance(Hash account)
+        public ulong GetBalance(Address account)
         {
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetBalance",
@@ -130,7 +133,8 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return tc.Trace.RetVal.Data.DeserializeToUInt64();
         }
 
@@ -138,7 +142,7 @@ namespace AElf.Runtime.CSharp.Tests
         {
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetTransactionStartTime",
@@ -148,7 +152,8 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return tc.Trace.RetVal.Data.DeserializeToString();
         }
 
@@ -156,7 +161,7 @@ namespace AElf.Runtime.CSharp.Tests
         {
             var tx = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetTransactionEndTime",
@@ -166,7 +171,8 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return tc.Trace.RetVal.Data.DeserializeToString();
         }
     }

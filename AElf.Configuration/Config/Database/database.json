@@ -1,5 +1,10 @@
 {
-  "Type": "redis",
-  "Host": "127.0.0.1",
-  "Port": 6379
+  "Type": "inmemory",
+  "Hosts": {
+    "Default": {
+      "Host": "127.0.0.1",
+      "Port": 8888,
+      "Number": 0
+    }
+  }
 }

@@ -1,35 +1,21 @@
-﻿using System;
+using System;
+using AElf.Common.Extensions;
 using Google.Protobuf;
-using static AElf.Kernel.Storages.Types;
+using AElf.Common;
 
+// ReSharper disable InconsistentNaming
 namespace AElf.Kernel.Storages
 {
     public static class Helper
     {
-        public static string GetKeyString(this Hash hash, uint type)
+        public static string GetKeyString(this Hash hash, string type)
         {
-            var key=new Key
+            return new Key
             {
                 Type = type,
-                Value = ByteString.CopyFrom(hash.GetHashBytes())
+                Value = ByteString.CopyFrom(hash.DumpByteArray()),
+                HashType = (uint) hash.HashType
             }.ToByteArray().ToHex();
-
-            return key;
         }
-    }
-    
-    public enum Types{
-        UInt64Value = 0,
-        Hash,
-        BlockBody,
-        BlockHeader,
-        Chain,
-        Change,
-        SmartContractRegistration,
-        TransactionResult,
-        Transaction,
-        ChangesDict,
-        FunctionMetadata,
-        SerializedCallGraph
     }
 }

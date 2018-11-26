@@ -1,18 +1,35 @@
-﻿namespace AElf.Configuration
+﻿using System.Collections.Generic;
+using AElf.Common.Enums;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+namespace AElf.Configuration
 {
     [ConfigFile(FileName = "database.json")]
     public class DatabaseConfig : ConfigBase<DatabaseConfig>
     {
+        [JsonConverter(typeof(StringEnumConverter))]
         public DatabaseType Type { get; set; }
-        public string Host { get; set; }
-        public int Port { get; set; }
-        public int Number { get; set; }
 
-        public DatabaseConfig()
+        public Dictionary<string, DatabaseHost> Hosts { get; set; }
+
+        public DatabaseHost GetHost(string database)
         {
-            Type = DatabaseType.InMemory;
-            Host = "127.0.0.1";
-            Port = 8888;
+            if (!Hosts.TryGetValue(database, out var host))
+            {
+                host = Hosts["Default"];
+            }
+
+            return host;
         }
+    }
+
+    public class DatabaseHost
+    {
+        public string Host { get; set; }
+        
+        public int Port { get; set; }
+        
+        public int Number { get; set; }
     }
 }

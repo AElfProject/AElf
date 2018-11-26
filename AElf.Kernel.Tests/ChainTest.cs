@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {
@@ -15,32 +16,15 @@ namespace AElf.Kernel.Tests
     public class ChainTest
     {
         private readonly IChainCreationService _chainCreationService;
-        //private readonly ISmartContractZero _smartContractZero;
-        private readonly IChainManager _chainManager;
-        private readonly IWorldStateStore _worldStateStore;
-        private readonly IChangesStore _changesStore;
-        private readonly IDataStore _dataStore;
-        
+        private readonly IChainService _chainService;
 
-        public ChainTest(IChainCreationService chainCreationService,
-            IChainManager chainManager, IWorldStateStore worldStateStore, 
-            IChangesStore changesStore, IDataStore dataStore)
+        public ChainTest(IChainCreationService chainCreationService, IChainService chainService)
         {
-            //_smartContractZero = smartContractZero;
             _chainCreationService = chainCreationService;
-            _chainManager = chainManager;
-            _worldStateStore = worldStateStore;
-            _changesStore = changesStore;
-            _dataStore = dataStore;
+            _chainService = chainService;
         }
 
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
+        private static byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
         [Fact]
         public async Task<IChain> CreateChainTest()
@@ -53,25 +37,24 @@ namespace AElf.Kernel.Tests
             };
 
             var chainId = Hash.Generate();
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
 
-            // add chain to storage
-            
-            //var address = Hash.Generate();
-            //var worldStateManager = await new WorldStateManager(_worldStateStore, 
-            //    _changesStore, _dataStore).SetChainId(chainId);
-            //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
-            
-            //await _smartContractZero.InitializeAsync(accountDataProvider);
-            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);
+            var blockchain = _chainService.GetBlockChain(chainId);
+            var getNextHeight = new Func<Task<ulong>>(async () =>
+            {
+                var curHash = await blockchain.GetCurrentBlockHashAsync();
+                var indx = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
+                return indx + 1;
+            });
+            Assert.Equal(await getNextHeight(), GlobalConfig.GenesisBlockHeight + 1);
             return chain;
         }
 
-        public async Task ChainStoreTest(Hash chainId)
-        {
-            await _chainManager.AddChainAsync(chainId, Hash.Generate());
-            Assert.NotNull(_chainManager.GetChainAsync(chainId).Result);
-        }
+//        public async Task ChainStoreTest(Hash chainId)
+//        {
+//            await _chainManager.AddChainAsync(chainId, Hash.Generate());
+//            Assert.NotNull(_chainManager.GetChainAsync(chainId).Result);
+//        }
         
 
         [Fact]
@@ -85,34 +68,34 @@ namespace AElf.Kernel.Tests
             };
 
             var chainId = Hash.Generate();
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
 
-            // add chain to storage
-            
-            //var address = Hash.Generate();
-            //var worldStateManager = await new WorldStateManager(_worldStateStore, 
-            //    _changesStore, _dataStore).SetChainId(chainId);
-            //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
-            
-            //await _smartContractZero.InitializeAsync(accountDataProvider);
-            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);
+            var blockchain = _chainService.GetBlockChain(chainId);
+            var getNextHeight = new Func<Task<ulong>>(async () =>
+            {
+                var curHash = await blockchain.GetCurrentBlockHashAsync();
+                var indx = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
+                return indx + 1;
+            });
+            Assert.Equal(await getNextHeight(), GlobalConfig.GenesisBlockHeight + 1);
 
-            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            await _chainManager.AppendBlockToChainAsync(block);
-            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)2);
-            Assert.Equal(await _chainManager.GetChainLastBlockHash(chain.Id), block.GetHash());
-            Assert.Equal(block.Header.Index, (ulong)1);
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, GlobalConfig.GenesisBlockHeight + 1);
+            await blockchain.AddBlocksAsync(new List<IBlock> {block});
+            
+            Assert.Equal(await getNextHeight(), GlobalConfig.GenesisBlockHeight + 2);
+            Assert.Equal((await blockchain.GetCurrentBlockHashAsync()).DumpHex(), block.GetHash().DumpHex());
+            Assert.Equal(block.Header.Index, GlobalConfig.GenesisBlockHeight + 1);
         }
         
-        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
+        private static Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
             var block = new Block(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
+            block.AddTransaction(FakeTransaction());
+            block.AddTransaction(FakeTransaction());
+            block.AddTransaction(FakeTransaction());
+            block.AddTransaction(FakeTransaction());
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
@@ -122,8 +105,14 @@ namespace AElf.Kernel.Tests
 
             return block;
         }
-
-
         
+        private static Transaction FakeTransaction()
+        {
+            return new Transaction
+            {
+                From = Address.Generate(),
+                To = Address.Generate()
+            };
+        }
     }
 }

@@ -18,10 +18,12 @@ namespace AElf.CLI.Http
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public string DoRequest(string content)
+        public string DoRequest(string content, string url = "/chain")
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/");
-            request.Content = new StringContent(content, Encoding.UTF8, "application/json");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+            var c = new StringContent(content);
+            c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            request.Content = c;
 
             string result = null;
             try

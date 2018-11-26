@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,6 +18,7 @@ using ServiceStack;
 using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -33,33 +35,31 @@ namespace AElf.Runtime.CSharp.Tests
         public Hash ChainId2 { get; } = Hash.Generate();
         public ISmartContractService SmartContractService;
 
-        public IAccountDataProvider DataProvider1;
-        public IAccountDataProvider DataProvider2;
+        public IStateStore StateStore;
+        public DataProvider DataProvider1;
+        public DataProvider DataProvider2;
 
-        public Hash ContractAddress1 { get; } = Hash.Generate();
-        public Hash ContractAddress2 { get; } = Hash.Generate();
+        public Address ContractAddress1 { get; } = Address.FromRawBytes(Hash.Generate().ToByteArray());
+        public Address ContractAddress2 { get; } = Address.FromRawBytes(Hash.Generate().ToByteArray());
 
         private ISmartContractManager _smartContractManager;
-        public IWorldStateDictator WorldStateDictator;
         private IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
         private IFunctionMetadataService _functionMetadataService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IStateStore stateStore, IChainCreationService chainCreationService, IDataStore dataStore, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            WorldStateDictator = worldStateDictator;
+            StateStore = stateStore;
             _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractManager = new SmartContractManager(smartContractStore);
+            _smartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, WorldStateDictator, _functionMetadataService);
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
             Task.Factory.StartNew(async () =>
             {
                 await DeploySampleContracts();
@@ -80,24 +80,32 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.Zero,
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
-            var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 = await (WorldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
 
-            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
-            var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
-            DataProvider2 = await (WorldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId2));
+            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
+            DataProvider1 = DataProvider.GetRootDataProvider(
+                chain1.Id,
+                Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
+            );
+            DataProvider1.StateStore = StateStore;
+
+            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
+            DataProvider2 = DataProvider.GetRootDataProvider(
+                chain2.Id,
+                Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
+            );
+            DataProvider2.StateStore = StateStore;
         }
 
         private async Task DeploySampleContracts()
         {
             var reg = new SmartContractRegistration
             {
-                Category = 0,
+                Category = 1,
                 ContractBytes = ByteString.CopyFrom(ContractCode),
-                ContractHash = new Hash(ContractCode)
+                ContractHash = Hash.FromRawBytes(ContractCode)
             };
 
             await SmartContractService.DeployContractAsync(ChainId1, ContractAddress1, reg, false);

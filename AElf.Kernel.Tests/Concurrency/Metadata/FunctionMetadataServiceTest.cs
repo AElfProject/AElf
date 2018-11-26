@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
+using AElf.Common.Extensions;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
@@ -38,9 +41,10 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             var contractBTemplate = runner.ExtractMetadata(contractBType);
             var contractATemplate = runner.ExtractMetadata(contractAType);
             
-            var addrA = new Hash("TestContractA".CalculateHash()).ToAccount();
-            var addrB = new Hash("TestContractB".CalculateHash()).ToAccount();
-            var addrC = new Hash("TestContractC".CalculateHash()).ToAccount();
+            var addrA = Address.FromString("TestContractA");
+            var addrB = Address.FromString("TestContractB");
+            var addrC = Address.FromString("TestContractC");
+            Console.WriteLine(addrC);
 
             await _functionMetadataService.DeployContract(chainId, addrC, contractCTemplate);
 
@@ -49,63 +53,63 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrC.ToHex() + ".Func0"))));
+                })), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrC.DumpHex() + ".Func0")));
 
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrC.ToHex() + ".Func1"))));
+                })), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrC.DumpHex() + ".Func1")));
             
             await _functionMetadataService.DeployContract(chainId, addrB, contractBTemplate);
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrC.ToHex() + ".Func1"
+                    addrC.DumpHex() + ".Func1"
                 }),
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrB.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrB.ToHex() + ".Func0"))));
+                })), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrB.DumpHex() + ".Func0")));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrB.Value.ToByteArray().ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrB.ToHex() + ".Func1"))));
+                })), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrB.DumpHex() + ".Func1")));
 
             await _functionMetadataService.DeployContract(chainId, addrA, contractATemplate);
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
-                new HashSet<Resource>()), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func0(int)"))));
+                new HashSet<Resource>()), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func0(int)")));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func1"
+                    addrA.DumpHex() + ".Func1"
                 }),
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource0", DataAccessMode.AccountSpecific),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func0"))));
+                })), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func0")));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func2"
+                    addrA.DumpHex() + ".Func2"
                 }),
                 new HashSet<Resource>(new[]
                 {
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func1"))));
+                })), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func1")));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
@@ -113,14 +117,14 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                 {
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func2"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func2"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func0",
-                    addrB.ToHex() + ".Func0", 
-                    addrC.ToHex() + ".Func0"
+                    addrA.DumpHex() + ".Func0",
+                    addrB.DumpHex() + ".Func0", 
+                    addrC.DumpHex() + ".Func0"
                 }),
                 new HashSet<Resource>(new[]
                 {
@@ -130,24 +134,24 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func3"))));
+                })), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func3")));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func2"
+                    addrA.DumpHex() + ".Func2"
                 }),
                 new HashSet<Resource>(new[]
                 {
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func4"))));
+                })), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func4")));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func3",
-                    addrB.ToHex() + ".Func1"
+                    addrA.DumpHex() + ".Func3",
+                    addrB.DumpHex() + ".Func1"
                 }),
                 new HashSet<Resource>(new[]
                 {
@@ -158,74 +162,74 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func5"))));
+                })), await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func5")));
 
             var callGraph = new SerializedCallGraph
             {
                 Vertices =
                 {
-                    addrC.ToHex() + ".Func0",
-                    addrC.ToHex() + ".Func1",
-                    addrB.ToHex() + ".Func0",
-                    addrB.ToHex() + ".Func1",
-                    addrA.ToHex() + ".Func0(int)",
-                    addrA.ToHex() + ".Func0",
-                    addrA.ToHex() + ".Func1",
-                    addrA.ToHex() + ".Func2",
-                    addrA.ToHex() + ".Func3",
-                    addrA.ToHex() + ".Func4",
-                    addrA.ToHex() + ".Func5"
+                    addrC.DumpHex() + ".Func0",
+                    addrC.DumpHex() + ".Func1",
+                    addrB.DumpHex() + ".Func0",
+                    addrB.DumpHex() + ".Func1",
+                    addrA.DumpHex() + ".Func0(int)",
+                    addrA.DumpHex() + ".Func0",
+                    addrA.DumpHex() + ".Func1",
+                    addrA.DumpHex() + ".Func2",
+                    addrA.DumpHex() + ".Func3",
+                    addrA.DumpHex() + ".Func4",
+                    addrA.DumpHex() + ".Func5"
                 },
                 Edges =
                 {
                     new GraphEdge
                     {
-                        Source = addrB.ToHex() + ".Func0",
-                        Target = addrC.ToHex() + ".Func1"
+                        Source = addrB.DumpHex() + ".Func0",
+                        Target = addrC.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func0",
-                        Target = addrA.ToHex() + ".Func1"
+                        Source = addrA.DumpHex() + ".Func0",
+                        Target = addrA.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func1",
-                        Target = addrA.ToHex() + ".Func2"
+                        Source = addrA.DumpHex() + ".Func1",
+                        Target = addrA.DumpHex() + ".Func2"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func3",
-                        Target = addrB.ToHex() + ".Func0"
+                        Source = addrA.DumpHex() + ".Func3",
+                        Target = addrB.DumpHex() + ".Func0"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func3",
-                        Target = addrA.ToHex() + ".Func0"
+                        Source = addrA.DumpHex() + ".Func3",
+                        Target = addrA.DumpHex() + ".Func0"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func3",
-                        Target = addrC.ToHex() + ".Func0"
+                        Source = addrA.DumpHex() + ".Func3",
+                        Target = addrC.DumpHex() + ".Func0"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func4",
-                        Target = addrA.ToHex() + ".Func2"
+                        Source = addrA.DumpHex() + ".Func4",
+                        Target = addrA.DumpHex() + ".Func2"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func5",
-                        Target = addrB.ToHex() + ".Func1"
+                        Source = addrA.DumpHex() + ".Func5",
+                        Target = addrB.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func5",
-                        Target = addrA.ToHex() + ".Func3"
+                        Source = addrA.DumpHex() + ".Func5",
+                        Target = addrA.DumpHex() + ".Func3"
                     }
                 }
             };
-            Assert.Equal(callGraph, SerializedCallGraph.Parser.ParseFrom(await _dataStore.GetDataAsync<SerializedCallGraph>(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId))));
+            Assert.Equal(callGraph, await _dataStore.GetAsync<SerializedCallGraph>(chainId.OfType(HashType.CallingGraph)));
         }
         [Fact]
         public async Task TestEmptyContract()
@@ -247,13 +251,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             var refNonAttrContractTemplate = runner.ExtractMetadata(refNonAttrContractType);
             
             
-            var contract1Addr = new Hash("TestNonAttrContract1".CalculateHash()).ToAccount();
-            var contract2Addr = new Hash("TestNonAttrContract2".CalculateHash()).ToAccount();
-            var refContractAddr = new Hash("TestRefNonAttrContract".CalculateHash()).ToAccount();
+            var contract1Addr = Address.FromString("TestNonAttrContract1"); // 0x3f77405cbfe1e48e2fa0e4bf6a4e5917f768
+            var contract2Addr = Address.FromString("TestNonAttrContract2"); // 0xb4e0cc36ede5d518fbabd1ed5498093e4b71
+            var refContractAddr = Address.FromString("TestRefNonAttrContract"); // 0x7c7f78ecc9f78be2a502e5bf9f22112c6a47
             
-            var addrA = new Hash("TestContractA".CalculateHash()).ToAccount();
-            var addrB = new Hash("TestContractB".CalculateHash()).ToAccount();
-            var addrC = new Hash("TestContractC".CalculateHash()).ToAccount();
+            var addrA = Address.FromString("TestContractA"); // 0x46c86551bca0e3120ca0f831f53d8cb55ac7
+            var addrB = Address.FromString("TestContractB"); // 0xea0e38633e550dc4b7914010c2d7c95086ee
+            var addrC = Address.FromString("TestContractC"); // 0x053f751c35f7c681be14bcee03085dc8a309
             
             await _functionMetadataService.DeployContract(chainId, addrC, contractCTemplate);
             await _functionMetadataService.DeployContract(chainId, addrB, contractBTemplate);
@@ -268,59 +272,59 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrC.ToHex() + ".Func0"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrC.DumpHex() + ".Func0"))));
 
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrC.ToHex() + ".Func1"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrC.DumpHex() + ".Func1"))));
                         
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrC.ToHex() + ".Func1"
+                    addrC.DumpHex() + ".Func1"
                 }),
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrB.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrB.ToHex() + ".Func0"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrB.DumpHex() + ".Func0"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrB.Value.ToByteArray().ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrB.ToHex() + ".Func1"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrB.DumpHex() + ".Func1"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
-                new HashSet<Resource>()), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func0(int)"))));
+                new HashSet<Resource>()), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func0(int)"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func1"
+                    addrA.DumpHex() + ".Func1"
                 }),
                 new HashSet<Resource>(new []
                 {
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource0", DataAccessMode.AccountSpecific),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func0"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func0"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func2"
+                    addrA.DumpHex() + ".Func2"
                 }),
                 new HashSet<Resource>(new[]
                 {
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func1"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func1"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
@@ -328,14 +332,14 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                 {
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func2"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func2"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func0",
-                    addrB.ToHex() + ".Func0", 
-                    addrC.ToHex() + ".Func0"
+                    addrA.DumpHex() + ".Func0",
+                    addrB.DumpHex() + ".Func0", 
+                    addrC.DumpHex() + ".Func0"
                 }),
                 new HashSet<Resource>(new[]
                 {
@@ -345,24 +349,24 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func3"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func3"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func2"
+                    addrA.DumpHex() + ".Func2"
                 }),
                 new HashSet<Resource>(new[]
                 {
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func4"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func4"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    addrA.ToHex() + ".Func3",
-                    addrB.ToHex() + ".Func1"
+                    addrA.DumpHex() + ".Func3",
+                    addrB.DumpHex() + ".Func1"
                 }),
                 new HashSet<Resource>(new[]
                 {
@@ -373,259 +377,259 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func5"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, addrA.DumpHex() + ".Func5"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, contract1Addr.ToHex() + ".Func1"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, contract1Addr.DumpHex() + ".Func1"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, contract1Addr.ToHex() + ".Func2"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, contract1Addr.DumpHex() + ".Func2"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract2Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, contract2Addr.ToHex() + ".Func1"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, contract2Addr.DumpHex() + ".Func1"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract2Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, contract2Addr.ToHex() + ".Func2"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, contract2Addr.DumpHex() + ".Func2"))));
             
             Assert.Equal(new FunctionMetadata(
-                new HashSet<string>(new []{contract1Addr.ToHex() + ".Func1"}),
+                new HashSet<string>(new []{contract1Addr.DumpHex() + ".Func1"}),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, refContractAddr.ToHex() + ".Func1"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, refContractAddr.DumpHex() + ".Func1"))));
             
             Assert.Equal(new FunctionMetadata(
-                new HashSet<string>(new []{contract1Addr.ToHex() + ".Func1"}),
+                new HashSet<string>(new []{contract1Addr.DumpHex() + ".Func1"}),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
                     new Resource(refContractAddr.Value.ToByteArray().ToHex() + ".localRes", DataAccessMode.AccountSpecific)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, refContractAddr.ToHex() + ".Func1_1"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, refContractAddr.DumpHex() + ".Func1_1"))));
             Assert.Equal(new FunctionMetadata(
-                new HashSet<string>(new []{contract1Addr.ToHex() + ".Func2"}),
+                new HashSet<string>(new []{contract1Addr.DumpHex() + ".Func2"}),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, refContractAddr.ToHex() + ".Func2"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, refContractAddr.DumpHex() + ".Func2"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    contract1Addr.ToHex() + ".Func2",
-                    refContractAddr.ToHex() + ".Func1_1"
+                    contract1Addr.DumpHex() + ".Func2",
+                    refContractAddr.DumpHex() + ".Func1_1"
                 }),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
                     new Resource(refContractAddr.Value.ToByteArray().ToHex() + ".localRes", DataAccessMode.AccountSpecific)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, refContractAddr.ToHex() + ".Func2_1"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, refContractAddr.DumpHex() + ".Func2_1"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    contract1Addr.ToHex() + ".Func2",
-                    refContractAddr.ToHex() + ".Func1"
+                    contract1Addr.DumpHex() + ".Func2",
+                    refContractAddr.DumpHex() + ".Func1"
                 }),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, refContractAddr.ToHex() + ".Func2_2"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, refContractAddr.DumpHex() + ".Func2_2"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    contract1Addr.ToHex() + ".Func1",
-                    contract1Addr.ToHex() + ".Func2"
+                    contract1Addr.DumpHex() + ".Func1",
+                    contract1Addr.DumpHex() + ".Func2"
                 }),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, refContractAddr.ToHex() + ".Func3"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, refContractAddr.DumpHex() + ".Func3"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    contract1Addr.ToHex() + ".Func1",
-                    contract2Addr.ToHex() + ".Func1"
+                    contract1Addr.DumpHex() + ".Func1",
+                    contract2Addr.DumpHex() + ".Func1"
                 }),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
                     new Resource(contract2Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, refContractAddr.ToHex() + ".Func4"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, refContractAddr.DumpHex() + ".Func4"))));
             
             Assert.Equal(new FunctionMetadata(
                 new HashSet<string>(new []
                 {
-                    contract1Addr.ToHex() + ".Func2",
-                    addrC.ToHex() + ".Func0"
+                    contract1Addr.DumpHex() + ".Func2",
+                    addrC.DumpHex() + ".Func0"
                 }),
                 new HashSet<Resource>(new []
                 {
                     new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
                     new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
-                })), FunctionMetadata.Parser.ParseFrom(await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, refContractAddr.ToHex() + ".Func5"))));
+                })), (await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, refContractAddr.DumpHex() + ".Func5"))));
             
             var callGraph = new SerializedCallGraph
             {
                 Vertices =
                 {
-                    addrC.ToHex() + ".Func0",
-                    addrC.ToHex() + ".Func1",
-                    addrB.ToHex() + ".Func0",
-                    addrB.ToHex() + ".Func1",
-                    addrA.ToHex() + ".Func0(int)",
-                    addrA.ToHex() + ".Func0",
-                    addrA.ToHex() + ".Func1",
-                    addrA.ToHex() + ".Func2",
-                    addrA.ToHex() + ".Func3",
-                    addrA.ToHex() + ".Func4",
-                    addrA.ToHex() + ".Func5",
+                    addrC.DumpHex() + ".Func0",
+                    addrC.DumpHex() + ".Func1",
+                    addrB.DumpHex() + ".Func0",
+                    addrB.DumpHex() + ".Func1",
+                    addrA.DumpHex() + ".Func0(int)",
+                    addrA.DumpHex() + ".Func0",
+                    addrA.DumpHex() + ".Func1",
+                    addrA.DumpHex() + ".Func2",
+                    addrA.DumpHex() + ".Func3",
+                    addrA.DumpHex() + ".Func4",
+                    addrA.DumpHex() + ".Func5",
                     
-                    contract1Addr.ToHex() + ".Func1",
-                    contract1Addr.ToHex() + ".Func2",
-                    contract2Addr.ToHex() + ".Func1",
-                    contract2Addr.ToHex() + ".Func2",
-                    refContractAddr.ToHex() + ".Func1",
-                    refContractAddr.ToHex() + ".Func1_1",
-                    refContractAddr.ToHex() + ".Func2",
-                    refContractAddr.ToHex() + ".Func2_1",
-                    refContractAddr.ToHex() + ".Func2_2",
-                    refContractAddr.ToHex() + ".Func3",
-                    refContractAddr.ToHex() + ".Func4",
-                    refContractAddr.ToHex() + ".Func5"
+                    contract1Addr.DumpHex() + ".Func1",
+                    contract1Addr.DumpHex() + ".Func2",
+                    contract2Addr.DumpHex() + ".Func1",
+                    contract2Addr.DumpHex() + ".Func2",
+                    refContractAddr.DumpHex() + ".Func1",
+                    refContractAddr.DumpHex() + ".Func1_1",
+                    refContractAddr.DumpHex() + ".Func2",
+                    refContractAddr.DumpHex() + ".Func2_1",
+                    refContractAddr.DumpHex() + ".Func2_2",
+                    refContractAddr.DumpHex() + ".Func3",
+                    refContractAddr.DumpHex() + ".Func4",
+                    refContractAddr.DumpHex() + ".Func5"
                 },
                 Edges =
                 {
                     new GraphEdge
                     {
-                        Source = addrB.ToHex() + ".Func0",
-                        Target = addrC.ToHex() + ".Func1"
+                        Source = addrB.DumpHex() + ".Func0",
+                        Target = addrC.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func0",
-                        Target = addrA.ToHex() + ".Func1"
+                        Source = addrA.DumpHex() + ".Func0",
+                        Target = addrA.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func1",
-                        Target = addrA.ToHex() + ".Func2"
+                        Source = addrA.DumpHex() + ".Func1",
+                        Target = addrA.DumpHex() + ".Func2"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func3",
-                        Target = addrB.ToHex() + ".Func0"
+                        Source = addrA.DumpHex() + ".Func3",
+                        Target = addrB.DumpHex() + ".Func0"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func3",
-                        Target = addrA.ToHex() + ".Func0"
+                        Source = addrA.DumpHex() + ".Func3",
+                        Target = addrA.DumpHex() + ".Func0"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func3",
-                        Target = addrC.ToHex() + ".Func0"
+                        Source = addrA.DumpHex() + ".Func3",
+                        Target = addrC.DumpHex() + ".Func0"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func4",
-                        Target = addrA.ToHex() + ".Func2"
+                        Source = addrA.DumpHex() + ".Func4",
+                        Target = addrA.DumpHex() + ".Func2"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func5",
-                        Target = addrB.ToHex() + ".Func1"
+                        Source = addrA.DumpHex() + ".Func5",
+                        Target = addrB.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = addrA.ToHex() + ".Func5",
-                        Target = addrA.ToHex() + ".Func3"
+                        Source = addrA.DumpHex() + ".Func5",
+                        Target = addrA.DumpHex() + ".Func3"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func1",
-                        Target = contract1Addr.ToHex() + ".Func1"
+                        Source = refContractAddr.DumpHex() + ".Func1",
+                        Target = contract1Addr.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func1_1",
-                        Target = contract1Addr.ToHex() + ".Func1"
+                        Source = refContractAddr.DumpHex() + ".Func1_1",
+                        Target = contract1Addr.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func2",
-                        Target = contract1Addr.ToHex() + ".Func2"
+                        Source = refContractAddr.DumpHex() + ".Func2",
+                        Target = contract1Addr.DumpHex() + ".Func2"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func2_1",
-                        Target = contract1Addr.ToHex() + ".Func2"
+                        Source = refContractAddr.DumpHex() + ".Func2_1",
+                        Target = contract1Addr.DumpHex() + ".Func2"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func2_1",
-                        Target = refContractAddr.ToHex() + ".Func1_1"
+                        Source = refContractAddr.DumpHex() + ".Func2_1",
+                        Target = refContractAddr.DumpHex() + ".Func1_1"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func2_2",
-                        Target = contract1Addr.ToHex() + ".Func2"
+                        Source = refContractAddr.DumpHex() + ".Func2_2",
+                        Target = contract1Addr.DumpHex() + ".Func2"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func2_2",
-                        Target = refContractAddr.ToHex() + ".Func1"
+                        Source = refContractAddr.DumpHex() + ".Func2_2",
+                        Target = refContractAddr.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func3",
-                        Target = contract1Addr.ToHex() + ".Func1"
+                        Source = refContractAddr.DumpHex() + ".Func3",
+                        Target = contract1Addr.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func3",
-                        Target = contract1Addr.ToHex() + ".Func2"
+                        Source = refContractAddr.DumpHex() + ".Func3",
+                        Target = contract1Addr.DumpHex() + ".Func2"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func4",
-                        Target = contract1Addr.ToHex() + ".Func1"
+                        Source = refContractAddr.DumpHex() + ".Func4",
+                        Target = contract1Addr.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func4",
-                        Target = contract2Addr.ToHex() + ".Func1"
+                        Source = refContractAddr.DumpHex() + ".Func4",
+                        Target = contract2Addr.DumpHex() + ".Func1"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func5",
-                        Target = contract1Addr.ToHex() + ".Func2"
+                        Source = refContractAddr.DumpHex() + ".Func5",
+                        Target = contract1Addr.DumpHex() + ".Func2"
                     },
                     new GraphEdge
                     {
-                        Source = refContractAddr.ToHex() + ".Func5",
-                        Target = addrC.ToHex() + ".Func0"
+                        Source = refContractAddr.DumpHex() + ".Func5",
+                        Target = addrC.DumpHex() + ".Func0"
                     }
                 }
             };
-            Assert.Equal(callGraph, SerializedCallGraph.Parser.ParseFrom(await _dataStore.GetDataAsync<SerializedCallGraph>(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId))));
+            Assert.Equal(callGraph, await _dataStore.GetAsync<SerializedCallGraph>(chainId.OfType(HashType.CallingGraph)));
         }
     
     }
@@ -657,7 +661,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [SmartContractFieldData("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)]
         private int resource3;
 
-        [SmartContractReference("ContractC", "0x38f3a6b010cadfa690cc1900241c053f751c")]
+        [SmartContractReference("ContractC", "0x053f751c35f7c681be14bcee03085dc8a309")]
         public TestContractC ContractC;
 
         [SmartContractFunction("${this}.Func0", new[] {"${ContractC}.Func1"}, new[] {"${this}.resource2"})]
@@ -683,10 +687,10 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [SmartContractFieldData("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)]
         protected int resource2;
 
-        [SmartContractReference("_contractB", "0x22e7340eb68c9a01804aabeb10c2ea0e3863")]
+        [SmartContractReference("_contractB", "0xea0e38633e550dc4b7914010c2d7c95086ee")]
         private TestContractB _contractB;
 
-        [SmartContractReference("ContractC", "0x38f3a6b010cadfa690cc1900241c053f751c")]
+        [SmartContractReference("ContractC", "0x053f751c35f7c681be14bcee03085dc8a309")]
         public TestContractC ContractC;
 
 
@@ -739,13 +743,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
     public class TestRefNonAttrContract : CSharpSmartContract
     {
-        [SmartContractReference("ref1", "0x2829f1f4f08735a2325dfb7e41023f77405c")]
+        [SmartContractReference("ref1", "0x3f77405cbfe1e48e2fa0e4bf6a4e5917f768")]
         public TestNonAttrContract1 ref1;
         
-        [SmartContractReference("ref2", "0x205bd293801714a67d5eba1e00abb4e0cc36")]
+        [SmartContractReference("ref2", "0xb4e0cc36ede5d518fbabd1ed5498093e4b71")]
         public TestNonAttrContract2 ref2;
 
-        [SmartContractReference("refc", "0x38f3a6b010cadfa690cc1900241c053f751c")]
+        [SmartContractReference("refc", "0x053f751c35f7c681be14bcee03085dc8a309")]
         public TestContractC refc;
 
         [SmartContractFieldData("${this}.localRes", DataAccessMode.AccountSpecific)]

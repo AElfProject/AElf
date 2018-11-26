@@ -1,5 +1,4 @@
-﻿using AElf.Kernel.TxMemPool;
-using AElf.ChainController;
+﻿using AElf.ChainController.TxMemPool;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -20,8 +19,9 @@ namespace AElf.Kernel.Modules.AutofacModule
             else
                 builder.RegisterInstance(TxPoolConfig.Default).As<ITxPoolConfig>();
             
-            builder.RegisterType<TxPool>().As<ITxPool>().SingleInstance();
-            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
+            builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
+            builder.RegisterType<TxValidator>().As<ITxValidator>();
+            builder.RegisterType<TxPoolServiceBM>().As<ITxPoolService>().SingleInstance();
         }
     }
 }

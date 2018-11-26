@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace AElf.Configuration
 {
@@ -9,20 +10,22 @@ namespace AElf.Configuration
         public bool IsCluster { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
-        public int WorkerCount { get; set; }
-        public bool Benchmark { get; set; }
+        public int ActorCount { get; set; }
         public List<SeedNode> Seeds { get; set; }
 
         public string SingleHoconFile { get; set; } = "";
         public string MasterHoconFile { get; set; } = "";
         public string WorkerHoconFile { get; set; } = "";
-        public string ManagerHoconFile { get; set; } = "";
+        public string LighthouseHoconFile { get; set; } = "";
+        public string MonitorHoconFile { get; set; } = "";
 
         private string _singleHoconConfig;
         private string _masterHoconConfig;
         private string _workerHoconConfig;
-        private string _managerHoconConfig;
+        private string _lighthouseHoconConfig;
+        private string _monitorHoconConfig;
 
+        [JsonIgnore]
         public string SingleHoconConfig
         {
             get
@@ -33,6 +36,7 @@ namespace AElf.Configuration
             }
         }
 
+        [JsonIgnore]
         public string MasterHoconConfig
         {
             get
@@ -43,6 +47,7 @@ namespace AElf.Configuration
             }
         }
 
+        [JsonIgnore]
         public string WorkerHoconConfig
         {
             get
@@ -53,13 +58,25 @@ namespace AElf.Configuration
             }
         }
 
-        public string ManagerHoconConfig
+        [JsonIgnore]
+        public string LighthouseHoconConfig
         {
             get
             {
-                if (string.IsNullOrEmpty(_managerHoconConfig))
-                    _managerHoconConfig = ReadConfFile(Instance.ManagerHoconFile);
-                return _managerHoconConfig;
+                if (string.IsNullOrEmpty(_lighthouseHoconConfig))
+                    _lighthouseHoconConfig = ReadConfFile(Instance.LighthouseHoconFile);
+                return _lighthouseHoconConfig;
+            }
+        }
+        
+        [JsonIgnore]
+        public string MonitorHoconConfig
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_monitorHoconConfig))
+                    _monitorHoconConfig = ReadConfFile(Instance.MonitorHoconFile);
+                return _monitorHoconConfig;
             }
         }
 

@@ -25,7 +25,7 @@ namespace AElf.Database.Tests
             var key = "settest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync(key, Helper.StringToBytes(value));
+            _database.SetAsync("Default",key, Helper.StringToBytes(value));
         }
 
         [Fact]
@@ -34,8 +34,8 @@ namespace AElf.Database.Tests
             var key = "gettest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync(key, Helper.StringToBytes(value));
-            var getResult = _database.GetAsync(key, null);
+            _database.SetAsync("Default",key, Helper.StringToBytes(value));
+            var getResult = _database.GetAsync("Default",key);
 
             Assert.Equal(value, Helper.BytesToString(getResult.Result));
         }

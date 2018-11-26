@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.SmartContract;
@@ -7,6 +8,9 @@ using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
@@ -15,19 +19,19 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
-        private static int _incrementId = 0;
+        private static int _incrementId;
 
-        public ulong NewIncrementId()
+        private ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
             return (ulong)n;
         }
 
-        private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
-        private IBlockManager _blockManager;
+        private IChainService _chainService;
         private ITransactionManager _transactionManager;
+        private IStateStore _stateStore;
         private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
         private IFunctionMetadataService _functionMetadataService;
@@ -36,37 +40,25 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
         private Hash ChainId { get; } = Hash.Generate();
 
-        public ContractTest(IWorldStateDictator worldStateDictator,
-            IChainCreationService chainCreationService, IBlockManager blockManager,
+        public ContractTest(IStateStore stateStore,
+            IChainCreationService chainCreationService, IChainService chainService,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateDictator = worldStateDictator;
+            _stateStore = stateStore;
             _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _transactionManager = transactionManager;
             _smartContractManager = smartContractManager;
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
         }
 
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
+        private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
-        public byte[] ExampleContractCode
-        {
-            get
-            {
-                return ContractCodes.TestContractCode;
-            }
-        }
+        private byte[] ExampleContractCode => ContractCodes.TestContractCode;
 
         [Fact]
         public async Task SmartContractZeroByCreation()
@@ -78,10 +70,9 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 ContractHash = Hash.Zero
             };
 
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
-
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
+           
+            var contractAddressZero = ContractHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
             var copy = await _smartContractManager.GetAsync(contractAddressZero);
 
             // throw exception if not registered
@@ -98,44 +89,44 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 ContractHash = Hash.Zero
             };
 
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
-
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
+            
             var code = ExampleContractCode;
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = ContractHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
 
             var txnDep = new Transaction()
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
             };
 
-            var txnCtxt = new TransactionContext()
+            var txnCtxt = new TransactionContext
             {
                 Transaction = txnDep
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
-            await executive.SetTransactionContext(txnCtxt).Apply(true);
+            await executive.SetTransactionContext(txnCtxt).Apply();
+            await txnCtxt.Trace.CommitChangesAsync(_stateStore);
             
-            Assert.Null(txnCtxt.Trace.StdErr);
+            Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
-            var address = txnCtxt.Trace.RetVal.Data.DeserializeToBytes();
+            var address = Address.FromRawBytes(txnCtxt.Trace.RetVal.Data.DeserializeToBytes());
 
             var regExample = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = code.CalculateHash()
+                ContractHash = Hash.FromRawBytes(code)
             };
             var copy = await _smartContractManager.GetAsync(address);
 
-            Assert.Equal(regExample, copy);
+            Assert.Equal(regExample.ContractHash, copy.ContractHash);
+            Assert.Equal(regExample.ContractBytes, copy.ContractBytes);
         }
-
 
         [Fact]
         public async Task Invoke()
@@ -144,30 +135,23 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.Zero,
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
 
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
 
             var code = ExampleContractCode;
 
-            var regExample = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = code.CalculateHash()
-            };
-
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = ContractHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
 
             var txnDep = new Transaction()
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(1, code))
             };
 
             var txnCtxt = new TransactionContext()
@@ -176,34 +160,36 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
-            await executive.SetTransactionContext(txnCtxt).Apply(true);
+            await executive.SetTransactionContext(txnCtxt).Apply();
+            await txnCtxt.Trace.CommitChangesAsync(_stateStore);
 
             var bs = txnCtxt.Trace.RetVal;
-            var address = bs.Data.DeserializeToBytes();
+            var address = Address.FromRawBytes(bs.Data.DeserializeToBytes());
 
             #region initialize account balance
-            var account = Hash.Generate();
+            var account = Address.FromRawBytes(Hash.Generate().ToByteArray());
             var txnInit = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "Initialize",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, (ulong)101))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, new UInt64Value {Value = 101}))
             };
             var txnInitCtxt = new TransactionContext()
             {
                 Transaction = txnInit
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(address, ChainId);
-            await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
+            await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
+            await txnInitCtxt.Trace.CommitChangesAsync(_stateStore);
             
             #endregion initialize account balance
 
             #region check account balance
             var txnBal = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "GetBalance",
@@ -213,16 +199,15 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Transaction = txnBal
             };
-            await executiveUser.SetTransactionContext(txnBalCtxt).Apply(true);
+            await executiveUser.SetTransactionContext(txnBalCtxt).Apply();
 
             Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.Data.DeserializeToUInt64());
             #endregion
             
-            
             #region check account balance
             var txnPrint = new Transaction
             {
-                From = Hash.Zero,
+                From = Address.Zero,
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "Print"
@@ -232,7 +217,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Transaction = txnBal
             };
-            await executiveUser.SetTransactionContext(txnPrintcxt).Apply(true);
+            await executiveUser.SetTransactionContext(txnPrintcxt).Apply();
+            await txnPrintcxt.Trace.CommitChangesAsync(_stateStore);
 
             //Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
             #endregion

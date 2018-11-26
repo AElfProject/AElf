@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Contracts.Genesis";
+
+import "common.proto";
+
+message ContractInfo
+{
+    uint64 SerialNumber=1;
+    int32 Category = 2;
+    Address Owner = 3;
+    Hash ContractHash = 4;
+
+}

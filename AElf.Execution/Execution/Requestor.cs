@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
+using AElf.SmartContract;
 using Akka.Actor;
 using Akka.Routing;
-using Google.Protobuf;
 using AElf.Kernel;
-using AElf.SmartContract;
 
-namespace AElf.Execution
+namespace AElf.Execution.Execution
 {
     class TaskNotCompletedProperlyException : Exception
     {
@@ -59,7 +58,7 @@ namespace AElf.Execution
                     }
 
 //                    _requestIdToPendingTransactionIds.Add(reqId, hashes);
-                    _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router));
+                    _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router, req.DisambiguationHash));
                     break;
                 case TransactionTraceMessage msg:
                     if (!_requestIdToTraces.TryGetValue(msg.RequestId, out var traces))
@@ -68,7 +67,7 @@ namespace AElf.Execution
                         throw new TaskNotCompletedProperlyException("TransactionTrace is received after the task has completed.");
                     }
 
-                    traces = msg.TransactionTraces;
+                    traces = new List<TransactionTrace>(msg.TransactionTraces);
 //                    _requestIdToPendingTransactionIds[msg.RequestId].Remove(msg.TransactionTrace.TransactionId);
                     if (traces.Count == _requesteIdTransactionCounts[msg.RequestId])
                     {
@@ -80,6 +79,9 @@ namespace AElf.Execution
                     break;
                 case JobExecutionStatus status:
                     HandleExecutionStatus(status);
+                    break;
+                case UpdateContractMessage updateContractMessage:
+                    _router.Tell(new Broadcast(updateContractMessage));
                     break;
             }
         }

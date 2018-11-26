@@ -4,10 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Network.Data;
 using AElf.Network.Exceptions;
-using Google.Protobuf;
 using NLog;
 
 namespace AElf.Network.Connection
@@ -16,13 +15,14 @@ namespace AElf.Network.Connection
     {
         public Message Message { get; set; }
     }
-    
+
     public class MessageReader : IMessageReader
-    {   
+    {
         private const int IntLength = 4;
+        private const int IdLength = 16;
 
         private ILogger _logger;
-        
+
         private readonly NetworkStream _stream;
 
         public event EventHandler PacketReceived;
@@ -31,14 +31,14 @@ namespace AElf.Network.Connection
         private readonly List<PartialPacket> _partialPacketBuffer;
 
         public bool IsConnected { get; private set; }
-        
+
         public MessageReader(NetworkStream stream)
         {
             _partialPacketBuffer = new List<PartialPacket>();
-            
+
             _stream = stream;
         }
-        
+
         public void Start()
         {
             Task.Run(Read).ConfigureAwait(false);
@@ -46,7 +46,7 @@ namespace AElf.Network.Connection
 
             _logger = LogManager.GetLogger(nameof(MessageReader));
         }
-        
+
         /// <summary>
         /// Reads the bytes from the stream.
         /// </summary>
@@ -58,6 +58,16 @@ namespace AElf.Network.Connection
                 {
                     // Read type 
                     int type = await ReadByte();
+
+                    // Read if the message is associated with an id
+                    bool hasId = await ReadBoolean();
+
+                    byte[] id = null;
+                    if (hasId)
+                    {
+                        // The Id is a 128-bit guid
+                        id = await ReadBytesAsync(IdLength);
+                    }
 
                     // Is this a partial reception ?
                     bool isBuffered = await ReadBoolean();
@@ -75,7 +85,9 @@ namespace AElf.Network.Connection
                         if (!partialPacket.IsEnd)
                         {
                             _partialPacketBuffer.Add(partialPacket);
-                            _logger.Trace($"Received packet : {(MessageType)type}, length : {length}");
+                            
+                            if (_partialPacketBuffer.Count == 0)
+                                _logger.Trace($"Received first packet: {partialPacket.Type}, total size: {partialPacket.TotalDataSize}.");
                         }
                         else
                         {
@@ -87,12 +99,21 @@ namespace AElf.Network.Connection
                             byte[] allData =
                                 ByteArrayHelpers.Combine(_partialPacketBuffer.Select(pp => pp.Data).ToArray());
 
-                            _logger.Trace($"Received last packet : {_partialPacketBuffer.Count}, total length : {allData.Length}");
+                            _logger.Trace($"Received last packet: {_partialPacketBuffer.Count}, total length: {allData.Length}.");
 
                             // Clear the buffer for the next partial to receive 
                             _partialPacketBuffer.Clear();
 
-                            Message message = new Message {Type = type, Length = allData.Length, Payload = allData};
+                            Message message;
+                            if (hasId)
+                            {
+                                message = new Message {Type = type, HasId = true, Id = id, Length = allData.Length, Payload = allData};
+                            }
+                            else
+                            {
+                                message = new Message {Type = type, HasId = false, Length = allData.Length, Payload = allData};
+                            }
+
                             FireMessageReceivedEvent(message);
                         }
                     }
@@ -103,16 +124,23 @@ namespace AElf.Network.Connection
 
                         byte[] packetData = await ReadBytesAsync(length);
 
-                        Message message = new Message {Type = type, Length = length, Payload = packetData};
+                        Message message;
+                        if (hasId)
+                        {
+                            message = new Message {Type = type, HasId = true, Id = id, Length = length, Payload = packetData};
+                        }
+                        else
+                        {
+                            message = new Message {Type = type, HasId = false, Length = length, Payload = packetData};
+                        }
+
                         FireMessageReceivedEvent(message);
                     }
                 }
             }
-            catch (PeerDisconnectedException e)
+            catch (PeerDisconnectedException)
             {
-                _logger.Trace(e, "Connection was aborted.\n");
                 StreamClosed?.Invoke(this, EventArgs.Empty);
-                
                 Close();
             }
             catch (Exception e)
@@ -125,17 +153,13 @@ namespace AElf.Network.Connection
                 }
 
                 Close();
-                
-                _logger.Trace(e, "[Message reader] Connection was aborted.\n");
-                
                 StreamClosed?.Invoke(this, EventArgs.Empty);
             }
         }
 
         private void FireMessageReceivedEvent(Message message)
         {
-            PacketReceivedEventArgs args = new PacketReceivedEventArgs { Message = message };
-
+            PacketReceivedEventArgs args = new PacketReceivedEventArgs {Message = message};
             PacketReceived?.Invoke(this, args);
         }
 
@@ -164,14 +188,14 @@ namespace AElf.Network.Connection
             partialPacket.Position = await ReadInt();
             partialPacket.IsEnd = await ReadBoolean();
             partialPacket.TotalDataSize = await ReadInt();
-            
+
             // Read the data
             byte[] packetData = await ReadBytesAsync(dataLength);
             partialPacket.Data = packetData;
-            
+
             return partialPacket;
         }
-        
+
         /// <summary>
         /// Reads bytes from the stream.
         /// </summary>
@@ -181,23 +205,23 @@ namespace AElf.Network.Connection
         {
             if (amount == 0)
             {
-                _logger.Trace("Read amount is 0");
+                _logger.Trace("Read amount is 0.");
                 return new byte[0];
             }
-            
+
             byte[] requestedBytes = new byte[amount];
-            
+
             int receivedIndex = 0;
             while (receivedIndex < amount)
             {
                 int readAmount = await _stream.ReadAsync(requestedBytes, receivedIndex, amount - receivedIndex);
-                
+
                 if (readAmount == 0)
                     throw new PeerDisconnectedException();
-                
+
                 receivedIndex += readAmount;
             }
-            
+
             return requestedBytes;
         }
 
@@ -207,12 +231,12 @@ namespace AElf.Network.Connection
         {
             Dispose();
         }
-        
+
         public void Dispose()
         {
             // Change logical connection state
             IsConnected = false;
-            
+
             // This will cause an IOException in the read loop
             // but since IsConnected is switched to false, it 
             // will not fire the disconnection exception.

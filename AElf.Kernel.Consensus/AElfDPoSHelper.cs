@@ -1,156 +1,223 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
-using AElf.Kernel.Managers;
+using AElf.Common;
+using AElf.Common.Extensions;
+using AElf.Common.Attributes;
+using AElf.Kernel.Storages;
 using AElf.SmartContract;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.Kernel.Consensus
 {
-    // ReSharper disable once InconsistentNaming
+    // TODO: Cache
+    // ReSharper disable InconsistentNaming
     public class AElfDPoSHelper
     {
-        private readonly ECKeyPair _keyPair;
-        private readonly IDataProvider _dataProvider;
-        private readonly BlockProducer _blockProducer;
-        private readonly IChainManager _chainManager;
-        private readonly ILogger _logger;
         private readonly Hash _chainId;
+        private readonly Miners _miners;
+        private readonly ILogger _logger;
+        private readonly Address _contractAddressHash;
+        private readonly IStateStore _stateStore;
 
-        public BlockProducer BlockProducer
+        public AElfDPoSInformation DpoSInformation { get; private set; }
+
+        private DataProvider DataProvider
+        {
+            get
+            {
+                var dp = DataProvider.GetRootDataProvider(_chainId, _contractAddressHash);
+                dp.StateStore = _stateStore;
+                return dp;
+            }
+        }
+
+        public Miners Miners
         {
             get
             {
                 try
                 {
-                    return BlockProducer.Parser.ParseFrom(_dataProvider
-                        .GetAsync(Globals.AElfDPoSBlockProducerString.CalculateHash()).Result);
+                    var miners =
+                        Miners.Parser.ParseFrom(
+                            GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString)));
+                    return miners;
                 }
                 catch (Exception)
                 {
-                    _logger.Info("The DPoS mining nodes list is empty if you see this log." +
-                                  "Maybe you should re-check the config file or election part.");
-                    return default(BlockProducer);
+                    return new Miners();
                 }
             }
         }
-        
+
         public UInt64Value CurrentRoundNumber
         {
             get
             {
                 try
                 {
-                    var bytes = _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()).Result;
-                    return UInt64Value.Parser.ParseFrom(bytes);
+                    //_logger?.Trace("Getting Current Round Number.");
+                    var number = UInt64Value.Parser.ParseFrom(
+                        GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber)));
+                    //_logger?.Trace("Current Round Number: " + number.Value);
+                    return number;
                 }
                 catch (Exception)
                 {
-                    _logger.Info("The DPoS information hasn't initialized yet if you see this log.");
                     return new UInt64Value {Value = 0};
                 }
             }
         }
 
-        public Timestamp ExtraBlockTimeslot
+        public Timestamp ExtraBlockTimeSlot
         {
             get
             {
                 try
                 {
-                    return Timestamp.Parser.ParseFrom(_dataProvider
-                        .GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash())
-                        .Result);
+                    return Timestamp.Parser.ParseFrom(
+                        GetBytes<Timestamp>(Hash.FromString(GlobalConfig.AElfDPoSExtraBlockTimeSlotString)));
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e, "The DPoS information has initialized but somehow the extra block timeslot is incorrect.");
+                    _logger.Error(e,
+                        "The DPoS information has initialized but somehow the extra block timeslot is incorrect.\n");
                     return default(Timestamp);
                 }
             }
         }
 
-        public RoundInfo CurrentRoundInfo
+        private Round CurrentRoundInfo
         {
             get
             {
                 try
                 {
-                    return RoundInfo.Parser.ParseFrom(_dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
-                        .GetAsync(CurrentRoundNumber.CalculateHash()).Result);
+                    return Round.Parser.ParseFrom(GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber),
+                        GlobalConfig.AElfDPoSInformationString));
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, "Failed to get DPoS information of current round.");
-                    return default(RoundInfo);
+                    _logger?.Error(e, "Failed to get DPoS information of current round.\n");
+                    return new Round();
                 }
             }
         }
 
-        public StringValue FirstPlaceBlockProducerOfCurrentRound
+        private SInt32Value MiningInterval
         {
             get
             {
                 try
                 {
-                    return StringValue.Parser.ParseFrom(_dataProvider
-                        .GetDataProvider(Globals.AElfDPoSFirstPlaceOfEachRoundString)
-                        .GetAsync(CurrentRoundNumber.CalculateHash()).Result);
+                    return SInt32Value.Parser.ParseFrom(
+                        GetBytes<SInt32Value>(Hash.FromString(GlobalConfig.AElfDPoSMiningIntervalString)));
+                }
+                catch (Exception e)
+                {
+                    //_logger?.Error(e, "Failed to get DPoS mining interval.\n");
+                    return new SInt32Value {Value = GlobalConfig.AElfDPoSMiningInterval};
+                }
+            }
+        }
+
+        private StringValue FirstPlaceBlockProducerOfCurrentRound
+        {
+            get
+            {
+                try
+                {
+                    return StringValue.Parser.ParseFrom(GetBytes<StringValue>(Hash.FromMessage(CurrentRoundNumber),
+                        GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString));
                 }
                 catch (Exception e)
                 {
                     _logger?.Error(e, "Failed to get first order prodocuer of current round.");
-                    return default(StringValue);
+                    return new StringValue {Value = ""};
                 }
             }
         }
-        
-        public AElfDPoSHelper(IWorldStateDictator worldStateDictator, ECKeyPair keyPair, Hash chainId,
-            BlockProducer blockProducer, Hash contractAddressHash, IChainManager chainManager, ILogger logger)
-        {
-            worldStateDictator.SetChainId(chainId);
-            _keyPair = keyPair;
-            _blockProducer = blockProducer;
-            _logger = logger;
-            _chainManager = chainManager;
-            _chainId = chainId;
 
-            _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
+        /// <summary>
+        /// Assert: Related value has surely exists in database.
+        /// </summary>
+        /// <param name="keyHash"></param>
+        /// <param name="resourceStr"></param>
+        /// <returns></returns>
+        private byte[] GetBytes<T>(Hash keyHash, string resourceStr = "") where T : IMessage, new()
+        {
+            return resourceStr != ""
+                ? DataProvider.GetChild(resourceStr).GetAsync<T>(keyHash).Result
+                : DataProvider.GetAsync<T>(keyHash).Result;
+        }
+
+        public AElfDPoSHelper(Hash chainId, Miners miners, Address contractAddressHash, IStateStore stateStore)
+        {
+            _chainId = chainId;
+            _miners = miners;
+            _contractAddressHash = contractAddressHash;
+            _stateStore = stateStore;
+
+            _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
         }
 
         /// <summary>
         /// Get block producer information of current round.
         /// </summary>
         /// <param name="accountAddress"></param>
-        public BPInfo this[string accountAddress]
+        public BlockProducer this[string accountAddress]
         {
             get
             {
                 try
                 {
-                    return RoundInfo.Parser.ParseFrom(_dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
-                        .GetAsync(CurrentRoundNumber.CalculateHash()).Result).Info[accountAddress];
+                    var bytes = GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber),
+                        GlobalConfig.AElfDPoSInformationString);
+                    var round = Round.Parser.ParseFrom(bytes);
+                    return round.BlockProducers[accountAddress];
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e, "Failed to get BPInfo of current round.");
-                    return default(BPInfo);
+                    _logger.Error(e, "Failed to get Block Producer information of current round.");
+                    return default(BlockProducer);
                 }
             }
         }
 
-        public DPoSInfo GenerateInfoForFirstTwoRounds()
+        private Round this[UInt64Value roundNumber]
+        {
+            get
+            {
+                try
+                {
+                    var bytes = GetBytes<Round>(Hash.FromMessage(roundNumber), GlobalConfig.AElfDPoSInformationString);
+                    var round = Round.Parser.ParseFrom(bytes);
+                    return round;
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e,
+                        $"Failed to get Round information of provided round number. - {roundNumber.Value}\n");
+                    return default(Round);
+                }
+            }
+        }
+
+        public async Task<bool> DPoSInformationGenerated()
+        {
+            var bytes = await DataProvider.GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSBlockProducerString));
+            return bytes != null && bytes.Length > 0;
+        }
+
+        public AElfDPoSInformation GenerateInfoForFirstTwoRounds()
         {
             var dict = new Dictionary<string, int>();
 
             // First round
-            foreach (var node in _blockProducer.Nodes)
+            foreach (var node in _miners.Nodes)
             {
                 dict.Add(node, node[0]);
             }
@@ -161,82 +228,86 @@ namespace AElf.Kernel.Consensus
                 select obj.Key;
 
             var enumerable = sortedMiningNodes.ToList();
-            
-            var infosOfRound1 = new RoundInfo();
 
-            var selected = _blockProducer.Nodes.Count / 2;
+            var infosOfRound1 = new Round();
+
+            var selected = _miners.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
-                var bpInfo = new BPInfo {IsEBP = false};
-                
+                var bpInfo = new BlockProducer {IsEBP = false};
+
                 if (i == selected)
                 {
                     bpInfo.IsEBP = true;
-
                 }
 
                 bpInfo.Order = i + 1;
                 bpInfo.Signature = Hash.Generate();
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfMiningTime + Globals.AElfWaitFirstRoundTime);
+                bpInfo.TimeSlot =
+                    GetTimestampOfUtcNow(i * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfWaitFirstRoundTime);
 
-                infosOfRound1.Info.Add(enumerable[i], bpInfo);
+                infosOfRound1.BlockProducers.Add(enumerable[i], bpInfo);
             }
 
             // Second round
             dict = new Dictionary<string, int>();
-            
-            foreach (var node in _blockProducer.Nodes)
+
+            foreach (var node in _miners.Nodes)
             {
                 dict.Add(node, node[0]);
             }
-            
+
             sortedMiningNodes =
                 from obj in dict
                 orderby obj.Value descending
                 select obj.Key;
-            
+
             enumerable = sortedMiningNodes.ToList();
-            
-            var infosOfRound2 = new RoundInfo();
 
-            var addition = enumerable.Count * Globals.AElfMiningTime + Globals.AElfMiningTime;
+            var infosOfRound2 = new Round();
 
-            selected = _blockProducer.Nodes.Count / 2;
+            var addition = enumerable.Count * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfDPoSMiningInterval;
+
+            selected = _miners.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
-                var bpInfo = new BPInfo {IsEBP = false};
+                var bpInfo = new BlockProducer {IsEBP = false};
 
                 if (i == selected)
                 {
                     bpInfo.IsEBP = true;
                 }
 
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfMiningTime + addition + Globals.AElfWaitFirstRoundTime);
+                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * GlobalConfig.AElfDPoSMiningInterval + addition +
+                                                       GlobalConfig.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
-                infosOfRound2.Info.Add(enumerable[i], bpInfo);
+                infosOfRound2.BlockProducers.Add(enumerable[i], bpInfo);
             }
 
-            var dPoSInfo = new DPoSInfo
+            infosOfRound1.RoundNumber = 1;
+            infosOfRound2.RoundNumber = 2;
+
+            var dPoSInfo = new AElfDPoSInformation
             {
-                RoundInfo = {infosOfRound1, infosOfRound2}
+                Rounds = {infosOfRound1, infosOfRound2}
             };
-            
+
             return dPoSInfo;
         }
 
-        public async Task<RoundInfo> SupplyPreviousRoundInfo()
+        private Round SupplyPreviousRoundInfo()
         {
             try
             {
                 var roundInfo = CurrentRoundInfo;
 
-                foreach (var info in roundInfo.Info)
+                foreach (var info in roundInfo.BlockProducers)
                 {
                     if (info.Value.InValue != null && info.Value.OutValue != null) continue;
 
                     var inValue = Hash.Generate();
-                    var outValue = inValue.CalculateHash();
+                    var outValue = Hash.FromMessage(inValue);
 
                     info.Value.OutValue = outValue;
                     info.Value.InValue = inValue;
@@ -244,35 +315,36 @@ namespace AElf.Kernel.Consensus
                     //For the first round, the sig value is auto generated
                     if (info.Value.Signature == null && CurrentRoundNumber.Value != 1)
                     {
-                        var signature = await CalculateSignature(inValue);
+                        var signature = CalculateSignature(inValue);
                         info.Value.Signature = signature;
                     }
 
-                    roundInfo.Info[info.Key] = info.Value;
+                    roundInfo.BlockProducers[info.Key] = info.Value;
                 }
+
+                roundInfo.RoundNumber = CurrentRoundNumber.Value;
 
                 return roundInfo;
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Failed to supply previous round info");
-                return new RoundInfo();
+                return new Round();
             }
         }
-        
-        public async Task<Hash> CalculateSignature(Hash inValue)
+
+        public Hash CalculateSignature(Hash inValue)
         {
             try
             {
                 var add = Hash.Default;
-                foreach (var node in _blockProducer.Nodes)
+                foreach (var node in _miners.Nodes)
                 {
-                    var bpInfo = await GetBlockProducerInfoOfSpecificRound(node, RoundNumberMinusOne(CurrentRoundNumber));
-                    var lastSignature = bpInfo.Signature;
-                    add = add.CalculateHashWith(lastSignature);
+                    var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[node].Signature;
+                    add = Hash.FromTwoHashes(add, lastSignature);
                 }
 
-                Hash sig = inValue.CalculateHashWith(add);
+                var sig = Hash.FromTwoHashes(inValue, add);
                 return sig;
             }
             catch (Exception e)
@@ -282,19 +354,19 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<RoundInfo> GenerateNextRoundOrder()
+        private Round GenerateNextRoundOrder()
         {
             try
             {
-                var infosOfNextRound = new RoundInfo();
+                var infosOfNextRound = new Round();
                 var signatureDict = new Dictionary<Hash, string>();
                 var orderDict = new Dictionary<int, string>();
 
-                var blockProducerCount = _blockProducer.Nodes.Count;
+                var blockProducerCount = _miners.Nodes.Count;
 
-                foreach (var node in _blockProducer.Nodes)
+                foreach (var node in _miners.Nodes)
                 {
-                    var s = (await GetBlockProducerInfoOfCurrentRound(node)).Signature;
+                    var s = this[node].Signature;
                     if (s == null)
                     {
                         s = Hash.Generate();
@@ -323,37 +395,39 @@ namespace AElf.Kernel.Consensus
                     orderDict.Add(order, signatureDict[sig]);
                 }
 
-                var extraBlockTimeslotOfCurrentRound = ExtraBlockTimeslot;
+                var blockTimeSlot = ExtraBlockTimeSlot;
 
-                //Maybe because something happened with setting extra block timeslot.
-                if (extraBlockTimeslotOfCurrentRound.ToDateTime().AddMilliseconds(Globals.AElfMiningTime * 2) < GetTimestampOfUtcNow().ToDateTime())
+                //Maybe because something happened with setting extra block time slot.
+                if (blockTimeSlot.ToDateTime().AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * 1.5) <
+                    GetTimestampOfUtcNow().ToDateTime())
                 {
-                    extraBlockTimeslotOfCurrentRound = GetTimestampWithOffset(extraBlockTimeslotOfCurrentRound,
-                        Globals.AElfMiningTime + Globals.AElfMiningTime * Globals.BlockProducerNumber);
+                    blockTimeSlot = GetTimestampOfUtcNow();
                 }
 
                 for (var i = 0; i < orderDict.Count; i++)
                 {
-                    var bpInfoNew = new BPInfo
+                    var bpInfoNew = new BlockProducer
                     {
-                        TimeSlot = GetTimestampWithOffset(extraBlockTimeslotOfCurrentRound,
-                            i * Globals.AElfMiningTime + Globals.AElfMiningTime),
+                        TimeSlot = GetTimestampWithOffset(blockTimeSlot,
+                            i * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfDPoSMiningInterval * 2),
                         Order = i + 1
                     };
 
-                    infosOfNextRound.Info[orderDict[i]] = bpInfoNew;
+                    infosOfNextRound.BlockProducers[orderDict[i]] = bpInfoNew;
                 }
+
+                infosOfNextRound.RoundNumber = CurrentRoundNumber.Value + 1;
 
                 return infosOfNextRound;
             }
             catch (Exception e)
             {
                 _logger?.Error(e, "Failed to generate info of next round");
-                return new RoundInfo();
+                return new Round();
             }
         }
 
-        public async Task<StringValue> CalculateNextExtraBlockProducer()
+        private StringValue CalculateNextExtraBlockProducer()
         {
             try
             {
@@ -364,15 +438,14 @@ namespace AElf.Kernel.Consensus
                 {
                     sig = Hash.Generate();
                 }
-            
+
                 var sigNum = BitConverter.ToUInt64(
                     BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
-                var blockProducerCount = _blockProducer.Nodes.Count;
+                var blockProducerCount = _miners.Nodes.Count;
                 var order = GetModulus(sigNum, blockProducerCount);
 
-                // ReSharper disable once InconsistentNaming
-                var nextEBP = _blockProducer.Nodes[order];
-            
+                var nextEBP = _miners.Nodes[order];
+
                 return new StringValue {Value = nextEBP.RemoveHexPrefix()};
             }
             catch (Exception e)
@@ -381,10 +454,9 @@ namespace AElf.Kernel.Consensus
                 return new StringValue {Value = ""};
             }
         }
-        
-        // ReSharper disable once InconsistentNaming
+
         // ReSharper disable once UnusedMember.Global
-        public async Task<StringValue> GetDPoSInfoToString()
+        public StringValue GetDPoSInfoToString()
         {
             ulong count = 1;
 
@@ -392,41 +464,41 @@ namespace AElf.Kernel.Consensus
             {
                 count = CurrentRoundNumber.Value;
             }
+
             var infoOfOneRound = "";
 
             ulong i = 1;
             while (i <= count)
             {
-                var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
+                var roundInfoStr = GetRoundInfoToString(new UInt64Value {Value = i});
                 infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
                 i++;
             }
 
-            // ReSharper disable once InconsistentNaming
-            var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
-
             var res = new StringValue
             {
                 Value
-                    = infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
-                             + "Current Round : " + CurrentRoundNumber?.Value
+                    = infoOfOneRound + $"EBP Time Slot of current round: {ExtraBlockTimeSlot.ToDateTime().ToLocalTime():u}\n"
+                                     + "Current Round : " + CurrentRoundNumber?.Value
             };
-            
+
             return res;
         }
 
-        // ReSharper disable once InconsistentNaming
-        private async Task<string> GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
+        private string GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
         {
             try
             {
                 if (CurrentRoundNumber.Value == 0)
                 {
-                    return "No DPoS Information, maybe failed to generate related information or synchronize blocks.\n" +
-                           "Please check the account you config has the right to produce block if this node is the first" +
-                           "one to start.";
+                    return "Somehow current round number is 0";
                 }
-            
+
+                if (countOfRounds == 0)
+                {
+                    return "";
+                }
+
                 var currentRoundNumber = CurrentRoundNumber.Value;
                 ulong startRound;
                 if (countOfRounds >= currentRoundNumber)
@@ -447,16 +519,14 @@ namespace AElf.Kernel.Consensus
                         continue;
                     }
 
-                    var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
+                    var roundInfoStr = GetRoundInfoToString(new UInt64Value {Value = i});
                     infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
                     i++;
                 }
-            
-                // ReSharper disable once InconsistentNaming
-                var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
 
-                return infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
-                                      + $"Current Round : {CurrentRoundNumber.Value}";
+                return
+                    infoOfOneRound + $"EBP TimeSlot of current round: {ExtraBlockTimeSlot.ToDateTime().ToLocalTime():u}\n"
+                                   + $"Current Round : {CurrentRoundNumber.Value}";
             }
             catch (Exception e)
             {
@@ -464,50 +534,18 @@ namespace AElf.Kernel.Consensus
                 return "";
             }
         }
-        
-        public async Task<Tuple<RoundInfo, RoundInfo, StringValue>> ExecuteTxsForExtraBlock()
+
+        public Tuple<Round, Round, StringValue> ExecuteTxsForExtraBlock()
         {
-            var currentRoundInfo = await SupplyPreviousRoundInfo();
-            var nextRoundInfo = await GenerateNextRoundOrder();
-            // ReSharper disable once InconsistentNaming
-            var nextEBP = await CalculateNextExtraBlockProducer();
-            
+            var currentRoundInfo = SupplyPreviousRoundInfo();
+            var nextRoundInfo = GenerateNextRoundOrder();
+            var nextEBP = CalculateNextExtraBlockProducer();
+
             return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
         }
-        
-        // ReSharper disable once InconsistentNaming
-        public void StartConsensusLog(bool doLogsAboutConsensus = true)
-        {
-            new EventLoopScheduler().Schedule(() =>
-            {
-                var dPoSInfo = "";
 
-                var intervalSequnce = GetIntervalObservable();
-                intervalSequnce.Subscribe
-                (
-                    async x =>
-                    {
-                        var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(_chainId);
-
-                        if (!doLogsAboutConsensus) 
-                            return;
-                        
-                        // ReSharper disable once InconsistentNaming
-                        var currentDPoSInfo = await GetDPoSInfo(currentHeightOfThisNode);
-                        if (dPoSInfo == currentDPoSInfo)
-                            return;
-                            
-                        dPoSInfo = currentDPoSInfo;
-                        _logger?.Log(LogLevel.Debug, dPoSInfo);
-
-                    }
-                );
-            });
-        }
-        
-        // ReSharper disable once InconsistentNaming
         /// <summary>
-        /// This method should return true if all the BPs restarted (and missed their timeslots).
+        /// This method should return true if all the BPs restarted (and missed their time slots).
         /// </summary>
         /// <returns></returns>
         public bool CanRecoverDPoSInformation()
@@ -515,15 +553,15 @@ namespace AElf.Kernel.Consensus
             try
             {
                 //If DPoS information is already generated, return false;
-                //Because this method doesn't resposible to initialize DPoS information.
+                //Because this method doesn't responsible to initialize DPoS information.
                 if (CurrentRoundNumber.Value == 0)
                 {
                     return false;
                 }
 
-                var extraBlockTimeslot = ExtraBlockTimeslot.ToDateTime();
+                var extraBlockTimeSlot = ExtraBlockTimeSlot.ToDateTime();
                 var now = DateTime.UtcNow;
-                if (now < extraBlockTimeslot)
+                if (now < extraBlockTimeSlot)
                 {
                     return false;
                 }
@@ -536,38 +574,47 @@ namespace AElf.Kernel.Consensus
 
             return true;
         }
-        
-        // ReSharper disable once InconsistentNaming
-        private async Task<string> GetDPoSInfo(long height)
+
+        public void SyncMiningInterval()
         {
-            return await GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}";
-        }
-        
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private IObservable<long> GetIntervalObservable()
-        {
-            return Observable.Interval(TimeSpan.FromMilliseconds(Globals.AElfCheckTime));
+            GlobalConfig.AElfDPoSMiningInterval = MiningInterval.Value;
         }
 
-        private async Task<string> GetRoundInfoToString(UInt64Value roundNumber)
+        public void LogDPoSInformation(ulong height)
+        {
+            _logger?.Trace("Log dpos information - Start");
+            _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
+                           $". Current height: {height}");
+            _logger?.Trace("Log dpos information - End");
+        }
+
+        public Round GetCurrentRoundInfo(UInt64Value currentRoundNumber = null)
+        {
+            if (currentRoundNumber == null)
+            {
+                currentRoundNumber = CurrentRoundNumber;
+            }
+            return currentRoundNumber.Value != 0 ? this[currentRoundNumber] : null;
+        }
+
+        private string GetRoundInfoToString(UInt64Value roundNumber)
         {
             try
             {
-                var bytes = await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
-                    .GetAsync(roundNumber.CalculateHash());
-                var info = RoundInfo.Parser.ParseFrom(bytes);
-                
                 var result = "";
 
-                foreach (var bpInfo in info.Info)
+                foreach (var bpInfo in this[roundNumber].BlockProducers)
                 {
                     result += bpInfo.Key + ":\n";
                     result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                     result += "Order:\t\t" + bpInfo.Value.Order + "\n";
-                    result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
-                    result += "Signature:\t" + bpInfo.Value.Signature?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
-                    result += "Out Value:\t" + bpInfo.Value.OutValue?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
-                    result += "In Value:\t" + bpInfo.Value.InValue?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
+                    result += "Time Slot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
+                    result += "Signature:\t" + bpInfo.Value.Signature?.Value.ToByteArray().ToHex().RemoveHexPrefix() +
+                              "\n";
+                    result += "Out Value:\t" + bpInfo.Value.OutValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() +
+                              "\n";
+                    result += "In Value:\t" + bpInfo.Value.InValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() +
+                              "\n";
                 }
 
                 return result + "\n";
@@ -578,7 +625,7 @@ namespace AElf.Kernel.Consensus
                 return "";
             }
         }
-        
+
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private UInt64Value RoundNumberMinusOne(UInt64Value currentCount)
         {
@@ -586,32 +633,7 @@ namespace AElf.Kernel.Consensus
             current--;
             return new UInt64Value {Value = current};
         }
-        
-        private async Task<Timestamp> GetTimeSlot(string accountAddress)
-        {
-            return (await GetBlockProducerInfoOfCurrentRound(accountAddress)).TimeSlot;
-        }
 
-        private async Task<BPInfo> GetBlockProducerInfoOfCurrentRound(string accountAddress)
-        {
-            var bytes = await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString).GetAsync(CurrentRoundNumber.CalculateHash());
-            var roundInfo = RoundInfo.Parser.ParseFrom(bytes);
-            return roundInfo.Info[accountAddress];
-        }
-        
-        private async Task<BPInfo> GetBlockProducerInfoOfSpecificRound(string accountAddress, UInt64Value roundNumber)
-        {
-            var bytes = await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString).GetAsync(roundNumber.CalculateHash());
-            var roundInfo = RoundInfo.Parser.ParseFrom(bytes);
-            return roundInfo.Info[accountAddress];
-        }
-
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private string AddressHashToString(Hash accountHash)
-        {
-            return accountHash.ToAccount().ToHex().Remove(0, 2);
-        }
-        
         /// <summary>
         /// Get local time
         /// </summary>
@@ -627,21 +649,9 @@ namespace AElf.Kernel.Consensus
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
         }
-        
+
         /// <summary>
-        /// Return true if ts1 >= ts2
-        /// </summary>
-        /// <param name="ts1"></param>
-        /// <param name="ts2"></param>
-        /// <returns></returns>
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private bool CompareTimestamp(Timestamp ts1, Timestamp ts2)
-        {
-            return ts1.ToDateTime() >= ts2.ToDateTime();
-        }
-        
-        /// <summary>
-        /// In case of forgetting to check negtive value.
+        /// In case of forgetting to check negativee value.
         /// For now this method only used for generating order,
         /// so integer should be enough.
         /// </summary>

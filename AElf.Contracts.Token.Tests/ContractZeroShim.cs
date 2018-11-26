@@ -6,25 +6,26 @@ using ServiceStack;
 using Google.Protobuf;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
+using AElf.Common;
 
 namespace AElf.Contracts.Token.Tests
 {
     public class ContractZeroShim
     {
         private MockSetup _mock;
-        public Hash ContractAddres = Hash.Generate();
+        public Address ContractAddres = Common.Address.FromRawBytes(Hash.Generate().ToByteArray());
         public IExecutive Executive { get; set; }
 
-        public ITransactionContext TransactionContext { get; private set; }
+        public TransactionContext TransactionContext { get; private set; }
 
-        public Hash Sender
+        public Address Sender
         {
-            get => Hash.Zero;
+            get => Address.Zero;
         }
         
-        public Hash Address
+        public Address Address
         {
-            get => new Hash(_mock.ChainId1.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            get => ContractHelpers.GetTokenContractAddress(_mock.ChainId1);
         }
         
         public ContractZeroShim(MockSetup mock)
@@ -55,7 +56,8 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
@@ -74,10 +76,11 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
         }
         
-        public Hash GetContractOwner(Hash contractAddress)
+        public Address GetContractOwner(Address contractAddress)
         {
             var tx = new Transaction
             {
@@ -92,8 +95,9 @@ namespace AElf.Contracts.Token.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
         }
     }
 }

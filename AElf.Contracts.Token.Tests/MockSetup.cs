@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -7,8 +9,11 @@ using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using ServiceStack;
+using AElf.Common;
+using AElf.Execution.Execution;
 
 namespace AElf.Contracts.Token.Tests
 {
@@ -23,53 +28,67 @@ namespace AElf.Contracts.Token.Tests
             return (ulong)n;
         }
 
+        public IStateStore StateStore { get; }
         public Hash ChainId1 { get; } = Hash.Generate();
         public ISmartContractManager SmartContractManager;
-        public ISmartContractService SmartContractService;
+        public ISmartContractService SmartContractService { get; }
         private IFunctionMetadataService _functionMetadataService;
 
+        public Address TokenContractAddress { get; private set; }
+        
         public IChainContextService ChainContextService;
-
-        public IAccountDataProvider DataProvider1;
 
         public ServicePack ServicePack;
 
-        private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IStateStore stateStore, ISmartContractService smartContractService,
+            IChainCreationService chainCreationService, IChainContextService chainContextService,
+            IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateDictator = worldStateDictator;
+            StateStore = stateStore;
             _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            SmartContractManager = new SmartContractManager(smartContractStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            SmartContractService = smartContractService;
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                WorldStateDictator = _worldStateDictator
+                StateStore = StateStore
             };
         }
 
-        public byte[] SmartContractZeroCode
+        public string TokenName => "AElf.Contracts.Token";
+
+        public byte[] TokenCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
+                using (FileStream file = File.OpenRead(Path.GetFullPath($"../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/{TokenName}.dll")))
+                {
+                    code = file.ReadFully();
+                }
+                return code;
+            }
+        }
+        
+        public byte[] SCZeroContractCode
+        {
+            get
+            {
+                byte[] code = null;
+                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
                 {
                     code = file.ReadFully();
                 }
@@ -79,18 +98,27 @@ namespace AElf.Contracts.Token.Tests
         
         private async Task Init()
         {
-            var reg = new SmartContractRegistration
+            var reg1 = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractBytes = ByteString.CopyFrom(TokenCode),
+                ContractHash = Hash.FromRawBytes(TokenCode),
+                SerialNumber = GlobalConfig.TokenContract
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
-            var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
+            var reg0 = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(SCZeroContractCode),
+                ContractHash = Hash.FromRawBytes(SCZeroContractCode),
+                SerialNumber = GlobalConfig.GenesisBasicContract
+            };
+
+            var chain1 =
+                await _chainCreationService.CreateNewChainAsync(ChainId1,
+                    new List<SmartContractRegistration> {reg0});
         }
         
-        public async Task<IExecutive> GetExecutiveAsync(Hash address)
+        public async Task<IExecutive> GetExecutiveAsync(Address address)
         {
             var executive = await SmartContractService.GetExecutiveAsync(address, ChainId1);
             return executive;

@@ -8,6 +8,16 @@
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
     <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="BlockExecution\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="BlockExecution\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="BlockExecution\**" />
   </ItemGroup>
 </Project>

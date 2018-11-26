@@ -1,18 +1,19 @@
 ﻿using System.Collections.Generic;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
-    public class TransactionParallelMetaData:ITransactionParallelMetaData
+    public class TransactionParallelMetaData: ITransactionParallelMetaData
     {
         public bool IsParallel()
         {
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<IHash> GetDataConflict()
+        public IEnumerable<Hash> GetDataConflict()
         {
-            IHash a = null;
-            IHash b = null;
+            Hash a = null;
+            Hash b = null;
 
             yield return a;
             yield return b;

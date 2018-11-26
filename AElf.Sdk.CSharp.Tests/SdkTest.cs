@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Kernel;
 using Xunit.Frameworks.Autofac;
 using Xunit;
+using AElf.Common;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -29,6 +30,18 @@ namespace AElf.Sdk.CSharp.Tests
             Assert.Equal("AElf", resName);
         }
 
+        [Fact]
+        public void InlineCallTest()
+        {
+            var trace = _contractShim.InlineCallToZero();
+            var expected =new Transaction()
+            {
+                From = Address.Zero,
+                To = Address.Zero,
+                MethodName = "Dummy"
+            };
+            Assert.Equal(expected, trace.InlineTransactions[0]);
+        }
         // TODO: Add more test cases
     }
 }

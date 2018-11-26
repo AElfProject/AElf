@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -10,6 +11,13 @@ using Akka.TestKit.Xunit;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Tests.Concurrency.Execution;
+using AElf.SmartContract;
+using AElf.Types.CSharp;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Type = System.Type;
+using AElf.Common;
+using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency
 {
@@ -31,14 +39,14 @@ namespace AElf.Kernel.Tests.Concurrency
                 100,
                 0
             };
-            var addresses = Enumerable.Range(0, balances.Count).Select(x => Hash.Generate()).ToList();
+            var addresses = Enumerable.Range(0, balances.Count).Select(x => Address.FromRawBytes(Hash.Generate().ToByteArray())).ToList();
 
             foreach (var addbal in addresses.Zip(balances, Tuple.Create))
             {
                 _mock.Initialize1(addbal.Item1, (ulong) addbal.Item2);
             }
 
-            var txs = new List<ITransaction>()
+            var txs = new List<Transaction>()
             {
                 _mock.GetTransferTxn1(addresses[0], addresses[1], 10),
             };
@@ -50,10 +58,10 @@ namespace AElf.Kernel.Tests.Concurrency
                 10
             };
 
-            var service = new ParallelTransactionExecutingService(_mock.Requestor,
-                new Grouper(_mock.ServicePack.ResourceDetectionService));
+            var service = new ParallelTransactionExecutingService(_mock.ActorEnvironment,
+                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack);
 
-            var traces = await service.ExecuteAsync(txs, _mock.ChainId1);
+            var traces = await service.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None);
 
             foreach (var txTrace in txs.Zip(traces, Tuple.Create))
             {
@@ -89,14 +97,14 @@ namespace AElf.Kernel.Tests.Concurrency
                 300,
                 0
             };
-            var addresses = Enumerable.Range(0, balances.Count).Select(x => Hash.Generate()).ToList();
+            var addresses = Enumerable.Range(0, balances.Count).Select(x => Address.FromRawBytes(Hash.Generate().ToByteArray())).ToList();
 
             foreach (var addbal in addresses.Zip(balances, Tuple.Create))
             {
                 _mock.Initialize1(addbal.Item1, addbal.Item2);
             }
 
-            var txs = new List<ITransaction>()
+            var txs = new List<Transaction>()
             {
                 _mock.GetTransferTxn1(addresses[0], addresses[1], 10),
                 _mock.GetTransferTxn1(addresses[1], addresses[2], 9),
@@ -115,10 +123,10 @@ namespace AElf.Kernel.Tests.Concurrency
                 10
             };
 
-            var service = new ParallelTransactionExecutingService(_mock.Requestor,
-                new Grouper(_mock.ServicePack.ResourceDetectionService));
+            var service = new ParallelTransactionExecutingService(_mock.ActorEnvironment,
+                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack);
 
-            var traces = await service.ExecuteAsync(txs, _mock.ChainId1);
+            var traces = await service.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None);
 
             foreach (var txTrace in txs.Zip(traces, Tuple.Create))
             {
@@ -133,6 +141,44 @@ namespace AElf.Kernel.Tests.Concurrency
                 string.Join(" ", finalBalances),
                 string.Join(" ", addresses.Select(a => _mock.GetBalance1(a)))
             );
+        }
+
+        [Fact]
+        public async Task InlineTransactionTest()
+        {
+            int rep1 = 4;
+            int rep2 = 5;
+            var txs = new List<Transaction>()
+            {
+                new Transaction()
+                {
+                    From = Address.Zero,
+                    To = _mock.SampleContractAddress1,
+                    MethodName = "InlineTxnBackToSelf",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(rep1))
+                },
+                new Transaction()
+                {
+                    From = Address.Zero,
+                    To = _mock.SampleContractAddress1,
+                    MethodName = "InlineTxnBackToSelf",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(rep2))
+                }
+            };
+            Func<TransactionTrace, TransactionTrace> getInnerMostTrace = null;
+            getInnerMostTrace = (tr) =>
+            {
+                if (tr.InlineTraces.Count == 0)
+                {
+                    return tr;
+                }
+                return getInnerMostTrace(tr.InlineTraces.First());
+            };
+            var service = new ParallelTransactionExecutingService(_mock.ActorEnvironment,
+                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack);
+            var traces = await service.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None);
+            Assert.NotEqual(ExecutionStatus.ExceededMaxCallDepth, getInnerMostTrace(traces[0]).ExecutionStatus);
+            Assert.Equal(ExecutionStatus.ExceededMaxCallDepth, getInnerMostTrace(traces[1]).ExecutionStatus);
         }
     }
 }

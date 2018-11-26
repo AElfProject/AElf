@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Tests.BlockSyncTests
 {
@@ -35,12 +37,12 @@ namespace AElf.Kernel.Tests.BlockSyncTests
                 for (ulong j = 0; j < 3; j++)
                 {
                     Transaction t = new Transaction();
-                    t.From = _from;
-                    t.To = _to;
+                    t.From = Address.FromRawBytes(Hash.FromRawBytes(_from).ToByteArray());
+                    t.To = Address.FromRawBytes(Hash.FromRawBytes(_to).ToByteArray());
                     t.IncrementId = j;
                     
                     txList.Add(t);
-                    b.AddTransaction(t.GetHash());
+                    b.AddTransaction(t);
                 }
             }
         }

@@ -1,98 +1,66 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Threading.Tasks;
-using AElf.SmartContract;
-using AElf.ChainController;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using AElf.Common;
+using AElf.Database;
+using AElf.Kernel;
 using AElf.Kernel.Storages;
-using AElf.Kernel.TxMemPool;
-using NLog;
+using AElf.SmartContract;
+using Google.Protobuf;
+using Google.Protobuf.Collections;
+using Google.Protobuf.WellKnownTypes;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
     public class DataProviderTest
     {
-        private readonly IWorldStateStore _worldStateStore;
-        private readonly IChangesStore _changesStore;
-        private readonly IDataStore _dataStore;
-        private readonly BlockTest _blockTest;
-        private readonly ILogger _logger;
-        private readonly ITxPoolService _txPoolService;
-        private readonly IBlockHeaderStore _blockHeaderStore;
-        private readonly IBlockBodyStore _blockBodyStore;
-        private readonly ITransactionStore _transactionStore;
-
-        public DataProviderTest(IWorldStateStore worldStateStore,
-            IChangesStore changesStore, IDataStore dataStore,
-            BlockTest blockTest, ILogger logger,
-            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            ITransactionStore transactionStore)
-        {
-            _worldStateStore = worldStateStore;
-            _changesStore = changesStore;
-            _dataStore = dataStore;
-            _blockTest = blockTest;
-            _logger = logger;
-            _txPoolService = txPoolService;
-            _blockHeaderStore = blockHeaderStore;
-            _blockBodyStore = blockBodyStore;
-            _transactionStore = transactionStore;
-        }
-
         [Fact]
-        public async Task SetTest()
+        public async Task Test()
         {
-            const int count = 5;
-            var setList = CreateSet(count).ToList();
-            var keys = GenerateKeys(setList).ToList();
-
-            var chain = await _blockTest.CreateChain();
-
-            var address = Hash.Generate();
-
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                _blockHeaderStore, _blockBodyStore, _transactionStore, _logger).SetChainId(chain.Id);
-            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
-
-            await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
-            
-            var accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
-            var dataProvider = accountDataProvider.GetDataProvider();
-
-            for (var i = 0; i < count; i++)
+            var db = new InMemoryDatabase();
+            var chainId = Hash.FromString("chain1");
+            var address = Address.FromRawBytes(Hash.FromString("contract1").ToByteArray());
+            var root = DataProvider.GetRootDataProvider(chainId, address);
+            root.StateStore = new StateStore(db);
+            var s = "test";
+            var sb = Encoding.UTF8.GetBytes(s);
+            var statePath = new StatePath()
             {
-                await dataProvider.SetAsync(keys[i], setList[i]);
-            }
+                Path = {ByteString.CopyFrom(address.DumpByteArray()), ByteString.CopyFromUtf8(s)}
+            };
+            await root.SetAsync(s, sb);
 
-            for (var i = 0; i < count; i++)
+            // Value correctly set
+            var retrievedChanges = root.GetChanges();
+            Assert.Equal(1, retrievedChanges.Count);
+
+            var bytes = retrievedChanges[statePath].CurrentValue.ToByteArray();
+            Assert.Equal(s, Encoding.UTF8.GetString(bytes));
+
+            // Commit changes to store
+            var toCommit = retrievedChanges.ToDictionary(kv => kv.Key, kv => kv.Value.CurrentValue.ToByteArray());
+            await root.StateStore.PipelineSetDataAsync(toCommit);
+
+            // Setting the same value again in another DataProvider, no change will be returned
+            var root2 = DataProvider.GetRootDataProvider(chainId, address);
+            root2.StateStore = new StateStore(db);
+            await root2.SetAsync(s, sb);
+            var changes2 = root2.GetChanges();
+            Assert.Equal(0, changes2.Count);
+
+            // Test path
+            var sub = root.GetChild("sub");
+            await sub.SetAsync("dummy", new byte[] {0x01});
+            var subPath = sub.GetChanges().Keys.First();
+            var path = new RepeatedField<ByteString>
             {
-                var getData = await dataProvider.GetAsync(keys[i]);
-                Assert.True(getData.SequenceEqual(setList[i]));
-            }
-
-            for (var i = 0; i < count - 1; i++)
-            {
-                var getData = await dataProvider.GetAsync(keys[i]);
-                Assert.False(getData.SequenceEqual(setList[i + 1]));
-            }
-        }
-        
-        private IEnumerable<byte[]> CreateSet(int count)
-        {
-            var list = new List<byte[]>(count);
-            for (var i = 0; i < count; i++)
-            {
-                list.Add(Hash.Generate().GetHashBytes());
-            }
-
-            return list;
-        }
-
-        private IEnumerable<Hash> GenerateKeys(IEnumerable<byte[]> set)
-        {
-           return set.Select(data => new Hash(data.CalculateHash())).ToList();
+                ByteString.CopyFrom(address.DumpByteArray()), ByteString.Empty, ByteString.CopyFromUtf8("sub"),
+                ByteString.CopyFromUtf8("dummy")
+            };
+            Assert.Equal(subPath.Path, path);
         }
     }
 }

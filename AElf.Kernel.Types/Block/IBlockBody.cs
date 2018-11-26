@@ -1,11 +1,19 @@
-﻿using Google.Protobuf.Collections;
+﻿using System.Collections.Generic;
+using Google.Protobuf.Collections;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
-    public interface IBlockBody : ISerializable, IHashProvider
+    public interface IBlockBody: IHashProvider
     {
         RepeatedField<Hash> Transactions { get; }
 
-        bool AddTransaction(Hash tx);
+        bool AddTransaction(Transaction tx);
+
+        bool AddTransactions(IEnumerable<Hash> txs);
+        
+        void Complete(Hash blockHeaderHash);
+        
+        RepeatedField<SideChainBlockInfo> IndexedInfo { get; }
     }
 }

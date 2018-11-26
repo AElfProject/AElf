@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Akka.Actor;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
+using Akka.Actor;
+using Address = AElf.Common.Address;
 
-namespace AElf.Execution
+namespace AElf.Execution.Execution
 {
     #region LocalServices
     public sealed class RequestLocalSerivcePack
@@ -31,14 +33,14 @@ namespace AElf.Execution
     #region ExecuteTransactions
     public sealed class RequestExecuteTransactions
     {
-        public RequestExecuteTransactions(long requestId, List<ITransaction> transactions)
+        public RequestExecuteTransactions(long requestId, List<Transaction> transactions)
         {
             RequestId = requestId;
             Transactions = transactions;
         }
 
         public long RequestId { get; }
-        public List<ITransaction> Transactions { get; }
+        public List<Transaction> Transactions { get; }
     }
 
     public sealed class RespondExecuteTransactions
@@ -134,16 +136,23 @@ namespace AElf.Execution
     /// </summary>
     public sealed class LocalExecuteTransactionsMessage
     {
-        public LocalExecuteTransactionsMessage(Hash chainId, List<ITransaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource)
+        public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource, Hash disambiguationHash=null)
         {
             ChainId = chainId;
             Transactions = transactions;
             TaskCompletionSource = taskCompletionSource;
+            DisambiguationHash = disambiguationHash;
         }
 
         public Hash ChainId { get; }
-        public List<ITransaction> Transactions { get; }
+        public List<Transaction> Transactions { get; }
         public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
+        public Hash DisambiguationHash { get; }
+    }
+
+    public sealed class UpdateContractMessage
+    {
+        public List<Address> ContractAddress { get; set; }
     }
 
 //    public sealed class TransactionResultMessage
@@ -156,17 +165,7 @@ namespace AElf.Execution
 //        public TransactionResult TransactionResult { get; }
 //    }
 
-    public sealed class TransactionTraceMessage
-    {
-        public TransactionTraceMessage(long requestId, List<TransactionTrace> transactionTraces)
-        {
-            RequestId = requestId;
-            TransactionTraces = transactionTraces;
-        }
 
-        public long RequestId { get; set; }
-        public List<TransactionTrace> TransactionTraces { get; set; }
-    }
 
     #region Singleton Messages
     /// <summary>
@@ -243,18 +242,20 @@ namespace AElf.Execution
 
     public class JobExecutionRequest
     {
-        public JobExecutionRequest(long requestId, Hash chainId, List<ITransaction> transactions, IActorRef resultCollector, IActorRef router)
+        public JobExecutionRequest(long requestId, Hash chainId, List<Transaction> transactions, IActorRef resultCollector, IActorRef router, Hash disambiguationHash=null)
         {
             RequestId = requestId;
             ChainId = chainId;
             Transactions = transactions;
             ResultCollector = resultCollector;
             Router = router;
+            DisambiguationHash = disambiguationHash;
         }
 
         public long RequestId { get; set; }
         public Hash ChainId { get; set; }
-        public List<ITransaction> Transactions { get; set; }
+        public Hash DisambiguationHash { get; set; }
+        public List<Transaction> Transactions { get; set; }
         public IActorRef ResultCollector { get; set; }
         public IActorRef Router { get; set; }
 

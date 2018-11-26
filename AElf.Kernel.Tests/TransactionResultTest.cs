@@ -1,8 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.ChainController;
+using AElf.ChainController.Rpc;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
+using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
+using AElf.Miner.TxMemPool;
+using NLog;
 
 namespace AElf.Kernel.Tests
 {
@@ -11,11 +18,24 @@ namespace AElf.Kernel.Tests
     {
         private readonly ITransactionResultService _transactionResultService;
         private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ITxSignatureVerifier _signatureVerifier;
+        private readonly ITxRefBlockValidator _refBlockValidator;
+        private readonly ITxHub _txHub;
 
-        public TransactionResultTest(ITransactionResultService transactionResultService, ITransactionResultManager transactionResultManager)
+        public TransactionResultTest(ITxPoolConfig txPoolConfig, IChainService chainService,
+            ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
+            ITransactionResultManager transactionResultManager, ITxHub txHub)
         {
-            _transactionResultService = transactionResultService;
+            ChainConfig.Instance.ChainId = Hash.Generate().DumpHex();
+            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
             _transactionResultManager = transactionResultManager;
+            _signatureVerifier = signatureVerifier;
+            _refBlockValidator = refBlockValidator;
+            _txHub = txHub;
+//            _transactionResultService = new TransactionResultService(
+//                new TxPool(logger,
+//                    new NewTxHub(transactionManager, chainService, signatureVerifier, refBlockValidator)), transactionResultManager);
+            _transactionResultService = new TransactionResultService(_txHub, _transactionResultManager);
         }
 
         private TransactionResult CreateResult(Hash txId, Status status)

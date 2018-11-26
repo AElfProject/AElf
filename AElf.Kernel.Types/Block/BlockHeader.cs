@@ -1,14 +1,11 @@
-﻿using System;
-using System.Security.Cryptography;
-using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Types;
+﻿using AElf.Cryptography.ECDSA;
+using AElf.Common;
 using Google.Protobuf;
-using Org.BouncyCastle.Math;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class BlockHeader : IBlockHeader
+    public partial class BlockHeader: IBlockHeader
     {
         private Hash _blockHash;
         
@@ -21,37 +18,47 @@ namespace AElf.Kernel
         {
             if (_blockHash == null)
             {
-                _blockHash = SHA256.Create().ComputeHash(GetSignatureData());
+                _blockHash = Hash.FromRawBytes(GetSignatureData());
             }
 
             return _blockHash;
         }
 
-        public byte[] Serialize()
+        public byte[] GetHashBytes()
         {
-            return this.ToByteArray();
+            if (_blockHash == null)
+                _blockHash = Hash.FromRawBytes(GetSignatureData());
+
+            return _blockHash.DumpByteArray();
         }
         
         public ECSignature GetSignature()
         {
             return new ECSignature(R.ToByteArray(), S.ToByteArray());
         }
-        
-        public byte[] GetSignatureData()
+
+        private byte[] GetSignatureData()
         {
             var rawBlock = new BlockHeader
             {
-                ChainId = ChainId.Clone(),
+                ChainId = ChainId?.Clone(),
                 Index = Index,
-                PreviousBlockHash = PreviousBlockHash.Clone(),
-                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions.Clone(),
-                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone()
+                PreviousBlockHash = PreviousBlockHash?.Clone(),
+                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),
+                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState?.Clone(),
+                Bloom = Bloom,
+                SideChainBlockHeadersRoot = SideChainBlockHeadersRoot?.Clone(),
+                SideChainTransactionsRoot = MerkleTreeRootOfTransactions?.Clone()
             };
+            if (Index > GlobalConfig.GenesisBlockHeight)
+                rawBlock.Time = Time?.Clone();
 
-            if (Index != 0)
-                rawBlock.Time = Time.Clone();
-            
             return rawBlock.ToByteArray();
+        }
+
+        public Hash GetDisambiguationHash()
+        {
+            return HashHelpers.GetDisambiguationHash(Index, Address.FromRawBytes(P.ToByteArray()));
         }
     }
 }

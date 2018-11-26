@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
@@ -13,6 +15,8 @@ namespace AElf.Kernel
         /// <returns></returns>
         Task<Hash> GetWorldStateMerkleTreeRootAsync();
 
-        Task<Change> GetChangeAsync(Hash pathHash);
+        Hash GetPointerHash(Hash pathHash);
+
+        IEnumerable<DataItem> GetContext();
     }
 }

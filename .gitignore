@@ -253,6 +253,9 @@ paket-files/
 .idea/
 *.sln.iml
 
+# Visual Studio Code
+.vscode
+
 # CodeRush
 .cr/
 
@@ -268,3 +271,6 @@ slnx.sqlite
 
 # Generated Protobuf classes
 *.g.cs
+*plugin
+*Grpc.cs
+ChainInfo.json

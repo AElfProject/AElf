@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration.Config.Contract;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
@@ -12,6 +13,7 @@ using Google.Protobuf;
 using QuickGraph;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using AElf.Common;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -30,16 +32,14 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public async Task TestTryAddNewContract()
         {
-            var runner = new SmartContractRunner(new RunnerConfig()
-            {
-                SdkDir = _mock.SdkDir
-            });
+            RunnerConfig.Instance.SdkDir = _mock.SdkDir;
+            var runner = new SmartContractRunner();
             
             var reg = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(_mock.ContractCode),
-                ContractHash = new Hash(_mock.ContractCode)
+                ContractHash = Hash.FromRawBytes(_mock.ContractCode)
             };
 
             var resC = runner.ExtractMetadata(typeof(TestContractC));
@@ -70,7 +70,7 @@ namespace AElf.Runtime.CSharp.Tests
                 });
             
             var groundTruthTemplateC = new ContractMetadataTemplate(typeof(TestContractC).FullName, groundTruthResC,
-                new Dictionary<string, Hash>());
+                new Dictionary<string, Address>());
             
             Assert.Equal(groundTruthTemplateC, resC, new ContractMetadataTemplateEqualityComparer());
 
@@ -93,9 +93,9 @@ namespace AElf.Runtime.CSharp.Tests
                             {new Resource("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)})))
             });
             
-            var refB = new Dictionary<string, Hash>(new []
+            var refB = new Dictionary<string, Address>(new []
             {
-                new KeyValuePair<string, Hash>("ContractC", ByteArrayHelpers.FromHexString("0x4567")), 
+                new KeyValuePair<string, Address>("ContractC", Address.FromRawBytes(ByteArrayHelpers.FromHexString("0x456745674567456745674567456745674567"))), 
             });
             
             var groundTruthTemplateB = new ContractMetadataTemplate(typeof(TestContractB).FullName, groundTruthResB,
@@ -162,10 +162,10 @@ namespace AElf.Runtime.CSharp.Tests
                         new HashSet<Resource>())),
             });
             
-            var refA = new Dictionary<string, Hash>(new []
+            var refA = new Dictionary<string, Address>(new []
             {
-                new KeyValuePair<string, Hash>("ContractC", ByteArrayHelpers.FromHexString("0x4567")), 
-                new KeyValuePair<string, Hash>("_contractB", ByteArrayHelpers.FromHexString("0x1234")), 
+                new KeyValuePair<string, Address>("ContractC", Address.FromRawBytes(ByteArrayHelpers.FromHexString("0x456745674567456745674567456745674567"))), 
+                new KeyValuePair<string, Address>("_contractB", Address.FromRawBytes(ByteArrayHelpers.FromHexString("0x123412341234123412341234123412341234"))), 
             });
             
             var groundTruthTemplateA = new ContractMetadataTemplate(typeof(TestContractA).FullName, groundTruthResA,
@@ -255,9 +255,9 @@ namespace AElf.Runtime.CSharp.Tests
                    string.Join(", ", callGraph.Vertices?.OrderBy(a => a));
         }
 
-        private string ContractReferencesToString(Dictionary<string, Hash> references)
+        private string ContractReferencesToString(Dictionary<string, Address> references)
         {
-            return string.Join(", ", references.OrderBy(kv => kv.Key).Select(kv => $"[{kv.Key}, {kv.Value.ToHex()}]"));
+            return string.Join(", ", references.OrderBy(kv => kv.Key).Select(kv => $"[{kv.Key}, {kv.Value.DumpHex()}]"));
         }
 
         private string ExternalFunctionCallToString(Dictionary<string, List<string>> externalFuncCall)
@@ -320,7 +320,7 @@ namespace AElf.Runtime.CSharp.Tests
         [SmartContractFieldData("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)]
         private int resource3;
 
-        [SmartContractReference("ContractC", "0x4567")]
+        [SmartContractReference("ContractC", "0x456745674567456745674567456745674567")]
         public TestContractC ContractC;
 
         [SmartContractFunction("${this}.Func0", new[] {"${ContractC}.Func1"}, new[] {"${this}.resource2"})]
@@ -346,10 +346,10 @@ namespace AElf.Runtime.CSharp.Tests
         [SmartContractFieldData("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)]
         protected int resource2;
 
-        [SmartContractReference("_contractB", "0x1234")]
+        [SmartContractReference("_contractB", "0x123412341234123412341234123412341234")]
         private TestContractB _contractB;
 
-        [SmartContractReference("ContractC", "0x4567")]
+        [SmartContractReference("ContractC", "0x456745674567456745674567456745674567")]
         public TestContractC ContractC;
 
 
@@ -421,10 +421,10 @@ namespace AElf.Runtime.CSharp.Tests
         public int resource1;
 
         //duplicate contract reference name
-        [SmartContractReference("_contractB", "0x3211")]
+        [SmartContractReference("_contractB", "0x321132113211321132113211321132113211")]
         private TestContractB _contractB;
 
-        [SmartContractReference("_contractB", "0x3211")]
+        [SmartContractReference("_contractB", "0x321132113211321132113211321132113211")]
         public TestContractC ContractC;
 
         public void Func0()
@@ -506,7 +506,7 @@ namespace AElf.Runtime.CSharp.Tests
 
     internal class TestContractK
     {
-        [SmartContractReference("_contractB", "0x1234")]
+        [SmartContractReference("_contractB", "0x123412341234123412341234123412341234")]
         private TestContractB _contractB;
 
         //want to call foreign function that Not Exist

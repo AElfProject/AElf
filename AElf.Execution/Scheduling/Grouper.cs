@@ -8,7 +8,7 @@ using NLog;
 using Org.BouncyCastle.Security;
 using SharpRepository.Repository.Caching.Hash;
 using AElf.Kernel;
-using AElf.ChainController.Execution;
+using AElf.Common;
 
 namespace AElf.Execution.Scheduling
 {
@@ -27,13 +27,13 @@ namespace AElf.Execution.Scheduling
         }
 
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
-        public async Task<Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>> ProcessNaive(Hash chainId, List<ITransaction> transactions)
+        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessNaive(Hash chainId, List<Transaction> transactions)
         {
-            var txResourceHandle = new Dictionary<ITransaction, string>();
-            var failedTxs = new Dictionary<ITransaction, Exception>();
+            var txResourceHandle = new Dictionary<Transaction, string>();
+            var failedTxs = new Dictionary<Transaction, Exception>();
             if (transactions.Count == 0)
             {
-                return new Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>(new List<List<ITransaction>>(), failedTxs);
+                return new Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>(new List<List<Transaction>>(), failedTxs);
             }
 
             Dictionary<string, UnionFindNode> resourceUnionSet = new Dictionary<string, UnionFindNode>();
@@ -73,8 +73,8 @@ namespace AElf.Execution.Scheduling
                 }
             }
 
-            Dictionary<int, List<ITransaction>> grouped = new Dictionary<int, List<ITransaction>>();
-            List<List<ITransaction>> result = new List<List<ITransaction>>();
+            Dictionary<int, List<Transaction>> grouped = new Dictionary<int, List<Transaction>>();
+            List<List<Transaction>> result = new List<List<Transaction>>();
 
             foreach (var tx in transactions)
             {
@@ -83,7 +83,7 @@ namespace AElf.Execution.Scheduling
                     int nodeId = resourceUnionSet[firstResource].Find().NodeId;
                     if (!grouped.TryGetValue(nodeId, out var group))
                     {
-                        group = new List<ITransaction>();
+                        group = new List<Transaction>();
                         grouped.Add(nodeId, group);
                     }
                     group.Add(tx);
@@ -93,20 +93,20 @@ namespace AElf.Execution.Scheduling
                     if (!failedTxs.ContainsKey(tx))
                     {
                         //each "resource-free" transaction have its own group
-                        result.Add(new List<ITransaction>(){tx});
+                        result.Add(new List<Transaction>(){tx});
                     }
                 }
             }
             result.AddRange(grouped.Values);
 
             _logger?.Info(string.Format(
-                "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}], There are also {4} transactions failed retriving resource", chainId.ToHex(),
+                "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}], There are also {4} transactions failed retriving resource", chainId.DumpHex(),
                 transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count)), failedTxs.Count));
             
-            return new Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>(result, failedTxs);;
+            return new Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>(result, failedTxs);
         }
 
-        public async Task<Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId, List<ITransaction> transactions)
+        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId, List<Transaction> transactions)
         {
             if (strategy == GroupStrategy.NaiveGroup)
             {
@@ -116,7 +116,7 @@ namespace AElf.Execution.Scheduling
             {
                 if (transactions.Count == 0)
                 {
-                    return new Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>(new List<List<ITransaction>>(), new Dictionary<ITransaction, Exception>());
+                    return new Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>(new List<List<Transaction>>(), new Dictionary<Transaction, Exception>());
                 }
 
                 if (totalCores <= 0)
@@ -126,7 +126,7 @@ namespace AElf.Execution.Scheduling
                 
                 var groupResults = await ProcessNaive(chainId, transactions);
 
-                List<List<ITransaction>> mergedGroups;
+                List<List<Transaction>> mergedGroups;
 
                 if (strategy == GroupStrategy.Limited_MaxAddMins)
                 {
@@ -147,7 +147,7 @@ namespace AElf.Execution.Scheduling
                     groupResults.Item1.Count, mergedGroups.Count, string.Join(", ", mergedGroups.Select(a=>a.Count))));
 
 
-                return new Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>(mergedGroups, groupResults.Item2);
+                return new Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>(mergedGroups, groupResults.Item2);
             }
         }
 
@@ -157,7 +157,7 @@ namespace AElf.Execution.Scheduling
         /// <param name="totalCores"></param>
         /// <param name="unmergedGroups"></param>
         /// <returns></returns>
-        public List<List<ITransaction>> ProcessWithCoreCount_MinsAddUp(int totalCores, List<List<ITransaction>> unmergedGroups)
+        public List<List<Transaction>> ProcessWithCoreCount_MinsAddUp(int totalCores, List<List<Transaction>> unmergedGroups)
         {
             if (unmergedGroups.Count <= 1 || unmergedGroups.Count <= totalCores)
             {
@@ -206,7 +206,7 @@ namespace AElf.Execution.Scheduling
         /// <param name="unmergedGroups"></param>
         /// <returns></returns>
         /// <exception cref="InvalidParameterException"></exception>
-        public List<List<ITransaction>> ProcessWithCoreCount_MaxAddMins(int totalCores, List<List<ITransaction>> unmergedGroups)
+        public List<List<Transaction>> ProcessWithCoreCount_MaxAddMins(int totalCores, List<List<Transaction>> unmergedGroups)
         {
             
             
@@ -215,7 +215,7 @@ namespace AElf.Execution.Scheduling
             if (sortedUnmergedGroups.Count == 0)
             {
                 //this happens when all tx in the input list have failed.
-                return new List<List<ITransaction>>();
+                return new List<List<Transaction>>();
             }
 
             int transactionCount = sortedUnmergedGroups.SelectMany(a => a).Count();
@@ -224,7 +224,7 @@ namespace AElf.Execution.Scheduling
             //TODO: group's count can be a little bit more that core count, for now it's 0, this value can latter make adjustable to deal with special uses
             int resGroupCount = totalCores + 0;
             int mergeThreshold = transactionCount / (resGroupCount);
-            var res = new List<List<ITransaction>>();
+            var res = new List<List<Transaction>>();
 
             int startIndex = 0, endIndex = sortedUnmergedGroups.Count - 1, totalCount = 0;
 
@@ -252,7 +252,7 @@ namespace AElf.Execution.Scheduling
                 var temp = res.OrderBy(a => a.Count).ToList();
                 res.Clear();
                 int index;
-                var merge = new List<ITransaction>();
+                var merge = new List<Transaction>();
                 for (index = 0; index <= temp.Count - resGroupCount; index++)
                 {
                     merge.AddRange(temp[index]);

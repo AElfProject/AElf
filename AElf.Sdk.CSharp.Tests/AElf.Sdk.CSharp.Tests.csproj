@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
     <IsPackable>true</IsPackable>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj">
       <Project>{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}</Project>
       <Name>AElf.Kernel.Tests</Name>

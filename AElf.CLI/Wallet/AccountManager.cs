@@ -4,13 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using AElf.CLI.Command;
+using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet.Exceptions;
-using AElf.Common.ByteArrayHelpers;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using ProtoBuf;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 
@@ -111,21 +111,38 @@ namespace AElf.CLI.Wallet
                 
             var password = _screenManager.AskInvisible("password: ");
             var tryOpen = _keyStore.OpenAsync(address, password, timeout);
-            
+
             if (tryOpen == AElfKeyStore.Errors.WrongPassword)
+            {
                 _screenManager.PrintError("incorrect password!");
-            else if (tryOpen == AElfKeyStore.Errors.AccountAlreadyUnlocked)
+                return;
+            }
+            if (tryOpen == AElfKeyStore.Errors.AccountAlreadyUnlocked)
+            {
                 _screenManager.PrintError("account already unlocked!");
-            else if (tryOpen == AElfKeyStore.Errors.None)
+                return;
+            }
+
+            if (tryOpen == AElfKeyStore.Errors.None)
+            {
                 _screenManager.PrintLine("account successfully unlocked!");
+                return;
+            }
+
+            var kp = _keyStore.GetAccountKeyPair(address);
+            _screenManager.PrintLine($"Pub : {kp.GetEncodedPublicKey().ToHex()}");
         }
 
         private void CreateNewAccount()
         {
             var password = _screenManager.AskInvisible("password: ");
             var keypair = _keyStore.Create(password);
-            if(keypair!=null)
-                _screenManager.PrintLine("Account address: " + keypair.GetAddressHex());
+            if (keypair != null)
+            {
+                _screenManager.PrintLine("Account pub key: " + keypair.GetEncodedPublicKey().ToHex(true));
+                _screenManager.PrintLine("Account address: 0x" + keypair.GetAddressHex());
+            }
+                
         }
 
         private void ListAccounts()
@@ -174,7 +191,7 @@ namespace AElf.CLI.Wallet
 
         public Transaction SignTransaction(Transaction tx)
         {
-            string addr = tx.From.Value.ToHex();
+            string addr = tx.From.Value.ToHex(true);
             
             ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
 
@@ -192,10 +209,7 @@ namespace AElf.CLI.Wallet
             ECSignature signature = signer.Sign(kp, toSig);
                 
             // Update the signature
-            tx.R = signature.R;
-            tx.S = signature.S;
-                
-            tx.P = kp.PublicKey.Q.GetEncoded();
+            tx.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
 
             return tx;
         }

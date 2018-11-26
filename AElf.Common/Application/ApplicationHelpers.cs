@@ -5,20 +5,33 @@ namespace AElf.Common.Application
 {
     public static class ApplicationHelpers
     {
-        public const string ApplicationFolderName = "aelf";
-        
-        public static string GetDefaultDataDir()
+        private const string ApplicationFolderName = "aelf";
+
+        private static string _configPath;
+
+        static ApplicationHelpers()
         {
-            try
+            _configPath= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ApplicationFolderName);
+        }
+
+        public static string GetDefaultConfigPath()
+        {
+            return _configPath;
+        }
+
+        public static void SetConfigPath(string configPath)
+        {
+            if (string.IsNullOrWhiteSpace(configPath))
             {
-                return Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
-                    ApplicationFolderName);
+                return;
             }
-            catch (Exception e)
+
+            if (!Directory.Exists(configPath))
             {
-                return null;
+                Directory.CreateDirectory(configPath);
             }
+
+            _configPath = configPath;
         }
     }
 }

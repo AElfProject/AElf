@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
@@ -18,7 +20,7 @@ namespace AElf.Sdk.CSharp
         private static Dictionary<string, IDataProvider> _dataProviders;
         private static ISmartContractContext _smartContractContext;
         private static ITransactionContext _transactionContext;
-        private static ITransactionContext _lastInlineCallContext;
+        private static ITransactionContext _lastCallContext;
 
         public static ProtobufSerializer Serializer { get; } = new ProtobufSerializer();
 
@@ -27,8 +29,7 @@ namespace AElf.Sdk.CSharp
         public static void SetSmartContractContext(ISmartContractContext contractContext)
         {
             _smartContractContext = contractContext;
-            _dataProviders = new Dictionary<string, IDataProvider>();
-            _dataProviders.Add("", _smartContractContext.DataProvider);
+            _dataProviders = new Dictionary<string, IDataProvider> {{"", _smartContractContext.DataProvider}};
         }
 
         public static void SetTransactionContext(ITransactionContext transactionContext)
@@ -42,7 +43,7 @@ namespace AElf.Sdk.CSharp
 
         #region Privileged API
 
-        public static void DeployContract(Hash address, SmartContractRegistration registration)
+        public static void DeployContract(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
             var task = _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address,
@@ -50,10 +51,17 @@ namespace AElf.Sdk.CSharp
             task.Wait();
         }
 
-        public static async Task DeployContractAsync(Hash address, SmartContractRegistration registration)
+        public static async Task DeployContractAsync(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
             await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration,
+                false);
+        }
+        
+        public static async Task UpdateContractAsync(Address address, SmartContractRegistration registration)
+        {
+            Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
+            await _smartContractContext.SmartContractService.UpdateContractAsync(GetChainId(), address, registration,
                 false);
         }
 
@@ -64,9 +72,14 @@ namespace AElf.Sdk.CSharp
             return _smartContractContext.ChainId.ToReadOnly();
         }
 
-        public static Hash GetContractZeroAddress()
+        public static Address GetContractZeroAddress()
         {
-            return new Hash(_smartContractContext.ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            return ContractHelpers.GetGenesisBasicContractAddress(_smartContractContext.ChainId);
+        }
+
+        public static Address GetSideChainContractAddress()
+        {
+            return ContractHelpers.GetSideChainContractAddress(_smartContractContext.ChainId);
         }
 
         public static Hash GetPreviousBlockHash()
@@ -74,34 +87,55 @@ namespace AElf.Sdk.CSharp
             return _transactionContext.PreviousBlockHash.ToReadOnly();
         }
 
-        public static Hash GetContractAddress()
+        public static ulong GetCurerntHeight()
+        {
+            return _transactionContext.BlockHeight;
+        }
+
+        public static Address GetContractAddress()
         {
             return _smartContractContext.ContractAddress.ToReadOnly();
         }
 
-        public static Hash GetContractOwner()
+        public static Address GetContractOwner()
         {
             if (Call(GetContractZeroAddress(), "GetContractOwner",
                 ParamsPacker.Pack(_smartContractContext.ContractAddress)))
             {
-                return GetCallResult().DeserializeToPbMessage<Hash>();
+                return GetCallResult().DeserializeToPbMessage<Address>();
             }
 
-            throw new InternalError("Failed to get owner of contract.\n" + _lastInlineCallContext.Trace.StdErr);
+            throw new InternalError("Failed to get owner of contract.\n" + _lastCallContext.Trace.StdErr);
+        }
+
+        public static bool VerifyTransaction(Hash txId, MerklePath merklePath, ulong parentChainHeight)
+        {
+            var scAddress = GetSideChainContractAddress();
+
+            if (scAddress == null)
+            {
+                throw new InternalError("No side chain contract was found.\n" + _lastCallContext.Trace.StdErr);
+            }
+
+            if (Call(scAddress, "VerifyTransaction", ParamsPacker.Pack(txId, merklePath, parentChainHeight)))
+            {
+                return GetCallResult().DeserializeToPbMessage<BoolValue>().Value;
+            }
+
+            return false;
         }
 
         public static IDataProvider GetDataProvider(string name)
         {
-            if (!_dataProviders.TryGetValue(name, out var dp))
-            {
-                dp = _smartContractContext.DataProvider.GetDataProvider(name);
-                _dataProviders.Add(name, dp);
-            }
+            if (_dataProviders.TryGetValue(name, out var dp))
+                return dp;
+            dp = _smartContractContext.DataProvider.GetDataProvider(name);
+            _dataProviders.Add(name, dp);
 
             return dp;
         }
 
-        public static ITransaction GetTransaction()
+        public static Transaction GetTransaction()
         {
             return _transactionContext.Transaction.ToReadOnly();
         }
@@ -110,52 +144,57 @@ namespace AElf.Sdk.CSharp
 
         #region Transaction API
 
-        public static bool Call(Hash contractAddress, string methodName, byte[] args)
+        public static void SendInline(Address contractAddress, string methodName, params object[] args)
         {
-            _lastInlineCallContext = new TransactionContext()
+            _transactionContext.Trace.InlineTransactions.Add(new Transaction()
+            {
+                From = _transactionContext.Transaction.From,
+                To = contractAddress,
+                MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+            });
+        }
+
+        public static bool Call(Address contractAddress, string methodName, byte[] args)
+        {
+            _lastCallContext = new TransactionContext()
             {
                 Transaction = new Transaction()
                 {
                     From = _smartContractContext.ContractAddress,
                     To = contractAddress,
-                    // TODO: Get increment id from AccountDataContext
-                    IncrementId = ulong.MinValue,
                     MethodName = methodName,
                     Params = ByteString.CopyFrom(args)
                 }
             };
 
             var svc = _smartContractContext.SmartContractService;
-            var ctxt = _lastInlineCallContext;
+            var ctxt = _lastCallContext;
             var chainId = _smartContractContext.ChainId;
             Task.Factory.StartNew(async () =>
             {
                 var executive = await svc.GetExecutiveAsync(contractAddress, chainId);
-                // Inline calls are not auto-committed.
                 try
                 {
-                    await executive.SetTransactionContext(ctxt).Apply(false);
+                    // view only, write actions need to be sent via SendInline
+                    await executive.SetTransactionContext(ctxt).Apply();
                 }
                 finally
                 {
-                    await svc.PutExecutiveAsync(contractAddress, executive);    
+                    await svc.PutExecutiveAsync(contractAddress, executive);
                 }
             }).Unwrap().Wait();
 
-            _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);
+            // TODO: Maybe put readonly call trace into inlinetraces to record data access
 
-            // TODO: Put inline transactions into Transaction Result of calling transaction
-
-            // True: success
-            // False: error
-            return _lastInlineCallContext.Trace.IsSuccessful();
+            return _lastCallContext.Trace.IsSuccessful();
         }
 
         public static byte[] GetCallResult()
         {
-            if (_lastInlineCallContext != null)
+            if (_lastCallContext != null)
             {
-                return _lastInlineCallContext.Trace.RetVal.Data.ToByteArray();
+                return _lastCallContext.Trace.RetVal.Data.ToByteArray();
             }
 
             return new byte[] { };

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.SmartContract;
+using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
@@ -10,13 +12,13 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
     /// </summary>
     public class ParallelTestDataUtil
     {
-        public List<Hash> AccountList { get; } = new List<Hash>();
+        public List<Address> AccountList { get; } = new List<Address>();
 
         public ParallelTestDataUtil()
         {
             for (int i = 0; i < 26; i++)
             {
-                AccountList.Add(Hash.Generate());
+                AccountList.Add(Address.FromRawBytes(Hash.Generate().ToByteArray()));
                 //0    1    2    3    4    5    6    7    8    9    10
                 //A    B    C    D    E    F    G    H    I    J    K
                 
@@ -28,7 +30,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             }
         }
         
-        public List<ITransaction> GetFullTxList()
+        public List<Transaction> GetFullTxList()
         {
             var txList1 = GetFirstGroupTxList();
             var txList2 = GetSecondGroupTxList();
@@ -42,7 +44,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         
-        public Dictionary<Hash, List<ITransaction>> GetFirstGroupTxDict(out List<int[]> expectedJobSizeOfEachJobInBatch)
+        public Dictionary<Address, List<Transaction>> GetFirstGroupTxDict(out List<int[]> expectedJobSizeOfEachJobInBatch)
         {
             var txList = GetFirstGroupTxList();
             var txDict = ConvertTxListIntoTxDict(txList);
@@ -56,9 +58,9 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return txDict;
         }
         
-        public List<ITransaction> GetFirstGroupTxList()
+        public List<Transaction> GetFirstGroupTxList()
         {
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
             //Build txs that belong to same group
             AddTxToList(txList, 0, 1);        //A -> B
             AddTxToList(txList, 0, 5);        //A -> F
@@ -86,9 +88,9 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
         
         
-        public List<ITransaction> GetSecondGroupTxList()
+        public List<Transaction> GetSecondGroupTxList()
         {
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
             //Build txs that belong to same group
             AddTxToList(txList, 17, 18);        //R -> S
             AddTxToList(txList, 19, 18);        //T -> S
@@ -98,9 +100,9 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
 
-        public List<ITransaction> GetFirstBatchTxList()
+        public List<Transaction> GetFirstBatchTxList()
         {
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
             //build txs that is the first batch of test case in ParallelGroupTest.cs
             AddTxToList(txList, 0, 1);        //0: A -> B    //group1
             AddTxToList(txList, 1, 5);        //1: B -> F    //group1
@@ -118,9 +120,9 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return txList;
         }
 
-        public List<ITransaction> GetJobTxListInFirstBatch(int jobIndex)
+        public List<Transaction> GetJobTxListInFirstBatch(int jobIndex)
         {
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
             switch (jobIndex)
             {
                     case 0: 
@@ -153,7 +155,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
 
-        private void AddTxToList(ICollection<ITransaction> txList, int from, int to)
+        private void AddTxToList(ICollection<Transaction> txList, int from, int to)
         {
             var tx = NewTransaction(from, to);
             txList.Add(tx);
@@ -167,14 +169,14 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return tx;
         }
         
-        private Dictionary<Hash, List<ITransaction>> ConvertTxListIntoTxDict(List<ITransaction> txList)
+        private Dictionary<Address, List<Transaction>> ConvertTxListIntoTxDict(List<Transaction> txList)
         {
-            var txDict = new Dictionary<Hash, List<ITransaction>>();
+            var txDict = new Dictionary<Address, List<Transaction>>();
             foreach (var tx in txList)
             {
                 if (!txDict.TryGetValue(tx.From, out var accountTxList))
                 {
-                    accountTxList = new List<ITransaction>();
+                    accountTxList = new List<Transaction>();
                     txDict.Add(tx.From, accountTxList);
                 }
                 accountTxList.Add(tx);
@@ -183,7 +185,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return txDict;
         }
         
-        public string StringRepresentation(List<ITransaction> l)
+        public string StringRepresentation(List<Transaction> l)
         {
             return String.Join(
                 " ",

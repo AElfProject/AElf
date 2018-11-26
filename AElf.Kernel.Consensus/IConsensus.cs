@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.Kernel.Types;
-using Google.Protobuf.WellKnownTypes;
+using AElf.Common.Enums;
+using AElf.Common;
 
 namespace AElf.Kernel.Consensus
 {
@@ -27,12 +26,12 @@ namespace AElf.Kernel.Consensus
         /// How soon to produce a block.
         /// (Milisenconds)
         /// </summary>
-        ulong Interval { get; }
+        int Interval { get; }
         
         /// <summary>
         /// Print logs or not.
         /// </summary>
-        bool PrintLogs { get; }
+        int LogLevel { get; set; }
 
         /// <summary>
         /// To adjust the difficulty of PoW mining.
@@ -67,6 +66,6 @@ namespace AElf.Kernel.Consensus
         /// or not.
         /// </summary>
         /// <returns></returns>
-        Task<bool> Validation(List<byte[]> args);
+        Task<int> Validation(List<byte[]> args);
     }
 }

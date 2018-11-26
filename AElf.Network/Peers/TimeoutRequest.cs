@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Timers;
+using AElf.Common;
 using AElf.Network.Connection;
 
 namespace AElf.Network.Peers
@@ -10,13 +12,6 @@ namespace AElf.Network.Peers
         public const int DefaultMaxRetry = 2;
         
         public event EventHandler RequestTimedOut;
-        
-        private volatile bool _requestCanceled;
-
-        public bool IsCanceled 
-        {
-            get { return _requestCanceled; }
-        }
 
         public bool HasTimedOut { get; private set; } = true;
 
@@ -24,11 +19,26 @@ namespace AElf.Network.Peers
         
         public IPeer Peer { get; private set; }
         public Message RequestMessage { get; }
+
+        public byte[] Id
+        {
+            get { return RequestMessage?.Id; }
+        }
+
+        public bool IsBlockRequest
+        {
+            get { return TransactionHashes == null; }
+        }
         
-        public byte[] ItemHash { get; private set; }
+        public bool IsTxRequest
+        {
+            get { return TransactionHashes != null; }
+        }
+        
+        public List<byte[]> TransactionHashes { get; private set; }
         public int BlockIndex { get; private set; }
         
-        public List<IPeer> TriedPeers = new List<IPeer>();
+        public readonly List<IPeer> TriedPeers = new List<IPeer>();
 
         public int MaxRetryCount { get; set; } = DefaultMaxRetry;
         public int RetryCount { get; private set; } = 0;
@@ -37,6 +47,8 @@ namespace AElf.Network.Peers
         {
             get { return RetryCount >= MaxRetryCount; }
         }
+        
+        public double Timeout { get; }
 
         private TimeoutRequest(Message msg, double timeout)
         {
@@ -46,12 +58,14 @@ namespace AElf.Network.Peers
             _timeoutTimer.Interval = timeout;
             _timeoutTimer.Elapsed += TimerTimeoutElapsed;
             _timeoutTimer.AutoReset = false;
-        }
 
-        public TimeoutRequest(byte[] itemHash, Message msg, double timeout)
+            Timeout = timeout;
+        }
+        
+        public TimeoutRequest(List<byte[]> transactionHashes, Message msg, double timeout)
             : this(msg, timeout)
         {
-            ItemHash = itemHash;
+            TransactionHashes = transactionHashes;
         }
         
         public TimeoutRequest(int index, Message msg, double timeout)
@@ -86,9 +100,6 @@ namespace AElf.Network.Peers
 
         private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
         {
-            if (_requestCanceled) 
-                return;
-
             // set this to true so the request can be used with another 
             // peer if needed.
             HasTimedOut = true;
@@ -105,5 +116,14 @@ namespace AElf.Network.Peers
         {
             _timeoutTimer.Stop();
         }
+
+        #region Transaction request
+
+        public byte[] ContainsTransaction(byte[] txHash)
+        {
+            return TransactionHashes.FirstOrDefault(t => t.BytesEqual(txHash));
+        }
+
+        #endregion
     }
 }

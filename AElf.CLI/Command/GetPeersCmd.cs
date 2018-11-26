@@ -24,6 +24,11 @@ namespace AElf.CLI.Command
         {
             throw new System.NotImplementedException();
         }
+        
+        public override string GetUrl()
+        {
+            return "/net";
+        }
 
         public override JObject BuildRequest(CmdParseResult parsedCmd)
         {
@@ -47,20 +52,22 @@ namespace AElf.CLI.Command
         public override string GetPrintString(JObject resp)
         {
             StringBuilder strBuilder = new StringBuilder();
-            strBuilder.AppendLine("-- List of connected peers on the node");
             
             try
             {
-                var peersList = resp["data"];
+                int authCount = resp["auth"].ToObject<int>();
+                strBuilder.AppendLine($"Nodes connected ({authCount} authentifying) :");
+                
+                JArray peersList = JArray.Parse(resp["peers"].ToString());
 
                 foreach (var p in peersList.Children())
                 {
-                    strBuilder.AppendLine(p["IpAddress"] + ":" + p["Port"]);
+                    strBuilder.AppendLine(p["address"]["IpAddress"] + ":" + p["address"]["Port"] + " (is bp: " + p["isBp"] + ")");
                 }
             }
             catch (Exception e)
             {
-                ;
+                Console.WriteLine("Exception while GetPrintString <get_peers>: " + e.Message);
             }
             
             return strBuilder.ToString();

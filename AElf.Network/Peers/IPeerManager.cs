@@ -1,27 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Network.Data;
+using Newtonsoft.Json.Linq;
 
 namespace AElf.Network.Peers
 {
-    public interface IPeerManager
+    public interface IPeerManager : IDisposable
     {
-        event EventHandler MessageReceived;
-        event EventHandler PeerListEmpty;
-        
-        event EventHandler PeerAdded;
-        event EventHandler PeerRemoved;
+        event EventHandler PeerEvent;
         
         void Start();
-        IPeer CreatePeerFromConnection(TcpClient client);
+        Task Stop();
         
-        bool NoPeers { get; }
-
-        List<IPeer> GetPeers();
-        List<NodeData> GetPeers(ushort? numPeers, bool includeBootnodes = true);
-
-        Task<int> BroadcastMessage(MessageType messageType, byte[] payload);
+        // RPC methods
+        Task<JObject> GetPeers();
+        void AddPeer(NodeData address);
+        void RemovePeer(NodeData address);
     }
 }

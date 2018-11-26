@@ -7,6 +7,7 @@ namespace AElf.Kernel.Managers
     {
         Task<IBlock> AddBlockAsync(IBlock block);
         Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash);
+        Task<BlockBody> GetBlockBodyAsync(Hash bodyHash);
         Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header);
         Task<Block> GetBlockAsync(Hash blockHash);
         Task<Block> GetNextBlockOf(Hash chianId, Hash blockHash);
