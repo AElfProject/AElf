@@ -16,7 +16,7 @@ namespace AElf.Contracts.Authorization
 
     public static class FieldNames
     {
-        public static readonly string MultiSig = "__MultiSig__";
+        public static readonly string MultiSig = GlobalConfig.AElfMultiSig;
         public static readonly string Proposal = "__Proposal__";
         public static readonly string Pending = "__Pending__";
         public static readonly string Approved = "__Approved__";

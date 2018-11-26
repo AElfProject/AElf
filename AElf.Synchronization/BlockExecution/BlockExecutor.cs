@@ -137,6 +137,7 @@ namespace AElf.Synchronization.BlockExecution
                 readyTxs = tuple.Item2;
 
                 var trs = await _txHub.GetReceiptsForAsync(readyTxs);
+
                 foreach (var tr in trs)
                 {
                     if (!tr.IsExecutable)
@@ -232,6 +233,7 @@ namespace AElf.Synchronization.BlockExecution
                 }
                 else
                 {
+                    _logger?.Trace($"Executing failed, \n Error:{trace.StdErr}");
                     res.Status = Status.Failed;
                     res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     res.StateHash = trace.GetSummarizedStateHash();

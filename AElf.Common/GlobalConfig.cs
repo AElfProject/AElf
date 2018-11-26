@@ -18,6 +18,7 @@ namespace AElf.Common
         public static readonly UInt64 ConsensusContract = 1;
         public static readonly UInt64 TokenContract = 2;
         public static readonly UInt64 SideChainContract = 3;
+        public static readonly UInt64 AuthorizationContract = 4;
         
         public static int InvertibleChainHeight = 4;
 
@@ -49,6 +50,11 @@ namespace AElf.Common
         public static readonly int AElfInitCrossChainRequestInterval = AElfDPoSMiningInterval / 1000;
         public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
 
+        #endregion
+
+        #region Authorization
+
+        public const string AElfMultiSig = "__MultiSig__";
         #endregion
 
         #region PoTC
