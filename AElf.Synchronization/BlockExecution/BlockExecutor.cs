@@ -146,12 +146,6 @@ namespace AElf.Synchronization.BlockExecution
                 txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
-                _logger?.Trace("Transaction Results:");
-                foreach (var re in txnRes)
-                {
-                    _logger?.Trace(re.StateHash.DumpHex);
-                }
-
                 var blockChain = _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
@@ -224,7 +218,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 var res = new TransactionResult
                 {
-                    TransactionId = trace.TransactionId,
+                    TransactionId = trace.TransactionId
                 };
                 if (string.IsNullOrEmpty(trace.StdErr))
                 {
@@ -238,6 +232,9 @@ namespace AElf.Synchronization.BlockExecution
                     res.Status = Status.Failed;
                     res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     res.StateHash = trace.GetSummarizedStateHash();
+                    _logger?.Error($"Transaction execute failed. TransactionId: {res.TransactionId.DumpHex()}, " +
+                                   $"StateHash: {res.StateHash} Transaction deatils: {readyTxs.Find(x => x.GetHash() == trace.TransactionId)}" +
+                                   $"\n {trace.StdErr}");
                 }
 
                 results.Add(res);
@@ -389,6 +386,14 @@ namespace AElf.Synchronization.BlockExecution
             {
                 _logger?.Trace($"{root.DumpHex()} != {block.Header.MerkleTreeRootOfWorldState.DumpHex()}");
                 _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
+                _logger?.Trace("Transaction Results:");
+                foreach (var r in results)
+                {
+                    _logger?.Trace($"TransactionId: {r.TransactionId.DumpHex()}, " +
+                                   $"StateHash: {r.StateHash.DumpHex()}，" +
+                                   $"Status: {r.Status}, " +
+                                   $"{r.RetVal}");
+                }
                 res = BlockExecutionResult.IncorrectStateMerkleTree;
             }
 
