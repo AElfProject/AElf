@@ -21,13 +21,11 @@ namespace AElf.Kernel
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.PoTC)
             {
                 GlobalConfig.BlockProducerNumber = 1;
-                GlobalConfig.ExpectedTransactionCount = ConsensusConfig.Instance.ExpectedTransactionCount;
             }
 
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.SingleNode)
             {
                 GlobalConfig.BlockProducerNumber = 1;
-                GlobalConfig.SingleNodeTestMiningInterval = ConsensusConfig.Instance.SingleNodeTestMiningInterval;
             }
             
             builder.RegisterModule(new KernelAutofacModule());
