@@ -90,7 +90,7 @@ namespace AElf.Contracts.SideChain.Tests
             {
                 Root = parentChainBlockRootInfo
             };
-            parentChainBlockInfo.IndexedBlockInfo.Add(0, new MerklePath
+            parentChainBlockInfo.IndexedBlockInfo.Add(pHeight, new MerklePath
             {
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
@@ -98,13 +98,13 @@ namespace AElf.Contracts.SideChain.Tests
             
             ChainConfig.Instance.ChainId = chainId.DumpHex();
             var crossChainInfo = new CrossChainInfo(Mock.StateStore);
-            var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(0);
+            var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(pHeight);
             Assert.NotNull(merklepath);
-            Assert.Equal(parentChainBlockInfo.IndexedBlockInfo[0], merklepath);
+            Assert.Equal(parentChainBlockInfo.IndexedBlockInfo[pHeight], merklepath);
 
             var parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);
-            var boundHeight = crossChainInfo.GetBoundParentChainHeight(0);
+            var boundHeight = crossChainInfo.GetBoundParentChainHeight(pHeight);
             Assert.Equal(parentChainBlockRootInfo.Height, boundHeight);
 
             var boundBlockInfo = crossChainInfo.GetBoundParentChainBlockInfo(parentChainBlockRootInfo.Height);
@@ -130,7 +130,7 @@ namespace AElf.Contracts.SideChain.Tests
             {
                 Root = pcbr1
             };
-            pcb1.IndexedBlockInfo.Add(0, new MerklePath
+            pcb1.IndexedBlockInfo.Add(pHeight, new MerklePath
             {
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
@@ -150,7 +150,7 @@ namespace AElf.Contracts.SideChain.Tests
                     R = ByteString.Empty,
                 },
                 Params = ByteString.Empty,
-                RefBlockNumber = 0,
+                RefBlockNumber = 1,
                 RefBlockPrefix = ByteString.Empty
             };
             var hashCount = 10;
