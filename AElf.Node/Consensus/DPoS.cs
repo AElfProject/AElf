@@ -268,10 +268,7 @@ namespace AElf.Kernel.Node
 
                 _logger?.Trace("Leaving generating tx.");
 
-                if (tx.MethodName != ConsensusBehavior.PublishInValue.ToString())
-                {
-                    MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
-                }
+                MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
 
                 return tx;
             }
