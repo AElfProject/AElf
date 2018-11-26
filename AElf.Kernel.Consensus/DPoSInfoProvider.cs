@@ -108,7 +108,7 @@ namespace AElf.Kernel.Consensus
             }
             
             var round = await GetCurrentRoundInfo();
-            return round.BlockProducers[addressToHex];
+            return round.BlockProducers[addressToHex.RemoveHexPrefix()];
         }
 
         public async Task<Timestamp> GetTimeSlot(string addressToHex = null)
@@ -124,13 +124,15 @@ namespace AElf.Kernel.Consensus
 
         public async Task<double> GetDistanceToTimeSlot(string addressToHex = null)
         {
+            var now = DateTime.UtcNow.ToTimestamp();
+
             if (addressToHex == null)
             {
                 addressToHex = NodeConfig.Instance.NodeAccount;
             }
 
             var timeSlot = await GetTimeSlot(addressToHex);
-            var distance = timeSlot - DateTime.UtcNow.ToTimestamp();
+            var distance = timeSlot - now;
             return distance.ToTimeSpan().TotalMilliseconds;
         }
     }

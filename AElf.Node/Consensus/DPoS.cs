@@ -594,7 +594,6 @@ namespace AElf.Kernel.Node
 
         public async Task Update()
         {
-            _logger?.Trace("Distance " + Provider.GetDistanceToTimeSlot());
             Helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
             if (ConsensusMemory == Helper.CurrentRoundNumber.Value)
