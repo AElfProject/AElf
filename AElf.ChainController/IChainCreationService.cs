@@ -12,6 +12,5 @@ namespace AElf.ChainController
     public interface IChainCreationService
     {
         Task<IChain> CreateNewChainAsync(Hash chainId, List<SmartContractRegistration> smartContractZeros);
-        Address GenesisContractHash(Hash chainId, SmartContractType contractType);
     }
 }

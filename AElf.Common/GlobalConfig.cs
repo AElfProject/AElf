@@ -1,3 +1,5 @@
+using System;
+
 namespace AElf.Common
 {
     // ReSharper disable InconsistentNaming
@@ -12,7 +14,11 @@ namespace AElf.Common
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
-        public static readonly string GenesisBasicContract = "BasicContractZero";
+        public static readonly UInt64 GenesisBasicContract = 0;
+        public static readonly UInt64 ConsensusContract = 1;
+        public static readonly UInt64 TokenContract = 2;
+        public static readonly UInt64 SideChainContract = 3;
+        
         public static int InvertibleChainHeight = 4;
 
         public static int BlockProducerNumber = 17;
@@ -57,7 +63,7 @@ namespace AElf.Common
 
         #endregion
 
-        public static ulong BasicContractZeroSerialNumber = 0;
+        public static ulong BasicContractZeroSerialNumber = 100;
 
         #region data key prefixes
 

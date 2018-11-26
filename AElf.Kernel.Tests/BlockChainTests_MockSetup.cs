@@ -91,7 +91,7 @@ namespace AElf.Kernel.Tests
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero,
-                Type = (int) SmartContractType.BasicContractZero
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
             await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
         }

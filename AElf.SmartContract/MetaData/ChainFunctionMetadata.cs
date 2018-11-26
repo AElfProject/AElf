@@ -74,6 +74,39 @@ namespace AElf.SmartContract
                 throw;
             }
         }
+        
+        public async Task UpdateContract(Hash chainId, Address contractAddr, ContractMetadataTemplate oldContractMetadataTemplate, ContractMetadataTemplate newContractMetadataTemplate)
+        {
+            // remove old metadata
+            Dictionary<string, FunctionMetadata> tempMap = new Dictionary<string, FunctionMetadata>();
+            try
+            {
+                var globalCallGraph = await GetCallingGraphForChain(chainId); 
+                var newCallGraph = TryRemoveAndGetCallingGraph(chainId, contractAddr, globalCallGraph, oldContractMetadataTemplate);
+                await _dataStore.InsertAsync(chainId.OfType(HashType.CallingGraph),SerializeCallingGraph(newCallGraph));
+                foreach (var localFuncName in oldContractMetadataTemplate.ProcessFunctionOrder)
+                {
+                    var funcNameWithAddr = Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This,contractAddr.DumpHex());
+                    var funcMetadata = await GetMetadataForNewFunction(chainId, funcNameWithAddr, oldContractMetadataTemplate.MethodMetadataTemplates[localFuncName] ,contractAddr, oldContractMetadataTemplate.ContractReferences, tempMap);
+
+                    tempMap.Add(funcNameWithAddr, funcMetadata);
+                }
+
+                foreach (var functionMetadata in tempMap)
+                {
+                    await _dataStore.RemoveAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, functionMetadata.Key));
+                    FunctionMetadataMap.Remove(functionMetadata.Key);
+                }
+
+                // deploy newm etadata
+                await DeployNewContract(chainId, contractAddr, newContractMetadataTemplate);
+            }
+            catch (FunctionMetadataException e)
+            {
+                _logger?.Error(e, "Exception while deploy new contract.");
+                throw;
+            }
+        }
 
         /// <summary>
         /// 
@@ -280,6 +313,47 @@ namespace AElf.SmartContract
             //add foreign edges
             callingGraph.AddEdgeRange(outEdgesToAdd);
 
+            return callingGraph;
+        }
+        
+        public CallGraph TryRemoveAndGetCallingGraph(Hash chainId, Address contractAddress, CallGraph callingGraph, ContractMetadataTemplate contractMetadataTemplate)
+        {
+            foreach (var kvPair in contractMetadataTemplate.MethodMetadataTemplates)
+            {
+                var sourceFunc = Replacement.ReplaceValueIntoReplacement(kvPair.Key, Replacement.This, contractAddress.DumpHex());
+                
+                foreach (var calledFunc in kvPair.Value.CallingSet)
+                {
+                    if (!calledFunc.Contains(Replacement.This))
+                    {
+                        Replacement.TryGetReplacementWithIndex(calledFunc, 0, out var memberReplacement);
+                        var referenceAddress = contractMetadataTemplate.ContractReferences[Replacement.Value(memberReplacement)]; //FunctionMetadataTemplate itself ensure this value exist
+                        var globalCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, memberReplacement, referenceAddress.DumpHex());
+                        if (!callingGraph.ContainsVertex(globalCalledFunc))
+                        {
+                            throw new FunctionMetadataException("ChainId [" + chainId.DumpHex() + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractMetadataTemplate.FullName + " into calling graph, consider the target function does not exist in the metadata");
+                        }
+                        callingGraph.RemoveEdge(new Edge<string>(sourceFunc, globalCalledFunc));
+                    }
+                }
+            }
+            
+            foreach (var localVertex in contractMetadataTemplate.LocalCallingGraph.Vertices)
+            {
+                var globalVertex = Replacement.ReplaceValueIntoReplacement(localVertex, Replacement.This, contractAddress.DumpHex());
+                callingGraph.AddVertex(globalVertex);
+                foreach (var outEdge in contractMetadataTemplate.LocalCallingGraph.OutEdges(localVertex))
+                {
+                    var toVertex = Replacement.ReplaceValueIntoReplacement(outEdge.Target, Replacement.This, contractAddress.DumpHex());
+
+                    callingGraph.RemoveEdge(new Edge<string>(globalVertex, toVertex));
+                    callingGraph.RemoveVertex(globalVertex);
+                    callingGraph.RemoveVertex(toVertex);
+                }
+
+                callingGraph.RemoveVertex(globalVertex);
+            }
+            
             return callingGraph;
         }
 
