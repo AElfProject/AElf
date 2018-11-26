@@ -133,12 +133,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
-                // Ignore the process of publishing in value because this operation won't produce a block.
-                if (inState.ConsensusBehavior == ConsensusBehavior.PublishInValue)
-                {
-                    return;
-                }
-
                 MessageHub.Instance.Publish(inState.IsMining ? StateEvent.MiningStart : StateEvent.MiningEnd);
             });
 
