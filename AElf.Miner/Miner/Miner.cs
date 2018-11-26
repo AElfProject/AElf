@@ -126,6 +126,8 @@ namespace AElf.Miner.Miner
                     _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
                     return null;
                 }
+                
+                MessageHub.Instance.Publish(new BlockMined(block));
                 // append block
                 await _blockChain.AddBlocksAsync(new List<IBlock> {block});
 
@@ -136,7 +138,7 @@ namespace AElf.Miner.Miner
                     await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
                 }*/
                 await _txHub.OnNewBlock((Block)block);
-                MessageHub.Instance.Publish(new BlockMined(block));
+                MessageHub.Instance.Publish(new BlockMinedAndStored(block));
                 stopwatch.Stop();
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
