@@ -261,8 +261,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<BlockExecutionResult> HandleValidBlock(IBlock block)
         {
-            _logger?.Warn(
-                $"Valid block {block.BlockHashToHex}. Height: *{block.Index}*");
+            _logger?.Info($"Valid block {block.BlockHashToHex}. Height: *{block.Index}*");
 
             if (_stateFSM.CurrentState != (int) NodeState.BlockExecuting)
             {
