@@ -1,13 +1,14 @@
-﻿using AElf.ChainController;
-using AElf.Common.Enums;
+﻿using AElf.Common.Enums;
 using AElf.Common.MultiIndexDictionary;
 using AElf.Configuration.Config.Consensus;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Node;
 using AElf.Network;
 using AElf.Node.AElfChain;
 using AElf.Node.Protocol;
 using AElf.Synchronization.BlockSynchronization;
 using Autofac;
+using IConsensus = AElf.Kernel.Node.IConsensus;
 
 namespace AElf.Node
 {
@@ -28,6 +29,7 @@ namespace AElf.Node
             {
                 case ConsensusType.AElfDPoS:
                     builder.RegisterType<DPoS>().As<IConsensus>().SingleInstance();
+                    builder.RegisterType<AElfDPoSHelper>();
                     break;
                 case ConsensusType.PoW:
                     builder.RegisterType<PoW>().As<IConsensus>().SingleInstance();

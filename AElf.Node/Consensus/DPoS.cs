@@ -143,28 +143,7 @@ namespace AElf.Kernel.Node
             MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { CurrentState = inState.CurrentState; });
         }
 
-        private Miners Miners
-        {
-            get
-            {
-                var minersFromDatabase = _minersManager.GetMiners().Result;
-                if (minersFromDatabase != null)
-                {
-                    return minersFromDatabase;
-                }
-                
-                var dict = MinersConfig.Instance.Producers;
-                var miners = new Miners();
-
-                foreach (var bp in dict.Values)
-                {
-                    var address = bp["address"];
-                    miners.Nodes.Add(Address.LoadHex(address));
-                }
-
-                return miners;
-            }
-        }
+        private Miners Miners => _minersManager.GetMiners().Result;
 
         public async Task Start()
         {
@@ -185,8 +164,7 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            var miners = await _minersManager.GetMiners();
-            if (miners == null || miners.IsEmpty())
+            if (!await _minersManager.IsMinersInDatabase())
             {
                 ConsensusDisposable = AElfDPoSObserver.Initialization();
                 return;

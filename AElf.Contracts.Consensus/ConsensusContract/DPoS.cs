@@ -398,6 +398,12 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         private async Task UpdateOngoingMiners(Miners miners)
         {
             var ongoingMiners = await _ongoingMinersField.GetAsync();
+            if (ongoingMiners == null || !ongoingMiners.Miners.Any())
+            {
+                ongoingMiners = new OngoingMiners();
+            }
+
+            miners.TakeEffectRoundNumber = CurrentRoundNumber + 1;
             ongoingMiners.UpdateMiners(miners);
             await _ongoingMinersField.SetAsync(ongoingMiners);
         }

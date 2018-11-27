@@ -23,7 +23,7 @@ namespace AElf.Kernel.Consensus
             AddressHelpers.GetSystemContractAddress(ChainId, SmartContractType.AElfDPoS.ToString());
         
         private readonly IMinersManager _minersManager;
-        private readonly ILogger _logger;
+        private readonly ILogger _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
         private readonly IStateStore _stateStore;
 
         public List<Address> Miners => _minersManager.GetMiners().Result.Nodes.ToList();
@@ -141,8 +141,6 @@ namespace AElf.Kernel.Consensus
         {
             _stateStore = stateStore;
             _minersManager = minersManager;
-
-            _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
         }
 
         /// <summary>
@@ -191,12 +189,6 @@ namespace AElf.Kernel.Consensus
                     return default(Round);
                 }
             }
-        }
-
-        public async Task<bool> DPoSInformationGenerated()
-        {
-            var bytes = await DataProvider.GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSOngoingMinersString));
-            return bytes != null && bytes.Length > 0;
         }
 
         public AElfDPoSInformation GenerateInfoForFirstTwoRounds()

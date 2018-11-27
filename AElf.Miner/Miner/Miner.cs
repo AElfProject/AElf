@@ -39,14 +39,20 @@ namespace AElf.Miner.Miner
         private readonly ITransactionResultManager _transactionResultManager;
         private int _timeoutMilliseconds;
         private readonly ILogger _logger;
-        private IBlockChain _blockChain;
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ServerManager _serverManager;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
-        private Address _producerAddress;
         private readonly IChainManagerBasic _chainManagerBasic;
+
+        private IBlockChain _blockChain;
+
+        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
+                                              _chainService.GetBlockChain(
+                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
+        
+        private Address ProducerAddress => Address.LoadHex(NodeConfig.Instance.NodeAccount);
 
         private IMinerConfig Config { get; }
 
@@ -126,7 +132,7 @@ namespace AElf.Miner.Miner
                     return null;
                 }
                 // append block
-                await _blockChain.AddBlocksAsync(new List<IBlock> {block});
+                await BlockChain.AddBlocksAsync(new List<IBlock> {block});
 
                 // insert to db
                 Update(results, block);
@@ -178,7 +184,7 @@ namespace AElf.Miner.Miner
                 if (cts.IsCancellationRequested)
                     return null;
                 var disambiguationHash =
-                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), ProducerAddress);
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
@@ -208,9 +214,9 @@ namespace AElf.Miner.Miner
                 return;
             try
             {
-                var bn = await _blockChain.GetCurrentBlockHeightAsync();
+                var bn = await BlockChain.GetCurrentBlockHeightAsync();
                 bn = bn > 4 ? bn - 4 : 0;
-                var bh = bn == 0 ? Hash.Genesis : (await _blockChain.GetHeaderByHeightAsync(bn)).GetHash();
+                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
                 var tx = new Transaction
                 {
@@ -399,7 +405,7 @@ namespace AElf.Miner.Miner
 
             // calculate and set tx merkle tree root 
             block.Complete();
-            block.Sign(_keyPair);
+            block.Sign(NodeConfig.Instance.ECKeyPair);
             return block;
         }
 
@@ -472,8 +478,6 @@ namespace AElf.Miner.Miner
         {
             _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
             _keyPair = NodeConfig.Instance.ECKeyPair;
-            _producerAddress = Address.FromRawBytes(_keyPair.GetEncodedPublicKey());
-            _blockChain = _chainService.GetBlockChain(Config.ChainId);
         }
 
         /// <summary>

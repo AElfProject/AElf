@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Kernel.Storages;
 using NLog;
 
@@ -20,7 +21,26 @@ namespace AElf.Kernel.Managers
 
         public async Task<Miners> GetMiners()
         {
-            return await _dataStore.GetAsync<Miners>(Key);
+            var miners = await _dataStore.GetAsync<Miners>(Key);
+            if (miners != null && !miners.IsEmpty())
+                return miners;
+
+            var dict = MinersConfig.Instance.Producers;
+            miners = new Miners();
+
+            foreach (var bp in dict.Values)
+            {
+                var address = bp["address"];
+                miners.Nodes.Add(Address.LoadHex(address));
+            }
+
+            return miners;
+        }
+
+        public async Task<bool> IsMinersInDatabase()
+        {
+            var miners = await _dataStore.GetAsync<Miners>(Key);
+            return miners != null && !miners.IsEmpty();
         }
 
         public async Task SetMiners(Miners miners)

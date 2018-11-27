@@ -1,25 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
-using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
-using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
-using AElf.Kernel.Storages;
-using AElf.Miner.EventMessages;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
-using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
@@ -205,8 +199,6 @@ namespace AElf.Node.AElfChain
                 _consensus?.Start();
             }
 
-            //Thread.Sleep(1000);
-            
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
                 await _blockSynchronizer.ReceiveBlock(inBlock.Block);
