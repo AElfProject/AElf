@@ -56,13 +56,13 @@ namespace AElf.Kernel
                 To = To.Clone(),
                 MethodName = MethodName,
                 Type = Type,
-                RefBlockNumber = RefBlockNumber,
-                RefBlockPrefix = RefBlockPrefix
             };
             if (Params.Length != 0)
                 txData.Params = Params;
             if (Type == TransactionType.MsigTransaction) 
                 return txData.ToByteArray();
+            txData.RefBlockNumber = RefBlockNumber;
+            txData.RefBlockPrefix = RefBlockPrefix;
             return txData.ToByteArray();
         }
     }

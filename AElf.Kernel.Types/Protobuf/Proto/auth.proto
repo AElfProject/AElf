@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Kernel.Types.Auth";
+option csharp_namespace = "AElf.Kernel.Types.Proposal";
 import "google/protobuf/timestamp.proto";
 import "common.proto";
 import "kernel.proto";
-message Auth
+message Authorization
 {
     Address MultiSigAccount = 1;
     uint32 ExecutionThreshold = 2;
@@ -20,7 +20,7 @@ message Reviewer
 
 message Proposal {
     Address MultiSigAccount = 1;
-    Address Proposer = 2; 
+    bytes ProposerPublicKey = 2; 
     string Name = 3;
     PendingTxn TxnData = 4;
     google.protobuf.Timestamp ExpiredTime = 5;
@@ -38,7 +38,6 @@ message Approved {
 
 message Approval
 {
-    Proposal Proposal = 1;
-    Hash ProposalHash = 2;
-    Sig Signature = 3;
+    Hash ProposalHash = 1;
+    Sig Signature = 2;
 }
