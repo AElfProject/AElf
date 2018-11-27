@@ -62,9 +62,10 @@ namespace AElf.Kernel.Node
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
-        private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
+        private NodeKeyPair _nodeKeyPair;
+        private NodeKeyPair NodeKeyPair => _nodeKeyPair ?? (_nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair));
 
-        public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+        private Address ContractAddress => ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
 
         private readonly IMinersManager _minersManager;
 
@@ -114,7 +115,7 @@ namespace AElf.Kernel.Node
                 if (option == UpdateConsensus.Dispose)
                 {
                     _logger?.Trace("UpdateConsensus - Dispose");
-                    Stop();
+                    Dispose();
                 }
             });
 
@@ -157,7 +158,7 @@ namespace AElf.Kernel.Node
             _consensusInitialized = true;
 
             // Check whether this node contained BP list.
-            if (!Miners.Nodes.Contains(_nodeKeyPair.Address))
+            if (!Miners.Nodes.Contains(NodeKeyPair.Address))
             {
                 return;
             }
@@ -176,7 +177,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public void Stop()
+        public void Dispose()
         {
             ConsensusDisposable?.Dispose();
             _logger?.Trace("Mining stopped. Disposed previous consensus observables list.");
@@ -231,18 +232,18 @@ namespace AElf.Kernel.Node
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
                 var tx = new Transaction
                 {
-                    From = _nodeKeyPair.Address,
+                    From = NodeKeyPair.Address,
                     To = ContractAddress,
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = methodName,
-                    Sig = new Signature {P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey)},
+                    Sig = new Signature {P = ByteString.CopyFrom(NodeKeyPair.NonCompressedEncodedPublicKey)},
                     Type = TransactionType.DposTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.Select(p => (object) p).ToArray()))
                 };
 
                 var signer = new ECSigner();
-                var signature = signer.Sign(_nodeKeyPair, tx.GetHash().DumpByteArray());
+                var signature = signer.Sign(NodeKeyPair, tx.GetHash().DumpByteArray());
 
                 // Update the signature
                 tx.Sig.R = ByteString.CopyFrom(signature.R);
@@ -392,7 +393,7 @@ namespace AElf.Kernel.Node
                     var parameters = new List<byte[]>
                     {
                         _helper.CurrentRoundNumber.ToByteArray(),
-                        new StringValue {Value = _nodeKeyPair.Address.DumpHex().RemoveHexPrefix()}.ToByteArray(),
+                        new StringValue {Value = NodeKeyPair.Address.DumpHex().RemoveHexPrefix()}.ToByteArray(),
                         _consensusData.Pop().ToByteArray(),
                         signature.ToByteArray(),
                         new Int64Value {Value = _helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
@@ -469,7 +470,7 @@ namespace AElf.Kernel.Node
                     var parameters = new List<byte[]>
                     {
                         currentRoundNumber.ToByteArray(),
-                        new StringValue {Value = _nodeKeyPair.Address.DumpHex().RemoveHexPrefix()}.ToByteArray(),
+                        new StringValue {Value = NodeKeyPair.Address.DumpHex().RemoveHexPrefix()}.ToByteArray(),
                         _consensusData.Pop().ToByteArray(),
                         new Int64Value {Value = _helper.GetCurrentRoundInfo(currentRoundNumber).RoundId}.ToByteArray()
                     };
@@ -581,7 +582,7 @@ namespace AElf.Kernel.Node
             }
 
             // Update observer.
-            var address = _nodeKeyPair.Address;
+            var address = NodeKeyPair.Address;
             var miners = _helper.Miners;
             if (!miners.Contains(address))
             {
@@ -627,7 +628,7 @@ namespace AElf.Kernel.Node
                     $"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.DumpHex()}.");
             }
 
-            if (tx.From.Equals(_nodeKeyPair.Address))
+            if (tx.From.Equals(NodeKeyPair.Address))
                 _logger?.Trace(
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
@@ -640,12 +641,7 @@ namespace AElf.Kernel.Node
             return _terminated;
         }
 
-        public void FillConsensusWithKeyPair()
-        {
-            //_nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
-        }
-
-        private bool MiningLocked()
+        private static bool MiningLocked()
         {
             return _lockNumber != 0;
         }

@@ -1,6 +1,5 @@
 ﻿using AElf.Cryptography.ECDSA;
 using AElf.Common;
-using Org.BouncyCastle.Crypto.Tls;
 
 namespace AElf.Node
 {

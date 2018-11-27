@@ -5,7 +5,7 @@ using AElf.Common;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 
-namespace AElf.Contracts.Consensus.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContracts
 {
     public class PoW : IConsensus
     {

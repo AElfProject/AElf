@@ -23,7 +23,7 @@ namespace AElf.Kernel.Node
             await Task.CompletedTask;
         }
 
-        public void Stop()
+        public void Dispose()
         {
             throw new NotImplementedException();
         }

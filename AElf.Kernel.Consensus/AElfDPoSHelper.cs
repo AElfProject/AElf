@@ -19,8 +19,7 @@ namespace AElf.Kernel.Consensus
     {
         private static Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
 
-        private static Address ContractAddress =>
-            AddressHelpers.GetSystemContractAddress(ChainId, SmartContractType.AElfDPoS.ToString());
+        private static Address ContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
         
         private readonly IMinersManager _minersManager;
         private readonly ILogger _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));

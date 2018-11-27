@@ -10,7 +10,7 @@ namespace AElf.Kernel.Node
             throw new System.NotImplementedException();
         }
 
-        public void Stop()
+        public void Dispose()
         {
             throw new System.NotImplementedException();
         }

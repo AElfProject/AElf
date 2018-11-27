@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Enums;
-using AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections;
+using AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -11,7 +11,7 @@ using AElf.Kernel.Types;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContracts
 {
     // ReSharper disable UnusedMember.Global
     // ReSharper disable InconsistentNaming
@@ -387,11 +387,24 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private async Task InitializeBlockProducer(Miners miners)
         {
-            foreach (var bp in miners.Nodes)
+            var candidates = new Candidates();
+            foreach (var address in miners.Nodes)
             {
-                ConsoleWriteLine(nameof(Initialize), $"Set miner {bp} to state store.");
+                ConsoleWriteLine(nameof(Initialize), $"Set miner {address} to state store.");
+
+                // Initial account for miners.
+                // TODO: Give them 100_000 tickets for testing
+                await _balanceMap.SetValueAsync(address, new Tickets {RemainingTickets = 100_000});
+                candidates.Nodes.Add(address);
+
+                if (_balanceMap.TryGet(address, out var tickets))
+                {
+                    ConsoleWriteLine(nameof(InitializeBlockProducer),
+                        $"Remaining tickets of {address.DumpHex()}: {tickets.RemainingTickets}");
+                }
             }
 
+            await _candidatesField.SetAsync(candidates);
             await UpdateOngoingMiners(miners);
         }
 
@@ -601,7 +614,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 });
             }
 
-            return nodes.OrderByDescending(n => n.TicketCount).Take(17).Select(n => n.Address).ToList();
+            return nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber).Select(n => n.Address).ToList();
         }
 
         private async Task<ulong> GetTicketCount(Address address)
