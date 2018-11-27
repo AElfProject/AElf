@@ -241,8 +241,9 @@ namespace AElf.Synchronization.BlockExecution
 
                 if (trace.DeferredTransaction != null)
                 {
-                    _txHub.AddTransactionAsync(trace.DeferredTransaction).ConfigureAwait(false);
-                    res.DeferredTxnId = trace.DeferredTransaction.GetHash();
+                    var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                    _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
+                    res.DeferredTxnId = deferredTxn.GetHash();
                 }
                 results.Add(res);
             }

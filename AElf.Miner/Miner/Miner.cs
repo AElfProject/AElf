@@ -301,8 +301,9 @@ namespace AElf.Miner.Miner
                         // insert deferred txn to transaction pool and wait for execution 
                         if (trace.DeferredTransaction != null)
                         {
-                            InsertTransactionToPool(trace.DeferredTransaction).ConfigureAwait(false);
-                            txRes.DeferredTxnId = trace.DeferredTransaction.GetHash();
+                            var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                            InsertTransactionToPool(deferredTxn).ConfigureAwait(false);
+                            txRes.DeferredTxnId = deferredTxn.GetHash();
                         }
                             
                         results.Add(txRes);

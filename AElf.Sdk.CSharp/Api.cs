@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Types.Auth;
+using AElf.Kernel.Types.Proposal;
 using AElf.Kernel.Types.Transaction;
 using AElf.SmartContract;
 using Google.Protobuf;
@@ -257,7 +257,7 @@ namespace AElf.Sdk.CSharp
 
         public static void SendDeferredTransaction(Transaction deferredTxn)
         {
-            _transactionContext.Trace.DeferredTransaction = deferredTxn;
+            _transactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
         }
 
         public static bool CheckAuthority()
