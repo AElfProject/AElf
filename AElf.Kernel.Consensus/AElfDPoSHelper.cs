@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Managers;
@@ -15,6 +14,7 @@ namespace AElf.Kernel.Consensus
 {
     // ReSharper disable InconsistentNaming
     // ReSharper disable MemberCanBeMadeStatic.Local
+    // ReSharper disable UnusedMember.Global
     public class AElfDPoSHelper
     {
         private static Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
@@ -375,7 +375,7 @@ namespace AElf.Kernel.Consensus
 
                 var blockTimeSlot = ExtraBlockTimeSlot;
 
-                //Maybe because something happened with setting extra block time slot.
+                // Maybe because something happened with setting extra block time slot.
                 if (blockTimeSlot.ToDateTime().AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * 1.5) <
                     GetTimestampOfUtcNow().ToDateTime())
                 {
@@ -433,7 +433,6 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        // ReSharper disable once UnusedMember.Global
         public StringValue GetDPoSInfoToString()
         {
             ulong count = 1;
@@ -606,7 +605,6 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private UInt64Value RoundNumberMinusOne(UInt64Value currentCount)
         {
             var current = currentCount.Value;
@@ -630,14 +628,13 @@ namespace AElf.Kernel.Consensus
         }
 
         /// <summary>
-        /// In case of forgetting to check negativee value.
+        /// In case of forgetting to check negative value.
         /// For now this method only used for generating order,
         /// so integer should be enough.
         /// </summary>
         /// <param name="uLongVal"></param>
         /// <param name="intVal"></param>
         /// <returns></returns>
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private int GetModulus(ulong uLongVal, int intVal)
         {
             return Math.Abs((int) (uLongVal % (ulong) intVal));

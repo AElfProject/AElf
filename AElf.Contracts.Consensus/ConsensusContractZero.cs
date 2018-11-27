@@ -56,28 +56,31 @@ namespace AElf.Contracts.Consensus
             };
         }
 
-        public async Task PublishOutValueAndSignature(byte[] roundNumber, byte[] accountAddress, byte[] outValue,
-            byte[] signature, byte[] roundId)
+        public async Task PublishOutValueAndSignature(byte[] roundNumber, byte[] outValue, byte[] signature,
+            byte[] roundId)
         {
             await DPoSConsensus.Publish(new List<byte[]>
             {
                 roundNumber,
-                accountAddress,
                 outValue,
                 signature,
                 roundId
             });
         }
 
-        public async Task PublishInValue(byte[] roundNumber, byte[] accountAddress, byte[] inValue, byte[] roundId)
+        public async Task PublishInValue(byte[] roundNumber, byte[] inValue, byte[] roundId)
         {
             await DPoSConsensus.Publish(new List<byte[]>
             {
                 roundNumber,
-                accountAddress,
                 inValue,
                 roundId
             });
+        }
+
+        public async Task AnnounceElection(byte[] accountAddress)
+        {
+            
         }
         #endregion
     }

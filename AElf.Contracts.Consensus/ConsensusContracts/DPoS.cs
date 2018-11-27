@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
+using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus.ConsensusContracts
 {
@@ -235,32 +236,29 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         /// (I) Publish out value and signature
         /// 5 args:
         /// [0] UInt64Value
-        /// [1] StringValue
+        /// [1] Hash
         /// [2] Hash
-        /// [3] Hash
-        /// [4] Int64Value (not useful here)
+        /// [3] Int64Value (not useful here)
         /// 
         /// (II) Publish in value
         /// 4 args:
         /// [0] UInt64Value
-        /// [1] StringValue
-        /// [2] Hash
-        /// [3] Int64Value (not useful here)
+        /// [1] Hash
+        /// [2] Int64Value (not useful here)
         /// </param>
         /// <returns></returns>
         public async Task Publish(List<byte[]> args)
         {
-            if (args.Count < 4)
+            var fromAddressToHex = new StringValue {Value = Api.GetTransaction().From.DumpHex().RemoveHexPrefix()};
+            if (args.Count < 3)
             {
                 return;
             }
 
             UInt64Value roundNumber;
-            StringValue accountAddress;
             try
             {
                 roundNumber = UInt64Value.Parser.ParseFrom(args[0]);
-                accountAddress = StringValue.Parser.ParseFrom(args[1]);
             }
             catch (Exception e)
             {
@@ -276,8 +274,8 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
                 try
                 {
-                    outValue = Hash.Parser.ParseFrom(args[2]);
-                    signature = Hash.Parser.ParseFrom(args[3]);
+                    outValue = Hash.Parser.ParseFrom(args[1]);
+                    signature = Hash.Parser.ParseFrom(args[2]);
                 }
                 catch (Exception e)
                 {
@@ -285,16 +283,18 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     return;
                 }
 
-                await PublishOutValueAndSignature(roundNumber, accountAddress, outValue, signature);
+                await PublishOutValueAndSignature(roundNumber,
+                    new StringValue {Value = Api.GetTransaction().From.DumpHex().RemoveHexPrefix()}, outValue,
+                    signature);
             }
 
-            if (args.Count == 4)
+            if (args.Count == 3)
             {
                 Hash inValue;
 
                 try
                 {
-                    inValue = Hash.Parser.ParseFrom(args[2]);
+                    inValue = Hash.Parser.ParseFrom(args[1]);
                 }
                 catch (Exception e)
                 {
@@ -302,7 +302,8 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     return;
                 }
 
-                await PublishInValue(roundNumber, accountAddress, inValue);
+                await PublishInValue(roundNumber,
+                    , inValue);
             }
         }
 

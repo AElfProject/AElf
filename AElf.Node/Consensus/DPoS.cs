@@ -63,9 +63,12 @@ namespace AElf.Kernel.Node
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
         private NodeKeyPair _nodeKeyPair;
-        private NodeKeyPair NodeKeyPair => _nodeKeyPair ?? (_nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair));
 
-        private Address ContractAddress => ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+        private NodeKeyPair NodeKeyPair =>
+            _nodeKeyPair ?? (_nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair));
+
+        private Address ContractAddress =>
+            ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
 
         private readonly IMinersManager _minersManager;
 
