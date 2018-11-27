@@ -44,15 +44,11 @@ namespace AElf.Launcher
 
         private void DefaultOnUnloading(AssemblyLoadContext obj)
         {
+            _closing.Set();
             if (_modules.Count != 0)
             {
-                _closing.Set();
                 PublishMessage();
                 _closing.WaitOne();
-            }
-            else
-            {
-                _closing.Set();
             }
         }
 
