@@ -38,13 +38,15 @@ namespace AElf.Contracts.Consensus
             await DPoSConsensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo, miningInterval, logLevel});
         }
 
-        public async Task UpdateAElfDPoS(byte[] currentRoundInfo, byte[] nextRoundInfo, byte[] nextExtraBlockProducer)
+        public async Task UpdateAElfDPoS(byte[] currentRoundInfo, byte[] nextRoundInfo, byte[] nextExtraBlockProducer,
+            byte[] roundId)
         {
             await DPoSConsensus.Update(new List<byte[]>
             {
                 currentRoundInfo,
                 nextRoundInfo,
-                nextExtraBlockProducer
+                nextExtraBlockProducer,
+                roundId
             });
         }
 
@@ -78,9 +80,9 @@ namespace AElf.Contracts.Consensus
             });
         }
 
-        public async Task AnnounceElection(byte[] accountAddress)
+        public async Task AnnounceElection(byte[] join)
         {
-            
+            await DPoSConsensus.Publish(new List<byte[]> {join});
         }
         #endregion
     }

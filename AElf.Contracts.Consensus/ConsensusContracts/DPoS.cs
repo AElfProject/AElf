@@ -9,6 +9,8 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 using AElf.Sdk.CSharp.Types;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -22,6 +24,8 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         public ConsensusType Type => ConsensusType.AElfDPoS;
 
         public ulong CurrentRoundNumber => _currentRoundNumberField.GetAsync().Result;
+
+        private Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
 
         public int Interval
         {
@@ -201,11 +205,12 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         /// [0] Round
         /// [1] Round
         /// [2] StringValue
+        /// [3] Int64Value
         /// </param>
         /// <returns></returns>
         public async Task Update(List<byte[]> args)
         {
-            if (args.Count != 3)
+            if (args.Count != 4)
             {
                 return;
             }
@@ -213,15 +218,23 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             Round currentRoundInfo;
             Round nextRoundInfo;
             StringValue nextExtraBlockProducer;
+            Int64Value roundId;
+
             try
             {
                 currentRoundInfo = Round.Parser.ParseFrom(args[0]);
                 nextRoundInfo = Round.Parser.ParseFrom(args[1]);
                 nextExtraBlockProducer = StringValue.Parser.ParseFrom(args[2]);
+                roundId = Int64Value.Parser.ParseFrom(args[3]);
             }
             catch (Exception e)
             {
                 ConsoleWriteLine(nameof(Update), "Failed to parse from byte array.", e);
+                return;
+            }
+
+            if (!await CheckRoundId(roundId))
+            {
                 return;
             }
 
@@ -238,21 +251,37 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         /// [0] UInt64Value
         /// [1] Hash
         /// [2] Hash
-        /// [3] Int64Value (not useful here)
+        /// [3] Int64Value
         /// 
         /// (II) Publish in value
         /// 4 args:
         /// [0] UInt64Value
         /// [1] Hash
-        /// [2] Int64Value (not useful here)
+        /// [2] Int64Value
         /// </param>
         /// <returns></returns>
         public async Task Publish(List<byte[]> args)
         {
             var fromAddressToHex = new StringValue {Value = Api.GetTransaction().From.DumpHex().RemoveHexPrefix()};
-            if (args.Count < 3)
+
+            if (args.Count == 1)
             {
-                return;
+                BoolValue join;
+                
+                try
+                {
+                    join = BoolValue.Parser.ParseFrom(args[0]);
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
+                    return;
+                }
+
+                if (join.Value)
+                {
+                    TransferToAccountZero();
+                }
             }
 
             UInt64Value roundNumber;
@@ -267,43 +296,54 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             }
 
             // ReSharper disable once ConvertIfStatementToSwitchStatement
-            if (args.Count == 5)
+            if (args.Count == 4)
             {
                 Hash outValue;
                 Hash signature;
+                Int64Value roundId;
 
                 try
                 {
                     outValue = Hash.Parser.ParseFrom(args[1]);
                     signature = Hash.Parser.ParseFrom(args[2]);
+                    roundId = Int64Value.Parser.ParseFrom(args[3]);
                 }
                 catch (Exception e)
                 {
-                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
+                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array.", e);
                     return;
                 }
 
-                await PublishOutValueAndSignature(roundNumber,
-                    new StringValue {Value = Api.GetTransaction().From.DumpHex().RemoveHexPrefix()}, outValue,
-                    signature);
+                if (!await CheckRoundId(roundId))
+                {
+                    return;
+                }
+
+                await PublishOutValueAndSignature(roundNumber, fromAddressToHex, outValue, signature);
             }
 
             if (args.Count == 3)
             {
                 Hash inValue;
+                Int64Value roundId;
 
                 try
                 {
                     inValue = Hash.Parser.ParseFrom(args[1]);
+                    roundId = Int64Value.Parser.ParseFrom(args[2]);
                 }
                 catch (Exception e)
                 {
-                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
+                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array.", e);
                     return;
                 }
 
-                await PublishInValue(roundNumber,
-                    , inValue);
+                if (!await CheckRoundId(roundId))
+                {
+                    return;
+                }
+
+                await PublishInValue(roundNumber, fromAddressToHex, inValue);
             }
         }
 
@@ -393,9 +433,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             {
                 ConsoleWriteLine(nameof(Initialize), $"Set miner {address} to state store.");
 
-                // Initial account for miners.
-                // TODO: Give them 100_000 tickets for testing
-                await _balanceMap.SetValueAsync(address, new Tickets {RemainingTickets = 100_000});
                 candidates.Nodes.Add(address);
 
                 if (_balanceMap.TryGet(address, out var tickets))
@@ -615,13 +652,27 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 });
             }
 
-            return nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber).Select(n => n.Address).ToList();
+            return nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber)
+                .Select(n => n.Address).ToList();
         }
 
         private async Task<ulong> GetTicketCount(Address address)
         {
             var balance = (await _balanceMap.GetValueAsync(address)).RemainingTickets;
             return balance >= GlobalConfig.LockTokenForElection ? balance - GlobalConfig.LockTokenForElection : 0;
+        }
+
+        private async Task<bool> CheckRoundId(Int64Value roundId)
+        {
+            var currentRoundInfo = await GetCurrentRoundInfo();
+            return currentRoundInfo.RoundId == roundId.Value;
+        }
+
+        private void TransferToAccountZero()
+        {
+            var parameter =
+                ByteString.CopyFrom(ParamsPacker.Pack(TokenContractAddress, GlobalConfig.LockTokenForElection));
+            Api.Call(TokenContractAddress, "Transfer", parameter.ToByteArray());
         }
 
         #endregion
