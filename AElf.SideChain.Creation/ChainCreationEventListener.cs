@@ -45,7 +45,7 @@ namespace AElf.SideChain.Creation
             _chainManagerBasic = chainManagerBasic;
             _interestedLogEvent = new LogEvent()
             {
-                Address = GetGenesisContractHash(),
+                Address = ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)),
                 Topics =
                 {
                     ByteString.CopyFrom("SideChainCreationRequestApproved".CalculateHash())
@@ -53,13 +53,6 @@ namespace AElf.SideChain.Creation
             };
             _bloom = _interestedLogEvent.GetBloom();
             InitializeClient();
-        }
-
-        private Address GetGenesisContractHash()
-        {
-            return ChainCreationService.GenesisContractHash(
-                Hash.LoadHex(ChainConfig.Instance.ChainId),
-                SmartContractType.BasicContractZero);
         }
 
         private List<SideChainInfo> GetInterestedEvent(TransactionResult result)

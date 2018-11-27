@@ -68,12 +68,14 @@ namespace AElf.Contracts.Token.Tests
             };
         }
 
+        public string TokenName => "AElf.Contracts.Token";
+
         public byte[] TokenCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll")))
+                using (FileStream file = File.OpenRead(Path.GetFullPath($"../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/{TokenName}.dll")))
                 {
                     code = file.ReadFully();
                 }
@@ -101,14 +103,14 @@ namespace AElf.Contracts.Token.Tests
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(TokenCode),
                 ContractHash = Hash.FromRawBytes(TokenCode),
-                Type = (int)SmartContractType.TokenContract
+                SerialNumber = GlobalConfig.TokenContract
             };
             var reg0 = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SCZeroContractCode),
                 ContractHash = Hash.FromRawBytes(SCZeroContractCode),
-                Type = (int)SmartContractType.BasicContractZero
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
 
             var chain1 =

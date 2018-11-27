@@ -284,7 +284,11 @@ namespace AElf.Network.Peers
             EnqueueOutgoing(message, (_) =>
             {
                 blockRequest.Start();
-                _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
+                
+                if (blockRequest.IsById)
+                    _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
+                else
+                    _logger?.Trace($"[{this}] Block request sent {{ height: {blockRequest.Height} }}");
             });            
         }
 
@@ -310,7 +314,11 @@ namespace AElf.Network.Peers
                             return;
                         
                         req.Start();
-                        _logger?.Trace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
+                        
+                        if (req.IsById)
+                            _logger?.Trace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
+                        else
+                            _logger?.Trace($"[{this}] Block request sent {{ height: {req.Height} }}");
                     });
                 }
                 else

@@ -232,23 +232,20 @@ namespace AElf.Node.AElfChain
 
         #region private methods
 
-        private Address GetGenesisContractHash(SmartContractType contractType)
-        {
-            return _chainCreationService.GenesisContractHash(Hash.LoadHex(ChainConfig.Instance.ChainId), contractType);
-        }
+        private Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
 
         private void LogGenesisContractInfo()
         {
-            var genesis = GetGenesisContractHash(SmartContractType.BasicContractZero);
+            var genesis = ContractHelpers.GetGenesisBasicContractAddress(ChainId);
             _logger?.Debug($"Genesis contract address = {genesis.DumpHex()}");
 
-            var tokenContractAddress = GetGenesisContractHash(SmartContractType.TokenContract);
+            var tokenContractAddress = ContractHelpers.GetTokenContractAddress(ChainId);
             _logger?.Debug($"Token contract address = {tokenContractAddress.DumpHex()}");
 
-            var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
+            var consensusAddress = ContractHelpers.GetConsensusContractAddress(ChainId);
             _logger?.Debug($"DPoS contract address = {consensusAddress.DumpHex()}");
 
-            var sidechainContractAddress = GetGenesisContractHash(SmartContractType.SideChainContract);
+            var sidechainContractAddress = ContractHelpers.GetSideChainContractAddress(ChainId);
             _logger?.Debug($"SideChain contract address = {sidechainContractAddress.DumpHex()}");
         }
 
@@ -260,7 +257,7 @@ namespace AElf.Node.AElfChain
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(tokenContractCode),
                 ContractHash = Hash.FromRawBytes(tokenContractCode),
-                Type = (int) SmartContractType.TokenContract
+                SerialNumber = GlobalConfig.TokenContract
             };
 
             var consensusCReg = new SmartContractRegistration
@@ -268,7 +265,7 @@ namespace AElf.Node.AElfChain
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(consensusContractCode),
                 ContractHash = Hash.FromRawBytes(consensusContractCode),
-                Type = (int) SmartContractType.AElfDPoS
+                SerialNumber = GlobalConfig.ConsensusContract
             };
 
             var basicReg = new SmartContractRegistration
@@ -276,7 +273,7 @@ namespace AElf.Node.AElfChain
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(basicContractZero),
                 ContractHash = Hash.FromRawBytes(basicContractZero),
-                Type = (int) SmartContractType.BasicContractZero
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
 
             var sideChainCReg = new SmartContractRegistration
@@ -284,7 +281,7 @@ namespace AElf.Node.AElfChain
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(sideChainGenesisContractCode),
                 ContractHash = Hash.FromRawBytes(sideChainGenesisContractCode),
-                Type = (int) SmartContractType.SideChainContract
+                SerialNumber = GlobalConfig.SideChainContract
             };
             var res = _chainCreationService.CreateNewChainAsync(Hash.LoadHex(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg}).Result;

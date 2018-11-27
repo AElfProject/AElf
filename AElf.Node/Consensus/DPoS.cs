@@ -62,11 +62,9 @@ namespace AElf.Kernel.Node
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
-        private NodeKeyPair _nodeKeyPair;
+        private readonly NodeKeyPair _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
 
-        private static Address ContractAddress => AddressHelpers.GetSystemContractAddress(
-            Hash.LoadHex(ChainConfig.Instance.ChainId),
-            SmartContractType.AElfDPoS.ToString());
+        public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
 
         private readonly IMinersManager _minersManager;
 
@@ -194,7 +192,6 @@ namespace AElf.Kernel.Node
         {
             if (_lockNumber <= 0)
             {
-                //_logger?.Trace("Can't decrease lock number when it's less than 1.");
                 return;
             }
 
@@ -645,7 +642,7 @@ namespace AElf.Kernel.Node
 
         public void FillConsensusWithKeyPair()
         {
-            _nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
+            //_nodeKeyPair = new NodeKeyPair(NodeConfig.Instance.ECKeyPair);
         }
 
         private bool MiningLocked()
