@@ -12,13 +12,13 @@ namespace AElf.ChainController.CrossChain
 {
     public class CrossChainInfo : ICrossChainInfo
     {
-        private readonly ContractInfoHelper _crossChainHelper;
+        private readonly ContractInfoReader _crossChainReader;
         private Address SideChainContractAddress =>
             ContractHelpers.GetSideChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
         public CrossChainInfo(IStateStore stateStore)
         {
             var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
-            _crossChainHelper = new ContractInfoHelper(chainId, stateStore);
+            _crossChainReader = new ContractInfoReader(chainId, stateStore);
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace AElf.ChainController.CrossChain
         /// <returns></returns>
         public MerklePath GetTxRootMerklePathInParentChain(ulong blockHeight)
         {
-            var bytes = _crossChainHelper.GetBytes<MerklePath>(SideChainContractAddress,
+            var bytes = _crossChainReader.GetBytes<MerklePath>(SideChainContractAddress,
                 Hash.FromMessage(new UInt64Value {Value = blockHeight}), GlobalConfig.AElfTxRootMerklePathInParentChain);
             return MerklePath.Parser.ParseFrom(bytes);
         }
@@ -40,7 +40,7 @@ namespace AElf.ChainController.CrossChain
         /// <returns></returns>
         public ulong GetBoundParentChainHeight(ulong localChainHeight)
         {
-            var bytes = _crossChainHelper.GetBytes<UInt64Value>(SideChainContractAddress,
+            var bytes = _crossChainReader.GetBytes<UInt64Value>(SideChainContractAddress,
                 Hash.FromMessage(new UInt64Value {Value = localChainHeight}), GlobalConfig.AElfBoundParentChainHeight);
             return UInt64Value.Parser.ParseFrom(bytes).Value;
         }
@@ -51,7 +51,7 @@ namespace AElf.ChainController.CrossChain
         /// <returns></returns>
         public ulong GetParentChainCurrentHeight()
         {
-            var bytes = _crossChainHelper.GetBytes<UInt64Value>(SideChainContractAddress,
+            var bytes = _crossChainReader.GetBytes<UInt64Value>(SideChainContractAddress,
                 Hash.FromString(GlobalConfig.AElfCurrentParentChainHeight));
             return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
         }
@@ -63,7 +63,7 @@ namespace AElf.ChainController.CrossChain
         /// <returns></returns>
         public ParentChainBlockInfo GetBoundParentChainBlockInfo(ulong localChainHeight)
         {
-            var bytes = _crossChainHelper.GetBytes<ParentChainBlockInfo>(SideChainContractAddress,
+            var bytes = _crossChainReader.GetBytes<ParentChainBlockInfo>(SideChainContractAddress,
                 Hash.FromMessage(new UInt64Value {Value = localChainHeight}), GlobalConfig.AElfParentChainBlockInfo);
             return ParentChainBlockInfo.Parser.ParseFrom(bytes);
         }

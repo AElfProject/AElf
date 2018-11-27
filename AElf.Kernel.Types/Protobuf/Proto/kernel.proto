@@ -4,6 +4,7 @@ option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
 import "common.proto";
+import "crosschain.proto";
 
 message Transaction {
     Address From = 1;
@@ -125,7 +126,7 @@ message TransactionTrace {
     repeated StateChange StateChanges = 9;
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
-    Transaction DeferredTransaction = 12;
+    bytes DeferredTransaction = 12;
 }
 
 message LogEvent {
@@ -181,31 +182,6 @@ message BlockBody {
 message Block {
     BlockHeader Header = 1;
     BlockBody Body = 2;
-}
-
-message SideChainBlockInfo{
-    uint64 Height = 1;
-    Hash BlockHeaderHash = 2;
-    Hash TransactionMKRoot = 3;
-    Hash ChainId = 4;
-}
-
-message ParentChainBlockInfo{
-    ParentChainBlockRootInfo Root = 1;
-    
-    // Indexed block height from side chain and merkle path for this side chain block
-    map<uint64, MerklePath> IndexedBlockInfo = 2;
-}
-
-message ParentChainBlockRootInfo
-{
-    uint64 Height = 1;
-    // Merkle tree root of side chain block headers
-    Hash SideChainBlockHeadersRoot = 2;
-
-    // Merkle tree root of side chain block transaction roots
-    Hash SideChainTransactionsRoot = 3;
-    Hash ChainId = 4;
 }
 
 message SmartContractRegistration {
@@ -298,10 +274,6 @@ message Key {
     uint32 HashType = 3;
 }
 
-message SideChainIdList {
-    repeated Hash chainIds =1;
-}
-
 message DataPath {
     Hash ChainId = 1;
     uint64 BlockHeight = 2;
@@ -316,8 +288,4 @@ message BinaryMerkleTree{
     repeated Hash Nodes = 1;
     Hash Root = 2;
     int32 LeafCount = 3;
-}
-
-message MerklePath{
-    repeated Hash Path = 1;
 }

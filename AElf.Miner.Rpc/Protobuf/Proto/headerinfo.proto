@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Miner.Rpc";
 import "common.proto";
-import "kernel.proto";
+import "crosschain.proto";
 
 message RequestBlockInfo {
     Hash ChainId = 1; // parent(own) chain id

@@ -12,7 +12,7 @@ namespace AElf.Kernel.Types.Transaction
                 return false;
             }
 
-            if (tx.Sigs.Count == 1)
+            if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
             {
                 // Check the address of signer if only one signer.
                 var pubKey = tx.Sigs[0].P.ToByteArray();
