@@ -1,17 +1,12 @@
-﻿using AElf.ChainController;
 using AElf.Common;
-using AElf.Database;
-using AElf.Kernel;
-using AElf.SmartContract;
-using AElf.Runtime.CSharp;
 using Autofac;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Frameworks.Autofac;
 
-[assembly: TestFramework("AElf.Contracts.SideChain.Tests.ConfigureTestFramework", "AElf.Contracts.SideChain.Tests")]
+[assembly: TestFramework("AElf.Contracts.Authorization.Tests.ConfigureTestFramework", "AElf.Contracts.Authorization.Tests")]
 
-namespace AElf.Contracts.SideChain.Tests
+namespace AElf.Contracts.Authorization.Tests
 {
     public class ConfigureTestFramework : AutofacTestFramework
     {
