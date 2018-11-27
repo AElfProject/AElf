@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -35,6 +36,24 @@ namespace AElf.Launcher
             _timer = new System.Timers.Timer(ConsensusConfig.Instance.DPoSMiningInterval * 2);
             _timer.AutoReset = false;
             _timer.Elapsed += TimerOnElapsed;
+            
+            AssemblyLoadContext.Default.Unloading += DefaultOnUnloading;           
+            Console.CancelKeyPress += OnCancelKeyPress;
+
+        }
+
+        private void DefaultOnUnloading(AssemblyLoadContext obj)
+        {
+            if (_modules.Count != 0)
+            {
+                _closing.Set();
+                PublishMessage();
+                _closing.WaitOne();
+            }
+            else
+            {
+                _closing.Set();
+            }
         }
 
         private void TimerOnElapsed(object sender, ElapsedEventArgs e)
@@ -44,15 +63,18 @@ namespace AElf.Launcher
 
         public void Run(ILifetimeScope scope)
         {
-            Console.CancelKeyPress += OnExit;
             _closing.WaitOne();
         }
-        
-        protected void OnExit(object sender, ConsoleCancelEventArgs args)
+
+        private void OnCancelKeyPress(object sender, EventArgs args)
         {
             if (_modules.Count != 0)
             {
                 PublishMessage();
+            }
+            else
+            {
+                _closing.Set();
             }
         }
 
