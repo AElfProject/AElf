@@ -22,7 +22,7 @@ namespace AElf.Contracts.SideChain.Tests
         private ILogger _logger;
         private MockSetup Mock;
 
-        public SideChainTest( ILogger logger)
+        public SideChainTest(ILogger logger)
         {
             _logger = logger;
         }
