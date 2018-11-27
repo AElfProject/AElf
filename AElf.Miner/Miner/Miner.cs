@@ -126,10 +126,10 @@ namespace AElf.Miner.Miner
                     _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
                     return null;
                 }
-                
-                MessageHub.Instance.Publish(new BlockMined(block));
                 // append block
                 await _blockChain.AddBlocksAsync(new List<IBlock> {block});
+                
+                MessageHub.Instance.Publish(new BlockMined(block));
 
                 // insert to db
                 Update(results, block);
