@@ -25,7 +25,6 @@ namespace AElf.Sdk.CSharp
         private static ISmartContractContext _smartContractContext;
         private static ITransactionContext _transactionContext;
         private static ITransactionContext _lastCallContext;
-        private static IAuthorizationInfo _authorizationInfo;
 
         public static ProtobufSerializer Serializer { get; } = new ProtobufSerializer();
 
@@ -42,10 +41,6 @@ namespace AElf.Sdk.CSharp
             _transactionContext = transactionContext;
         }
 
-        public static void SetAuthorizationInfo(IAuthorizationInfo authorizationInfo)
-        {
-            _authorizationInfo = authorizationInfo;
-        }
         #endregion Setters used by runner and executor
 
         #region Getters used by contract
@@ -262,9 +257,18 @@ namespace AElf.Sdk.CSharp
 
         public static bool CheckAuthority()
         {
-            // No need to verify signature again if it is not multi sig account.
-            return _transactionContext.Transaction.Sigs.Count == 1 ||
-                   _authorizationInfo.CheckAuthority(_transactionContext.Transaction);
+            if (_transactionContext.Transaction.Sigs.Count == 1)
+                // No need to verify signature again if it is not multi sig account.
+                return true;
+            
+            Call(GetAuthorizationContractAddress(), "GetAuth", ParamsPacker.Pack(_transactionContext.Transaction.From));
+            var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
+
+            uint provided = _transactionContext.Transaction.Sigs.Select(sig => sig.P)
+                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
+                .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
+
+            return provided >= auth.ExecutionThreshold;
         }
     }
 }

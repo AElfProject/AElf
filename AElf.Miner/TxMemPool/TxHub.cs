@@ -224,8 +224,7 @@ namespace AElf.Miner.TxMemPool
             if(tr.Transaction.Sigs.Count > 1)
             {
                 // check msig account authorization
-                var validAuthorization =
-                    _authorizationInfo.CheckAuthority(tr.Transaction);
+                var validAuthorization = _authorizationInfo.CheckAuthority(tr.Transaction);
                 if (!validAuthorization)
                 {
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;

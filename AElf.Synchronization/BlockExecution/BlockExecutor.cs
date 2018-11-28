@@ -459,7 +459,6 @@ namespace AElf.Synchronization.BlockExecution
                 await _chainManagerBasic.UpdateCurrentBlockHeightAsync(block.ParentChainBlockInfo.ChainId,
                     block.ParentChainBlockInfo.Height);
             }*/
-                
         }
 
         #endregion

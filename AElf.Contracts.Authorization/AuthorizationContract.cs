@@ -76,6 +76,7 @@ namespace AElf.Contracts.Authorization
         private readonly Map<Address, Kernel.Types.Proposal.Authorization> _multiSig = new Map<Address, Kernel.Types.Proposal.Authorization>(FieldNames.MultiSig);
         private readonly Map<Hash, Proposal> _proposals = new Map<Hash, Proposal>(FieldNames.Proposal);
         private readonly Map<Hash, Approved> _approved = new Map<Hash, Approved>(FieldNames.Approved);
+        private Address Genesis { get;} = Address.Genesis;
         //private readonly ProposalSerialNumber _proposalSerialNumber = ProposalSerialNumber.Instance;
         #region Actions
 
@@ -163,12 +164,19 @@ namespace AElf.Contracts.Authorization
         
         public Kernel.Types.Proposal.Authorization GetAuth(Address address)
         {
-            // case 1
-            // get authorization of system account
-            
-            // case 2 
-            // get authorization of normal multi sig account
-            return null;
+            // case 1: get authorization of normal multi sig account
+            if (!address.Equals(Genesis)) 
+                return _multiSig.GetValue(address);
+            // case 2: get authorization of system account  
+            var reviewers = Api.GetSystemReviewers();
+            var auth =  new Kernel.Types.Proposal.Authorization
+            {
+                MultiSigAccount = Genesis,
+                ExecutionThreshold = (uint) (reviewers.Count * 2 / 3),
+                ProposerThreshold = 1
+            };
+            auth.Reviewers.AddRange(reviewers);
+            return auth;
         }
 
         /*private bool GetAuth(Address address, out Authorization authorization)
@@ -209,7 +217,7 @@ namespace AElf.Contracts.Authorization
             Api.Assert(Address.FromRawBytes(proposal.ProposerPublicKey.ToByteArray()).Equals(from),
                 "Proposal not created by sender.");
 
-            List<Reviewer> reviewers = proposal.MultiSigAccount.Equals(Address.Genesis)
+            List<Reviewer> reviewers = proposal.MultiSigAccount.Equals(Genesis)
                 ? Api.GetSystemReviewers()
                 : authorization.Reviewers.ToList();
             Reviewer reviewer = reviewers.First(r => r.PubKey.Equals(proposal.ProposerPublicKey));

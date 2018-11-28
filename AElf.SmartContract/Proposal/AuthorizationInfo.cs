@@ -36,14 +36,9 @@ namespace AElf.SmartContract.Proposal
 
         private bool CheckAuthority(Authorization authorization, IEnumerable<ByteString> pubKeys)
         {
-            long provided = 0;
-            foreach (var pubKey in pubKeys)
-            {
-                var p = authorization.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey));
-                if(p == null)
-                    continue;
-                provided += p.Weight;
-            }
+            long provided = pubKeys
+                .Select(pubKey => authorization.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
+                .Where(r => r != null).Aggregate<Reviewer, long>(0, (current, r) => current + r.Weight);
 
             return provided >= authorization.ExecutionThreshold;
         }
