@@ -85,7 +85,7 @@ namespace AElf.Contracts.Authorization
             // TODO: check public key
             
             Address address = authorization.MultiSigAccount ?? Address.FromRawBytes(authorization.ToByteArray());
-            Api.Assert(_multiSig.GetValue(address) == null, "MultiSigAccount already existed.");
+            Api.Assert(_multiSig.GetValue(address).Equals(new Kernel.Types.Proposal.Authorization()), "MultiSigAccount already existed.");
             // check permissions
             Api.Assert(authorization.Reviewers.Count >= authorization.ExecutionThreshold,
                 "Threshold should not be bigger than reviewer count.");
@@ -105,11 +105,11 @@ namespace AElf.Contracts.Authorization
             Api.Assert(DateTime.UtcNow < proposal.ExpiredTime.ToDateTime(), "Expired proposal.");
             
             Hash hash = proposal.GetHash();
-            Api.Assert(_proposals.GetValue(hash) == null, "Proposal already created.");
+            Api.Assert(_proposals.GetValue(hash).Equals(new Proposal()) , "Proposal already created.");
             
             // check authorization of proposer public key
             var auth = _multiSig.GetValue(proposal.MultiSigAccount);
-            Api.Assert(auth != null, "MultiSigAccount not found.");
+            Api.Assert(!auth.Equals(new Kernel.Types.Proposal.Authorization()), "MultiSigAccount not found.");
             CheckAuthority(proposal, auth);
             
             _proposals.SetValue(hash, proposal);
@@ -123,14 +123,10 @@ namespace AElf.Contracts.Authorization
             
             // check approval not existed
             var approved = _approved.GetValue(hash);
-            Api.Assert(approved == null || !approved.Approvals.Contains(approval), "Approval already existed.");
+            Api.Assert(approved.Equals(new Approved()) || !approved.Approvals.Contains(approval), "Approval already existed.");
 
             // check authorization and permission 
             CheckAuthority(approval);
-            approved = approved ?? new Approved
-            {
-                ProposalHash = hash
-            };
             approved.Approvals.Add(approval);
             _approved.SetValue(hash, approved);
             return true;
@@ -139,7 +135,7 @@ namespace AElf.Contracts.Authorization
         public Hash Release(Hash proposalHash)
         {
             var proposal = _proposals.GetValue(proposalHash);
-            Api.Assert(proposal != null, "Proposal not found");
+            Api.Assert(!proposal.Equals(new Proposal()), "Proposal not found");
             // check expired time of proposal
             Api.Assert(DateTime.UtcNow < proposal.ExpiredTime.ToDateTime(), "Expired proposal.");
             
@@ -194,7 +190,7 @@ namespace AElf.Contracts.Authorization
             // check authorization of proposal
             var msigAccount = proposal.MultiSigAccount;
             var auth = _multiSig.GetValue(msigAccount);
-            Api.Assert(auth != null); // this should not happen.
+            Api.Assert(auth != new Kernel.Types.Proposal.Authorization()); // this should not happen.
             var proposalHash = proposal.GetHash();
             var approved = _approved.GetValue(proposalHash);
             CheckAuthority(approved, auth);
@@ -232,11 +228,11 @@ namespace AElf.Contracts.Authorization
         {
             Hash hash = approval.ProposalHash;
             var proposal = _proposals.GetValue(hash);
-            Api.Assert(proposal != null, "Proposal not found.");
+            Api.Assert(!proposal.Equals(new Proposal()), "Proposal not found.");
 
             var msig = proposal.MultiSigAccount;
             var authorization = _multiSig.GetValue(msig);
-            Api.Assert(authorization != null, "Authorization not found."); // should never happen
+            Api.Assert(!authorization.Equals(new Kernel.Types.Proposal.Authorization()), "Authorization not found."); // should never happen
             Api.Assert(authorization.Reviewers.Any(r => r.PubKey.Equals(approval.Signature.P)),
                 "Not authorized approval.");
             VerifySignature(proposal.TxnData, approval.Signature);
@@ -248,7 +244,7 @@ namespace AElf.Contracts.Authorization
             var validApprovals = approved.Approvals.All(a =>
             {
                 var reviewer = authorization.Reviewers.FirstOrDefault(r => r.PubKey.Equals(a.Signature.P));
-                if (reviewer == null)
+                if (reviewer == null )
                     return false;
                 weight += reviewer.Weight;
                 return true;
