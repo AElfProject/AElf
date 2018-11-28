@@ -274,13 +274,17 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 }
                 catch (Exception e)
                 {
-                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
+                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array.", e);
                     return;
                 }
 
                 if (join.Value)
                 {
-                    TransferToAccountZero();
+                    TransferToConsensusContractAccount();
+                }
+                else
+                {
+                    TransferFromConsensusContractAccount();
                 }
             }
 
@@ -668,10 +672,19 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             return currentRoundInfo.RoundId == roundId.Value;
         }
 
-        private void TransferToAccountZero()
+        private void TransferToConsensusContractAccount()
         {
             var parameter =
-                ByteString.CopyFrom(ParamsPacker.Pack(TokenContractAddress, GlobalConfig.LockTokenForElection));
+                ByteString.CopyFrom(ParamsPacker.Pack(Api.GetTransaction().From, Api.GetContractAddress(),
+                    GlobalConfig.LockTokenForElection));
+            Api.Call(TokenContractAddress, "Transfer", parameter.ToByteArray());
+        }
+        
+        private void TransferFromConsensusContractAccount()
+        {
+            var parameter =
+                ByteString.CopyFrom(ParamsPacker.Pack(Api.GetContractAddress(), Api.GetTransaction().From,
+                    GlobalConfig.LockTokenForElection));
             Api.Call(TokenContractAddress, "Transfer", parameter.ToByteArray());
         }
 

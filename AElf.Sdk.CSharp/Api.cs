@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -10,6 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 using AElf.Sdk.CSharp.ReadOnly;
 
+// ReSharper disable UnusedMember.Global
 namespace AElf.Sdk.CSharp
 {
     /// <summary>
@@ -221,9 +221,9 @@ namespace AElf.Sdk.CSharp
 
         #region Diagonstics API
 
-        public static void Sleep(int milliSedonds)
+        public static void Sleep(int milliSeconds)
         {
-            Thread.Sleep(milliSedonds);
+            Thread.Sleep(milliSeconds);
         }
 
         #endregion Diagonstics API
