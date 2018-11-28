@@ -143,6 +143,7 @@ namespace AElf.Synchronization.BlockExecution
                     }
                 }
 
+                _logger?.Trace($"To execute {readyTxs.Count} txs.");
                 txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
