@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Common;
+using AElf.Configuration.Config.Consensus;
 
 namespace AElf.Kernel.Consensus
 {
@@ -74,7 +75,7 @@ namespace AElf.Kernel.Consensus
         public IDisposable RecoverMining()
         {
             var after = TimeSpan.FromMilliseconds(
-                GlobalConfig.AElfDPoSMiningInterval * GlobalConfig.BlockProducerNumber);
+                ConsensusConfig.Instance.DPoSMiningInterval * GlobalConfig.BlockProducerNumber);
             var recoverMining = Observable
                 .Timer(after)
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
@@ -156,9 +157,9 @@ namespace AElf.Kernel.Consensus
             }
             else if (infoOfMe.IsEBP)
             {
-                var after = distanceToPublishInValue + GlobalConfig.AElfDPoSMiningInterval / 1000;
+                var after = distanceToPublishInValue + ConsensusConfig.Instance.DPoSMiningInterval / 1000;
                 produceExtraBlock = Observable
-                    .Timer(TimeSpan.FromMilliseconds(GlobalConfig.AElfDPoSMiningInterval))
+                    .Timer(TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval))
                     .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
                 if (after >= 0)
@@ -168,13 +169,13 @@ namespace AElf.Kernel.Consensus
             }
             else
             {
-                var after = distanceToPublishInValue + GlobalConfig.AElfDPoSMiningInterval / 1000 +
-                            GlobalConfig.AElfDPoSMiningInterval * infoOfMe.Order / 1000 +
-                            GlobalConfig.AElfDPoSMiningInterval / 750;
+                var after = distanceToPublishInValue + ConsensusConfig.Instance.DPoSMiningInterval / 1000 +
+                            ConsensusConfig.Instance.DPoSMiningInterval * infoOfMe.Order / 1000 +
+                            ConsensusConfig.Instance.DPoSMiningInterval / 750;
                 produceExtraBlock = Observable
-                    .Timer(TimeSpan.FromMilliseconds(GlobalConfig.AElfDPoSMiningInterval +
-                                                     GlobalConfig.AElfDPoSMiningInterval * infoOfMe.Order +
-                                                     GlobalConfig.AElfDPoSMiningInterval / 2))
+                    .Timer(TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval +
+                                                     ConsensusConfig.Instance.DPoSMiningInterval * infoOfMe.Order +
+                                                     ConsensusConfig.Instance.DPoSMiningInterval / 2))
                     .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
                 if (after >= 0)
