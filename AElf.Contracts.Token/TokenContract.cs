@@ -170,6 +170,32 @@ namespace AElf.Contracts.Token
             }.Fire();
         }
 
+        [SmartContractFunction("${this}.AnnounceElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
+        public void AnnounceElection()
+        {
+            Transfer(ContractHelpers.GetConsensusContractAddress(Api.GetChainId()), GlobalConfig.LockTokenForElection);
+            var candidates = _candidates.GetValue();
+            if (candidates == null || !candidates.Nodes.Any())
+            {
+                candidates = new Candidates();
+            }
+
+            candidates.Nodes.Add(Api.GetTransaction().From);
+            _candidates.SetValue(candidates);
+        }
+
+        [SmartContractFunction("${this}.CancelElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
+        public void CancelElection()
+        {
+            var candidates = _candidates.GetValue();
+
+            if (candidates == null || !candidates.Nodes.Contains(Api.GetTransaction().From))
+                return;
+            Transfer(Api.GetTransaction().To, GlobalConfig.LockTokenForElection);
+            candidates.Nodes.Remove(Api.GetTransaction().From);
+            _candidates.SetValue(candidates);
+        }
+
         #endregion Actions
 
         #endregion ABI (Public) Methods
@@ -193,27 +219,6 @@ namespace AElf.Contracts.Token
                 To = to,
                 Amount = amount
             }.Fire();
-
-            if (to == ContractHelpers.GetConsensusContractAddress(Api.GetChainId()) &&
-                amount >= GlobalConfig.LockTokenForElection)
-            {
-                var candidates = _candidates.GetValue();
-                if (candidates == null || !candidates.Nodes.Any())
-                {
-                    candidates = new Candidates();
-                }
-
-                candidates.Nodes.Add(from);
-                _candidates.SetValue(candidates);
-            }
-
-            if (from == ContractHelpers.GetConsensusContractAddress(Api.GetChainId()) &&
-                amount >= GlobalConfig.LockTokenForElection)
-            {
-                var candidates = _candidates.GetValue();
-                candidates.Nodes.Remove(from);
-                _candidates.SetValue(candidates);
-            }
         }
 
         #endregion Private Methods
