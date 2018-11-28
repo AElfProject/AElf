@@ -58,5 +58,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
         /// The nodes declared join the election for BP.
         /// </summary>
         public PbField<Candidates> CandidatesFiled;
+
+        public Map<UInt64Value, ElectionSnapshot> SnapshotField;
     }
 }

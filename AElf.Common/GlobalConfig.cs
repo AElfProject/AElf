@@ -42,6 +42,7 @@ namespace AElf.Common
         public const string AElfDPoSMiningRoundHashMapString = "__AElfDPoSMiningRoundHashMap__";
         public const string AElfDPoSBalanceMapString = "__AElfDPoSBalanceMapString__";
         public const string AElfDPoSCandidatesString = "__AElfDPoSCandidatesString__";
+        public const string AElfDPoSSnapshotFieldString = "__AElfDPoSSnapshotFieldString__";
 
         #endregion
 

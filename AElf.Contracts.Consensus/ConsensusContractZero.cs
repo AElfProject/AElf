@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.ConsensusContracts;
 using AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections;
@@ -8,6 +9,7 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus
 {
@@ -29,7 +31,8 @@ namespace AElf.Contracts.Consensus
             EBPMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSExtraBlockProducerString),
             FirstPlaceMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString),
             RoundHashMap = new Map<UInt64Value, Int64Value>(GlobalConfig.AElfDPoSMiningRoundHashMapString),
-            BalanceMap = new Map<Address, Tickets>(GlobalConfig.AElfDPoSBalanceMapString)
+            BalanceMap = new Map<Address, Tickets>(GlobalConfig.AElfDPoSBalanceMapString),
+            SnapshotField = new Map<UInt64Value, ElectionSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString)
         });
 
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval,
@@ -80,9 +83,31 @@ namespace AElf.Contracts.Consensus
             });
         }
 
-        public async Task AnnounceElection(byte[] join)
+        public async Task QuitElection()
         {
-            await DPoSConsensus.Publish(new List<byte[]> {join});
+            await DPoSConsensus.Election(new List<byte[]>());
+        }
+
+        public async Task Vote(byte[] voterAddress, byte[] amount)
+        {
+            await DPoSConsensus.Election(new List<byte[]>
+            {
+                voterAddress,
+                amount
+            });
+        }
+
+        public async Task Replace(byte[] roundNumber)
+        {
+            await DPoSConsensus.Election(new List<byte[]>
+            {
+                roundNumber
+            });
+        }
+
+        public Miners GetCurrentMiners()
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

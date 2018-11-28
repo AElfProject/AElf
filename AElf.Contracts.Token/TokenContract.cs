@@ -184,6 +184,7 @@ namespace AElf.Contracts.Token
             _candidates.SetValue(candidates);
         }
 
+        //TODO: Just consensus contract can call this method.
         [SmartContractFunction("${this}.CancelElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
         public void CancelElection()
         {

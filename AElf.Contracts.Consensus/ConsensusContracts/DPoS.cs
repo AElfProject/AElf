@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -61,6 +62,9 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         private readonly Map<Address, Tickets> _balanceMap;
 
         private readonly PbField<Candidates> _candidatesField;
+        
+        private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap;
+
 
         #endregion
 
@@ -264,30 +268,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         {
             var fromAddressToHex = new StringValue {Value = Api.GetTransaction().From.DumpHex().RemoveHexPrefix()};
 
-            if (args.Count == 1)
-            {
-                BoolValue join;
-                
-                try
-                {
-                    join = BoolValue.Parser.ParseFrom(args[0]);
-                }
-                catch (Exception e)
-                {
-                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array.", e);
-                    return;
-                }
-
-                if (join.Value)
-                {
-                    TransferToConsensusContractAccount();
-                }
-                else
-                {
-                    TransferFromConsensusContractAccount();
-                }
-            }
-
             UInt64Value roundNumber;
             try
             {
@@ -351,9 +331,70 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             }
         }
 
-        public async Task UpdateMiners(List<byte[]> args)
+        public async Task Election(List<byte[]> args)
         {
+            // QuitElection
+            if (args.Count == 0)
+            {
+                var minerWannaQuitElection = Api.GetTransaction().From;
+                var candidates = await _candidatesField.GetAsync();
+                if (candidates == null || !candidates.Nodes.Contains(minerWannaQuitElection))
+                {
+                    return;
+                }
+                var parameter =
+                    ByteString.CopyFrom(ParamsPacker.Pack(minerWannaQuitElection,
+                        GlobalConfig.LockTokenForElection));
+                Api.Call(TokenContractAddress, "CancelElection", parameter.ToByteArray());
+                candidates.Nodes.Remove(minerWannaQuitElection);
+                await _candidatesField.SetAsync(candidates);
+            }
+            
+            // Replace
+            if (args.Count == 1)
+            {
+                Address outerAddress;
+                
+                try
+                {
+                    outerAddress = Address.Parser.ParseFrom(args[0]);
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriteLine(nameof(Election), "Failed to parse from byte array.", e);
+                    return;
+                }
 
+                if (outerAddress.ToByteArray().Any())
+                {
+                    await UpdateOngoingMiners(outerAddress);
+                }
+                else
+                {
+                    // General election
+                    await UpdateOngoingMiners(await GetVictories());
+                }
+            }
+
+            // Vote
+            if (args.Count == 2)
+            {
+                Address candidatesAddress;
+                UInt64Value amount;
+                
+                try
+                {
+                    candidatesAddress = Address.Parser.ParseFrom(args[0]);
+                    amount = UInt64Value.Parser.ParseFrom(args[1]);
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriteLine(nameof(Election), "Failed to parse from byte array.", e);
+                    return;
+                }
+
+                await Vote(candidatesAddress, amount);
+            }
         }
 
         /// <inheritdoc />
@@ -461,6 +502,17 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             miners.TakeEffectRoundNumber = CurrentRoundNumber + 1;
             ongoingMiners.UpdateMiners(miners);
             await _ongoingMinersField.SetAsync(ongoingMiners);
+        }
+        
+        private async Task UpdateOngoingMiners(Address outerAddress)
+        {
+            var ongoingMiners = await _ongoingMinersField.GetAsync();
+            if (ongoingMiners == null || !ongoingMiners.Miners.Any())
+            {
+                return;
+            }
+            
+            //TODO: Use the snapshot to do the replacement.
         }
 
         private async Task UpdateCurrentRoundNumber(ulong currentRoundNumber)
@@ -642,7 +694,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             return miners.Nodes.Contains(Address.LoadHex(accountAddress.Value));
         }
 
-        private async Task<List<Address>> GetVictories()
+        private async Task<Miners> GetVictories()
         {
             var candidates = await _candidatesField.GetAsync();
             var nodes = new List<Node>();
@@ -656,8 +708,11 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 });
             }
 
-            return nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber)
-                .Select(n => n.Address).ToList();
+            return new Miners
+            {
+                Nodes = {nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber)
+                    .Select(n => n.Address)}
+            };
         }
 
         private async Task<ulong> GetTicketCount(Address address)
@@ -672,20 +727,43 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             return currentRoundInfo.RoundId == roundId.Value;
         }
 
-        private void TransferToConsensusContractAccount()
+        private async Task Vote(Address candidateAddress, UInt64Value amount)
         {
-            var parameter =
-                ByteString.CopyFrom(ParamsPacker.Pack(Api.GetTransaction().From, Api.GetContractAddress(),
-                    GlobalConfig.LockTokenForElection));
-            Api.Call(TokenContractAddress, "Transfer", parameter.ToByteArray());
+            if (!CheckTickets(amount))
+            {
+                return;
+            }
+
+            if (!await IsCandidate(candidateAddress))
+            {
+                return;
+            }
+
+            if (_balanceMap.TryGet(candidateAddress, out var tickets))
+            {
+                tickets.RemainingTickets.Add(amount.Value);
+                tickets.VotingRecord.Add(new VotingRecord
+                {
+                    From = Api.GetTransaction().From,
+                    TicketsCount = amount.Value
+                });
+            }
         }
-        
-        private void TransferFromConsensusContractAccount()
+
+        private bool CheckTickets(UInt64Value amount)
         {
-            var parameter =
-                ByteString.CopyFrom(ParamsPacker.Pack(Api.GetContractAddress(), Api.GetTransaction().From,
-                    GlobalConfig.LockTokenForElection));
-            Api.Call(TokenContractAddress, "Transfer", parameter.ToByteArray());
+            if (_balanceMap.TryGet(Api.GetTransaction().From, out var tickets))
+            {
+                return tickets.RemainingTickets >= amount.Value;
+            }
+
+            return false;
+        }
+
+        private async Task<bool> IsCandidate(Address address)
+        {
+            var candidates = await _candidatesField.GetAsync();
+            return candidates != null && candidates.Nodes.Contains(address);
         }
 
         #endregion

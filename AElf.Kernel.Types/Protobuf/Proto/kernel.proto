@@ -285,6 +285,16 @@ message Miners {
     repeated Address Nodes = 2;
 }
 
+message ElectionSnapshot {
+    uint64 RoundNumber = 1;
+    repeated TicketsMap TicketsMap = 2;
+}
+
+message TicketsMap {
+    Address Address = 1;
+    uint64 TicketsCount = 2;
+}
+
 message BlockProducer {
     int32 Order = 1;
     bool IsEBP = 2; //EBP := Extra Block Producer

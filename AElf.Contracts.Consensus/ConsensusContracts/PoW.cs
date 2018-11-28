@@ -43,5 +43,10 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         {
             throw new System.NotImplementedException();
         }
+
+        public Task Election(List<byte[]> args)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
