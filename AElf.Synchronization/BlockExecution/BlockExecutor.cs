@@ -144,8 +144,6 @@ namespace AElf.Synchronization.BlockExecution
                     {
                         distanceToTimeSlot = timeSlot;
                     }
-
-                    Console.WriteLine("zxtest:" + distanceToTimeSlot);
                 }
 
                 cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * 3 / 4));
