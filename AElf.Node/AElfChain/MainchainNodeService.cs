@@ -365,6 +365,7 @@ namespace AElf.Node.AElfChain
             var block = await Task.Run(() => (Block) _blockSynchronizer.GetBlockByHash(hash));
             if (block == null)
                 return null;
+            _logger?.Trace($"{block.Body.TransactionList.Count} txns in block");
             if (block.Body.TransactionList.Count > 0)
                 return block;
             return await FillBlockWithTransactionList(block);
@@ -378,7 +379,7 @@ namespace AElf.Node.AElfChain
                 var r = await _txHub.GetReceiptAsync(txId);
                 block.Body.TransactionList.Add(r.Transaction);
             }
-
+            _logger?.Trace($"{block.Body.TransactionList.Count} txns filled in block");
             return block;
         }
 
