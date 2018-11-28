@@ -25,13 +25,10 @@ namespace AElf.Common
 
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
-        public const int AElfLogInterval = 900;
 
         #region AElf DPoS
 
         public const int AElfDPoSLogRoundCount = 1;
-        public static int AElfDPoSMiningInterval = 2000;
-        public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
         public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
@@ -48,7 +45,7 @@ namespace AElf.Common
         public const string AElfTxRootMerklePathInParentChain = "__TxRootMerklePathInParentChain__";
         public const string AElfParentChainBlockInfo = "__ParentChainBlockInfo__";
         public const string AElfBoundParentChainHeight = "__BoundParentChainHeight__";
-        public static readonly int AElfInitCrossChainRequestInterval = AElfDPoSMiningInterval / 1000;
+        public static readonly int AElfInitCrossChainRequestInterval = 4;
         public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
 
         #endregion
@@ -56,18 +53,6 @@ namespace AElf.Common
         #region Authorization
 
         public const string AElfMultiSig = "__MultiSig__";
-        #endregion
-
-        #region PoTC
-
-        public static ulong ExpectedTransactionCount = 8000;
-
-        #endregion
-
-        #region Single node test
-
-        public static int SingleNodeTestMiningInterval = 4000;
-
         #endregion
 
         public static ulong BasicContractZeroSerialNumber = 100;

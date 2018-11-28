@@ -15,7 +15,7 @@ namespace AElf.Synchronization.BlockExecution
         InvalidParentChainBlockInfo,
 
         //     Simply cache
-        ExecutionCancelled = 51,
+        ExecutionCancelled = 21,
         BlockIsNull,
         NoTransaction,
         TooManyTxsForParentChainBlock,
