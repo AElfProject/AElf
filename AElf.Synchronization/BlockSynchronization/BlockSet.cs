@@ -95,6 +95,27 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
         }
+        
+        public void AddOrUpdateBlock(IBlock block)
+        {
+            var hash = block.BlockHashToHex;
+            _logger?.Trace($"Add or update block {hash} to block cache.");
+            _rwLock.AcquireWriterLock(100);
+            try
+            {
+                var toRemove = _blockCache.FirstOrDefault(b => b.BlockHashToHex == hash);
+                if (toRemove?.Header != null)
+                {
+                    _blockCache.Remove(toRemove);
+                }
+                _blockCache.Add(block);
+                _blockCache = _blockCache.OrderBy(b => b.Index).ToList();
+            }
+            finally
+            {
+                _rwLock.ReleaseWriterLock();
+            }
+        }
 
         public void RemoveExecutedBlock(string blockHashHex)
         {

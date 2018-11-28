@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Extensions;
 using AElf.Common.Attributes;
+using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
@@ -117,7 +118,7 @@ namespace AElf.Kernel.Consensus
                 catch (Exception e)
                 {
                     //_logger?.Error(e, "Failed to get DPoS mining interval.\n");
-                    return new SInt32Value {Value = GlobalConfig.AElfDPoSMiningInterval};
+                    return new SInt32Value {Value = ConsensusConfig.Instance.DPoSMiningInterval};
                 }
             }
         }
@@ -242,7 +243,7 @@ namespace AElf.Kernel.Consensus
                 bpInfo.Order = i + 1;
                 bpInfo.Signature = Hash.Generate();
                 bpInfo.TimeSlot =
-                    GetTimestampOfUtcNow(i * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfWaitFirstRoundTime);
+                    GetTimestampOfUtcNow(i * ConsensusConfig.Instance.DPoSMiningInterval + GlobalConfig.AElfWaitFirstRoundTime);
 
                 infosOfRound1.BlockProducers.Add(enumerable[i], bpInfo);
             }
@@ -264,7 +265,7 @@ namespace AElf.Kernel.Consensus
 
             var infosOfRound2 = new Round();
 
-            var addition = enumerable.Count * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfDPoSMiningInterval;
+            var addition = enumerable.Count * ConsensusConfig.Instance.DPoSMiningInterval + ConsensusConfig.Instance.DPoSMiningInterval;
 
             selected = _miners.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
@@ -276,7 +277,7 @@ namespace AElf.Kernel.Consensus
                     bpInfo.IsEBP = true;
                 }
 
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * GlobalConfig.AElfDPoSMiningInterval + addition +
+                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * ConsensusConfig.Instance.DPoSMiningInterval + addition +
                                                        GlobalConfig.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
@@ -396,7 +397,7 @@ namespace AElf.Kernel.Consensus
                 var blockTimeSlot = ExtraBlockTimeSlot;
 
                 //Maybe because something happened with setting extra block time slot.
-                if (blockTimeSlot.ToDateTime().AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * 1.5) <
+                if (blockTimeSlot.ToDateTime().AddMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval * 1.5) <
                     GetTimestampOfUtcNow().ToDateTime())
                 {
                     blockTimeSlot = GetTimestampOfUtcNow();
@@ -407,7 +408,7 @@ namespace AElf.Kernel.Consensus
                     var bpInfoNew = new BlockProducer
                     {
                         TimeSlot = GetTimestampWithOffset(blockTimeSlot,
-                            i * GlobalConfig.AElfDPoSMiningInterval + GlobalConfig.AElfDPoSMiningInterval * 2),
+                            i * ConsensusConfig.Instance.DPoSMiningInterval + ConsensusConfig.Instance.DPoSMiningInterval * 2),
                         Order = i + 1
                     };
 
@@ -575,7 +576,7 @@ namespace AElf.Kernel.Consensus
 
         public void SyncMiningInterval()
         {
-            GlobalConfig.AElfDPoSMiningInterval = MiningInterval.Value;
+            ConsensusConfig.Instance.DPoSMiningInterval = MiningInterval.Value;
         }
 
         public void LogDPoSInformation(ulong height)
