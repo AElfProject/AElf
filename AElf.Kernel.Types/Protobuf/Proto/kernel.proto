@@ -76,6 +76,7 @@ enum TransactionType {
     ContractTransaction = 0;
     DposTransaction = 1;
     CrossChainBlockInfoTransaction = 2;
+    ContractDeployTransaction=3;
 }
 
 enum Status {
@@ -208,7 +209,7 @@ message SmartContractRegistration {
     int32 Category = 1;
     Hash ContractHash = 2;
     bytes ContractBytes = 3;
-    int32 Type = 4;
+    uint64 SerialNumber=4;
 }
 
 message SmartContractDeployment {

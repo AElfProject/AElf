@@ -23,7 +23,7 @@ namespace AElf.Kernel.Node
             await Task.CompletedTask;
         }
 
-        public void Stop()
+        public void DisposeConsensusList()
         {
             throw new NotImplementedException();
         }
@@ -38,7 +38,7 @@ namespace AElf.Kernel.Node
             throw new NotImplementedException();
         }
 
-        public async Task Update()
+        public async Task UpdateConsensusEventList()
         {
             await Task.CompletedTask;
         }

@@ -1,24 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
-using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
-using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
-using AElf.Kernel.Storages;
-using AElf.Miner.EventMessages;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
-using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
@@ -35,7 +30,6 @@ namespace AElf.Node.AElfChain
         private readonly ILogger _logger;
 
         private readonly ITxHub _txHub;
-        private readonly IStateStore _stateStore;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
@@ -52,8 +46,9 @@ namespace AElf.Node.AElfChain
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
 
+        private bool _forkFlag;
+        
         public MainchainNodeService(
-            IStateStore stateStore,
             ITxHub hub,
             IChainCreationService chainCreationService,
             IBlockSynchronizer blockSynchronizer,
@@ -63,7 +58,6 @@ namespace AElf.Node.AElfChain
             ILogger logger
             )
         {
-            _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _txHub = hub;
@@ -149,7 +143,6 @@ namespace AElf.Node.AElfChain
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
             NodeConfig.Instance.ECKeyPair = conf.KeyPair;
-            _consensus.FillConsensusWithKeyPair();
 
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
@@ -205,12 +198,13 @@ namespace AElf.Node.AElfChain
                 _consensus?.Start();
             }
 
-            //Thread.Sleep(1000);
-            
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
                 await _blockSynchronizer.ReceiveBlock(inBlock.Block);
             });
+
+            MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
+            MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });
 
             #endregion start
 
@@ -230,31 +224,27 @@ namespace AElf.Node.AElfChain
             return _consensus.IsAlive();
         }
 
-        // TODO: 
         public bool IsForked()
         {
-            return false;
+            return _forkFlag;
         }
 
         #region private methods
 
-        private Address GetGenesisContractHash(SmartContractType contractType)
-        {
-            return _chainCreationService.GenesisContractHash(Hash.LoadHex(ChainConfig.Instance.ChainId), contractType);
-        }
+        private Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
 
         private void LogGenesisContractInfo()
         {
-            var genesis = GetGenesisContractHash(SmartContractType.BasicContractZero);
+            var genesis = ContractHelpers.GetGenesisBasicContractAddress(ChainId);
             _logger?.Debug($"Genesis contract address = {genesis.DumpHex()}");
 
-            var tokenContractAddress = GetGenesisContractHash(SmartContractType.TokenContract);
+            var tokenContractAddress = ContractHelpers.GetTokenContractAddress(ChainId);
             _logger?.Debug($"Token contract address = {tokenContractAddress.DumpHex()}");
 
-            var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
+            var consensusAddress = ContractHelpers.GetConsensusContractAddress(ChainId);
             _logger?.Debug($"DPoS contract address = {consensusAddress.DumpHex()}");
 
-            var sidechainContractAddress = GetGenesisContractHash(SmartContractType.SideChainContract);
+            var sidechainContractAddress = ContractHelpers.GetSideChainContractAddress(ChainId);
             _logger?.Debug($"SideChain contract address = {sidechainContractAddress.DumpHex()}");
         }
 
@@ -266,7 +256,7 @@ namespace AElf.Node.AElfChain
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(tokenContractCode),
                 ContractHash = Hash.FromRawBytes(tokenContractCode),
-                Type = (int) SmartContractType.TokenContract
+                SerialNumber = GlobalConfig.TokenContract
             };
 
             var consensusCReg = new SmartContractRegistration
@@ -274,7 +264,7 @@ namespace AElf.Node.AElfChain
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(consensusContractCode),
                 ContractHash = Hash.FromRawBytes(consensusContractCode),
-                Type = (int) SmartContractType.AElfDPoS
+                SerialNumber = GlobalConfig.ConsensusContract
             };
 
             var basicReg = new SmartContractRegistration
@@ -282,7 +272,7 @@ namespace AElf.Node.AElfChain
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(basicContractZero),
                 ContractHash = Hash.FromRawBytes(basicContractZero),
-                Type = (int) SmartContractType.BasicContractZero
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
 
             var sideChainCReg = new SmartContractRegistration
@@ -290,7 +280,7 @@ namespace AElf.Node.AElfChain
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(sideChainGenesisContractCode),
                 ContractHash = Hash.FromRawBytes(sideChainGenesisContractCode),
-                Type = (int) SmartContractType.SideChainContract
+                SerialNumber = GlobalConfig.SideChainContract
             };
             var res = _chainCreationService.CreateNewChainAsync(Hash.LoadHex(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg}).Result;

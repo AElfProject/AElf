@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.Types.CSharp;
@@ -77,6 +78,8 @@ namespace AElf.Runtime.CSharp
                 _methodMap.Add(m.Name, m);
             }
         }
+
+        public Hash ContractHash { get; set; }
 
         public IExecutive SetMaxCallDepth(int maxCallDepth)
         {

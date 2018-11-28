@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Managers;
@@ -15,15 +14,15 @@ namespace AElf.Kernel.Consensus
 {
     // ReSharper disable InconsistentNaming
     // ReSharper disable MemberCanBeMadeStatic.Local
+    // ReSharper disable UnusedMember.Global
     public class AElfDPoSHelper
     {
         private static Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
 
-        private static Address ContractAddress =>
-            AddressHelpers.GetSystemContractAddress(ChainId, SmartContractType.AElfDPoS.ToString());
+        private static Address ContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
         
         private readonly IMinersManager _minersManager;
-        private readonly ILogger _logger;
+        private readonly ILogger _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
         private readonly IStateStore _stateStore;
 
         public List<Address> Miners => _minersManager.GetMiners().Result.Nodes.ToList();
@@ -141,8 +140,6 @@ namespace AElf.Kernel.Consensus
         {
             _stateStore = stateStore;
             _minersManager = minersManager;
-
-            _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
         }
 
         /// <summary>
@@ -191,12 +188,6 @@ namespace AElf.Kernel.Consensus
                     return default(Round);
                 }
             }
-        }
-
-        public async Task<bool> DPoSInformationGenerated()
-        {
-            var bytes = await DataProvider.GetAsync<Miners>(Hash.FromString(GlobalConfig.AElfDPoSOngoingMinersString));
-            return bytes != null && bytes.Length > 0;
         }
 
         public AElfDPoSInformation GenerateInfoForFirstTwoRounds()
@@ -384,7 +375,7 @@ namespace AElf.Kernel.Consensus
 
                 var blockTimeSlot = ExtraBlockTimeSlot;
 
-                //Maybe because something happened with setting extra block time slot.
+                // Maybe because something happened with setting extra block time slot.
                 if (blockTimeSlot.ToDateTime().AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * 1.5) <
                     GetTimestampOfUtcNow().ToDateTime())
                 {
@@ -442,7 +433,6 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        // ReSharper disable once UnusedMember.Global
         public StringValue GetDPoSInfoToString()
         {
             ulong count = 1;
@@ -565,6 +555,7 @@ namespace AElf.Kernel.Consensus
         public void SyncMiningInterval()
         {
             GlobalConfig.AElfDPoSMiningInterval = MiningInterval.Value;
+            _logger?.Info($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
         }
 
         public void LogDPoSInformation(ulong height)
@@ -581,6 +572,7 @@ namespace AElf.Kernel.Consensus
             {
                 currentRoundNumber = CurrentRoundNumber;
             }
+            
             return currentRoundNumber.Value != 0 ? this[currentRoundNumber] : null;
         }
 
@@ -613,7 +605,6 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private UInt64Value RoundNumberMinusOne(UInt64Value currentCount)
         {
             var current = currentCount.Value;
@@ -637,14 +628,13 @@ namespace AElf.Kernel.Consensus
         }
 
         /// <summary>
-        /// In case of forgetting to check negativee value.
+        /// In case of forgetting to check negative value.
         /// For now this method only used for generating order,
         /// so integer should be enough.
         /// </summary>
         /// <param name="uLongVal"></param>
         /// <param name="intVal"></param>
         /// <returns></returns>
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private int GetModulus(ulong uLongVal, int intVal)
         {
             return Math.Abs((int) (uLongVal % (ulong) intVal));

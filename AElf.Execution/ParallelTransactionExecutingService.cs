@@ -12,6 +12,7 @@ using AElf.Execution.Scheduling;
 using AElf.SmartContract;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Address = AElf.Common.Address;
 
 namespace AElf.Execution
 {
@@ -21,9 +22,6 @@ namespace AElf.Execution
         private readonly IActorEnvironment _actorEnvironment;
         private readonly IExecutingService _singlExecutingService;
 
-        // TODO: Move it to config
-        public int TimeoutMilliSeconds { get; set; } = int.MaxValue;
-
         public ParallelTransactionExecutingService(IActorEnvironment actorEnvironment, IGrouper grouper,ServicePack servicePack)
         {
             _actorEnvironment = actorEnvironment;
@@ -32,37 +30,56 @@ namespace AElf.Execution
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken token, Hash disambiguationHash=null)
+            CancellationToken token, Hash disambiguationHash=null, TransactionType transactionType = TransactionType.ContractTransaction)
         {
             token.Register(() => _actorEnvironment.Requestor.Tell(JobExecutionCancelMessage.Instance));
 
             List<List<Transaction>> groups;
-            Dictionary<Transaction, Exception> failedTxs;
+            Dictionary<Transaction, Exception> failedTxs=new Dictionary<Transaction, Exception>();
+            var results = new List<TransactionTrace>();
 
-            var dposTxs = transactions.Where(tx => tx.Type == TransactionType.DposTransaction).ToList();
-            var normalTxs = transactions.Where(tx => tx.Type != TransactionType.DposTransaction).ToList();
-
-            //disable parallel module by default because it doesn't finish yet (don't support contract call)
-            if (ParallelConfig.Instance.IsParallelEnable)
+            if (transactionType == TransactionType.DposTransaction || transactionType == TransactionType.ContractDeployTransaction)
             {
-                var groupRes = await _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins,
-                    ActorConfig.Instance.ConcurrencyLevel, chainId, normalTxs);
-                groups = groupRes.Item1;
-                failedTxs = groupRes.Item2;
+                results = await _singlExecutingService.ExecuteAsync(transactions, chainId, token);
+                
+                if (ActorConfig.Instance.IsCluster)
+                {
+                    var contractAddresses = new List<Address>();
+                    foreach (var tx in transactions)
+                    {
+                        if (tx.MethodName == "UpdateSmartContract")
+                        {
+                            contractAddresses.Add(tx.To);
+                        }
+                    }
+
+                    if (contractAddresses.Count > 0)
+                    {
+                        _actorEnvironment.Requestor.Tell(new UpdateContractMessage {ContractAddress = contractAddresses});
+                    }
+                }
             }
             else
             {
-                groups = new List<List<Transaction>> {normalTxs};
-                failedTxs = new Dictionary<Transaction, Exception>();
-            }
+                //disable parallel module by default because it doesn't finish yet (don't support contract call)
+                if (ParallelConfig.Instance.IsParallelEnable)
+                {
+                    var groupRes = await _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins,
+                        ActorConfig.Instance.ConcurrencyLevel, chainId, transactions);
+                    groups = groupRes.Item1;
+                    failedTxs = groupRes.Item2;
+                }
+                else
+                {
+                    groups = new List<List<Transaction>> {transactions};
+                }
+                
+                var tasks = groups.Select(
+                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, disambiguationHash), token)
+                ).ToArray();
 
-            var dposResult = _singlExecutingService.ExecuteAsync(dposTxs, chainId, token);
-            var tasks = groups.Select(
-                txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, disambiguationHash), token)
-            ).ToArray();
-            
-            var results = dposResult.Result;
-            results.AddRange((await Task.WhenAll(tasks)).SelectMany(x => x).ToList());
+                results = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
+            }
 
             foreach (var failed in failedTxs)
             {
@@ -103,11 +120,6 @@ namespace AElf.Execution
                 ExecutionStatus = ExecutionStatus.Canceled,
                 StdErr = "Execution Canceled"
             }).ToList();
-        }
-
-        private void CancelExecutions()
-        {
-            _actorEnvironment.Requestor.Tell(JobExecutionCancelMessage.Instance);
         }
     }
 }

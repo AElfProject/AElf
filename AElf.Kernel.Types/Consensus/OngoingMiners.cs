@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
@@ -28,8 +29,10 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Miners GetCurrentMiners(ulong roundNumber)
         {
+            PrintMiners();
+            
             return Miners.OrderByDescending(m => m.TakeEffectRoundNumber)
-                .First(m => m.TakeEffectRoundNumber >= roundNumber);
+                .First(m => m.TakeEffectRoundNumber <= roundNumber);
         }
 
         public void UpdateMiners(UInt64Value takeEffectRoundNumber, IEnumerable<Address> nextMinersAddresses)
@@ -55,6 +58,22 @@ namespace AElf.Kernel
             }
             
             Miners.Add(nextMiners);
+        }
+
+        private void PrintMiners()
+        {
+            Console.WriteLine("Ongoing miners list:");
+            foreach (var miner in Miners)
+            {
+                var str = "Take effect round number:" + miner.TakeEffectRoundNumber;
+                foreach (var node in miner.Nodes)
+                {
+                    str += "\n" + node.DumpHex();
+                }
+
+                Console.WriteLine(str);
+            }
+
         }
     }
 }

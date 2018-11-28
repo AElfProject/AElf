@@ -6,5 +6,6 @@ namespace AElf.Kernel.Managers
     {
         Task<Miners> GetMiners();
         Task SetMiners(Miners miners);
+        Task<bool> IsMinersInDatabase();
     }
 }

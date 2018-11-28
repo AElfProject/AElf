@@ -3,7 +3,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
+namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
 {
     // ReSharper disable InconsistentNaming
     public class AElfDPoSFieldMapCollection

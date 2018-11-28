@@ -5,22 +5,22 @@ using Newtonsoft.Json.Linq;
 
 namespace AElf.CLI.Command
 {
-    public class DeployContractCommand : CliCommandDefinition
+    public class UpdateContractCommand : CliCommandDefinition
     {
-        private const string Name = "deploy_contract";
+        private const string Name = "update_contract";
         
-        public DeployContractCommand() : base(Name)
+        public UpdateContractCommand() : base(Name)
         {
         }
 
         public override string GetUsage()
         {
-            return "deploy_contract <category> <filename>";
+            return "update_contract <category> <filename>";
         }
 
         public override string Validate(CmdParseResult parsedCmd)
         {
-            if (parsedCmd.Args == null || parsedCmd.Args.Count != 2)
+            if (parsedCmd.Args == null || parsedCmd.Args.Count != 3)
             {
                 return "Wrong arguments";
             }

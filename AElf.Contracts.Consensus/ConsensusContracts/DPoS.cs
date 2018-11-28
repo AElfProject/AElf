@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Enums;
-using AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections;
+using AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 using AElf.Sdk.CSharp.Types;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Api = AElf.Sdk.CSharp.Api;
 
-namespace AElf.Contracts.Consensus.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContracts
 {
     // ReSharper disable UnusedMember.Global
     // ReSharper disable InconsistentNaming
@@ -21,6 +24,8 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         public ConsensusType Type => ConsensusType.AElfDPoS;
 
         public ulong CurrentRoundNumber => _currentRoundNumberField.GetAsync().Result;
+
+        private Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
 
         public int Interval
         {
@@ -200,11 +205,12 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// [0] Round
         /// [1] Round
         /// [2] StringValue
+        /// [3] Int64Value
         /// </param>
         /// <returns></returns>
         public async Task Update(List<byte[]> args)
         {
-            if (args.Count != 3)
+            if (args.Count != 4)
             {
                 return;
             }
@@ -212,15 +218,23 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             Round currentRoundInfo;
             Round nextRoundInfo;
             StringValue nextExtraBlockProducer;
+            Int64Value roundId;
+
             try
             {
                 currentRoundInfo = Round.Parser.ParseFrom(args[0]);
                 nextRoundInfo = Round.Parser.ParseFrom(args[1]);
                 nextExtraBlockProducer = StringValue.Parser.ParseFrom(args[2]);
+                roundId = Int64Value.Parser.ParseFrom(args[3]);
             }
             catch (Exception e)
             {
                 ConsoleWriteLine(nameof(Update), "Failed to parse from byte array.", e);
+                return;
+            }
+
+            if (!await CheckRoundId(roundId))
+            {
                 return;
             }
 
@@ -235,32 +249,45 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// (I) Publish out value and signature
         /// 5 args:
         /// [0] UInt64Value
-        /// [1] StringValue
+        /// [1] Hash
         /// [2] Hash
-        /// [3] Hash
-        /// [4] Int64Value (not useful here)
+        /// [3] Int64Value
         /// 
         /// (II) Publish in value
         /// 4 args:
         /// [0] UInt64Value
-        /// [1] StringValue
-        /// [2] Hash
-        /// [3] Int64Value (not useful here)
+        /// [1] Hash
+        /// [2] Int64Value
         /// </param>
         /// <returns></returns>
         public async Task Publish(List<byte[]> args)
         {
-            if (args.Count < 4)
+            var fromAddressToHex = new StringValue {Value = Api.GetTransaction().From.DumpHex().RemoveHexPrefix()};
+
+            if (args.Count == 1)
             {
-                return;
+                BoolValue join;
+                
+                try
+                {
+                    join = BoolValue.Parser.ParseFrom(args[0]);
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
+                    return;
+                }
+
+                if (join.Value)
+                {
+                    TransferToAccountZero();
+                }
             }
 
             UInt64Value roundNumber;
-            StringValue accountAddress;
             try
             {
                 roundNumber = UInt64Value.Parser.ParseFrom(args[0]);
-                accountAddress = StringValue.Parser.ParseFrom(args[1]);
             }
             catch (Exception e)
             {
@@ -269,40 +296,54 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             }
 
             // ReSharper disable once ConvertIfStatementToSwitchStatement
-            if (args.Count == 5)
+            if (args.Count == 4)
             {
                 Hash outValue;
                 Hash signature;
+                Int64Value roundId;
 
                 try
                 {
-                    outValue = Hash.Parser.ParseFrom(args[2]);
-                    signature = Hash.Parser.ParseFrom(args[3]);
+                    outValue = Hash.Parser.ParseFrom(args[1]);
+                    signature = Hash.Parser.ParseFrom(args[2]);
+                    roundId = Int64Value.Parser.ParseFrom(args[3]);
                 }
                 catch (Exception e)
                 {
-                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
+                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array.", e);
                     return;
                 }
 
-                await PublishOutValueAndSignature(roundNumber, accountAddress, outValue, signature);
+                if (!await CheckRoundId(roundId))
+                {
+                    return;
+                }
+
+                await PublishOutValueAndSignature(roundNumber, fromAddressToHex, outValue, signature);
             }
 
-            if (args.Count == 4)
+            if (args.Count == 3)
             {
                 Hash inValue;
+                Int64Value roundId;
 
                 try
                 {
-                    inValue = Hash.Parser.ParseFrom(args[2]);
+                    inValue = Hash.Parser.ParseFrom(args[1]);
+                    roundId = Int64Value.Parser.ParseFrom(args[2]);
                 }
                 catch (Exception e)
                 {
-                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
+                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array.", e);
                     return;
                 }
 
-                await PublishInValue(roundNumber, accountAddress, inValue);
+                if (!await CheckRoundId(roundId))
+                {
+                    return;
+                }
+
+                await PublishInValue(roundNumber, fromAddressToHex, inValue);
             }
         }
 
@@ -387,23 +428,33 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private async Task InitializeBlockProducer(Miners miners)
         {
-            miners.TakeEffectRoundNumber = CurrentRoundNumber + 1;
-
-            foreach (var bp in miners.Nodes)
+            var candidates = new Candidates();
+            foreach (var address in miners.Nodes)
             {
-                ConsoleWriteLine(nameof(Initialize), $"Set miner {bp.DumpHex()} to state store");
+                ConsoleWriteLine(nameof(Initialize), $"Set miner {address} to state store.");
+
+                candidates.Nodes.Add(address);
+
+                if (_balanceMap.TryGet(address, out var tickets))
+                {
+                    ConsoleWriteLine(nameof(InitializeBlockProducer),
+                        $"Remaining tickets of {address.DumpHex()}: {tickets.RemainingTickets}");
+                }
             }
 
+            await _candidatesField.SetAsync(candidates);
             await UpdateOngoingMiners(miners);
         }
 
         private async Task UpdateOngoingMiners(Miners miners)
         {
             var ongoingMiners = await _ongoingMinersField.GetAsync();
-            if (ongoingMiners == null)
+            if (ongoingMiners == null || !ongoingMiners.Miners.Any())
             {
                 ongoingMiners = new OngoingMiners();
             }
+
+            miners.TakeEffectRoundNumber = CurrentRoundNumber + 1;
             ongoingMiners.UpdateMiners(miners);
             await _ongoingMinersField.SetAsync(ongoingMiners);
         }
@@ -601,13 +652,27 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                 });
             }
 
-            return nodes.OrderByDescending(n => n.TicketCount).Take(17).Select(n => n.Address).ToList();
+            return nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber)
+                .Select(n => n.Address).ToList();
         }
 
         private async Task<ulong> GetTicketCount(Address address)
         {
             var balance = (await _balanceMap.GetValueAsync(address)).RemainingTickets;
             return balance >= GlobalConfig.LockTokenForElection ? balance - GlobalConfig.LockTokenForElection : 0;
+        }
+
+        private async Task<bool> CheckRoundId(Int64Value roundId)
+        {
+            var currentRoundInfo = await GetCurrentRoundInfo();
+            return currentRoundInfo.RoundId == roundId.Value;
+        }
+
+        private void TransferToAccountZero()
+        {
+            var parameter =
+                ByteString.CopyFrom(ParamsPacker.Pack(TokenContractAddress, GlobalConfig.LockTokenForElection));
+            Api.Call(TokenContractAddress, "Transfer", parameter.ToByteArray());
         }
 
         #endregion

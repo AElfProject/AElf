@@ -77,10 +77,18 @@ namespace AElf.Sdk.CSharp.Types
             return bytes == null || bytes.Length == 0 ? default(TValue) : Api.Serializer.Deserialize<TValue>(bytes);
         }
 
-//        public async Task SetValueAsync(TKey key, TValue value)
-//        {
-//            await DataProvider.SetDataAsync(Hash.FromMessage(key), value);
-//        }
+        public bool TryGet(TKey key, out TValue value)
+        {
+            value = default(TValue);
+            var bytes = DataProvider.GetAsync<TValue>(Hash.FromMessage(key)).Result;
+            if (bytes == null || bytes.Length == 0)
+            {
+                return false;
+            }
+
+            value = Api.Serializer.Deserialize<TValue>(bytes);
+            return true;
+        }
     }
 
     public class MapToBool<TKey> : Map<TKey, BoolValue> where TKey : IMessage

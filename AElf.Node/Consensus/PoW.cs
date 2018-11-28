@@ -10,7 +10,7 @@ namespace AElf.Kernel.Node
             throw new System.NotImplementedException();
         }
 
-        public void Stop()
+        public void DisposeConsensusList()
         {
             throw new System.NotImplementedException();
         }
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Node
             throw new System.NotImplementedException();
         }
 
-        public Task Update()
+        public Task UpdateConsensusEventList()
         {
             throw new System.NotImplementedException();
         }

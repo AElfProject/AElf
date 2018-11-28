@@ -1,8 +1,7 @@
-using AElf.Common;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
+namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
 {
     public class AElfPoWFieldMapCollection
     {

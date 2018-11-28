@@ -10,7 +10,6 @@ namespace AElf.Configuration
     {
         public bool WillingToMine { get; set; }
         public bool IsChainCreator { get; set; }
-        public bool ConsensusInfoGenerator { get; set; }
         public string ExecutorType { get; set; }
         public string NodeName { get; set; }
         public string NodeAccount { get; set; }

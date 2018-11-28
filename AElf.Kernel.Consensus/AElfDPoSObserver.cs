@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Common;
+using AElf.Configuration.Config.Consensus;
 
 namespace AElf.Kernel.Consensus
 {
@@ -66,20 +67,29 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public void Initialization()
+        public IDisposable Initialization()
         {
-            Observable.Return(ConsensusBehavior.InitializeAElfDPoS).Subscribe(this);
+            var timeWaitingOtherNodes = TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval * 2.5);
+            var delayInitialize = Observable
+                .Timer(timeWaitingOtherNodes)
+                .Select(_ => ConsensusBehavior.InitializeAElfDPoS);
+            _logger?.Trace(
+                $"Will initialize dpos information after {timeWaitingOtherNodes.TotalSeconds} seconds - " +
+                $"{DateTime.UtcNow.AddMilliseconds(timeWaitingOtherNodes.TotalMilliseconds):HH:mm:ss.fff}.");
+            return Observable.Return(ConsensusBehavior.NoOperationPerformed).Concat(delayInitialize).Subscribe(this);
         }
 
         public IDisposable RecoverMining()
         {
-            var after = TimeSpan.FromMilliseconds(
+            var timeSureToRecover = TimeSpan.FromMilliseconds(
                 GlobalConfig.AElfDPoSMiningInterval * GlobalConfig.BlockProducerNumber);
             var recoverMining = Observable
-                .Timer(after)
+                .Timer(timeSureToRecover)
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
-            _logger?.Trace($"Will produce extra block after {after.Seconds} seconds due to recover mining process.");
+            _logger?.Trace(
+                $"Will produce extra block after {timeSureToRecover.Seconds} seconds due to recover mining process - " +
+                $"{DateTime.UtcNow.AddMilliseconds(timeSureToRecover.TotalMilliseconds):HH:mm:ss.fff}.");
 
             return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(recoverMining)
@@ -88,17 +98,6 @@ namespace AElf.Kernel.Consensus
 
         public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeSlot)
         {
-//            _logger?.Trace("Extra block time slot of current round: " +
-//                           extraBlockTimeSlot.ToDateTime().ToLocalTime().ToString("HH:mm:ss"));
-//            if (extraBlockTimeSlot.ToDateTime() < DateTime.UtcNow)
-//            {
-//                extraBlockTimeSlot = extraBlockTimeSlot.ToDateTime()
-//                    .AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval * (GlobalConfig.BlockProducerNumber + 2))
-//                    .ToTimestamp();
-//                _logger?.Trace("Extra block time slot changed to: " +
-//                               extraBlockTimeSlot.ToDateTime().ToString("HH:mm:ss"));
-//            }
-
             var nopObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
                 .Select(_ => ConsensusBehavior.NoOperationPerformed);
@@ -116,7 +115,7 @@ namespace AElf.Kernel.Consensus
 
                 if (distanceToProduceNormalBlock >= 0)
                 {
-                    _logger?.Trace($"Will produce normal block after {distanceToProduceNormalBlock} seconds");
+                    _logger?.Trace($"Will produce normal block after {distanceToProduceNormalBlock} seconds - {timeSlot.ToDateTime():HH:mm:ss.fff}.");
                 }
             }
             else
@@ -137,7 +136,7 @@ namespace AElf.Kernel.Consensus
 
                 if (distanceToPublishInValue >= 0)
                 {
-                    _logger?.Trace($"Will publish in value after {distanceToPublishInValue} seconds");
+                    _logger?.Trace($"Will publish in value after {distanceToPublishInValue} seconds - {extraBlockTimeSlot.ToDateTime():HH:mm:ss.fff}.");
                 }
             }
             else
@@ -163,7 +162,7 @@ namespace AElf.Kernel.Consensus
 
                 if (after >= 0)
                 {
-                    _logger?.Trace($"Will produce extra block after {after} seconds");
+                    _logger?.Trace($"Will produce extra block after {after} seconds - {extraBlockTimeSlot.ToDateTime().AddMilliseconds(4000):HH:mm:ss.fff}.");
                 }
             }
             else
@@ -179,7 +178,7 @@ namespace AElf.Kernel.Consensus
 
                 if (after >= 0)
                 {
-                    _logger?.Trace($"Will help to produce extra block after {after} seconds");
+                    _logger?.Trace($"Will help to produce extra block after {after} seconds.");
                 }
             }
 
