@@ -11,6 +11,7 @@ namespace AElf.Common
         public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
         public static readonly string GenesisSideChainContractAssemblyName = "AElf.Contracts.SideChain";
+        public static readonly string GenesisAuthorizationContractAssemblyName = "AElf.Contracts.Authorization";
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
