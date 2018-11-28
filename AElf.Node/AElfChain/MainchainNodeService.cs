@@ -360,7 +360,11 @@ namespace AElf.Node.AElfChain
         public async Task<Block> GetBlockFromHash(Hash hash)
         {
             var block = await Task.Run(() => (Block) _blockSynchronizer.GetBlockByHash(hash));
-            return block != null ? await FillBlockWithTransactionList(block) : null;
+            if (block == null)
+                return null;
+            if (block.Body.TransactionList.Count > 0)
+                return block;
+            return await FillBlockWithTransactionList(block);
         }
         
         private async Task<Block> FillBlockWithTransactionList(Block block)

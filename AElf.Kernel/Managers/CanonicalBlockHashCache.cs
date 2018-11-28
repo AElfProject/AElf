@@ -28,9 +28,7 @@ namespace AElf.Kernel.Managers
                 return _currentHeight;
             }
         }
-
-        private bool _doingRollback;
-
+        
         private readonly ConcurrentDictionary<ulong, Hash> _blocks = new ConcurrentDictionary<ulong, Hash>();
 
         public CanonicalBlockHashCache(ILightChain lightChain, ILogger logger = null)
@@ -42,9 +40,6 @@ namespace AElf.Kernel.Managers
 
             MessageHub.Instance.Subscribe<BranchRolledBack>(
                 async r => await RecoverCurrent());
-
-            MessageHub.Instance.Subscribe<RollBackStateChanged>(state => _doingRollback = state.DoingRollback);
-
         }
 
         public Hash GetHashByHeight(ulong height)

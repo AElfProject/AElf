@@ -2,6 +2,7 @@
 using AElf.Miner.Miner;
 using NLog;
 using AElf.Common;
+using AElf.Configuration.Config.Consensus;
 using AElf.Miner.TxMemPool;
 
 // ReSharper disable once CheckNamespace
@@ -51,11 +52,11 @@ namespace AElf.Kernel.Node
                 var count = (ulong)(await _txHub.GetReceiptsOfExecutablesAsync()).Count;
                 if (ConsensusMemory != count)
                 {
-                    _logger?.Trace($"Current tx pool size: {count} / {GlobalConfig.ExpectedTransactionCount}");
+                    _logger?.Trace($"Current tx pool size: {count} / {ConsensusConfig.Instance.ExpectedTransactionCount}");
                     ConsensusMemory = count;
                 }
 
-                if (count >= GlobalConfig.ExpectedTransactionCount)
+                if (count >= ConsensusConfig.Instance.ExpectedTransactionCount)
                 {
                     _logger?.Trace("Will produce one block.");
                     await _miner.Mine();
