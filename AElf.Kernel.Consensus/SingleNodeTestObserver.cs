@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NLog;
 using AElf.Common;
+using AElf.Configuration.Config.Consensus;
 
 namespace AElf.Kernel.Consensus
 {
@@ -42,7 +43,7 @@ namespace AElf.Kernel.Consensus
         public IDisposable SubscribeSingleNodeTestProcess()
         {
             return Observable
-                .Interval(TimeSpan.FromMilliseconds(GlobalConfig.SingleNodeTestMiningInterval))
+                .Interval(TimeSpan.FromMilliseconds(ConsensusConfig.Instance.SingleNodeTestMiningInterval))
                 .Subscribe(this);
         }
 

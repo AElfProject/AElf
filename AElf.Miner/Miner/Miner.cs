@@ -9,6 +9,7 @@ using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -127,6 +128,8 @@ namespace AElf.Miner.Miner
                 }
                 // append block
                 await _blockChain.AddBlocksAsync(new List<IBlock> {block});
+                
+                MessageHub.Instance.Publish(new BlockMined(block));
 
                 // insert to db
                 Update(results, block);
@@ -135,7 +138,7 @@ namespace AElf.Miner.Miner
                     await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
                 }*/
                 await _txHub.OnNewBlock((Block)block);
-                MessageHub.Instance.Publish(new BlockMined(block));
+                MessageHub.Instance.Publish(new BlockMinedAndStored(block));
                 stopwatch.Stop();
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
@@ -470,7 +473,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init()
         {
-            _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
+            _timeoutMilliseconds = ConsensusConfig.Instance.DPoSMiningInterval * 3 / 4;
             _keyPair = NodeConfig.Instance.ECKeyPair;
             _producerAddress = Address.FromRawBytes(_keyPair.GetEncodedPublicKey());
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
