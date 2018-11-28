@@ -38,8 +38,8 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task<T> GetAsync()
         {
-            var bytes = await Api.GetDataProvider("").GetAsync<T>(Hash.FromString(_name));
-            return bytes == null ? default(T) : Api.Serializer.Deserialize<T>(bytes);
+            var bytes = await Api.GetDataProvider("").GetAsync<T>(Hash.FromString(_name)) ?? new byte[0];
+            return Api.Serializer.Deserialize<T>(bytes);
         }
     }
 
@@ -165,7 +165,7 @@ namespace AElf.Sdk.CSharp.Types
         
         public async Task<ulong> GetAsync()
         {
-            return (await _inner.GetAsync())?.Value ?? 0;
+            return (await _inner.GetAsync())?.Value ?? default(ulong);
         }
     }
 
@@ -260,7 +260,7 @@ namespace AElf.Sdk.CSharp.Types
         
         public async Task<byte[]> GetAsync()
         {
-            return (await _inner.GetAsync())?.Value.ToByteArray() ?? new byte[] { };
+            return (await _inner.GetAsync())?.Value.ToByteArray() ?? new byte[0];
         }
     }
 

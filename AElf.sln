@@ -137,6 +137,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorizatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization.Tests", "AElf.Contracts.Authorization.Tests\AElf.Contracts.Authorization.Tests.csproj", "{322850D0-CCBB-402D-AFFB-12EE43BCB09A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource", "AElf.Contracts.Resource\AElf.Contracts.Resource.csproj", "{36CC4FD2-593E-41E8-9EE7-8E6F7690A0D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -395,6 +397,10 @@ Global
 		{322850D0-CCBB-402D-AFFB-12EE43BCB09A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{322850D0-CCBB-402D-AFFB-12EE43BCB09A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{322850D0-CCBB-402D-AFFB-12EE43BCB09A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36CC4FD2-593E-41E8-9EE7-8E6F7690A0D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36CC4FD2-593E-41E8-9EE7-8E6F7690A0D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36CC4FD2-593E-41E8-9EE7-8E6F7690A0D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36CC4FD2-593E-41E8-9EE7-8E6F7690A0D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -437,5 +443,6 @@ Global
 		{F9D2366D-4579-48A6-A243-C0F9204F91B3} = {C6A345D9-1995-41C8-AB20-BED8B4FE6857}
 		{E001C82B-5C58-43B3-B676-A8A376E4597C} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{322850D0-CCBB-402D-AFFB-12EE43BCB09A} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{36CC4FD2-593E-41E8-9EE7-8E6F7690A0D8} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 	EndGlobalSection
 EndGlobal

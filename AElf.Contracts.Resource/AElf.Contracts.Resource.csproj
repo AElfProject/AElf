@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <Exec Command="protoc --proto_path=./Protobuf --csharp_out=./Protobuf --csharp_opt=file_extension=.g.cs ./Protobuf/entities.proto" />
+    </Target>
+
+</Project>
