@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
@@ -151,12 +152,17 @@ namespace AElf.Miner.TxMemPool
             return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).ToList());
         }
 
-        public async Task<List<TransactionReceipt>> GetReceiptsForAsync(IEnumerable<Transaction> transactions)
+        public async Task<List<TransactionReceipt>> GetReceiptsForAsync(IEnumerable<Transaction> transactions,CancellationTokenSource cancellationTokenSource)
         {
             var trs = new List<TransactionReceipt>();
             // TODO: Check if parallelization is needed
             foreach (var txn in transactions)
             {
+                if (cancellationTokenSource.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
                 {
                     tr = new TransactionReceipt(txn);

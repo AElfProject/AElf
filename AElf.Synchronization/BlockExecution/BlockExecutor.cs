@@ -10,9 +10,12 @@ using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.Consensus;
 using AElf.Execution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
@@ -35,6 +38,8 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
         private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly IStateStore _stateStore;
+        private readonly DPoSInfoProvider _dpoSInfoProvider;
 
         private static bool _executing;
         private static bool _prepareTerminated;
@@ -42,7 +47,7 @@ namespace AElf.Synchronization.BlockExecution
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic,IStateStore stateStore)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -51,10 +56,11 @@ namespace AElf.Synchronization.BlockExecution
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
             _chainManagerBasic = chainManagerBasic;
+            _stateStore = stateStore;
+            _dpoSInfoProvider = new DPoSInfoProvider(_stateStore);
+            
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
             
-            Cts = new CancellationTokenSource();
-
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
 
             _executing = false;
@@ -77,11 +83,6 @@ namespace AElf.Synchronization.BlockExecution
                 }
             });
         }
-
-        /// <summary>
-        /// Signals to a CancellationToken that mining should be canceled
-        /// </summary>
-        private CancellationTokenSource Cts { get; set; }
 
         private string _current;
 
@@ -119,6 +120,7 @@ namespace AElf.Synchronization.BlockExecution
 
             var txnRes = new List<TransactionResult>();
             var readyTxs = new List<Transaction>();
+            var cts = new CancellationTokenSource();
 
             BlockExecutionResult res = BlockExecutionResult.Fatal;
             try
@@ -134,7 +136,27 @@ namespace AElf.Synchronization.BlockExecution
 
                 readyTxs = tuple.Item2;
 
-                var trs = await _txHub.GetReceiptsForAsync(readyTxs);
+                var distanceToTimeSlot = (double)ConsensusConfig.Instance.DPoSMiningInterval;
+                if (block.Header.Index > 2)
+                {
+                    var timeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlot();
+                    if (timeSlot > 0)
+                    {
+                        distanceToTimeSlot = timeSlot;
+                    }
+
+                    Console.WriteLine("zxtest:" + distanceToTimeSlot);
+                }
+
+                cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * 3 / 4));
+
+                var trs = await _txHub.GetReceiptsForAsync(readyTxs, cts);
+                
+                if (cts.IsCancellationRequested)
+                {
+                    return BlockExecutionResult.ExecutionCancelled;
+                }
+
                 foreach (var tr in trs)
                 {
                     if (!tr.IsExecutable)
@@ -143,7 +165,14 @@ namespace AElf.Synchronization.BlockExecution
                     }
                 }
 
-                txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
+                txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash(),cts);
+                
+                if (cts.IsCancellationRequested)
+                {
+                    Rollback(block, txnRes).ConfigureAwait(false);
+                    return BlockExecutionResult.ExecutionCancelled;
+                }
+                
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
                 _logger?.Trace("Transaction Results:");
@@ -191,6 +220,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 _current = null;
                 _executing = false;
+                cts.Dispose();
                 if (_prepareTerminated)
                 {
                     _terminated = true;
@@ -213,11 +243,11 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="disambiguationHash"></param>
         /// <returns></returns>
         private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId,
-            Hash disambiguationHash)
+            Hash disambiguationHash,CancellationTokenSource cancellationTokenSource)
         {
             var traces = readyTxs.Count == 0
                 ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(readyTxs, chainId, Cts.Token, disambiguationHash);
+                : await _executingService.ExecuteAsync(readyTxs, chainId, cancellationTokenSource.Token, disambiguationHash);
 
             var results = new List<TransactionResult>();
             foreach (var trace in traces)
@@ -264,12 +294,7 @@ namespace AElf.Synchronization.BlockExecution
         {
             string errorLog = null;
             var res = BlockExecutionResult.PrepareSuccess;
-            if (Cts == null || Cts.IsCancellationRequested)
-            {
-                errorLog = "ExecuteBlock - Execution cancelled.";
-                res = BlockExecutionResult.ExecutionCancelled;
-            }
-            else if (block?.Header == null)
+            if (block?.Header == null)
             {
                 errorLog = "ExecuteBlock - Block is null.";
                 res = BlockExecutionResult.BlockIsNull;
