@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
-using AElf.Miner.EventMessages;
 using Easy.MessageHub;
 using NLog;
 
@@ -38,7 +36,7 @@ namespace AElf.Miner.TxMemPool
             var toRemove = new List<Transaction>();
             
             // remove cross chain transaction from others
-            // actually this should be empty, because this transaction type won't be broadcasted  
+            // actually this should be empty, because this transaction type won't be broadcast  
             var crossChainTxnsFromOthers = list.FindAll(tx =>
                 tx.Type == TransactionType.CrossChainBlockInfoTransaction &&
                 tx.From != Address.Parse(NodeConfig.Instance.NodeAccount)).ToList();
@@ -160,13 +158,8 @@ namespace AElf.Miner.TxMemPool
             _logger = LogManager.GetLogger(nameof(TransactionFilter));
         }
 
-        public IEnumerable<Transaction> Execute(List<Transaction> txs)
+        public void Execute(List<Transaction> txs)
         {
-            _logger?.Trace("Before");
-            PrintTxList(txs);
-
-            var removeFromTxPool = new List<Transaction>();
-
             var filterList = _txFilter.GetInvocationList();
             foreach (var @delegate in filterList)
             {
@@ -174,7 +167,6 @@ namespace AElf.Miner.TxMemPool
                 try
                 {
                     var toRemove = filter(txs, _logger);
-                    removeFromTxPool.AddRange(toRemove);
                     foreach (var transaction in toRemove)
                     {
                         txs.Remove(transaction);
@@ -186,11 +178,6 @@ namespace AElf.Miner.TxMemPool
                     throw;
                 }
             }
-
-            _logger?.Trace("After");
-            PrintTxList(txs);
-
-            return removeFromTxPool;
         }
 
         private void PrintTxList(IEnumerable<Transaction> txs)

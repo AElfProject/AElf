@@ -45,6 +45,7 @@ namespace AElf.Node.AElfChain
         private readonly IBlockSynchronizer _blockSynchronizer;
 
         private IBlockChain _blockChain;
+        
         private IConsensus _consensus;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
@@ -303,7 +304,7 @@ namespace AElf.Node.AElfChain
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService, _blockSynchronizer);
+                    _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService);
                     break;
 
                 case ConsensusType.PoTC:
@@ -340,7 +341,7 @@ namespace AElf.Node.AElfChain
                 return null;
             }
             
-            var block = (Block) await _chainService.GetBlockChain(Hash.Default).GetBlockByHeightAsync((ulong)height);
+            var block = (Block) await _blockChain.GetBlockByHeightAsync((ulong)height);
             return block != null ? await FillBlockWithTransactionList(block) : null;
         }
         

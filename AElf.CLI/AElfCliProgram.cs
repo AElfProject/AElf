@@ -309,10 +309,7 @@ namespace AElf.CLI
                         byte[] sc = screader.Read(filename);
                         string hex = sc.ToHex();
 
-                        var name = GlobalConfig.GenesisBasicContract;
-                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
-            
-                        if (m == null)
+                        if (!_loadedModules.TryGetValue(_genesisAddress, out var m))
                         {
                             _screenManager.PrintError(AbiNotLoaded);
                             return;
@@ -415,10 +412,7 @@ namespace AElf.CLI
                         byte[] sc = screader.Read(filename);
                         string hex = sc.ToHex();
 
-                        var name = GlobalConfig.GenesisBasicContract;
-                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
-            
-                        if (m == null)
+                        if (!_loadedModules.TryGetValue(_genesisAddress, out var m))
                         {
                             _screenManager.PrintError(AbiNotLoaded);
                             return;

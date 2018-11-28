@@ -144,7 +144,7 @@ namespace AElf.Network.Peers
         }
 
         /// <summary>
-        /// Will trigger the request for the next annoucement. If there's no more announcements to sync
+        /// Will trigger the request for the next announcement. If there's no more announcements to sync
         /// this method return false. The only way to trigger the sync is to call this method with an
         /// announcement previously added to the stash.
         /// </summary>
@@ -163,13 +163,13 @@ namespace AElf.Network.Peers
 
             var nextAnouncement = _announcements.OrderBy(a => a.Height).First();
 
-            if (expected.HasValue && expected.Value != nextAnouncement.Height)
-            {
-                SyncedAnnouncement = null;
-                _logger?.Trace($"Sync not possible: expected {expected.Value}, current {nextAnouncement.Height}.");
-                
-                return false;
-            }
+//            if (expected.HasValue && expected.Value != nextAnouncement.Height)
+//            {
+//                SyncedAnnouncement = null;
+//                _logger?.Trace($"Sync not possible: expected {expected.Value}, current {nextAnouncement.Height}.");
+//                
+//                return false;
+//            }
 
             SyncedAnnouncement = nextAnouncement;
             _announcements.Remove(SyncedAnnouncement);
@@ -284,7 +284,11 @@ namespace AElf.Network.Peers
             EnqueueOutgoing(message, (_) =>
             {
                 blockRequest.Start();
-                _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
+                
+                if (blockRequest.IsById)
+                    _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
+                else
+                    _logger?.Trace($"[{this}] Block request sent {{ height: {blockRequest.Height} }}");
             });            
         }
 
@@ -310,7 +314,11 @@ namespace AElf.Network.Peers
                             return;
                         
                         req.Start();
-                        _logger?.Trace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
+                        
+                        if (req.IsById)
+                            _logger?.Trace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
+                        else
+                            _logger?.Trace($"[{this}] Block request sent {{ height: {req.Height} }}");
                     });
                 }
                 else

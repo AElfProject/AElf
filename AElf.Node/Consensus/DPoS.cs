@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -7,12 +6,14 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
+using AElf.Common.FSM;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Miner.Miner;
+using AElf.Node;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
@@ -21,7 +22,6 @@ using NLog;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Common;
-using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Base58Check;
 
@@ -38,12 +38,11 @@ namespace AElf.Kernel.Node
 
         private static IDisposable ConsensusDisposable { get; set; }
 
-        private bool isMining;
+        private bool _consensusInitialized;
 
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
-        private readonly IBlockSynchronizer _synchronizer;
 
         private IBlockChain _blockChain;
 
@@ -54,6 +53,10 @@ namespace AElf.Kernel.Node
         private readonly ILogger _logger;
 
         private static AElfDPoSHelper Helper;
+
+        private static int _lockNumber;
+
+        private NodeState CurrentState { get; set; } = NodeState.Catching;
 
         /// <summary>
         /// In Value and Out Value.
@@ -69,16 +72,14 @@ namespace AElf.Kernel.Node
 
         private static int _flag;
 
-        private static bool _hangOnMining;
-
         private static bool _prepareTerminated;
+        
         private static bool _terminated;
 
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner,
-            IChainService chainService, IBlockSynchronizer synchronizer)
+        public DPoS(IStateStore stateStore, ITxHub txHub, IMiner miner, IChainService chainService)
         {
             _nodeKey = NodeConfig.Instance.ECKeyPair;
             _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
@@ -87,7 +88,6 @@ namespace AElf.Kernel.Node
             _txHub = txHub;
             _miner = miner;
             _chainService = chainService;
-            _synchronizer = synchronizer;
             _prepareTerminated = false;
             _terminated = false;
 
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Node
             {
                 AElfDPoSObserver.RecoverMining();
             }
-            
+
             MessageHub.Instance.Subscribe<UpdateConsensus>(async option =>
             {
                 if (option == UpdateConsensus.Update)
@@ -123,44 +123,14 @@ namespace AElf.Kernel.Node
                 }
             });
 
-            MessageHub.Instance.Subscribe<SyncStateChanged>(async inState =>
-            {
-                if (inState.IsSyncing)
-                {
-                    _logger?.Trace("SyncStateChanged - Mining locked.");
-                    Hang();
-                }
-                else
-                {
-                    _logger?.Trace("SyncStateChanged - Mining unlocked.");
-                    await Start();
-                }
-            });
-
             MessageHub.Instance.Subscribe<LockMining>(async inState =>
             {
                 if (inState.Lock)
                 {
-                    _logger?.Trace("LockMining - Mining locked.");
-                    Hang();
+                    IncrementLockNumber();
                 }
                 else
                 {
-                    _logger?.Trace("LockMining - Mining unlocked.");
-                    await Start();
-                }
-            });
-            
-            MessageHub.Instance.Subscribe<CatchingUpAfterRollback>(async inState =>
-            {
-                if (inState.IsCatchingUp)
-                {
-                    _logger?.Trace("CatchingUp - Mining locked.");
-                    Hang();
-                }
-                else
-                {
-                    _logger?.Trace("CatchingUp - Mining unlocked.");
                     await Start();
                 }
             });
@@ -172,6 +142,8 @@ namespace AElf.Kernel.Node
                     _prepareTerminated = true;
                 }
             });
+
+            MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { CurrentState = inState.CurrentState; });
         }
 
         private static Miners Miners
@@ -193,16 +165,17 @@ namespace AElf.Kernel.Node
 
         public async Task Start()
         {
+            // Consensus information already generated.
             if (ConsensusDisposable != null)
             {
-                Recover();
+                DecrementLockNumber();
                 return;
             }
 
-            if (isMining)
+            if (_consensusInitialized)
                 return;
 
-            isMining = true;
+            _consensusInitialized = true;
 
             // Check whether this node contained BP list.
             if (!Miners.Nodes.Contains(_nodeAddress.GetFormatted()))
@@ -210,7 +183,7 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            if (NodeConfig.Instance.ConsensusInfoGenerator && !await Helper.HasGenerated())
+            if (NodeConfig.Instance.ConsensusInfoGenerator && !await Helper.DPoSInformationGenerated())
             {
                 AElfDPoSObserver.Initialization();
                 return;
@@ -231,14 +204,22 @@ namespace AElf.Kernel.Node
             _logger?.Trace("Mining stopped. Disposed previous consensus observables list.");
         }
 
-        public void Hang()
+        public void IncrementLockNumber()
         {
-            _hangOnMining = true;
+            Interlocked.Add(ref _lockNumber, 1);
+            _logger?.Trace($"Lock number increment: {_lockNumber}");
         }
 
-        public void Recover()
+        public void DecrementLockNumber()
         {
-            _hangOnMining = false;
+            if (_lockNumber <= 0)
+            {
+                _logger?.Trace("Can't decrese lock number when it's less than 1.");
+                return;
+            }
+
+            Interlocked.Add(ref _lockNumber, -1);
+            _logger?.Trace($"Lock number decrement: {_lockNumber}");
         }
 
         private async Task<IBlock> Mine()
@@ -282,10 +263,10 @@ namespace AElf.Kernel.Node
                     {
                         P = ByteString.CopyFrom(_nodeKey.GetEncodedPublicKey())
                     },
-                    Type = TransactionType.DposTransaction
-                };
+                    Type = TransactionType.DposTransaction,
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.Select(p => (object) p).ToArray()))
 
-                tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.Select(p => (object) p).ToArray()));
+                };
 
                 var signer = new ECSigner();
                 var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
@@ -295,6 +276,11 @@ namespace AElf.Kernel.Node
                 tx.Sig.S = ByteString.CopyFrom(signature.S);
 
                 _logger?.Trace("Leaving generating tx.");
+
+                if (tx.MethodName != ConsensusBehavior.PublishInValue.ToString())
+                {
+                    MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
+                }
 
                 return tx;
             }
@@ -318,9 +304,21 @@ namespace AElf.Kernel.Node
         {
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
-            
-            if (_hangOnMining || _terminated)
+
+            if (_terminated)
             {
+                return;
+            }
+
+            if (!CurrentState.AbleToMine())
+            {
+                return;
+            }
+
+            if (await Helper.DPoSInformationGenerated())
+            {
+                _logger?.Trace($"Failed to enter {nameof(MiningWithInitializingAElfDPoSInformation)} because " +
+                               $"DPoS information already generated.");
                 return;
             }
 
@@ -331,14 +329,14 @@ namespace AElf.Kernel.Node
                 if (lockWasTaken)
                 {
                     MessageHub.Instance.Publish(new DPoSStateChanged(ConsensusBehavior.InitializeAElfDPoS, true));
-                    _logger?.Trace(
-                        $"Mine - Entered DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
 
-                    if (await Helper.HasGenerated())
+                    if (MiningLocked())
                     {
-                        MessageHub.Instance.Publish(new LockMining(true));
                         return;
                     }
+                    
+                    _logger?.Trace(
+                        $"Mine - Entered DPoS Mining Process - {nameof(MiningWithInitializingAElfDPoSInformation)}.");
 
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
                     var parameters = new List<byte[]>
@@ -383,8 +381,13 @@ namespace AElf.Kernel.Node
         {
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
-             
-            if (_hangOnMining || _terminated)
+
+            if (_terminated)
+            {
+                return;
+            }
+            
+            if (!CurrentState.AbleToMine())
             {
                 return;
             }
@@ -397,6 +400,12 @@ namespace AElf.Kernel.Node
                 {
                     MessageHub.Instance.Publish(new DPoSStateChanged(ConsensusBehavior.PublishOutValueAndSignature,
                         true));
+
+                    if (MiningLocked())
+                    {
+                        return;
+                    }
+                    
                     _logger?.Trace(
                         $"Mine - Entered DPoS Mining Process - {nameof(MiningWithPublishingOutValueAndSignature)}.");
 
@@ -458,8 +467,13 @@ namespace AElf.Kernel.Node
         {
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(PublishInValue)}.");
+
+            if (_terminated)
+            {
+                return;
+            }
             
-            if (_hangOnMining || _terminated)
+            if (!CurrentState.AbleToMine())
             {
                 return;
             }
@@ -470,6 +484,13 @@ namespace AElf.Kernel.Node
                 lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
                 if (lockWasTaken)
                 {
+                    MessageHub.Instance.Publish(new DPoSStateChanged(ConsensusBehavior.PublishInValue, true));
+
+                    if (MiningLocked())
+                    {
+                        return;
+                    }
+                    
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {nameof(PublishInValue)}.");
 
                     var currentRoundNumber = Helper.CurrentRoundNumber;
@@ -502,6 +523,8 @@ namespace AElf.Kernel.Node
                     Thread.VolatileWrite(ref _flag, 0);
                 }
 
+                MessageHub.Instance.Publish(new DPoSStateChanged(ConsensusBehavior.PublishInValue, false));
+
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {nameof(PublishInValue)}.");
             }
         }
@@ -517,8 +540,13 @@ namespace AElf.Kernel.Node
         {
             _logger?.Trace(
                 $"Trying to enter DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
-             
-            if (_hangOnMining || _terminated)
+
+            if (_terminated)
+            {
+                return;
+            }
+            
+            if (!CurrentState.AbleToMine())
             {
                 return;
             }
@@ -530,6 +558,12 @@ namespace AElf.Kernel.Node
                 if (lockWasTaken)
                 {
                     MessageHub.Instance.Publish(new DPoSStateChanged(ConsensusBehavior.UpdateAElfDPoS, true));
+
+                    if (MiningLocked())
+                    {
+                        return;
+                    }
+                    
                     _logger?.Trace(
                         $"Mine - Entered DPoS Mining Process - {nameof(MiningWithUpdatingAElfDPoSInformation)}.");
 
@@ -619,6 +653,7 @@ namespace AElf.Kernel.Node
             {
                 throw new ArgumentException(nameof(tx));
             }
+
             if (tx.Type == TransactionType.DposTransaction)
             {
                 MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().DumpHex()));
@@ -638,6 +673,11 @@ namespace AElf.Kernel.Node
         {
             _terminated = true;
             return _terminated;
+        }
+
+        private bool MiningLocked()
+        {
+            return _lockNumber != 0;
         }
     }
 }

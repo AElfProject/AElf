@@ -25,7 +25,7 @@ namespace AElf.Common
         public static readonly UInt64 TokenContract = 2;
         public static readonly UInt64 SideChainContract = 3;
         
-        public static int InvertibleChainHeight = 8;
+        public static int InvertibleChainHeight = 4;
 
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;

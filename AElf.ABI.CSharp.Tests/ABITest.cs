@@ -4,8 +4,10 @@ using Google.Protobuf;
 using AElf.ABI.CSharp;
 using Xunit;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ABI.Tests
 {
+    // ReSharper disable once InconsistentNaming
     public class ABITest
     {
         [Fact]

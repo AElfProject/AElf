@@ -120,7 +120,7 @@ namespace AElf.Node.Protocol
                 LocalHeight++;
             });
 
-            MessageHub.Instance.Subscribe<BlockExecuted>(inBlock =>
+            MessageHub.Instance.Subscribe<BlockAccepted>(inBlock =>
             {
                 if (inBlock?.Block == null)
                 {
@@ -626,6 +626,12 @@ namespace AElf.Node.Protocol
                     a.Height <= CurrentSyncSource.SyncTarget)
                 {
                     _logger?.Trace($"Peer {peer} : ignoring announce {a.Height} because history sync will fetch (sync target {CurrentSyncSource.SyncTarget}).");
+                    return;
+                }
+
+                if (UnlinkableHeaderIndex != 0)
+                {
+                    _logger?.Trace($"Peer {peer} : ignoring announce {a.Height} because we're syncing unlinkable.");
                     return;
                 }
                 

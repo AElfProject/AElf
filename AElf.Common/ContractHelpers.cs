@@ -29,22 +29,5 @@ namespace AElf.Common
         {
             return Address.BuildContractAddress(chainId, GlobalConfig.SideChainContract);
         }
-
-        public static string GetSystemContractName(UInt64 serialNumber)
-        {
-            switch (serialNumber)
-            {
-                    case 0:
-                        return "BasicContractZero";
-                    case 1:
-                        return "AElfDPoS";
-                    case 2:
-                        return "TokenContract";
-                    case 3:
-                        return "SideChainContract";
-                    default:
-                        throw new ArgumentException($"SerialNumber:{serialNumber} not exist.");
-            }
-        }
     }
 }
