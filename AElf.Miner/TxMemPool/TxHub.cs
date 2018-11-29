@@ -370,12 +370,10 @@ namespace AElf.Miner.TxMemPool
         {
             var minBN = blocks.Select(x => x.Header.Index).Min();
 
-            // Invalid RefBlock becomes unknown
-            foreach (var tr in _allTxns.Where(x =>
-                x.Value.Transaction.RefBlockNumber >= minBN &&
-                x.Value.RefBlockSt == TransactionReceipt.Types.RefBlockStatus.RefBlockInvalid))
+            // Valid and Invalid RefBlock becomes unknown
+            foreach (var tr in _allTxns.Where(x => x.Value.Transaction.RefBlockNumber >= minBN))
             {
-                tr.Value.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.UnknownRefBlockStatus;
+                tr.Value.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.FutureRefBlock;
             }
 
             // Executed transactions added back to pending
@@ -401,7 +399,7 @@ namespace AElf.Miner.TxMemPool
                     tr.ExecutedBlockNumber = 0;
                     if (tr.Transaction.RefBlockNumber >= minBN)
                     {
-                        tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.UnknownRefBlockStatus;
+                        tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.FutureRefBlock;
                     }
                 }
             }

@@ -9,6 +9,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
 using NLog;
+using NLog.Fluent;
 
 namespace AElf.Miner.TxMemPool
 {
@@ -22,7 +23,7 @@ namespace AElf.Miner.TxMemPool
         private static readonly WhoIsFirst IsFirst = (t1, t2) => t1.Time.Nanos > t2.Time.Nanos ? -1 : 1;
         private readonly ILogger _logger;
 
-        private static string _latestTx;
+        private static readonly List<string> _latestTxs = new List<string>();
 
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _generatedByMe = (list, logger) =>
         {
@@ -67,8 +68,10 @@ namespace AElf.Miner.TxMemPool
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.InitializeAElfDPoS.ToString());
             if (count > 1)
             {
-                toRemove.AddRange(list.FindAll(tx => tx.GetHash().DumpHex() != _latestTx));
+                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
             }
+
+            _latestTxs.Clear();
 
             toRemove.AddRange(
                 list.FindAll(tx => tx.MethodName != ConsensusBehavior.InitializeAElfDPoS.ToString()));
@@ -87,8 +90,10 @@ namespace AElf.Miner.TxMemPool
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PublishOutValueAndSignature.ToString());
             if (count > 1)
             {
-                toRemove.AddRange(list.FindAll(tx => tx.GetHash().DumpHex() != _latestTx));
+                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
             }
+
+            _latestTxs.Clear();
 
             toRemove.AddRange(
                 list.FindAll(tx => tx.MethodName != ConsensusBehavior.PublishOutValueAndSignature.ToString()));
@@ -101,15 +106,20 @@ namespace AElf.Miner.TxMemPool
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
 
-        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneUpdateAElfDPoSTx = (list, logger) =>
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneUpdateAElfDPoSTxAndOnePublishInValueTxByMe = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString());
-            if (count > 1)
-            {
-                toRemove.AddRange(list.FindAll(tx => tx.GetHash().DumpHex() != _latestTx));
-            }
+            toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
 
+            _latestTxs.Clear();
+
+            var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.PublishInValue.ToString())?.RefBlockNumber;
+            if (correctRefBlockNumber.HasValue)
+            {
+                toRemove.AddRange(list.FindAll(tx => tx.RefBlockNumber != correctRefBlockNumber && tx.MethodName == ConsensusBehavior.PublishInValue.ToString()));
+            }
+            
             toRemove.AddRange(
                 list.FindAll(tx =>
                     tx.MethodName != ConsensusBehavior.UpdateAElfDPoS.ToString() &&
@@ -117,7 +127,7 @@ namespace AElf.Miner.TxMemPool
 
             if (count == 0)
             {
-                logger?.Warn("No UpdateAElfDPoS tx in pool.");
+                logger?.Warn("No UpdateAElfDPoS tx or PublishInValue tx in pool.");
             }
 
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
@@ -125,7 +135,7 @@ namespace AElf.Miner.TxMemPool
 
         public TransactionFilter()
         {
-            MessageHub.Instance.Subscribe<DPoSTransactionGenerated>(inTxId => { _latestTx = inTxId.TransactionId; });
+            MessageHub.Instance.Subscribe<DPoSTransactionGenerated>(inTxId => { _latestTxs.Add(inTxId.TransactionId); });
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
                 if (inState.IsMining)
@@ -147,7 +157,7 @@ namespace AElf.Miner.TxMemPool
                             break;
                         case ConsensusBehavior.UpdateAElfDPoS:
                             _txFilter = null;
-                            _txFilter += _oneUpdateAElfDPoSTx;
+                            _txFilter += _oneUpdateAElfDPoSTxAndOnePublishInValueTxByMe;
                             break;
                     }
                 }
