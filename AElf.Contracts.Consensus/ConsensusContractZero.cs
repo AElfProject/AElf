@@ -21,6 +21,7 @@ namespace AElf.Contracts.Consensus
     public class ConsensusContractZero : CSharpSmartContract
     {
         #region DPoS
+
         private IConsensus DPoSConsensus => new DPoS(new AElfDPoSFieldMapCollection
         {
             CurrentRoundNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber),
@@ -28,7 +29,7 @@ namespace AElf.Contracts.Consensus
             TimeForProducingExtraBlockField = new PbField<Timestamp>(GlobalConfig.AElfDPoSExtraBlockTimeSlotString),
             MiningIntervalField = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString),
             CandidatesFiled = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
-            
+
             DPoSInfoMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSInformationString),
             EBPMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSExtraBlockProducerString),
             FirstPlaceMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString),
@@ -107,7 +108,6 @@ namespace AElf.Contracts.Consensus
                 voterAddress,
                 amount,
                 new BoolValue {Value = false}.ToByteArray()
-
             });
         }
 
@@ -124,15 +124,16 @@ namespace AElf.Contracts.Consensus
             return DPoSConsensus.GetCurrentMiners();
         }
 
-        public async Task AddTickets(ulong amount)
+        public async Task AddTickets(Address address, ulong amount)
         {
-            await DPoSConsensus.HandleTicket((long) amount);
+            await DPoSConsensus.HandleTickets(address, amount);
         }
-        
-        public async Task Withdraw(ulong amount)
+
+        public async Task Withdraw(Address address, ulong amount)
         {
-            await DPoSConsensus.HandleTicket(-(long) amount);
+            await DPoSConsensus.HandleTickets(address, amount, true);
         }
+
         #endregion
     }
 }

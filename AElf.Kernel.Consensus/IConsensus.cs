@@ -72,6 +72,6 @@ namespace AElf.Kernel.Consensus
         Task Election(List<byte[]> args);
 
         Miners GetCurrentMiners();
-        Task HandleTickets(long amount);
+        Task HandleTickets(Address address, ulong amount, bool withdraw = false);
     }
 }

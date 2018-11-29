@@ -80,6 +80,15 @@ namespace AElf.Kernel.Node
 
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
+        
+        private List<Address> CandidatesList => new List<Address>
+        {
+            Address.LoadHex("0x8e02b427a9d54c69cd211c1498e52e4f008e"),
+            Address.LoadHex("0x62af5fbaae723220162b46520b3198f8a74d"),
+            Address.LoadHex("0x24b32b596b82fb42d04cc1242ed1b9de8e56"),
+            Address.LoadHex("0xe2f6291b629a21c34e857a188983b3c4ffee"),
+            Address.LoadHex("0x602106c8f66ffed4806ac0addc5f1d307031")
+        };
 
         public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
             AElfDPoSHelper helper)
@@ -318,6 +327,12 @@ namespace AElf.Kernel.Node
                     };
                     var txToInitializeAElfDPoS = await GenerateTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToInitializeAElfDPoS);
+
+                    foreach (var address in CandidatesList)
+                    {
+                        await InitBalance(address);
+                    }
+                    
                     await Mine();
                 }
             }
@@ -338,6 +353,7 @@ namespace AElf.Kernel.Node
             }
         }
 
+        private bool _exchanged = false;
         /// <summary>
         /// Related tx has 5 params:
         /// 1. Current round number
@@ -402,6 +418,16 @@ namespace AElf.Kernel.Node
 
                     var txToPublishOutValueAndSignature = await GenerateTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToPublishOutValueAndSignature);
+
+                    if (!_exchanged)
+                    {
+                        foreach (var address in CandidatesList)
+                        {
+                            await AnnounceElection(address);
+                        }
+                        _exchanged = true;
+                    }
+                    
                     await Mine();
                 }
             }
@@ -624,12 +650,13 @@ namespace AElf.Kernel.Node
                 MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().DumpHex()));
                 _logger?.Trace(
                     $"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.DumpHex()}.");
+                
+                if (tx.From.Equals(NodeKeyPair.Address))
+                    _logger?.Trace(
+                        $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
+                        $"threadId: {Thread.CurrentThread.ManagedThreadId}");
             }
 
-            if (tx.From.Equals(NodeKeyPair.Address))
-                _logger?.Trace(
-                    $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
-                    $"threadId: {Thread.CurrentThread.ManagedThreadId}");
             await _txHub.AddTransactionAsync(tx, true);
         }
 
@@ -642,6 +669,83 @@ namespace AElf.Kernel.Node
         private static bool MiningLocked()
         {
             return _lockNumber != 0;
+        }
+
+        private async Task InitBalance(Address address)
+        {
+            try
+            {
+                _logger?.Trace("Entered generating tx.");
+                var bn = await BlockChain.GetCurrentBlockHeightAsync();
+                bn = bn > 4 ? bn - 4 : 0;
+                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
+                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                var tx = new Transaction
+                {
+                    From = NodeKeyPair.Address,
+                    To = ContractHelpers.GetTokenContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)),
+                    RefBlockNumber = bn,
+                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
+                    MethodName = "InitBalance",
+                    Sig = new Signature {P = ByteString.CopyFrom(NodeKeyPair.NonCompressedEncodedPublicKey)},
+                    Type = TransactionType.ContractTransaction,
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(address, GlobalConfig.LockTokenForElection + 1)),
+                };
+
+                var signer = new ECSigner();
+                var signature = signer.Sign(NodeKeyPair, tx.GetHash().DumpByteArray());
+
+                // Update the signature
+                tx.Sig.R = ByteString.CopyFrom(signature.R);
+                tx.Sig.S = ByteString.CopyFrom(signature.S);
+
+                _logger?.Trace("Leaving generating tx.");
+
+                await BroadcastTransaction(tx);
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error while during generating Token tx.");
+            }
+        }
+        
+        private async Task AnnounceElection(Address address)
+        {
+            try
+            {
+                _logger?.Trace("Entered generating tx.");
+                var bn = await BlockChain.GetCurrentBlockHeightAsync();
+                bn = bn > 4 ? bn - 4 : 0;
+                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
+                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                var tx = new Transaction
+                {
+                    From = address,
+                    To = ContractHelpers.GetTokenContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)),
+                    RefBlockNumber = bn,
+                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
+                    MethodName = "AnnounceElection",
+                    Sig = new Signature {P = ByteString.CopyFrom(NodeKeyPair.NonCompressedEncodedPublicKey)},
+                    Type = TransactionType.ContractTransaction,
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                };
+
+                var signer = new ECSigner();
+                var signature = signer.Sign(NodeKeyPair, tx.GetHash().DumpByteArray());
+
+                // Update the signature
+                tx.Sig.R = ByteString.CopyFrom(signature.R);
+                tx.Sig.S = ByteString.CopyFrom(signature.S);
+
+                _logger?.Trace("Leaving generating tx.");
+
+                await BroadcastTransaction(tx);
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error while during generating Token tx.");
+            }
+
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
@@ -179,7 +180,10 @@ namespace AElf.Contracts.Token
         [SmartContractFunction("${this}.AnnounceElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
         public void AnnounceElection()
         {
-            Transfer(ContractHelpers.GetConsensusContractAddress(Api.GetChainId()), GlobalConfig.LockTokenForElection);
+            var address = Api.GetTransaction().From;
+            var consensusContractAddress = ContractHelpers.GetConsensusContractAddress(Api.GetChainId());
+            Console.WriteLine($"Start announcing election - {Api.GetTransaction().From.DumpHex()}");
+            Transfer(consensusContractAddress, GlobalConfig.LockTokenForElection);
             var candidates = _candidates.GetValue();
             if (candidates == null || !candidates.Nodes.Any())
             {
@@ -188,6 +192,11 @@ namespace AElf.Contracts.Token
 
             candidates.Nodes.Add(Api.GetTransaction().From);
             _candidates.SetValue(candidates);
+
+            Api.Call(ConsensusContractAddress, "AddTickets",
+                ByteString.CopyFrom(ParamsPacker.Pack(address, GlobalConfig.LockTokenForElection + 1)).ToByteArray());
+            
+            Console.WriteLine($"End announcing election - {Api.GetTransaction().From.DumpHex()}");
         }
 
         //TODO: Just consensus contract can call this method.
@@ -214,8 +223,14 @@ namespace AElf.Contracts.Token
                 }
 
                 Transfer(ConsensusContractAddress, amount);
-                Api.Call(ConsensusContractAddress, "AddTickets", ByteString.CopyFrom(ParamsPacker.Pack(amount)).ToByteArray());
+                Api.Call(ConsensusContractAddress, "AddTickets", ByteString.CopyFrom(ParamsPacker.Pack(voter, amount)).ToByteArray());
             }
+        }
+
+        public void InitBalance(Address address, ulong amount)
+        {
+            Console.WriteLine($"Initial balance for {address.DumpHex()}: {amount}");
+            _balances.SetValue(address, amount);
         }
 
         #endregion Actions

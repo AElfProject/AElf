@@ -12,12 +12,14 @@ namespace AElf.Synchronization.BlockSynchronization
     // ReSharper disable FieldCanBeMadeReadOnly.Local
     public class BlockSet : IBlockSet
     {
+        private const int Timeout = int.MaxValue;
+
         public int InvalidBlockCount
         {
             get
             {
                 int count;
-                _rwLock.AcquireReaderLock(100);
+                _rwLock.AcquireReaderLock(Timeout);
                 try
                 {
                     count = _blockCache.Count;
@@ -36,7 +38,7 @@ namespace AElf.Synchronization.BlockSynchronization
             get
             {
                 int count;
-                _rwLock.AcquireReaderLock(100);
+                _rwLock.AcquireReaderLock(Timeout);
                 try
                 {
                     count = _executedBlocks.Count;
@@ -53,8 +55,6 @@ namespace AElf.Synchronization.BlockSynchronization
         private readonly ILogger _logger;
 
         private static List<IBlock> _blockCache = new List<IBlock>();
-
-        //public static ulong? MaxHeight => _blockCache.OrderByDescending(b => b.Index).FirstOrDefault()?.Index;
 
         private readonly Dictionary<ulong, IBlock> _executedBlocks = new Dictionary<ulong, IBlock>();
 
@@ -73,13 +73,13 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             var hash = block.BlockHashToHex;
             _logger?.Trace($"Added block {hash} to block cache.");
-            _rwLock.AcquireReaderLock(100);
+            _rwLock.AcquireReaderLock(Timeout);
             try
             {
                 if (_blockCache.Any(b => b.BlockHashToHex == block.BlockHashToHex))
                     return;
 
-                var lc = _rwLock.UpgradeToWriterLock(100);
+                var lc = _rwLock.UpgradeToWriterLock(Timeout);
                 try
                 {
                     _blockCache.Add(block);
@@ -101,7 +101,7 @@ namespace AElf.Synchronization.BlockSynchronization
             var toRemove = _blockCache.FirstOrDefault(b => b.BlockHashToHex == blockHashHex);
             if (toRemove?.Header == null)
                 return;
-            _rwLock.AcquireWriterLock(100);
+            _rwLock.AcquireWriterLock(Timeout);
             try
             {
                 _blockCache.Remove(toRemove);
@@ -128,7 +128,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 if (currentExecutedBlock.Index >= KeepHeight)
                     RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
-                
+
                 _logger?.Trace($"Told block {currentExecutedBlock.BlockHashToHex}.");
             }
             catch (Exception e)
@@ -140,7 +140,7 @@ namespace AElf.Synchronization.BlockSynchronization
         public bool IsBlockReceived(Hash blockHash, ulong height)
         {
             bool res;
-            _rwLock.AcquireReaderLock(100);
+            _rwLock.AcquireReaderLock(Timeout);
             try
             {
                 res = _blockCache.Any(b => b.Index == height && b.BlockHashToHex == blockHash.DumpHex());
@@ -156,7 +156,7 @@ namespace AElf.Synchronization.BlockSynchronization
         public IBlock GetBlockByHash(Hash blockHash)
         {
             IBlock block;
-            _rwLock.AcquireReaderLock(100);
+            _rwLock.AcquireReaderLock(Timeout);
             try
             {
                 block = _blockCache.FirstOrDefault(b => b.BlockHashToHex == blockHash.DumpHex());
@@ -171,7 +171,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public IEnumerable<IBlock> GetBlocksByHeight(ulong height)
         {
-            _rwLock.AcquireReaderLock(100);
+            _rwLock.AcquireReaderLock(Timeout);
             try
             {
                 if (_blockCache.Any(b => b.Index == height))
@@ -196,7 +196,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             try
             {
-                _rwLock.AcquireWriterLock(100);
+                _rwLock.AcquireWriterLock(Timeout);
                 try
                 {
                     for (var i = _executedBlocks.OrderBy(p => p.Key).FirstOrDefault().Key; i < targetHeight; i++)
@@ -233,17 +233,17 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         /// <param name="rollbackHeight"></param>
         /// <returns></returns>
-        public ulong      AnyLongerValidChain(ulong rollbackHeight)
+        public ulong AnyLongerValidChain(ulong rollbackHeight)
         {
             var lockWasTaken = false;
             try
             {
                 lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
-                if (!lockWasTaken) 
+                if (!lockWasTaken)
                     return 0;
 
                 var currentHeight = rollbackHeight + GlobalConfig.ForkDetectionLength;
-                
+
                 PrintInvalidBlockList();
 
                 ulong forkHeight = 0;
@@ -261,7 +261,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                     while (true)
                     {
-                        _rwLock.AcquireReaderLock(100);
+                        _rwLock.AcquireReaderLock(Timeout);
                         try
                         {
                             // If a linkable block can be found in the invalid block list,
@@ -333,7 +333,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             foreach (var block in toRemove)
             {
-                _rwLock.AcquireWriterLock(100);
+                _rwLock.AcquireWriterLock(Timeout);
                 try
                 {
                     _executedBlocks.Remove(block.Index);
