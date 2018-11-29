@@ -1,5 +1,4 @@
 ﻿using System;
-using DotNetty.Common.Utilities;
 
 namespace AElf.CLI2.JS.Crypto
 {

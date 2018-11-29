@@ -3,23 +3,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using AElf.Common.Attributes;
-using AElf.Kernel.Consensus;
 using ChakraCore.NET.API;
-using ChakraCore.NET.Debug;
 using NLog;
-using NServiceKit.Common.Extensions;
 
 namespace AElf.CLI2.JS.IO
 {
-    [LoggerName("js.console")]
     public class Console : IConsole
     {
-        private readonly ILogger _logger;
-
-        public Console(ILogger logger)
-        {
-            _logger = logger;
-        }
+        private readonly ILogger _logger = LogManager.GetLogger("js.console");
 
         public void Log(IEnumerable<JavaScriptValue> args)
         {

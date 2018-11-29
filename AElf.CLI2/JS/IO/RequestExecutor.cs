@@ -5,20 +5,13 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Web;
 using AElf.Common.Attributes;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure;
 using NLog;
 
 namespace AElf.CLI2.JS.IO
 {
-    [LoggerName("cli2.request_executor")]
     public class RequestExecutor : IRequestExecutor
     {
-        private readonly ILogger _logger;
-
-        public RequestExecutor(ILogger logger)
-        {
-            _logger = logger;
-        }
+        private readonly ILogger _logger = LogManager.GetLogger("cli2.request_executor");
 
         private async Task<IResponse> Execute(HttpMethod method, Uri url, IDictionary<string, string> headers, string body)
         {

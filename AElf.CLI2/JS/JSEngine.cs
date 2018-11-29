@@ -11,7 +11,6 @@ using ChakraCore.NET;
 using ChakraCore.NET.API;
 using ChakraCore.NET.Debug;
 using ChakraCore.NET.Hosting;
-using ServiceStack.Configuration;
 
 namespace AElf.CLI2.JS
 {

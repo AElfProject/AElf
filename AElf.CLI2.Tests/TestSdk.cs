@@ -26,8 +26,7 @@ namespace AElf.CLI2.Tests
                 Action = AccountAction.create,
                 AccountFileName = "a.account"
             };
-            return IoCContainerBuilder.Build(option, 
-                new UTLogModule(_output)).Resolve<IAElfSdk>();
+            return IoCContainerBuilder.Build(option).Resolve<IAElfSdk>();
         }
         
         [Fact]

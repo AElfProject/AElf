@@ -5,16 +5,14 @@ using NLog;
 
 namespace AElf.CLI2.SDK
 {
-    [LoggerName("aelf.sdk")]
     public class AElfSdk : IAElfSdk
     {
         private readonly IJSEngine _engine;
-        private readonly ILogger _logger;
+        private readonly ILogger _logger = LogManager.GetLogger("aelf.sdk");
 
-        public AElfSdk(IJSEngine engine, ILogger logger)
+        public AElfSdk(IJSEngine engine)
         {
             _engine = engine;
-            _logger = logger;
         }
 
         public IChain Chain()

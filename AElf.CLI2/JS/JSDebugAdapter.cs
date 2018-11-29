@@ -5,15 +5,9 @@ using NLog;
 
 namespace AElf.CLI2.JS
 {
-    [LoggerName("js-debug")]
     public class JSDebugAdapter : IDebugAdapter
     {
-        private ILogger _logger;
-
-        public JSDebugAdapter(ILogger logger)
-        {
-            _logger = logger;
-        }
+        private ILogger _logger = LogManager.GetLogger("js-debug");
 
         public void Init(IRuntimeDebuggingService debuggingService)
         {

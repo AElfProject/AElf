@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Modules.AutofacModule;
+﻿using Autofac;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -24,22 +24,22 @@ namespace AElf.CLI2.Tests.Utils
     }
 
 
-    public class UTLogModule : LoggerModule
-    {
-        private ITestOutputHelper _output;
-        public UTLogModule(ITestOutputHelper outputHelper) : base("ut-aelf-cli2")
-        {
-            _output = outputHelper;
-        }
-
-        protected override void HookLogConfiguration(LoggingConfiguration configuration)
-        {
-            base.HookLogConfiguration(configuration);
-            var utTarget = new UTTarget(_output);
-            configuration.AddTarget("unittest", new UTTarget(_output));
-            utTarget.Layout = "${date} | ${message}";
-            var rule = new LoggingRule("*", LogLevel.Debug, utTarget);
-            configuration.LoggingRules.Add(rule);
-        }
-    }
+//    public class UTLogModule : Module
+//    {
+//        private ITestOutputHelper _output;
+//        public UTLogModule(ITestOutputHelper outputHelper)
+//        {
+//            _output = outputHelper;
+//        }
+//
+////        protected override void HookLogConfiguration(LoggingConfiguration configuration)
+////        {
+////            base.HookLogConfiguration(configuration);
+////            var utTarget = new UTTarget(_output);
+////            configuration.AddTarget("unittest", new UTTarget(_output));
+////            utTarget.Layout = "${date} | ${message}";
+////            var rule = new LoggingRule("*", LogLevel.Debug, utTarget);
+////            configuration.LoggingRules.Add(rule);
+////        }
+//    }
 }

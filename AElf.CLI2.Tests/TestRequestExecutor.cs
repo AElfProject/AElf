@@ -4,7 +4,6 @@ using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
 using AElf.CLI2.Tests.Utils;
 using Autofac;
-using ServiceStack;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ namespace AElf.CLI2.Tests
                 Action = AccountAction.create,
                 AccountFileName = "a.account"
             };
-            return IoCContainerBuilder.Build(option, new UTLogModule(_output)).Resolve<IRequestExecutor>();
+            return IoCContainerBuilder.Build(option).Resolve<IRequestExecutor>();
         }
 
         private readonly ITestOutputHelper _output;
