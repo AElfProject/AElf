@@ -122,10 +122,19 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <returns></returns>
         public void Tell(IBlock currentExecutedBlock)
         {
-            RemoveExecutedBlock(currentExecutedBlock.BlockHashToHex);
+            try
+            {
+                RemoveExecutedBlock(currentExecutedBlock.BlockHashToHex);
 
-            if (currentExecutedBlock.Index >= KeepHeight)
-                RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
+                if (currentExecutedBlock.Index >= KeepHeight)
+                    RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
+                
+                _logger?.Trace($"Told block {currentExecutedBlock.BlockHashToHex}.");
+            }
+            catch (Exception e)
+            {
+                _logger?.Warn(e, "Error while update block set.");
+            }
         }
 
         public bool IsBlockReceived(Hash blockHash, ulong height)
@@ -290,8 +299,11 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _logger?.Trace("No proper fork height.");
                 }
-                
-                return forkHeight <= currentHeight ? forkHeight : 0;
+
+                return forkHeight <= currentHeight
+                       || forkHeight + GlobalConfig.BlockCacheLimit < currentHeight
+                    ? forkHeight
+                    : 0;
             }
             finally
             {

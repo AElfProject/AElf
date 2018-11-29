@@ -13,6 +13,7 @@ using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using ServiceStack;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus.ConsensusContracts
@@ -64,7 +65,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         private readonly PbField<Candidates> _candidatesField;
         
         private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap;
-
 
         #endregion
 
@@ -377,15 +377,18 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             }
 
             // Vote
-            if (args.Count == 2)
+            if (args.Count == 3)
             {
                 Address candidatesAddress;
                 UInt64Value amount;
+                BoolValue voteOrNot;
                 
                 try
                 {
                     candidatesAddress = Address.Parser.ParseFrom(args[0]);
                     amount = UInt64Value.Parser.ParseFrom(args[1]);
+                    voteOrNot = BoolValue.Parser.ParseFrom(args[2]);
+
                 }
                 catch (Exception e)
                 {
@@ -393,7 +396,54 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     return;
                 }
 
-                await Vote(candidatesAddress, amount);
+                if (voteOrNot.Value)
+                {
+                    await Vote(candidatesAddress, amount);
+                }
+                else
+                {
+                    await Regret(candidatesAddress, amount);
+                }
+            }
+        }
+
+        public Miners GetCurrentMiners()
+        {
+            var ongoingMiners = _ongoingMinersField.GetValue();
+            if (ongoingMiners == null || !ongoingMiners.Miners.Any())
+            {
+                ongoingMiners = new OngoingMiners();
+            }
+
+            return ongoingMiners.GetCurrentMiners(CurrentRoundNumber);
+        }
+
+        public async Task HandleTickets(long amount)
+        {
+            var voter = Api.GetTransaction().To;
+
+            if (amount > 0)
+            {
+                if (_balanceMap.TryGet(voter, out var tickets))
+                {
+                    tickets.RemainingTickets += (ulong) amount;
+                    await _balanceMap.SetValueAsync(voter, tickets);
+                }
+                else
+                {
+                    tickets = new Tickets {RemainingTickets = (ulong) amount};
+                    await _balanceMap.SetValueAsync(voter, tickets);
+                }
+            }
+            else if (amount < 0)
+            {
+                if (_balanceMap.TryGet(voter, out var tickets) && tickets.RemainingTickets >= (ulong) amount)
+                {
+                    tickets.RemainingTickets -= (ulong) amount;
+                    await _balanceMap.SetValueAsync(voter, tickets);
+                    Api.Call(TokenContractAddress, "Transfer",
+                        ByteString.CopyFrom(ParamsPacker.Pack(amount)).ToByteArray());
+                }
             }
         }
 
@@ -499,9 +549,20 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 ongoingMiners = new OngoingMiners();
             }
 
-            miners.TakeEffectRoundNumber = CurrentRoundNumber + 1;
+            miners.TakeEffectRoundNumber = CurrentRoundNumber.Add(1);
             ongoingMiners.UpdateMiners(miners);
             await _ongoingMinersField.SetAsync(ongoingMiners);
+            
+            var snapshot = new ElectionSnapshot();
+            snapshot.RoundNumber = CurrentRoundNumber.Add(1);
+
+            foreach (var candidate in _candidatesField.GetValue().Nodes)
+            {
+                snapshot.TicketsMap.Add(new TicketsMap
+                    {Address = candidate, TicketsCount = await GetTicketCount(candidate)});
+            }
+
+            await _snapshotMap.SetValueAsync(new UInt64Value {Value = CurrentRoundNumber.Add(1)}, snapshot);
         }
         
         private async Task UpdateOngoingMiners(Address outerAddress)
@@ -511,8 +572,20 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             {
                 return;
             }
-            
-            //TODO: Use the snapshot to do the replacement.
+
+            // Use the snapshot to do the replacement.
+            var currentMiners = ongoingMiners.GetCurrentMiners(CurrentRoundNumber);
+            if (_snapshotMap.TryGet(
+                new UInt64Value {Value = currentMiners.TakeEffectRoundNumber},
+                out var snapshot))
+            {
+                var nextMiner = snapshot.GetNextCandidate(currentMiners);
+                currentMiners.Nodes.Remove(outerAddress);
+                currentMiners.Nodes.Add(nextMiner);
+                currentMiners.TakeEffectRoundNumber = CurrentRoundNumber.Add(1);
+                ongoingMiners.Miners.Add(currentMiners);
+                await _ongoingMinersField.SetAsync(ongoingMiners);
+            }
         }
 
         private async Task UpdateCurrentRoundNumber(ulong currentRoundNumber)
@@ -748,6 +821,11 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     TicketsCount = amount.Value
                 });
             }
+        }
+        
+        private async Task Regret(Address candidateAddress, UInt64Value amount)
+        {
+            throw new NotImplementedException();
         }
 
         private bool CheckTickets(UInt64Value amount)

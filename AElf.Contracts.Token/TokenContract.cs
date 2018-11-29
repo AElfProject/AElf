@@ -5,6 +5,10 @@ using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using Api = AElf.Sdk.CSharp.Api;
 using AElf.Common;
+using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 
 // ReSharper disable UnusedMember.Global
 namespace AElf.Contracts.Token
@@ -37,6 +41,8 @@ namespace AElf.Contracts.Token
 
     public class TokenContract : CSharpSmartContract
     {
+        private Address ConsensusContractAddress => ContractHelpers.GetConsensusContractAddress(Api.GetChainId());
+        
         [SmartContractFieldData("${this}._initialized", DataAccessMode.ReadWriteAccountSharing)]
         private readonly BoolField _initialized = new BoolField("_Initialized_");
 
@@ -197,10 +203,24 @@ namespace AElf.Contracts.Token
             _candidates.SetValue(candidates);
         }
 
+        public void GetTickets(ulong amount)
+        {
+            var voter = Api.GetTransaction().From;
+            if (_balances.TryGet(voter, out var balance))
+            {
+                if (balance.Value < amount)
+                {
+                    return;
+                }
+
+                Transfer(ConsensusContractAddress, amount);
+                Api.Call(ConsensusContractAddress, "AddTickets", ByteString.CopyFrom(ParamsPacker.Pack(amount)).ToByteArray());
+            }
+        }
+
         #endregion Actions
 
         #endregion ABI (Public) Methods
-
 
         #region Private Methods
 

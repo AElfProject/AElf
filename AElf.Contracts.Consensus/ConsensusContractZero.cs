@@ -9,6 +9,8 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using Google.Protobuf;
+using ServiceStack;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus
@@ -93,7 +95,19 @@ namespace AElf.Contracts.Consensus
             await DPoSConsensus.Election(new List<byte[]>
             {
                 voterAddress,
-                amount
+                amount,
+                new BoolValue {Value = true}.ToByteArray()
+            });
+        }
+
+        public async Task Regret(byte[] voterAddress, byte[] amount)
+        {
+            await DPoSConsensus.Election(new List<byte[]>
+            {
+                voterAddress,
+                amount,
+                new BoolValue {Value = false}.ToByteArray()
+
             });
         }
 
@@ -107,7 +121,17 @@ namespace AElf.Contracts.Consensus
 
         public Miners GetCurrentMiners()
         {
-            throw new NotImplementedException();
+            return DPoSConsensus.GetCurrentMiners();
+        }
+
+        public async Task AddTickets(ulong amount)
+        {
+            await DPoSConsensus.HandleTicket((long) amount);
+        }
+        
+        public async Task Withdraw(ulong amount)
+        {
+            await DPoSConsensus.HandleTicket(-(long) amount);
         }
         #endregion
     }

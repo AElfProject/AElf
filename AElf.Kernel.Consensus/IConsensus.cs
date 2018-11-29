@@ -70,5 +70,8 @@ namespace AElf.Kernel.Consensus
         Task<int> Validation(List<byte[]> args);
 
         Task Election(List<byte[]> args);
+
+        Miners GetCurrentMiners();
+        Task HandleTickets(long amount);
     }
 }
