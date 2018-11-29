@@ -365,6 +365,9 @@ namespace AElf.Node.AElfChain
             var block = await Task.Run(() => (Block) _blockSynchronizer.GetBlockByHash(hash));
             if (block == null)
                 return null;
+            // clone this block in case of absent transactions
+            block = block.Clone();
+            
             _logger?.Trace($"{block.Body.TransactionList.Count} txns in block");
             if (block.Body.TransactionList.Count > 0)
                 return block;
