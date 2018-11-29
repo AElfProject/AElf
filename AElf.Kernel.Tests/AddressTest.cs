@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests
             
             // sha sha of pub key
             KeyPairGenerator kpg = new KeyPairGenerator();
-            byte[] kp = kpg.Generate().GetEncodedPublicKey();
+            byte[] kp = kpg.Generate().PublicKey;
             
             byte[] hash = new byte[3];
             rnd.NextBytes(hash);

@@ -14,16 +14,17 @@ message Transaction {
     string MethodName = 6;
     bytes Params = 7;
     uint64 Fee = 8;
-    Signature Sig = 9;
+    bytes Sig = 9;
     TransactionType type = 10;
     google.protobuf.Timestamp Time = 11;
 }
 
-message Signature{
-    bytes R = 1;
-    bytes S = 2;
-    bytes P = 3;
-}
+// topdo clean
+//message Signature{
+//    bytes R = 1;
+//    bytes S = 2;
+//    bytes P = 3;
+//}
 
 message TransactionList {
     repeated Transaction Transactions = 1;
@@ -86,13 +87,12 @@ message BlockHeader {
     Hash MerkleTreeRootOfWorldState = 4;
     bytes Bloom = 5;
     uint64 Index = 6;
-    bytes R = 7;
-    bytes S = 8;
-    bytes P = 9;
-    google.protobuf.Timestamp Time = 10;
-    Hash ChainId = 11;
-    Hash SideChainBlockHeadersRoot = 12;
-    Hash SideChainTransactionsRoot =13;
+    bytes Sig = 7;
+    bytes P = 8;
+    google.protobuf.Timestamp Time = 9;
+    Hash ChainId = 10;
+    Hash SideChainBlockHeadersRoot = 11;
+    Hash SideChainTransactionsRoot = 12;
 }
 
 message BlockBody {

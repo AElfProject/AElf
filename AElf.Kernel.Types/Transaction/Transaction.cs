@@ -12,20 +12,6 @@ namespace AElf.Kernel
 {
     public partial class Transaction
     {
-        public ByteString P => Sig.P;
-        
-        public ByteString R
-        {
-            get => Sig.R;
-            //set => Sig.R = value;
-        }
-        
-        public ByteString S
-        {
-            get => Sig.S;
-            //set => Sig.S = value;
-        }
-
         private int _claimed;
 
         public bool Claim()
@@ -57,7 +43,7 @@ namespace AElf.Kernel
 
         public ECSignature GetSignature()
         {
-            return new ECSignature(Sig.R.ToByteArray(), Sig.S.ToByteArray());
+            return new ECSignature(Sig.ToByteArray());
         }
 
         public int Size()

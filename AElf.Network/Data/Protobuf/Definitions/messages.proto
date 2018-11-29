@@ -9,9 +9,7 @@ message Handshake {
     NodeData NodeInfo = 1;
     bytes PublicKey = 2;
     int32 Height = 3;
-    // sig NodeData
-    bytes R = 9;
-    bytes S = 10;
+    bytes Sig = 4;
 }
 
 message NodeData {

@@ -34,7 +34,7 @@ namespace AElf.Kernel
         
         public ECSignature GetSignature()
         {
-            return new ECSignature(R.ToByteArray(), S.ToByteArray());
+            return new ECSignature(Sig.ToByteArray());
         }
 
         private byte[] GetSignatureData()

@@ -1,40 +1,44 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using AElf.Common;
-using AElf.Common.Extensions;
-using Google.Protobuf;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
+﻿using Secp256k1Net;
 
 namespace AElf.Cryptography.ECDSA
 {
-    // ReSharper disable once InconsistentNaming
     public class ECKeyPair
     {
-        public ECPrivateKeyParameters PrivateKey { get; private set; }
-        public ECPublicKeyParameters PublicKey { get; private set; }
+        public byte[] PrivateKey { get; private set; }
+        public byte[] PublicKey { get; private set; }
 
-        public ECKeyPair(ECPrivateKeyParameters privateKey, ECPublicKeyParameters publicKey)
+        public ECKeyPair(byte[] privateKey, byte[] publicKey)
         {
             PublicKey = publicKey;
             PrivateKey = privateKey;
         }
 
-        public byte[] GetEncodedPublicKey(bool compressed = false)
+        public byte[] SerializedPublicKey()
         {
-            return PublicKey.Q.GetEncoded(compressed);
+            byte[] serializedKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+            
+            using (var secp256k1 = new Secp256k1())
+            {
+                secp256k1.PublicKeySerialize(serializedKey, PublicKey);
+            }
+
+            return serializedKey;
         }
 
-        public static ECKeyPair FromPublicKey(byte[] publicKey)
-        {
-            ECPublicKeyParameters pubKey
-                = new ECPublicKeyParameters(ECParameters.Curve.Curve.DecodePoint(publicKey), ECParameters.DomainParams);
+//        public byte[] GetEncodedPublicKey(bool compressed = false)
+//        {
+//            return PublicKey.Q.GetEncoded(compressed);
+//        }
 
-            ECKeyPair k = new ECKeyPair(null, pubKey);
-
-            return k;
-        }
+        // todo remove if not needed
+//        public static ECKeyPair FromPublicKey(byte[] publicKey)
+//        {
+//            ECPublicKeyParameters pubKey
+//                = new ECPublicKeyParameters(ECParameters.Curve.Curve.DecodePoint(publicKey), ECParameters.DomainParams);
+//
+//            ECKeyPair k = new ECKeyPair(null, pubKey);
+//
+//            return k;
+//        }
     }
 }

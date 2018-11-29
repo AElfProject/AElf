@@ -8,20 +8,12 @@ namespace AElf.Miner.TxMemPool
     {
         public bool Verify(Transaction tx)
         {
-            if (tx.P == null)
-            {
-                return false;
-            }
-            
-            var pubKey = tx.P.ToByteArray();
-            
             // todo warning adr recheck adr validity
-//            var addr = Address.FromRawBytes(pubKey);
-//            if (!addr.Equals(tx.From))
-//                return false;
+            //            var addr = Address.FromRawBytes(pubKey);
+            //            if (!addr.Equals(tx.From))
+            //                return false;
             
-            var keyPair = ECKeyPair.FromPublicKey(pubKey);
-            var verifier = new ECVerifier(keyPair);
+            var verifier = new ECVerifier();
             return verifier.Verify(tx.GetSignature(), tx.GetHash().DumpByteArray());
         }
     }

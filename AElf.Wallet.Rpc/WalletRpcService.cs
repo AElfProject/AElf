@@ -98,11 +98,10 @@ namespace AElf.Wallet.Rpc
             ECSignature signature = signer.Sign(kp, toSig);
 
             // TODO: Standardize encoding
+            // todo test
             return new JObject()
             {
-                ["R"] = signature.R,
-                ["S"] = signature.S,
-                ["P"] = kp.PublicKey.Q.GetEncoded()
+                ["sig"] = signature.SigBytes
             };
         }
 

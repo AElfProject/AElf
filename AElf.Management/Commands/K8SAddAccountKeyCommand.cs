@@ -42,7 +42,8 @@ namespace AElf.Management.Commands
                 var chainPrefix = chainPrefixBase58.Substring(0, 4);
                 
                 var key = keyStore.Create(arg.AccountPassword, chainPrefix);
-                arg.ChainAccount = "ELF_" + chainPrefix + "_" + key.GetEncodedPublicKey();
+                // todo clean
+                //arg.ChainAccount = "ELF_" + chainPrefix + "_" + key.GetEncodedPublicKey();
             }
 
             var fileName = arg.ChainAccount + ".ak";

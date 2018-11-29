@@ -152,10 +152,6 @@ namespace AElf.ChainController
                 To = contractAccountHash,
                 IncrementId = 0,
                 MethodName = "Validation",
-                Sig = new Signature
-                {
-                    P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
-                },
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(
                     new StringValue {Value = recipientAddress.GetFormatted()}.ToByteArray(),
                     timestamp.ToByteArray(),
@@ -166,8 +162,7 @@ namespace AElf.ChainController
             var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
 
             // Update the signature
-            tx.Sig.R = ByteString.CopyFrom(signature.R);
-            tx.Sig.S = ByteString.CopyFrom(signature.S);
+            tx.Sig = ByteString.CopyFrom(signature.SigBytes);
 
             return tx;
         }

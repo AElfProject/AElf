@@ -40,17 +40,13 @@ namespace AElf.Miner.TxMemPool
                 return false;
             }
             
-            byte[] uncompressedPrivKey = tx.P.ToByteArray();
-            
             // todo warning verification (maybe duplicated in TxSignatureVerifier ??)
 //            var addr = Address.FromRawBytes(uncompressedPrivKey);
 //            if (!addr.Equals(tx.From))
 //                return false;
             
-            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-            ECVerifier verifier = new ECVerifier(recipientKeyPair);
+            ECVerifier verifier = new ECVerifier();
             return verifier.Verify(tx.GetSignature(), tx.GetHash().DumpByteArray());
-
         }
 
         

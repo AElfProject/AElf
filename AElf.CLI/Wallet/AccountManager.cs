@@ -77,6 +77,12 @@ namespace AElf.CLI.Wallet
 
             if (subCommand.Equals(NewCmdName, StringComparison.OrdinalIgnoreCase))
             {
+                if (string.IsNullOrWhiteSpace(_chainId))
+                {
+                    _screenManager.PrintError("No chain id loaded - please connect to node (connect_chain).");
+                    return;
+                }
+                
                 CreateNewAccount();
             }
             else if (subCommand.Equals(ListAccountsCmdName, StringComparison.OrdinalIgnoreCase))
@@ -144,14 +150,15 @@ namespace AElf.CLI.Wallet
             }
 
             var kp = _keyStore.GetAccountKeyPair(address);
-            _screenManager.PrintLine($"Pub : {kp.GetEncodedPublicKey().ToHex()}");
+            
+            _screenManager.PrintLine($"Pub : {kp.PublicKey.ToHex()}");
         }
 
         private void CreateNewAccount()
         {
             var password = _screenManager.AskInvisible("password: ");
             var keypair = _keyStore.Create(password, _chainId);
-            var pubKey = keypair.GetEncodedPublicKey();
+            var pubKey = keypair.PublicKey;
             
             var addr = Address.FromPublicKey(_chainId.DecodeBase58(), pubKey);
             
@@ -226,7 +233,7 @@ namespace AElf.CLI.Wallet
             ECSignature signature = signer.Sign(kp, toSig);
                 
             // Update the signature
-            tx.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
+            tx.Sig = signature.SigBytes;
 
             return tx;
         }

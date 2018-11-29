@@ -202,7 +202,7 @@ namespace AElf.Miner.Miner
                 if (cts.IsCancellationRequested)
                     return null;
                 var disambiguationHash =
-                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), Hash.FromRawBytes(_keyPair.GetEncodedPublicKey()));
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), Hash.FromRawBytes(_keyPair.PublicKey));
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
@@ -244,18 +244,13 @@ namespace AElf.Miner.Miner
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
-                    Sig = new Signature
-                    {
-                        P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey())
-                    },
                     Type = TransactionType.CrossChainBlockInfoTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo)),
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 };
                 // sign tx
                 var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
-                tx.Sig.R = ByteString.CopyFrom(signature.R);
-                tx.Sig.S = ByteString.CopyFrom(signature.S);
+                tx.Sig = ByteString.CopyFrom(signature.SigBytes);
 
                 await InsertTransactionToPool(tx);
                 _logger?.Trace($"Generated Cross chain info transaction {tx.GetHash()}");

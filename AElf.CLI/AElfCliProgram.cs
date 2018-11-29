@@ -343,7 +343,7 @@ namespace AElf.CLI
                         signature = signer.Sign(kp, toSig);
                         
                         // Update the signature
-                        t.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
+                        t.Sig = signature.SigBytes;
                         
                         var resp = SignAndSendTransaction(t);
                         
@@ -446,7 +446,7 @@ namespace AElf.CLI
                         signature = signer.Sign(kp, toSig);
                         
                         // Update the signature
-                        t.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
+                        t.Sig = signature.SigBytes;
                         
                         var resp = SignAndSendTransaction(t);
                         

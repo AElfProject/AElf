@@ -8,8 +8,10 @@ using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
+using Secp256k1Net;
 
 namespace AElf.Cryptography
 {
@@ -129,17 +131,30 @@ namespace AElf.Cryptography
             {
                 string keyFilePath = GetKeyFileFullPath(address);
 
-                AsymmetricCipherKeyPair p;
+                AsymmetricCipherKeyPair cypherKeyPair;
                 using (var textReader = File.OpenText(keyFilePath))
                 {
                     PemReader pr = new PemReader(textReader, new Password(password.ToCharArray()));
-                    p = pr.ReadObject() as AsymmetricCipherKeyPair;
+                    cypherKeyPair = pr.ReadObject() as AsymmetricCipherKeyPair;
                 }
 
-                if (p == null)
+                if (cypherKeyPair == null)
                     return null;
+                
+                // Extract bouncy params
+                ECPrivateKeyParameters _newPrivateKeyParam = (ECPrivateKeyParameters)cypherKeyPair.Private;
+                ECPublicKeyParameters _newPublicKeyParam = (ECPublicKeyParameters)cypherKeyPair.Public;
+                
+                byte[] readPrivateKey = _newPrivateKeyParam.D.ToByteArrayUnsigned();
+                byte[] readPublicKey = _newPublicKeyParam.Q.GetEncoded(false);
 
-                ECKeyPair kp = new ECKeyPair((ECPrivateKeyParameters) p.Private, (ECPublicKeyParameters) p.Public);
+                byte[] deserializedPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
+                using (var secp256k1 = new Secp256k1())
+                {
+                    secp256k1.PublicKeyParse(deserializedPubKey, readPublicKey);
+                }
+
+                ECKeyPair kp = new ECKeyPair(readPrivateKey, deserializedPubKey);
 
                 return kp;
             }
@@ -179,7 +194,7 @@ namespace AElf.Cryptography
             string fullPath = null;
             try
             {
-                var address = Address.FromPublicKey(chainId.DecodeBase58(), keyPair.GetEncodedPublicKey());
+                var address = Address.FromPublicKey(chainId.DecodeBase58(), keyPair.PublicKey);
                 fullPath = GetKeyFileFullPath(address.GetFormatted());
             }
             catch (Exception e)
@@ -187,8 +202,11 @@ namespace AElf.Cryptography
                 Console.WriteLine("Could not calculate the address from the keypair.", e);
                 return false;
             }
+            
+            ECPrivateKeyParameters privateKeyParam = new ECPrivateKeyParameters(new BigInteger(keyPair.PrivateKey), ECParameters.DomainParams);
+            ECPublicKeyParameters publicKeyParam = new ECPublicKeyParameters(ECParameters.Curve.Curve.DecodePoint(keyPair.SerializedPublicKey()), ECParameters.DomainParams);
 
-            var akp = new AsymmetricCipherKeyPair(keyPair.PublicKey, keyPair.PrivateKey);
+            var akp = new AsymmetricCipherKeyPair(publicKeyParam, privateKeyParam);
 
             using (var writer = File.CreateText(fullPath))
             {

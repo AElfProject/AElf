@@ -65,7 +65,7 @@ namespace AElf.Kernel.Tests.Miner
             
             var txPrint = new Transaction()
             {
-                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey()),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "Print",
@@ -85,12 +85,7 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txPrint.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txPrint.Sig = new Signature
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                R = ByteString.CopyFrom(signature.R),
-                S = ByteString.CopyFrom(signature.S),
-            };
+            txPrint.Sig = ByteString.CopyFrom(signature.SigBytes);
             
             var txs = new List<Transaction>(){
                 txPrint
@@ -127,7 +122,7 @@ namespace AElf.Kernel.Tests.Miner
             
             var txnDep = new Transaction()
             {
-                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey()),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
@@ -140,16 +135,11 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txnDep.GetHash();
 
             ECSignature signature1 = signer.Sign(keyPair, hash.DumpByteArray());
-            txnDep.Sig = new Signature
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                R = ByteString.CopyFrom(signature1.R),
-                S = ByteString.CopyFrom(signature1.S),
-            };
+            txnDep.Sig = ByteString.CopyFrom(signature1.SigBytes);
             
             var txInv_1 = new Transaction
             {
-                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey()),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 IncrementId = 1,
                 MethodName = "Print",
@@ -159,16 +149,11 @@ namespace AElf.Kernel.Tests.Miner
                 Type = TransactionType.ContractTransaction
             };
             ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().DumpByteArray());
-            txInv_1.Sig = new Signature{
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                R = ByteString.CopyFrom(signature2.R),
-                S = ByteString.CopyFrom(signature2.S)
-            };
-            
+            txInv_1.Sig = ByteString.CopyFrom(signature2.SigBytes);
             
             var txInv_2 = new Transaction
             {
-                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey()),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 IncrementId =txInv_1.IncrementId,
                 MethodName = "Print",
@@ -179,12 +164,7 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().DumpByteArray());
-            txInv_2.Sig = new Signature
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
-            };
-            txInv_2.Sig.R = ByteString.CopyFrom(signature3.R); 
-            txInv_2.Sig.S = ByteString.CopyFrom(signature3.S);
+            txInv_2.Sig = ByteString.CopyFrom(signature3.SigBytes);
             
             var txs = new List<Transaction>(){
                 txnDep, txInv_1, txInv_2
@@ -199,9 +179,9 @@ namespace AElf.Kernel.Tests.Miner
             var chain = await _mock.CreateChain();
             // create miner
             var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, AddressHelpers.BuildAddress(keypair.GetEncodedPublicKey()).DumpByteArray());
+            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, AddressHelpers.BuildAddress(keypair.PublicKey).DumpByteArray());
             ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
-            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(keypair.GetEncodedPublicKey()).GetFormatted();
+            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(keypair.PublicKey).GetFormatted();
             var txPool = _mock.CreateTxPool();
             txPool.Start();
 
@@ -226,11 +206,10 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
-            Address addr = AddressHelpers.BuildAddress(keypair.GetEncodedPublicKey());
+            Address addr = AddressHelpers.BuildAddress(keypair.PublicKey);
             // Assert.Equal(minerconfig.CoinBase, addr); 
             
-            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-            ECVerifier verifier = new ECVerifier(recipientKeyPair);
+            ECVerifier verifier = new ECVerifier();
             Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().DumpByteArray()));
         }
 
@@ -417,7 +396,7 @@ namespace AElf.Kernel.Tests.Miner
             ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
             
             NodeConfig.Instance.ECKeyPair = keyPair;
-            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(chain.Id.DumpByteArray(), keyPair.GetEncodedPublicKey()).GetFormatted();
+            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(chain.Id.DumpByteArray(), keyPair.PublicKey).GetFormatted();
             
             var pool = _mock.CreateTxPool();
             pool.Start();

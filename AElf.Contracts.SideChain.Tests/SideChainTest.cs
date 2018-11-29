@@ -144,11 +144,7 @@ namespace AElf.Contracts.SideChain.Tests
                 From = Address.FromString("1"),
                 To = Address.FromString("2"),
                 MethodName = "test",
-                Sig = new Signature
-                {
-                    P = ByteString.Empty,
-                    R = ByteString.Empty,
-                },
+                Sig = ByteString.Empty,
                 Params = ByteString.Empty,
                 RefBlockNumber = 1,
                 RefBlockPrefix = ByteString.Empty
@@ -177,11 +173,7 @@ namespace AElf.Contracts.SideChain.Tests
                 From = Address.FromString("3"),
                 To = Address.FromString("4"),
                 MethodName = "test",
-                Sig = new Signature
-                {
-                    P = ByteString.Empty,
-                    R = ByteString.Empty,
-                },
+                Sig = ByteString.Empty,
                 Params = ByteString.Empty,
                 RefBlockNumber = 1,
                 RefBlockPrefix = ByteString.Empty

@@ -93,7 +93,7 @@ namespace AElf.Synchronization.Tests
 
             var txPrint = new Transaction()
             {
-                From = AddressHelpers.BuildAddress(keyPair.GetEncodedPublicKey()),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 MethodName = "Print",
                 Params = ByteString.CopyFrom(new Parameters()
@@ -113,12 +113,7 @@ namespace AElf.Synchronization.Tests
             var hash = txPrint.GetHash();
 
             var signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txPrint.Sig = new Signature
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                R = ByteString.CopyFrom(signature.R),
-                S = ByteString.CopyFrom(signature.S)
-            };
+            txPrint.Sig = ByteString.CopyFrom(signature.SigBytes);
 
             var txs = new List<Transaction>
             {

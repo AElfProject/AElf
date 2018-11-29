@@ -84,7 +84,7 @@ namespace AElf.Kernel.Node
         {
             _nodeKey = NodeConfig.Instance.ECKeyPair;
             _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
-            _nodeAddress = Address.FromPublicKey(_chainId.DumpByteArray(), _nodeKey.GetEncodedPublicKey());
+            _nodeAddress = Address.FromPublicKey(_chainId.DumpByteArray(), _nodeKey.PublicKey);
             
             _txHub = txHub;
             _miner = miner;
@@ -260,10 +260,6 @@ namespace AElf.Kernel.Node
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = methodName,
-                    Sig = new Signature
-                    {
-                        P = ByteString.CopyFrom(_nodeKey.GetEncodedPublicKey())
-                    },
                     Type = TransactionType.DposTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.Select(p => (object) p).ToArray()))
 
@@ -273,8 +269,7 @@ namespace AElf.Kernel.Node
                 var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
 
                 // Update the signature
-                tx.Sig.R = ByteString.CopyFrom(signature.R);
-                tx.Sig.S = ByteString.CopyFrom(signature.S);
+                tx.Sig = ByteString.CopyFrom(signature.SigBytes);
 
                 _logger?.Trace("Leaving generating tx.");
 

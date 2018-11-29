@@ -17,11 +17,6 @@ namespace AElf.Cryptography
         {
             AccountName = address;
         }
-        
-        public string HexPublicKey
-        {
-            get { return KeyPair.GetEncodedPublicKey().ToHex(); }
-        }
 
         public void Close()
         {
