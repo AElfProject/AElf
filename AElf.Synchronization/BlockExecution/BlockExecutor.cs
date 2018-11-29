@@ -8,6 +8,7 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
+using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Execution.Execution;
@@ -134,17 +135,9 @@ namespace AElf.Synchronization.BlockExecution
                     return res;
                 }
 
-                var distanceToTimeSlot = (double)ConsensusConfig.Instance.DPoSMiningInterval;
-                if (block.Header.Index > 2)
-                {
-                    var timeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlot();
-                    if (timeSlot > 0)
-                    {
-                        distanceToTimeSlot = timeSlot;
-                    }
-                }
+                var distanceToTimeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
 
-                cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * 3 / 4));
+                cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
 
                 var trs = await _txHub.GetReceiptsForAsync(readyTxs, cts);
                 
@@ -166,6 +159,7 @@ namespace AElf.Synchronization.BlockExecution
                 
                 if (cts.IsCancellationRequested)
                 {
+                    _logger?.Trace($"Execution Cancelled and rollback: block height: {block.BlockHashToHex}, execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
                     Rollback(block, txnRes).ConfigureAwait(false);
                     return BlockExecutionResult.ExecutionCancelled;
                 }

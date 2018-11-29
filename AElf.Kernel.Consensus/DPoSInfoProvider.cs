@@ -3,11 +3,13 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using NLog.Targets.Wrappers;
 
 namespace AElf.Kernel.Consensus
 {
@@ -124,16 +126,33 @@ namespace AElf.Kernel.Consensus
 
         public async Task<double> GetDistanceToTimeSlot(string addressToHex = null)
         {
-            var now = DateTime.UtcNow.ToTimestamp();
-
             if (addressToHex == null)
             {
                 addressToHex = NodeConfig.Instance.NodeAccount;
             }
 
             var timeSlot = await GetTimeSlot(addressToHex);
-            var distance = timeSlot - now;
+            var distance = timeSlot - DateTime.UtcNow.ToTimestamp();
             return distance.ToTimeSpan().TotalMilliseconds;
+        }
+
+        public async Task<double> GetDistanceToTimeSlotEnd(string addressToHex = null)
+        {
+            var distance = (double) ConsensusConfig.Instance.DPoSMiningInterval;
+            var currentRoundNumber = await GetCurrentRoundNumber();
+            if (currentRoundNumber != 0)
+            {
+                var info = await GetBPInfo(addressToHex);
+
+                var now = DateTime.UtcNow.ToTimestamp();
+                distance += (info.TimeSlot - now).ToTimeSpan().TotalMilliseconds;
+                if (info.IsEBP && distance < 0)
+                {
+                    distance += (GlobalConfig.BlockProducerNumber - info.Order + 2) * ConsensusConfig.Instance.DPoSMiningInterval;
+                }
+            }
+
+            return (distance < 0 || distance > (double) ConsensusConfig.Instance.DPoSMiningInterval) ? ConsensusConfig.Instance.DPoSMiningInterval : distance;
         }
     }
 }

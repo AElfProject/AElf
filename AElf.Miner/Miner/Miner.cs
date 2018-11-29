@@ -13,7 +13,9 @@ using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
@@ -48,17 +50,20 @@ namespace AElf.Miner.Miner
         private readonly IChainContextService _chainContextService;
         private Address _producerAddress;
         private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly DPoSInfoProvider _dpoSInfoProvider;
 
         private IMinerConfig Config { get; }
 
         public Address Coinbase => Config.CoinBase;
         private readonly TransactionFilter _txFilter;
 
+        private readonly double _maxMineTime;
+
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
-            IBlockValidationService blockValidationService, IChainContextService chainContextService, IChainManagerBasic chainManagerBasic)
+            IBlockValidationService blockValidationService, IChainContextService chainContextService, IChainManagerBasic chainManagerBasic,IStateStore stateStore)
         {
             Config = config;
             _txHub = txHub;
@@ -73,6 +78,9 @@ namespace AElf.Miner.Miner
             _chainContextService = chainContextService;
             _chainManagerBasic = chainManagerBasic;
             _txFilter = new TransactionFilter();
+            _dpoSInfoProvider = new DPoSInfoProvider(stateStore);
+
+            _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
         }
 
         /// <inheritdoc />
@@ -156,27 +164,13 @@ namespace AElf.Miner.Miner
         private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false)
         {
             using (var cts = new CancellationTokenSource())
-            using (var timer = new Timer(s =>
             {
-                try
+                if (!noTimeout)
                 {
-                    cts.Cancel();
+                    var distance = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
+                    var distanceRation = distance * (NodeConfig.Instance.RatioSynchronize + NodeConfig.Instance.RatioMine);
+                    cts.CancelAfter(distance > _maxMineTime ? TimeSpan.FromMilliseconds(_maxMineTime) : TimeSpan.FromMilliseconds(distanceRation));
                 }
-                catch (ObjectDisposedException)
-                {
-                    // Ignore if timer's callback is called after it's been disposed.
-                    // The following is paragraph from Microsoft's documentation explaining the behaviour:
-                    // https://docs.microsoft.com/en-us/dotnet/api/system.threading.timer?redirectedfrom=MSDN&view=netcore-2.1#Remarks
-                    //
-                    // When a timer is no longer needed, use the Dispose method to free the resources
-                    // held by the timer. Note that callbacks can occur after the Dispose() method
-                    // overload has been called, because the timer queues callbacks for execution by
-                    // thread pool threads. You can use the Dispose(WaitHandle) method overload to
-                    // wait until all callbacks have completed.
-                }
-            }))
-            {
-                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
 
                 if (cts.IsCancellationRequested)
                     return null;
@@ -185,9 +179,7 @@ namespace AElf.Miner.Miner
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _executingService.ExecuteAsync(txs, Config.ChainId,
-                        noTimeout ? CancellationToken.None : cts.Token,
-                        disambiguationHash);
+                    : await _executingService.ExecuteAsync(txs, Config.ChainId, cts.Token, disambiguationHash);
 
                 return traces;
             }

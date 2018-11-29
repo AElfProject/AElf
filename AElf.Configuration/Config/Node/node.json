@@ -1,9 +1,11 @@
 ﻿{
-  "IsMiner":false,
-  "IsChainCreator":false,
-  "ConsensusInfoGenerator":false,
-  "NodeAccount":"",
-  "NodeAccountPassword":"",
-  "ExecutorType":"simple",
-  "NodeName":""
+  "IsMiner": false,
+  "IsChainCreator": false,
+  "ConsensusInfoGenerator": false,
+  "NodeAccount": "",
+  "NodeAccountPassword": "",
+  "ExecutorType": "simple",
+  "NodeName": "",
+  "RatioMine": 0.4,
+  "RatioSynchronize": 0.4
 }
