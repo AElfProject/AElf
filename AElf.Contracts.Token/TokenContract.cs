@@ -199,16 +199,20 @@ namespace AElf.Contracts.Token
             Console.WriteLine($"End announcing election - {Api.GetTransaction().From.DumpHex()}");
         }
 
-        //TODO: Just consensus contract can call this method.
         [SmartContractFunction("${this}.CancelElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
-        public void CancelElection()
+        public void CancelElection(Address candidateAddress)
         {
+            if (Api.GetTransaction().From != ConsensusContractAddress)
+            {
+                return;
+            }
+            
             var candidates = _candidates.GetValue();
 
-            if (candidates == null || !candidates.Nodes.Contains(Api.GetTransaction().From))
+            if (candidates == null || !candidates.Nodes.Contains(candidateAddress))
                 return;
-            Transfer(Api.GetTransaction().To, GlobalConfig.LockTokenForElection);
-            candidates.Nodes.Remove(Api.GetTransaction().From);
+            Transfer(candidateAddress, GlobalConfig.LockTokenForElection);
+            candidates.Nodes.Remove(candidateAddress);
             _candidates.SetValue(candidates);
         }
 

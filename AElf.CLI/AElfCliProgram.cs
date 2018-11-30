@@ -74,7 +74,7 @@ namespace AElf.CLI
         private const string DeploySmartContract = "DeploySmartContract";
         private const string UpdateSmartContract = "UpdateSmartContract";
         private const string WrongInputFormat = "Invalid input format.";
-        private const string UriFormatEroor = "Invalid uri format.";
+        private const string UriFormatError = "Invalid uri format.";
         
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
@@ -658,7 +658,7 @@ namespace AElf.CLI
                     {
                         if (e is UriFormatException)
                         {
-                            _screenManager.PrintError(UriFormatEroor);
+                            _screenManager.PrintError(UriFormatError);
                             return;
                         }
                         

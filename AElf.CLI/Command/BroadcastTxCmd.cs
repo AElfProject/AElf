@@ -33,7 +33,7 @@ namespace AElf.CLI.Command
         
         public override JObject BuildRequest(CmdParseResult parsedCmd)
         {
-            var reqParams = new JObject { ["address"] = parsedCmd.Args.ElementAt(0) };
+            var reqParams = new JObject {["address"] = parsedCmd.Args.ElementAt(0)};
             var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
 
             return req;

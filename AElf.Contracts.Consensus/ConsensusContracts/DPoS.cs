@@ -344,8 +344,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     return;
                 }
                 var parameter =
-                    ByteString.CopyFrom(ParamsPacker.Pack(minerWannaQuitElection,
-                        GlobalConfig.LockTokenForElection));
+                    ByteString.CopyFrom(ParamsPacker.Pack(minerWannaQuitElection));
                 Api.Call(TokenContractAddress, "CancelElection", parameter.ToByteArray());
                 candidates.Nodes.Remove(minerWannaQuitElection);
                 await _candidatesField.SetAsync(candidates);
