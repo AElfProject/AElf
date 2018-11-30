@@ -82,7 +82,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 var lc = _rwLock.UpgradeToWriterLock(Timeout);
                 try
                 {
-                    _blockCache.Add(block);
+                    _blockCache.Add(block.Clone());
                     _blockCache = _blockCache.OrderBy(b => b.Index).ToList();
                 }
                 finally
@@ -109,7 +109,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     _blockCache.Remove(toRemove);
                 }
 
-                _blockCache.Add(block);
+                _blockCache.Add(block.Clone());
                 _blockCache = _blockCache.OrderBy(b => b.Index).ToList();
             }
             finally
@@ -179,22 +179,22 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
 
-            return block?.Body == null ? null : block;
+            return block?.Body == null ? null : block.Clone();
         }
 
         public List<IBlock> GetBlocksByHeight(ulong height)
         {
             _rwLock.AcquireReaderLock(Timeout);
+            var blocks = new List<IBlock>();
             try
             {
                 if (_blockCache.Any(b => b.Index == height))
                 {
-                    return _blockCache.Where(b => b.Index == height).ToList();
+                    _blockCache.Where(b => b.Index == height).ForEach(b => blocks.Add(b.Clone()));
                 }
-
-                if (_executedBlocks.TryGetValue(height, out var block) && block?.Header != null)
+                else if (_executedBlocks.TryGetValue(height, out var block) && block?.Header != null)
                 {
-                    return new List<IBlock> {block};
+                    blocks.Add(block.Clone());
                 }
             }
             finally
@@ -202,7 +202,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
 
-            return new List<IBlock>();
+            return blocks;
         }
 
         private void RemoveOldBlocks(ulong targetHeight)
