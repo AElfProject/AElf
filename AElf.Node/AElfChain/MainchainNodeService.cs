@@ -14,13 +14,10 @@ using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
-using AElf.Miner.EventMessages;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
-using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
-using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
@@ -33,7 +30,6 @@ namespace AElf.Node.AElfChain
     public class MainchainNodeService : INodeService
     {
         private readonly ILogger _logger;
-
         private readonly ITxHub _txHub;
         private readonly IStateStore _stateStore;
         private readonly IMiner _miner;
@@ -43,23 +39,16 @@ namespace AElf.Node.AElfChain
 
         private IBlockChain _blockChain;
 
-        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
-                                              _chainService.GetBlockChain(
-                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
-        
+        private IBlockChain BlockChain => _blockChain ?? (_blockChain = _chainService.GetBlockChain(
+                                              Hash.LoadHex(ChainConfig.Instance.ChainId)));
+
         private IConsensus _consensus;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
 
-        public MainchainNodeService(
-            IStateStore stateStore,
-            ITxHub hub,
-            IChainCreationService chainCreationService,
-            IBlockSynchronizer blockSynchronizer,
-            IChainService chainService,
-            IMiner miner,
-            ILogger logger)
+        public MainchainNodeService(IStateStore stateStore, ITxHub hub, IChainCreationService chainCreationService,
+            IBlockSynchronizer blockSynchronizer, IChainService chainService, IMiner miner, ILogger logger)
         {
             _stateStore = stateStore;
             _chainCreationService = chainCreationService;
@@ -176,8 +165,8 @@ namespace AElf.Node.AElfChain
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
-                    CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero,
-                        SideChainGenesisContractZero);
+                    CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode,
+                        BasicContractZero, SideChainGenesisContractZero);
                 }
             }
             catch (Exception e)
@@ -336,7 +325,7 @@ namespace AElf.Node.AElfChain
         {
             return await _blockSynchronizer.GetBlockHeaderList(index, count);
         }
-        
+
         public async Task<Block> GetBlockAtHeight(int height)
         {
             if (height <= 0)
@@ -344,11 +333,11 @@ namespace AElf.Node.AElfChain
                 _logger?.Warn($"Cannot get block - height {height} is not valid.");
                 return null;
             }
-            
-            var block = (Block) await BlockChain.GetBlockByHeightAsync((ulong)height);
+
+            var block = (Block) await BlockChain.GetBlockByHeightAsync((ulong) height);
             return block != null ? await FillBlockWithTransactionList(block) : null;
         }
-        
+
         public async Task<Block> GetBlockFromHash(byte[] hash)
         {
             if (hash == null || hash.Length <= 0)
@@ -356,20 +345,22 @@ namespace AElf.Node.AElfChain
                 _logger?.Warn("Cannot get block - invalid hash.");
                 return null;
             }
-            
+
             return await GetBlockFromHash(Hash.LoadByteArray(hash));
         }
-        
+
         public async Task<Block> GetBlockFromHash(Hash hash)
         {
             var block = await Task.Run(() => (Block) _blockSynchronizer.GetBlockByHash(hash));
             if (block == null)
                 return null;
+
             if (block.Body.TransactionList.Count > 0)
                 return block;
+
             return await FillBlockWithTransactionList(block);
         }
-        
+
         private async Task<Block> FillBlockWithTransactionList(Block block)
         {
             block.Body.TransactionList.Clear();
@@ -384,7 +375,7 @@ namespace AElf.Node.AElfChain
 
         public async Task<int> GetCurrentBlockHeightAsync()
         {
-             return (int) await BlockChain.GetCurrentBlockHeightAsync();
+            return (int) await BlockChain.GetCurrentBlockHeightAsync();
         }
     }
 }
