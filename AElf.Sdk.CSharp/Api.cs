@@ -13,6 +13,7 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 using AElf.Sdk.CSharp.ReadOnly;
 using AElf.SmartContract.Proposal;
+using NServiceKit.Common.Extensions;
 
 namespace AElf.Sdk.CSharp
 {
@@ -155,6 +156,16 @@ namespace AElf.Sdk.CSharp
         {
             return _transactionContext.Transaction.ToReadOnly();
         }
+        
+        public static ByteString GetPublicKey()
+        {
+            return GetTransaction().Sigs.First().P;
+        }
+
+        public static Address GetTransactionFromAddress()
+        {
+            return GetTransaction().From;
+        }
 
         #endregion Getters used by contract
 
@@ -260,7 +271,6 @@ namespace AElf.Sdk.CSharp
 
         #endregion Diagonstics API
 
-
         public static void SendDeferredTransaction(Transaction deferredTxn)
         {
             _transactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
@@ -281,5 +291,7 @@ namespace AElf.Sdk.CSharp
 
             return provided >= auth.ExecutionThreshold;
         }
+
+        
     }
 }

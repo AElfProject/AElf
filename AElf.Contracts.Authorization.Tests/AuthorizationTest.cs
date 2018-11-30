@@ -110,7 +110,6 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(-10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",
@@ -125,7 +124,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = Address.Generate(),
                 Name = "Propose",
-                ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
+                //ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",
@@ -140,7 +139,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                ProposerPublicKey = ByteString.CopyFrom(kp3.PublicKey.Q.GetEncoded()),
+                //ProposerPublicKey = ByteString.CopyFrom(kp3.PublicKey.Q.GetEncoded()),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",
@@ -155,7 +154,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
+                //ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",
@@ -207,7 +206,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
+                //ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",
@@ -260,7 +259,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                ProposerPublicKey = ByteString.CopyFrom(kp1.GetEncodedPublicKey()),
+                //ProposerPublicKey = ByteString.CopyFrom(kp1.GetEncodedPublicKey()),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",
@@ -350,7 +349,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
+                //ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",

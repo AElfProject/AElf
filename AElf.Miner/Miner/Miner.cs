@@ -302,7 +302,7 @@ namespace AElf.Miner.Miner
                         txRes.UpdateBloom();
                         
                         // insert deferred txn to transaction pool and wait for execution 
-                        if (trace.DeferredTransaction != null)
+                        if (trace.DeferredTransaction.Length != 0)
                         {
                             var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
                             InsertTransactionToPool(deferredTxn).ConfigureAwait(false);
