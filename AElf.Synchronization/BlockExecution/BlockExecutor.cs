@@ -127,7 +127,7 @@ namespace AElf.Synchronization.BlockExecution
                 if (result.IsFailed() || readyTxs.Count == 0)
                 {
                     _logger?.Warn($"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
-                                  $"block hash: {block.BlockHashToHex}");
+                                  $"block hash: {block.BlockHashToHex}.");
                     res = result;
                     return res;
                 }
@@ -194,11 +194,11 @@ namespace AElf.Synchronization.BlockExecution
                 stopwatch.Stop();
                 if (res.CanExecuteAgain())
                 {
-                    _logger?.Warn("Block {block.BlockHashToHex} can execute again.");
+                    _logger?.Warn($"Block {block.BlockHashToHex} can execute again.");
                 }
 
                 _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
-                              $"duration {stopwatch.ElapsedMilliseconds} ms.");
+                              $"duration {stopwatch.ElapsedMilliseconds} ms. (txn list size {block.Body.TransactionList.Count})");
             }
         }
 
@@ -341,7 +341,7 @@ namespace AElf.Synchronization.BlockExecution
                 res = BlockExecutionResult.TooManyTxsForParentChainBlock;
             }
 
-            if (readyTxs.Count == 0)
+            if (txs.Count == 0)
             {
                 res = BlockExecutionResult.NoTransaction;
             }
