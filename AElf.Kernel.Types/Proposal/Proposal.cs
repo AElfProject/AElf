@@ -7,7 +7,7 @@ namespace AElf.Kernel.Types.Proposal
     {
         public Hash GetHash()
         {
-            return Hash.FromRawBytes(this.ToByteArray());
+            return Hash.FromTwoHashes(Hash.FromRawBytes(MultiSigAccount.DumpByteArray()), Hash.FromString(Name));
         }
     }
 }

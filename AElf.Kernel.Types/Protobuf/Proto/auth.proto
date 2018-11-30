@@ -9,7 +9,7 @@ message Authorization
     Address MultiSigAccount = 1;
     uint32 ExecutionThreshold = 2;
     uint32 ProposerThreshold = 3;
-    repeated Reviewer reviewers = 4;
+    repeated Reviewer Reviewers = 4;
 }
 
 message Reviewer
@@ -20,10 +20,17 @@ message Reviewer
 
 message Proposal {
     Address MultiSigAccount = 1;
-    bytes ProposerPublicKey = 2; 
-    string Name = 3;
-    PendingTxn TxnData = 4;
-    google.protobuf.Timestamp ExpiredTime = 5;
+    string Name = 2;
+    PendingTxn TxnData = 3;
+    google.protobuf.Timestamp ExpiredTime = 4;
+    ProposalStatus Status = 5;
+    Address Proposer = 6;
+}
+
+enum ProposalStatus {
+    ToBeDecided = 0;
+    Decided = 1;
+    Released = 2;
 }
 
 message PendingTxn{
