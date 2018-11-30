@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using AElf.CLI.Certificate;
 using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
+using AElf.CLI.Command.MultiSig;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
@@ -66,8 +67,15 @@ namespace AElf.CLI
             program.RegisterCommand(new GetBlockHeightCmd());
             program.RegisterCommand(new GetBlockInfoCmd());
             program.RegisterCommand(new CallReadOnlyCmd());
+            
             program.RegisterCommand(new GetMerklePathCmd());
             program.RegisterCommand(new CertificateCmd());
+            
+            program.RegisterCommand(new CreateMSigCmd());
+            program.RegisterCommand(new ProposeCmd());
+            program.RegisterCommand(new CheckProposalCmd());
+            program.RegisterCommand(new ApproveCmd());
+            program.RegisterCommand(new ReleaseProposalCmd());
 
             // Start the CLI
             program.StartRepl();
