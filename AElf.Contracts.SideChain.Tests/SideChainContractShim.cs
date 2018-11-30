@@ -205,6 +205,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
+            Console.WriteLine($"\r\n{TransactionContext.Trace}\r\n");
             await CommitChangesAsync(TransactionContext.Trace);
         }
 

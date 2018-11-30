@@ -13,15 +13,9 @@ namespace AElf.Kernel
     {
         public void Init(ContainerBuilder builder)
         {
-            if (ConsensusConfig.Instance.ConsensusType == ConsensusType.AElfDPoS)
-            {
-                GlobalConfig.AElfDPoSMiningInterval = ConsensusConfig.Instance.DPoSMiningInterval;
-            }
-
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.SingleNode)
             {
                 GlobalConfig.BlockProducerNumber = 1;
-                GlobalConfig.SingleNodeTestMiningInterval = ConsensusConfig.Instance.SingleNodeTestMiningInterval;
             }
             
             builder.RegisterModule(new KernelAutofacModule());

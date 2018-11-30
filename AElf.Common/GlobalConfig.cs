@@ -23,7 +23,6 @@ namespace AElf.Common
 
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
-        public const int AElfLogInterval = 900;
 
         #region AElf DPoS
 
@@ -50,7 +49,7 @@ namespace AElf.Common
         public const string AElfTxRootMerklePathInParentChain = "__TxRootMerklePathInParentChain__";
         public const string AElfParentChainBlockInfo = "__ParentChainBlockInfo__";
         public const string AElfBoundParentChainHeight = "__BoundParentChainHeight__";
-        public static readonly int AElfInitCrossChainRequestInterval = AElfDPoSMiningInterval / 1000;
+        public static readonly int AElfInitCrossChainRequestInterval = 4;
         public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
 
         #endregion

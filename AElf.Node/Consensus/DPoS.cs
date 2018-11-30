@@ -9,6 +9,7 @@ using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
@@ -263,10 +264,7 @@ namespace AElf.Kernel.Node
 
                 _logger?.Trace("Leaving generating tx.");
 
-                if (tx.MethodName != ConsensusBehavior.PublishInValue.ToString())
-                {
-                    MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
-                }
+                MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
 
                 return tx;
             }
@@ -322,7 +320,7 @@ namespace AElf.Kernel.Node
                     {
                         Miners.ToByteArray(),
                         _helper.GenerateInfoForFirstTwoRounds().ToByteArray(),
-                        new SInt32Value {Value = GlobalConfig.AElfDPoSMiningInterval}.ToByteArray(),
+                        new SInt32Value {Value = ConsensusConfig.Instance.DPoSMiningInterval}.ToByteArray(),
                         logLevel.ToByteArray()
                     };
                     var txToInitializeAElfDPoS = await GenerateTransactionAsync(behavior.ToString(), parameters);
@@ -633,12 +631,12 @@ namespace AElf.Kernel.Node
 
             var endTimeSlot =
                 startTimeSlot.AddMilliseconds(
-                    GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval * 2);
+                    GlobalConfig.BlockProducerNumber * ConsensusConfig.Instance.DPoSMiningInterval * 2);
 
             return currentTime >
                    startTimeSlot.AddMilliseconds(
-                       -GlobalConfig.BlockProducerNumber * GlobalConfig.AElfDPoSMiningInterval) ||
-                   currentTime < endTimeSlot.AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval);
+                       -GlobalConfig.BlockProducerNumber * ConsensusConfig.Instance.DPoSMiningInterval) ||
+                   currentTime < endTimeSlot.AddMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval);
         }
 
         private async Task BroadcastTransaction(Transaction tx)

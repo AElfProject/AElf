@@ -133,20 +133,21 @@ namespace AElf.Synchronization.BlockSynchronization
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
-                // Ignore the process of publishing in value because this operation won't produce a block.
-                if (inState.ConsensusBehavior == ConsensusBehavior.PublishInValue)
-                {
-                    return;
-                }
-
                 MessageHub.Instance.Publish(inState.IsMining ? StateEvent.MiningStart : StateEvent.MiningEnd);
             });
 
             MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
             {
                 // Update DPoS process.
-                MessageHub.Instance.Publish(UpdateConsensus.Update);
+                //MessageHub.Instance.Publish(UpdateConsensus.Update);
                 AddMinedBlock(inBlock.Block);
+            });
+            
+            MessageHub.Instance.Subscribe<BlockMinedAndStored>(inBlock =>
+            {
+                // Update DPoS process.
+                MessageHub.Instance.Publish(UpdateConsensus.Update);
+                HandleMinedAndStroedBlock(inBlock.Block);
             });
 
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
@@ -263,8 +264,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<BlockExecutionResult> HandleValidBlock(IBlock block)
         {
-            _logger?.Warn(
-                $"Valid block {block.BlockHashToHex}. Height: *{block.Index}*");
+            _logger?.Info($"Valid block {block.BlockHashToHex}. Height: *{block.Index}*");
 
             if (_stateFSM.CurrentState != NodeState.BlockExecuting)
             {
@@ -313,6 +313,19 @@ namespace AElf.Synchronization.BlockSynchronization
         }
 
         private void AddMinedBlock(IBlock block)
+        {
+            _blockSet.AddOrUpdateBlock(block);
+
+            // We can say the "initial sync" is finished, set KeepHeight to a specific number
+            if (_blockSet.KeepHeight == ulong.MaxValue)
+            {
+                _logger?.Trace(
+                    $"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
+                _blockSet.KeepHeight = GlobalConfig.BlockCacheLimit;
+            }
+        }
+        
+        private void HandleMinedAndStroedBlock(IBlock block)
         {
             _blockSet.Tell(block);
 
