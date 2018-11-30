@@ -53,6 +53,7 @@ namespace AElf.Common
         #region Authorization
 
         public const string AElfMultiSig = "__MultiSig__";
+        public const string AElfProposal = "__Proposal__";
         #endregion
 
         public static ulong BasicContractZeroSerialNumber = 100;

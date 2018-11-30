@@ -11,13 +11,13 @@ namespace AElf.SmartContract.Proposal
 {
     public class AuthorizationInfo : IAuthorizationInfo
     {
-        private readonly ContractInfoReader _crossChainReader;
+        private readonly ContractInfoReader _contractInfoReader;
         private Address AuthorizationContractAddress =>
             ContractHelpers.GetAuthorizationContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
         public AuthorizationInfo(IStateStore stateStore)
         {
             var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
-            _crossChainReader = new ContractInfoReader(chainId, stateStore);
+            _contractInfoReader = new ContractInfoReader(chainId, stateStore);
         }
         
         public bool CheckAuthority(Transaction transaction)
@@ -25,12 +25,24 @@ namespace AElf.SmartContract.Proposal
             return transaction.Sigs.Count == 1 ||
                    CheckAuthority(transaction.From, transaction.Sigs.Select(sig => sig.P));
         }
-        
+
+        public Kernel.Types.Proposal.Proposal GetProposal(Hash proposalHash)
+        {
+            var bytes = _contractInfoReader.GetBytes<Authorization>(AuthorizationContractAddress,
+                Hash.FromMessage(proposalHash), GlobalConfig.AElfProposal);
+            return Kernel.Types.Proposal.Proposal.Parser.ParseFrom(bytes);
+        }
+
+        public Authorization GetAuthorization(Address msig)
+        {
+            var bytes = _contractInfoReader.GetBytes<Authorization>(AuthorizationContractAddress,
+                Hash.FromMessage(msig), GlobalConfig.AElfTxRootMerklePathInParentChain);
+            return Authorization.Parser.ParseFrom(bytes);
+        }
+
         public bool CheckAuthority(Address mSigAddress, IEnumerable<ByteString> pubKeys)
         {
-            var bytes = _crossChainReader.GetBytes<Authorization>(AuthorizationContractAddress,
-                Hash.FromMessage(mSigAddress), GlobalConfig.AElfTxRootMerklePathInParentChain);
-            var auth = Authorization.Parser.ParseFrom(bytes);
+            var auth = GetAuthorization(mSigAddress);
             return CheckAuthority(auth, pubKeys);
         }
 
