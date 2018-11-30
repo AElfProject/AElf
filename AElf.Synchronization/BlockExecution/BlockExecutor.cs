@@ -198,7 +198,7 @@ namespace AElf.Synchronization.BlockExecution
                 }
 
                 _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
-                              $"duration {stopwatch.ElapsedMilliseconds} ms. (txn list size {block.Body.TransactionList.Count})");
+                              $"duration {stopwatch.ElapsedMilliseconds} ms.");
             }
         }
 
