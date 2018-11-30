@@ -151,8 +151,8 @@ namespace AElf.Kernel.Consensus
                     distance += (GlobalConfig.BlockProducerNumber - info.Order + 2) * ConsensusConfig.Instance.DPoSMiningInterval;
                 }
             }
-
-            return (distance < 0 || distance > (double) ConsensusConfig.Instance.DPoSMiningInterval) ? ConsensusConfig.Instance.DPoSMiningInterval : distance;
+            // Todo the time slot of dpos is not exact
+            return (distance < 500 || distance > (double) ConsensusConfig.Instance.DPoSMiningInterval) ? ConsensusConfig.Instance.DPoSMiningInterval : distance;
         }
     }
 }

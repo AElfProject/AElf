@@ -151,7 +151,7 @@ namespace AElf.Synchronization.BlockExecution
                     if (!tr.IsExecutable)
                     {
                         throw new InvalidBlockException($"Transaction is not executable, transaction: {tr}, " +
-                                                        $"block height: {block.Header.Index}, block hash: {block.BlockHashToHex}");
+                                                        $"block height: {block.Header.Index}, block hash: {block.BlockHashToHex}, SignatureSt:{tr.SignatureSt},RefBlockSt:{tr.RefBlockSt},Status:{tr.Status}");
                     }
                 }
 
