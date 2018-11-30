@@ -40,7 +40,6 @@ namespace AElf.Miner.Miner
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private int _timeoutMilliseconds;
         private readonly ILogger _logger;
         private IBlockChain _blockChain;
         private readonly ClientManager _clientManager;
@@ -465,7 +464,6 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init()
         {
-            _timeoutMilliseconds = ConsensusConfig.Instance.DPoSMiningInterval * 3 / 4;
             _keyPair = NodeConfig.Instance.ECKeyPair;
             _producerAddress = Address.FromRawBytes(_keyPair.GetEncodedPublicKey());
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
