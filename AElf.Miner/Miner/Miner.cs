@@ -168,7 +168,9 @@ namespace AElf.Miner.Miner
                 {
                     var distance = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
                     var distanceRation = distance * (NodeConfig.Instance.RatioSynchronize + NodeConfig.Instance.RatioMine);
-                    cts.CancelAfter(distance > _maxMineTime ? TimeSpan.FromMilliseconds(_maxMineTime) : TimeSpan.FromMilliseconds(distanceRation));
+                    var timeout = Math.Min(distanceRation, _maxMineTime);
+                    cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
+                    _logger?.Trace($"Execution limit time: {timeout}ms");
                 }
 
                 if (cts.IsCancellationRequested)
