@@ -117,7 +117,7 @@ namespace AElf.Miner.TxMemPool
             var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.PublishInValue.ToString())?.RefBlockNumber;
             if (correctRefBlockNumber.HasValue)
             {
-                toRemove.AddRange(list.FindAll(tx => tx.RefBlockNumber != correctRefBlockNumber && tx.MethodName == ConsensusBehavior.PublishInValue.ToString()));
+                toRemove.RemoveAll(tx => tx.RefBlockNumber == correctRefBlockNumber && tx.MethodName == ConsensusBehavior.PublishInValue.ToString());
             }
             
             toRemove.AddRange(

@@ -15,5 +15,7 @@ namespace AElf.Configuration
         public string NodeAccountPassword { get; set; }
         public ECKeyPair ECKeyPair { get; set; }
         public ConsensusKind ConsensusKind { get; set; }
+        public float RatioMine { get; set; }
+        public float RatioSynchronize { get; set; }
     }
 }

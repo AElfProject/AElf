@@ -7,7 +7,7 @@ using AElf.Management.Interfaces;
 
 namespace AElf.Management.Services
 {
-    public class RecrodService : IRecrodService
+    public class RecordService : IRecordService
     {
         private readonly IChainService _chainService;
         private readonly ITransactionService _transactionService;
@@ -15,7 +15,7 @@ namespace AElf.Management.Services
         private readonly INetworkService _networkService;
         private readonly Timer _timer;
 
-        public RecrodService(IChainService chainService, ITransactionService transactionService, INodeService nodeService, INetworkService networkService)
+        public RecordService(IChainService chainService, ITransactionService transactionService, INodeService nodeService, INetworkService networkService)
         {
             _chainService = chainService;
             _transactionService = transactionService;

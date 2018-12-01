@@ -40,6 +40,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private NodeState CurrentState => (NodeState) _stateFSM.CurrentState;
 
+        private static bool _executionCancelled = false;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet, IBlockHeaderValidator blockHeaderValidator)
         {
@@ -217,6 +219,12 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task ReceiveNextValidBlock()
         {
+            if (_executionCancelled)
+            {
+                _executionCancelled = false;
+                return;
+            }
+
             if (_stateFSM.CurrentState != (int) NodeState.Catching && _stateFSM.CurrentState != (int) NodeState.Caught)
             {
                 IncorrectStateLog(nameof(ReceiveNextValidBlock));
@@ -280,7 +288,14 @@ namespace AElf.Synchronization.BlockSynchronization
                 return BlockExecutionResult.InvalidSideChainInfo;
             }
 
-            _blockSet.Tell(block);
+            if (executionResult == BlockExecutionResult.ExecutionCancelled)
+            {
+                _executionCancelled = true;
+            }
+            else
+            {
+                _blockSet.Tell(block);
+            }
 
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);

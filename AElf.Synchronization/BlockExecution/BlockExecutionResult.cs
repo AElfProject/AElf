@@ -15,8 +15,7 @@ namespace AElf.Synchronization.BlockExecution
         InvalidParentChainBlockInfo,
 
         //     Simply cache
-        ExecutionCancelled = 21,
-        BlockIsNull,
+        BlockIsNull = 21,
         NoTransaction,
         TooManyTxsForParentChainBlock,
         AlreadyAppended,
@@ -27,6 +26,7 @@ namespace AElf.Synchronization.BlockExecution
 
         // Need to rollback
         Fatal = 101,
+        ExecutionCancelled,
     }
 
     public static class ExecutionResultExtensions
