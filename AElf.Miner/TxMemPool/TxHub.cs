@@ -61,7 +61,7 @@ namespace AElf.Miner.TxMemPool
             ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
 
         private static Address SideChainContractAddress =>
-            ContractHelpers.GetSideChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            ContractHelpers.GetCrossChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
         
         private readonly List<Address> _systemAddresses = new List<Address>()
         {

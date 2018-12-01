@@ -242,7 +242,7 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
-                    To = ContractHelpers.GetSideChainContractAddress(Config.ChainId),
+                    To = ContractHelpers.GetCrossChainContractAddress(Config.ChainId),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",

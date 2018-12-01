@@ -84,7 +84,7 @@ namespace AElf.Sdk.CSharp
 
         public static Address GetSideChainContractAddress()
         {
-            return ContractHelpers.GetSideChainContractAddress(_smartContractContext.ChainId);
+            return ContractHelpers.GetCrossChainContractAddress(_smartContractContext.ChainId);
         }
         
         public static Address GetAuthorizationContractAddress()
@@ -292,6 +292,11 @@ namespace AElf.Sdk.CSharp
             return provided >= auth.ExecutionThreshold;
         }
 
-        
+
+        /*public static Hash Propose(Proposal proposal)
+        {
+            Call(GetAuthorizationContractAddress(), "Propose", ParamsPacker.Pack(proposal));
+            return Hash.LoadByteArray(GetCallResult());
+        }*/
     }
 }

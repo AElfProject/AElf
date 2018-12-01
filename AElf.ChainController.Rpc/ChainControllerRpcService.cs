@@ -94,8 +94,8 @@ namespace AElf.ChainController.Rpc
             {
                 var basicContractZero =
                     ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
-                var sideChainContract =
-                    ContractHelpers.GetSideChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                var crosschainContract =
+                    ContractHelpers.GetCrossChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
                 var authorizationContract =
                     ContractHelpers.GetAuthorizationContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
                 var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
@@ -106,7 +106,7 @@ namespace AElf.ChainController.Rpc
                         new JObject
                         {
                             [GlobalConfig.GenesisSmartContractZeroAssemblyName] = basicContractZero.DumpHex(),
-                            [GlobalConfig.GenesisSideChainContractAssemblyName] = sideChainContract.DumpHex(),
+                            [GlobalConfig.GenesisCrossChainContractAssemblyName] = crosschainContract.DumpHex(),
                             [GlobalConfig.GenesisAuthorizationContractAssemblyName] = authorizationContract.DumpHex(),
                             [GlobalConfig.GenesisTokenContractAssemblyName] = tokenContract.DumpHex(),
                             ["chain_id"] = ChainConfig.Instance.ChainId

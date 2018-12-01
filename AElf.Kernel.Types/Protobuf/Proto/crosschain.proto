@@ -32,3 +32,12 @@ message ParentChainBlockRootInfo
 message MerklePath{
     repeated Hash Path = 1;
 }
+
+message ChainCreationRequest{
+    uint64 IndexingPrice = 1;
+    uint64 Ram = 2;
+    uint64 Cpu = 3;
+    uint64 Net = 4;
+    bytes ContractCode = 5;
+    Address Proposer = 6;
+}

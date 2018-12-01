@@ -76,20 +76,19 @@ namespace AElf.Contracts.Authorization
         private readonly Map<Address, Kernel.Types.Proposal.Authorization> _multiSig = new Map<Address, Kernel.Types.Proposal.Authorization>(FieldNames.MultiSig);
         private readonly Map<Hash, Proposal> _proposals = new Map<Hash, Proposal>(FieldNames.Proposal);
         private readonly Map<Hash, Approved> _approved = new Map<Hash, Approved>(FieldNames.Approved);
-        private Address Genesis { get;} = Address.Genesis;
         //private readonly ProposalSerialNumber _proposalSerialNumber = ProposalSerialNumber.Instance;
         #region Actions
 
         public byte[] CreateMultiSigAccount(Kernel.Types.Proposal.Authorization authorization)
         {
             // TODO: check public key
-            
-            Address multiSigAccount = authorization.MultiSigAccount ?? Address.FromRawBytes(authorization.ToByteArray().Take(GlobalConfig.AddressLength).ToArray());
-            Api.Assert(_multiSig.GetValue(multiSigAccount).Equals(new Kernel.Types.Proposal.Authorization()), "MultiSigAccount already existed.");
+
+            Address multiSigAccount = authorization.MultiSigAccount ??
+                                      Address.FromRawBytes(authorization.ToByteArray().Take(GlobalConfig.AddressLength)
+                                          .ToArray());
+            Api.Assert(_multiSig.GetValue(multiSigAccount).Equals(new Kernel.Types.Proposal.Authorization()),
+                "MultiSigAccount already existed.");
             authorization.MultiSigAccount = multiSigAccount;
-            // check permissions
-            Api.Assert(authorization.Reviewers.Count >= authorization.ExecutionThreshold,
-                "Threshold should not be bigger than reviewer count.");
             _multiSig.SetValue(multiSigAccount, authorization);
             
             return multiSigAccount.DumpByteArray();
@@ -194,13 +193,13 @@ namespace AElf.Contracts.Authorization
         public Kernel.Types.Proposal.Authorization GetAuth(Address address)
         {
             // case 1: get authorization of normal multi sig account
-            if (!address.Equals(Genesis)) 
+            if (!address.Equals(Address.Genesis)) 
                 return _multiSig.GetValue(address);
             // case 2: get authorization of system account  
             var reviewers = Api.GetSystemReviewers();
             var auth =  new Kernel.Types.Proposal.Authorization
             {
-                MultiSigAccount = Genesis,
+                MultiSigAccount = Address.Genesis,
                 ExecutionThreshold = (uint) (reviewers.Count * 2 / 3),
                 ProposerThreshold = 1
             };
@@ -235,7 +234,7 @@ namespace AElf.Contracts.Authorization
         
         private void CheckAuthority(Proposal proposal, Kernel.Types.Proposal.Authorization authorization)
         {
-            List<Reviewer> reviewers = proposal.MultiSigAccount.Equals(Genesis)
+            List<Reviewer> reviewers = proposal.MultiSigAccount.Equals(Address.Genesis)
                 ? Api.GetSystemReviewers()
                 : authorization.Reviewers.ToList();
             
