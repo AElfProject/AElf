@@ -55,7 +55,7 @@ namespace AElf.Kernel
                 From = From.Clone(),
                 To = To.Clone(),
                 MethodName = MethodName,
-                Type = Type,
+                Type = Type
             };
             if (Params.Length != 0)
                 txData.Params = Params;

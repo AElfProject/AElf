@@ -66,7 +66,7 @@ namespace AElf.Contracts.Authorization.Tests
                 }
             });
             var addr = _contract.CreateMSigAccount(auth).Result;
-            Assert.Equal(msig, addr);
+            Assert.Equal(msig.DumpByteArray(), addr);
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace AElf.Contracts.Authorization.Tests
                 }
             });
             var addr = _contract.CreateMSigAccount(auth).Result;
-            Assert.Equal(msig, addr);
+            Assert.Equal(msig.DumpByteArray(), addr);
             
             var expiredProposal = new Proposal
             {
@@ -116,8 +116,9 @@ namespace AElf.Contracts.Authorization.Tests
                     TxnData = CreateDemoTxn(msig).ToByteString()
                 }
             };
-            Hash hash = _contract.Propose(expiredProposal, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
-            Assert.Null(hash);
+            var res = _contract.Propose(expiredProposal, kp1).Result;
+            //Hash hash = Hash.LoadByteArray(res);
+            Assert.Null(res);
             
             var notFoundAuthorizationProposal = new Proposal
             {
@@ -131,8 +132,8 @@ namespace AElf.Contracts.Authorization.Tests
                     TxnData = CreateDemoTxn(msig).ToByteString()
                 }
             };
-            hash = _contract.Propose(expiredProposal, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
-            Assert.Null(hash);
+            res = _contract.Propose(notFoundAuthorizationProposal, kp1).Result;
+            Assert.Null(res);
             
             var notAuthorizedProposal = new Proposal
             {
@@ -146,8 +147,8 @@ namespace AElf.Contracts.Authorization.Tests
                     TxnData = CreateDemoTxn(msig).ToByteString()
                 }
             };
-            hash = _contract.Propose(notAuthorizedProposal, Address.FromRawBytes(kp3.GetEncodedPublicKey())).Result;
-            Assert.Null(hash);
+            res = _contract.Propose(notAuthorizedProposal, kp3).Result;
+            Assert.Null(res);
             
             var validProposal = new Proposal
             {
@@ -159,10 +160,12 @@ namespace AElf.Contracts.Authorization.Tests
                 {
                     ProposalName = "Propose",
                     TxnData = CreateDemoTxn(msig).ToByteString()
-                }
+                },
+                Proposer = Address.FromRawBytes(kp1.GetEncodedPublicKey()),
+                Status = ProposalStatus.ToBeDecided
             };
-            hash = _contract.Propose(validProposal, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
-            Assert.NotNull(hash);
+            res = _contract.Propose(validProposal, kp1).Result;
+            Assert.NotEmpty(res);
         }
 
         [Fact]
@@ -199,22 +202,22 @@ namespace AElf.Contracts.Authorization.Tests
                 }
             });
             var addr = _contract.CreateMSigAccount(auth).Result;
-            Assert.Equal(msig, addr);
+            Assert.Equal(msig.DumpByteArray(), addr);
 
             var validProposal = new Proposal
             {
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                //ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
+                Proposer = Address.FromRawBytes(kp1.GetEncodedPublicKey()),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",
                     TxnData = CreateDemoTxn(msig).ToByteString()
                 }
             };
-            Hash hash = _contract.Propose(validProposal, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
-            Assert.NotNull(hash);
+            var res = _contract.Propose(validProposal, kp1).Result;
+            Assert.NotEmpty(res);
         }
 
         [Fact]
@@ -251,7 +254,7 @@ namespace AElf.Contracts.Authorization.Tests
                 }
             });
             var addr = _contract.CreateMSigAccount(auth).Result;
-            Assert.Equal(msig, addr);
+            Assert.Equal(msig.DumpByteArray(), addr);
 
             var tx = CreateDemoTxn(msig);
             var validProposal = new Proposal
@@ -259,23 +262,22 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                //ProposerPublicKey = ByteString.CopyFrom(kp1.GetEncodedPublicKey()),
+                Proposer = kp1.GetAddress(),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",
                     TxnData = tx.ToByteString()
                 }
             };
-            Hash hash = _contract.Propose(validProposal, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
-            Assert.NotNull(hash);
-            Assert.Equal(hash, Hash.FromRawBytes(validProposal.ToByteArray()));
+            var res = _contract.Propose(validProposal, kp1).Result;
+            Assert.NotEmpty(res);
             
             var newKp = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
             ECSignature signature = signer.Sign(newKp, tx.GetHash().DumpByteArray());
             var notAuthorizedApproval = new Approval
             {
-                ProposalHash = hash,
+                ProposalHash = Hash.LoadByteArray(res),
                 Signature = new Sig
                 {
                     P = ByteString.CopyFrom(newKp.GetEncodedPublicKey()),
@@ -283,13 +285,13 @@ namespace AElf.Contracts.Authorization.Tests
                     S = ByteString.CopyFrom(signature.S)
                 }
             };
-            var res = _contract.SayYes(notAuthorizedApproval, Address.FromRawBytes(newKp.GetEncodedPublicKey())).Result;
-            Assert.False(res);
+            var sayYesRes = _contract.SayYes(notAuthorizedApproval, Address.FromRawBytes(newKp.GetEncodedPublicKey())).Result;
+            Assert.False(sayYesRes);
             
             signature = signer.Sign(kp1, tx.GetHash().DumpByteArray());
             var validApproval = new Approval
             {
-                ProposalHash = hash,
+                ProposalHash = Hash.LoadByteArray(res),
                 Signature = new Sig
                 {
                     P = ByteString.CopyFrom(kp1.GetEncodedPublicKey()),
@@ -298,12 +300,12 @@ namespace AElf.Contracts.Authorization.Tests
                 }
             };
             Console.WriteLine(Hash.FromRawBytes(validApproval.Signature.P.ToByteArray()));
-            res = _contract.SayYes(validApproval, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
-            Assert.True(res);
+            sayYesRes = _contract.SayYes(validApproval, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
+            Assert.True(sayYesRes);
             
             // say yes again
-            res = _contract.SayYes(validApproval, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
-            Assert.False(res);
+            sayYesRes = _contract.SayYes(validApproval, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
+            Assert.False(sayYesRes);
         }
         
         
@@ -341,7 +343,7 @@ namespace AElf.Contracts.Authorization.Tests
                 }
             });
             var addr = _contract.CreateMSigAccount(auth).Result;
-            Assert.Equal(msig, addr);
+            Assert.Equal(msig.DumpByteArray(), addr);
 
             var tx = CreateDemoTxn(msig);
             var validProposal = new Proposal
@@ -349,16 +351,15 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                //ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey.Q.GetEncoded()),
+                Proposer = kp1.GetAddress(),
                 TxnData = new PendingTxn
                 {
                     ProposalName = "Propose",
                     TxnData = tx.ToByteString()
                 }
             };
-            Hash hash = _contract.Propose(validProposal, Address.FromRawBytes(kp1.GetEncodedPublicKey())).Result;
-            Assert.NotNull(hash);
-            Assert.Equal(hash, Hash.FromRawBytes(validProposal.ToByteArray()));
+            var res = _contract.Propose(validProposal, kp1).Result;
+            Assert.NotEmpty(res);
             
             ECSigner signer = new ECSigner();
             
@@ -366,7 +367,7 @@ namespace AElf.Contracts.Authorization.Tests
             ECSignature signature = signer.Sign(kp1, tx.GetHash().DumpByteArray());
             var validApproval1 = new Approval
             {
-                ProposalHash = hash,
+                ProposalHash = Hash.LoadByteArray(res),
                 Signature = new Sig
                 {
                     P = ByteString.CopyFrom(kp1.GetEncodedPublicKey()),
@@ -381,7 +382,7 @@ namespace AElf.Contracts.Authorization.Tests
             signature = signer.Sign(kp3, tx.GetHash().DumpByteArray());
             var validApproval2 = new Approval
             {
-                ProposalHash = hash,
+                ProposalHash = Hash.LoadByteArray(res),
                 Signature = new Sig
                 {
                     P = ByteString.CopyFrom(kp3.GetEncodedPublicKey()),
@@ -393,14 +394,14 @@ namespace AElf.Contracts.Authorization.Tests
             Assert.True(res2);
 
             // not enough authorization
-            var txnHash = _contract.Release(hash, Address.Generate()).Result;
+            var txnHash = _contract.Release(Hash.LoadByteArray(res), Address.Generate()).Result;
             Assert.Null(txnHash);
             
             // third approval 
             signature = signer.Sign(kp2, tx.GetHash().DumpByteArray());
             var validApproval3 = new Approval
             {
-                ProposalHash = hash,
+                ProposalHash = Hash.LoadByteArray(res),
                 Signature = new Sig
                 {
                     P = ByteString.CopyFrom(kp2.GetEncodedPublicKey()),
@@ -411,7 +412,7 @@ namespace AElf.Contracts.Authorization.Tests
             var res3 = _contract.SayYes(validApproval3, Address.FromRawBytes(kp2.GetEncodedPublicKey())).Result;
             Assert.True(res3);
             
-            txnHash = _contract.Release(hash, Address.Generate()).Result;
+            txnHash = _contract.Release(Hash.LoadByteArray(res), Address.Generate()).Result;
             Assert.NotNull(txnHash);
             Assert.Equal(msig, txnHash.From);
             Assert.True(new TxSignatureVerifier().Verify(txnHash));

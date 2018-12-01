@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using AElf.Kernel;
 using AElf.Kernel.Types.Proposal;
@@ -48,7 +49,7 @@ namespace AElf.Contracts.Authorization.Tests
             await trace.CommitChangesAsync(_mock.StateStore);
         }
 
-        public async Task<Address> CreateMSigAccount(Kernel.Types.Proposal.Authorization authorization)
+        public async Task<byte[]> CreateMSigAccount(Kernel.Types.Proposal.Authorization authorization)
         {
             var tx = new Transaction
             {
@@ -63,27 +64,36 @@ namespace AElf.Contracts.Authorization.Tests
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
             await CommitChangesAsync(TransactionContext.Trace);
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
-        public async Task<Hash> Propose(Proposal proposal, Address sender)
+        public async Task<byte[]> Propose(Proposal proposal, ECKeyPair sender)
         {
             try
             {
                 var tx = new Transaction
                 {
-                    From = sender,
+                    From = sender.GetAddress(),
                     To = AuthorizationContractAddress,
                     MethodName = "Propose",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(proposal))
                 };
+                var signer = new ECSigner();
+                var signature = signer.Sign(sender, tx.GetHash().DumpByteArray());
+                tx.Sigs.Add(new Sig
+                {
+                    P = ByteString.CopyFrom(sender.GetEncodedPublicKey()),
+                    R = ByteString.CopyFrom(signature.R),
+                    S = ByteString.CopyFrom(signature.S)
+                });
+                
                 TransactionContext = new TransactionContext
                 {
                     Transaction = tx
                 };
                 await Executive.SetTransactionContext(TransactionContext).Apply();
                 await CommitChangesAsync(TransactionContext.Trace);
-                return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
+                return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
             }
             catch (Exception)
             {
