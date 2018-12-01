@@ -15,16 +15,8 @@
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Remove="Scripts\AElf.bridge\bridge.js" />
-    <Content Remove="Scripts\XMLHttpRequest.js" />
-    <Content Remove="Scripts\crypto.js" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Scripts\aelf.js" />
     <EmbeddedResource Include="Scripts\helpers.js" />
     <EmbeddedResource Include="Scripts\crypto.js" />
   </ItemGroup>
-  <Target Name="GenerateBridgeJS" BeforeTargets="BeforeBuild">
-    <Exec Command="bash ./Scripts/create_bridge_js.sh" />
-  </Target>
 </Project>

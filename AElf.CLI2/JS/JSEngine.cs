@@ -102,12 +102,6 @@ namespace AElf.CLI2.JS
                 .GetManifestResourceStream("AElf.CLI2.Scripts.helpers.js"));
         }
 
-        private void LoadXMLHttpRequestJS()
-        {
-            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI2.Scripts.XMLHttpRequest.js"));
-        }
-
         private void LoadCryptoJS()
         {
             RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
@@ -119,12 +113,6 @@ namespace AElf.CLI2.JS
             _context.GlobalObject.Binding.SetFunction("_randomNextInt", _randomGenerator.NextInt);
             _context.GlobalObject.Binding.SetFunction<JSValue, JSValue, JSValue, JSValue, string>("_getHmacDigest",
                 HmacHelper.GetHmacDigest);
-        }
-
-        private void LoadBridgeJS()
-        {
-            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI2.Scripts.AElf.bridge.bridge.js"));
         }
 
         private void RunScript(Stream stream)
