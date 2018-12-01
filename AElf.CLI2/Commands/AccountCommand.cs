@@ -48,10 +48,10 @@ namespace AElf.CLI2.Commands
         {
             if (_option.Action == AccountAction.create)
             {
-                var result = _engine.Get("aelf").Get("wallet").InvokeAndGetJSObject("createNewWallet");
-                string mnemonic = result.Get("mnemonic").Value.ToString();
-                string privKey = result.Get("privKey").Value.ToString();
-                string address = result.Get("address").Value.ToString();
+                var obj = _engine.Evaluate("aelf.wallet.createNewWallet()");
+                string mnemonic = obj.ReadProperty<string>("mnemonic");
+                string privKey = obj.ReadProperty<string>("privKey");
+                string address = obj.ReadProperty<string>("address");
                 PrintAccount(address, mnemonic, privKey);
                 var privateKey = Utils.Cryptography.Encrypt(privKey, _option.Password);
                 var encryptedMnemonic = Utils.Cryptography.Encrypt(mnemonic, _option.Password);

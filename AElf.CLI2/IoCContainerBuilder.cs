@@ -1,7 +1,6 @@
 using AElf.CLI2.Commands;
 using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
-using AElf.CLI2.SDK;
 using Autofac;
 using Autofac.Core;
 
@@ -18,7 +17,6 @@ namespace AElf.CLI2
             var builder = new ContainerBuilder();
 //            builder.RegisterModule(loggerModule);
             builder.RegisterModule(new JSModule());
-            builder.RegisterModule(new SdkModule());
             var cmd = new CMDModule(option);
             builder.RegisterModule(cmd);
             var container = builder.Build();

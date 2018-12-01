@@ -1,6 +1,8 @@
-﻿using AElf.Common.Attributes;
+﻿using System;
+using AElf.Common.Attributes;
 using ChakraCore.NET;
 using ChakraCore.NET.Debug;
+using Newtonsoft.Json;
 using NLog;
 
 namespace AElf.CLI2.JS
@@ -14,7 +16,7 @@ namespace AElf.CLI2.JS
             debuggingService.OnException += (sender, exception) =>
             {
                 _logger.Fatal(
-                    $"Javascript side raise an uncaught exception.\n${exception.ToString()}\n");
+                    $"Javascript side raise an uncaught exception.\n${JsonConvert.SerializeObject(exception)}\n");
             };
             debuggingService.OnAsyncBreak += (sender, point) => { };
             debuggingService.OnBreakPoint += (sender, point) => { };

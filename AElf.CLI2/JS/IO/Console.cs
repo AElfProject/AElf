@@ -58,8 +58,10 @@ namespace AElf.CLI2.JS.IO
                 case JavaScriptValueType.String:
                     return val.ToString();
                 case JavaScriptValueType.Array:
-                    int length = val.GetProperty(JavaScriptPropertyId.FromString("length")).ToInt32();
-                    return "Array";
+//                    int length = val.GetProperty(JavaScriptPropertyId.FromString("length")).ToInt32();
+//                    return "Array";
+                case JavaScriptValueType.Object:
+                    return val.ToJsonString();
                 default:
                     return val.ValueType.ToString();
             }

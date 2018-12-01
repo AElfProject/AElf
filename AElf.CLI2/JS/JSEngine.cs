@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -7,10 +8,14 @@ using System.Text;
 using AElf.CLI2.Commands;
 using AElf.CLI2.JS.Crypto;
 using AElf.CLI2.JS.IO;
+using AElf.CLI2.JS.Net;
+using Alba.CsConsoleFormat;
+using Alba.CsConsoleFormat.Fluent;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
 using ChakraCore.NET.Debug;
 using ChakraCore.NET.Hosting;
+using Console = System.Console;
 
 namespace AElf.CLI2.JS
 {
@@ -53,21 +58,48 @@ namespace AElf.CLI2.JS
         private readonly ChakraContext _context;
         private readonly BaseOption _option;
         private readonly IRandomGenerator _randomGenerator;
+        private readonly PrettyPrint _prettyPrint;
+        private HttpRequestor _requestor;
+
+        public JSValue GlobalObject => _context.GlobalObject;
 
         public JSEngine(IConsole console, BaseOption option,
             IRandomGenerator randomGenerator, IDebugAdapter debugAdapter)
         {
             _console = console;
             var config = new JavaScriptHostingConfig {DebugAdapter = debugAdapter};
+//            var config = new JavaScriptHostingConfig();
             _context = JavaScriptHosting.Default.CreateContext(config);
+            _context.RegisterEvalService();
+            _prettyPrint = new PrettyPrint(_context);
             _option = option;
             _randomGenerator = randomGenerator;
             ExposeConsoleToContext();
-            ExposeRandomGenerator();
+            ExposeCryptoHelpers();
             ExposeAElfOption();
             LoadCryptoJS();
-            LoadXMLHttpRequestJS();
-            LoadBridgeJS();
+//            LoadXMLHttpRequestJS();
+//            LoadBridgeJS();
+            LoadAelfJs();
+            LoadHelpersJs();
+            ExposeHttpRequestorToContext();
+        }
+
+        private void LoadAelfJs()
+        {
+            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
+                .GetManifestResourceStream("AElf.CLI2.Scripts.aelf.js"));
+//            RunScript(@"define(['crypto'], function(crypto){
+//                crypto = global.crypto;
+//            });");
+            RunScript(@"Aelf = require('aelf');");
+            RunScript(@"Aelf.createHmac = crypto.createHmac;");
+        }
+
+        private void LoadHelpersJs()
+        {
+            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
+                .GetManifestResourceStream("AElf.CLI2.Scripts.helpers.js"));
         }
 
         private void LoadXMLHttpRequestJS()
@@ -82,9 +114,11 @@ namespace AElf.CLI2.JS
                 .GetManifestResourceStream("AElf.CLI2.Scripts.crypto.js"));
         }
 
-        private void ExposeRandomGenerator()
+        private void ExposeCryptoHelpers()
         {
             _context.GlobalObject.Binding.SetFunction("_randomNextInt", _randomGenerator.NextInt);
+            _context.GlobalObject.Binding.SetFunction<JSValue, JSValue, JSValue, JSValue, string>("_getHmacDigest",
+                HmacHelper.GetHmacDigest);
         }
 
         private void LoadBridgeJS()
@@ -147,31 +181,38 @@ namespace AElf.CLI2.JS
             _context.GlobalObject.WriteProperty<IConsole>("console", _console);
         }
 
-        public IJSObject Get(string name)
+        private void ExposeHttpRequestorToContext()
         {
-            return new JSObj(_context.GlobalObject).Get(name);
+            _context.ServiceNode.GetService<IJSValueConverterService>()
+                .RegisterProxyConverter<HttpRequestor>( //register the object converter
+                    (binding, instance, serviceNode) =>
+                    {
+                        binding.SetFunction<JSValue, JSValue>("send", instance.Send);
+                    });
+            _requestor = new HttpRequestor(_option.ServerAddr, _context);
+            _context.GlobalObject.WriteProperty("_requestor", _requestor);
         }
-
-        public TResult Invoke<T, TResult>(string methodName, T arg)
-        {
-            return new JSObj(_context.GlobalObject).Invoke<T, TResult>(methodName, arg);
-        }
-
-        public TResult Invoke<TResult>(string methodName)
-        {
-            return new JSObj(_context.GlobalObject).Invoke<TResult>(methodName);
-        }
-
-        public IJSObject InvokeAndGetJSObject(string methodName)
-        {
-            return new JSObj(_context.GlobalObject).InvokeAndGetJSObject(methodName);
-        }
-
-        public JavaScriptValue Value => new JSObj(_context.GlobalObject).Value;
 
         public void RunScript(string jsContent)
         {
             _context.RunScript(jsContent);
+        }
+
+        public JSValue Evaluate(string script)
+        {
+            return new JSValue(_context.ServiceNode, _context.Eval(script));
+        }
+
+        public void Execute(string script)
+        {
+            try
+            {
+                _prettyPrint.PrintValue(_context.Eval(script));
+            }
+            catch (JavaScriptScriptException e)
+            {
+                _prettyPrint.PrintError(e.Message);
+            }
         }
     }
 }

@@ -13,8 +13,11 @@ namespace AElf.CLI2.JS
         JavaScriptValue Value { get; }
     }
 
-    public interface IJSEngine : IJSObject
+    public interface IJSEngine
     {
+        JSValue GlobalObject { get; }
         void RunScript(string jsContent);
+        JSValue Evaluate(string script);
+        void Execute(string script);
     }
 }
