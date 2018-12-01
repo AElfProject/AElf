@@ -8,6 +8,7 @@ using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;

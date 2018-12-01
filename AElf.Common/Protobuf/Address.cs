@@ -8,6 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
+[assembly: InternalsVisibleTo("AElf.Contracts.Authorization.Tests")]
 
 namespace AElf.Common
 {

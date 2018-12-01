@@ -230,7 +230,7 @@ namespace AElf.Miner.Rpc.Client
         private void CacheBlockInfo(IBlockInfo blockInfo)
         {
             CachedInfoQueue.Enqueue(blockInfo);
-            if (CachedInfoQueue.Count < _cachedBoundedCapacity)
+            if (CachedInfoQueue.Count <= _cachedBoundedCapacity)
                 return;
             CachedInfoQueue.Dequeue();
         }

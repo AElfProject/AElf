@@ -29,5 +29,10 @@ namespace AElf.Common
         {
             return Address.BuildContractAddress(chainId, GlobalConfig.SideChainContract);
         }
+
+        public static Address GetAuthorizationContractAddress(Hash chainId)
+        {
+            return Address.BuildContractAddress(chainId, GlobalConfig.AuthorizationContract);
+        }
     }
 }

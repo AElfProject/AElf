@@ -158,11 +158,10 @@ namespace AElf.ChainController
                     new Int64Value {Value = roundId}))
             };
 
+            // todo review
             var signer = new ECSigner();
             var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
-
-            // Update the signature
-            tx.Sig = ByteString.CopyFrom(signature.SigBytes);
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes)); 
 
             return tx;
         }

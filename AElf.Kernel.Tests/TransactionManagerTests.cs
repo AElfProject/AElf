@@ -46,6 +46,14 @@ namespace AElf.Kernel.Tests
             tx.From = Address.Generate();
             tx.To = adrTo ?? Address.Generate();
             tx.IncrementId = nonce;
+            
+            //todo review probably useless - or a proper sig is needed
+            //            var sig = new Sig
+            //            {
+            //                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
+            //            };
+            //            tx.Sigs.Add(sig);
+            
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
             tx.MethodName = "hello world";
             tx.Params = ByteString.CopyFrom(new Parameters
@@ -64,7 +72,8 @@ namespace AElf.Kernel.Tests
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
-            tx.Sig = ByteString.CopyFrom(signature.SigBytes);
+            //todo review probably useless - or a proper sig is needed
+            //tx.Sig = ByteString.CopyFrom(signature.SigBytes);
             
             return tx;
         }

@@ -127,12 +127,13 @@ namespace AElf.Synchronization.BlockExecution
                 if (result.IsFailed() || readyTxs.Count == 0)
                 {
                     _logger?.Warn($"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
-                                  $"block hash: {block.BlockHashToHex}");
+                                  $"block hash: {block.BlockHashToHex}.");
                     res = result;
                     return res;
                 }
 
                 var trs = await _txHub.GetReceiptsForAsync(readyTxs);
+
                 foreach (var tr in trs)
                 {
                     if (!tr.IsExecutable)
@@ -194,7 +195,7 @@ namespace AElf.Synchronization.BlockExecution
                 stopwatch.Stop();
                 if (res.CanExecuteAgain())
                 {
-                    _logger?.Warn("Block {block.BlockHashToHex} can execute again.");
+                    _logger?.Warn($"Block {block.BlockHashToHex} can execute again.");
                 }
 
                 _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
@@ -232,6 +233,7 @@ namespace AElf.Synchronization.BlockExecution
                 }
                 else
                 {
+                    _logger?.Trace($"Executing failed, \n Error:{trace.StdErr}");
                     res.Status = Status.Failed;
                     res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     res.StateHash = trace.GetSummarizedStateHash();
@@ -240,6 +242,12 @@ namespace AElf.Synchronization.BlockExecution
                                    $"\n {trace.StdErr}");
                 }
 
+                if (trace.DeferredTransaction != null)
+                {
+                    var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                    _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
+                    res.DeferredTxnId = deferredTxn.GetHash();
+                }
                 results.Add(res);
             }
 
@@ -341,7 +349,7 @@ namespace AElf.Synchronization.BlockExecution
                 res = BlockExecutionResult.TooManyTxsForParentChainBlock;
             }
 
-            if (readyTxs.Count == 0)
+            if (txs.Count == 0)
             {
                 res = BlockExecutionResult.NoTransaction;
             }

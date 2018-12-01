@@ -16,6 +16,7 @@ using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.RPC;
 using AElf.SmartContract;
+using AElf.SmartContract.Proposal;
 using Community.AspNetCore.JsonRpc;
 using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
@@ -42,6 +43,7 @@ namespace AElf.ChainController.Rpc
         public ISmartContractService SmartContractService { get; set; }
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfo CrossChainInfo { get; set; }
+        public IAuthorizationInfo AuthorizationInfo { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
 
         #endregion Properties
@@ -90,16 +92,23 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var basicContractZero = ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId)); 
-                var sideChainContract = ContractHelpers.GetSideChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId)); 
+                var basicContractZero =
+                    ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                var sideChainContract =
+                    ContractHelpers.GetSideChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                var authorizationContract =
+                    ContractHelpers.GetAuthorizationContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject()
                 {
                     ["result"] =
                         new JObject
                         {
-                            ["BasicContractZero"] = basicContractZero.GetFormatted(),
-                            ["SideChainContract"] = sideChainContract.GetFormatted(),
+                            [GlobalConfig.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
+                            [GlobalConfig.GenesisSideChainContractAssemblyName] = sideChainContract.GetFormatted(),
+                            [GlobalConfig.GenesisAuthorizationContractAssemblyName] = authorizationContract.GetFormatted(),
+                            [GlobalConfig.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
                             ["chain_id"] = ChainConfig.Instance.ChainId
                         }
                 };
@@ -526,6 +535,46 @@ namespace AElf.ChainController.Rpc
 
             return JObject.FromObject(response);
         }
+
+        #region Proposal
+        [JsonRpcMethod("check_proposal", "proposal_id")]
+        public async Task<JObject> ProcGetProposal(string proposalId)
+        {
+            try
+            {
+                Hash proposalHash;
+                try
+                {
+                    proposalHash = Hash.LoadHex(proposalId);
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Invalid Hash Format");
+                }
+
+                var proposal = this.GetProposal(proposalHash);
+                return new JObject
+                {
+                    ["result"] = new JObject
+                    {
+                        ["proposal_name"] = proposal.Name,
+                        ["multi_sig"] = proposal.MultiSigAccount.GetFormatted(),
+                        ["expired_time"] = proposal.ExpiredTime.ToDateTime(),
+                        ["TxnData"] = proposal.TxnData.TxnData.ToByteArray().ToHex(),
+                        ["status"] = proposal.Status.ToString(),
+                        ["proposer"] = proposal.Proposer.GetFormatted()
+                    }
+                };
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = e.Message
+                };
+            }
+        }
+        #endregion
 
         #region Admin
 

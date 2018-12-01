@@ -248,9 +248,10 @@ namespace AElf.Miner.Miner
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo)),
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 };
+                
                 // sign tx
                 var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
-                tx.Sig = ByteString.CopyFrom(signature.SigBytes);
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
                 await InsertTransactionToPool(tx);
                 _logger?.Trace($"Generated Cross chain info transaction {tx.GetHash()}");
@@ -296,6 +297,15 @@ namespace AElf.Miner.Miner
                             Index = index++
                         };
                         txRes.UpdateBloom();
+                        
+                        // insert deferred txn to transaction pool and wait for execution 
+                        if (trace.DeferredTransaction.Length != 0)
+                        {
+                            var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                            InsertTransactionToPool(deferredTxn).ConfigureAwait(false);
+                            txRes.DeferredTxnId = deferredTxn.GetHash();
+                        }
+                            
                         results.Add(txRes);
                         break;
                     case ExecutionStatus.ContractError:

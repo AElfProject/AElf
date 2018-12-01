@@ -4,6 +4,7 @@ option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
 import "common.proto";
+import "crosschain.proto";
 
 message Transaction {
     Address From = 1;
@@ -14,7 +15,7 @@ message Transaction {
     string MethodName = 6;
     bytes Params = 7;
     uint64 Fee = 8;
-    bytes Sig = 9;
+    repeated bytes Sigs = 9;
     TransactionType type = 10;
     google.protobuf.Timestamp Time = 11;
 }
@@ -70,7 +71,8 @@ enum TransactionType {
     ContractTransaction = 0;
     DposTransaction = 1;
     CrossChainBlockInfoTransaction = 2;
-    ContractDeployTransaction=3;
+    MsigTransaction = 3;
+    ContractDeployTransaction=4;
 }
 
 enum Status {
@@ -92,6 +94,7 @@ message TransactionResult {
     Hash StateHash = 9;
     // Merkle proof path for this transaction
     MerklePath MerklePath = 10;
+    Hash DeferredTxnId = 11; 
 }
 
 
@@ -117,6 +120,7 @@ message TransactionTrace {
     repeated StateChange StateChanges = 9;
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
+    bytes DeferredTransaction = 12;
 }
 
 message LogEvent {
@@ -146,7 +150,6 @@ message BlockHeaderList {
     repeated BlockHeader Headers = 1;
 }
 
-//todo clean
 message BlockHeader {
     int32 Version = 1;
     Hash PreviousBlockHash = 2;
@@ -172,31 +175,6 @@ message BlockBody {
 message Block {
     BlockHeader Header = 1;
     BlockBody Body = 2;
-}
-
-message SideChainBlockInfo{
-    uint64 Height = 1;
-    Hash BlockHeaderHash = 2;
-    Hash TransactionMKRoot = 3;
-    Hash ChainId = 4;
-}
-
-message ParentChainBlockInfo{
-    ParentChainBlockRootInfo Root = 1;
-    
-    // Indexed block height from side chain and merkle path for this side chain block
-    map<uint64, MerklePath> IndexedBlockInfo = 2;
-}
-
-message ParentChainBlockRootInfo
-{
-    uint64 Height = 1;
-    // Merkle tree root of side chain block headers
-    Hash SideChainBlockHeadersRoot = 2;
-
-    // Merkle tree root of side chain block transaction roots
-    Hash SideChainTransactionsRoot = 3;
-    Hash ChainId = 4;
 }
 
 message SmartContractRegistration {
@@ -289,10 +267,6 @@ message Key {
     uint32 HashType = 3;
 }
 
-message SideChainIdList {
-    repeated Hash chainIds =1;
-}
-
 message DataPath {
     Hash ChainId = 1;
     uint64 BlockHeight = 2;
@@ -307,8 +281,4 @@ message BinaryMerkleTree{
     repeated Hash Nodes = 1;
     Hash Root = 2;
     int32 LeafCount = 3;
-}
-
-message MerklePath{
-    repeated Hash Path = 1;
 }

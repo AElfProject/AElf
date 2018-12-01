@@ -85,7 +85,7 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txPrint.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txPrint.Sig = ByteString.CopyFrom(signature.SigBytes);
+            txPrint.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
             
             var txs = new List<Transaction>(){
                 txPrint
@@ -127,7 +127,6 @@ namespace AElf.Kernel.Tests.Miner
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack((int)0, code)),
-                
                 Fee = TxPoolConfig.Default.FeeThreshold + 1,
                 Type = TransactionType.ContractTransaction
             };
@@ -135,7 +134,7 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txnDep.GetHash();
 
             ECSignature signature1 = signer.Sign(keyPair, hash.DumpByteArray());
-            txnDep.Sig = ByteString.CopyFrom(signature1.SigBytes);
+            txnDep.Sigs.Add(ByteString.CopyFrom(signature1.SigBytes));
             
             var txInv_1 = new Transaction
             {
@@ -144,12 +143,12 @@ namespace AElf.Kernel.Tests.Miner
                 IncrementId = 1,
                 MethodName = "Print",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack("AElf")),
-                
                 Fee = TxPoolConfig.Default.FeeThreshold + 1,
                 Type = TransactionType.ContractTransaction
             };
+            
             ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().DumpByteArray());
-            txInv_1.Sig = ByteString.CopyFrom(signature2.SigBytes);
+            txInv_1.Sigs.Add(ByteString.CopyFrom(signature2.SigBytes));
             
             var txInv_2 = new Transaction
             {
@@ -164,7 +163,7 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().DumpByteArray());
-            txInv_2.Sig = ByteString.CopyFrom(signature3.SigBytes);
+            txInv_2.Sigs.Add(ByteString.CopyFrom(signature3.SigBytes));
             
             var txs = new List<Transaction>(){
                 txnDep, txInv_1, txInv_2

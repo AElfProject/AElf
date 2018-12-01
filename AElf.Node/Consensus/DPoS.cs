@@ -253,6 +253,7 @@ namespace AElf.Kernel.Node
                 bn = bn > 4 ? bn - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                
                 var tx = new Transaction
                 {
                     From = _nodeAddress,
@@ -262,14 +263,11 @@ namespace AElf.Kernel.Node
                     MethodName = methodName,
                     Type = TransactionType.DposTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.Select(p => (object) p).ToArray()))
-
                 };
-
+                
                 var signer = new ECSigner();
                 var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
-
-                // Update the signature
-                tx.Sig = ByteString.CopyFrom(signature.SigBytes);
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
                 _logger?.Trace("Leaving generating tx.");
 

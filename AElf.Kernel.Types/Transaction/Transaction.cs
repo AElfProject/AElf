@@ -41,11 +41,6 @@ namespace AElf.Kernel
             return this.ToByteArray();
         }
 
-        public ECSignature GetSignature()
-        {
-            return new ECSignature(Sig.ToByteArray());
-        }
-
         public int Size()
         {
             return CalculateSize();
@@ -57,14 +52,15 @@ namespace AElf.Kernel
             {
                 From = From.Clone(),
                 To = To.Clone(),
-                IncrementId = IncrementId,
-                RefBlockNumber = RefBlockNumber,
-                RefBlockPrefix = RefBlockPrefix,
                 MethodName = MethodName,
                 Type = Type
             };
             if (Params.Length != 0)
                 txData.Params = Params;
+            if (Type == TransactionType.MsigTransaction) 
+                return txData.ToByteArray();
+            txData.RefBlockNumber = RefBlockNumber;
+            txData.RefBlockPrefix = RefBlockPrefix;
             return txData.ToByteArray();
         }
     }

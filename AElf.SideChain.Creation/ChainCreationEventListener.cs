@@ -120,7 +120,7 @@ namespace AElf.SideChain.Creation
                         );
                         
                         // insert
-                        await _chainManagerBasic.AddSideChainId(info.ChainId);
+                        //await _chainManagerBasic.AddSideChainId(info.ChainId);
                     }
                 }
                 catch (Exception e)

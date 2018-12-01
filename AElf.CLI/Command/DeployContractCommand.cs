@@ -15,14 +15,14 @@ namespace AElf.CLI.Command
 
         public override string GetUsage()
         {
-            return "deploy_contract <category> <filename>";
+            return "deploy_contract <filename> <address>";
         }
 
         public override string Validate(CmdParseResult parsedCmd)
         {
             if (parsedCmd.Args == null || parsedCmd.Args.Count != 2)
             {
-                return "Wrong arguments";
+                return "Wrong arguments " + GetUsage();
             }
 
             return null;

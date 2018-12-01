@@ -11,8 +11,9 @@ using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using Org.BouncyCastle.Asn1.Ocsp;
 using ProtoBuf;
-using Hash = AElf.Common.Hash;
+using Address = AElf.Common.Address;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 
 namespace AElf.CLI.Wallet
@@ -217,25 +218,27 @@ namespace AElf.CLI.Wallet
         {
             string addr = tx.From.Value.ToHex(true);
             
+            MemoryStream ms = new MemoryStream();
+            Serializer.Serialize(ms, tx);
+                
+            // Update the signature
+            tx.Sigs = new List<byte[]> { Sign(addr, ms.ToArray()) };
+            return tx;
+        }
+
+        public byte[] Sign(string addr, byte[] txnData)
+        {
             ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
 
             if (kp == null)
                 throw new AccountLockedException(addr);
             
-            MemoryStream ms = new MemoryStream();
-            Serializer.Serialize(ms, tx);
-    
-            byte[] b = ms.ToArray();
-            byte[] toSig = SHA256.Create().ComputeHash(b);
-                
             // Sign the hash
             ECSigner signer = new ECSigner();
+            byte[] toSig = SHA256.Create().ComputeHash(txnData);
             ECSignature signature = signer.Sign(kp, toSig);
-                
-            // Update the signature
-            tx.Sig = signature.SigBytes;
 
-            return tx;
+            return signature.SigBytes;
         }
     }
 }
