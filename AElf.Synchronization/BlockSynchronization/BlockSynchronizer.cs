@@ -7,7 +7,6 @@ using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
@@ -271,8 +270,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             var executionResult = await _blockExecutor.ExecuteBlock(block);
 
-            _logger?.Trace(
-                $"Execution result of block {block.BlockHashToHex}: {executionResult}. Height *{block.Index}*");
+            _logger?.Trace($"Execution result of block {block.BlockHashToHex}: {executionResult}. Height *{block.Index}*");
 
             if (executionResult.CanExecuteAgain())
             {
@@ -314,8 +312,7 @@ namespace AElf.Synchronization.BlockSynchronization
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
             {
-                _logger?.Trace(
-                    $"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
+                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
                 _blockSet.KeepHeight = GlobalConfig.BlockCacheLimit;
             }
         }
@@ -327,8 +324,7 @@ namespace AElf.Synchronization.BlockSynchronization
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
             {
-                _logger?.Trace(
-                    $"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
+                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
                 _blockSet.KeepHeight = GlobalConfig.BlockCacheLimit;
             }
         }
