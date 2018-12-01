@@ -47,12 +47,12 @@ namespace AElf.Management.Website
             builder.RegisterType<TransactionService>().As<ITransactionService>().SingleInstance();
             builder.RegisterType<NodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkService>().As<INetworkService>().SingleInstance();
-            builder.RegisterType<RecrodService>().As<IRecrodService>().SingleInstance();
+            builder.RegisterType<RecordService>().As<IRecordService>().SingleInstance();
 
             builder.Populate(services);
             var ApplicationContainer = builder.Build();
             
-            ApplicationContainer.Resolve<IRecrodService>().Start();
+            ApplicationContainer.Resolve<IRecordService>().Start();
 
             return new AutofacServiceProvider(ApplicationContainer);
         }
