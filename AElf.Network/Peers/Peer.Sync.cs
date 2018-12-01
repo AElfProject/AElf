@@ -143,13 +143,22 @@ namespace AElf.Network.Peers
         }
 
         /// <summary>
+        /// Removes announcements that have a height lower or equal than <param name="blockHeight"/>.
+        /// </summary>
+        /// <param name="blockHeight"></param>
+        public void CleanAnnouncements(int blockHeight)
+        {
+            _announcements.RemoveAll(a => a.Height <= blockHeight);
+        }
+
+        /// <summary>
         /// Will trigger the request for the next announcement. If there's no more announcements to sync
         /// this method return false. The only way to trigger the sync is to call this method with an
         /// announcement previously added to the stash.
         /// </summary>
         /// <exception cref="InvalidOperationException">If this method is called when not syncing
         /// and with an empty cache the method throws.</exception>
-        public bool SyncNextAnnouncement(int? expected = null)
+        public bool SyncNextAnnouncement()
         {
             if (!IsSyncingAnnounced && !_announcements.Any())
                 throw new InvalidOperationException($"Call to {nameof(SyncNextAnnouncement)} with no stashed annoucements.");
@@ -161,14 +170,6 @@ namespace AElf.Network.Peers
             }
 
             var nextAnouncement = _announcements.OrderBy(a => a.Height).First();
-
-//            if (expected.HasValue && expected.Value != nextAnouncement.Height)
-//            {
-//                SyncedAnnouncement = null;
-//                _logger?.Trace($"Sync not possible: expected {expected.Value}, current {nextAnouncement.Height}.");
-//                
-//                return false;
-//            }
 
             SyncedAnnouncement = nextAnouncement;
             _announcements.Remove(SyncedAnnouncement);
@@ -199,8 +200,8 @@ namespace AElf.Network.Peers
                 }
 
                 KnownHeight = a.Height;
-
-                _logger?.Trace($"[{this}] height increased: {KnownHeight}.");
+            
+                _logger?.Trace($"[{this}] received announcement, height increased: {KnownHeight}.");
             }
             catch (Exception e)
             {
@@ -243,7 +244,7 @@ namespace AElf.Network.Peers
         private void RequestBlockByIndex(int index)
         {
             // Create the request object
-            BlockRequest br = new BlockRequest {Height = index};
+            BlockRequest br = new BlockRequest { Height = index };
             Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
 
             if (message.Payload == null)
@@ -258,7 +259,7 @@ namespace AElf.Network.Peers
         private void RequestBlockById(byte[] id, int height = 0)
         {
             // Create the request object
-            BlockRequest br = new BlockRequest {Id = ByteString.CopyFrom(id), Height = height};
+            BlockRequest br = new BlockRequest { Id = ByteString.CopyFrom(id), Height = height };
             Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
 
             if (message.Payload == null)
@@ -325,7 +326,7 @@ namespace AElf.Network.Peers
                 {
                     lock (_blockReqLock)
                     {
-                        BlockRequests.RemoveAll(b => b.IsById && b.Id.BytesEqual(req.Id) || !b.IsById && b.Height == req.Height);
+                        BlockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
                     }
 
                     _logger?.Warn($"[{this}] request failed {req}.");
