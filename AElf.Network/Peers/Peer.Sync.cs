@@ -145,11 +145,8 @@ namespace AElf.Network.Peers
 
         /// <summary>
         /// Removes announcements that have a height lower or equal than <param name="blockHeight"/>.
-        /// It will return true if one of the removed announcements has id <param name="blockHash"/>. 
         /// </summary>
-        /// <param name="blockHash"></param>
         /// <param name="blockHeight"></param>
-        /// <returns>True if the announcement with the provided hash was removed, false otherwise.</returns>
         public void CleanAnnouncements(int blockHeight)
         {
             _announcements.RemoveAll(a => a.Height <= blockHeight);

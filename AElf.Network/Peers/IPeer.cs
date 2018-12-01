@@ -43,6 +43,6 @@ namespace AElf.Network.Peers
         bool SyncNextAnnouncement();
 
         void RequestHeaders(int headerIndex, int headerRequestCount);
-        bool CleanAnnouncements(byte[] blockHash, int blockHeight);
+        void CleanAnnouncements(int blockHeight);
     }
 }

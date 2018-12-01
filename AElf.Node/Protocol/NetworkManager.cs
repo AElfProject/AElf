@@ -200,7 +200,7 @@ namespace AElf.Node.Protocol
                         {
                             // Clear the announcement or any previous announcement to not request 
                             // again.
-                            peer.CleanAnnouncements(blockHash, (int)blockHeight);
+                            peer.CleanAnnouncements((int)blockHeight);
                         }
                         
                         bool hasReqNext = CurrentSyncSource.SyncNextAnnouncement();
