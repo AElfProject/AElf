@@ -16,5 +16,6 @@ namespace AElf.Kernel
         void Sign(ECKeyPair keyPair);
         ulong Index { get; set; }
         string BlockHashToHex { get; set; }
+        Block Clone();
     }
 }
