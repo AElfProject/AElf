@@ -21,6 +21,7 @@ namespace AElf.Network.Peers
         bool IsSyncingHistory { get; }
         bool IsSyncingAnnounced { get; }
         int CurrentlyRequestedHeight { get; }
+        Announce SyncedAnnouncement { get; }
         bool AnyStashed { get; }
         bool IsSyncing { get; }
 
@@ -39,8 +40,9 @@ namespace AElf.Network.Peers
 
         void SyncToHeight(int start, int target);
         bool SyncNextHistory();
-        bool SyncNextAnnouncement(int? expected = null);
+        bool SyncNextAnnouncement();
 
         void RequestHeaders(int headerIndex, int headerRequestCount);
+        bool CleanAnnouncements(byte[] blockHash, int blockHeight);
     }
 }
