@@ -152,7 +152,7 @@ namespace AElf.Kernel.Consensus
                 }
             }
             // Todo the time slot of dpos is not exact
-            return (distance < 500 || distance > (double) ConsensusConfig.Instance.DPoSMiningInterval) ? ConsensusConfig.Instance.DPoSMiningInterval : distance;
+            return (distance < 1000 || distance > (double) ConsensusConfig.Instance.DPoSMiningInterval) ? ConsensusConfig.Instance.DPoSMiningInterval : distance;
         }
     }
 }
