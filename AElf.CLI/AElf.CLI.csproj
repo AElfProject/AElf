@@ -24,7 +24,4 @@
       <Name>AElf.Common</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Consensus" />
-  </ItemGroup>
 </Project>
