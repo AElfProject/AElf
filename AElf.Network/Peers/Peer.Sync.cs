@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Kernel;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Easy.MessageHub;
@@ -14,14 +14,14 @@ namespace AElf.Network.Peers
     public partial class Peer
     {
         public const int DefaultRequestTimeout = 2000;
-        
+
         public int RequestTimeout { get; set; } = DefaultRequestTimeout;
         public int MaxRequestRetries { get; set; } = 2;
 
         private const int GenesisHeight = 1;
 
         private readonly object _blockReqLock = new object();
-        
+
         internal List<TimedBlockRequest> BlockRequests { get; }
 
         private readonly List<Announce> _announcements;
@@ -45,13 +45,13 @@ namespace AElf.Network.Peers
         /// True if syncing an annoucement.
         /// </summary>
         public bool IsSyncingAnnounced => SyncedAnnouncement != null;
-        
+
         /// <summary>
         /// Property that is true if we're currently syncing blocks from this peer.
         /// 
         /// </summary>
         public bool IsSyncing => IsSyncingHistory || IsSyncingAnnounced;
-        
+
         /// <summary>
         /// Represents our best knowledge about the peers height. This is updated
         /// based on the peers announcements.
@@ -92,12 +92,11 @@ namespace AElf.Network.Peers
         /// <param name="target"></param>
         public void SyncToHeight(int start, int target)
         {
-
             if (start <= GenesisHeight)
             {
                 throw new InvalidOperationException("Cannot sync genesis height or lower.");
             }
-            
+
             if (IsSyncing)
             {
                 throw new InvalidOperationException("The peer is already syncing, " +
@@ -107,10 +106,10 @@ namespace AElf.Network.Peers
             // set sync state
             SyncTarget = target;
             CurrentlyRequestedHeight = start;
-            
+
             // request 
             RequestBlockByIndex(CurrentlyRequestedHeight);
-            
+
             MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(true));
         }
 
@@ -139,7 +138,7 @@ namespace AElf.Network.Peers
         {
             if (announce?.Id == null)
                 throw new ArgumentNullException($"{nameof(announce)} or its ID is null.");
-            
+
             _announcements.Add(announce);
         }
 
@@ -173,9 +172,9 @@ namespace AElf.Network.Peers
 
             SyncedAnnouncement = nextAnouncement;
             _announcements.Remove(SyncedAnnouncement);
-                
+
             RequestBlockById(SyncedAnnouncement.Id.ToByteArray(), SyncedAnnouncement.Height);
-            
+
             return true;
         }
 
@@ -190,7 +189,7 @@ namespace AElf.Network.Peers
                 _logger?.Error($"[{this}] announcement or its id is null.");
                 return;
             }
-            
+
             try
             {
                 if (a.Height <= KnownHeight)
@@ -198,9 +197,9 @@ namespace AElf.Network.Peers
                     // todo just log for now, but this is probably a protocol error.
                     _logger?.Warn($"[{this}] current know heigth: {KnownHeight} announcement height {a.Height}.");
                 }
-            
+
                 KnownHeight = a.Height;
-            
+
                 _logger?.Trace($"[{this}] height increased: {KnownHeight}.");
             }
             catch (Exception e)
@@ -218,7 +217,8 @@ namespace AElf.Network.Peers
             byte[] blockHash = block.GetHashBytes();
             int blockHeight = (int) block.Header.Index;
 
-            _logger.Info($"Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}.");
+            _logger.Info($"Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
+                         $"with {block.Body.Transactions.Count} txns. (TransactionListCount = {block.Body.TransactionList.Count})");
 
             lock (_blockReqLock)
             {
@@ -231,10 +231,10 @@ namespace AElf.Network.Peers
                 }
             }
         }
-        
+
         public void RequestHeaders(int headerIndex, int headerRequestCount)
         {
-            BlockHeaderRequest hReq = new BlockHeaderRequest { Height = headerIndex - 1, Count = headerRequestCount };
+            BlockHeaderRequest hReq = new BlockHeaderRequest {Height = headerIndex - 1, Count = headerRequestCount};
             Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.HeaderRequest, hReq.ToByteArray());
 
             EnqueueOutgoing(message);
@@ -243,22 +243,22 @@ namespace AElf.Network.Peers
         private void RequestBlockByIndex(int index)
         {
             // Create the request object
-            BlockRequest br = new BlockRequest { Height = index };
+            BlockRequest br = new BlockRequest {Height = index};
             Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
 
             if (message.Payload == null)
             {
                 _logger?.Warn($"[{this}] request for block at height {index} failed because payload is null.");
-                return;   
+                return;
             }
-            
+
             SendTimedRequest(message, br);
         }
-        
+
         private void RequestBlockById(byte[] id, int height = 0)
         {
             // Create the request object
-            BlockRequest br = new BlockRequest { Id = ByteString.CopyFrom(id), Height = height};
+            BlockRequest br = new BlockRequest {Id = ByteString.CopyFrom(id), Height = height};
             Message message = NetRequestFactory.CreateMessage(AElfProtocolMsgType.RequestBlock, br.ToByteArray());
 
             if (message.Payload == null)
@@ -280,16 +280,16 @@ namespace AElf.Network.Peers
             {
                 BlockRequests.Add(blockRequest);
             }
-            
+
             EnqueueOutgoing(message, (_) =>
             {
                 blockRequest.Start();
-                
+
                 if (blockRequest.IsById)
                     _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
                 else
                     _logger?.Trace($"[{this}] Block request sent {{ height: {blockRequest.Height} }}");
-            });            
+            });
         }
 
         private void TimedRequestOnRequestTimedOut(object sender, EventArgs e)
@@ -297,24 +297,24 @@ namespace AElf.Network.Peers
             if (sender is TimedBlockRequest req)
             {
                 _logger?.Warn($"[{this}] failed timed request {req}");
-                
+
                 if (req.CurrentPeerRetries < MaxRequestRetries)
                 {
                     if (!req.SetCurrentPeer(this))
                     {
                         return;
                     }
-                    
+
                     _logger?.Debug($"[{this}] try again {req}.");
-                    
+
                     EnqueueOutgoing(req.Message, (_) =>
                     {
                         // last check for cancelation
                         if (req.IsCanceled)
                             return;
-                        
+
                         req.Start();
-                        
+
                         if (req.IsById)
                             _logger?.Trace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
                         else
@@ -325,11 +325,11 @@ namespace AElf.Network.Peers
                 {
                     lock (_blockReqLock)
                     {
-                        BlockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
+                        BlockRequests.RemoveAll(b => b.IsById && b.Id.BytesEqual(req.Id) || !b.IsById && b.Height == req.Height);
                     }
-                    
+
                     _logger?.Warn($"[{this}] request failed {req}.");
-                    
+
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                 }
             }

@@ -13,7 +13,7 @@ namespace AElf.Synchronization.BlockSynchronization
     public class BlockSet : IBlockSet
     {
         private const int Timeout = int.MaxValue;
-
+        
         public int InvalidBlockCount
         {
             get
@@ -82,7 +82,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 var lc = _rwLock.UpgradeToWriterLock(Timeout);
                 try
                 {
-                    _blockCache.Add(block);
+                    _blockCache.Add(block.Clone());
                     _blockCache = _blockCache.OrderBy(b => b.Index).ToList();
                 }
                 finally
@@ -95,12 +95,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
         }
-        
+
         public void AddOrUpdateBlock(IBlock block)
         {
             var hash = block.BlockHashToHex;
             _logger?.Trace($"Add or update block {hash} to block cache.");
-            _rwLock.AcquireWriterLock(100);
+            _rwLock.AcquireWriterLock(Timeout);
             try
             {
                 var toRemove = _blockCache.FirstOrDefault(b => b.BlockHashToHex == hash);
@@ -108,7 +108,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _blockCache.Remove(toRemove);
                 }
-                _blockCache.Add(block);
+
+                _blockCache.Add(block.Clone());
                 _blockCache = _blockCache.OrderBy(b => b.Index).ToList();
             }
             finally
@@ -143,19 +144,10 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <returns></returns>
         public void Tell(IBlock currentExecutedBlock)
         {
-            try
-            {
-                RemoveExecutedBlock(currentExecutedBlock.BlockHashToHex);
+            RemoveExecutedBlock(currentExecutedBlock.BlockHashToHex);
 
-                if (currentExecutedBlock.Index >= KeepHeight)
-                    RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
-
-                _logger?.Trace($"Told block {currentExecutedBlock.BlockHashToHex}.");
-            }
-            catch (Exception e)
-            {
-                _logger?.Warn(e, "Error while update block set.");
-            }
+            if (currentExecutedBlock.Index >= KeepHeight)
+                RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
         }
 
         public bool IsBlockReceived(Hash blockHash, ulong height)
@@ -187,22 +179,22 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
 
-            return block?.Body == null ? null : block;
+            return block?.Body == null ? null : block.Clone();
         }
 
-        public IEnumerable<IBlock> GetBlocksByHeight(ulong height)
+        public List<IBlock> GetBlocksByHeight(ulong height)
         {
             _rwLock.AcquireReaderLock(Timeout);
+            var blocks = new List<IBlock>();
             try
             {
                 if (_blockCache.Any(b => b.Index == height))
                 {
-                    return _blockCache.Where(b => b.Index == height).ToList();
+                    _blockCache.Where(b => b.Index == height).ForEach(b => blocks.Add(b.Clone()));
                 }
-
-                if (_executedBlocks.TryGetValue(height, out var block) && block?.Header != null)
+                else if (_executedBlocks.TryGetValue(height, out var block) && block?.Header != null)
                 {
-                    return new List<IBlock> {block};
+                    blocks.Add(block.Clone());
                 }
             }
             finally
@@ -210,7 +202,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseReaderLock();
             }
 
-            return new List<IBlock>();
+            return blocks;
         }
 
         private void RemoveOldBlocks(ulong targetHeight)
@@ -274,8 +266,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 if (higherBlocks.Any())
                 {
-                    _logger?.Trace(
-                        "Find higher blocks in block set, will check whether there are longer valid chain.");
+                    _logger?.Trace("Find higher blocks in block set, will check whether there are longer valid chain.");
 
                     // Get the index of highest block in block set.
                     var blockToCheck = higherBlocks.First();
@@ -288,8 +279,7 @@ namespace AElf.Synchronization.BlockSynchronization
                             // If a linkable block can be found in the invalid block list,
                             // update blockToCheck and indexToCheck.
                             if (_blockCache.Any(b => b.Index == blockToCheck.Index - 1 &&
-                                                     b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash
-                                                         .DumpHex()))
+                                                     b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex()))
                             {
                                 blockToCheck = _blockCache.FirstOrDefault(b =>
                                     b.Index == blockToCheck.Index - 1 &&
@@ -321,10 +311,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     _logger?.Trace("No proper fork height.");
                 }
 
-                return forkHeight <= currentHeight
-                       || forkHeight + GlobalConfig.BlockCacheLimit < currentHeight
-                    ? forkHeight
-                    : 0;
+                return forkHeight <= currentHeight && forkHeight + GlobalConfig.BlockCacheLimit > currentHeight ? forkHeight : 0;
             }
             finally
             {
@@ -375,8 +362,7 @@ namespace AElf.Synchronization.BlockSynchronization
             var str = "\nInvalid Block List:\n";
             foreach (var block in _blockCache.OrderBy(b => b.Index))
             {
-                str +=
-                    $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}\n";
+                str += $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}\n";
             }
 
             _logger?.Trace(str);

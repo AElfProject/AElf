@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
@@ -13,8 +12,10 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Common;
+using AElf.Kernel.Types.Transaction;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
+using AElf.SmartContract.Proposal;
 using Easy.MessageHub;
 using NLog;
 using Org.BouncyCastle.Crypto.Engines;
@@ -28,7 +29,7 @@ namespace AElf.Miner.TxMemPool
         private readonly ITransactionReceiptManager _receiptManager;
         private readonly ITxSignatureVerifier _signatureVerifier;
         private readonly ITxRefBlockValidator _refBlockValidator;
-
+        private readonly IAuthorizationInfo _authorizationInfo;
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
 
@@ -69,8 +70,7 @@ namespace AElf.Miner.TxMemPool
         };
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
-            IChainService chainService,
-            ITxSignatureVerifier signatureVerifier,
+            IChainService chainService, IAuthorizationInfo authorizationInfo, ITxSignatureVerifier signatureVerifier,
             ITxRefBlockValidator refBlockValidator)
         {
             _transactionManager = transactionManager;
@@ -78,6 +78,7 @@ namespace AElf.Miner.TxMemPool
             _chainService = chainService;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
+            _authorizationInfo = authorizationInfo;
 
             _terminated = false;
         }
@@ -220,6 +221,17 @@ namespace AElf.Miner.TxMemPool
                 return;
             }
 
+            if(tr.Transaction.Sigs.Count > 1)
+            {
+                // check msig account authorization
+                var validAuthorization = _authorizationInfo.CheckAuthority(tr.Transaction);
+                if (!validAuthorization)
+                {
+                    tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
+                    return;
+                }
+            }
+            
             var validSig = _signatureVerifier.Verify(tr.Transaction);
             tr.SignatureSt = validSig
                 ? TransactionReceipt.Types.SignatureStatus.SignatureValid

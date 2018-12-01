@@ -11,11 +11,11 @@ using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
+using AElf.Kernel.Storages;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
-using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
@@ -28,7 +28,6 @@ namespace AElf.Node.AElfChain
     public class MainchainNodeService : INodeService
     {
         private readonly ILogger _logger;
-
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
@@ -37,9 +36,8 @@ namespace AElf.Node.AElfChain
 
         private IBlockChain _blockChain;
 
-        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
-                                              _chainService.GetBlockChain(
-                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
+        private IBlockChain BlockChain => _blockChain ?? (_blockChain = _chainService.GetBlockChain(
+                                              Hash.LoadHex(ChainConfig.Instance.ChainId)));
 
         private readonly IConsensus _consensus;
 
@@ -73,16 +71,8 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath =
-                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisTokenContractAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
+                var contractZeroDllPath = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisTokenContractAssemblyName}.dll");
+                return ReadCode(contractZeroDllPath);
             }
         }
 
@@ -90,16 +80,8 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath =
-                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisConsensusContractAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
+                var contractZeroDllPath = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisConsensusContractAssemblyName}.dll");
+                return ReadCode(contractZeroDllPath);
             }
         }
 
@@ -107,16 +89,8 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath =
-                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSmartContractZeroAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
+                var contractZeroDllPath = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSmartContractZeroAssemblyName}.dll");
+                return ReadCode(contractZeroDllPath);
             }
         }
 
@@ -124,17 +98,29 @@ namespace AElf.Node.AElfChain
         {
             get
             {
-                var contractZeroDllPath =
-                    Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSideChainContractAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
+                var contractZeroDllPath = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisSideChainContractAssemblyName}.dll");
+                return ReadCode(contractZeroDllPath);
             }
+        }
+
+        private byte[] AuthorizationContractZero
+        {
+            get
+            {
+                var contractZeroDllPath = Path.Combine(_assemblyDir, $"{GlobalConfig.GenesisAuthorizationContractAssemblyName}.dll");
+                return ReadCode(contractZeroDllPath);
+            }
+        }
+
+        private byte[] ReadCode(string path)
+        {
+            byte[] code;
+            using (var file = File.OpenRead(Path.GetFullPath(path)))
+            {
+                code = file.ReadFully();
+            }
+
+            return code;
         }
 
         #endregion
@@ -176,7 +162,7 @@ namespace AElf.Node.AElfChain
                 {
                     // Create the chain if it doesn't exist
                     CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero,
-                        SideChainGenesisContractZero);
+                        SideChainGenesisContractZero, AuthorizationContractZero);
                 }
             }
             catch (Exception e)
@@ -246,10 +232,13 @@ namespace AElf.Node.AElfChain
 
             var sidechainContractAddress = ContractHelpers.GetSideChainContractAddress(ChainId);
             _logger?.Debug($"SideChain contract address = {sidechainContractAddress.DumpHex()}");
+
+            var authorizationContractAddress = ContractHelpers.GetAuthorizationContractAddress(ChainId);
+            _logger?.Debug($"Authorization contract address = {authorizationContractAddress.DumpHex()}");
         }
 
         private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero,
-            byte[] sideChainGenesisContractCode)
+            byte[] sideChainGenesisContractCode, byte[] authorizationContractCode)
         {
             var tokenCReg = new SmartContractRegistration
             {
@@ -282,8 +271,16 @@ namespace AElf.Node.AElfChain
                 ContractHash = Hash.FromRawBytes(sideChainGenesisContractCode),
                 SerialNumber = GlobalConfig.SideChainContract
             };
+            
+            var authorizationCReg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(authorizationContractCode),
+                ContractHash = Hash.FromRawBytes(authorizationContractCode),
+                SerialNumber = GlobalConfig.AuthorizationContract
+            };
             var res = _chainCreationService.CreateNewChainAsync(Hash.LoadHex(ChainConfig.Instance.ChainId),
-                new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg}).Result;
+                new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg, authorizationCReg}).Result;
 
             _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");
         }
@@ -323,8 +320,10 @@ namespace AElf.Node.AElfChain
             var block = await Task.Run(() => (Block) _blockSynchronizer.GetBlockByHash(hash));
             if (block == null)
                 return null;
+
             if (block.Body.TransactionList.Count > 0)
                 return block;
+
             return await FillBlockWithTransactionList(block);
         }
 

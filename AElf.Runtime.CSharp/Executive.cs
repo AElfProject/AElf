@@ -13,6 +13,7 @@ using Type = System.Type;
 using Module = AElf.ABI.CSharp.Module;
 using Method = AElf.ABI.CSharp.Method;
 using AElf.SmartContract;
+using AElf.SmartContract.Proposal;
 
 namespace AElf.Runtime.CSharp
 {
@@ -104,6 +105,7 @@ namespace AElf.Runtime.CSharp
         {
             var scc = ApiType.GetMethod("SetSmartContractContext", BindingFlags.Public | BindingFlags.Static);
             var stc = ApiType.GetMethod("SetTransactionContext", BindingFlags.Public | BindingFlags.Static);
+            var sai = ApiType.GetMethod("SetAuthorizationInfo", BindingFlags.Public | BindingFlags.Static);
             var scch = Delegate.CreateDelegate(typeof(SetSmartContractContextHandler), scc);
             var stch = Delegate.CreateDelegate(typeof(SetTransactionContextHandler), stc);
 
@@ -114,7 +116,6 @@ namespace AElf.Runtime.CSharp
 
             _setSmartContractContextHandler = (SetSmartContractContextHandler) scch;
             _setTransactionContextHandler = (SetTransactionContextHandler) stch;
-
             return this;
         }
 

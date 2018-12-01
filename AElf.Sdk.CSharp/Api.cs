@@ -1,15 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Types.Proposal;
+using AElf.Kernel.Types.Transaction;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 using AElf.Sdk.CSharp.ReadOnly;
+using AElf.SmartContract.Proposal;
+using NServiceKit.Common.Extensions;
 
-// ReSharper disable UnusedMember.Global
 namespace AElf.Sdk.CSharp
 {
     /// <summary>
@@ -81,13 +86,18 @@ namespace AElf.Sdk.CSharp
         {
             return ContractHelpers.GetSideChainContractAddress(_smartContractContext.ChainId);
         }
+        
+        public static Address GetAuthorizationContractAddress()
+        {
+            return ContractHelpers.GetAuthorizationContractAddress(_smartContractContext.ChainId);
+        }
 
         public static Hash GetPreviousBlockHash()
         {
             return _transactionContext.PreviousBlockHash.ToReadOnly();
         }
 
-        public static ulong GetCurerntHeight()
+        public static ulong GetCurrentHeight()
         {
             return _transactionContext.BlockHeight;
         }
@@ -97,6 +107,13 @@ namespace AElf.Sdk.CSharp
             return _smartContractContext.ContractAddress.ToReadOnly();
         }
 
+        
+        public static List<Reviewer> GetSystemReviewers()
+        {
+            // TODO: Get current miners and chain creators
+            throw new NotImplementedException();
+        }
+        
         public static Address GetContractOwner()
         {
             if (Call(GetContractZeroAddress(), "GetContractOwner",
@@ -138,6 +155,16 @@ namespace AElf.Sdk.CSharp
         public static Transaction GetTransaction()
         {
             return _transactionContext.Transaction.ToReadOnly();
+        }
+        
+        public static ByteString GetPublicKey()
+        {
+            return GetTransaction().Sigs.First().P;
+        }
+
+        public static Address GetTransactionFromAddress()
+        {
+            return GetTransaction().From;
         }
 
         #endregion Getters used by contract
@@ -211,6 +238,11 @@ namespace AElf.Sdk.CSharp
             return new byte[] { };
         }
 
+        public static bool VerifySignature(Transaction proposedTxn)
+        {
+            return new TxSignatureVerifier().Verify(proposedTxn);
+        }
+        
         #endregion Transaction API
 
         #region Utility API
@@ -238,5 +270,28 @@ namespace AElf.Sdk.CSharp
         }
 
         #endregion Diagonstics API
+
+        public static void SendDeferredTransaction(Transaction deferredTxn)
+        {
+            _transactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
+        }
+
+        public static bool CheckAuthority()
+        {
+            if (_transactionContext.Transaction.Sigs.Count == 1)
+                // No need to verify signature again if it is not multi sig account.
+                return true;
+            
+            Call(GetAuthorizationContractAddress(), "GetAuth", ParamsPacker.Pack(_transactionContext.Transaction.From));
+            var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
+
+            uint provided = _transactionContext.Transaction.Sigs.Select(sig => sig.P)
+                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
+                .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
+
+            return provided >= auth.ExecutionThreshold;
+        }
+
+        
     }
 }

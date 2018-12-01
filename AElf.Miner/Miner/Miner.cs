@@ -241,6 +241,10 @@ namespace AElf.Miner.Miner
                 bn = bn > 4 ? bn - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                var sig = new Sig
+                {
+                    P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey())
+                };
                 var tx = new Transaction
                 {
                     From = _keyPair.GetAddress(),
@@ -248,18 +252,15 @@ namespace AElf.Miner.Miner
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
-                    Sig = new Signature
-                    {
-                        P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey())
-                    },
                     Type = TransactionType.CrossChainBlockInfoTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo)),
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 };
+                tx.Sigs.Add(sig);
                 // sign tx
                 var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
-                tx.Sig.R = ByteString.CopyFrom(signature.R);
-                tx.Sig.S = ByteString.CopyFrom(signature.S);
+                sig.R = ByteString.CopyFrom(signature.R);
+                sig.S = ByteString.CopyFrom(signature.S);
 
                 await InsertTransactionToPool(tx);
                 _logger?.Trace($"Generated Cross chain info transaction {tx.GetHash()}");
@@ -305,6 +306,15 @@ namespace AElf.Miner.Miner
                             Index = index++
                         };
                         txRes.UpdateBloom();
+                        
+                        // insert deferred txn to transaction pool and wait for execution 
+                        if (trace.DeferredTransaction.Length != 0)
+                        {
+                            var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                            InsertTransactionToPool(deferredTxn).ConfigureAwait(false);
+                            txRes.DeferredTxnId = deferredTxn.GetHash();
+                        }
+                            
                         results.Add(txRes);
                         break;
                     case ExecutionStatus.ContractError:

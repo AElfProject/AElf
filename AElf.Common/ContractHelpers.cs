@@ -29,5 +29,10 @@ namespace AElf.Common
         {
             return Address.FromRawBytes(Hash.FromTwoHashes(chainId, Hash.FromString(GlobalConfig.SideChainContract.ToString())).ToByteArray());
         }
+
+        public static Address GetAuthorizationContractAddress(Hash chainId)
+        {
+            return Address.FromRawBytes(Hash.FromTwoHashes(chainId, Hash.FromString(GlobalConfig.AuthorizationContract.ToString())).ToByteArray());
+        }
     }
 }
