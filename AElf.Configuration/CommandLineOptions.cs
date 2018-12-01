@@ -96,7 +96,10 @@ namespace AElf.Configuration
 
         #region Consensus
 
-        [Option("consensus.type", HelpText = "Select the consensus type: AElfDPoS,PoW or SingleNode")]
+        [Option('g', "dpos.generator", HelpText = "Is the one who will generate DPoS information")]
+        public bool? IsConsensusInfoGenerator { get; set; }
+
+        [Option("consensus.type", HelpText = "Select the consensus type: AElfDPoS,PoTC or SingleNode")]
         public string ConsensusType { get; set; }
 
         [Option("dpos.interval", HelpText = "Mining interval of AElf DPoS.")]

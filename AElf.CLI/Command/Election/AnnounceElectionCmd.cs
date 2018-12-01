@@ -2,7 +2,7 @@ using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
 using Newtonsoft.Json.Linq;
 
-namespace AElf.CLI.Command
+namespace AElf.CLI.Command.Election
 {
     public class AnnounceElectionCmd : CliCommandDefinition
     {

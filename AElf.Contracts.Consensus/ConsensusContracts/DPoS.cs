@@ -63,7 +63,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         private readonly Map<Address, Tickets> _balanceMap;
 
         private readonly PbField<Candidates> _candidatesField;
-        
+
         private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap;
 
         #endregion
@@ -343,18 +343,19 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 {
                     return;
                 }
+
                 var parameter =
                     ByteString.CopyFrom(ParamsPacker.Pack(minerWannaQuitElection));
                 Api.Call(TokenContractAddress, "CancelElection", parameter.ToByteArray());
                 candidates.Nodes.Remove(minerWannaQuitElection);
                 await _candidatesField.SetAsync(candidates);
             }
-            
+
             // Replace
             if (args.Count == 1)
             {
                 Address outerAddress;
-                
+
                 try
                 {
                     outerAddress = Address.Parser.ParseFrom(args[0]);
@@ -379,13 +380,13 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             // Vote
             if (args.Count == 3)
             {
-                Address candidatesAddress;
+                Address candidateAddress;
                 UInt64Value amount;
                 BoolValue voteOrNot;
-                
+
                 try
                 {
-                    candidatesAddress = Address.Parser.ParseFrom(args[0]);
+                    candidateAddress = Address.Parser.ParseFrom(args[0]);
                     amount = UInt64Value.Parser.ParseFrom(args[1]);
                     voteOrNot = BoolValue.Parser.ParseFrom(args[2]);
 
@@ -398,11 +399,11 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
                 if (voteOrNot.Value)
                 {
-                    await Vote(candidatesAddress, amount);
+                    await Vote(candidateAddress, amount);
                 }
                 else
                 {
-                    await Regret(candidatesAddress, amount);
+                    await Regret(candidateAddress, amount);
                 }
             }
         }
@@ -435,12 +436,15 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             }
             else
             {
-                if (_balanceMap.TryGet(address, out var tickets) && tickets.RemainingTickets >= amount)
+                if (_balanceMap.TryGet(address, out var tickets))
                 {
+                    Api.Assert(tickets.RemainingTickets >= amount,
+                        $"{Api.GetTransaction().From.DumpHex()} can't withdraw tickets.");
+
                     tickets.RemainingTickets -= amount;
-                    await _balanceMap.SetValueAsync(address, tickets);
                     Api.Call(TokenContractAddress, "Transfer",
                         ByteString.CopyFrom(ParamsPacker.Pack(amount)).ToByteArray());
+                    await _balanceMap.SetValueAsync(address, tickets);
                 }
             }
 
@@ -560,7 +564,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             miners.TakeEffectRoundNumber = CurrentRoundNumber.Add(1);
             ongoingMiners.UpdateMiners(miners);
             await _ongoingMinersField.SetAsync(ongoingMiners);
-            
+
             var snapshot = new ElectionSnapshot();
             snapshot.RoundNumber = CurrentRoundNumber.Add(1);
 
@@ -572,7 +576,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
             await _snapshotMap.SetValueAsync(new UInt64Value {Value = CurrentRoundNumber.Add(1)}, snapshot);
         }
-        
+
         private async Task UpdateOngoingMiners(Address outerAddress)
         {
             var ongoingMiners = await _ongoingMinersField.GetAsync();
@@ -791,34 +795,19 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
             return new Miners
             {
-                Nodes = {nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber)
-                    .Select(n => n.Address)}
+                Nodes =
+                {
+                    nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber)
+                        .Select(n => n.Address)
+                }
             };
-        }
-
-        private async Task<ulong> GetTicketCount(Address address)
-        {
-            var balance = (await _balanceMap.GetValueAsync(address)).RemainingTickets;
-            return balance >= GlobalConfig.LockTokenForElection ? balance - GlobalConfig.LockTokenForElection : 0;
-        }
-
-        private async Task<bool> CheckRoundId(Int64Value roundId)
-        {
-            var currentRoundInfo = await GetCurrentRoundInfo();
-            return currentRoundInfo.RoundId == roundId.Value;
         }
 
         private async Task Vote(Address candidateAddress, UInt64Value amount)
         {
-            if (!CheckTickets(amount))
-            {
-                return;
-            }
+            Api.Assert(CheckTickets(amount), $"Tickets of {Api.GetTransaction().From.DumpHex()} is not enough.");
 
-            if (!await IsCandidate(candidateAddress))
-            {
-                return;
-            }
+            Api.Assert(await IsCandidate(candidateAddress), $"{candidateAddress.DumpHex()} is not a candidate.");
 
             if (_balanceMap.TryGet(candidateAddress, out var tickets))
             {
@@ -839,28 +828,48 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     });
                 }
             }
+
+            await _balanceMap.SetValueAsync(candidateAddress, tickets);
         }
 
         private async Task Regret(Address candidateAddress, UInt64Value amount)
         {
-            var voter = Api.GetTransaction().From;
+            var voterAddress = Api.GetTransaction().From;
             if (_balanceMap.TryGet(candidateAddress, out var tickets))
             {
-                var record = tickets.VotingRecord.FirstOrDefault(vr => vr.From == voter);
-                if (record != null && record.TicketsCount >= amount.Value)
+                var record = tickets.VotingRecord.FirstOrDefault(vr => vr.From == voterAddress);
+
+                Api.Assert(record != null,
+                    $"It seems that {voterAddress.DumpHex()} didn't voted for {candidateAddress.DumpHex()}.");
+
+                if (record != null)
                 {
-                    if (_balanceMap.TryGet(voter, out var voterTickets))
+                    Api.Assert(record.TicketsCount >= amount.Value,
+                        $"Tickets of {voterAddress.DumpHex()} is not enough.");
+                    if (_balanceMap.TryGet(voterAddress, out var voterTickets))
                     {
                         voterTickets.RemainingTickets += amount.Value;
                         tickets.VotingRecord.Remove(record);
                         record.TicketsCount -= amount.Value;
                         tickets.VotingRecord.Add(record);
-                        
+
                         await _balanceMap.SetValueAsync(candidateAddress, tickets);
-                        await _balanceMap.SetValueAsync(voter, voterTickets);
+                        await _balanceMap.SetValueAsync(voterAddress, voterTickets);
                     }
                 }
             }
+        }
+
+        private async Task<ulong> GetTicketCount(Address address)
+        {
+            var balance = (await _balanceMap.GetValueAsync(address)).RemainingTickets;
+            return balance >= GlobalConfig.LockTokenForElection ? balance - GlobalConfig.LockTokenForElection : 0;
+        }
+
+        private async Task<bool> CheckRoundId(Int64Value roundId)
+        {
+            var currentRoundInfo = await GetCurrentRoundInfo();
+            return currentRoundInfo.RoundId == roundId.Value;
         }
 
         private bool CheckTickets(UInt64Value amount)

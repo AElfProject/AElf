@@ -20,6 +20,8 @@ namespace AElf.Contracts.Consensus
     // ReSharper disable UnusedMember.Global
     public class ConsensusContractZero : CSharpSmartContract
     {
+        private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
+
         #region DPoS
 
         private IConsensus DPoSConsensus => new DPoS(new AElfDPoSFieldMapCollection
@@ -91,21 +93,21 @@ namespace AElf.Contracts.Consensus
             await DPoSConsensus.Election(new List<byte[]>());
         }
 
-        public async Task Vote(byte[] voterAddress, byte[] amount)
+        public async Task Vote(byte[] candidateAddress, byte[] amount)
         {
             await DPoSConsensus.Election(new List<byte[]>
             {
-                voterAddress,
+                candidateAddress,
                 amount,
                 new BoolValue {Value = true}.ToByteArray()
             });
         }
 
-        public async Task Regret(byte[] voterAddress, byte[] amount)
+        public async Task Regret(byte[] candidateAddress, byte[] amount)
         {
             await DPoSConsensus.Election(new List<byte[]>
             {
-                voterAddress,
+                candidateAddress,
                 amount,
                 new BoolValue {Value = false}.ToByteArray()
             });
@@ -124,9 +126,12 @@ namespace AElf.Contracts.Consensus
             return DPoSConsensus.GetCurrentMiners();
         }
 
-        public async Task AddTickets(Address address, ulong amount)
+        public async Task AddTickets(Address addressToGetTickets, ulong amount)
         {
-            await DPoSConsensus.HandleTickets(address, amount);
+            Api.Assert(Api.GetTransaction().From == TokenContractAddress,
+                "Only token contract can call AddTickets method.");
+            
+            await DPoSConsensus.HandleTickets(addressToGetTickets, amount);
         }
 
         public async Task Withdraw(Address address, ulong amount)
