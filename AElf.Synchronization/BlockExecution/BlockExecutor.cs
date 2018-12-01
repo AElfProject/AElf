@@ -44,12 +44,12 @@ namespace AElf.Synchronization.BlockExecution
         private static bool _executing;
         private static bool _prepareTerminated;
         private static bool _terminated;
-        
-        private NodeState CurrentState { get; set; } = NodeState.Catching;
+
+        private static bool _isLimitExecutionTime;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic,IStateStore stateStore)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic, IStateStore stateStore)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -60,9 +60,9 @@ namespace AElf.Synchronization.BlockExecution
             _chainManagerBasic = chainManagerBasic;
             _stateStore = stateStore;
             _dpoSInfoProvider = new DPoSInfoProvider(_stateStore);
-            
+
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
-            
+
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
 
             _executing = false;
@@ -84,8 +84,18 @@ namespace AElf.Synchronization.BlockExecution
                     }
                 }
             });
-            
-            MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { CurrentState = inState.CurrentState; });
+
+            MessageHub.Instance.Subscribe<FSMStateChanged>(inState =>
+            {
+                if (inState.CurrentState == NodeState.Catching)
+                {
+                    _isLimitExecutionTime = false;
+                }
+                else if (inState.CurrentState == NodeState.Caught)
+                {
+                    _isLimitExecutionTime = true;
+                }
+            });
         }
 
         private string _current;
@@ -140,7 +150,7 @@ namespace AElf.Synchronization.BlockExecution
                 }
 
                 double distanceToTimeSlot = 0;
-                if (CurrentState != NodeState.Catching)
+                if (_isLimitExecutionTime)
                 {
                     distanceToTimeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
                     cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
