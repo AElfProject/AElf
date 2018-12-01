@@ -159,7 +159,7 @@ namespace AElf.Synchronization.BlockExecution
                 
                 if (cts.IsCancellationRequested)
                 {
-                    _logger?.Trace($"Execution Cancelled and rollback: block height: {block.BlockHashToHex}, execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
+                    _logger?.Trace($"Execution Cancelled and rollback: block hash: {block.BlockHashToHex}, execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
                     Rollback(block, txnRes).ConfigureAwait(false);
                     return BlockExecutionResult.ExecutionCancelled;
                 }
