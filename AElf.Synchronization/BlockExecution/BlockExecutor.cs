@@ -44,6 +44,8 @@ namespace AElf.Synchronization.BlockExecution
         private static bool _executing;
         private static bool _prepareTerminated;
         private static bool _terminated;
+        
+        private NodeState CurrentState { get; set; } = NodeState.Catching;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
@@ -82,6 +84,8 @@ namespace AElf.Synchronization.BlockExecution
                     }
                 }
             });
+            
+            MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { CurrentState = inState.CurrentState; });
         }
 
         private string _current;
@@ -135,9 +139,12 @@ namespace AElf.Synchronization.BlockExecution
                     return res;
                 }
 
-                var distanceToTimeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
-
-                cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
+                double distanceToTimeSlot = 0;
+                if (CurrentState != NodeState.Catching)
+                {
+                    distanceToTimeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
+                    cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
+                }
 
                 var trs = await _txHub.GetReceiptsForAsync(readyTxs, cts);
                 
