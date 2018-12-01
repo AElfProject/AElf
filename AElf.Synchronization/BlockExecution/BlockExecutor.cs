@@ -133,6 +133,7 @@ namespace AElf.Synchronization.BlockExecution
                 }
 
                 var trs = await _txHub.GetReceiptsForAsync(readyTxs);
+
                 foreach (var tr in trs)
                 {
                     if (!tr.IsExecutable)
@@ -232,6 +233,7 @@ namespace AElf.Synchronization.BlockExecution
                 }
                 else
                 {
+                    _logger?.Trace($"Executing failed, \n Error:{trace.StdErr}");
                     res.Status = Status.Failed;
                     res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     res.StateHash = trace.GetSummarizedStateHash();
@@ -240,6 +242,12 @@ namespace AElf.Synchronization.BlockExecution
                                    $"\n {trace.StdErr}");
                 }
 
+                if (trace.DeferredTransaction != null)
+                {
+                    var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                    _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
+                    res.DeferredTxnId = deferredTxn.GetHash();
+                }
                 results.Add(res);
             }
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using AElf.Cryptography.ECDSA;
@@ -12,20 +14,6 @@ namespace AElf.Kernel
 {
     public partial class Transaction
     {
-        public ByteString P => Sig.P;
-        
-        public ByteString R
-        {
-            get => Sig.R;
-            //set => Sig.R = value;
-        }
-        
-        public ByteString S
-        {
-            get => Sig.S;
-            //set => Sig.S = value;
-        }
-
         private int _claimed;
 
         public bool Claim()
@@ -55,11 +43,6 @@ namespace AElf.Kernel
             return this.ToByteArray();
         }
 
-        public ECSignature GetSignature()
-        {
-            return new ECSignature(Sig.R.ToByteArray(), Sig.S.ToByteArray());
-        }
-
         public int Size()
         {
             return CalculateSize();
@@ -71,14 +54,15 @@ namespace AElf.Kernel
             {
                 From = From.Clone(),
                 To = To.Clone(),
-                IncrementId = IncrementId,
-                RefBlockNumber = RefBlockNumber,
-                RefBlockPrefix = RefBlockPrefix,
                 MethodName = MethodName,
                 Type = Type
             };
             if (Params.Length != 0)
                 txData.Params = Params;
+            if (Type == TransactionType.MsigTransaction) 
+                return txData.ToByteArray();
+            txData.RefBlockNumber = RefBlockNumber;
+            txData.RefBlockPrefix = RefBlockPrefix;
             return txData.ToByteArray();
         }
     }

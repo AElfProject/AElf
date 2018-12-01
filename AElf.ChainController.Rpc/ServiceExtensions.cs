@@ -9,6 +9,7 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Types.Proposal;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -247,6 +248,8 @@ namespace AElf.ChainController.Rpc
             return trace.RetVal.ToFriendlyBytes();
         }
 
+        #region Cross chain
+
         internal static MerklePath GetTxRootMerklePathInParentChain(this Svc s, ulong height)
         {
             return s.CrossChainInfo.GetTxRootMerklePathInParentChain(height);
@@ -261,6 +264,24 @@ namespace AElf.ChainController.Rpc
         {
             return s.CrossChainInfo.GetBoundParentChainHeight(height);
         }
+
+        #endregion
+
+        #region Proposal
+
+        internal static Proposal GetProposal(this Svc s, Hash proposalHash)
+        {
+            return s.AuthorizationInfo.GetProposal(proposalHash);
+        }
+
+        internal static Authorization GetAuthorization(this Svc s, Address msig)
+        {
+            return s.AuthorizationInfo.GetAuthorization(msig);
+        }
+
+        #endregion
+
+        
     }
     
 }

@@ -11,6 +11,7 @@ namespace AElf.Common
         public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
         public static readonly string GenesisSideChainContractAssemblyName = "AElf.Contracts.SideChain";
+        public static readonly string GenesisAuthorizationContractAssemblyName = "AElf.Contracts.Authorization";
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
@@ -18,6 +19,7 @@ namespace AElf.Common
         public static readonly UInt64 ConsensusContract = 1;
         public static readonly UInt64 TokenContract = 2;
         public static readonly UInt64 SideChainContract = 3;
+        public static readonly UInt64 AuthorizationContract = 4;
         
         public static int InvertibleChainHeight = 4;
 
@@ -46,6 +48,12 @@ namespace AElf.Common
         public static readonly int AElfInitCrossChainRequestInterval = 4;
         public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
 
+        #endregion
+
+        #region Authorization
+
+        public const string AElfMultiSig = "__MultiSig__";
+        public const string AElfProposal = "__Proposal__";
         #endregion
 
         public static ulong BasicContractZeroSerialNumber = 100;

@@ -144,7 +144,7 @@ namespace AElf.Contracts.SideChain
                 Status = SideChainStatus.Pending,
                 LockedAddress = lockedAddress,
                 LockedToken = lockedToken,
-                CreationHeight = Api.GetCurerntHeight() + 1 
+                CreationHeight = Api.GetCurrentHeight() + 1 
             };
             _sideChainInfos[chainId] = info;
             new SideChainCreationRequested()

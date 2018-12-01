@@ -85,12 +85,12 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txPrint.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txPrint.Sig = new Signature
+            txPrint.Sigs.Add( new Sig
             {
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
                 R = ByteString.CopyFrom(signature.R),
                 S = ByteString.CopyFrom(signature.S),
-            };
+            });
             
             var txs = new List<Transaction>(){
                 txPrint
@@ -139,12 +139,12 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txnDep.GetHash();
 
             ECSignature signature1 = signer.Sign(keyPair, hash.DumpByteArray());
-            txnDep.Sig = new Signature
+            txnDep.Sigs.Add(new Sig
             {
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
                 R = ByteString.CopyFrom(signature1.R),
                 S = ByteString.CopyFrom(signature1.S),
-            };
+            });
             
             var txInv_1 = new Transaction
             {
@@ -158,11 +158,11 @@ namespace AElf.Kernel.Tests.Miner
                 Type = TransactionType.ContractTransaction
             };
             ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().DumpByteArray());
-            txInv_1.Sig = new Signature{
+            txInv_1.Sigs.Add(new Sig{
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
                 R = ByteString.CopyFrom(signature2.R),
                 S = ByteString.CopyFrom(signature2.S)
-            };
+            });
             
             
             var txInv_2 = new Transaction
@@ -178,12 +178,13 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().DumpByteArray());
-            txInv_2.Sig = new Signature
+            var sig = new Sig
             {
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
             };
-            txInv_2.Sig.R = ByteString.CopyFrom(signature3.R); 
-            txInv_2.Sig.S = ByteString.CopyFrom(signature3.S);
+            txInv_2.Sigs.Add(sig);
+            sig.R = ByteString.CopyFrom(signature3.R); 
+            sig.S = ByteString.CopyFrom(signature3.S);
             
             var txs = new List<Transaction>(){
                 txnDep, txInv_1, txInv_2
