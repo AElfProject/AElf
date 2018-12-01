@@ -82,15 +82,6 @@ namespace AElf.Kernel.Node
         private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        private List<Address> CandidatesList => new List<Address>
-        {
-            Address.LoadHex("0x8e02b427a9d54c69cd211c1498e52e4f008e"),
-            Address.LoadHex("0x62af5fbaae723220162b46520b3198f8a74d"),
-            Address.LoadHex("0x24b32b596b82fb42d04cc1242ed1b9de8e56"),
-            Address.LoadHex("0xe2f6291b629a21c34e857a188983b3c4ffee"),
-            Address.LoadHex("0x602106c8f66ffed4806ac0addc5f1d307031")
-        };
-
         public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
             AElfDPoSHelper helper)
         {
@@ -326,11 +317,6 @@ namespace AElf.Kernel.Node
                     var txToInitializeAElfDPoS = await GenerateTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToInitializeAElfDPoS);
 
-                    foreach (var address in CandidatesList)
-                    {
-                        await InitBalance(address);
-                    }
-
                     await Mine();
                 }
             }
@@ -350,8 +336,6 @@ namespace AElf.Kernel.Node
                     $"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
-
-        private bool _exchanged = false;
 
         /// <summary>
         /// Related tx has 5 params:
@@ -418,16 +402,6 @@ namespace AElf.Kernel.Node
                     var txToPublishOutValueAndSignature =
                         await GenerateTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToPublishOutValueAndSignature);
-
-                    if (!_exchanged)
-                    {
-                        foreach (var address in CandidatesList)
-                        {
-                            await AnnounceElection(address);
-                        }
-
-                        _exchanged = true;
-                    }
 
                     await Mine();
                 }
@@ -744,17 +718,6 @@ namespace AElf.Kernel.Node
             catch (Exception e)
             {
                 _logger?.Trace(e, "Error while during generating Token tx.");
-            }
-        }
-
-        private async Task Vote()
-        {
-            foreach (var voter in CandidatesList)
-            {
-                foreach (var candidate in CandidatesList)
-                {
-                    await GenerateVoteTransactionAsync(voter, candidate);
-                }
             }
         }
 

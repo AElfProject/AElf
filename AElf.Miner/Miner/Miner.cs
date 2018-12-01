@@ -49,9 +49,8 @@ namespace AElf.Miner.Miner
 
         private IBlockChain _blockChain;
 
-        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
-                                              _chainService.GetBlockChain(
-                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
+        private IBlockChain BlockChain => _blockChain ?? (_blockChain = _chainService.GetBlockChain(
+                                              Hash.LoadHex(ChainConfig.Instance.ChainId)));
         
         private Address ProducerAddress => Address.LoadHex(NodeConfig.Instance.NodeAccount);
 

@@ -248,7 +248,7 @@ namespace AElf.Synchronization.BlockExecution
                                    $"\n {trace.StdErr}");
                 }
 
-                if (trace.DeferredTransaction != null)
+                if (trace.DeferredTransaction.Length != 0)
                 {
                     var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
                     _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);

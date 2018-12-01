@@ -195,7 +195,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             }
             catch (Exception e)
             {
-                ConsoleWriteLine(nameof(Initialize), "Failed to set Extra Block mining timeslot.", e);
+                ConsoleWriteLine(nameof(Initialize), "Failed to set Extra Block mining time slot.", e);
             }
         }
 
