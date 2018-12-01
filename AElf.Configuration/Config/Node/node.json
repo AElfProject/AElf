@@ -6,6 +6,6 @@
   "NodeAccountPassword": "",
   "ExecutorType": "simple",
   "NodeName": "",
-  "RatioMine": 0.3,
-  "RatioSynchronize": 0.5
+  "RatioMine": 0.1,
+  "RatioSynchronize": 0.6
 }
