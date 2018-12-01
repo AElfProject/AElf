@@ -16,6 +16,7 @@ using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
+using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;

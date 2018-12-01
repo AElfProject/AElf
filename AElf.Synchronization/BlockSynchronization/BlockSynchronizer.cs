@@ -146,7 +146,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // Update DPoS process.
                 MessageHub.Instance.Publish(UpdateConsensus.Update);
-                HandleMinedAndStroedBlock(inBlock.Block);
+                HandleMinedAndStoredBlock(inBlock.Block);
             });
 
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
@@ -313,19 +313,17 @@ namespace AElf.Synchronization.BlockSynchronization
         private void AddMinedBlock(IBlock block)
         {
             _blockSet.AddOrUpdateBlock(block);
-
-            // We can say the "initial sync" is finished, set KeepHeight to a specific number
-            if (_blockSet.KeepHeight == ulong.MaxValue)
-            {
-                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
-                _blockSet.KeepHeight = GlobalConfig.BlockCacheLimit;
-            }
+            SetKeepHeight();
         }
         
-        private void HandleMinedAndStroedBlock(IBlock block)
+        private void HandleMinedAndStoredBlock(IBlock block)
         {
             _blockSet.Tell(block);
+            SetKeepHeight();
+        }
 
+        private void SetKeepHeight()
+        {
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
             {

@@ -70,7 +70,7 @@ namespace AElf.Common
         public const string TransactionReceiptPrefix = "rc";
 
         #endregion data key prefixes
-        public const ulong BlockCacheLimit = 64; 
+        public static ulong BlockCacheLimit = 64; 
         
         public const ulong ForkDetectionLength = 4;
     }

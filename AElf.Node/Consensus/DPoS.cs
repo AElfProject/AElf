@@ -681,6 +681,7 @@ namespace AElf.Kernel.Node
                 bn = bn > 4 ? bn - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                var sig = new Sig {P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey)};
                 var tx = new Transaction
                 {
                     From = NodeKeyPair.Address,
@@ -688,17 +689,15 @@ namespace AElf.Kernel.Node
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "InitBalance",
-                    Sig = new Signature {P = ByteString.CopyFrom(NodeKeyPair.NonCompressedEncodedPublicKey)},
                     Type = TransactionType.ContractTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(address, GlobalConfig.LockTokenForElection * 2)),
                 };
-
+                tx.Sigs.Add(sig);
                 var signer = new ECSigner();
                 var signature = signer.Sign(NodeKeyPair, tx.GetHash().DumpByteArray());
-
                 // Update the signature
-                tx.Sig.R = ByteString.CopyFrom(signature.R);
-                tx.Sig.S = ByteString.CopyFrom(signature.S);
+                sig.R = ByteString.CopyFrom(signature.R);
+                sig.S = ByteString.CopyFrom(signature.S);
 
                 _logger?.Trace("Leaving generating tx.");
 
@@ -719,6 +718,7 @@ namespace AElf.Kernel.Node
                 bn = bn > 4 ? bn - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                var sig = new Sig {P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey)};
                 var tx = new Transaction
                 {
                     From = address,
@@ -726,17 +726,16 @@ namespace AElf.Kernel.Node
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "AnnounceElection",
-                    Sig = new Signature {P = ByteString.CopyFrom(NodeKeyPair.NonCompressedEncodedPublicKey)},
                     Type = TransactionType.ContractTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 };
-
+                tx.Sigs.Add(sig);
                 var signer = new ECSigner();
                 var signature = signer.Sign(NodeKeyPair, tx.GetHash().DumpByteArray());
 
                 // Update the signature
-                tx.Sig.R = ByteString.CopyFrom(signature.R);
-                tx.Sig.S = ByteString.CopyFrom(signature.S);
+                sig.R = ByteString.CopyFrom(signature.R);
+                sig.S = ByteString.CopyFrom(signature.S);
 
                 _logger?.Trace("Leaving generating tx.");
 
@@ -768,6 +767,7 @@ namespace AElf.Kernel.Node
                 bn = bn > 4 ? bn - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                var sig = new Sig {P = ByteString.CopyFrom(_nodeKeyPair.NonCompressedEncodedPublicKey)};
                 var tx = new Transaction
                 {
                     From = voter,
@@ -775,18 +775,17 @@ namespace AElf.Kernel.Node
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "AnnounceElection",
-                    Sig = new Signature {P = ByteString.CopyFrom(NodeKeyPair.NonCompressedEncodedPublicKey)},
                     Type = TransactionType.ContractTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(candidate.ToByteArray(),
                         new UInt64Value {Value = (ulong) new Random().Next(1, 10)}.ToByteArray()))
                 };
-
+                tx.Sigs.Add(sig);
                 var signer = new ECSigner();
                 var signature = signer.Sign(NodeKeyPair, tx.GetHash().DumpByteArray());
 
                 // Update the signature
-                tx.Sig.R = ByteString.CopyFrom(signature.R);
-                tx.Sig.S = ByteString.CopyFrom(signature.S);
+                sig.R = ByteString.CopyFrom(signature.R);
+                sig.S = ByteString.CopyFrom(signature.S);
 
                 _logger?.Trace("Leaving generating tx.");
 

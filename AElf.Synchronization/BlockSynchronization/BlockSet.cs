@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
 using Akka.Util.Internal;
+using Easy.MessageHub;
 using NLog;
 
 namespace AElf.Synchronization.BlockSynchronization
@@ -182,7 +184,7 @@ namespace AElf.Synchronization.BlockSynchronization
             return block?.Body == null ? null : block.Clone();
         }
 
-        public List<IBlock> GetBlocksByHeight(ulong height)
+        public IEnumerable<IBlock> GetBlocksByHeight(ulong height)
         {
             _rwLock.AcquireReaderLock(Timeout);
             var blocks = new List<IBlock>();
@@ -309,9 +311,16 @@ namespace AElf.Synchronization.BlockSynchronization
                 if (forkHeight > currentHeight)
                 {
                     _logger?.Trace("No proper fork height.");
+                    return 0;
                 }
 
-                return forkHeight <= currentHeight && forkHeight + GlobalConfig.BlockCacheLimit > currentHeight ? forkHeight : 0;
+                if (forkHeight + GlobalConfig.BlockCacheLimit < currentHeight)
+                {
+                    KeepHeight = ulong.MaxValue;
+                    MessageHub.Instance.Publish(new UnlinkableHeader(_blockCache.First(b => b.Index == forkHeight).Header));
+                }
+
+                return forkHeight;
             }
             finally
             {
