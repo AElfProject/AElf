@@ -24,6 +24,7 @@ namespace AElf.Kernel
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
             builder.RegisterType<BinaryMerkleTreeManager>().As<IBinaryMerkleTreeManager>();
             builder.RegisterType<DataStore>().As<IDataStore>();
+            builder.RegisterType<MinersManager>().As<IMinersManager>();
         }
     }
 }

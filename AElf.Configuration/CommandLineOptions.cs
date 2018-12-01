@@ -3,6 +3,7 @@ using CommandLine;
 
 namespace AElf.Configuration
 {
+    // ReSharper disable InconsistentNaming
     public class CommandLineOptions
     {
         #region Chain
@@ -89,7 +90,7 @@ namespace AElf.Configuration
         #region Miner
 
         [Option('m', "mine.enable", HelpText = "To be a miner verification needed ")]
-        public bool? IsMiner { get; set; }
+        public bool? WillingToMine { get; set; }
 
         #endregion
 
@@ -102,14 +103,10 @@ namespace AElf.Configuration
         public string ConsensusType { get; set; }
 
         [Option("dpos.interval", HelpText = "Mining interval of AElf DPoS.")]
-        // ReSharper disable once InconsistentNaming
         public int? AElfDPoSMiningInterval { get; set; }
 
-        [Option("potc.count", HelpText = "Expected transactions count.")]
-        public ulong? ExpectedTxsCount { get; set; }
-
         [Option("single.interval", HelpText = "Mining interval if use single node to test other logic.")]
-        public int? MiningInterval { get; set; }
+        public int? SingleNodeMiningInterval { get; set; }
 
         #endregion
 

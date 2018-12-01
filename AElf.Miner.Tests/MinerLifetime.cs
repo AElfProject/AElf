@@ -450,8 +450,8 @@ namespace AElf.Kernel.Tests.Miner
                 manager.Init(dir, t);
                 var miner = _mock.GetMiner(minerConfig, pool, manager);
                 miner.Init();
-            
                 //Thread.Sleep(t/2);
+                ChainConfig.Instance.ChainId = chain.Id.DumpHex();
                 var block = await miner.Mine();
                 Assert.NotNull(block);
                 Assert.NotNull(block.Body.IndexedInfo);

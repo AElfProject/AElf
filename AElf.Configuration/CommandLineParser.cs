@@ -103,9 +103,9 @@ namespace AElf.Configuration
             }
 
             // node config
-            if (opts.IsMiner.HasValue)
+            if (opts.WillingToMine.HasValue)
             {
-                NodeConfig.Instance.IsMiner = opts.IsMiner.Value;
+                NodeConfig.Instance.WillingToMine = opts.WillingToMine.Value;
             }
 
             if (!string.IsNullOrWhiteSpace(opts.ExecutorType))
@@ -131,11 +131,6 @@ namespace AElf.Configuration
             if (!string.IsNullOrWhiteSpace(opts.NodeAccountPassword))
             {
                 NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
-            }
-
-            if (opts.IsConsensusInfoGenerator.HasValue)
-            {
-                NodeConfig.Instance.ConsensusInfoGenerator = opts.IsConsensusInfoGenerator.Value;
             }
 
             // TODO: 

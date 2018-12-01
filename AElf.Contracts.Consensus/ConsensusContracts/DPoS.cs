@@ -3,23 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Enums;
-using AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections;
+using AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using ServiceStack;
+using Api = AElf.Sdk.CSharp.Api;
 
-namespace AElf.Contracts.Consensus.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContracts
 {
     // ReSharper disable UnusedMember.Global
     // ReSharper disable InconsistentNaming
+    // ReSharper disable MemberCanBeMadeStatic.Local
     public class DPoS : IConsensus
     {
         public ConsensusType Type => ConsensusType.AElfDPoS;
 
         public ulong CurrentRoundNumber => _currentRoundNumberField.GetAsync().Result;
+
+        private Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
 
         public int Interval
         {
@@ -38,7 +46,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private readonly UInt64Field _currentRoundNumberField;
 
-        private readonly PbField<Miners> _blockProducerField;
+        private readonly PbField<OngoingMiners> _ongoingMinersField;
 
         private readonly Map<UInt64Value, Round> _dPoSInfoMap;
 
@@ -52,18 +60,27 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private readonly Map<UInt64Value, Int64Value> _roundHashMap;
 
+        private readonly Map<Address, Tickets> _balanceMap;
+
+        private readonly PbField<Candidates> _candidatesField;
+
+        private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap;
+
         #endregion
 
         public DPoS(AElfDPoSFieldMapCollection collection)
         {
             _currentRoundNumberField = collection.CurrentRoundNumberField;
-            _blockProducerField = collection.BlockProducerField;
+            _ongoingMinersField = collection.OngoingMinersField;
             _dPoSInfoMap = collection.DPoSInfoMap;
             _eBPMap = collection.EBPMap;
             _timeForProducingExtraBlockField = collection.TimeForProducingExtraBlockField;
             _firstPlaceMap = collection.FirstPlaceMap;
             _miningIntervalField = collection.MiningIntervalField;
             _roundHashMap = collection.RoundHashMap;
+            _balanceMap = collection.BalanceMap;
+            _candidatesField = collection.CandidatesFiled;
+            _snapshotMap = collection.SnapshotField;
         }
 
         /// <inheritdoc />
@@ -178,7 +195,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             }
             catch (Exception e)
             {
-                ConsoleWriteLine(nameof(Initialize), "Failed to set Extra Block mining timeslot.", e);
+                ConsoleWriteLine(nameof(Initialize), "Failed to set Extra Block mining time slot.", e);
             }
         }
 
@@ -193,11 +210,12 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// [0] Round
         /// [1] Round
         /// [2] StringValue
+        /// [3] Int64Value
         /// </param>
         /// <returns></returns>
         public async Task Update(List<byte[]> args)
         {
-            if (args.Count != 3)
+            if (args.Count != 4)
             {
                 return;
             }
@@ -205,15 +223,23 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             Round currentRoundInfo;
             Round nextRoundInfo;
             StringValue nextExtraBlockProducer;
+            Int64Value roundId;
+
             try
             {
                 currentRoundInfo = Round.Parser.ParseFrom(args[0]);
                 nextRoundInfo = Round.Parser.ParseFrom(args[1]);
                 nextExtraBlockProducer = StringValue.Parser.ParseFrom(args[2]);
+                roundId = Int64Value.Parser.ParseFrom(args[3]);
             }
             catch (Exception e)
             {
                 ConsoleWriteLine(nameof(Update), "Failed to parse from byte array.", e);
+                return;
+            }
+
+            if (!await CheckRoundId(roundId))
+            {
                 return;
             }
 
@@ -228,32 +254,25 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// (I) Publish out value and signature
         /// 5 args:
         /// [0] UInt64Value
-        /// [1] StringValue
+        /// [1] Hash
         /// [2] Hash
-        /// [3] Hash
-        /// [4] Int64Value (not useful here)
+        /// [3] Int64Value
         /// 
         /// (II) Publish in value
         /// 4 args:
         /// [0] UInt64Value
-        /// [1] StringValue
-        /// [2] Hash
-        /// [3] Int64Value (not useful here)
+        /// [1] Hash
+        /// [2] Int64Value
         /// </param>
         /// <returns></returns>
         public async Task Publish(List<byte[]> args)
         {
-            if (args.Count < 4)
-            {
-                return;
-            }
+            var fromAddressToHex = new StringValue {Value = Api.GetTransaction().From.DumpHex().RemoveHexPrefix()};
 
             UInt64Value roundNumber;
-            StringValue accountAddress;
             try
             {
                 roundNumber = UInt64Value.Parser.ParseFrom(args[0]);
-                accountAddress = StringValue.Parser.ParseFrom(args[1]);
             }
             catch (Exception e)
             {
@@ -262,41 +281,174 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             }
 
             // ReSharper disable once ConvertIfStatementToSwitchStatement
-            if (args.Count == 5)
+            if (args.Count == 4)
             {
                 Hash outValue;
                 Hash signature;
+                Int64Value roundId;
 
                 try
                 {
-                    outValue = Hash.Parser.ParseFrom(args[2]);
-                    signature = Hash.Parser.ParseFrom(args[3]);
+                    outValue = Hash.Parser.ParseFrom(args[1]);
+                    signature = Hash.Parser.ParseFrom(args[2]);
+                    roundId = Int64Value.Parser.ParseFrom(args[3]);
                 }
                 catch (Exception e)
                 {
-                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
+                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array.", e);
                     return;
                 }
 
-                await PublishOutValueAndSignature(roundNumber, accountAddress, outValue, signature);
+                if (!await CheckRoundId(roundId))
+                {
+                    return;
+                }
+
+                await PublishOutValueAndSignature(roundNumber, fromAddressToHex, outValue, signature);
             }
 
-            if (args.Count == 4)
+            if (args.Count == 3)
             {
                 Hash inValue;
+                Int64Value roundId;
 
                 try
                 {
-                    inValue = Hash.Parser.ParseFrom(args[2]);
+                    inValue = Hash.Parser.ParseFrom(args[1]);
+                    roundId = Int64Value.Parser.ParseFrom(args[2]);
                 }
                 catch (Exception e)
                 {
-                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array (Hash).", e);
+                    ConsoleWriteLine(nameof(Publish), "Failed to parse from byte array.", e);
                     return;
                 }
 
-                await PublishInValue(roundNumber, accountAddress, inValue);
+                if (!await CheckRoundId(roundId))
+                {
+                    return;
+                }
+
+                await PublishInValue(roundNumber, fromAddressToHex, inValue);
             }
+        }
+
+        public async Task Election(List<byte[]> args)
+        {
+            // QuitElection
+            if (args.Count == 0)
+            {
+                var minerWannaQuitElection = Api.GetTransaction().From;
+                var candidates = await _candidatesField.GetAsync();
+                if (candidates == null || !candidates.Nodes.Contains(minerWannaQuitElection))
+                {
+                    return;
+                }
+
+                var parameter =
+                    ByteString.CopyFrom(ParamsPacker.Pack(minerWannaQuitElection));
+                Api.Call(TokenContractAddress, "CancelElection", parameter.ToByteArray());
+                candidates.Nodes.Remove(minerWannaQuitElection);
+                await _candidatesField.SetAsync(candidates);
+            }
+
+            // Replace
+            if (args.Count == 1)
+            {
+                Address outerAddress;
+
+                try
+                {
+                    outerAddress = Address.Parser.ParseFrom(args[0]);
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriteLine(nameof(Election), "Failed to parse from byte array.", e);
+                    return;
+                }
+
+                if (outerAddress.ToByteArray().Any())
+                {
+                    await UpdateOngoingMiners(outerAddress);
+                }
+                else
+                {
+                    // General election
+                    await UpdateOngoingMiners(await GetVictories());
+                }
+            }
+
+            // Vote
+            if (args.Count == 3)
+            {
+                Address candidateAddress;
+                UInt64Value amount;
+                BoolValue voteOrNot;
+
+                try
+                {
+                    candidateAddress = Address.Parser.ParseFrom(args[0]);
+                    amount = UInt64Value.Parser.ParseFrom(args[1]);
+                    voteOrNot = BoolValue.Parser.ParseFrom(args[2]);
+
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriteLine(nameof(Election), "Failed to parse from byte array.", e);
+                    return;
+                }
+
+                if (voteOrNot.Value)
+                {
+                    await Vote(candidateAddress, amount);
+                }
+                else
+                {
+                    await Regret(candidateAddress, amount);
+                }
+            }
+        }
+
+        public Miners GetCurrentMiners()
+        {
+            var ongoingMiners = _ongoingMinersField.GetValue();
+            if (ongoingMiners == null || !ongoingMiners.Miners.Any())
+            {
+                ongoingMiners = new OngoingMiners();
+            }
+
+            return ongoingMiners.GetCurrentMiners(CurrentRoundNumber);
+        }
+
+        public async Task HandleTickets(Address address, ulong amount, bool withdraw = false)
+        {
+            if (!withdraw)
+            {
+                if (_balanceMap.TryGet(address, out var tickets))
+                {
+                    tickets.RemainingTickets += amount;
+                    await _balanceMap.SetValueAsync(address, tickets);
+                }
+                else
+                {
+                    tickets = new Tickets {RemainingTickets = amount};
+                    await _balanceMap.SetValueAsync(address, tickets);
+                }
+            }
+            else
+            {
+                if (_balanceMap.TryGet(address, out var tickets))
+                {
+                    Api.Assert(tickets.RemainingTickets >= amount,
+                        $"{Api.GetTransaction().From.DumpHex()} can't withdraw tickets.");
+
+                    tickets.RemainingTickets -= amount;
+                    Api.Call(TokenContractAddress, "Transfer",
+                        ByteString.CopyFrom(ParamsPacker.Pack(amount)).ToByteArray());
+                    await _balanceMap.SetValueAsync(address, tickets);
+                }
+            }
+
+            Console.WriteLine($"{address.DumpHex()}'s tickets changed: {amount}");
         }
 
         /// <inheritdoc />
@@ -365,7 +517,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
                     return 3;
                 }
             }
-            
+
             return 0;
         }
 
@@ -375,12 +527,77 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private async Task InitializeBlockProducer(Miners miners)
         {
-            foreach (var bp in miners.Nodes)
+            var candidates = new Candidates();
+            foreach (var address in miners.Nodes)
             {
-                ConsoleWriteLine(nameof(Initialize), $"Set Miner: {bp}");
+                ConsoleWriteLine(nameof(Initialize), $"Set miner {address} to state store.");
+
+                candidates.Nodes.Add(address);
+
+                if (_balanceMap.TryGet(address, out var tickets))
+                {
+                    ConsoleWriteLine(nameof(InitializeBlockProducer),
+                        $"Remaining tickets of {address.DumpHex()}: {tickets.RemainingTickets}");
+                }
+                else
+                {
+                    // Miners in the white list
+                    tickets = new Tickets {RemainingTickets = GlobalConfig.LockTokenForElection};
+                    await _balanceMap.SetValueAsync(address, tickets);
+                    ConsoleWriteLine(nameof(InitializeBlockProducer),
+                        $"Remaining tickets of {address.DumpHex()}: {tickets.RemainingTickets}");
+                }
             }
 
-            await _blockProducerField.SetAsync(miners);
+            await _candidatesField.SetAsync(candidates);
+            await UpdateOngoingMiners(miners);
+        }
+
+        private async Task UpdateOngoingMiners(Miners miners)
+        {
+            var ongoingMiners = await _ongoingMinersField.GetAsync();
+            if (ongoingMiners == null || !ongoingMiners.Miners.Any())
+            {
+                ongoingMiners = new OngoingMiners();
+            }
+
+            miners.TakeEffectRoundNumber = CurrentRoundNumber.Add(1);
+            ongoingMiners.UpdateMiners(miners);
+            await _ongoingMinersField.SetAsync(ongoingMiners);
+
+            var snapshot = new ElectionSnapshot();
+            snapshot.RoundNumber = CurrentRoundNumber.Add(1);
+
+            foreach (var candidate in _candidatesField.GetValue().Nodes)
+            {
+                snapshot.TicketsMap.Add(new TicketsMap
+                    {Address = candidate, TicketsCount = await GetTicketCount(candidate)});
+            }
+
+            await _snapshotMap.SetValueAsync(new UInt64Value {Value = CurrentRoundNumber.Add(1)}, snapshot);
+        }
+
+        private async Task UpdateOngoingMiners(Address outerAddress)
+        {
+            var ongoingMiners = await _ongoingMinersField.GetAsync();
+            if (ongoingMiners == null || !ongoingMiners.Miners.Any())
+            {
+                return;
+            }
+
+            // Use the snapshot to do the replacement.
+            var currentMiners = ongoingMiners.GetCurrentMiners(CurrentRoundNumber);
+            if (_snapshotMap.TryGet(
+                new UInt64Value {Value = currentMiners.TakeEffectRoundNumber},
+                out var snapshot))
+            {
+                var nextMiner = snapshot.GetNextCandidate(currentMiners);
+                currentMiners.Nodes.Remove(outerAddress);
+                currentMiners.Nodes.Add(nextMiner);
+                currentMiners.TakeEffectRoundNumber = CurrentRoundNumber.Add(1);
+                ongoingMiners.Miners.Add(currentMiners);
+                await _ongoingMinersField.SetAsync(ongoingMiners);
+            }
         }
 
         private async Task UpdateCurrentRoundNumber(ulong currentRoundNumber)
@@ -558,21 +775,128 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private bool IsBlockProducer(StringValue accountAddress)
         {
-            var blockProducer = _blockProducerField.GetValue();
-            return blockProducer.Nodes.Contains(accountAddress.Value);
+            var miners = _ongoingMinersField.GetValue().GetCurrentMiners(CurrentRoundNumber);
+            return miners.Nodes.Contains(Address.LoadHex(accountAddress.Value));
+        }
+
+        private async Task<Miners> GetVictories()
+        {
+            var candidates = await _candidatesField.GetAsync();
+            var nodes = new List<Node>();
+            foreach (var candidate in candidates.Nodes)
+            {
+                var ticketCount = await GetTicketCount(candidate);
+                nodes.Add(new Node
+                {
+                    Address = candidate,
+                    TicketCount = ticketCount
+                });
+            }
+
+            return new Miners
+            {
+                Nodes =
+                {
+                    nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber)
+                        .Select(n => n.Address)
+                }
+            };
+        }
+
+        private async Task Vote(Address candidateAddress, UInt64Value amount)
+        {
+            Api.Assert(CheckTickets(amount), $"Tickets of {Api.GetTransaction().From.DumpHex()} is not enough.");
+
+            Api.Assert(await IsCandidate(candidateAddress), $"{candidateAddress.DumpHex()} is not a candidate.");
+
+            if (_balanceMap.TryGet(candidateAddress, out var tickets))
+            {
+                tickets.RemainingTickets.Add(amount.Value);
+                var record = tickets.VotingRecord.FirstOrDefault();
+                if (record != null)
+                {
+                    tickets.VotingRecord.Remove(record);
+                    record.TicketsCount += amount.Value;
+                    tickets.VotingRecord.Add(record);
+                }
+                else
+                {
+                    tickets.VotingRecord.Add(new VotingRecord
+                    {
+                        From = Api.GetTransaction().From,
+                        TicketsCount = amount.Value
+                    });
+                }
+            }
+
+            await _balanceMap.SetValueAsync(candidateAddress, tickets);
+        }
+
+        private async Task Regret(Address candidateAddress, UInt64Value amount)
+        {
+            var voterAddress = Api.GetTransaction().From;
+            if (_balanceMap.TryGet(candidateAddress, out var tickets))
+            {
+                var record = tickets.VotingRecord.FirstOrDefault(vr => vr.From == voterAddress);
+
+                Api.Assert(record != null,
+                    $"It seems that {voterAddress.DumpHex()} didn't voted for {candidateAddress.DumpHex()}.");
+
+                if (record != null)
+                {
+                    Api.Assert(record.TicketsCount >= amount.Value,
+                        $"Tickets of {voterAddress.DumpHex()} is not enough.");
+                    if (_balanceMap.TryGet(voterAddress, out var voterTickets))
+                    {
+                        voterTickets.RemainingTickets += amount.Value;
+                        tickets.VotingRecord.Remove(record);
+                        record.TicketsCount -= amount.Value;
+                        tickets.VotingRecord.Add(record);
+
+                        await _balanceMap.SetValueAsync(candidateAddress, tickets);
+                        await _balanceMap.SetValueAsync(voterAddress, voterTickets);
+                    }
+                }
+            }
+        }
+
+        private async Task<ulong> GetTicketCount(Address address)
+        {
+            var balance = (await _balanceMap.GetValueAsync(address)).RemainingTickets;
+            return balance >= GlobalConfig.LockTokenForElection ? balance - GlobalConfig.LockTokenForElection : 0;
+        }
+
+        private async Task<bool> CheckRoundId(Int64Value roundId)
+        {
+            var currentRoundInfo = await GetCurrentRoundInfo();
+            return currentRoundInfo.RoundId == roundId.Value;
+        }
+
+        private bool CheckTickets(UInt64Value amount)
+        {
+            if (_balanceMap.TryGet(Api.GetTransaction().From, out var tickets))
+            {
+                return tickets.RemainingTickets >= amount.Value;
+            }
+
+            return false;
+        }
+
+        private async Task<bool> IsCandidate(Address address)
+        {
+            var candidates = await _candidatesField.GetAsync();
+            return candidates != null && candidates.Nodes.Contains(address);
         }
 
         #endregion
 
         #region Utilities
 
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private DateTime GetLocalTime()
         {
             return DateTime.UtcNow.ToLocalTime();
         }
 
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
