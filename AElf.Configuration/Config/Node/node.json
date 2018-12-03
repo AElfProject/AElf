@@ -1,5 +1,5 @@
 ﻿{
-  "IsMiner":false,
+  "WillingToMine":false,
   "IsChainCreator":false,
   "ConsensusInfoGenerator":false,
   "NodeAccount":"",

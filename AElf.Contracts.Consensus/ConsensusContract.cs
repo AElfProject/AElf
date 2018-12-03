@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus
     // ReSharper disable ClassNeverInstantiated.Global
     // ReSharper disable InconsistentNaming
     // ReSharper disable UnusedMember.Global
-    public class ConsensusContractZero : CSharpSmartContract
+    public class ConsensusContract : CSharpSmartContract
     {
         private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
 
