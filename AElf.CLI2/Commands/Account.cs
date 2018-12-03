@@ -26,21 +26,16 @@ namespace AElf.CLI2.Commands
                 return;
             }
 
-            using (var fs = File.Create(path))
-            {
-                var serializer = new XmlSerializer(typeof(EncryptedAccount));
-                serializer.Serialize(fs, this);
-            }
+            File.WriteAllText(path, JsonConvert.SerializeObject(this, Formatting.Indented,
+                new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore
+                }));
         }
 
         public static EncryptedAccount LoadFromFile(string path)
         {
-            EncryptedAccount acc = new EncryptedAccount();
-            using (var fs = File.OpenRead(path))
-            {
-                var serializer = new XmlSerializer(typeof(EncryptedAccount));
-                return (EncryptedAccount) serializer.Deserialize(fs);
-            }
+            return JsonConvert.DeserializeObject<EncryptedAccount>(File.ReadAllText(path));
         }
 
         public Account Decrypt(string password)

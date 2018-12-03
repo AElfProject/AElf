@@ -45,7 +45,7 @@ namespace AElf.CLI2.Commands
 
         public string GetPathForAccount(string address)
         {
-            return Path.GetFullPath(Path.Combine(AccountsDir, address + ".xml"));
+            return Path.GetFullPath(Path.Combine(AccountsDir, address + ".json"));
         }
 
         public BaseOption()
