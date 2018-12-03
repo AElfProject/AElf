@@ -28,3 +28,7 @@ function _toString(v) {
 function _fromString(v) {
     return JSON.parse(v);
 }
+
+function _assignToUnderscore(obj) {
+    _ = obj;
+}

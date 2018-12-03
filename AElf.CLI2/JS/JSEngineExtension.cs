@@ -30,5 +30,10 @@ namespace AElf.CLI2.JS
             Debug.Assert(array.ValueType == JavaScriptValueType.Array);
             return engine.GlobalObject.CallFunction<JavaScriptValue, string, int>("_getOwnProperty", array, "length");
         }
+
+        public static void AssignToUnderscore(this IJSEngine engine, JavaScriptValue self)
+        {
+            engine.GlobalObject.CallMethod("_assignToUnderscore", self);
+        }
     }
 }

@@ -197,7 +197,9 @@ namespace AElf.CLI2.JS
         {
             try
             {
-                _prettyPrint.PrintValue(_context.Eval(script));
+                var res = _context.Eval(script);
+                _prettyPrint.PrintValue(res);
+                this.AssignToUnderscore(res);
             }
             catch (JavaScriptScriptException e)
             {
