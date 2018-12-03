@@ -178,10 +178,10 @@ namespace AElf.Synchronization.BlockSynchronization
             if (!_blockSet.IsBlockReceived(block.GetHash(), block.Index))
             {
                 _blockSet.AddBlock(block);
+                // Notify the network layer the block has been accepted.
+                MessageHub.Instance.Publish(new BlockAccepted(block));
             }
 
-            // Notify the network layer the block has been accepted.
-            MessageHub.Instance.Publish(new BlockAccepted(block));
 
             if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
             {
