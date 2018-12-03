@@ -177,7 +177,7 @@ namespace AElf.Node.AElfChain
 
             _txHub.Start();
 
-            if (NodeConfig.Instance.WillingToMine)
+            if (NodeConfig.Instance.IsMiner)
             {
                 _miner.Init();
                 _logger?.Debug($"Coinbase = {_miner.Coinbase.DumpHex()}");

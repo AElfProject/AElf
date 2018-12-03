@@ -18,7 +18,7 @@ namespace AElf.Miner
         public void Init(ContainerBuilder builder)
         {
             var minerConfig = MinerConfig.Default;
-            if (NodeConfig.Instance.WillingToMine)
+            if (NodeConfig.Instance.IsMiner)
             {
                 minerConfig = new MinerConfig
                 {

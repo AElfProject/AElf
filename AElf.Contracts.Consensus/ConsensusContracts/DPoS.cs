@@ -451,6 +451,18 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             Console.WriteLine($"{address.DumpHex()}'s tickets changed: {amount}");
         }
 
+        public async Task AnnounceElection(Address candidateAddress)
+        {
+            var candidates = await _candidatesField.GetAsync();
+            if (candidates == null || !candidates.Nodes.Any())
+            {
+                candidates = new Candidates();
+            }
+
+            candidates.Nodes.Add(candidateAddress);
+            await _candidatesField.SetAsync(candidates);
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// Checking steps:

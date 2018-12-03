@@ -204,6 +204,10 @@ namespace AElf.Contracts.Token
                 ByteString.CopyFrom(ParamsPacker.Pack(candidateAddress, GlobalConfig.LockTokenForElection))
                     .ToByteArray());
 
+            Api.Call(ConsensusContractAddress, "AnnounceElection",
+                ByteString.CopyFrom(ParamsPacker.Pack(candidateAddress))
+                    .ToByteArray());
+            
             Console.WriteLine($"End announcing election - {Api.GetTransaction().From.DumpHex()}");
         }
 

@@ -24,7 +24,7 @@ namespace AElf.Contracts.Consensus
 
         #region DPoS
 
-        private IConsensus DPoSConsensus => new DPoS(new AElfDPoSFieldMapCollection
+        private DPoS DPoSConsensus => new DPoS(new AElfDPoSFieldMapCollection
         {
             CurrentRoundNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber),
             OngoingMinersField = new PbField<OngoingMiners>(GlobalConfig.AElfDPoSOngoingMinersString),
@@ -132,6 +132,11 @@ namespace AElf.Contracts.Consensus
                 "Only token contract can call AddTickets method.");
             
             await DPoSConsensus.HandleTickets(addressToGetTickets, amount);
+        }
+
+        public async Task AnnounceElection(Address candidateAddress)
+        {
+            await DPoSConsensus.AnnounceElection(candidateAddress);
         }
 
         public async Task Withdraw(Address address, ulong amount)
