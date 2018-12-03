@@ -4,6 +4,7 @@ using System.Xml.Serialization;
 using AElf.CLI2.JS;
 using Autofac;
 using CommandLine;
+using NLog.Targets;
 
 namespace AElf.CLI2.Commands
 {
@@ -29,8 +30,8 @@ namespace AElf.CLI2.Commands
 
     public struct Account
     {
-        public string Mnemonic;
-        public string PrivKey;
+        public string EncryptedMnemonic;
+        public string EncryptedPrivateKey;
         public string Address;
     }
 
@@ -45,6 +46,21 @@ namespace AElf.CLI2.Commands
             _engine = IoCContainerBuilder.Build(_option).Resolve<IJSEngine>();
         }
 
+        private string PromptPassword()
+        {
+            const string prompt0 = "Enter a password: ";
+            const string prompt1 = "Confirm password: ";
+            var p0 = ReadLine.ReadPassword(prompt0);
+            var p1 = ReadLine.ReadPassword(prompt1);
+            while (p1 != p0)
+            {
+                Console.WriteLine("Passwords don't match!");
+                p1 = ReadLine.ReadPassword(prompt1);
+            }
+
+            return p0;
+        }
+
         public void Execute()
         {
             if (_option.Action == AccountAction.create)
@@ -54,19 +70,22 @@ namespace AElf.CLI2.Commands
                 string privKey = obj.ReadProperty<string>("privateKey");
                 string address = obj.ReadProperty<string>("address");
                 PrintAccount(address, mnemonic, privKey);
-//                var privateKey = Utils.Cryptography.Encrypt(privKey, _option.Password);
-//                var encryptedMnemonic = Utils.Cryptography.Encrypt(mnemonic, _option.Password);
-//
-//                using (var fs = File.Create(_option.AccountFileName))
-//                {
-//                    var serializer = new XmlSerializer(typeof(Account));
-//                    serializer.Serialize(fs, new Account()
-//                    {
-//                        Mnemonic = encryptedMnemonic,
-//                        PrivKey = privateKey,
-//                        Address = address
-//                    });
-//                }
+
+                Console.WriteLine("Saving account info to file.");
+                var password = PromptPassword();
+                var encryptedMnemonic = Utils.Cryptography.Encrypt(mnemonic, password);
+
+                var walletAccountFile = $"{address}.xml";
+                using (var fs = File.Create(walletAccountFile))
+                {
+                    var serializer = new XmlSerializer(typeof(Account));
+                    serializer.Serialize(fs, new Account()
+                    {
+                        EncryptedMnemonic = encryptedMnemonic
+                    });
+                }
+
+                Console.WriteLine($"Account info has been saved to {Path.GetFullPath(walletAccountFile)}");
             }
             else
             {
@@ -88,15 +107,12 @@ namespace AElf.CLI2.Commands
             Console.WriteLine(
                 string.Join(
                     Environment.NewLine,
-                    $@"Your wallet address is {address}",
-                    $@"Mnemonic: {mnemonic}",
-                    $@"Private Key: {privKey}"
+                    $@"Your wallet info is :",
+                    $@"Mnemonic    : {mnemonic}",
+                    $@"Private Key : {privKey}",
+                    $@"Address     : {address}"
                 )
             );
-//            if (_option.Action == AccountAction.create)
-//            {
-//                Console.WriteLine($"The wallet saved to {_option.AccountFileName} with password {_option.Password}.");
-//            }
         }
     }
 }
