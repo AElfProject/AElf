@@ -63,8 +63,15 @@ namespace AElf.CLI2.Commands
             var password = PromptPassword();
             var encryptedMnemonic = Utils.Cryptography.Encrypt(mnemonic, password);
 
-            var walletAccountFile = $"{address}.xml";
-            using (var fs = File.Create(walletAccountFile))
+            var accountFile = _option.GetPathForAccount(address);
+
+            if (File.Exists(accountFile))
+            {
+                Console.WriteLine($@"Account file ""{accountFile}"" already exists.");
+                return;
+            }
+
+            using (var fs = File.Create(accountFile))
             {
                 var serializer = new XmlSerializer(typeof(Account));
                 serializer.Serialize(fs, new Account()
@@ -73,7 +80,7 @@ namespace AElf.CLI2.Commands
                 });
             }
 
-            Console.WriteLine($"Account info has been saved to {Path.GetFullPath(walletAccountFile)}");
+            Console.WriteLine($@"Account info has been saved to ""{accountFile}""");
         }
 
         private void PrintAccount(string address, string mnemonic, string privKey)

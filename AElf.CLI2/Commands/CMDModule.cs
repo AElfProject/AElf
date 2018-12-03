@@ -26,7 +26,7 @@ namespace AElf.CLI2.Commands
 
         protected override void Load(ContainerBuilder builder)
         {
-            _option.ParseEnvVars();
+//            _option.ParseEnvVars();
             var cmdType = _commands[_option.GetType()];
             builder.RegisterInstance(_option);
             builder.RegisterType(cmdType).As<ICommand>();
