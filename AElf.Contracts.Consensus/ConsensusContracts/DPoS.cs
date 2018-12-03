@@ -75,7 +75,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             _timeForProducingExtraBlockField = collection.TimeForProducingExtraBlockField;
             _firstPlaceMap = collection.FirstPlaceMap;
             _miningIntervalField = collection.MiningIntervalField;
-            _roundHashMap = collection.RoundHashMap;
             _balanceMap = collection.BalanceMap;
             _candidatesField = collection.CandidatesField;
             _snapshotMap = collection.SnapshotField;
