@@ -4,20 +4,24 @@ using Autofac;
 
 namespace AElf.CLI2.Commands
 {
-    public class CMDModule : Module
+    public class CmdModule : Module
     {
         private readonly BaseOption _option;
 
         private static readonly IDictionary<Type, Type> _commands;
 
-        public CMDModule(BaseOption option)
+        public CmdModule(BaseOption option)
         {
             _option = option;
         }
 
-        static CMDModule()
+        static CmdModule()
         {
-            _commands = new Dictionary<Type, Type> {[typeof(AccountOption)] = typeof(AccountCommand)};
+            _commands = new Dictionary<Type, Type>
+            {
+                [typeof(AccountOption)] = typeof(AccountCommand),
+                [typeof(InteractiveOption)] = typeof(InteractiveCommand)
+            };
         }
 
         protected override void Load(ContainerBuilder builder)

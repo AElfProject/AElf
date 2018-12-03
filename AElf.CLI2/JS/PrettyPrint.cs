@@ -25,7 +25,7 @@ namespace AElf.CLI2.JS
         private const int MaxLevel = 3;
 
         // These fields won't be printed
-        private readonly HashSet<string> boringKeys = new HashSet<string>()
+        private readonly HashSet<string> _boringKeys = new HashSet<string>()
         {
             "valueOf",
             "toString",
@@ -36,11 +36,11 @@ namespace AElf.CLI2.JS
             "constructor"
         };
 
-        private ChakraContext _context;
+        private readonly IJSEngine _engine;
 
-        public PrettyPrint(ChakraContext context)
+        public PrettyPrint(IJSEngine engine)
         {
-            _context = context;
+            _engine = engine;
         }
 
         public void PrintValue(JavaScriptValue value, int level = 0)
@@ -55,17 +55,12 @@ namespace AElf.CLI2.JS
             Colors.WriteLine(error.Replace("Script threw an exception. ", "").DarkRed());
         }
 
-        private JSValue GetJSValue(JavaScriptValue value)
-        {
-            return new JSValue(_context.ServiceNode, value);
-        }
-
         private string GetFuncRep(JavaScriptValue value)
         {
             try
             {
-                var func = GetJSValue(value).CallFunction<string>("toString");
-                return func.Split("{")[0].Trim('\t', '\n').Replace(" (", "(");
+                var func = _engine.GetFunctionToString(value);
+                return func.Split("{")[0].Trim(' ', '\t', '\n').Replace(" (", "(");
             }
             catch (Exception)
             {
@@ -75,7 +70,7 @@ namespace AElf.CLI2.JS
 
         private IEnumerable<Span> GetArraySpans(JavaScriptValue obj, int level)
         {
-            int len = _context.GlobalObject.CallFunction<JavaScriptValue, string, int>("_get", obj, "length");
+            int len = _engine.GetArraySize(obj);
             if (len == 0)
             {
                 return new[] {new Span("[]")};
@@ -90,9 +85,7 @@ namespace AElf.CLI2.JS
             spans.Add(new Span("["));
             for (int i = 0; i < len; i++)
             {
-                spans.AddRange(GetValueSpans(
-                    _context.GlobalObject.CallFunction<JavaScriptValue, string, JavaScriptValue>("_get", obj,
-                        i.ToString())));
+                spans.AddRange(GetValueSpans(_engine.GetObjectProperty(obj, i.ToString())));
                 if (i < len - 1)
                 {
                     spans.Add(new Span(", "));
@@ -105,13 +98,12 @@ namespace AElf.CLI2.JS
 
         private IEnumerable<Span> GetObjectSpans(JavaScriptValue obj, int level, bool inArray)
         {
-            var props = _context.GlobalObject.CallFunction<JavaScriptValue, string>("_getOwnPropertyNames", obj)
-                .Split(",");
+            var props = _engine.GetObjectPropertyNames(obj);
             var vals = new Dictionary<string, JavaScriptValue>();
             var functions = new Dictionary<string, JavaScriptValue>();
-            foreach (var p in props.Where(x => !boringKeys.Contains(x) && !x.StartsWith("_")))
+            foreach (var p in props.Where(x => !_boringKeys.Contains(x) && !x.StartsWith("_")))
             {
-                var pVal = _context.GlobalObject.CallFunction<JavaScriptValue, string, JavaScriptValue>("_get", obj, p);
+                var pVal = _engine.GetObjectProperty(obj, p);
                 switch (pVal.ValueType)
                 {
                     case JavaScriptValueType.Function:

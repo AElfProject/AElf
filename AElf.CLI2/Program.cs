@@ -10,25 +10,30 @@ using Console = System.Console;
 namespace AElf.CLI2
 {
     class Program
-    { 
+    {
         [Verb("another", HelpText = "...")]
         class AnotherVerb : BaseOption
         {
-            
         }
+
         static int Main(string[] args)
-        {   
-//            return Parser.Default.ParseArguments<AccountOption, AnotherVerb>(args)
-//                .MapResult(
-//                    (AccountOption opt) =>
-//                    {
+        {
+            return Parser.Default.ParseArguments<AccountOption, InteractiveOption, AnotherVerb>(args)
+                .MapResult(
+                    (AccountOption opt) =>
+                    {
 //                        var sdk = IoCContainerBuilder.Build(opt).Resolve<IAElfSdk>();
 //                        sdk.Chain().ConnectChain();
-//                        return 0;
-//                    },
-//                    (AnotherVerb opt) => 0,
-//                    errs => 1);
-            return 0;
+                        new AccountCommand(opt).Execute();
+                        return 0;
+                    },
+                    (InteractiveOption opt) =>
+                    {
+                        new InteractiveCommand(opt).Execute();
+                        return 0;
+                    },
+                    (AnotherVerb opt) => 0,
+                    errs => 1);
         }
     }
 }

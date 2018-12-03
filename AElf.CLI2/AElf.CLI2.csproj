@@ -10,6 +10,7 @@
     <PackageReference Include="ChakraCore.NET.Hosting" Version="1.0.2" />
     <PackageReference Include="CommandLineParser" Version="2.2.1" />
     <PackageReference Include="NLog" Version="4.5.7" />
+    <PackageReference Include="ReadLine" Version="2.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />

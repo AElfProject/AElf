@@ -3,37 +3,43 @@
 //     return 0
 // }
 
-function Hmac(algo, seed) {
-    this.algo = algo;
-    this.seed = seed;
-    this.data = '';
-}
+(function () {
+    function Hmac(algo, seed) {
+        this.algo = algo;
+        this.seed = seed;
+        this.data = '';
+    }
 
-Hmac.prototype.update = function (data) {
-    this.data = this.data.concat(data);
-    return this;
-}
+    Hmac.prototype.update = function (data) {
+        this.data = this.data.concat(data);
+        return this;
+    };
 
-Hmac.prototype.digest = function (format) {
-    return _getHmacDigest(this.algo, this.seed, this.data, format);
-}
+    Hmac.prototype.digest = function (format) {
+        return __getHmacDigest__(this.algo, this.seed, this.data, format);
+    };
 
-crypto = {
-    getRandomValues: function (array) {
+    function createHmac(algo, seed) {
+        return new Hmac(algo, seed);
+    }
+
+    function getRandomValues(array) {
         if (array.constructor === Uint8Array) {
             for (var i = 0; i < array.length; ++i) {
-                array[i] = _randomNextInt() % (1 << 8);
+                array[i] = __randomNextInt__() % (1 << 8);
             }
         } else {
             throw "not implemented";
         }
-    },
-    createHmac: function (algo, seed) {
-        return new Hmac(algo, seed);
     }
-};
 
-global = {
-    crypto: crypto,
-    Uint8Array: Uint8Array
-};
+    crypto = {
+        createHmac: createHmac,
+        getRandomValues: getRandomValues
+    };
+    if (typeof global === 'undefined') {
+        global = {};
+    }
+    global.crypto = crypto;
+    global.Uint8Array = Uint8Array;
+})();

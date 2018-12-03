@@ -15,7 +15,7 @@ namespace AElf.CLI2.Tests
         {
             var option = new AccountOption
             {
-                ServerAddr = "",
+                Endpoint = "",
                 Password = "",
                 Action = AccountAction.create,
                 AccountFileName = "a.account"

@@ -15,6 +15,7 @@ namespace AElf.CLI2.JS
 
     public interface IJSEngine
     {
+        IServiceNode ServiceNode { get; }
         JSValue GlobalObject { get; }
         void RunScript(string jsContent);
         JSValue Evaluate(string script);

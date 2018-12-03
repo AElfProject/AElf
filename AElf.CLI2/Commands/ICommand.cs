@@ -10,18 +10,23 @@ namespace AElf.CLI2.Commands
 
     public class BaseOption
     {
-        [Option("server_addr", HelpText = "AElf jsonrpc server address.", Default = "")]
-        public string ServerAddr { get; set; }
+        [Option("endpoint", HelpText = "The endpoint for the rpc service.")]
+        public string Endpoint { get; set; }
 
         public void ParseEnvVars()
         {
-            if (ServerAddr.Length == 0)
+            if (string.IsNullOrEmpty(Endpoint))
             {
-                var servAddr = Environment.GetEnvironmentVariable("AELF_SERVER_ADDR");
-                if (servAddr != null)
+                var endpoint = Environment.GetEnvironmentVariable("AELF_RPC_ENDPOINT");
+                if (endpoint != null)
                 {
-                    ServerAddr = servAddr;
+                    Endpoint = endpoint;
                 }
+            }
+
+            if (string.IsNullOrEmpty(Endpoint))
+            {
+                Endpoint = "";
             }
         }
     }

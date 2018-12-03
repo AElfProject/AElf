@@ -3,10 +3,19 @@ function _getArrayLength(array) {
 }
 
 function _getOwnPropertyNames(obj) {
-    return Object.getOwnPropertyNames(obj).join(",");
+    function onlyUnique(value, index, self) {
+        return self.indexOf(value) === index;
+    }
+
+    var props = Object.getOwnPropertyNames(obj);
+    if (obj.constructor !== undefined && obj.constructor.prototype !== undefined) {
+        props = props.concat(Object.getOwnPropertyNames(obj.constructor.prototype));
+    }
+
+    return props.filter(onlyUnique).join(",");
 }
 
-function _get(obj, propertyName) {
+function _getOwnProperty(obj, propertyName) {
     return obj[propertyName];
 }
 

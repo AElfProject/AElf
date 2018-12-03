@@ -17,7 +17,7 @@ namespace AElf.CLI2
             var builder = new ContainerBuilder();
 //            builder.RegisterModule(loggerModule);
             builder.RegisterModule(new JSModule());
-            var cmd = new CMDModule(option);
+            var cmd = new CmdModule(option);
             builder.RegisterModule(cmd);
             var container = builder.Build();
             return container;

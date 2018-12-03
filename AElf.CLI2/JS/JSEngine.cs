@@ -61,25 +61,24 @@ namespace AElf.CLI2.JS
         private readonly PrettyPrint _prettyPrint;
         private HttpRequestor _requestor;
 
+        public IServiceNode ServiceNode => _context.ServiceNode;
         public JSValue GlobalObject => _context.GlobalObject;
 
         public JSEngine(IConsole console, BaseOption option,
             IRandomGenerator randomGenerator, IDebugAdapter debugAdapter)
         {
             _console = console;
-            var config = new JavaScriptHostingConfig {DebugAdapter = debugAdapter};
-//            var config = new JavaScriptHostingConfig();
+//            var config = new JavaScriptHostingConfig {DebugAdapter = debugAdapter};
+            var config = new JavaScriptHostingConfig();
             _context = JavaScriptHosting.Default.CreateContext(config);
             _context.RegisterEvalService();
-            _prettyPrint = new PrettyPrint(_context);
+            _prettyPrint = new PrettyPrint(this);
             _option = option;
             _randomGenerator = randomGenerator;
             ExposeConsoleToContext();
             ExposeCryptoHelpers();
             ExposeAElfOption();
             LoadCryptoJS();
-//            LoadXMLHttpRequestJS();
-//            LoadBridgeJS();
             LoadAelfJs();
             LoadHelpersJs();
             ExposeHttpRequestorToContext();
@@ -89,11 +88,7 @@ namespace AElf.CLI2.JS
         {
             RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
                 .GetManifestResourceStream("AElf.CLI2.Scripts.aelf.js"));
-//            RunScript(@"define(['crypto'], function(crypto){
-//                crypto = global.crypto;
-//            });");
             RunScript(@"Aelf = require('aelf');");
-            RunScript(@"Aelf.createHmac = crypto.createHmac;");
         }
 
         private void LoadHelpersJs()
@@ -110,8 +105,8 @@ namespace AElf.CLI2.JS
 
         private void ExposeCryptoHelpers()
         {
-            _context.GlobalObject.Binding.SetFunction("_randomNextInt", _randomGenerator.NextInt);
-            _context.GlobalObject.Binding.SetFunction<JSValue, JSValue, JSValue, JSValue, string>("_getHmacDigest",
+            _context.GlobalObject.Binding.SetFunction("__randomNextInt__", _randomGenerator.NextInt);
+            _context.GlobalObject.Binding.SetFunction<JSValue, JSValue, JSValue, JSValue, string>("__getHmacDigest__",
                 HmacHelper.GetHmacDigest);
         }
 
@@ -125,14 +120,13 @@ namespace AElf.CLI2.JS
 
         private void ExposeAElfOption()
         {
-            _context.RunScript("var aelf_config = new Object()");
-            var config = _context.GlobalObject.ReadProperty<JSValue>("aelf_config");
-            config.WriteProperty<string>("server_addr", _option.ServerAddr);
+            _context.RunScript("var _config = new Object()");
+            var config = _context.GlobalObject.ReadProperty<JSValue>("_config");
+            config.WriteProperty<string>("endpoint", _option.Endpoint);
         }
 
         private static JavaScriptValue ToJSMethod(IServiceNode node, Action<IEnumerable<JavaScriptValue>> a)
         {
-            node.GetService<IJSValueConverterService>();
             IJSValueService jsValueService = node.GetService<IJSValueService>();
             return jsValueService.CreateFunction(
                 (JavaScriptNativeFunction) ((callee, isConstructCall, arguments, argumentCount, callbackData) =>
@@ -177,8 +171,16 @@ namespace AElf.CLI2.JS
                     {
                         binding.SetFunction<JSValue, JSValue>("send", instance.Send);
                     });
-            _requestor = new HttpRequestor(_option.ServerAddr, _context);
-            _context.GlobalObject.WriteProperty("_requestor", _requestor);
+            try
+            {
+                RunScript("_requestor = null;");
+                _requestor = new HttpRequestor(_option.Endpoint, _context);
+                _context.GlobalObject.WriteProperty("_requestor", _requestor);
+            }
+            catch (Exception)
+            {
+                //Ignore
+            }
         }
 
         public void RunScript(string jsContent)
@@ -200,6 +202,14 @@ namespace AElf.CLI2.JS
             catch (JavaScriptScriptException e)
             {
                 _prettyPrint.PrintError(e.Message);
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.Error.WriteLine(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e.Message);
             }
         }
     }
