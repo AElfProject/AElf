@@ -60,14 +60,14 @@ namespace AElf.Miner.TxMemPool
 //        private static Address DPosContractAddress =>
 //            ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
-        private static Address DPosContractAddress;
+        private Address DPosContractAddress;
 
 //        private static Address SideChainContractAddress =>
 //            ContractHelpers.GetSideChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
         
-        private static Address SideChainContractAddress;
+        private Address SideChainContractAddress;
         
-        private readonly List<Address> _systemAddresses = new List<Address>()
+        private List<Address> SystemAddresses => new List<Address>
         {
             DPosContractAddress, 
             SideChainContractAddress
@@ -277,7 +277,7 @@ namespace AElf.Miner.TxMemPool
 
         private void IdentifyTransactionType(TransactionReceipt tr)
         {
-            if (_systemAddresses.Contains(tr.Transaction.To))
+            if (SystemAddresses.Contains(tr.Transaction.To))
             {
                 tr.IsSystemTxn = true;
             }

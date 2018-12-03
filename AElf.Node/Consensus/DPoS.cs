@@ -65,10 +65,10 @@ namespace AElf.Kernel.Node
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
-        private readonly ECKeyPair _nodeKey;
-        private readonly Address _nodeAddress;
+        private ECKeyPair _nodeKey;
+        private Address _nodeAddress;
 
-        private readonly Hash _chainId;
+        private Hash _chainId;
 
         public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
@@ -86,10 +86,6 @@ namespace AElf.Kernel.Node
         public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
             AElfDPoSHelper helper)
         {
-            _nodeKey = NodeConfig.Instance.ECKeyPair;
-            _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
-            _nodeAddress = Address.FromPublicKey(_chainId.DumpByteArray(), _nodeKey.PublicKey);
-            
             _txHub = txHub;
             _miner = miner;
             _chainService = chainService;
@@ -97,6 +93,8 @@ namespace AElf.Kernel.Node
             _helper = helper;
             _prepareTerminated = false;
             _terminated = false;
+            
+            _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
@@ -155,6 +153,9 @@ namespace AElf.Kernel.Node
 
         public async Task Start()
         {
+            _nodeKey = NodeConfig.Instance.ECKeyPair;
+            _nodeAddress = Address.FromPublicKey(_chainId.DumpByteArray(), _nodeKey.PublicKey);
+            
             // Consensus information already generated.
             if (ConsensusDisposable != null)
             {

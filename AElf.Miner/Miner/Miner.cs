@@ -50,7 +50,7 @@ namespace AElf.Miner.Miner
         private readonly ServerManager _serverManager;
 
         private Address _producerAddress;
-        private ECKeyPair _keyPair;
+        private ECKeyPair _keyPair { get; set; }
 
         private IMinerConfig Config { get; }
 
@@ -75,6 +75,27 @@ namespace AElf.Miner.Miner
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
             _txFilter = new TransactionFilter();
+        }
+        
+        /// <summary>
+        /// Start mining
+        /// init clients to side chain node 
+        /// </summary>
+        public void Init()
+        {
+            _timeoutMilliseconds = ConsensusConfig.Instance.DPoSMiningInterval * 3 / 4;
+            _keyPair = NodeConfig.Instance.ECKeyPair;
+            _producerAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
+            _blockChain = _chainService.GetBlockChain(Config.ChainId);
+        }
+
+        /// <summary>
+        /// Stop mining
+        /// </summary>
+        public void Close()
+        {
+            _clientManager.CloseClientsToSideChain();
+            _serverManager.Close();
         }
 
         /// <inheritdoc />
@@ -491,27 +512,6 @@ namespace AElf.Miner.Miner
                     return null;
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Start mining
-        /// init clients to side chain node 
-        /// </summary>
-        public void Init()
-        {
-            _timeoutMilliseconds = ConsensusConfig.Instance.DPoSMiningInterval * 3 / 4;
-            _keyPair = NodeConfig.Instance.ECKeyPair;
-            _producerAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
-            _blockChain = _chainService.GetBlockChain(Config.ChainId);
-        }
-
-        /// <summary>
-        /// Stop mining
-        /// </summary>
-        public void Close()
-        {
-            _clientManager.CloseClientsToSideChain();
-            _serverManager.Close();
         }
     }
 }

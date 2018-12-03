@@ -132,6 +132,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 ConsoleWriteLine(nameof(Initialize), "Failed to set block producers.", e);
             }
 
+
             // 2. Set current round number to 1;
             try
             {
@@ -611,6 +612,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private async Task UpdateCurrentRoundNumber(ulong currentRoundNumber)
         {
+            Console.WriteLine("current round number: " + currentRoundNumber);
             await _currentRoundNumberField.SetAsync(currentRoundNumber);
         }
 

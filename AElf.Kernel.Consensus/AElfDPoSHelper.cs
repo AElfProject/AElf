@@ -20,7 +20,7 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable UnusedMember.Global
     public class AElfDPoSHelper
     {
-        private static Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
+        private static Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
 
         private static Address ContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
         
