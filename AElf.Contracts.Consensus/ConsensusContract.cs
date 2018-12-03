@@ -18,26 +18,54 @@ namespace AElf.Contracts.Consensus
     // ReSharper disable ClassNeverInstantiated.Global
     // ReSharper disable InconsistentNaming
     // ReSharper disable UnusedMember.Global
-    public class ConsensusContractZero : CSharpSmartContract
+    public class ConsensusContract : CSharpSmartContract
     {
         private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
 
         #region DPoS
 
-        private IConsensus DPoSConsensus => new DPoS(new AElfDPoSFieldMapCollection
-        {
-            CurrentRoundNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber),
-            OngoingMinersField = new PbField<OngoingMiners>(GlobalConfig.AElfDPoSOngoingMinersString),
-            TimeForProducingExtraBlockField = new PbField<Timestamp>(GlobalConfig.AElfDPoSExtraBlockTimeSlotString),
-            MiningIntervalField = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString),
-            CandidatesFiled = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
+        private readonly UInt64Field _currentRoundNumberField =
+            new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber);
 
-            DPoSInfoMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSInformationString),
-            EBPMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSExtraBlockProducerString),
-            FirstPlaceMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString),
-            RoundHashMap = new Map<UInt64Value, Int64Value>(GlobalConfig.AElfDPoSMiningRoundHashMapString),
-            BalanceMap = new Map<Address, Tickets>(GlobalConfig.AElfDPoSBalanceMapString),
-            SnapshotField = new Map<UInt64Value, ElectionSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString)
+        private readonly PbField<OngoingMiners> _ongoingMinersField =
+            new PbField<OngoingMiners>(GlobalConfig.AElfDPoSOngoingMinersString);
+
+        private readonly PbField<Timestamp> _timeForProducingExtraBlockField =
+            new PbField<Timestamp>(GlobalConfig.AElfDPoSExtraBlockTimeSlotString);
+
+        private readonly Int32Field _miningIntervalFiled = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString);
+
+        private readonly PbField<Candidates> _candidatesField =
+            new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString);
+
+        private readonly Map<UInt64Value, Round> _dposInfoMap =
+            new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSInformationString);
+
+        private readonly Map<UInt64Value, StringValue> _eBPMap =
+            new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSExtraBlockProducerString);
+
+        private readonly Map<UInt64Value, StringValue> _firstPlaceMap =
+            new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString);
+
+        private readonly Map<Address, Tickets> _balanceMap =
+            new Map<Address, Tickets>(GlobalConfig.AElfDPoSBalanceMapString);
+
+        private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap =
+            new Map<UInt64Value, ElectionSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString);
+
+        private DPoS DPoSConsensus => new DPoS(new AElfDPoSFieldMapCollection
+        {
+            CurrentRoundNumberField = _currentRoundNumberField,
+            OngoingMinersField = _ongoingMinersField,
+            TimeForProducingExtraBlockField = _timeForProducingExtraBlockField,
+            MiningIntervalField = _miningIntervalFiled,
+            CandidatesField = _candidatesField,
+
+            DPoSInfoMap = _dposInfoMap,
+            EBPMap = _eBPMap,
+            FirstPlaceMap = _firstPlaceMap,
+            BalanceMap = _balanceMap,
+            SnapshotField = _snapshotMap
         });
 
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval,
@@ -130,8 +158,13 @@ namespace AElf.Contracts.Consensus
         {
             Api.Assert(Api.GetTransaction().From == TokenContractAddress,
                 "Only token contract can call AddTickets method.");
-            
+
             await DPoSConsensus.HandleTickets(addressToGetTickets, amount);
+        }
+
+        public async Task AnnounceElection(Address candidateAddress)
+        {
+            await DPoSConsensus.AnnounceElection(candidateAddress);
         }
 
         public async Task Withdraw(Address address, ulong amount)

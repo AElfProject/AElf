@@ -58,8 +58,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private readonly Int32Field _miningIntervalField;
 
-        private readonly Map<UInt64Value, Int64Value> _roundHashMap;
-
         private readonly Map<Address, Tickets> _balanceMap;
 
         private readonly PbField<Candidates> _candidatesField;
@@ -77,9 +75,8 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             _timeForProducingExtraBlockField = collection.TimeForProducingExtraBlockField;
             _firstPlaceMap = collection.FirstPlaceMap;
             _miningIntervalField = collection.MiningIntervalField;
-            _roundHashMap = collection.RoundHashMap;
             _balanceMap = collection.BalanceMap;
-            _candidatesField = collection.CandidatesFiled;
+            _candidatesField = collection.CandidatesField;
             _snapshotMap = collection.SnapshotField;
         }
 
@@ -451,6 +448,18 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             Console.WriteLine($"{address.DumpHex()}'s tickets changed: {amount}");
         }
 
+        public async Task AnnounceElection(Address candidateAddress)
+        {
+            var candidates = await _candidatesField.GetAsync();
+            if (candidates == null || !candidates.Nodes.Any())
+            {
+                candidates = new Candidates();
+            }
+
+            candidates.Nodes.Add(candidateAddress);
+            await _candidatesField.SetAsync(candidates);
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// Checking steps:
@@ -624,7 +633,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         private async Task SetDPoSInfoToMap(UInt64Value roundNumber, Round roundInfo)
         {
             await _dPoSInfoMap.SetValueAsync(roundNumber, roundInfo);
-            await _roundHashMap.SetValueAsync(roundNumber, new Int64Value {Value = roundInfo.RoundId});
         }
 
         private async Task SetExtraBlockProducerOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)

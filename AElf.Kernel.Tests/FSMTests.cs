@@ -1,6 +1,7 @@
 using System;
 using AElf.Common;
 using AElf.Common.FSM;
+using NServiceKit.Common.Extensions;
 using Xunit;
 
 namespace AElf.Kernel.Tests

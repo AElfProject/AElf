@@ -204,6 +204,10 @@ namespace AElf.Contracts.Token
                 ByteString.CopyFrom(ParamsPacker.Pack(candidateAddress, GlobalConfig.LockTokenForElection))
                     .ToByteArray());
 
+            Api.Call(ConsensusContractAddress, "AnnounceElection",
+                ByteString.CopyFrom(ParamsPacker.Pack(candidateAddress))
+                    .ToByteArray());
+            
             Console.WriteLine($"End announcing election - {Api.GetTransaction().From.DumpHex()}");
         }
 
@@ -230,9 +234,7 @@ namespace AElf.Contracts.Token
         public void GetTickets(ulong amount)
         {
             var voter = Api.GetTransaction().From;
-            if (!_balances.TryGet(voter, out var balance))
-                return;
-
+            Api.Assert(_balances.TryGet(voter, out var balance), $"No balance: {voter.DumpHex()}");
             Api.Assert(balance.Value >= amount, $"Balance of {Api.GetTransaction().From.DumpHex()} is not enough.");
             Transfer(ConsensusContractAddress, amount);
             Api.Call(ConsensusContractAddress, "AddTickets",

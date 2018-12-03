@@ -57,7 +57,7 @@ namespace AElf.Node
         {
             Console.WriteLine($"Using consensus: {ConsensusConfig.Instance.ConsensusType}");
 
-            if (NodeConfig.Instance.WillingToMine && string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccount))
+            if (NodeConfig.Instance.IsMiner && string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccount))
             {
                 throw new Exception("NodeAccount is needed");
             }
