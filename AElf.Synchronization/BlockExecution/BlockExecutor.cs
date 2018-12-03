@@ -85,18 +85,19 @@ namespace AElf.Synchronization.BlockExecution
                 }
             });
 
-            MessageHub.Instance.Subscribe<FSMStateChanged>(inState =>
+            MessageHub.Instance.Subscribe<StateEvent>(inState =>
             {
-                if (inState.CurrentState == NodeState.Catching)
+                if (inState == StateEvent.RollbackFinished)
                 {
                     _isLimitExecutionTime = false;
                 }
-                else if (inState.CurrentState == NodeState.Caught)
+
+                if (inState == StateEvent.MiningStart)
                 {
                     _isLimitExecutionTime = true;
                 }
 
-                _logger?.Trace($"CurrentState: {inState.CurrentState} ,IsLimitExecutionTime: {_isLimitExecutionTime}");
+                _logger?.Trace($"Current Event: {inState.ToString()} ,IsLimitExecutionTime: {_isLimitExecutionTime}");
             });
         }
 
