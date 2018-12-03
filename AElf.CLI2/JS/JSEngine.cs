@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -174,6 +175,7 @@ namespace AElf.CLI2.JS
                 RunScript("_requestor = null;");
                 _requestor = new HttpRequestor(_option.Endpoint, _context);
                 _context.GlobalObject.WriteProperty("_requestor", _requestor);
+                RunScript("aelf = new Aelf(_requestor);");
             }
             catch (Exception)
             {

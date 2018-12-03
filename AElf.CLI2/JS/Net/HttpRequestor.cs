@@ -2,10 +2,23 @@ using System;
 using ChakraCore.NET;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Newtonsoft.Json;
 
 namespace AElf.CLI2.JS.Net
 {
-      public class HttpRequestor
+    public class HttpRequestorError
+    {
+        [JsonProperty("erro")] public string Error { get; } = nameof(HttpRequestorError);
+
+        [JsonProperty("details")] public string Details { get; }
+
+        public HttpRequestorError(string details)
+        {
+            Details = details;
+        }
+    }
+
+    public class HttpRequestor
     {
         private HttpClient _client;
         private string _serverUrl;
@@ -34,18 +47,25 @@ namespace AElf.CLI2.JS.Net
 
         public JSValue Send(JSValue payload)
         {
-            var content = _toString(payload);
-            var url = "/chain";
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url)
+            try
             {
-                Content = new StringContent(content)
+                var content = _toString(payload);
+                var url = "/chain";
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url)
                 {
-                    Headers = {ContentType = MediaTypeHeaderValue.Parse("application/json")}
-                }
-            };
-            var response = _client.SendAsync(request).Result;
-            var result = response.Content.ReadAsStringAsync().Result;
-            return _fromString(result);
+                    Content = new StringContent(content)
+                    {
+                        Headers = {ContentType = MediaTypeHeaderValue.Parse("application/json")}
+                    }
+                };
+                var response = _client.SendAsync(request).Result;
+                var result = response.Content.ReadAsStringAsync().Result;
+                return _fromString(result);
+            }
+            catch (Exception e)
+            {
+                return _fromString(JsonConvert.SerializeObject(new HttpRequestorError(e.Message)));
+            }
         }
     }
 }
