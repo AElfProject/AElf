@@ -97,6 +97,15 @@ namespace AElf.Common
             return new Address(_fakeChainId, Guid.NewGuid().ToByteArray().CalculateHash());
         }
         
+        /// <summary>
+        /// Only used in tests to generate random addresses.
+        /// </summary>
+        /// <returns></returns>
+        public static Address Generate(byte[] chainId)
+        {
+            return new Address(chainId, Guid.NewGuid().ToByteArray().CalculateHash());
+        }
+        
         #region Predefined
 
         public static readonly Address AElf = FromString("AElf");

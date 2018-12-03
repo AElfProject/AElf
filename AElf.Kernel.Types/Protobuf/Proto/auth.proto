@@ -4,6 +4,7 @@ option csharp_namespace = "AElf.Kernel.Types.Proposal";
 import "google/protobuf/timestamp.proto";
 import "common.proto";
 import "kernel.proto";
+
 message Authorization
 {
     Address MultiSigAccount = 1;

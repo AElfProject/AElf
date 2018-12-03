@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
@@ -8,12 +9,13 @@ using AElf.Kernel;
 using AElf.Kernel.Types.Proposal;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Secp256k1Net;
 
 namespace AElf.Contracts.Authorization.Tests
 {
     public class AuthorizationContractShim
     {
-        private static byte[] ChainId = ChainHelpers.GetRandomChainId();
+        private byte[] _chainId;
         
         private MockSetup _mock;
         public IExecutive _executive;
@@ -32,8 +34,9 @@ namespace AElf.Contracts.Authorization.Tests
         public Address Sender { get; } = Address.FromString("sender");
         public Address AuthorizationContractAddress { get; set; }
 
-        public AuthorizationContractShim(MockSetup mock, Address authorizationContractAddress)
+        public AuthorizationContractShim(MockSetup mock, Address authorizationContractAddress, byte[] chainId)
         {
+            _chainId = chainId;
             _mock = mock;
             AuthorizationContractAddress = authorizationContractAddress;
             Init();
@@ -75,11 +78,12 @@ namespace AElf.Contracts.Authorization.Tests
             {
                 var tx = new Transaction
                 {
-                    From = Address.FromPublicKey(ChainId, sender.PublicKey),
+                    From = Address.FromPublicKey(_chainId, sender.PublicKey),
                     To = AuthorizationContractAddress,
                     MethodName = "Propose",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(proposal))
                 };
+                
                 var signer = new ECSigner();
                 var signature = signer.Sign(sender, tx.GetHash().DumpByteArray());
                 
@@ -89,6 +93,7 @@ namespace AElf.Contracts.Authorization.Tests
                 {
                     Transaction = tx
                 };
+                
                 await Executive.SetTransactionContext(TransactionContext).Apply();
                 await CommitChangesAsync(TransactionContext.Trace);
                 return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();

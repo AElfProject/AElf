@@ -36,6 +36,7 @@ namespace AElf.SmartContract.Proposal
                 List<byte[]> publicKey = new List<byte[]>(transaction.Sigs.Count);
                 for(int i = 0; i < transaction.Sigs.Count; i++)
                 {
+                    publicKey[i] = new byte[Secp256k1.PUBKEY_LENGTH];
                     secp256k1.Recover(publicKey[i], transaction.Sigs[i].ToByteArray(), hash);
                 }
                 return CheckAuthority(transaction.From, publicKey);

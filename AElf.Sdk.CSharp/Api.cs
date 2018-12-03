@@ -112,8 +112,9 @@ namespace AElf.Sdk.CSharp
         {
             using (var secp = new Secp256k1())
             {
-                byte[] recover = null;
+                byte[] recover = new byte[Secp256k1.PUBKEY_LENGTH];
                 secp.Recover(recover, signature, hash);
+                
                 return recover;
             }
         }
@@ -170,12 +171,11 @@ namespace AElf.Sdk.CSharp
         public static ByteString GetPublicKey()
         {
             //todo review maybe not do all this in here
-
             var tx = GetTransaction();
-            var hash = tx.GetHash().ToByteArray();
+            var hash = tx.GetHash().DumpByteArray();
             
-            byte[] recoveredKey = null;
-            
+            byte[] recoveredKey = new byte[Secp256k1.PUBKEY_LENGTH];
+
             using (var secp256k1 = new Secp256k1())
             {
                 secp256k1.Recover(recoveredKey, tx.Sigs.First().ToByteArray(), hash);
@@ -313,15 +313,17 @@ namespace AElf.Sdk.CSharp
             using (var secp256k1 = new Secp256k1())
             {
                 // Get pub keys
-                List<byte[]> publicKey = new List<byte[]>(_transactionContext.Transaction.Sigs.Count);
+                int sigCount = _transactionContext.Transaction.Sigs.Count;
+                List<byte[]> publicKeys = new List<byte[]>(sigCount);
                 
-                for(int i = 0; i < _transactionContext.Transaction.Sigs.Count; i++)
+                for(int i = 0; i < sigCount; i++)
                 {
-                    secp256k1.Recover(publicKey[i], _transactionContext.Transaction.Sigs[i].ToByteArray(), hash);
+                    publicKeys[i] = new byte[Secp256k1.PUBKEY_LENGTH];
+                    secp256k1.Recover(publicKeys[i], _transactionContext.Transaction.Sigs[i].ToByteArray(), hash);
                 }
                 
                 //todo review correctness
-                uint provided = publicKey
+                uint provided = publicKeys
                     .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
                     .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
                 

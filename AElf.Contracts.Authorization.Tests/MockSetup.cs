@@ -28,15 +28,15 @@ namespace AElf.Contracts.Authorization.Tests
             return (ulong)n;
         }
 
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+        public Hash ChainId { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+        
         public IStateStore StateStore { get; private set; }
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
         public IChainService ChainService;
+        
         private IFunctionMetadataService _functionMetadataService;
-
         private IChainCreationService _chainCreationService;
-
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ILogger _logger;
         private IDataStore _dataStore;
@@ -122,13 +122,13 @@ namespace AElf.Contracts.Authorization.Tests
             };
 
             var chain1 =
-                await _chainCreationService.CreateNewChainAsync(ChainId1,
+                await _chainCreationService.CreateNewChainAsync(ChainId,
                     new List<SmartContractRegistration> {reg0, reg1});
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Address address)
         {
-            var executive = await SmartContractService.GetExecutiveAsync(address, ChainId1);
+            var executive = await SmartContractService.GetExecutiveAsync(address, ChainId);
             return executive;
         }
     }
