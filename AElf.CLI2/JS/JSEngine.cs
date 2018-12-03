@@ -120,9 +120,7 @@ namespace AElf.CLI2.JS
 
         private void ExposeAElfOption()
         {
-            _context.RunScript("var _config = new Object()");
-            var config = _context.GlobalObject.ReadProperty<JSValue>("_config");
-            config.WriteProperty<string>("endpoint", _option.Endpoint);
+            RunScript($"_config = {Newtonsoft.Json.JsonConvert.SerializeObject(_option)};");
         }
 
         private static JavaScriptValue ToJSMethod(IServiceNode node, Action<IEnumerable<JavaScriptValue>> a)
