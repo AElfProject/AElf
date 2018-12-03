@@ -257,6 +257,9 @@ message VotingRecord {
     Address From = 1;
     Address To = 2;
     uint64 TicketsCount = 3;
+    uint64 RoundNumber = 4;
+    Hash TransactionId = 5;
+    bool State = 6;
 }
 
 message Miners {
@@ -265,22 +268,28 @@ message Miners {
 }
 
 message ElectionSnapshot {
-    uint64 RoundNumber = 1;
-    repeated TicketsMap TicketsMap = 2;
+    uint64 StartRoundNumber = 1;
+    uint64 EndRoundNumber = 2;
+    uint64 Blocks = 3;
+    repeated TicketsMap TicketsMap = 4;
 }
 
 message TicketsMap {
-    Address Address = 1;
+    Address CandidateAddress = 1;
     uint64 TicketsCount = 2;
+    uint64 TotalWeights = 3;
 }
 
 message BlockProducer {
     int32 Order = 1;
-    bool IsEBP = 2; //EBP := Extra Block Producer
+    bool IsEBP = 2; //EBP: Extra Block Producer
     Hash InValue = 3;
     Hash OutValue = 4;
     Hash Signature = 5;
     google.protobuf.Timestamp TimeSlot = 6;
+    repeated uint64 Terms = 7;
+    uint64 BlocksOfCurrentTerm = 8;
+    uint64 BlocksOfAllTerms = 9;
 }
 
 message Round {

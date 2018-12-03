@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
     // ReSharper disable UnusedMember.Global
     // ReSharper disable InconsistentNaming
     // ReSharper disable MemberCanBeMadeStatic.Local
-    public class DPoS : IConsensus
+    public class DPoS
     {
         public ConsensusType Type => ConsensusType.AElfDPoS;
 
@@ -575,12 +575,12 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             await _ongoingMinersField.SetAsync(ongoingMiners);
 
             var snapshot = new ElectionSnapshot();
-            snapshot.RoundNumber = CurrentRoundNumber.Add(1);
+            snapshot.EndRoundNumber = CurrentRoundNumber.Add(1);
 
             foreach (var candidate in _candidatesField.GetValue().Nodes)
             {
                 snapshot.TicketsMap.Add(new TicketsMap
-                    {Address = candidate, TicketsCount = await GetTicketCount(candidate)});
+                    {CandidateAddress = candidate, TicketsCount = await GetTicketCount(candidate)});
             }
 
             await _snapshotMap.SetValueAsync(new UInt64Value {Value = CurrentRoundNumber.Add(1)}, snapshot);
