@@ -13,7 +13,7 @@ namespace AElf.CLI2.Tests
     {
         private IJSEngine GetJSEngine(string serverAddress = "http://127.0.0.1:1234")
         {
-            var option = new AccountOption
+            var option = new CreateOption
             {
                 Endpoint = serverAddress,
                 Password = "",

@@ -13,7 +13,7 @@ namespace AElf.CLI2.Tests
     {
         private IRequestExecutor GetRequestExecutor()
         {
-            var option = new AccountOption
+            var option = new CreateOption
             {
                 Endpoint = "",
                 Password = "",

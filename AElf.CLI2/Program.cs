@@ -18,13 +18,13 @@ namespace AElf.CLI2
 
         static int Main(string[] args)
         {
-            return Parser.Default.ParseArguments<AccountOption, InteractiveOption, AnotherVerb>(args)
+            return Parser.Default.ParseArguments<CreateOption, InteractiveOption, AnotherVerb>(args)
                 .MapResult(
-                    (AccountOption opt) =>
+                    (CreateOption opt) =>
                     {
 //                        var sdk = IoCContainerBuilder.Build(opt).Resolve<IAElfSdk>();
 //                        sdk.Chain().ConnectChain();
-                        new AccountCommand(opt).Execute();
+                        new CreateCommand(opt).Execute();
                         return 0;
                     },
                     (InteractiveOption opt) =>

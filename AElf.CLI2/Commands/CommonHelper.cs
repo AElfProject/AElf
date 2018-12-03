@@ -5,9 +5,9 @@ namespace AElf.CLI2.Commands
 {
     public static class CommonHelper
     {
-        public static IJSEngine GetJSEngine(this ICommand command, AccountOption accountOption)
+        public static IJSEngine GetJSEngine(this ICommand command, CreateOption createOption)
         {
-            return IoCContainerBuilder.Build(accountOption).Resolve<IJSEngine>();
+            return IoCContainerBuilder.Build(createOption).Resolve<IJSEngine>();
         }
     }
 }
