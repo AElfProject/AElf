@@ -173,40 +173,39 @@ namespace AElf.Kernel.Tests.Miner
         }
         
         [Fact]
-        public async Task Mine()
+        public async Task Mine_ProduceSecondBlock_WithCorrectSig()
         {
+            // create the miners keypair, this is the miners identity
+            var minerKeypair = new KeyPairGenerator().Generate();
+            var minerAddress = AddressHelpers.BuildAddress(minerKeypair.PublicKey);
+            
             var chain = await _mock.CreateChain();
-            // create miner
-            var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, AddressHelpers.BuildAddress(keypair.PublicKey).DumpByteArray());
-            ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
-            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(keypair.PublicKey).GetFormatted();
-            var txPool = _mock.CreateTxPool();
-            txPool.Start();
+            var minerconfig = _mock.GetMinerConfig(chain.Id);
+
+            NodeConfig.Instance.NodeAccount = minerAddress.GetFormatted();
+            NodeConfig.Instance.ECKeyPair = minerKeypair;
+            
+            var txHub = _mock.CreateAndInitTxHub();
+            txHub.Start();
 
             var txs = CreateTx(chain.Id);
             foreach (var tx in txs)
             {
-                await txPool.AddTransactionAsync(tx);
+                await txHub.AddTransactionAsync(tx);
             }
             
             var manager = _mock.MinerClientManager();
-            var miner = _mock.GetMiner(minerconfig, txPool, manager);
+            var miner = _mock.GetMiner(minerconfig, txHub, manager);
 
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
             
-            NodeConfig.Instance.ECKeyPair = keypair;
             miner.Init();
             
             var block = await miner.Mine();
             
             Assert.NotNull(block);
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
-            
-            byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
-            Address addr = AddressHelpers.BuildAddress(keypair.PublicKey);
-            // Assert.Equal(minerconfig.CoinBase, addr); 
             
             ECVerifier verifier = new ECVerifier();
             Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().DumpByteArray()));
@@ -390,14 +389,14 @@ namespace AElf.Kernel.Tests.Miner
             var chain = await _mock.CreateChain();
             var keyPair = new KeyPairGenerator().Generate();
             
-            var minerConfig = _mock.GetMinerConfig(chain.Id, 10, null);
+            var minerConfig = _mock.GetMinerConfig(chain.Id);
             
             ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
             
             NodeConfig.Instance.ECKeyPair = keyPair;
             NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(chain.Id.DumpByteArray(), keyPair.PublicKey).GetFormatted();
             
-            var pool = _mock.CreateTxPool();
+            var pool = _mock.CreateAndInitTxHub();
             pool.Start();
 
             try

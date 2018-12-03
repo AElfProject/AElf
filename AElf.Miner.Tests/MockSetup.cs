@@ -103,6 +103,7 @@ namespace AElf.Miner.Tests
         public async Task<IChain> CreateChain()
         {            
             var chainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -128,7 +129,7 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator), _chainManagerBasic);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManagerBasic);
 
             return blockExecutor;
         }
@@ -138,19 +139,16 @@ namespace AElf.Miner.Tests
             return _chainService.GetBlockChain(chainId);
         }
         
-        internal ITxHub CreateTxPool()
+        internal ITxHub CreateAndInitTxHub()
         {
-            return new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator);
-//            return new TxPool(_logger, new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
+            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null);
+            hub.Initialize();
+            return hub;
         }
 
-        public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
+        public IMinerConfig GetMinerConfig(Hash chainId)
         {
-            return new MinerConfig
-            {
-                ChainId = chainId,
-                //CoinBase = Address.FromRawBytes(getAddress)
-            };
+            return new MinerConfig { ChainId = chainId };
         }
 
         private Mock<ILightChain> MockLightChain()
