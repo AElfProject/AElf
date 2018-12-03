@@ -24,20 +24,48 @@ namespace AElf.Contracts.Consensus
 
         #region DPoS
 
+        private readonly UInt64Field _currentRoundNumberField =
+            new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber);
+
+        private readonly PbField<OngoingMiners> _ongoingMinersField =
+            new PbField<OngoingMiners>(GlobalConfig.AElfDPoSOngoingMinersString);
+
+        private readonly PbField<Timestamp> _timeForProducingExtraBlockField =
+            new PbField<Timestamp>(GlobalConfig.AElfDPoSExtraBlockTimeSlotString);
+
+        private readonly Int32Field _miningIntervalFiled = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString);
+
+        private readonly PbField<Candidates> _candidatesField =
+            new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString);
+
+        private readonly Map<UInt64Value, Round> _dposInfoMap =
+            new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSInformationString);
+
+        private readonly Map<UInt64Value, StringValue> _eBPMap =
+            new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSExtraBlockProducerString);
+
+        private readonly Map<UInt64Value, StringValue> _firstPlaceMap =
+            new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString);
+
+        private readonly Map<Address, Tickets> _balanceMap =
+            new Map<Address, Tickets>(GlobalConfig.AElfDPoSBalanceMapString);
+
+        private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap =
+            new Map<UInt64Value, ElectionSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString);
+
         private DPoS DPoSConsensus => new DPoS(new AElfDPoSFieldMapCollection
         {
-            CurrentRoundNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber),
-            OngoingMinersField = new PbField<OngoingMiners>(GlobalConfig.AElfDPoSOngoingMinersString),
-            TimeForProducingExtraBlockField = new PbField<Timestamp>(GlobalConfig.AElfDPoSExtraBlockTimeSlotString),
-            MiningIntervalField = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString),
-            CandidatesFiled = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
+            CurrentRoundNumberField = _currentRoundNumberField,
+            OngoingMinersField = _ongoingMinersField,
+            TimeForProducingExtraBlockField = _timeForProducingExtraBlockField,
+            MiningIntervalField = _miningIntervalFiled,
+            CandidatesField = _candidatesField,
 
-            DPoSInfoMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSInformationString),
-            EBPMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSExtraBlockProducerString),
-            FirstPlaceMap = new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString),
-            RoundHashMap = new Map<UInt64Value, Int64Value>(GlobalConfig.AElfDPoSMiningRoundHashMapString),
-            BalanceMap = new Map<Address, Tickets>(GlobalConfig.AElfDPoSBalanceMapString),
-            SnapshotField = new Map<UInt64Value, ElectionSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString)
+            DPoSInfoMap = _dposInfoMap,
+            EBPMap = _eBPMap,
+            FirstPlaceMap = _firstPlaceMap,
+            BalanceMap = _balanceMap,
+            SnapshotField = _snapshotMap
         });
 
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval,
@@ -130,7 +158,7 @@ namespace AElf.Contracts.Consensus
         {
             Api.Assert(Api.GetTransaction().From == TokenContractAddress,
                 "Only token contract can call AddTickets method.");
-            
+
             await DPoSConsensus.HandleTickets(addressToGetTickets, amount);
         }
 

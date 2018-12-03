@@ -11,15 +11,19 @@ message Tickets {
     uint64 RemainingTickets = 1;
     repeated VotingRecord VotingRecord = 2;
 }
+
+
 ```
 
-In `TokenContract`, we maintain a filed of `Candidates` to simply record all the candidates (who announuced election).
+In `TokenContract`, we maintain a field of `Candidates` to simply record all the candidates (who announuced election).
 
 In `ConsensusContract`:
 
-We use a filed of `Candidates` also record all the candidates, and the filed should only be updated by the calling of `AnnouceElection` from `TokenContract`.
+We use a field of `Candidates` (called `CandidatesField`) also record all the candidates, and the filed should only be updated by the calling of `AnnouceElection` from `TokenContract`.
 
-Mainly, we use a map of `Address` to `Tickets` to maintain all the balances of addresses.
+Especially, we use a map of `Address` to `Tickets` (called `BalanceMap`) to maintain all the tickets of addresses. (Candidates will have a huge amount of tickets but they can't handle their tickets.)
+
+
 
 ## For candidates
 
