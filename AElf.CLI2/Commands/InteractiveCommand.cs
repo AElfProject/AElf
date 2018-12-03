@@ -9,6 +9,7 @@ using AElf.CLI2.JS.IO;
 using Alba.CsConsoleFormat;
 using Alba.CsConsoleFormat.Fluent;
 using Autofac;
+using ChakraCore.NET;
 using ChakraCore.NET.API;
 using CommandLine;
 using Console = System.Console;
@@ -154,7 +155,16 @@ namespace AElf.CLI2.Commands
                 prefix = parts.Last();
             }
 
-            var obj = _engine.Evaluate(objRef);
+            JSValue obj = null;
+            try
+            {
+                obj = _engine.Evaluate(objRef);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
             if (obj.ReferenceValue.ValueType == JavaScriptValueType.Undefined)
             {
                 return null;
