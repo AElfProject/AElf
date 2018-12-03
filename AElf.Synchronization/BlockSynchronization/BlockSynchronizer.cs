@@ -60,6 +60,7 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Subscribe<StateEvent>(e =>
             {
                 _stateFSM.ProcessWithStateEvent(e); 
+                _logger?.Trace($"BlockSynchronizer CurrentState: {CurrentState}");
                 MessageHub.Instance.Publish(new FSMStateChanged(CurrentState));
             });
 

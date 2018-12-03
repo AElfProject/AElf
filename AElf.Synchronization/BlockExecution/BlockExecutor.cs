@@ -45,9 +45,11 @@ namespace AElf.Synchronization.BlockExecution
         private static bool _prepareTerminated;
         private static bool _terminated;
 
+        private static bool _isLimitExecutionTime;
+
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic,IStateStore stateStore)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic, IStateStore stateStore)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -58,9 +60,9 @@ namespace AElf.Synchronization.BlockExecution
             _chainManagerBasic = chainManagerBasic;
             _stateStore = stateStore;
             _dpoSInfoProvider = new DPoSInfoProvider(_stateStore);
-            
+
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
-            
+
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
 
             _executing = false;
@@ -81,6 +83,21 @@ namespace AElf.Synchronization.BlockExecution
                         _prepareTerminated = true;
                     }
                 }
+            });
+
+            MessageHub.Instance.Subscribe<StateEvent>(inState =>
+            {
+                if (inState == StateEvent.RollbackFinished)
+                {
+                    _isLimitExecutionTime = false;
+                }
+
+                if (inState == StateEvent.MiningStart)
+                {
+                    _isLimitExecutionTime = true;
+                }
+
+                _logger?.Trace($"Current Event: {inState.ToString()} ,IsLimitExecutionTime: {_isLimitExecutionTime}");
             });
         }
 
@@ -135,9 +152,12 @@ namespace AElf.Synchronization.BlockExecution
                     return res;
                 }
 
-                var distanceToTimeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
-
-                cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
+                double distanceToTimeSlot = 0;
+                if (_isLimitExecutionTime)
+                {
+                    distanceToTimeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
+                    cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
+                }
 
                 var trs = await _txHub.GetReceiptsForAsync(readyTxs, cts);
                 
