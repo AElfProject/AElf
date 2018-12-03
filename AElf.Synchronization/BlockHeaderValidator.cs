@@ -5,6 +5,8 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Synchronization.BlockSynchronization;
+using AElf.Synchronization.EventMessages;
+using Easy.MessageHub;
 using NLog;
 
 namespace AElf.Synchronization
@@ -69,6 +71,7 @@ namespace AElf.Synchronization
                 var localCurrentBlock = await BlockChain.GetBlockByHeightAsync(currentHeight);
                 if (localCurrentBlock.BlockHashToHex != blockHeader.PreviousBlockHash.DumpHex())
                 {
+                    MessageHub.Instance.Publish(new BranchedBlockReceived());
                     return BlockHeaderValidationResult.Branched;
                 }
 
@@ -81,6 +84,7 @@ namespace AElf.Synchronization
                 return BlockHeaderValidationResult.AlreadyExecuted;
             }
 
+            MessageHub.Instance.Publish(new BranchedBlockReceived());
             return BlockHeaderValidationResult.Branched;
         }
     }

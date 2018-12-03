@@ -44,12 +44,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
         public Int32Field MiningIntervalField;
 
         /// <summary>
-        /// Using a hash value to identify one round.
-        /// Basically the hash value is calculated from signatures of all the BPs.
-        /// </summary>
-        public Map<UInt64Value, Int64Value> RoundHashMap;
-
-        /// <summary>
         /// Balances of each address.
         /// </summary>
         public Map<Address, Tickets> BalanceMap;
@@ -57,7 +51,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
         /// <summary>
         /// The nodes declared join the election for BP.
         /// </summary>
-        public PbField<Candidates> CandidatesFiled;
+        public PbField<Candidates> CandidatesField;
 
         public Map<UInt64Value, ElectionSnapshot> SnapshotField;
     }

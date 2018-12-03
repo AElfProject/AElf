@@ -103,9 +103,9 @@ namespace AElf.Configuration
             }
 
             // node config
-            if (opts.WillingToMine.HasValue)
+            if (opts.IsMiner.HasValue)
             {
-                NodeConfig.Instance.WillingToMine = opts.WillingToMine.Value;
+                NodeConfig.Instance.IsMiner = opts.IsMiner.Value;
             }
 
             if (!string.IsNullOrWhiteSpace(opts.ExecutorType))
