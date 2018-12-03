@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using AElf.Common.Attributes;
+using Alba.CsConsoleFormat.Fluent;
 using ChakraCore.NET.API;
 using NLog;
 
@@ -14,27 +15,30 @@ namespace AElf.CLI2.JS.IO
 
         public void Log(IEnumerable<JavaScriptValue> args)
         {
-            Log(LogLevel.Info, args);
+            Colors.WriteLine(
+                string.Join(" ", args.Select(JSValueToString))
+            );
         }
 
         public void Debug(IEnumerable<JavaScriptValue> args)
         {
-            Log(LogLevel.Debug, args);
+            Colors.WriteLine(
+                string.Join(" ", args.Select(JSValueToString)).Magenta()
+            );
         }
 
         public void Warn(IEnumerable<JavaScriptValue> args)
         {
-            Log(LogLevel.Warn, args);
+            Colors.WriteLine(
+                string.Join(" ", args.Select(JSValueToString)).Yellow()
+            );
         }
 
         public void Error(IEnumerable<JavaScriptValue> args)
         {
-            Log(LogLevel.Error, args);
-        }
-
-        private void Log(LogLevel level, IEnumerable<JavaScriptValue> args)
-        {
-            _logger.Log(level, string.Join(" ", args.Select(JSValueToString)));
+            Colors.WriteLine(
+                string.Join(" ", args.Select(JSValueToString)).Red()
+            );
         }
 
         private string JSValueToString(JavaScriptValue val)

@@ -10,6 +10,7 @@ using AElf.CLI2.Commands;
 using AElf.CLI2.JS.Crypto;
 using AElf.CLI2.JS.IO;
 using AElf.CLI2.JS.Net;
+using AElf.CLI2.Utils;
 using Alba.CsConsoleFormat;
 using Alba.CsConsoleFormat.Fluent;
 using ChakraCore.NET;
@@ -111,14 +112,6 @@ namespace AElf.CLI2.JS
                 HmacHelper.GetHmacDigest);
         }
 
-        private void RunScript(Stream stream)
-        {
-            using (var reader = new StreamReader(stream, Encoding.UTF8))
-            {
-                _context.RunScript(reader.ReadToEnd());
-            }
-        }
-
         private void ExposeAElfOption()
         {
             RunScript($"_config = {Newtonsoft.Json.JsonConvert.SerializeObject(_option)};");
@@ -182,6 +175,14 @@ namespace AElf.CLI2.JS
             catch (Exception)
             {
                 //Ignore
+            }
+        }
+
+        public void RunScript(Stream stream)
+        {
+            using (var reader = new StreamReader(stream, Encoding.UTF8))
+            {
+                _context.RunScript(reader.ReadToEnd());
             }
         }
 

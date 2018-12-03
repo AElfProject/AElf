@@ -21,5 +21,7 @@
     <EmbeddedResource Include="Scripts\helpers.js" />
     <EmbeddedResource Include="Scripts\crypto.js" />
     <EmbeddedResource Include="Scripts\requestor.js" />
+    <EmbeddedResource Include="Scripts\init-chain.js" />
+    <EmbeddedResource Include="Scripts\deploy-command.js" />
   </ItemGroup>
 </Project>

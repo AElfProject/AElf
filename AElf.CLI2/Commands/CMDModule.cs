@@ -20,7 +20,8 @@ namespace AElf.CLI2.Commands
             _commands = new Dictionary<Type, Type>
             {
                 [typeof(CreateOption)] = typeof(CreateCommand),
-                [typeof(InteractiveOption)] = typeof(InteractiveCommand)
+                [typeof(InteractiveOption)] = typeof(InteractiveCommand),
+                [typeof(DeployOption)] = typeof(DeployCommand),
             };
         }
 

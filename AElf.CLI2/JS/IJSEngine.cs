@@ -1,3 +1,4 @@
+using System.IO;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
 
@@ -9,7 +10,7 @@ namespace AElf.CLI2.JS
         TResult Invoke<T, TResult>(string methodName, T arg);
         TResult Invoke<TResult>(string methodName);
         IJSObject InvokeAndGetJSObject(string methodName);
-        
+
         JavaScriptValue Value { get; }
     }
 
@@ -17,6 +18,7 @@ namespace AElf.CLI2.JS
     {
         IServiceNode ServiceNode { get; }
         JSValue GlobalObject { get; }
+        void RunScript(Stream stream);
         void RunScript(string jsContent);
         JSValue Evaluate(string script);
         void Execute(string script);

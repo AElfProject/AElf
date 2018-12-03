@@ -14,13 +14,6 @@ namespace AElf.CLI2.Commands
     }
 
 
-    public struct Account
-    {
-        public string EncryptedMnemonic;
-        public string EncryptedPrivateKey;
-        public string Address;
-    }
-
     public class CreateCommand : ICommand
     {
         private readonly IJSEngine _engine;
@@ -65,20 +58,10 @@ namespace AElf.CLI2.Commands
 
             var accountFile = _option.GetPathForAccount(address);
 
-            if (File.Exists(accountFile))
+            new EncryptedAccount()
             {
-                Console.WriteLine($@"Account file ""{accountFile}"" already exists.");
-                return;
-            }
-
-            using (var fs = File.Create(accountFile))
-            {
-                var serializer = new XmlSerializer(typeof(Account));
-                serializer.Serialize(fs, new Account()
-                {
-                    EncryptedMnemonic = encryptedMnemonic
-                });
-            }
+                EncryptedMnemonic = encryptedMnemonic
+            }.DumpToFile(accountFile);
 
             Console.WriteLine($@"Account info has been saved to ""{accountFile}""");
         }
