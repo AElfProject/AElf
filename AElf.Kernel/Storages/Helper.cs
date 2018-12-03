@@ -1,5 +1,3 @@
-using System;
-using AElf.Common.Extensions;
 using Google.Protobuf;
 using AElf.Common;
 

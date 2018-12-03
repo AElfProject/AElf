@@ -6,10 +6,8 @@ namespace AElf.Kernel.Node
     public interface IConsensus
     {
         Task Start();
-        void Stop();
-        void IncrementLockNumber();
-        void DecrementLockNumber();
-        Task Update();
+        void DisposeConsensusList();
+        Task UpdateConsensusEventList();
         bool IsAlive();
         bool Shutdown();
     }    

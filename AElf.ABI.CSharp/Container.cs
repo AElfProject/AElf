@@ -72,32 +72,7 @@ namespace AElf.ABI.CSharp
         public IEnumerable<TypeDefinition> GetSmartContractTypePath()
         {
             return GetTypePathWithoutName();
-            //return name != null ? GetTypePathWithName(name) : GetTypePathWithoutName();
         }
-
-
-        /// <summary>
-        /// return type definiations with specific name and classes inherit it
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-//        private IEnumerable<TypeDefinition> GetTypePathWithName(string name)
-//        {
-//            var children = new List<TypeDefinition>();
-//            try
-//            {
-//                var fullName = _nameTypeDefinitions.First(kv => kv.Key.Contains(name)).Key;
-//                children.Add(_nameTypeDefinitions[fullName]);
-//            }
-//            catch (Exception e)
-//            {
-//                throw new Exception("No valid smart contract found.");
-//            }
-//            
-//            return GetTypePaths(children);
-//
-//        }
 
         private IEnumerable<TypeDefinition> GetTypePathWithoutName()
         {

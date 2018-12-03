@@ -5,13 +5,13 @@ using NLog;
 namespace AElf.Common.FSM
 {
     // ReSharper disable InconsistentNaming
-    public class FSM
+    public class FSM<T>
     {
-        private readonly Dictionary<int, FSMStateBehaviour> _states = new Dictionary<int, FSMStateBehaviour>();
+        private readonly Dictionary<T, FSMStateBehaviour<T>> _states = new Dictionary<T, FSMStateBehaviour<T>>();
 
-        private int _currentState;
+        private T _currentState;
 
-        public int CurrentState
+        public T CurrentState
         {
             get => _currentState;
             set
@@ -28,15 +28,15 @@ namespace AElf.Common.FSM
 
         public StateEvent StateEvent { get; set; }
 
-        private FSMStateBehaviour _currentStateBehaviour;
+        private FSMStateBehaviour<T> _currentStateBehaviour;
 
         private int _stateAge = -1000;
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(FSM));
 
-        public FSMStateBehaviour AddState(int state)
+        public FSMStateBehaviour<T> AddState(T state)
         {
-            var behaviour = new FSMStateBehaviour(state);
+            var behaviour = new FSMStateBehaviour<T>(state);
             _states.Add(state, behaviour);
             return behaviour;
         }
@@ -55,7 +55,7 @@ namespace AElf.Common.FSM
                 progress = (int) Math.Max(0, Math.Min(1000, stateTime / _currentStateBehaviour.Duration.Value * 1000));
             }
             
-            var data = new FSMStateData
+            var data = new FSMStateData<T>
             {
                 FSM = this,
                 StateBehaviour = _currentStateBehaviour,
@@ -79,18 +79,14 @@ namespace AElf.Common.FSM
             _logger?.Trace($"[StateEvent] {stateEvent.ToString()}");
             StateEvent = stateEvent;
 
-            if ((NodeState) CurrentState == NodeState.Stay)
+            if ((NodeState) (object) CurrentState == NodeState.Stay)
             {
                 return;
             }
             
             if (_currentStateBehaviour.StateTransferFunction != null)
             {
-                var nextState = _currentStateBehaviour.StateTransferFunction();
-                if (CurrentState != nextState)
-                {
-                    CurrentState = nextState;
-                }
+                CurrentState = _currentStateBehaviour.StateTransferFunction();
             }
         }
 

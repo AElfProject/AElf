@@ -76,6 +76,8 @@ namespace AElf.Common
         /// </summary>
         Reverting,
         
+        ReCatching,
+        
         Stay
     }
 

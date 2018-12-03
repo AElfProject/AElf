@@ -4,52 +4,52 @@ using System.Collections.Generic;
 namespace AElf.Common.FSM
 {
     // ReSharper disable once InconsistentNaming
-    public class FSMStateBehaviour
+    public class FSMStateBehaviour<T>
     {
-        private readonly List<Action<FSMStateData>> _processCallbacks = new List<Action<FSMStateData>>();
+        private readonly List<Action<FSMStateData<T>>> _processCallbacks = new List<Action<FSMStateData<T>>>();
         private readonly List<Action> _enterCallbackList = new List<Action>();
         private readonly List<Action> _leaveCallbackList = new List<Action>();
 
-        public int State { get; set; }
+        public T State { get; set; }
         public double? Duration { get; set; }
-        public Func<int> StateTransferFunction { get; set; }
-
-        public FSMStateBehaviour(int state)
+        public Func<T> StateTransferFunction { get; set; }
+        
+        public FSMStateBehaviour(T state)
         {
             State = state;
         }
 
-        public FSMStateBehaviour OnEntering(Action callback)
+        public FSMStateBehaviour<T> OnEntering(Action callback)
         {
             _enterCallbackList.Add(callback);
             return this;
         }
-
-        public FSMStateBehaviour OnLeaving(Action callback)
+        
+        public FSMStateBehaviour<T> OnLeaving(Action callback)
         {
             _leaveCallbackList.Add(callback);
             return this;
         }
 
-        public FSMStateBehaviour AddCallback(Action<FSMStateData> callback)
+        public FSMStateBehaviour<T> AddCallback(Action<FSMStateData<T>> callback)
         {
             _processCallbacks.Add(callback);
             return this;
         }
-
-        public FSMStateBehaviour SetTimeout(double duration)
+        
+        public FSMStateBehaviour<T> SetTimeout(double duration)
         {
             Duration = duration;
             return this;
         }
 
-        public FSMStateBehaviour SetTransferFunction(Func<int> stateTransferFunction)
+        public FSMStateBehaviour<T> SetTransferFunction(Func<T> stateTransferFunction)
         {
             StateTransferFunction = stateTransferFunction;
             return this;
         }
 
-        public void Invoke(FSMStateData data)
+        public void Invoke(FSMStateData<T> data)
         {
             foreach (var callback in _processCallbacks)
             {
@@ -64,7 +64,7 @@ namespace AElf.Common.FSM
                 callback();
             }
         }
-
+        
         public void Leaving()
         {
             foreach (var callback in _leaveCallbackList)

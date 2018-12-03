@@ -147,6 +147,13 @@ namespace AElf.Synchronization.BlockExecution
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
                 var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                
+                _logger?.Trace("Transaction Results:");
+                foreach (var re in txnRes)
+                {
+                    _logger?.Trace(re.StateHash.DumpHex);
+                }
+
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
                     res = BlockExecutionResult.AlreadyAppended;
@@ -242,7 +249,7 @@ namespace AElf.Synchronization.BlockExecution
                                    $"\n {trace.StdErr}");
                 }
 
-                if (trace.DeferredTransaction != null)
+                if (trace.DeferredTransaction.Length != 0)
                 {
                     var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
                     _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);

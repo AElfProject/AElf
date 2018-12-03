@@ -63,7 +63,7 @@ namespace AElf.Kernel
             return blk != null;
         }
 
-        public async Task<bool> IsOnCanonical(Hash blockId)
+        public new Task<bool> IsOnCanonical(Hash blockId)
         {
             throw new NotImplementedException();
         }

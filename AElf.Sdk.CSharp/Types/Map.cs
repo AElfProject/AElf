@@ -89,11 +89,6 @@ namespace AElf.Sdk.CSharp.Types
             value = Api.Serializer.Deserialize<TValue>(bytes);
             return true;
         }
-
-//        public async Task SetValueAsync(TKey key, TValue value)
-//        {
-//            await DataProvider.SetDataAsync(Hash.FromMessage(key), value);
-//        }
     }
 
     public class MapToBool<TKey> : Map<TKey, BoolValue> where TKey : IMessage

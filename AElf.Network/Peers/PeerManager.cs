@@ -139,7 +139,7 @@ namespace AElf.Network.Peers
             if (!_isBp)
                 _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
 
-            // Add the provided bootnodes
+            // Add the provided boot nodes
             if (NetworkConfig.Instance.Bootnodes != null && NetworkConfig.Instance.Bootnodes.Any())
             {
                 // todo add jobs
@@ -163,7 +163,7 @@ namespace AElf.Network.Peers
             return Task.CompletedTask;
         }
 
-        public async Task<JObject> GetPeers()
+        public Task<JObject> GetPeers()
         {
             var peers = new JObject
             {
@@ -174,7 +174,7 @@ namespace AElf.Network.Peers
                 peers["peers"] = JArray.Parse(JsonConvert.SerializeObject(_peers));
             }
 
-            return peers;
+            return Task.FromResult(peers);
         }
 
         private void StartProcessing()

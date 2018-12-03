@@ -101,7 +101,7 @@ namespace AElf.Network.Peers
         public bool IsDisposed { get; private set; }
 
         /// <summary>
-        /// Indicates if correct authentification information has been received.
+        /// Indicates if correct authentication information has been received.
         /// </summary>
         public bool IsAuthentified { get; private set; }
 
@@ -128,10 +128,7 @@ namespace AElf.Network.Peers
         /// The data received in the handshake message.
         /// </summary>
         [JsonProperty(PropertyName = "address")]
-        public NodeData DistantNodeData
-        {
-            get { return _lastReceivedHandshake?.NodeInfo; }
-        }
+        public NodeData DistantNodeData => _lastReceivedHandshake?.NodeInfo;
 
         private Handshake _lastReceivedHandshake;
 

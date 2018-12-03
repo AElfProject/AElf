@@ -13,18 +13,19 @@ using Google.Protobuf;
 
 namespace AElf.Miner
 {
-    public class MinerAElfModule:IAElfModule
+    public class MinerAElfModule : IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {
             var minerConfig = MinerConfig.Default;
-            if (NodeConfig.Instance.IsMiner)
+            if (NodeConfig.Instance.WillingToMine)
             {
                 minerConfig = new MinerConfig
                 {
                     CoinBase =Address.Parse(NodeConfig.Instance.NodeAccount) 
                 };
             }
+
             minerConfig.ChainId = new Hash()
             {
                 Value = ByteString.CopyFrom(ChainConfig.Instance.ChainId.DecodeBase58())
@@ -42,7 +43,7 @@ namespace AElf.Miner
                 }
             );
             builder.RegisterModule(new MinerAutofacModule(minerConfig));
-            
+
             var txPoolConfig = TxPoolConfig.Default;
             txPoolConfig.FeeThreshold = 0;
             txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;

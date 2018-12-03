@@ -233,13 +233,43 @@ message Chain {
     Hash GenesisBlockHash = 2;
 }
 
+message OngoingMiners {
+    repeated Miners Miners = 1;
+}
+
+message Candidates {
+    repeated Address Nodes = 1;
+}
+
+message Tickets {
+    uint64 RemainingTickets = 1;
+    repeated VotingRecord VotingRecord = 2;
+}
+
+message VotingRecord {
+    Address From = 1;
+    Address To = 2;
+    uint64 TicketsCount = 3;
+}
+
 message Miners {
-    repeated string Nodes = 1;
+    uint64 TakeEffectRoundNumber = 1;
+    repeated Address Nodes = 2;
+}
+
+message ElectionSnapshot {
+    uint64 RoundNumber = 1;
+    repeated TicketsMap TicketsMap = 2;
+}
+
+message TicketsMap {
+    Address Address = 1;
+    uint64 TicketsCount = 2;
 }
 
 message BlockProducer {
     int32 Order = 1;
-    bool IsEBP = 2; //EBP = Extra Block Producer
+    bool IsEBP = 2; //EBP := Extra Block Producer
     Hash InValue = 3;
     Hash OutValue = 4;
     Hash Signature = 5;

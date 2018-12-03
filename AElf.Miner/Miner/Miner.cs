@@ -128,9 +128,9 @@ namespace AElf.Miner.Miner
                     traces.AddRange(await ExecuteTransactions(regTxs));
                     _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
                     
-                    _logger?.Trace($"Start executing {regTxs.Count} contract transactions.");
+                    _logger?.Trace($"Start executing {contractTxs.Count} contract transactions.");
                     traces.AddRange(await ExecuteTransactions(contractTxs, transactionType: TransactionType.ContractDeployTransaction));
-                    _logger?.Trace($"Finish executing {regTxs.Count} contract transactions.");
+                    _logger?.Trace($"Finish executing {contractTxs.Count} contract transactions.");
                 }
 
                 ExtractTransactionResults(traces, out var results);
@@ -149,7 +149,7 @@ namespace AElf.Miner.Miner
                 }
                 // append block
                 await _blockChain.AddBlocksAsync(new List<IBlock> {block});
-                
+
                 MessageHub.Instance.Publish(new BlockMined(block));
 
                 // insert to db

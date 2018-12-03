@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using AElf.CLI.Certificate;
 using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
+using AElf.CLI.Command.Election;
 using AElf.CLI.Command.MultiSig;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
@@ -76,6 +77,8 @@ namespace AElf.CLI
             program.RegisterCommand(new CheckProposalCmd());
             program.RegisterCommand(new ApproveCmd());
             program.RegisterCommand(new ReleaseProposalCmd());
+            
+            program.RegisterCommand(new AnnounceElectionCmd());
 
             // Start the CLI
             program.StartRepl();

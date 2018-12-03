@@ -9,11 +9,10 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
-using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
-using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
 using AElf.Miner.Miner;
@@ -22,6 +21,7 @@ using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Base58Check;
+using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
@@ -35,7 +35,6 @@ namespace AElf.Node.AElfChain
     {
         private readonly ILogger _logger;
         private readonly ITxHub _txHub;
-        private readonly IStateStore _stateStore;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
@@ -48,14 +47,23 @@ namespace AElf.Node.AElfChain
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
 
-        public MainchainNodeService(IStateStore stateStore, ITxHub hub, IChainCreationService chainCreationService,
-            IBlockSynchronizer blockSynchronizer, IChainService chainService, IMiner miner, ILogger logger)
+        private bool _forkFlag;
+        
+        public MainchainNodeService(
+            ITxHub hub,
+            IChainCreationService chainCreationService,
+            IBlockSynchronizer blockSynchronizer,
+            IChainService chainService,
+            IMiner miner,
+            IConsensus consensus,
+            ILogger logger
+            )
         {
-            _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _txHub = hub;
             _logger = logger;
+            _consensus = consensus;
             _miner = miner;
             _blockSynchronizer = blockSynchronizer;
         }
@@ -126,8 +134,6 @@ namespace AElf.Node.AElfChain
             _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             NodeConfig.Instance.ECKeyPair = conf.KeyPair; // todo config should not be set here 
 
-            SetupConsensus();
-
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
                 await _txHub.AddTransactionAsync(inTx.Transaction);
@@ -154,11 +160,11 @@ namespace AElf.Node.AElfChain
 
                 var curHash = _blockChain.GetCurrentBlockHashAsync().Result;
 
-                var chainExists = curHash != null && !curHash.Equals(Hash.Genesis);
+                var chainExistence = curHash != null && !curHash.Equals(Hash.Genesis);
 
-                if (!chainExists)
+                if (!chainExistence)
                 {
-                    // Creation of the chain if it doesn't already exist
+                    // Create the chain if it doesn't exist
                     CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero,
                         SideChainGenesisContractZero, AuthorizationContractZero);
                 }
@@ -174,17 +180,9 @@ namespace AElf.Node.AElfChain
 
             _txHub.Start();
 
-            if (NodeConfig.Instance.IsMiner)
+            if (NodeConfig.Instance.WillingToMine)
             {
                 _miner.Init();
-            }
-
-            Thread.Sleep(1000);
-
-            if (NodeConfig.Instance.ConsensusInfoGenerator)
-            {
-                StartMining();
-                // Start directly.
                 _consensus?.Start();
             }
 
@@ -193,9 +191,12 @@ namespace AElf.Node.AElfChain
                 await _blockSynchronizer.ReceiveBlock(inBlock.Block);
             });
 
+            MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
+            MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });
+
             #endregion start
 
-            MessageHub.Instance.Publish(new ChainInitialized(null));
+            MessageHub.Instance.Publish(new ChainInitialized());
 
             return true;
         }
@@ -211,10 +212,9 @@ namespace AElf.Node.AElfChain
             return _consensus.IsAlive();
         }
 
-        // TODO: 
         public bool IsForked()
         {
-            return false;
+            return _forkFlag;
         }
 
         #region private methods
@@ -286,39 +286,6 @@ namespace AElf.Node.AElfChain
                 new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg, sideChainCReg}).Result;
             
             _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");
-        }
-
-        private void SetupConsensus()
-        {
-            if (_consensus != null)
-            {
-                _logger?.Trace("Consensus has already initialized.");
-                return;
-            }
-
-            switch (ConsensusConfig.Instance.ConsensusType)
-            {
-                case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_stateStore, _txHub, _miner, _chainService);
-                    break;
-
-                case ConsensusType.PoTC:
-                    _consensus = new PoTC(_miner, _txHub);
-                    break;
-
-                case ConsensusType.SingleNode:
-                    _consensus = new StandaloneNodeConsensusPlaceHolder();
-                    break;
-            }
-        }
-
-        private void StartMining()
-        {
-            if (NodeConfig.Instance.IsMiner)
-            {
-                SetupConsensus();
-                _consensus?.Start();
-            }
         }
 
         #endregion private methods

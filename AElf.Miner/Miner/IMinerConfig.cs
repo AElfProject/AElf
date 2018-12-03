@@ -25,7 +25,7 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// parent miner address
         /// </summary>
-        string ParentAdddress { get; set; }
+        string ParentAddress { get; set; }
         
         /// <summary>
         /// parent miner port for rpc
