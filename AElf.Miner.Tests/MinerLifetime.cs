@@ -217,8 +217,6 @@ namespace AElf.Kernel.Tests.Miner
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
             NodeConfig.Instance.ECKeyPair = keypair;
-            miner.Init();
-            
             var block = await miner.Mine();
             
             Assert.NotNull(block);
