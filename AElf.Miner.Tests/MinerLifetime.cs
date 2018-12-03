@@ -449,7 +449,7 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcLocalConfig.Instance.ClientToParentChain = false;
                 manager.Init(dir, t);
                 var miner = _mock.GetMiner(minerConfig, pool, manager);
-                miner.Init();
+                //miner.Init();
                 //Thread.Sleep(t/2);
                 ChainConfig.Instance.ChainId = chain.Id.DumpHex();
                 var block = await miner.Mine();

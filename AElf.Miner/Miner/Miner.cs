@@ -34,11 +34,11 @@ namespace AElf.Miner.Miner
     public class Miner : IMiner
     {
         private readonly ITxHub _txHub;
-        private ECKeyPair _keyPair;
+        private readonly ECKeyPair _keyPair = NodeConfig.Instance.ECKeyPair;
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private int _timeoutMilliseconds;
+        private readonly int _timeoutMilliseconds = ConsensusConfig.Instance.DPoSMiningInterval / 4 * 3;
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
@@ -175,9 +175,9 @@ namespace AElf.Miner.Miner
                 return null;
             }
         }
-       
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false, TransactionType transactionType = TransactionType.ContractTransaction)
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false,
+            TransactionType transactionType = TransactionType.ContractTransaction)
         {
             using (var cts = new CancellationTokenSource())
             using (var timer = new Timer(s =>
@@ -286,70 +286,77 @@ namespace AElf.Miner.Miner
         private void ExtractTransactionResults(IEnumerable<TransactionTrace> traces, out HashSet<TransactionResult> results)
         {
             results = new HashSet<TransactionResult>();
-            int index = 0;
-            foreach (var trace in traces)
+            try
             {
-                switch (trace.ExecutionStatus)
+                int index = 0;
+                foreach (var trace in traces)
                 {
-                    case ExecutionStatus.Canceled:
-                        // Put back transaction
-                        break;
-                    case ExecutionStatus.ExecutedAndCommitted:
-                        // Successful
-                        var txRes = new TransactionResult()
-                        {
-                            TransactionId = trace.TransactionId,
-                            Status = Status.Mined,
-                            RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
-                            StateHash = trace.GetSummarizedStateHash(),
-                            Index = index++
-                        };
-                        txRes.UpdateBloom();
-                        
-                        // insert deferred txn to transaction pool and wait for execution 
-                        if (trace.DeferredTransaction.Length != 0)
-                        {
-                            var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                            InsertTransactionToPool(deferredTxn).ConfigureAwait(false);
-                            txRes.DeferredTxnId = deferredTxn.GetHash();
-                        }
-                            
-                        results.Add(txRes);
-                        break;
-                    case ExecutionStatus.ContractError:
-                        var txResF = new TransactionResult()
-                        {
-                            TransactionId = trace.TransactionId,
-                            RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
-                            Status = Status.Failed,
-                            StateHash = trace.GetSummarizedStateHash(),
-                            Index = index++
-                        };
-                        results.Add(txResF);
-                        break;
-                    case ExecutionStatus.Undefined:
-                        _logger?.Fatal(
-                            $@"Transaction Id ""{
-                                    trace.TransactionId
-                                } is executed with status Undefined. Transaction trace: {trace}""");
-                        break;
-                    case ExecutionStatus.SystemError:
-                        // SystemError shouldn't happen, and need to fix
-                        _logger?.Fatal(
-                            $@"Transaction Id ""{
-                                    trace.TransactionId
-                                } is executed with status SystemError. Transaction trace: {trace}""");
-                        break;
-                    case ExecutionStatus.ExecutedButNotCommitted:
-                        // If this happens, there's problem with the code
-                        _logger?.Fatal(
-                            $@"Transaction Id ""{
-                                    trace.TransactionId
-                                } is executed with status ExecutedButNotCommitted. Transaction trace: {
-                                    trace
-                                }""");
-                        break;
+                    switch (trace.ExecutionStatus)
+                    {
+                        case ExecutionStatus.Canceled:
+                            // Put back transaction
+                            break;
+                        case ExecutionStatus.ExecutedAndCommitted:
+                            // Successful
+                            var txRes = new TransactionResult()
+                            {
+                                TransactionId = trace.TransactionId,
+                                Status = Status.Mined,
+                                RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                                StateHash = trace.GetSummarizedStateHash(),
+                                Index = index++
+                            };
+                            txRes.UpdateBloom();
+
+                            // insert deferred txn to transaction pool and wait for execution 
+                            if (trace.DeferredTransaction.Length != 0)
+                            {
+                                var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                                InsertTransactionToPool(deferredTxn).ConfigureAwait(false);
+                                txRes.DeferredTxnId = deferredTxn.GetHash();
+                            }
+
+                            results.Add(txRes);
+                            break;
+                        case ExecutionStatus.ContractError:
+                            var txResF = new TransactionResult()
+                            {
+                                TransactionId = trace.TransactionId,
+                                RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
+                                Status = Status.Failed,
+                                StateHash = trace.GetSummarizedStateHash(),
+                                Index = index++
+                            };
+                            results.Add(txResF);
+                            break;
+                        case ExecutionStatus.Undefined:
+                            _logger?.Fatal(
+                                $@"Transaction Id ""{
+                                        trace.TransactionId
+                                    } is executed with status Undefined. Transaction trace: {trace}""");
+                            break;
+                        case ExecutionStatus.SystemError:
+                            // SystemError shouldn't happen, and need to fix
+                            _logger?.Fatal(
+                                $@"Transaction Id ""{
+                                        trace.TransactionId
+                                    } is executed with status SystemError. Transaction trace: {trace}""");
+                            break;
+                        case ExecutionStatus.ExecutedButNotCommitted:
+                            // If this happens, there's problem with the code
+                            _logger?.Fatal(
+                                $@"Transaction Id ""{
+                                        trace.TransactionId
+                                    } is executed with status ExecutedButNotCommitted. Transaction trace: {
+                                        trace
+                                    }""");
+                            break;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error in ExtractTransactionResults");
             }
         }
 
@@ -499,16 +506,6 @@ namespace AElf.Miner.Miner
                     return null;
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Start mining
-        /// init clients to side chain node 
-        /// </summary>
-        public void Init()
-        {
-            _timeoutMilliseconds = ConsensusConfig.Instance.DPoSMiningInterval * 3 / 4;
-            _keyPair = NodeConfig.Instance.ECKeyPair;
         }
 
         /// <summary>

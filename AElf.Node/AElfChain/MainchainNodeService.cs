@@ -179,9 +179,7 @@ namespace AElf.Node.AElfChain
 
             if (NodeConfig.Instance.IsMiner)
             {
-                _miner.Init();
                 _logger?.Debug($"Coinbase = {_miner.Coinbase.DumpHex()}");
-                
                 _consensus?.Start();
             }
 

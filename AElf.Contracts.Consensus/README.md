@@ -1,4 +1,4 @@
-# Election System
+# Designs of Election System
 
 ## Data Structure
 
@@ -12,39 +12,73 @@ message Tickets {
     repeated VotingRecord VotingRecord = 2;
 }
 
+message VotingRecord {
+    Address From = 1;
+    Address To = 2;
+    uint64 TicketsCount = 3;
+    uint64 RoundNumber = 4;// Round number of the voting behavior
+    Hash TransactionId = 5;// Related transaction id
+    bool State = 6;// Regreted or not
+}
+
+message ElectionSnapshot {
+    uint64 StartRoundNumber = 1;
+    uint64 EndRoundNumber = 2;
+    uint64 Blocks = 3;
+    repeated TicketsMap TicketsMap = 4;
+}
+
+message TicketsMap {
+    Address CandidateAddress = 1;
+    uint64 TicketsCount = 2;
+    uint64 TotalWeights = 3;
+}
 
 ```
 
-In `TokenContract`, we maintain a field of `Candidates` to simply record all the candidates (who announuced election).
+In `TokenContract`: 
+
+- A field of `Candidates` (called `CandidatesField`)
+  - simply record all the candidates (who announuced election).
 
 In `ConsensusContract`:
 
-We use a field of `Candidates` (called `CandidatesField`) also record all the candidates, and the filed should only be updated by the calling of `AnnouceElection` from `TokenContract`.
+- A field of `Candidates` (called `CandidatesField`)
+  - record all the candidates, and this field should only be updated by the calling of `AnnouceElection` from `TokenContract`.
 
-Especially, we use a map of `Address` to `Tickets` (called `BalanceMap`) to maintain all the tickets of addresses. (Candidates will have a huge amount of tickets but they can't handle their tickets.)
+- A map of `Address` to `Tickets` (called `BalanceMap`) 
+  - maintains all the tickets of voters, including their voting histories.
 
-
+- A map of `UInt64Value` to `ElectionSnapshot` (called `SnapshotMap`)
+  - maintains the snapshots of every replacement of block producers.
 
 ## For candidates
 
 ### Announce election
 Send transaction `AnnouceElection` to `TokenContract`;
+- No parameter
 
 ### Quit election
 Send transaction `QuitElection` to `ConsensusContract`
+- No parameter
 
 ## For voters
 
-### Get tickets
-Send transaction `GetTickets` to `TokenContract`
-
 ### Vote
-Send transaction `Vote` to `ConsensusContract`
+Send transaction `Vote` to `TokenContract`
+- `Address` CandidateAddress
+- `ulong` amount
 
 ### Regret
 Send transaction `Regret` to `ConsensusContract`
+- `Address` CandidateAddress
+- `ulong` amount
 
-### Withdraw (give up tickets to get ELFs back)
+### Withdraw (to get ELFs back)
 Send transaction `Withdraw` to `ConsensusContract`
+- `Address` CandidateAddress
+- `ulong` amount
 
-- Can only withdraw remaining tickets, which means if anyone want to withdraw all tickets, first regret his votings.
+or 
+
+- `Hash` TransactionId
