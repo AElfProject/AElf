@@ -8,7 +8,7 @@ namespace AElf.CLI2.JS.Net
 {
     public class HttpRequestorError
     {
-        [JsonProperty("erro")] public string Error { get; } = nameof(HttpRequestorError);
+        [JsonProperty("error")] public string Error { get; } = nameof(HttpRequestorError);
 
         [JsonProperty("details")] public string Details { get; }
 

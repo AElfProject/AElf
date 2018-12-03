@@ -176,6 +176,8 @@ namespace AElf.CLI2.JS
                 _requestor = new HttpRequestor(_option.Endpoint, _context);
                 _context.GlobalObject.WriteProperty("_requestor", _requestor);
                 RunScript("aelf = new Aelf(_requestor);");
+                RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
+                    .GetManifestResourceStream("AElf.CLI2.Scripts.requestor.js"));
             }
             catch (Exception)
             {

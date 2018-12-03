@@ -20,5 +20,6 @@
     <EmbeddedResource Include="Scripts\aelf.js" />
     <EmbeddedResource Include="Scripts\helpers.js" />
     <EmbeddedResource Include="Scripts\crypto.js" />
+    <EmbeddedResource Include="Scripts\requestor.js" />
   </ItemGroup>
 </Project>
