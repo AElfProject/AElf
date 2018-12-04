@@ -47,8 +47,8 @@ namespace AElf.Contracts.Consensus
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap =
             new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString);
 
-        private readonly Map<Address, Tickets> _balanceMap =
-            new Map<Address, Tickets>(GlobalConfig.AElfDPoSBalanceMapString);
+        private readonly Map<BytesValue, Tickets> _balanceMap =
+            new Map<BytesValue, Tickets>(GlobalConfig.AElfDPoSBalanceMapString);
 
         private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap =
             new Map<UInt64Value, ElectionSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString);
@@ -86,11 +86,11 @@ namespace AElf.Contracts.Consensus
             });
         }
 
-        public async Task<Int32Value> Validation(byte[] accountAddress, byte[] timestamp, byte[] roundId)
+        public async Task<Int32Value> Validation(byte[] pubKey, byte[] timestamp, byte[] roundId)
         {
             return new Int32Value
             {
-                Value = await DPoSConsensus.Validation(new List<byte[]> {accountAddress, timestamp, roundId})
+                Value = await DPoSConsensus.Validation(new List<byte[]> {pubKey, timestamp, roundId})
             };
         }
 
@@ -121,21 +121,21 @@ namespace AElf.Contracts.Consensus
             await DPoSConsensus.Election(new List<byte[]>());
         }
 
-        public async Task Vote(byte[] candidateAddress, byte[] amount)
+        public async Task Vote(byte[] candidatePubKey, byte[] amount)
         {
             await DPoSConsensus.Election(new List<byte[]>
             {
-                candidateAddress,
+                candidatePubKey,
                 amount,
                 new BoolValue {Value = true}.ToByteArray()
             });
         }
 
-        public async Task Regret(byte[] candidateAddress, byte[] amount)
+        public async Task Regret(byte[] candidatePubKey, byte[] amount)
         {
             await DPoSConsensus.Election(new List<byte[]>
             {
-                candidateAddress,
+                candidatePubKey,
                 amount,
                 new BoolValue {Value = false}.ToByteArray()
             });
@@ -154,21 +154,21 @@ namespace AElf.Contracts.Consensus
             return DPoSConsensus.GetCurrentMiners();
         }
 
-        public async Task AddTickets(Address addressToGetTickets, ulong amount)
+        public async Task AddTickets(byte[] pubKey, ulong amount)
         {
             //Api.Assert(Api.GetTransaction().From == TokenContractAddress, "Only token contract can call AddTickets method.");
 
-            await DPoSConsensus.HandleTickets(addressToGetTickets, amount);
+            await DPoSConsensus.HandleTickets(pubKey, amount);
         }
 
-        public async Task AnnounceElection(Address candidateAddress)
+        public async Task AnnounceElection(byte[] pubKey)
         {
-            await DPoSConsensus.AnnounceElection(candidateAddress);
+            await DPoSConsensus.AnnounceElection(pubKey);
         }
 
-        public async Task Withdraw(Address address, ulong amount)
+        public async Task Withdraw(byte[] pubKey, ulong amount)
         {
-            await DPoSConsensus.HandleTickets(address, amount, true);
+            await DPoSConsensus.HandleTickets(pubKey, amount, true);
         }
 
         #endregion

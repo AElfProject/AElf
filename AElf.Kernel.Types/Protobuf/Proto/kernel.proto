@@ -238,7 +238,7 @@ message OngoingMiners {
 }
 
 message Candidates {
-    repeated Address Nodes = 1;
+    repeated bytes PubKeys = 1;
 }
 
 message Tickets {
@@ -257,7 +257,7 @@ message VotingRecord {
 
 message Miners {
     uint64 TakeEffectRoundNumber = 1;
-    repeated Address Nodes = 2;
+    repeated bytes Producers = 2;
 }
 
 message ElectionSnapshot {
@@ -268,7 +268,7 @@ message ElectionSnapshot {
 }
 
 message TicketsMap {
-    Address CandidateAddress = 1;
+    bytes Candidate = 1;
     uint64 TicketsCount = 2;
     uint64 TotalWeights = 3;
 }

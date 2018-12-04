@@ -66,7 +66,7 @@ namespace AElf.Kernel.Node
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
         private ECKeyPair _nodeKey;
-        private Address _nodeAddress;
+        private byte[] _ownPubKey;
 
         private Hash _chainId;
 
@@ -154,7 +154,7 @@ namespace AElf.Kernel.Node
         public async Task Start()
         {
             _nodeKey = NodeConfig.Instance.ECKeyPair;
-            _nodeAddress = Address.FromPublicKey(_chainId.DumpByteArray(), _nodeKey.PublicKey);
+            _ownPubKey = _nodeKey.PublicKey;
             
             // Consensus information already generated.
             if (ConsensusDisposable != null)
@@ -168,7 +168,7 @@ namespace AElf.Kernel.Node
             _consensusInitialized = true;
 
             // Check whether this node contained BP list.
-            if (!Miners.Nodes.Contains(_nodeAddress))
+            if (!Miners.Producers.Contains(ByteString.CopyFrom(_ownPubKey)))
             {
                 return;
             }
@@ -243,7 +243,7 @@ namespace AElf.Kernel.Node
                 
                 var tx = new Transaction
                 {
-                    From = _nodeAddress,
+                    From = Address.FromPublicKey(_chainId.DumpByteArray(), _ownPubKey),
                     To = ContractAddress,
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
@@ -585,12 +585,12 @@ namespace AElf.Kernel.Node
 
             // Update observer.
             var miners = _helper.Miners;
-            if (!miners.Contains(_nodeAddress))
+            if (!miners.Contains(_ownPubKey))
             {
                 return;
             }
 
-            var blockProducerInfoOfCurrentRound = _helper[_nodeAddress];
+            var blockProducerInfoOfCurrentRound = _helper[_ownPubKey];
             ConsensusDisposable = AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
                 _helper.ExtraBlockTimeSlot);
 
@@ -629,7 +629,7 @@ namespace AElf.Kernel.Node
                     $"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.GetFormatted()}.");
             }
 
-            if (tx.From.Equals(_nodeAddress))
+            if (tx.From.Equals(_ownPubKey))
                 _logger?.Trace(
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
@@ -648,111 +648,5 @@ namespace AElf.Kernel.Node
             return _lockNumber != 0;
         }
 
-        private async Task InitBalance(Address address)
-        {
-            try
-            {
-                _logger?.Trace("Entered generating tx.");
-                
-                var bn = await BlockChain.GetCurrentBlockHeightAsync();
-                bn = bn > 4 ? bn - 4 : 0;
-                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
-                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
-                
-                var tx = new Transaction
-                {
-                    From = _nodeAddress,
-                    To = ContractHelpers.GetTokenContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)),
-                    RefBlockNumber = bn,
-                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
-                    MethodName = "InitBalance",
-                    Type = TransactionType.ContractTransaction,
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(address, GlobalConfig.LockTokenForElection * 2)),
-                };
-                
-                var signature = new ECSigner().Sign(_nodeKey, tx.GetHash().DumpByteArray());
-                
-                // Update the signature
-                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-
-                _logger?.Trace("Leaving generating tx.");
-
-                await BroadcastTransaction(tx);
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, "Error while during generating Token tx.");
-            }
-        }
-
-        private async Task AnnounceElection(Address address)
-        {
-            try
-            {
-                _logger?.Trace("Entered generating tx.");
-                var bn = await BlockChain.GetCurrentBlockHeightAsync();
-                bn = bn > 4 ? bn - 4 : 0;
-                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
-                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
-                
-                var tx = new Transaction
-                {
-                    From = address,
-                    To = ContractHelpers.GetTokenContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)),
-                    RefBlockNumber = bn,
-                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
-                    MethodName = "AnnounceElection",
-                    Type = TransactionType.ContractTransaction,
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
-                };
-                
-                var signature = new ECSigner().Sign(_nodeKey, tx.GetHash().DumpByteArray());
-                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-
-                _logger?.Trace("Leaving generating tx.");
-
-                await BroadcastTransaction(tx);
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, "Error while during generating Token tx.");
-            }
-        }
-
-        private async Task GenerateVoteTransactionAsync(Address voter, Address candidate)
-        {
-            try
-            {
-                _logger?.Trace("Entered generating tx.");
-                
-                var bn = await BlockChain.GetCurrentBlockHeightAsync();
-                bn = bn > 4 ? bn - 4 : 0;
-                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
-                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
-                
-                var tx = new Transaction
-                {
-                    From = voter,
-                    To = ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)),
-                    RefBlockNumber = bn,
-                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
-                    MethodName = "AnnounceElection",
-                    Type = TransactionType.ContractTransaction,
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(candidate.ToByteArray(),
-                        new UInt64Value {Value = (ulong) new Random().Next(1, 10)}.ToByteArray()))
-                };
-                
-                var signature = new ECSigner().Sign(_nodeKey, tx.GetHash().DumpByteArray());
-                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-
-                _logger?.Trace("Leaving generating tx.");
-
-                await BroadcastTransaction(tx);
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, "Error while during generating Token tx.");
-            }
-        }
     }
 }

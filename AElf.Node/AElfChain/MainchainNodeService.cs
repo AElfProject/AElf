@@ -273,7 +273,7 @@ namespace AElf.Node.AElfChain
                 ContractHash = Hash.FromRawBytes(resourceContractCode),
                 SerialNumber = GlobalConfig.ResourceContract
             };
-            var res = _chainCreationService.CreateNewChainAsync(Hash.LoadHex(ChainConfig.Instance.ChainId),
+            var res = _chainCreationService.CreateNewChainAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration>
                     {basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg}).Result;
             _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");

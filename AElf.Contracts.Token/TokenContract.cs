@@ -63,9 +63,6 @@ namespace AElf.Contracts.Token
         [SmartContractFieldData("${this}._balances", DataAccessMode.AccountSpecific)]
         private readonly MapToUInt64<Address> _balances = new MapToUInt64<Address>("_Balances_");
 
-        [SmartContractFieldData("${this}._candidates", DataAccessMode.AccountSpecific)]
-        private readonly PbField<Candidates> _candidates = new PbField<Candidates>("_Candidates_");
-
         [SmartContractFieldData("${this}._allowancePlaceHolder", DataAccessMode.AccountSpecific)]
         private readonly object _allowancePlaceHolder;
 
@@ -179,67 +176,7 @@ namespace AElf.Contracts.Token
             }.Fire();
         }
 
-        [SmartContractFunction("${this}.AnnounceElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
-        public void AnnounceElection()
-        {
-            Console.WriteLine($"Start announcing election - {Api.GetFromAddress().GetFormatted()}");
-
-            var candidateAddress = Api.GetFromAddress();
-
-            // Transfer tokens to consensus contract account.
-            Transfer(ConsensusContractAddress, GlobalConfig.LockTokenForElection);
-
-            // Add this candidate to candidates list.
-            var candidates = _candidates.GetValue();
-            if (candidates == null || !candidates.Nodes.Any())
-            {
-                candidates = new Candidates();
-            }
-
-            candidates.Nodes.Add(Api.GetFromAddress());
-            _candidates.SetValue(candidates);
-
-            // Get this candidate a specific amount of tickets.
-            Api.Call(ConsensusContractAddress, "AddTickets",
-                ByteString.CopyFrom(ParamsPacker.Pack(candidateAddress, GlobalConfig.LockTokenForElection))
-                    .ToByteArray());
-
-            Api.Call(ConsensusContractAddress, "AnnounceElection",
-                ByteString.CopyFrom(ParamsPacker.Pack(candidateAddress))
-                    .ToByteArray());
-            
-            Console.WriteLine($"End announcing election - {Api.GetFromAddress().GetFormatted()}");
-        }
-
-        [SmartContractFunction("${this}.CancelElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
-        public void CancelElection(Address candidateAddress)
-        {
-            Api.Assert(Api.GetFromAddress() == ConsensusContractAddress,
-                "Only consensus contract can call CancelElection method.");
-
-            var candidates = _candidates.GetValue();
-
-            Api.Assert(candidates != null, "Candidates list in token contract is null.");
-            Api.Assert(candidates != null && candidates.Nodes.Contains(candidateAddress),
-                "This candidate doesn't contained by the candidates list in token contract.");
-            
-            if (candidates == null) return;
-
-            Transfer(candidateAddress, GlobalConfig.LockTokenForElection);
-            candidates.Nodes.Remove(candidateAddress);
-            _candidates.SetValue(candidates);
-        }
-
-        [SmartContractFunction("${this}.GetTickets", new string[] {"${this}.DoTransfer"}, new string[] { })]
-        public void GetTickets(ulong amount)
-        {
-            var voter = Api.GetFromAddress();
-            Api.Assert(_balances.TryGet(voter, out var balance), $"No balance: {voter.GetFormatted()}");
-            Api.Assert(balance.Value >= amount, $"Balance of {voter.GetFormatted()} is not enough.");
-            Transfer(ConsensusContractAddress, amount);
-            Api.Call(ConsensusContractAddress, "AddTickets",
-                ByteString.CopyFrom(ParamsPacker.Pack(voter, amount)).ToByteArray());
-        }
+        
 
         #endregion Actions
 

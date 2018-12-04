@@ -58,7 +58,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private readonly Int32Field _miningIntervalField;
 
-        private readonly Map<Address, Tickets> _balanceMap;
+        private readonly Map<BytesValue, Tickets> _balanceMap;
 
         private readonly PbField<Candidates> _candidatesField;
 
@@ -335,9 +335,9 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             // QuitElection
             if (args.Count == 0)
             {
-                var minerWannaQuitElection = Api.GetFromAddress();
+                var minerWannaQuitElection = Api.RecoverPublicKey();
                 var candidates = await _candidatesField.GetAsync();
-                if (candidates == null || !candidates.Nodes.Contains(minerWannaQuitElection))
+                if (candidates == null || !candidates.PubKeys.Contains(ByteString.CopyFrom(minerWannaQuitElection)))
                 {
                     return;
                 }
@@ -345,18 +345,18 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 var parameter =
                     ByteString.CopyFrom(ParamsPacker.Pack(minerWannaQuitElection));
                 Api.Call(TokenContractAddress, "CancelElection", parameter.ToByteArray());
-                candidates.Nodes.Remove(minerWannaQuitElection);
+                candidates.PubKeys.Remove(ByteString.CopyFrom(minerWannaQuitElection));
                 await _candidatesField.SetAsync(candidates);
             }
 
             // Replace
             if (args.Count == 1)
             {
-                Address outerAddress;
+                byte[] pubKey;
 
                 try
                 {
-                    outerAddress = Address.Parser.ParseFrom(args[0]);
+                    pubKey = args[0];
                 }
                 catch (Exception e)
                 {
@@ -364,9 +364,9 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     return;
                 }
 
-                if (outerAddress.ToByteArray().Any())
+                if (pubKey.Any())
                 {
-                    await UpdateOngoingMiners(outerAddress);
+                    await UpdateOngoingMiners(pubKey);
                 }
                 else
                 {
@@ -378,13 +378,13 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             // Vote
             if (args.Count == 3)
             {
-                Address candidateAddress;
+                byte[] pubKey;
                 UInt64Value amount;
                 BoolValue voteOrNot;
 
                 try
                 {
-                    candidateAddress = Address.Parser.ParseFrom(args[0]);
+                    pubKey = args[0];
                     amount = UInt64Value.Parser.ParseFrom(args[1]);
                     voteOrNot = BoolValue.Parser.ParseFrom(args[2]);
 
@@ -397,11 +397,11 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
                 if (voteOrNot.Value)
                 {
-                    await Vote(candidateAddress, amount);
+                    await Vote(pubKey, amount);
                 }
                 else
                 {
-                    await Regret(candidateAddress, amount);
+                    //await Regret(candidateAddress, amount);
                 }
             }
         }
@@ -417,24 +417,30 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             return ongoingMiners.GetCurrentMiners(CurrentRoundNumber);
         }
 
-        public async Task HandleTickets(Address address, ulong amount, bool withdraw = false)
+        public async Task HandleTickets(byte[] pubKey, ulong amount, bool withdraw = false)
         {
+            var bv = new BytesValue
+            {
+                Value = ByteString.CopyFrom(pubKey)
+            };
+            
             if (!withdraw)
             {
-                if (_balanceMap.TryGet(address, out var tickets))
+                
+                if (_balanceMap.TryGet(bv, out var tickets))
                 {
                     tickets.RemainingTickets += amount;
-                    await _balanceMap.SetValueAsync(address, tickets);
+                    await _balanceMap.SetValueAsync(bv, tickets);
                 }
                 else
                 {
                     tickets = new Tickets {RemainingTickets = amount};
-                    await _balanceMap.SetValueAsync(address, tickets);
+                    await _balanceMap.SetValueAsync(bv, tickets);
                 }
             }
             else
             {
-                if (_balanceMap.TryGet(address, out var tickets))
+                if (_balanceMap.TryGet(bv, out var tickets))
                 {
                     Api.Assert(tickets.RemainingTickets >= amount,
                         $"{Api.GetFromAddress().GetFormatted()} can't withdraw tickets.");
@@ -442,22 +448,22 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     tickets.RemainingTickets -= amount;
                     Api.Call(TokenContractAddress, "Transfer",
                         ByteString.CopyFrom(ParamsPacker.Pack(amount)).ToByteArray());
-                    await _balanceMap.SetValueAsync(address, tickets);
+                    await _balanceMap.SetValueAsync(bv, tickets);
                 }
             }
 
-            Console.WriteLine($"{address.GetFormatted()}'s tickets changed: {amount}");
+            Console.WriteLine($"{pubKey.ToPlainBase58()}'s tickets changed: {amount}");
         }
 
-        public async Task AnnounceElection(Address candidateAddress)
+        public async Task AnnounceElection(byte[] candidatePubKey)
         {
             var candidates = await _candidatesField.GetAsync();
-            if (candidates == null || !candidates.Nodes.Any())
+            if (candidates == null || !candidates.PubKeys.Any())
             {
                 candidates = new Candidates();
             }
 
-            candidates.Nodes.Add(candidateAddress);
+            candidates.PubKeys.Add(ByteString.CopyFrom(candidatePubKey));
             await _candidatesField.SetAsync(candidates);
         }
 
@@ -485,12 +491,12 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         /// </returns>
         public async Task<int> Validation(List<byte[]> args)
         {
-            StringValue accountAddress;
+            byte[] pubKey;
             Timestamp timestamp;
             Int64Value roundId;
             try
             {
-                accountAddress = StringValue.Parser.ParseFrom(args[0]);
+                pubKey = args[0];
                 timestamp = Timestamp.Parser.ParseFrom(args[1]);
                 roundId = Int64Value.Parser.ParseFrom(args[2]);
             }
@@ -501,13 +507,13 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             }
 
             // 1. Contained by BlockProducer.Nodes;
-            if (!IsBlockProducer(accountAddress))
+            if (!IsBlockProducer(pubKey))
             {
                 return 1;
             }
 
             // 2. Timestamp sitting in correct time slot of current round;
-            var timeSlotOfBlockProducer = (await GetBPInfoOfCurrentRound(accountAddress)).TimeSlot;
+            var timeSlotOfBlockProducer = (await GetBPInfoOfCurrentRound(pubKey)).TimeSlot;
             var endOfTimeSlotOfBlockProducer = GetTimestampWithOffset(timeSlotOfBlockProducer, Interval);
             var timeSlotOfEBP = await _timeForProducingExtraBlockField.GetAsync();
             var validTimeSlot = CompareTimestamp(timestamp, timeSlotOfBlockProducer) &&
@@ -538,24 +544,29 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         private async Task InitializeBlockProducer(Miners miners)
         {
             var candidates = new Candidates();
-            foreach (var address in miners.Nodes)
+            foreach (var pubKey in miners.Producers)
             {
-                ConsoleWriteLine(nameof(Initialize), $"Set miner {address} to state store.");
+                ConsoleWriteLine(nameof(Initialize), $"Set miner {pubKey.ToByteArray().ToPlainBase58()} to state store.");
 
-                candidates.Nodes.Add(address);
+                candidates.PubKeys.Add(pubKey);
 
-                if (_balanceMap.TryGet(address, out var tickets))
+                // This should only happen on main chain. 
+                var bv = new BytesValue
+                {
+                    Value = pubKey
+                };
+                if (_balanceMap.TryGet(bv, out var tickets))
                 {
                     ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {address.GetFormatted()}: {tickets.RemainingTickets}");
+                        $"Remaining tickets of {bv.Value.ToByteArray().ToPlainBase58()}: {tickets.RemainingTickets}");
                 }
-                else
+                 else
                 {
                     // Miners in the white list
                     tickets = new Tickets {RemainingTickets = GlobalConfig.LockTokenForElection};
-                    await _balanceMap.SetValueAsync(address, tickets);
+                    await _balanceMap.SetValueAsync(bv, tickets);
                     ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {address.GetFormatted()}: {tickets.RemainingTickets}");
+                        $"Remaining tickets of {bv.Value.ToByteArray().ToPlainBase58()}: {tickets.RemainingTickets}");
                 }
             }
 
@@ -578,16 +589,16 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             var snapshot = new ElectionSnapshot();
             snapshot.EndRoundNumber = CurrentRoundNumber.Add(1);
 
-            foreach (var candidate in _candidatesField.GetValue().Nodes)
+            foreach (var candidate in _candidatesField.GetValue().PubKeys)
             {
                 snapshot.TicketsMap.Add(new TicketsMap
-                    {CandidateAddress = candidate, TicketsCount = await GetTicketCount(candidate)});
+                    {Candidate = candidate, TicketsCount = await GetTicketCount(candidate.ToByteArray())});
             }
 
             await _snapshotMap.SetValueAsync(new UInt64Value {Value = CurrentRoundNumber.Add(1)}, snapshot);
         }
 
-        private async Task UpdateOngoingMiners(Address outerAddress)
+        private async Task UpdateOngoingMiners(byte[] pubKey)
         {
             var ongoingMiners = await _ongoingMinersField.GetAsync();
             if (ongoingMiners == null || !ongoingMiners.Miners.Any())
@@ -602,8 +613,8 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 out var snapshot))
             {
                 var nextMiner = snapshot.GetNextCandidate(currentMiners);
-                currentMiners.Nodes.Remove(outerAddress);
-                currentMiners.Nodes.Add(nextMiner);
+                currentMiners.Producers.Remove(ByteString.CopyFrom(pubKey));
+                currentMiners.Producers.Add(ByteString.CopyFrom(nextMiner));
                 currentMiners.TakeEffectRoundNumber = CurrentRoundNumber.Add(1);
                 ongoingMiners.Miners.Add(currentMiners);
                 await _ongoingMinersField.SetAsync(ongoingMiners);
@@ -777,49 +788,53 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             return (await _dPoSInfoMap.GetValueAsync(roundNumber)).BlockProducers[accountAddress.Value];
         }
 
-        private async Task<BlockProducer> GetBPInfoOfCurrentRound(StringValue accountAddress)
+        private async Task<BlockProducer> GetBPInfoOfCurrentRound(byte[] pubKey)
         {
             return (await _dPoSInfoMap.GetValueAsync(new UInt64Value {Value = CurrentRoundNumber})).BlockProducers[
-                accountAddress.Value];
+                pubKey.ToPlainBase58()];
         }
 
-        private bool IsBlockProducer(StringValue accountAddress)
+        private bool IsBlockProducer(byte[] pubKey)
         {
             var miners = _ongoingMinersField.GetValue().GetCurrentMiners(CurrentRoundNumber);
-            return miners.Nodes.Contains(Address.Parse(accountAddress.Value));
+            return miners.Producers.Contains(ByteString.CopyFrom(pubKey));
         }
 
         private async Task<Miners> GetVictories()
         {
             var candidates = await _candidatesField.GetAsync();
-            var nodes = new List<Node>();
-            foreach (var candidate in candidates.Nodes)
+            var nodes = new List<Producer>();
+            foreach (var candidate in candidates.PubKeys)
             {
-                var ticketCount = await GetTicketCount(candidate);
-                nodes.Add(new Node
+                var ticketCount = await GetTicketCount(candidate.ToByteArray());
+                nodes.Add(new Producer
                 {
-                    Address = candidate,
+                    PubKey = candidate.ToByteArray(),
                     TicketCount = ticketCount
                 });
             }
 
             return new Miners
             {
-                Nodes =
+                Producers =
                 {
                     nodes.OrderByDescending(n => n.TicketCount).Take(GlobalConfig.BlockProducerNumber)
-                        .Select(n => n.Address)
+                        .Select(n => ByteString.CopyFrom(n.PubKey))
                 }
             };
         }
 
-        private async Task Vote(Address candidateAddress, UInt64Value amount)
+        private async Task Vote(byte[] pubKey, UInt64Value amount)
         {
             Api.Assert(CheckTickets(amount), $"Tickets of {Api.GetFromAddress().GetFormatted()} is not enough.");
 
-            Api.Assert(await IsCandidate(candidateAddress), $"{candidateAddress.GetFormatted()} is not a candidate.");
+            Api.Assert(await IsCandidate(pubKey), $"{pubKey.ToPlainBase58()} is not a candidate.");
 
-            if (_balanceMap.TryGet(candidateAddress, out var tickets))
+            var bv = new BytesValue
+            {
+                Value = ByteString.CopyFrom(pubKey)
+            };
+            if (_balanceMap.TryGet(bv, out var tickets))
             {
                 tickets.RemainingTickets.Add(amount.Value);
                 var record = tickets.VotingRecord.FirstOrDefault();
@@ -839,40 +854,16 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 }
             }
 
-            await _balanceMap.SetValueAsync(candidateAddress, tickets);
+            await _balanceMap.SetValueAsync(bv, tickets);
         }
 
-        private async Task Regret(Address candidateAddress, UInt64Value amount)
+        private async Task<ulong> GetTicketCount(byte[] pubKey)
         {
-            var voterAddress = Api.GetFromAddress();
-            if (_balanceMap.TryGet(candidateAddress, out var tickets))
+            var bv = new BytesValue
             {
-                var record = tickets.VotingRecord.FirstOrDefault(vr => vr.From == voterAddress);
-
-                Api.Assert(record != null,
-                    $"It seems that {voterAddress.GetFormatted()} didn't voted for {candidateAddress.GetFormatted()}.");
-
-                if (record != null)
-                {
-                    Api.Assert(record.TicketsCount >= amount.Value,
-                        $"Tickets of {voterAddress.GetFormatted()} is not enough.");
-                    if (_balanceMap.TryGet(voterAddress, out var voterTickets))
-                    {
-                        voterTickets.RemainingTickets += amount.Value;
-                        tickets.VotingRecord.Remove(record);
-                        record.TicketsCount -= amount.Value;
-                        tickets.VotingRecord.Add(record);
-
-                        await _balanceMap.SetValueAsync(candidateAddress, tickets);
-                        await _balanceMap.SetValueAsync(voterAddress, voterTickets);
-                    }
-                }
-            }
-        }
-
-        private async Task<ulong> GetTicketCount(Address address)
-        {
-            var balance = (await _balanceMap.GetValueAsync(address)).RemainingTickets;
+                Value = ByteString.CopyFrom(pubKey)
+            };
+            var balance = (await _balanceMap.GetValueAsync(bv)).RemainingTickets;
             return balance >= GlobalConfig.LockTokenForElection ? balance - GlobalConfig.LockTokenForElection : 0;
         }
 
@@ -884,7 +875,11 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private bool CheckTickets(UInt64Value amount)
         {
-            if (_balanceMap.TryGet(Api.GetFromAddress(), out var tickets))
+            var bv = new BytesValue
+            {
+                Value = Api.GetPublicKey()
+            };
+            if (_balanceMap.TryGet(bv, out var tickets))
             {
                 return tickets.RemainingTickets >= amount.Value;
             }
@@ -892,10 +887,10 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             return false;
         }
 
-        private async Task<bool> IsCandidate(Address address)
+        private async Task<bool> IsCandidate(byte[] pubKey)
         {
             var candidates = await _candidatesField.GetAsync();
-            return candidates != null && candidates.Nodes.Contains(address);
+            return candidates != null && candidates.PubKeys.Contains(ByteString.CopyFrom(pubKey));
         }
 
         #endregion

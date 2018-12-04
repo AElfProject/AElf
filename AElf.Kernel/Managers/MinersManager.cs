@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
 using NLog;
 
 namespace AElf.Kernel.Managers
@@ -30,8 +31,8 @@ namespace AElf.Kernel.Managers
 
             foreach (var bp in dict.Values)
             {
-                var address = bp["address"];
-                miners.Nodes.Add(Address.Parse(address));
+                var pubKey = bp["public_key"].DecodeBase58();
+                miners.Producers.Add(ByteString.CopyFrom(pubKey));
             }
 
             return miners;
@@ -45,9 +46,9 @@ namespace AElf.Kernel.Managers
 
         public async Task SetMiners(Miners miners)
         {
-            foreach (var node in miners.Nodes)
+            foreach (var node in miners.Producers)
             {
-                _logger?.Trace($"Set miner {node.GetFormatted()} to data store.");
+                _logger?.Trace($"Set miner {miners.ToByteArray().ToPlainBase58()} to data store.");
             }
 
             await _dataStore.InsertAsync(Key, miners);

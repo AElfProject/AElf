@@ -114,11 +114,20 @@ namespace AElf.Sdk.CSharp
                 return recover;
             }
         }
+
+        /// <summary>
+        /// Recover the first public key signing this transaction.
+        /// </summary>
+        /// <returns></returns>
+        public static byte[] RecoverPublicKey()
+        {
+            return RecoverPublicKey(GetTransaction().Sigs.First().ToByteArray(), GetTxnHash().DumpByteArray());
+        }
         
-        public static List<Address> GetSystemReviewers()
+        public static List<byte[]> GetSystemReviewers()
         {
             Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<Miners>().Nodes.ToList();
+            return GetCallResult().DeserializeToPbMessage<Miners>().Producers.Select(p => p.ToByteArray()).ToList();
         }
         
         public static Address GetContractOwner()
