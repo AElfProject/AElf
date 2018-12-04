@@ -13,11 +13,6 @@ namespace AElf.Kernel
     {
         public void Init(ContainerBuilder builder)
         {
-            if (ConsensusConfig.Instance.ConsensusType == ConsensusType.PoTC)
-            {
-                GlobalConfig.BlockProducerNumber = 1;
-            }
-
             if (ConsensusConfig.Instance.ConsensusType == ConsensusType.SingleNode)
             {
                 GlobalConfig.BlockProducerNumber = 1;

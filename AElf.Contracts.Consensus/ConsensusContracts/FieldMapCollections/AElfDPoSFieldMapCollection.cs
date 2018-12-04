@@ -1,8 +1,9 @@
-﻿using AElf.Kernel;
+﻿using AElf.Common;
+using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
+namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
 {
     // ReSharper disable InconsistentNaming
     public class AElfDPoSFieldMapCollection
@@ -15,7 +16,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         /// <summary>
         /// Current block producers / miners.
         /// </summary>
-        public PbField<Miners> BlockProducerField;
+        public PbField<OngoingMiners> OngoingMinersField;
         
         /// <summary>
         /// DPoS information of each round.
@@ -43,9 +44,15 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         public Int32Field MiningIntervalField;
 
         /// <summary>
-        /// Using a hash value to identify one round.
-        /// Basically the hash value is calculated from signatures of all the BPs.
+        /// Balances of each address.
         /// </summary>
-        public Map<UInt64Value, Int64Value> RoundHashMap;
+        public Map<Address, Tickets> BalanceMap;
+
+        /// <summary>
+        /// The nodes declared join the election for BP.
+        /// </summary>
+        public PbField<Candidates> CandidatesField;
+
+        public Map<UInt64Value, ElectionSnapshot> SnapshotField;
     }
 }

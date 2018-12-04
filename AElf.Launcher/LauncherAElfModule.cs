@@ -15,8 +15,7 @@ namespace AElf.Launcher
 {
     public class LauncherAElfModule:IAElfModule
     {
-        private static readonly ILogger _logger = LogManager.GetLogger("Launcher");
-        private int _stopped;
+        private static readonly ILogger Logger = LogManager.GetLogger("Launcher");
         private readonly AutoResetEvent _closing = new AutoResetEvent(false);
         private readonly Queue<TerminatedModuleEnum> _modules = new Queue<TerminatedModuleEnum>();
         private TerminatedModuleEnum _prepareTerminatedModule;
@@ -82,7 +81,7 @@ namespace AElf.Launcher
                 if (_prepareTerminatedModule == moduleTerminated.Module)
                 {
                     _modules.Dequeue();
-                    _logger.Trace($"{_prepareTerminatedModule.ToString()} stopped.");
+                    Logger.Trace($"{_prepareTerminatedModule.ToString()} stopped.");
                 }
                 else
                 {
@@ -91,14 +90,14 @@ namespace AElf.Launcher
 
                 if (_modules.Count == 0)
                 {
-                    _logger.Trace("node will be closed after 5s...");
+                    Logger.Trace("node will be closed after 5s...");
                     for (var i = 0; i < 5; i++)
                     {
-                        _logger.Trace($"{5 - i}");
+                        Logger.Trace($"{5 - i}");
                         Thread.Sleep(1000);
                     }
 
-                    _logger.Trace("node is closed.");
+                    Logger.Trace("node is closed.");
                     _closing.Set();
                 }
                 else
@@ -111,7 +110,7 @@ namespace AElf.Launcher
         private void PublishMessage()
         {
             _prepareTerminatedModule = _modules.Peek();
-            _logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}...");
+            Logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}...");
             MessageHub.Instance.Publish(new TerminationSignal(_prepareTerminatedModule));
             
             _timer.Start();

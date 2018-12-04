@@ -13,7 +13,7 @@ using Google.Protobuf;
 
 namespace AElf.Miner
 {
-    public class MinerAElfModule:IAElfModule
+    public class MinerAElfModule : IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {
@@ -22,9 +22,10 @@ namespace AElf.Miner
             {
                 minerConfig = new MinerConfig
                 {
-                    CoinBase =Address.LoadHex(NodeConfig.Instance.NodeAccount) 
+                    CoinBase = Address.LoadHex(NodeConfig.Instance.NodeAccount)
                 };
             }
+
             minerConfig.ChainId = new Hash()
             {
                 Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId))
@@ -42,7 +43,7 @@ namespace AElf.Miner
                 }
             );
             builder.RegisterModule(new MinerAutofacModule(minerConfig));
-            
+
             var txPoolConfig = TxPoolConfig.Default;
             txPoolConfig.FeeThreshold = 0;
             txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;
