@@ -22,7 +22,7 @@ namespace AElf.Kernel.Tests
         {
             var db = new InMemoryDatabase();
             var chainId = Hash.FromString("chain1");
-            var address = Address.FromRawBytes(Hash.FromString("contract1").ToByteArray());
+            var address = Address.Generate();
             var root = DataProvider.GetRootDataProvider(chainId, address);
             root.StateStore = new StateStore(db);
             var s = "test";

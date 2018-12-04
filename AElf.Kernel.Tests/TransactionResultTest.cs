@@ -27,8 +27,8 @@ namespace AElf.Kernel.Tests
             ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
             ITransactionResultManager transactionResultManager, ITxHub txHub)
         {
-            ChainConfig.Instance.ChainId = Hash.Generate().DumpHex();
-            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
+            ChainConfig.Instance.ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }).DumpBase58();
+            NodeConfig.Instance.NodeAccount = Address.Generate().GetFormatted();
             _transactionResultManager = transactionResultManager;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;

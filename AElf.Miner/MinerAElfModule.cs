@@ -22,13 +22,13 @@ namespace AElf.Miner
             {
                 minerConfig = new MinerConfig
                 {
-                    CoinBase = Address.LoadHex(NodeConfig.Instance.NodeAccount)
+                    CoinBase =Address.Parse(NodeConfig.Instance.NodeAccount) 
                 };
             }
 
             minerConfig.ChainId = new Hash()
             {
-                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId))
+                Value = ByteString.CopyFrom(ChainConfig.Instance.ChainId.DecodeBase58())
             };
             builder.RegisterModule(new MinerRpcAutofacModule());
 

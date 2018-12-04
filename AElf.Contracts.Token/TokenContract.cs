@@ -141,7 +141,7 @@ namespace AElf.Contracts.Token
         {
             var from = Api.GetFromAddress();
             DoTransfer(from, to, amount);
-            Console.WriteLine($"Transferred {amount} tokens to - {to.DumpHex()}");
+            Console.WriteLine($"Transferred {amount} tokens to - {to.GetFormatted()}");
         }
 
         [SmartContractFunction("${this}.TransferFrom", new string[] {"${this}.DoTransfer"},
@@ -182,7 +182,7 @@ namespace AElf.Contracts.Token
         [SmartContractFunction("${this}.AnnounceElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
         public void AnnounceElection()
         {
-            Console.WriteLine($"Start announcing election - {Api.GetFromAddress().DumpHex()}");
+            Console.WriteLine($"Start announcing election - {Api.GetFromAddress().GetFormatted()}");
 
             var candidateAddress = Api.GetFromAddress();
 
@@ -208,7 +208,7 @@ namespace AElf.Contracts.Token
                 ByteString.CopyFrom(ParamsPacker.Pack(candidateAddress))
                     .ToByteArray());
             
-            Console.WriteLine($"End announcing election - {Api.GetFromAddress().DumpHex()}");
+            Console.WriteLine($"End announcing election - {Api.GetFromAddress().GetFormatted()}");
         }
 
         [SmartContractFunction("${this}.CancelElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
@@ -234,8 +234,8 @@ namespace AElf.Contracts.Token
         public void GetTickets(ulong amount)
         {
             var voter = Api.GetFromAddress();
-            Api.Assert(_balances.TryGet(voter, out var balance), $"No balance: {voter.DumpHex()}");
-            Api.Assert(balance.Value >= amount, $"Balance of {Api.GetFromAddress().DumpHex()} is not enough.");
+            Api.Assert(_balances.TryGet(voter, out var balance), $"No balance: {voter.GetFormatted()}");
+            Api.Assert(balance.Value >= amount, $"Balance of {voter.GetFormatted()} is not enough.");
             Transfer(ConsensusContractAddress, amount);
             Api.Call(ConsensusContractAddress, "AddTickets",
                 ByteString.CopyFrom(ParamsPacker.Pack(voter, amount)).ToByteArray());

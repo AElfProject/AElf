@@ -35,7 +35,7 @@ namespace AElf.ABI.CSharp
                         .Select(x => Convert.ToByte(s.Substring(x, 2), 16)).ToArray()
                 },
                 {typeof(Hash), Hash.LoadHex},
-                {typeof(Address), Address.LoadHex},
+                {typeof(Address), Address.Parse},
                 {typeof(MerklePath), (s) => MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(ParentChainBlockInfo), (s) => ParentChainBlockInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(SideChainBlockInfo), (s) => SideChainBlockInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
@@ -61,7 +61,7 @@ namespace AElf.ABI.CSharp
                     obj => ((byte[]) obj).ToHex()
                 },
                 {typeof(Hash), obj=> ((Hash)obj).DumpHex()},
-                {typeof(Address), obj=> ((Address)obj).DumpHex()},
+                {typeof(Address), obj=> ((Address)obj).GetFormatted()},
                 {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()},
                 {typeof(ParentChainBlockInfo), obj => ((ParentChainBlockInfo) obj).ToByteArray().ToHex()},
                 {typeof(SideChainBlockInfo), obj => ((SideChainBlockInfo) obj).ToByteArray().ToHex()},

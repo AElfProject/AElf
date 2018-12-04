@@ -14,6 +14,7 @@ using AElf.Types.CSharp;
 using AElf.Sdk.CSharp.ReadOnly;
 using AElf.SmartContract.Proposal;
 using NServiceKit.Common.Extensions;
+using Secp256k1Net;
 
 namespace AElf.Sdk.CSharp
 {
@@ -72,7 +73,7 @@ namespace AElf.Sdk.CSharp
 
         #endregion Privileged API
 
-        private static Hash ChainId => _smartContractContext.ChainId.ToReadOnly();
+        public static Hash ChainId => _smartContractContext.ChainId.ToReadOnly();
 
         private static Address ContractZeroAddress => ContractHelpers.GetGenesisBasicContractAddress(ChainId);
 
@@ -103,6 +104,16 @@ namespace AElf.Sdk.CSharp
             return _smartContractContext.ContractAddress.ToReadOnly();
         }
 
+        public static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
+        {
+            using (var secp = new Secp256k1())
+            {
+                byte[] recover = new byte[Secp256k1.PUBKEY_LENGTH];
+                secp.Recover(recover, signature, hash);
+                
+                return recover;
+            }
+        }
         
         public static List<Address> GetSystemReviewers()
         {
@@ -138,7 +149,18 @@ namespace AElf.Sdk.CSharp
         
         public static ByteString GetPublicKey()
         {
-            return GetTransaction().Sigs.Clone().First().P;
+            //todo review maybe not do all this in here
+            var tx = GetTransaction();
+            var hash = tx.GetHash().DumpByteArray();
+            
+            byte[] recoveredKey = new byte[Secp256k1.PUBKEY_LENGTH];
+
+            using (var secp256k1 = new Secp256k1())
+            {
+                secp256k1.Recover(recoveredKey, tx.Sigs.First().ToByteArray(), hash);
+            }
+
+            return ByteString.CopyFrom(recoveredKey);
         }
 
         public static Hash GetTxnHash()
@@ -345,12 +367,30 @@ namespace AElf.Sdk.CSharp
             
             Call(AuthorizationContractAddress, "GetAuth", ParamsPacker.Pack(_transactionContext.Transaction.From));
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
-
-            uint provided = _transactionContext.Transaction.Sigs.Select(sig => sig.P)
-                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
-                .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
-
-            Assert(provided >= auth.ExecutionThreshold, "Invalid authority.");
+                
+                   
+            // Get tx hash
+            var hash = _transactionContext.Transaction.GetHash().DumpByteArray();
+            
+            using (var secp256k1 = new Secp256k1())
+            {
+                // Get pub keys
+                int sigCount = _transactionContext.Transaction.Sigs.Count;
+                List<byte[]> publicKeys = new List<byte[]>(sigCount);
+                
+                for(int i = 0; i < sigCount; i++)
+                {
+                    publicKeys[i] = new byte[Secp256k1.PUBKEY_LENGTH];
+                    secp256k1.Recover(publicKeys[i], _transactionContext.Transaction.Sigs[i].ToByteArray(), hash);
+                }
+                
+                //todo review correctness
+                uint provided = publicKeys
+                    .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
+                    .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
+                Assert(provided >= auth.ExecutionThreshold, "Invalid authority.");
+            }
+            
         }
 
                 

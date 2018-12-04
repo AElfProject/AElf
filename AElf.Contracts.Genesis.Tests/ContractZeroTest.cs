@@ -56,7 +56,7 @@ namespace AElf.Contracts.Genesis.Tests
             Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal);
             
             // get the address of deployed contract
-            var address = Address.FromRawBytes(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToBytes());
+            var address = Address.FromBytes(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToBytes());
             
             // query owner
             _contractShim.GetContractOwner(address);
@@ -64,7 +64,7 @@ namespace AElf.Contracts.Genesis.Tests
             Assert.Equal(_contractShim.Sender, owner);
 
             // chang owner and query again, owner will be new owner
-            var newOwner = Address.FromRawBytes(Hash.Generate().ToByteArray());
+            var newOwner = Address.Generate();
             _contractShim.ChangeContractOwner(address, newOwner);
             _contractShim.GetContractOwner(address);
             var queryNewOwner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();

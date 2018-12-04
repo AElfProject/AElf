@@ -44,7 +44,7 @@ namespace AElf.Miner.Tests
 
             hashes.Add(transaction.From);
 
-            return await Task.FromResult(hashes.Select(a => a.DumpHex()).ToList());
+            return await Task.FromResult(hashes.Select(a => a.GetFormatted()).ToList());
         }
     }
 }

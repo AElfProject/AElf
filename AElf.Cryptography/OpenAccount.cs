@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
 
 namespace AElf.Cryptography
@@ -8,15 +9,13 @@ namespace AElf.Cryptography
     {
         // Close account when time out 
         public Timer CloseTimer { private get; set; }
-        public ECKeyPair KeyPair { get; set; }
-
-        public OpenAccount()
-        {
-        }
         
-        public string Address
+        public ECKeyPair KeyPair { get; set; }
+        public string AccountName { get; }
+
+        public OpenAccount(string address)
         {
-            get { return KeyPair.GetAddressHex(); }
+            AccountName = address;
         }
 
         public void Close()

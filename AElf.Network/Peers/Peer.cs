@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Timers;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Network.Connection;
@@ -42,7 +44,8 @@ namespace AElf.Network.Peers
         AuthTimeout,
         AuthInvalidHandshakeMsg,
         AuthInvalidKey,
-        AuthInvalidSig
+        AuthInvalidSig,
+        None
     }
 
     public enum DisconnectReason
@@ -129,12 +132,13 @@ namespace AElf.Network.Peers
 
         private Handshake _lastReceivedHandshake;
 
-        public ECKeyPair DistantNodeKeyPair { get; private set; }
+        public byte[] DistantPubKey { get; private set; }
 
-        public byte[] DistantNodeAddress => DistantNodeKeyPair?.GetAddress().DumpByteArray();
+        public string DistantNodeAddress { get; private set; }
         public byte[] DistantPublicKey => _lastReceivedHandshake?.PublicKey.ToByteArray();
 
-        [JsonProperty(PropertyName = "isBp")] public bool IsBp { get; internal set; }
+        [JsonProperty(PropertyName = "isBp")] 
+        public bool IsBp { get; internal set; }
 
         public string IpAddress => DistantNodeData?.IpAddress;
 
@@ -262,27 +266,37 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         private void StartAuthentification()
         {
-            var nodeInfo = new NodeData {Port = _port};
-
-            ECSigner signer = new ECSigner();
-            ECSignature sig = signer.Sign(_nodeKey, nodeInfo.ToByteArray());
-
-            var nd = new Handshake
+            try
             {
-                NodeInfo = nodeInfo,
-                PublicKey = ByteString.CopyFrom(_nodeKey.GetEncodedPublicKey()),
-                Height = CurrentHeight,
-                R = ByteString.CopyFrom(sig.R),
-                S = ByteString.CopyFrom(sig.S),
-            };
+                var nodeInfo = new NodeData {Port = _port};
 
-            byte[] packet = nd.ToByteArray();
+                ECSigner signer = new ECSigner();
+                ECSignature sig = signer.Sign(_nodeKey, SHA256.Create().ComputeHash(nodeInfo.ToByteArray()));
 
-            _logger?.Trace($"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
+                var nd = new Handshake
+                {
+                    NodeInfo = nodeInfo,
+                    PublicKey = ByteString.CopyFrom(_nodeKey.PublicKey),
+                    Height = CurrentHeight,
+                    Sig = ByteString.CopyFrom(sig.SigBytes)
+                };
 
-            _messageWriter.EnqueueMessage(new Message {Type = (int) MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
+                if (_nodeKey.PublicKey == null)
+                    ;
 
-            StartAuthTimer();
+                byte[] packet = nd.ToByteArray();
+
+                _logger?.Trace($"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
+
+                _messageWriter.EnqueueMessage(new Message {Type = (int) MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
+
+                StartAuthTimer();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         private void StartAuthTimer()
@@ -343,45 +357,52 @@ namespace AElf.Network.Peers
         /// is doesn't launch the correponding event.
         /// </summary>
         /// <param name="handshakeMsg"></param>
-        internal void AuthentifyWith(Handshake handshakeMsg)
+        internal RejectReason AuthentifyWith(Handshake handshakeMsg)
         {
             if (handshakeMsg == null)
             {
                 FireInvalidAuth(RejectReason.AuthInvalidHandshakeMsg);
-                return;
+                return RejectReason.AuthInvalidHandshakeMsg;
             }
 
             _lastReceivedHandshake = handshakeMsg;
 
             try
             {
-                DistantNodeKeyPair = ECKeyPair.FromPublicKey(handshakeMsg.PublicKey.ToByteArray());
+                DistantPubKey = handshakeMsg.PublicKey.ToByteArray();
 
-                if (DistantNodeKeyPair == null)
+                if (DistantPubKey == null)
                 {
                     FireInvalidAuth(RejectReason.AuthInvalidKey);
-                    return;
+                    return RejectReason.AuthInvalidKey;
                 }
 
+                if (ChainConfig.Instance.ChainId == null || ChainConfig.Instance.ChainId.Length != 4)
+                    ;
+                
+                DistantNodeAddress 
+                    = Address.FromPublicKey(ChainConfig.Instance.ChainId.DecodeBase58(), DistantPublicKey).GetFormatted(); 
+
                 // verify sig
-                ECVerifier verifier = new ECVerifier(DistantNodeKeyPair);
-                bool sigValid = verifier.Verify(
-                    new ECSignature(handshakeMsg.R.ToByteArray(), handshakeMsg.S.ToByteArray()),
-                    handshakeMsg.NodeInfo.ToByteArray());
+                ECVerifier verifier = new ECVerifier();
+                
+                bool sigValid 
+                    = verifier.Verify(new ECSignature(handshakeMsg.Sig.ToByteArray()), SHA256.Create().ComputeHash(handshakeMsg.NodeInfo.ToByteArray()));
 
                 if (!sigValid)
                 {
                     FireInvalidAuth(RejectReason.AuthInvalidSig);
-                    return;
+                    return RejectReason.AuthInvalidSig;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 FireInvalidAuth(RejectReason.AuthInvalidKey);
-                return;
+                return RejectReason.AuthInvalidKey;
             }
 
             IsAuthentified = true;
+            return RejectReason.None;
         }
 
         private void FireInvalidAuth(RejectReason reason)

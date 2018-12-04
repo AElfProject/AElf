@@ -14,7 +14,7 @@ namespace AElf.Miner.Miner
 
         public static readonly MinerConfig Default = new MinerConfig
         {
-            CoinBase = Address.FromRawBytes(Hash.Generate().ToByteArray())
+            CoinBase = Address.Generate()
         };
     }
 }

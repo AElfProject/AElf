@@ -11,7 +11,7 @@ using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
 using ServiceStack;
-using    AElf.Common;
+using AElf.Common;
 using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Miner.TxMemPool;
@@ -32,7 +32,7 @@ namespace AElf.Contracts.SideChain.Tests
             return (ulong)n;
         }
 
-        public Hash ChainId1 { get; } = Hash.FromString("ChainId1");
+        public Hash ChainId1 { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
         public IStateStore StateStore { get; private set; }
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;

@@ -149,7 +149,7 @@ namespace AElf.SmartContract
 
         public override string ToString()
         {
-            return $"/{ChainId.DumpHex()}/{ContractAddress.DumpHex()}/{string.Join("/", Path)}";
+            return $"/{ChainId.DumpBase58()}/{ContractAddress.GetFormatted()}/{string.Join("/", Path)}";
         }
 
         #region temporary conform to interface

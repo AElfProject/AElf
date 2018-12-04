@@ -220,7 +220,7 @@ namespace AElf.Runtime.CSharp
                 if (smartContractRefAttr == null) continue;
                 try
                 {
-                    if (!contractReferences.TryAdd(smartContractRefAttr.FieldName, Address.LoadHex(smartContractRefAttr.ContractAddress)))
+                    if (!contractReferences.TryAdd(smartContractRefAttr.FieldName, Address.FromString(smartContractRefAttr.ContractAddress)))
                     {
                         throw new FunctionMetadataException("Duplicate name of smart contract reference attributes in contract " + contractType.FullName);
                     }

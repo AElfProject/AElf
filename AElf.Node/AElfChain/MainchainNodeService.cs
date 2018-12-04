@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
@@ -8,6 +11,7 @@ using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
@@ -16,6 +20,8 @@ using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
+using AElf.Synchronization.EventMessages;
+using Base58Check;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
@@ -36,11 +42,10 @@ namespace AElf.Node.AElfChain
         private readonly IBlockSynchronizer _blockSynchronizer;
 
         private IBlockChain _blockChain;
+        
+        private IConsensus _consensus;
 
-        private IBlockChain BlockChain => _blockChain ?? (_blockChain = _chainService.GetBlockChain(
-                                              Hash.LoadHex(ChainConfig.Instance.ChainId)));
-
-        private readonly IConsensus _consensus;
+        private ECKeyPair _nodeKeyPair;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
@@ -105,14 +110,18 @@ namespace AElf.Node.AElfChain
         public void Initialize(NodeConfiguration conf)
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
-            NodeConfig.Instance.ECKeyPair = conf.KeyPair;
-
+            _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            
+            NodeConfig.Instance.ECKeyPair = conf.KeyPair; // todo config should not be set here 
+            _nodeKeyPair = conf.KeyPair;
+            
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
                 await _txHub.AddTransactionAsync(inTx.Transaction);
             });
 
             _txHub.Initialize();
+            _miner.Init(_nodeKeyPair);
         }
 
         public bool Start()
@@ -131,7 +140,7 @@ namespace AElf.Node.AElfChain
             {
                 LogGenesisContractInfo();
 
-                var curHash = BlockChain.GetCurrentBlockHashAsync().Result;
+                var curHash = _blockChain.GetCurrentBlockHashAsync().Result;
 
                 var chainExistence = curHash != null && !curHash.Equals(Hash.Genesis);
 
@@ -155,7 +164,6 @@ namespace AElf.Node.AElfChain
 
             if (NodeConfig.Instance.IsMiner)
             {
-                _logger?.Debug($"Coinbase = {_miner.Coinbase.DumpHex()}");
                 _consensus?.Start();
             }
 
@@ -192,27 +200,27 @@ namespace AElf.Node.AElfChain
 
         #region private methods
 
-        private Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
+        private Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
 
         private void LogGenesisContractInfo()
         {
             var genesis = ContractHelpers.GetGenesisBasicContractAddress(ChainId);
-            _logger?.Debug($"Genesis contract address = {genesis.DumpHex()}");
+            _logger?.Debug($"Genesis contract address = {genesis.GetFormatted()}");
 
             var tokenContractAddress = ContractHelpers.GetTokenContractAddress(ChainId);
-            _logger?.Debug($"Token contract address = {tokenContractAddress.DumpHex()}");
+            _logger?.Debug($"Token contract address = {tokenContractAddress.GetFormatted()}");
 
             var consensusAddress = ContractHelpers.GetConsensusContractAddress(ChainId);
-            _logger?.Debug($"DPoS contract address = {consensusAddress.DumpHex()}");
+            _logger?.Debug($"DPoS contract address = {consensusAddress.GetFormatted()}");
 
             var crosschainContractAddress = ContractHelpers.GetCrossChainContractAddress(ChainId);
-            _logger?.Debug($"CrossChain contract address = {crosschainContractAddress.DumpHex()}");
+            _logger?.Debug($"CrossChain contract address = {crosschainContractAddress.GetFormatted()}");
 
             var authorizationContractAddress = ContractHelpers.GetAuthorizationContractAddress(ChainId);
-            _logger?.Debug($"Authorization contract address = {authorizationContractAddress.DumpHex()}");
+            _logger?.Debug($"Authorization contract address = {authorizationContractAddress.GetFormatted()}");
 
             var resourceContractAddress = ContractHelpers.GetResourceContractAddress(ChainId);
-            _logger?.Debug($"Resource contract address = {resourceContractAddress.DumpHex()}");
+            _logger?.Debug($"Resource contract address = {resourceContractAddress.GetFormatted()}");
         }
 
         private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero,
@@ -268,7 +276,6 @@ namespace AElf.Node.AElfChain
             var res = _chainCreationService.CreateNewChainAsync(Hash.LoadHex(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration>
                     {basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg}).Result;
-
             _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");
         }
 
@@ -286,8 +293,8 @@ namespace AElf.Node.AElfChain
                 _logger?.Warn($"Cannot get block - height {height} is not valid.");
                 return null;
             }
-
-            var block = (Block) await BlockChain.GetBlockByHeightAsync((ulong) height);
+            
+            var block = (Block) await _blockChain.GetBlockByHeightAsync((ulong)height);
             return block != null ? await FillBlockWithTransactionList(block) : null;
         }
 
@@ -328,7 +335,7 @@ namespace AElf.Node.AElfChain
 
         public async Task<int> GetCurrentBlockHeightAsync()
         {
-            return (int) await BlockChain.GetCurrentBlockHeightAsync();
+             return (int) await _blockChain.GetCurrentBlockHeightAsync();
         }
     }
 }

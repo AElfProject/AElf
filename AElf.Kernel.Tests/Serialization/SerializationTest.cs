@@ -30,7 +30,7 @@ namespace AElf.Kernel.Tests.Serialization
             {
                 Root = new ParentChainBlockRootInfo
                 {
-                    ChainId = Hash.Generate(),
+                    ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }),
                     Height = 1,
                     SideChainBlockHeadersRoot = Hash.Default,
                     SideChainTransactionsRoot = Hash.Default
