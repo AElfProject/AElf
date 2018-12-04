@@ -40,7 +40,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private NodeState CurrentState => (NodeState) _stateFSM.CurrentState;
 
-        private static bool _executionCancelled = false;
+        private static bool _executionNextBlock;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet, IBlockHeaderValidator blockHeaderValidator)
@@ -56,6 +56,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
             _terminated = false;
+            _executionNextBlock = true;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
             {
@@ -220,9 +221,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task ReceiveNextValidBlock()
         {
-            if (_executionCancelled)
+            if (!_executionNextBlock)
             {
-                _executionCancelled = false;
+                _executionNextBlock = true;
                 return;
             }
 
@@ -289,9 +290,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 return BlockExecutionResult.InvalidSideChainInfo;
             }
 
-            if (executionResult == BlockExecutionResult.ExecutionCancelled)
+            if (executionResult.CannotExecute())
             {
-                _executionCancelled = true;
+                _executionNextBlock = false;
             }
             else
             {

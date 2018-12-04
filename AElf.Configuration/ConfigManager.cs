@@ -18,7 +18,7 @@ namespace AElf.Configuration
         
         public static List<string> ConfigFilePaths = new List<string>
         {
-            Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config"),
+            Path.Combine(ApplicationHelpers.ConfigPath, "config"),
             Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "config")
         };
 
