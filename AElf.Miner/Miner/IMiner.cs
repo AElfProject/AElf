@@ -1,20 +1,17 @@
 ﻿using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Common;
 
 namespace AElf.Miner.Miner
 {
     public interface IMiner
     {
-        void Init();
-        void Close();
-
-        Address Coinbase { get; }
+        void Init(ECKeyPair _nodeKeyPair);
         
         /// <summary>
-        /// mining functionality
+        /// This method mines a block.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The block that has been produced</returns>
         Task<IBlock> Mine();
     }
 }

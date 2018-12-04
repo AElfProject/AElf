@@ -11,6 +11,7 @@ using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
@@ -43,6 +44,8 @@ namespace AElf.Node.AElfChain
         private IBlockChain _blockChain;
         
         private IConsensus _consensus;
+
+        private ECKeyPair _nodeKeyPair;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
@@ -132,14 +135,17 @@ namespace AElf.Node.AElfChain
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
             _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            
             NodeConfig.Instance.ECKeyPair = conf.KeyPair; // todo config should not be set here 
-
+            _nodeKeyPair = conf.KeyPair;
+            
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
                 await _txHub.AddTransactionAsync(inTx.Transaction);
             });
 
             _txHub.Initialize();
+            _miner.Init(_nodeKeyPair);
         }
 
         public bool Start()
@@ -182,7 +188,6 @@ namespace AElf.Node.AElfChain
 
             if (NodeConfig.Instance.IsMiner)
             {
-                _miner.Init();
                 _consensus?.Start();
             }
 

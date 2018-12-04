@@ -200,7 +200,7 @@ namespace AElf.Kernel.Tests.Miner
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
             
-            miner.Init();
+            miner.Init(minerKeypair);
             
             var block = await miner.Mine();
             
@@ -384,17 +384,20 @@ namespace AElf.Kernel.Tests.Miner
         [Fact]
         public async Task MineWithIndexingSideChain()
         {
+            // create the miners keypair, this is the miners identity
+            var minerKeypair = new KeyPairGenerator().Generate();
+            
             GlobalConfig.InvertibleChainHeight = 0;
             string dir = @"/tmp/minerpems";
+            
             var chain = await _mock.CreateChain();
-            var keyPair = new KeyPairGenerator().Generate();
             
             var minerConfig = _mock.GetMinerConfig(chain.Id);
             
             ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
             
-            NodeConfig.Instance.ECKeyPair = keyPair;
-            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(chain.Id.DumpByteArray(), keyPair.PublicKey).GetFormatted();
+            NodeConfig.Instance.ECKeyPair = minerKeypair;
+            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(chain.Id.DumpByteArray(), minerKeypair.PublicKey).GetFormatted();
             
             var pool = _mock.CreateAndInitTxHub();
             pool.Start();
@@ -430,11 +433,14 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcLocalConfig.Instance.ClientToSideChain = true;
                 GrpcLocalConfig.Instance.ClientToParentChain = false;
                 manager.Init(dir, t);
+                
                 var miner = _mock.GetMiner(minerConfig, pool, manager);
-                miner.Init();
-                //Thread.Sleep(t/2);
+                miner.Init(minerKeypair);
+                
                 ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
+                
                 var block = await miner.Mine();
+                
                 Assert.NotNull(block);
                 Assert.NotNull(block.Body.IndexedInfo);
                 int count = block.Body.IndexedInfo.Count;
