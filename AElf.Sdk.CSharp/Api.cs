@@ -368,7 +368,7 @@ namespace AElf.Sdk.CSharp
             
             Proposal proposal = new Proposal
             {
-                MultiSigAccount = GetContractAddress(),
+                MultiSigAccount = Genesis,
                 Name = proposalName,
                 TxnData = new PendingTxn
                 {

@@ -111,7 +111,7 @@ namespace AElf.Contracts.Authorization
             Api.Assert(_proposals.GetValue(hash).Equals(new Proposal()) , "Proposal already created.");
             
             // check authorization of proposer public key
-            var auth = _multiSig.GetValue(proposal.MultiSigAccount);
+            var auth = GetAuth(proposal.MultiSigAccount);
             Api.Assert(!auth.Equals(new Kernel.Types.Proposal.Authorization()), "MultiSigAccount not found.");
             CheckAuthority(proposal, auth);
             
@@ -133,13 +133,13 @@ namespace AElf.Contracts.Authorization
             Api.Assert(!proposal.Equals(new Proposal()), "Proposal not found.");
             
             var msig = proposal.MultiSigAccount;
-            var authorization = _multiSig.GetValue(msig);
+            var authorization = GetAuth(msig);
             
             Api.Assert(!authorization.Equals(new Kernel.Types.Proposal.Authorization()), "Authorization not found."); // should never happen
             Api.Assert(authorization.Reviewers.Any(r => r.PubKey.Equals(approval.Signature.P)),
                 "Not authorized approval.");
             
-            VerifySignature(proposal.TxnData, approval.Signature);
+            CheckSignature(proposal.TxnData, approval.Signature);
 
             approved.Approvals.Add(approval);
             _approved.SetValue(hash, approved);
@@ -162,7 +162,7 @@ namespace AElf.Contracts.Authorization
             Api.Assert(proposal.Status != ProposalStatus.Released, "Proposal already released");
             
             var msigAccount = proposal.MultiSigAccount;
-            var auth = _multiSig.GetValue(msigAccount);
+            var auth = GetAuth(msigAccount);
             Api.Assert(!auth.Equals(new Kernel.Types.Proposal.Authorization())); // this should not happen.
             
             // check approvals
@@ -202,8 +202,8 @@ namespace AElf.Contracts.Authorization
             var auth =  new Kernel.Types.Proposal.Authorization
             {
                 MultiSigAccount = Genesis,
-                ExecutionThreshold = (uint) (reviewers.Count * 2 / 3),
-                ProposerThreshold = 1
+                ExecutionThreshold = SystemThreshold((uint) reviewers.Count),
+                ProposerThreshold = 0
             };
             auth.Reviewers.AddRange(reviewers);
             
@@ -238,13 +238,9 @@ namespace AElf.Contracts.Authorization
         {
             if (authorization.ProposerThreshold > 0)
             {
-                List<Reviewer> reviewers = proposal.MultiSigAccount.Equals(Genesis)
-                    ? Api.GetSystemReviewers()
-                    : authorization.Reviewers.ToList();
-            
                 // Proposal should not be from multi sig account.
                 // As a result, only check first public key.
-                Reviewer reviewer = reviewers.FirstOrDefault(r => r.PubKey.Equals(Api.GetPublicKey()));
+                Reviewer reviewer = authorization.Reviewers.FirstOrDefault(r => r.PubKey.Equals(Api.GetPublicKey()));
                 var proposerPerm = reviewer?.Weight ?? 0;
                 Api.Assert(
                     Api.GetFromAddress().Equals(proposal.Proposer) &&
@@ -271,7 +267,7 @@ namespace AElf.Contracts.Authorization
             return validApprovals && weight >= authorization.ExecutionThreshold;
         }
 
-        private void VerifySignature(PendingTxn txnData, Sig approvalSignature)
+        private void CheckSignature(PendingTxn txnData, Sig approvalSignature)
         {
             var proposedTxn = txnData.GetTransaction();
             proposedTxn.Sigs.Add(approvalSignature);
@@ -286,6 +282,11 @@ namespace AElf.Contracts.Authorization
                 "From address in proposed transaction is not valid multisig account.");
             Api.Assert(proposedTxn.Sigs.Count == 0, "Invalid signatures in proposed transaction.");
             Api.Assert(proposedTxn.Type == TransactionType.MsigTransaction, "Incorrect proposed transaction type.");
+        }
+
+        private uint SystemThreshold(uint reviewerCount)
+        {
+            return reviewerCount * 2 / 3;
         }
     }
 }

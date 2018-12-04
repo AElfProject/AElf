@@ -32,7 +32,7 @@ namespace AElf.Contracts.SideChain.Tests
             Mock = new MockSetup(_logger);
         }
 
-        [Fact]
+        [Fact(Skip = "TBD")]
         public async Task SideChainLifetime()
         {
             Init();
