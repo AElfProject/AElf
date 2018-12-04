@@ -430,6 +430,8 @@ namespace AElf.Synchronization.BlockExecution
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
+                _logger?.Trace($"Block: {JsonSerializer.Instance.Serialize(block)}");
+                _logger?.Trace($"results: {JsonSerializer.Instance.Serialize(results)}");
                 _logger?.Trace($"{root.DumpHex()} != {block.Header.MerkleTreeRootOfWorldState.DumpHex()}");
                 _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
                 _logger?.Trace("Transaction Results:");
@@ -440,6 +442,8 @@ namespace AElf.Synchronization.BlockExecution
                                    $"Status: {r.Status}, " +
                                    $"{r}");
                 }
+                
+                throw new Exception("IncorrectStateMerkleTree");
 
                 res = BlockExecutionResult.IncorrectStateMerkleTree;
             }
