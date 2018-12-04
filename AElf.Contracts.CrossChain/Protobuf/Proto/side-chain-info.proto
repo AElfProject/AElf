@@ -3,6 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "AElf.Contracts.CrossChain";
 
 import "common.proto";
+import "resource.proto";
 
 enum SideChainStatus
 {
@@ -14,11 +15,11 @@ enum SideChainStatus
 
 message SideChainInfo
 {
-    Address Owner = 1;
-    uint64 SerialNumer = 2;
-    Hash ChainId = 3;
-    SideChainStatus Status = 4;
-    Address LockedAddress = 5;
-    uint64 LockedToken = 6;
-    uint64 CreationHeight =7;
+    uint64 SerialNumer = 1;
+    Hash ChainId = 2;
+    SideChainStatus Status = 3;
+    Address LockedAddress = 4;
+    uint64 LockedToken = 5;
+    uint64 CreationHeight = 6;
+    repeated ResourceTypeBalancePair ResourceBalances = 7;    
 }

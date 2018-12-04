@@ -28,6 +28,7 @@ namespace AElf.Contracts.CrossChain
         public static readonly string TxRootMerklePathInParentChain = GlobalConfig.AElfTxRootMerklePathInParentChain;
         public static readonly string CurrentParentChainHeight = GlobalConfig.AElfCurrentParentChainHeight;
         public static readonly string NewChainCreationRequest = "_NewChainCreationRequest_";
+        public static readonly string IndexingBalance = "__IndexingBalance__";
     }
 
     #endregion Field Names
@@ -105,8 +106,8 @@ namespace AElf.Contracts.CrossChain
             new Map<UInt64Value, ParentChainBlockInfo>(FieldNames.ParentChainBlockInfo);
         
         // record self height 
-        private readonly Map<UInt64Value, UInt64Value> _childHeightToParentChainHeight =
-            new Map<UInt64Value, UInt64Value>(FieldNames.AElfBoundParentChainHeight);
+        private readonly MapToUInt64<UInt64Value> _childHeightToParentChainHeight =
+            new MapToUInt64<UInt64Value>(FieldNames.AElfBoundParentChainHeight);
 
         private readonly Map<UInt64Value, MerklePath> _txRootMerklePathInParentChain =
             new Map<UInt64Value, MerklePath>(FieldNames.TxRootMerklePathInParentChain);
@@ -116,9 +117,13 @@ namespace AElf.Contracts.CrossChain
         private readonly Map<Hash, ChainCreationRequest> _requestInfo =
             new Map<Hash, ChainCreationRequest>(FieldNames.NewChainCreationRequest);
 
+        private readonly MapToUInt64<Address> _indexingBalance = new MapToUInt64<Address>(FieldNames.IndexingBalance);
+
+        private static string CreateSideChainMethodName { get; } = "CreateSideChain";
+
         #endregion Fields
 
-        private double ReuqestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
+        private double RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
 
         [View]
         public ulong CurrentSideChainSerialNumber()
@@ -128,7 +133,7 @@ namespace AElf.Contracts.CrossChain
 
         public ulong LockedToken(Hash chainId)
         {
-            Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain.");
+            Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
             var info = _sideChainInfos[chainId];
             Api.Assert(info.Status != (SideChainStatus) 3, "Disposed side chain.");
             return info.LockedToken;
@@ -136,69 +141,66 @@ namespace AElf.Contracts.CrossChain
         
         public byte[] LockedAddress(Hash chainId)
         {
-            Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain.");
+            Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
             var info = _sideChainInfos[chainId];
             Api.Assert(info.Status != (SideChainStatus) 3, "Disposed side chain.");
             return info.LockedAddress.DumpByteArray();
         }
 
-        #region Actions
-        
+        #region Side chain lifetime actions
+
         public byte[] ReuqestChainCreation(ChainCreationRequest request)
         {
-            Api.Assert(request.Proposer != null && Api.GetTransactionFromAddress().Equals(request.Proposer),
+            Api.Assert(request.Proposer != null && Api.GetFromAddress().Equals(request.Proposer),
                 "Invalid chain creation request.");
-
-/*
+            Hash requestHash = request.GetHash();
+            Api.Assert(_requestInfo[requestHash].Equals(new ChainCreationRequest()),
+                "Chain creation request already exists.");
+            foreach (var resourceBalance in request.ResourceBalances)
+            {
+                var balance = Api.GetResourceBalance(request.Proposer, resourceBalance.Type);
+                Api.Assert(balance >= resourceBalance.Amount, "Not enough resource.");
+            }
+            
+            Api.Assert(Api.GetTokenBalance(request.Proposer) >= request.LockedTokenAmount, "Not enough balance.");
+            
             // Todo: temp chainId calculation method
             Hash chainId = Hash.Generate();
+            // side chain creation proposal
+            Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, CreateSideChainMethodName, chainId, requestHash);
             
-            Transaction createSideChainTxnData = new Transaction
-            {
-                From = Address.Genesis,
-                To = Api.GetContractAddress(),
-                MethodName = "CreateSideChain",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(chainId, request)),
-                Type = TransactionType.MsigTransaction
-            };
-
-            var txnData = new PendingTxn
-            {
-                ProposalName = "ChainCreation",
-                TxnData = ByteString.CopyFrom(createSideChainTxnData.GetHash().DumpByteArray())
-            };
-            
-            Proposal proposal = new Proposal
-            {
-                MultiSigAccount = Address.Genesis,
-                Name = txnData.ProposalName,
-                TxnData = txnData,
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(ReuqestChainCreationWaitingPeriod)),
-                Status = ProposalStatus.ToBeDecided,
-                Proposer = Api.GetTransactionFromAddress()
-            };
-*/
-            
-
-            Hash proposalHash = request.GetHash();
-
-            _requestInfo.SetValue(proposalHash, request);
-            return proposalHash.DumpByteArray();
+            _requestInfo.SetValue(requestHash, request);
+            return requestHash.DumpByteArray();
         }
 
-        public byte[] CreateSideChain(Hash chainId, ChainCreationRequest request)
+        public byte[] CreateSideChain(Hash chainId, Hash requestHash)
         {
+            // side chain creation should be triggered by multi sig txn from system address.
+            Api.CheckAuthority(Api.Genesis);
+            var request = _requestInfo[requestHash];
+            Api.Assert(!request.Equals(new ChainCreationRequest()), "Side chain creation request not found.");
+            Api.Assert(_sideChainInfos[chainId].Equals(new SideChainInfo()), "Side chain already created."); //This should not happen. 
+            
+            // lock token and resource
+            LockTokenAndResource(request);
+
             ulong serialNumber = _sideChainSerialNumber.Increment().Value;
             var info = new SideChainInfo
             {
-                Owner = Api.GetTransaction().From,
                 ChainId = chainId,
                 SerialNumer = serialNumber,
-                Status = SideChainStatus.Pending,
+                Status = SideChainStatus.Active,
                 LockedAddress = request.Proposer,
-                CreationHeight = Api.GetCurrentHeight() + 1 
+                CreationHeight = Api.GetCurrentHeight() + 1
             };
+            info.ResourceBalances.AddRange(request.ResourceBalances);          
             _sideChainInfos[chainId] = info;
+            
+            // remove request
+            // Todo: null or new object?
+            _requestInfo[requestHash] = new ChainCreationRequest();
+            
+            // fire event
             new SideChainCreationRequested
             {
                 ChainId = chainId,
@@ -206,34 +208,35 @@ namespace AElf.Contracts.CrossChain
             }.Fire();
             return chainId.DumpByteArray();
         }
-    
-        public void ApproveSideChain(Hash chainId)
-        {
-            // TODO: Only privileged account can trigger this method
-            var info = _sideChainInfos[chainId];
-            Api.Assert(info != null, "Invalid chain id.");
-            Api.Assert(info?.Status == SideChainStatus.Pending, "Invalid chain status.");
-            info.Status = SideChainStatus.Active;
-            _sideChainInfos[chainId] = info;
-            new SideChainCreationRequestApproved()
-            {
-                Info = info.Clone()
-            }.Fire();
-        }
-    
+
         public void DisposeSideChain(Hash chainId)
-        {
-            Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain");
+        {            
+            // side chain disposal should be triggered by multi sig txn from system address.
+            Api.CheckAuthority(Api.Genesis);
+            Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
             // TODO: Only privileged account can trigger this method
             var info = _sideChainInfos[chainId];
+            Api.Assert(info.Status < SideChainStatus.Terminated, "Side chain already terminated.");
+            WithdrawTokenAndResource(info);
             info.Status = SideChainStatus.Terminated;
             _sideChainInfos[chainId] = info;
-            new SideChainDisposal
+            new SideChainDisposal    
             {
                 chainId = chainId
             }.Fire();
         }
+        
+        public int GetChainStatus(Hash chainId)
+        {
+            Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
+            var info = _sideChainInfos[chainId];
+            return (int) info.Status;
+        }
+        
+        #endregion Side chain lifetime actions
 
+        
+        #region Cross chain actions
         public void WriteParentChainBlockInfo(ParentChainBlockInfo parentChainBlockInfo)
         {
             ulong parentChainHeight = parentChainBlockInfo.Height;
@@ -241,10 +244,11 @@ namespace AElf.Contracts.CrossChain
             var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight; 
             Api.Assert(target == parentChainHeight,
                 $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
+            // Todo: only for debug
             Console.WriteLine("ParentChainBlockInfo.Height is correct.");
             
             var key = new UInt64Value {Value = parentChainHeight};
-            Api.Assert(_parentChainBlockInfo.GetValue(key).Equals(new ParentChainBlockInfo()),
+            Api.Assert(_parentChainBlockInfo[key].Equals(new ParentChainBlockInfo()),
                 $"Already written parent chain block info at height {parentChainHeight}");
             Console.WriteLine("Writing ParentChainBlockInfo..");
             foreach (var _ in parentChainBlockInfo.IndexedBlockInfo)
@@ -252,51 +256,75 @@ namespace AElf.Contracts.CrossChain
                 BindParentChainHeight(_.Key, parentChainHeight);
                 AddIndexedTxRootMerklePathInParentChain(_.Key, _.Value);
             }
-            _parentChainBlockInfo.SetValueAsync(key, parentChainBlockInfo).Wait();
+            _parentChainBlockInfo[key] = parentChainBlockInfo;
             _currentParentChainHeight.SetValue(parentChainHeight);
             
-            // only for debug
+            // Todo: only for debug
             Console.WriteLine($"WriteParentChainBlockInfo success at {parentChainHeight}");
         }
 
         public bool VerifyTransaction(Hash tx, MerklePath path, ulong parentChainHeight)
         {
             var key = new UInt64Value {Value = parentChainHeight};
-            Api.Assert(_parentChainBlockInfo.GetValue(key) != null,
+            Api.Assert(!_parentChainBlockInfo[key].Equals(new ParentChainBlockInfo()),
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
             var rootCalculated =  path.ComputeRootWith(tx);
-            var parentRoot = _parentChainBlockInfo.GetValue(key)?.Root?.SideChainTransactionsRoot;
+            var parentRoot = _parentChainBlockInfo[key]?.Root?.SideChainTransactionsRoot;
             //Api.Assert((parentRoot??Hash.Zero).Equals(rootCalculated), "Transaction verification Failed");
             return (parentRoot??Hash.Zero).Equals(rootCalculated);
         }
+        
+        #endregion Cross chain actions
+
+        #region Private actions
 
         private void BindParentChainHeight(ulong childHeight, ulong parentHeight)
         {
             var key = new UInt64Value {Value = childHeight};
-            Api.Assert(_childHeightToParentChainHeight.GetValue(key).Value == 0,
+            Api.Assert(_childHeightToParentChainHeight[key] == 0,
                 $"Already bound at height {childHeight} with parent chain");
-//            _childHeightToParentChainHeight[key] = new UInt64Value {Value = parentHeight};
-            _childHeightToParentChainHeight.SetValueAsync(key, new UInt64Value{Value = parentHeight}).Wait();
+            _childHeightToParentChainHeight[key] = parentHeight;
         }
 
         private void AddIndexedTxRootMerklePathInParentChain(ulong height, MerklePath path)
         {
             var key = new UInt64Value {Value = height};
-            Api.Assert(_txRootMerklePathInParentChain.GetValue(key).Equals(new MerklePath()),
+            Api.Assert(_txRootMerklePathInParentChain[key].Equals(new MerklePath()), 
                 $"Merkle path already bound at height {height}.");
-//            _txRootMerklePathInParentChain[key] = path;
-            _txRootMerklePathInParentChain.SetValueAsync(key, path).Wait();
-            Console.WriteLine("Path: {0}", path.Path[0].DumpHex());
-
+            _txRootMerklePathInParentChain[key] = path;
         }
+        
+        private void LockTokenAndResource(ChainCreationRequest request)
+        {
+            //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
+            
+            // update locked token balance
+            _indexingBalance[request.Proposer] = _indexingBalance[request.Proposer].Add(request.LockedTokenAmount);
+            Api.LockToken(request.LockedTokenAmount);
+            
+            // lock 
+            foreach (var resourceBalance in request.ResourceBalances)
+            {
+                Api.LockResource(resourceBalance.Amount, resourceBalance.Type);
+            }
+        }
+        
+        private void WithdrawTokenAndResource(SideChainInfo sideChainInfo)
+        {
+            //Api.Assert(sideChainInfo.LockedAddress.Equals(Api.GetFromAddress()), "Unable to withdraw token or resource.");
+            // withdraw token
+            var balance = _indexingBalance[sideChainInfo.LockedAddress];
+            Api.WithdrawToken(balance);
+            _indexingBalance[sideChainInfo.LockedAddress] = 0;
+            
+            // unlock resource 
+            foreach (var resourceBalance in sideChainInfo.ResourceBalances)
+            {
+                Api.WithdrawResource(resourceBalance.Amount, resourceBalance.Type);
+            }
+        }
+
         #endregion
         
-
-        public int GetChainStatus(Hash chainId)
-        {
-            Api.Assert(!_sideChainInfos.GetValue(chainId).Equals(new SideChainInfo()), "Not existed side chain.");
-            var info = _sideChainInfos[chainId];
-            return (int) info.Status;
-        } 
     }
 }
