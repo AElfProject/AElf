@@ -1,13 +1,10 @@
 ﻿using System.IO;
-using System.Linq;
 using AElf.Common.Application;
 using AElf.Common;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using Autofac;
-using Easy.MessageHub;
-using Google.Protobuf;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -25,7 +22,7 @@ namespace AElf.ChainController
                 string chainId;
                 if (string.IsNullOrWhiteSpace(ChainConfig.Instance.ChainId))
                 {
-                    chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }).DumpBase58();
+                    chainId = GlobalConfig.DefaultChainId;
                     ChainConfig.Instance.ChainId = chainId;
                 }
                 else

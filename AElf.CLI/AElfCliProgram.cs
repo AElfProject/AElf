@@ -21,6 +21,7 @@ using AElf.CLI.Streaming;
 using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
+using AElf.Common.Application;
 using AElf.Cryptography.ECDSA;
 using Base58Check;
 using Google.Protobuf.WellKnownTypes;
@@ -96,7 +97,6 @@ namespace AElf.CLI
         private readonly Dictionary<string, byte[]> _txnInProposal = new Dictionary<string, byte[]>();
         #endregion
         
-        
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
@@ -116,6 +116,44 @@ namespace AElf.CLI
             _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
+            
+            LoadOrCreateChainConfig();
+        }
+        
+        private void LoadOrCreateChainConfig()
+        {
+            string fileFolder = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config");
+            string filePath = Path.Combine(fileFolder, @"chain.json");
+            
+            // If exists load the value
+            if (File.Exists(filePath))
+            {
+                using (StreamReader r = new StreamReader(filePath))
+                {
+                    string json = r.ReadToEnd();
+                    JObject file = JObject.Parse(json);
+                    _chainId = file["ChainId"].ToObject<string>();
+                }
+            }
+            else
+            {
+                var obj = new JObject(new JProperty("ChainId", GlobalConfig.DefaultChainId));
+
+                if (!Directory.Exists(fileFolder))
+                {
+                    Directory.CreateDirectory(fileFolder);
+                }
+
+                using (var file = File.CreateText(filePath))
+                using (var writer = new JsonTextWriter(file))
+                {
+                    obj.WriteTo(writer);
+                }
+
+                _chainId = GlobalConfig.DefaultChainId;
+            }
+            
+            _accountManager.SetChainId(_chainId);
         }
         
         public void StartRepl()

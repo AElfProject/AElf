@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq.Expressions;
 using AElf.CLI.Certificate;
 using AElf.CLI.Command;
@@ -11,6 +13,8 @@ using AElf.CLI.Wallet;
 using AElf.Common.Application;
 using AElf.Cryptography;
 using CommandLine;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AElf.CLI
 {
@@ -83,7 +87,7 @@ namespace AElf.CLI
             // Start the CLI
             program.StartRepl();
         }
-
+    
         private static void RegisterNetworkCommands(AElfCliProgram program)
         {
             program.RegisterCommand(new GetPeersCmd());

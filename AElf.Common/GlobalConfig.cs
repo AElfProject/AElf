@@ -4,6 +4,7 @@ namespace AElf.Common
 {
     public static class GlobalConfig
     {
+        public static string DefaultChainId = "AELF";
         public static string AElfAddressPrefix = "ELF";
         
         public static int ChainIdLength = 3;
