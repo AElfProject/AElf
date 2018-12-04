@@ -33,12 +33,12 @@ namespace AElf.Miner
 
             builder.RegisterType<ClientManager>().SingleInstance().OnActivated(mc =>
                 {
-                    mc.Instance.Init(dir: ApplicationHelpers.GetDefaultConfigPath());
+                    mc.Instance.Init(dir: ApplicationHelpers.ConfigPath);
                 }
             );
             builder.RegisterType<ServerManager>().SingleInstance().OnActivated(mc =>
                 {
-                    mc.Instance.Init(ApplicationHelpers.GetDefaultConfigPath());
+                    mc.Instance.Init(ApplicationHelpers.ConfigPath);
                 }
             );
             builder.RegisterModule(new MinerAutofacModule(minerConfig));

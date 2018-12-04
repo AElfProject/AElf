@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using AElf.Common.Application;
 using AElf.Common.Attributes;
 using Autofac;
 using Autofac.Core;
@@ -29,12 +30,12 @@ namespace AElf.Common
 
                 if (string.IsNullOrWhiteSpace(_nodeName))
                 {
-                    target.FileName = "logs/log.txt";
+                    target.FileName = Path.Combine("logs", "log.txt");
                 }
                 else
                 {
-                    target.FileName = "logs/" + _nodeName + ".log";
-                    target.ArchiveFileName = "logs/archives/" + _nodeName + "--{#}.arc";
+                    target.FileName = Path.Combine(ApplicationHelpers.LogPath, _nodeName + ".log");
+                    target.ArchiveFileName = Path.Combine(ApplicationHelpers.LogPath, "archives", _nodeName + ".log");
                 }
 
                 LogManager.ReconfigExistingLoggers();

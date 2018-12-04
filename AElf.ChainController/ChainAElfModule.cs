@@ -15,7 +15,7 @@ namespace AElf.ChainController
 {
     public class ChainAElfModule:IAElfModule
     {
-        private static readonly string FileFolder = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config");
+        private static readonly string FileFolder = Path.Combine(ApplicationHelpers.ConfigPath, "config");
         private static readonly string FilePath = Path.Combine(FileFolder, @"chain.json");
         
         public void Init(ContainerBuilder builder)
