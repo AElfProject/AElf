@@ -89,12 +89,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void MultipleTransactionExecutionTest()
         {
-            var address1 = Address.FromRawBytes(Hash.Generate().ToByteArray());
-            var address2 = Address.FromRawBytes(Hash.Generate().ToByteArray());
-            var address3 = Address.FromRawBytes(Hash.Generate().ToByteArray());
-            var address4 = Address.FromRawBytes(Hash.Generate().ToByteArray());
-            var address5 = Address.FromRawBytes(Hash.Generate().ToByteArray());
-            var address6 = Address.FromRawBytes(Hash.Generate().ToByteArray());
+            var address1 = Address.Generate();
+            var address2 = Address.Generate();
+            var address3 = Address.Generate();
+            var address4 = Address.Generate();
+            var address5 = Address.Generate();
+            var address6 = Address.Generate();
             
             _mock.Initialize1(address1, 100);
             _mock.Initialize1(address2, 0);

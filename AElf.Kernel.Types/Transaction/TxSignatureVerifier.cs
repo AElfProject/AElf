@@ -14,22 +14,21 @@ namespace AElf.Kernel.Types.Transaction
 
             if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
             {
-                // Check the address of signer if only one signer.
-                var pubKey = tx.Sigs[0].P.ToByteArray();
-                var addr = Address.FromRawBytes(pubKey);
-
-                if (!addr.Equals(tx.From))
-                    return false;
+                // todo Check the address of signer if only one signer.
+//                var pubKey = tx.Sigs[0].P.ToByteArray();
+//                var addr = Address.FromRawBytes(pubKey);
+//
+//                if (!addr.Equals(tx.From))
+//                    return false;
             }
             
             foreach (var sig in tx.Sigs)
             {
-                var pubKey = sig.P.ToByteArray();
-                var keyPair = ECKeyPair.FromPublicKey(pubKey);
-                var verifier = new ECVerifier(keyPair);
-                var signature = new ECSignature(sig.R.ToByteArray(), sig.S.ToByteArray());
-                if(verifier.Verify(signature, tx.GetHash().DumpByteArray()))
+                var verifier = new ECVerifier();
+                
+                if(verifier.Verify(new ECSignature(sig.ToByteArray()), tx.GetHash().DumpByteArray()))
                     continue;
+                
                 return false;
             }
             return true;

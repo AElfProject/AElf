@@ -46,7 +46,7 @@ namespace AElf.Benchmark
             KeyList = new List<Address>();
             for (int i = 0; i < _maxTxNumber + _maxGroupNumber; i++)
             {
-                KeyList.Add(Address.FromRawBytes(Hash.Generate().ToByteArray()));
+                KeyList.Add(Address.Generate());
             }
         }
 
@@ -174,7 +174,7 @@ namespace AElf.Benchmark
                 string addrStr;
                 while ((addrStr = sr.ReadLine()) != null)
                 {
-                    KeyList.Add(Address.LoadHex(addrStr));
+                    KeyList.Add(Address.Parse(addrStr));
                 }
 
                 if (KeyList.Count != _maxTxNumber + _maxGroupNumber)

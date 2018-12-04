@@ -25,7 +25,7 @@ namespace AElf.Miner
                 builder.RegisterInstance(MinerConfig.Default).As<IMinerConfig>();
             }
             
-            builder.RegisterType(typeof(Miner.Miner)).As<IMiner>();
+            builder.RegisterType(typeof(Miner.Miner)).As<IMiner>().SingleInstance();
             builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
 //            builder.RegisterType<NewTxHub>().SingleInstance();

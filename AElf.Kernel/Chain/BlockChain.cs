@@ -15,7 +15,7 @@ using NServiceKit.Common.Extensions;
 namespace AElf.Kernel
 {
     public class BlockChain : LightChain, IBlockChain
-    {
+    {    
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IStateStore _stateStore;
@@ -37,9 +37,9 @@ namespace AElf.Kernel
             _doingRollback = false;
             _prepareTerminated = false;
             _terminated = false;
-
+            
             _logger = LogManager.GetLogger(nameof(BlockChain));
-
+            
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
             {
                 if (signal.Module == TerminatedModuleEnum.BlockRollback)
@@ -183,8 +183,7 @@ namespace AElf.Kernel
         private async Task RollbackStateForBlock(IBlock block)
         {
             var txIds = block.Body.Transactions;
-            var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index,
-                Address.FromRawBytes(block.Header.P.ToByteArray()));
+            var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index, Hash.FromRawBytes(block.Header.P.ToByteArray()));
             await RollbackStateForTransactions(txIds, disambiguationHash);
         }
 

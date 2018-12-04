@@ -24,8 +24,8 @@ namespace AElf.Kernel.Tests
         {
             await _manager.AddTransactionAsync(new Transaction
             {
-                From = Address.FromRawBytes(Hash.Generate().ToByteArray()),
-                To = Address.FromRawBytes(Hash.Generate().ToByteArray())
+                From = Address.Generate(),
+                To = Address.Generate()
             });
         }
 
@@ -43,14 +43,17 @@ namespace AElf.Kernel.Tests
             keyPair = keyPair ?? new KeyPairGenerator().Generate();
 
             var tx = new Transaction();
-            tx.From = keyPair.GetAddress();
-            tx.To = adrTo ?? Address.FromRawBytes(Hash.Generate().ToByteArray());
+            tx.From = Address.Generate();
+            tx.To = adrTo ?? Address.Generate();
             tx.IncrementId = nonce;
-            var sig = new Sig
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
-            };
-            tx.Sigs.Add(sig);
+            
+            //todo review probably useless - or a proper sig is needed
+            //            var sig = new Sig
+            //            {
+            //                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
+            //            };
+            //            tx.Sigs.Add(sig);
+            
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
             tx.MethodName = "hello world";
             tx.Params = ByteString.CopyFrom(new Parameters
@@ -69,8 +72,9 @@ namespace AElf.Kernel.Tests
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             
             // Update the signature
-            sig.R = ByteString.CopyFrom(signature.R);
-            sig.S = ByteString.CopyFrom(signature.S);
+            //todo review probably useless - or a proper sig is needed
+            //tx.Sig = ByteString.CopyFrom(signature.SigBytes);
+            
             return tx;
         }
     }

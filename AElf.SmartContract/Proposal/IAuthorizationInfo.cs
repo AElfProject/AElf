@@ -8,7 +8,7 @@ namespace AElf.SmartContract.Proposal
 {
     public interface IAuthorizationInfo
     {
-        bool CheckAuthority(Address mSigAddress, IEnumerable<ByteString> pubKeys);
+        bool CheckAuthority(Address mSigAddress, IEnumerable<byte[]> pubKeys);
         bool CheckAuthority(Transaction transaction);
         Kernel.Types.Proposal.Proposal GetProposal(Hash proposalHash);
         Authorization GetAuthorization(Address msig);

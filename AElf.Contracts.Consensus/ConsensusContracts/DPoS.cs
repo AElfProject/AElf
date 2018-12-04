@@ -132,6 +132,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 ConsoleWriteLine(nameof(Initialize), "Failed to set block producers.", e);
             }
 
+
             // 2. Set current round number to 1;
             try
             {
@@ -264,7 +265,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         /// <returns></returns>
         public async Task Publish(List<byte[]> args)
         {
-            var fromAddressToHex = new StringValue {Value = Api.GetTransaction().From.DumpHex().RemoveHexPrefix()};
+            var fromAddressToHex = new StringValue {Value = Api.GetTransaction().From.GetFormatted()};
 
             UInt64Value roundNumber;
             try
@@ -436,7 +437,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 if (_balanceMap.TryGet(address, out var tickets))
                 {
                     Api.Assert(tickets.RemainingTickets >= amount,
-                        $"{Api.GetTransaction().From.DumpHex()} can't withdraw tickets.");
+                        $"{Api.GetTransaction().From.GetFormatted()} can't withdraw tickets.");
 
                     tickets.RemainingTickets -= amount;
                     Api.Call(TokenContractAddress, "Transfer",
@@ -445,7 +446,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 }
             }
 
-            Console.WriteLine($"{address.DumpHex()}'s tickets changed: {amount}");
+            Console.WriteLine($"{address.GetFormatted()}'s tickets changed: {amount}");
         }
 
         public async Task AnnounceElection(Address candidateAddress)
@@ -546,7 +547,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 if (_balanceMap.TryGet(address, out var tickets))
                 {
                     ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {address.DumpHex()}: {tickets.RemainingTickets}");
+                        $"Remaining tickets of {address.GetFormatted()}: {tickets.RemainingTickets}");
                 }
                 else
                 {
@@ -554,7 +555,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     tickets = new Tickets {RemainingTickets = GlobalConfig.LockTokenForElection};
                     await _balanceMap.SetValueAsync(address, tickets);
                     ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {address.DumpHex()}: {tickets.RemainingTickets}");
+                        $"Remaining tickets of {address.GetFormatted()}: {tickets.RemainingTickets}");
                 }
             }
 
@@ -611,6 +612,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private async Task UpdateCurrentRoundNumber(ulong currentRoundNumber)
         {
+            Console.WriteLine("current round number: " + currentRoundNumber);
             await _currentRoundNumberField.SetAsync(currentRoundNumber);
         }
 
@@ -784,7 +786,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         private bool IsBlockProducer(StringValue accountAddress)
         {
             var miners = _ongoingMinersField.GetValue().GetCurrentMiners(CurrentRoundNumber);
-            return miners.Nodes.Contains(Address.LoadHex(accountAddress.Value));
+            return miners.Nodes.Contains(Address.Parse(accountAddress.Value));
         }
 
         private async Task<Miners> GetVictories()
@@ -813,9 +815,9 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private async Task Vote(Address candidateAddress, UInt64Value amount)
         {
-            Api.Assert(CheckTickets(amount), $"Tickets of {Api.GetTransaction().From.DumpHex()} is not enough.");
+            Api.Assert(CheckTickets(amount), $"Tickets of {Api.GetTransaction().From.GetFormatted()} is not enough.");
 
-            Api.Assert(await IsCandidate(candidateAddress), $"{candidateAddress.DumpHex()} is not a candidate.");
+            Api.Assert(await IsCandidate(candidateAddress), $"{candidateAddress.GetFormatted()} is not a candidate.");
 
             if (_balanceMap.TryGet(candidateAddress, out var tickets))
             {
@@ -848,12 +850,12 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 var record = tickets.VotingRecord.FirstOrDefault(vr => vr.From == voterAddress);
 
                 Api.Assert(record != null,
-                    $"It seems that {voterAddress.DumpHex()} didn't voted for {candidateAddress.DumpHex()}.");
+                    $"It seems that {voterAddress.GetFormatted()} didn't voted for {candidateAddress.GetFormatted()}.");
 
                 if (record != null)
                 {
                     Api.Assert(record.TicketsCount >= amount.Value,
-                        $"Tickets of {voterAddress.DumpHex()} is not enough.");
+                        $"Tickets of {voterAddress.GetFormatted()} is not enough.");
                     if (_balanceMap.TryGet(voterAddress, out var voterTickets))
                     {
                         voterTickets.RemainingTickets += amount.Value;

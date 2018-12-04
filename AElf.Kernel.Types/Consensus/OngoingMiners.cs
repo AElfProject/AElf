@@ -68,7 +68,7 @@ namespace AElf.Kernel
                 var str = "Take effect round number:" + miner.TakeEffectRoundNumber;
                 foreach (var node in miner.Nodes)
                 {
-                    str += "\n" + node.DumpHex();
+                    str += "\n" + node.GetFormatted();
                 }
 
                 Console.WriteLine(str);

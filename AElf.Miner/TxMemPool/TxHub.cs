@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Configuration;
+using AElf.Common.Attributes;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -18,61 +18,46 @@ using AElf.Miner.TxMemPool.RefBlockExceptions;
 using AElf.SmartContract.Proposal;
 using Easy.MessageHub;
 using NLog;
-using Org.BouncyCastle.Crypto.Engines;
 
 namespace AElf.Miner.TxMemPool
 {
+    [LoggerName(nameof(TxHub))]
     public class TxHub : ITxHub
     {
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(TxHub));
+        private readonly ILogger _logger;
+        
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionReceiptManager _receiptManager;
         private readonly ITxSignatureVerifier _signatureVerifier;
         private readonly ITxRefBlockValidator _refBlockValidator;
         private readonly IAuthorizationInfo _authorizationInfo;
+        private readonly IChainService _chainService;
+        
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
-
-        private readonly IChainService _chainService;
+        
         private IBlockChain _blockChain;
-
-        private IBlockChain BlockChain => _blockChain ??
-                                          (_blockChain =
-                                              _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId)));
         
         private static bool _terminated;
 
         private ulong _curHeight;
 
-        private ulong CurHeight
-        {
-            get
-            {
-                if (_curHeight == 0)
-                {
-                    _curHeight = BlockChain.GetCurrentBlockHeightAsync().Result;
-                }
+        private readonly Hash _chainId;
 
-                return _curHeight;
-            }
-        }
-
-        private static Address DPosContractAddress =>
-            ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
-
-        private static Address SideChainContractAddress =>
-            ContractHelpers.GetSideChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+        private readonly Address _dPosContractAddress;
+        private readonly Address _sideChainContractAddress;
         
-        private readonly List<Address> _systemAddresses = new List<Address>()
+        private List<Address> SystemAddresses => new List<Address>
         {
-            DPosContractAddress, 
-            SideChainContractAddress
+            _dPosContractAddress, 
+            _sideChainContractAddress
         };
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
             IChainService chainService, IAuthorizationInfo authorizationInfo, ITxSignatureVerifier signatureVerifier,
-            ITxRefBlockValidator refBlockValidator)
+            ITxRefBlockValidator refBlockValidator, ILogger logger)
         {
+            _logger = logger;
             _transactionManager = transactionManager;
             _receiptManager = receiptManager;
             _chainService = chainService;
@@ -81,10 +66,25 @@ namespace AElf.Miner.TxMemPool
             _authorizationInfo = authorizationInfo;
 
             _terminated = false;
+
+            _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+
+            _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(_chainId);
+            _sideChainContractAddress =   ContractHelpers.GetSideChainContractAddress(_chainId);
         }
 
         public void Initialize()
         {
+            _blockChain = _chainService.GetBlockChain(_chainId);
+
+            if (_blockChain == null)
+            {
+                _logger?.Warn($"Could not find the blockchain for {_chainId}.");
+                return;
+            }
+
+            _curHeight = _blockChain.GetCurrentBlockHeightAsync().Result;
+                
             MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
                 await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
             
@@ -138,6 +138,10 @@ namespace AElf.Miner.TxMemPool
 
             IdentifyTransactionType(tr);
 
+            // todo this should be up to the caller of this method to choose
+            // todo weither or not this is done on another thread, currently 
+            // todo this gives the caller no choice.
+            
             Task.Run(async () =>
             {
                 VerifySignature(tr);
@@ -267,14 +271,14 @@ namespace AElf.Miner.TxMemPool
 
         private void IdentifyTransactionType(TransactionReceipt tr)
         {
-            if (_systemAddresses.Contains(tr.Transaction.To))
+            if (SystemAddresses.Contains(tr.Transaction.To))
             {
                 tr.IsSystemTxn = true;
             }
 
             // cross chain txn should not be  broadcasted
             if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction 
-                && SideChainContractAddress.Equals(tr.Transaction.To))
+                && _sideChainContractAddress.Equals(tr.Transaction.To))
                 tr.ToBeBroadCasted = false;
         }
 
@@ -306,13 +310,13 @@ namespace AElf.Miner.TxMemPool
 
         private void IdentifyExpiredTransactions()
         {
-            if (CurHeight > GlobalConfig.ReferenceBlockValidPeriod)
+            if (_curHeight > GlobalConfig.ReferenceBlockValidPeriod)
             {
                 var expired = _allTxns.Where(tr =>
                     tr.Value.Status == TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus
                     && tr.Value.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.RefBlockExpired
-                    && CurHeight > tr.Value.Transaction.RefBlockNumber
-                    && CurHeight - tr.Value.Transaction.RefBlockNumber > GlobalConfig.ReferenceBlockValidPeriod
+                    && _curHeight > tr.Value.Transaction.RefBlockNumber
+                    && _curHeight - tr.Value.Transaction.RefBlockNumber > GlobalConfig.ReferenceBlockValidPeriod
                 );
                 foreach (var tr in expired)
                 {
@@ -326,9 +330,9 @@ namespace AElf.Miner.TxMemPool
             // TODO: Improve
             // Remove old transactions (executed, invalid and expired)
             var keepNBlocks = GlobalConfig.ReferenceBlockValidPeriod / 4 * 5;
-            if (CurHeight - GlobalConfig.GenesisBlockHeight > keepNBlocks)
+            if (_curHeight - GlobalConfig.GenesisBlockHeight > keepNBlocks)
             {
-                var blockNumberThreshold = CurHeight - keepNBlocks;
+                var blockNumberThreshold = _curHeight - keepNBlocks;
                 var toRemove = _allTxns.Where(tr => tr.Value.Transaction.RefBlockNumber < blockNumberThreshold);
                 foreach (var tr in toRemove)
                 {
@@ -352,9 +356,9 @@ namespace AElf.Miner.TxMemPool
         {
             var blockHeader = block.Header;
             // TODO: Handle LIB
-            if (blockHeader.Index > (CurHeight + 1) && CurHeight != GlobalConfig.GenesisBlockHeight)
+            if (blockHeader.Index > (_curHeight + 1) && _curHeight != GlobalConfig.GenesisBlockHeight)
             {
-                throw new Exception($"Invalid block index {blockHeader.Index} but current height is {CurHeight}.");
+                throw new Exception($"Invalid block index {blockHeader.Index} but current height is {_curHeight}.");
             }
 
             _curHeight = blockHeader.Index;
@@ -391,9 +395,9 @@ namespace AElf.Miner.TxMemPool
                     
                     // cross chain type and dpos type transaction should not be reverted.
                     if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction
-                        && tr.Transaction.To.Equals(SideChainContractAddress) ||
+                        && tr.Transaction.To.Equals(_sideChainContractAddress) ||
                         tr.Transaction.Type == TransactionType.DposTransaction
-                        && tr.Transaction.To.Equals(DPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
+                        && tr.Transaction.To.Equals(_dPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
                         continue;
                     
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;

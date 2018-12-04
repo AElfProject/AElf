@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
@@ -8,11 +9,14 @@ using AElf.Kernel;
 using AElf.Kernel.Types.Proposal;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Secp256k1Net;
 
 namespace AElf.Contracts.Authorization.Tests
 {
     public class AuthorizationContractShim
     {
+        private byte[] _chainId;
+        
         private MockSetup _mock;
         public IExecutive _executive;
         public IExecutive Executive {
@@ -30,8 +34,9 @@ namespace AElf.Contracts.Authorization.Tests
         public Address Sender { get; } = Address.FromString("sender");
         public Address AuthorizationContractAddress { get; set; }
 
-        public AuthorizationContractShim(MockSetup mock, Address authorizationContractAddress)
+        public AuthorizationContractShim(MockSetup mock, Address authorizationContractAddress, byte[] chainId)
         {
+            _chainId = chainId;
             _mock = mock;
             AuthorizationContractAddress = authorizationContractAddress;
             Init();
@@ -73,24 +78,22 @@ namespace AElf.Contracts.Authorization.Tests
             {
                 var tx = new Transaction
                 {
-                    From = sender.GetAddress(),
+                    From = Address.FromPublicKey(_chainId, sender.PublicKey),
                     To = AuthorizationContractAddress,
                     MethodName = "Propose",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(proposal))
                 };
+                
                 var signer = new ECSigner();
                 var signature = signer.Sign(sender, tx.GetHash().DumpByteArray());
-                tx.Sigs.Add(new Sig
-                {
-                    P = ByteString.CopyFrom(sender.GetEncodedPublicKey()),
-                    R = ByteString.CopyFrom(signature.R),
-                    S = ByteString.CopyFrom(signature.S)
-                });
+                
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
                 
                 TransactionContext = new TransactionContext
                 {
                     Transaction = tx
                 };
+                
                 await Executive.SetTransactionContext(TransactionContext).Apply();
                 await CommitChangesAsync(TransactionContext.Trace);
                 return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();

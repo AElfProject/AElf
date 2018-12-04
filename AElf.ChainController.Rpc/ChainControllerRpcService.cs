@@ -93,22 +93,22 @@ namespace AElf.ChainController.Rpc
             try
             {
                 var basicContractZero =
-                    ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var sideChainContract =
-                    ContractHelpers.GetSideChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetSideChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var authorizationContract =
-                    ContractHelpers.GetAuthorizationContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
-                var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetAuthorizationContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject()
                 {
                     ["result"] =
                         new JObject
                         {
-                            [GlobalConfig.GenesisSmartContractZeroAssemblyName] = basicContractZero.DumpHex(),
-                            [GlobalConfig.GenesisSideChainContractAssemblyName] = sideChainContract.DumpHex(),
-                            [GlobalConfig.GenesisAuthorizationContractAssemblyName] = authorizationContract.DumpHex(),
-                            [GlobalConfig.GenesisTokenContractAssemblyName] = tokenContract.DumpHex(),
+                            [GlobalConfig.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
+                            [GlobalConfig.GenesisSideChainContractAssemblyName] = sideChainContract.GetFormatted(),
+                            [GlobalConfig.GenesisAuthorizationContractAssemblyName] = authorizationContract.GetFormatted(),
+                            [GlobalConfig.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
                             ["chain_id"] = ChainConfig.Instance.ChainId
                         }
                 };
@@ -131,7 +131,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var addrHash =Address.LoadHex(address);
+                var addrHash =Address.Parse(address);
 
                 var abi = await this.GetContractAbi(addrHash);
 
@@ -159,7 +159,7 @@ namespace AElf.ChainController.Rpc
             Address addr;
             try
             {
-                addr = Address.LoadHex(address);
+                addr = Address.Parse(address);
             }
             catch (Exception e)
             {
@@ -342,7 +342,7 @@ namespace AElf.ChainController.Rpc
                 }
                 return new JObject
                 {
-                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpHex(),
+                    ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
                     ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.DumpHex(),
                     ["parent_height"] = merklePathInParentChain.Height
                 };
@@ -411,7 +411,17 @@ namespace AElf.ChainController.Rpc
                 {
                     response["block_number"] = txResult.BlockNumber;
                     response["block_hash"] = txResult.BlockHash.DumpHex();
-                    response["return"] = txResult.RetVal.ToByteArray().ToHex();
+                    
+                    try
+                    {
+                        response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
+
+                    }
+                    catch (Exception e)
+                    {
+                        // not an error
+                        response["return"] = txResult.RetVal.ToByteArray().ToHex();
+                    }
                 }
                 // Todo: it should be deserialized to obj ion cli, 
 
@@ -473,7 +483,7 @@ namespace AElf.ChainController.Rpc
                         ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.DumpHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
-                        ["ChainId"] = blockinfo.Header.ChainId.DumpHex(),
+                        ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),
                         //["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                     },
                     ["Body"] = new JObject
@@ -558,11 +568,11 @@ namespace AElf.ChainController.Rpc
                     ["result"] = new JObject
                     {
                         ["proposal_name"] = proposal.Name,
-                        ["multi_sig"] = proposal.MultiSigAccount.DumpHex(),
+                        ["multi_sig"] = proposal.MultiSigAccount.GetFormatted(),
                         ["expired_time"] = proposal.ExpiredTime.ToDateTime(),
                         ["TxnData"] = proposal.TxnData.TxnData.ToByteArray().ToHex(),
                         ["status"] = proposal.Status.ToString(),
-                        ["proposer"] = proposal.Proposer.DumpHex()
+                        ["proposer"] = proposal.Proposer.GetFormatted()
                     }
                 };
             }

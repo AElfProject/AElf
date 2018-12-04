@@ -14,10 +14,10 @@ namespace AElf.ChainController.CrossChain
     {
         private readonly ContractInfoReader _contractInfoReader;
         private Address SideChainContractAddress =>
-            ContractHelpers.GetSideChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            ContractHelpers.GetSideChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
         public CrossChainInfo(IStateStore stateStore)
         {
-            var chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
+            var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
             _contractInfoReader = new ContractInfoReader(chainId, stateStore);
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -33,13 +34,16 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_Disposed_ThrowsInvalidOperationException()
         {
+            ChainConfig.Instance.ChainId = "kPBx";
+            
             int port = 1234;
             
             Peer p = new Peer(new TcpClient(), null, null, port, null, 0);
             
             var (_, handshake) = NetworkTestHelpers.CreateKeyPairAndHandshake(port);
             
-            p.AuthentifyWith(handshake);
+            RejectReason reason = p.AuthentifyWith(handshake);
+            Assert.Equal(RejectReason.None, reason);
 
             var ex = Assert.Throws<InvalidOperationException>(() => p.Start());
             Assert.Equal("Cannot start an already authentified peer.", ex.Message);
@@ -48,6 +52,8 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_ShouldSend_Auth()
         {
+            ChainConfig.Instance.ChainId = "kPBx";
+            
             int peerPort = 1234;
             
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
@@ -72,6 +78,8 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_AuthentificationTimout_ShouldThrowEvent()
         {
+            ChainConfig.Instance.ChainId = "kPBx";
+            
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
@@ -99,25 +107,30 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_AuthentificationNoTimout_ShouldThrowEvent()
         {
+            ChainConfig.Instance.ChainId = "kPBx";
+                
             int localPort = 1234;
             int remotePort = 1235;
+            
+            var (_, handshake) = NetworkTestHelpers.CreateKeyPairAndHandshake(remotePort);
             
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
             ECKeyPair key = new KeyPairGenerator().Generate();
             Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, localPort, key, 0);
-            p.AuthTimeout = 100;
+            p.AuthTimeout = 10000;
             
             AuthFinishedArgs authFinishedArgs = null;
             
             p.AuthFinished += (sender, args) => {
                 authFinishedArgs = args as AuthFinishedArgs;
             };
+
+            if (handshake.PublicKey == null || handshake.PublicKey.Length < 0)
+                ;
             
             p.Start();
-            
-            var (_, handshake) = NetworkTestHelpers.CreateKeyPairAndHandshake(remotePort);
             p.AuthentifyWith(handshake);
             
             Task.Delay(200).Wait();

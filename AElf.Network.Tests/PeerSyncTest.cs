@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -142,6 +143,8 @@ namespace AElf.Network.Tests
         [Fact]
         public void SyncNextAnnouncement_WithSyncingAndEmptyAnnoucements_EndsSync()
         {
+            ChainConfig.Instance.ChainId = "kPBx";
+            
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
 

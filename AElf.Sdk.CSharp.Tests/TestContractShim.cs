@@ -11,7 +11,7 @@ namespace AElf.Sdk.CSharp.Tests
     public class TestContractShim
     {
         private MockSetup _mock;
-        public Address ContractAddres = Address.FromRawBytes(Hash.Generate().ToByteArray());
+        public Address ContractAddres = Address.Generate();
         public IExecutive Executive { get; set; }
 
         public byte[] Code
@@ -48,7 +48,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var tx = new Transaction
             {
-                From = Address.FromRawBytes(Hash.Generate().ToByteArray()),
+                From = Address.Generate(),
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetTotalSupply",
@@ -67,7 +67,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var tx = new Transaction
             {
-                From = Address.FromRawBytes(Hash.Generate().ToByteArray()),
+                From = Address.Generate(),
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "SetAccount",
@@ -86,7 +86,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var tx = new Transaction
             {
-                From = Address.FromRawBytes(Hash.Generate().ToByteArray()),
+                From = Address.Generate(),
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetAccountName",

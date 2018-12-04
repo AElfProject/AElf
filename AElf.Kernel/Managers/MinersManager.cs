@@ -31,7 +31,7 @@ namespace AElf.Kernel.Managers
             foreach (var bp in dict.Values)
             {
                 var address = bp["address"];
-                miners.Nodes.Add(Address.LoadHex(address));
+                miners.Nodes.Add(Address.Parse(address));
             }
 
             return miners;
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Managers
         {
             foreach (var node in miners.Nodes)
             {
-                _logger?.Trace($"Set miner {node.DumpHex()} to data store.");
+                _logger?.Trace($"Set miner {node.GetFormatted()} to data store.");
             }
 
             await _dataStore.InsertAsync(Key, miners);
