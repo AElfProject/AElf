@@ -85,7 +85,7 @@ namespace AElf.CLI2.JS
             spans.Add(new Span("["));
             for (int i = 0; i < len; i++)
             {
-                spans.AddRange(GetValueSpans(_engine.GetObjectProperty(obj, i.ToString())));
+                spans.AddRange(GetValueSpans(_engine.GetObjectProperty(obj, i.ToString()), level + 1));
                 if (i < len - 1)
                 {
                     spans.Add(new Span(", "));
