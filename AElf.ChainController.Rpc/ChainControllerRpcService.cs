@@ -411,7 +411,17 @@ namespace AElf.ChainController.Rpc
                 {
                     response["block_number"] = txResult.BlockNumber;
                     response["block_hash"] = txResult.BlockHash.DumpHex();
-                    response["return"] = txResult.RetVal.ToByteArray().ToHex();
+                    
+                    try
+                    {
+                        response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
+
+                    }
+                    catch (Exception e)
+                    {
+                        // not an error
+                        response["return"] = txResult.RetVal.ToByteArray().ToHex();
+                    }
                 }
                 // Todo: it should be deserialized to obj ion cli, 
 

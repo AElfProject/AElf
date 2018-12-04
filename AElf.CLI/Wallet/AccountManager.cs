@@ -216,7 +216,7 @@ namespace AElf.CLI.Wallet
 
         public Transaction SignTransaction(Transaction tx)
         {
-            string addr = tx.From.Value.ToHex(true);
+            string addr = tx.From.GetFormatted();
             
             MemoryStream ms = new MemoryStream();
             Serializer.Serialize(ms, tx);

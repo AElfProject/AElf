@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
+using Base58Check;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using ProtoBuf;
@@ -57,15 +58,14 @@ namespace AElf.CLI.Data.Protobuf
         [ProtoMember(10)]
         public TransactionType  Type { get; set; }
         
-        
         public static Transaction CreateTransaction(string elementAt, string genesisAddress,
             string methodName, byte[] serializedParams, TransactionType contracttransaction)
         {
             try
             {
                 Transaction t = new Transaction();
-                t.From = ByteArrayHelpers.FromHexString(elementAt);
-                t.To = ByteArrayHelpers.FromHexString(genesisAddress);
+                t.From = Address.Parse(elementAt);
+                t.To = Address.Parse(genesisAddress);
                 t.MethodName = methodName;
                 t.Params = serializedParams;
                 t.Type = contracttransaction;
@@ -82,8 +82,8 @@ namespace AElf.CLI.Data.Protobuf
             try
             {
                 Transaction tr = new Transaction();
-                tr.From = ByteArrayHelpers.FromHexString(j["from"].ToString());
-                tr.To = ByteArrayHelpers.FromHexString(j["to"].ToString());
+                tr.From = Address.Parse(j["from"].ToString());
+                tr.To = Address.Parse(j["to"].ToString());
                 tr.MethodName = j["method"].ToObject<string>();
                 return tr;
             }

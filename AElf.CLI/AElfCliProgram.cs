@@ -826,12 +826,12 @@ namespace AElf.CLI
                             Transaction tr ;
 
                             tr = Transaction.ConvertFromJson(j);
-                            string hex = tr.To.Value.ToHex();
+                            string toAdr = tr.To.GetFormatted();
 
                             Module m;
-                            if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
+                            if (!_loadedModules.TryGetValue(toAdr, out m))
                             {
-                                if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
+                                if (!_loadedModules.TryGetValue(toAdr, out m))
                                 {
                                     _screenManager.PrintError(AbiNotLoaded);
                                     return;
