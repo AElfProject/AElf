@@ -31,7 +31,7 @@ namespace AElf.Miner.Miner
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
-        private int _timeoutMilliseconds;
+        private int TimeoutMilliseconds => ConsensusConfig.Instance.DPoSMiningInterval / 4 * 3;
         
         private readonly ILogger _logger;
         private readonly ITxHub _txHub;
@@ -81,7 +81,6 @@ namespace AElf.Miner.Miner
         {
             _txFilter = new TransactionFilter();
             
-            _timeoutMilliseconds = ConsensusConfig.Instance.DPoSMiningInterval / 4 * 3;
             _keyPair = NodeConfig.Instance.ECKeyPair;
             _producerAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
             
@@ -217,7 +216,7 @@ namespace AElf.Miner.Miner
                 }
             }))
             {
-                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
+                timer.Change(TimeoutMilliseconds, Timeout.Infinite);
 
                 if (cts.IsCancellationRequested)
                     return null;
