@@ -62,6 +62,7 @@ namespace AElf.CLI2.JS
         private readonly IRandomGenerator _randomGenerator;
         private readonly PrettyPrint _prettyPrint;
         private HttpRequestor _requestor;
+        private TimerCallsHelper _timerCallsHelper;
 
         public IServiceNode ServiceNode => _context.ServiceNode;
         public JSValue GlobalObject => _context.GlobalObject;
@@ -75,6 +76,7 @@ namespace AElf.CLI2.JS
             _context = JavaScriptHosting.Default.CreateContext(config);
             _context.RegisterEvalService();
             _prettyPrint = new PrettyPrint(this);
+            _timerCallsHelper = new TimerCallsHelper(this);
             _option = option;
             _randomGenerator = randomGenerator;
             ExposeConsoleToContext();
@@ -84,6 +86,7 @@ namespace AElf.CLI2.JS
             LoadAelfJs();
             LoadHelpersJs();
             ExposeHttpRequestorToContext();
+            ExposeTimerCallsHelper();
         }
 
         private void LoadAelfJs()
@@ -178,6 +181,11 @@ namespace AElf.CLI2.JS
             }
         }
 
+        private void ExposeTimerCallsHelper()
+        {
+            _context.GlobalObject.Binding.SetMethod<JSValue,int,int>("__repeatedCalls__", _timerCallsHelper.RepeatedCalls);
+        }
+
         public void RunScript(Stream stream)
         {
             using (var reader = new StreamReader(stream, Encoding.UTF8))
@@ -220,7 +228,6 @@ namespace AElf.CLI2.JS
 
         public void Dispose()
         {
-            Console.WriteLine("disposing");
             _context.Dispose();
         }
     }

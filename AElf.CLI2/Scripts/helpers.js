@@ -32,3 +32,10 @@ function _fromString(v) {
 function _assignToUnderscore(obj) {
     _ = obj;
 }
+
+function _repeatedCalls(callback, milliSenconds, repetitions=0) {
+    if (repetitions == 0) {
+        repetitions = 2147483647; // int.MaxValue;
+    }
+    __repeatedCalls__(callback, milliSenconds, repetitions);
+}

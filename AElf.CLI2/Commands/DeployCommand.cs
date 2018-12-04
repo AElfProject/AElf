@@ -65,8 +65,8 @@ namespace AElf.CLI2.Commands
                 .GetManifestResourceStream("AElf.CLI2.Scripts.init-chain.js"));
             _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
                 .GetManifestResourceStream("AElf.CLI2.Scripts.deploy-command.js"));
-            _engine.GlobalObject.CallFunctionAsync<int, string, int>("deployCommand", _option.Category,
-                GetCode(_option.Codefile)).Wait();
+            _engine.GlobalObject.CallMethod<int, string>("deployCommand", _option.Category,
+                GetCode(_option.Codefile));
         }
 
         private static string GetCode(string path)
