@@ -244,40 +244,40 @@ message OngoingMiners {
     repeated Miners Miners = 1;
 }
 
-message Candidates {
-    repeated Address Nodes = 1;
-}
-
-message Tickets {
-    uint64 RemainingTickets = 1;
-    repeated VotingRecord VotingRecord = 2;
-}
-
-message VotingRecord {
-    Address From = 1;
-    Address To = 2;
-    uint64 TicketsCount = 3;
-    uint64 RoundNumber = 4;
-    Hash TransactionId = 5;
-    bool State = 6;
-}
-
 message Miners {
     uint64 TakeEffectRoundNumber = 1;
     repeated Address Nodes = 2;
 }
 
-message ElectionSnapshot {
-    uint64 StartRoundNumber = 1;
-    uint64 EndRoundNumber = 2;
-    uint64 Blocks = 3;
-    repeated TicketsMap TicketsMap = 4;
+message Candidates {
+    repeated Address Nodes = 1;
 }
 
-message TicketsMap {
-    Address CandidateAddress = 1;
-    uint64 TicketsCount = 2;
-    uint64 TotalWeights = 3;
+message Tickets {
+    uint64 TotalTickets = 1;
+    uint64 ExpiredTickets = 2;
+    repeated VotingRecord VotingRecords = 3;
+}
+
+message VotingRecord {
+    Address From = 1;
+    Address To = 2;
+    uint64 Count = 3;
+    uint64 RoundNumber = 4;
+    Hash TransactionId = 5;
+    google.protobuf.Timestamp VoteTimestamp = 6;
+    repeated uint64 LockDaysList = 7;
+}
+
+message ElectionSnapshot {
+    uint64 EndRoundNumber = 1;
+    uint64 BlocksCount = 2;
+    repeated MinerSnapshot MinersSnapshot = 3;
+}
+
+message MinerSnapshot {
+    Address MinerAddress = 1;
+    uint64 VotersWeights = 2;
 }
 
 message BlockProducer {

@@ -54,5 +54,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
         public PbField<Candidates> CandidatesField;
 
         public Map<UInt64Value, ElectionSnapshot> SnapshotField;
+
+        public Map<UInt64Value, UInt64Value> DividendsMap;
     }
 }

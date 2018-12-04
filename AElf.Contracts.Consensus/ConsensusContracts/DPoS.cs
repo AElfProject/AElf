@@ -64,6 +64,8 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap;
 
+        private readonly Map<UInt64Value, UInt64Value> _dividendsMap;
+
         #endregion
 
         public DPoS(AElfDPoSFieldMapCollection collection)
@@ -78,9 +80,9 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             _balanceMap = collection.BalanceMap;
             _candidatesField = collection.CandidatesField;
             _snapshotMap = collection.SnapshotField;
+            _dividendsMap = collection.DividendsMap;
         }
 
-        /// <inheritdoc />
         /// <summary>
         /// 1. Set block producers / miners;
         /// 2. Set current round number to 1;

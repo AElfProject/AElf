@@ -53,6 +53,9 @@ namespace AElf.Contracts.Consensus
         private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap =
             new Map<UInt64Value, ElectionSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString);
 
+        private readonly Map<UInt64Value, UInt64Value> _dividendsMap =
+            new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSDividendsMapString);
+        
         private DPoS DPoSConsensus => new DPoS(new AElfDPoSFieldMapCollection
         {
             CurrentRoundNumberField = _currentRoundNumberField,
@@ -65,7 +68,8 @@ namespace AElf.Contracts.Consensus
             EBPMap = _eBPMap,
             FirstPlaceMap = _firstPlaceMap,
             BalanceMap = _balanceMap,
-            SnapshotField = _snapshotMap
+            SnapshotField = _snapshotMap,
+            DividendsMap = _dividendsMap
         });
 
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval,
