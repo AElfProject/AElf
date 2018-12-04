@@ -122,7 +122,7 @@ namespace AElf.Contracts.Genesis
             var serialNumber = _contractSerialNumber.Increment().Value;
             var contractAddress = Address.FromRawBytes(serialNumber.ToString().CalculateHash());
             
-            var creator = Api.GetTransaction().From;
+            var creator = Api.GetFromAddress();
             var contractHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
@@ -186,7 +186,7 @@ namespace AElf.Contracts.Genesis
         public void ChangeContractOwner(Address contractAddress, Address newOwner)
         {
             var info = _contractInfos[contractAddress];
-            Api.Assert(info.Owner.Equals(Api.GetTransaction().From));
+            Api.Assert(info.Owner.Equals(Api.GetFromAddress()));
             var oldOwner = info.Owner;
             info.Owner = newOwner;
             _contractInfos[contractAddress] = info;

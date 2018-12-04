@@ -205,7 +205,10 @@ namespace AElf.Contracts.Authorization
                 ExecutionThreshold = SystemThreshold((uint) reviewers.Count),
                 ProposerThreshold = 0
             };
-            auth.Reviewers.AddRange(reviewers);
+            auth.Reviewers.AddRange(reviewers.Select(r => new Reviewer
+            {
+                
+            }));
             
             return auth;
         }

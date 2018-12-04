@@ -84,6 +84,8 @@ namespace AElf.Sdk.CSharp
 
         private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
 
+        private static Address ConsensusContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
+
         public static Address Genesis => Address.Genesis;
 
         public static Hash GetPreviousBlockHash()
@@ -102,10 +104,10 @@ namespace AElf.Sdk.CSharp
         }
 
         
-        public static List<Reviewer> GetSystemReviewers()
+        public static List<Address> GetSystemReviewers()
         {
-            // TODO: Get current miners and chain creators
-            throw new NotImplementedException();
+            Call(ConsensusContractAddress, "GetCurrentMiners");
+            return GetCallResult().DeserializeToPbMessage<Miners>().Nodes.ToList();
         }
         
         public static Address GetContractOwner()
@@ -129,7 +131,7 @@ namespace AElf.Sdk.CSharp
             return dp;
         }
 
-        public static Transaction GetTransaction()
+        private static Transaction GetTransaction()
         {
             return _transactionContext.Transaction.ToReadOnly();
         }
@@ -137,6 +139,11 @@ namespace AElf.Sdk.CSharp
         public static ByteString GetPublicKey()
         {
             return GetTransaction().Sigs.Clone().First().P;
+        }
+
+        public static Hash GetTxnHash()
+        {
+            return GetTransaction().GetHash();
         }
 
         public static Address GetFromAddress()
@@ -201,7 +208,7 @@ namespace AElf.Sdk.CSharp
             });
         }
 
-        public static bool Call(Address contractAddress, string methodName, byte[] args)
+        public static bool Call(Address contractAddress, string methodName, byte[] args = null)
         {
             _lastCallContext = new TransactionContext()
             {
@@ -210,7 +217,7 @@ namespace AElf.Sdk.CSharp
                     From = _smartContractContext.ContractAddress,
                     To = contractAddress,
                     MethodName = methodName,
-                    Params = ByteString.CopyFrom(args)
+                    Params = ByteString.CopyFrom(args ?? new byte[0])
                 }
             };
 

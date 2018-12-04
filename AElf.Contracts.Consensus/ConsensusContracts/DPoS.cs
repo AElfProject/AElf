@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         public ulong CurrentRoundNumber => _currentRoundNumberField.GetAsync().Result;
 
-        private Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
+        private Address TokenContractAddress ;
 
         public int Interval
         {
@@ -264,7 +264,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         /// <returns></returns>
         public async Task Publish(List<byte[]> args)
         {
-            var fromAddressToHex = new StringValue {Value = Api.GetTransaction().From.DumpHex().RemoveHexPrefix()};
+            var fromAddressToHex = new StringValue {Value = Api.GetFromAddress().DumpHex().RemoveHexPrefix()};
 
             UInt64Value roundNumber;
             try
@@ -334,7 +334,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             // QuitElection
             if (args.Count == 0)
             {
-                var minerWannaQuitElection = Api.GetTransaction().From;
+                var minerWannaQuitElection = Api.GetFromAddress();
                 var candidates = await _candidatesField.GetAsync();
                 if (candidates == null || !candidates.Nodes.Contains(minerWannaQuitElection))
                 {
@@ -436,7 +436,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 if (_balanceMap.TryGet(address, out var tickets))
                 {
                     Api.Assert(tickets.RemainingTickets >= amount,
-                        $"{Api.GetTransaction().From.DumpHex()} can't withdraw tickets.");
+                        $"{Api.GetFromAddress().DumpHex()} can't withdraw tickets.");
 
                     tickets.RemainingTickets -= amount;
                     Api.Call(TokenContractAddress, "Transfer",
@@ -813,7 +813,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private async Task Vote(Address candidateAddress, UInt64Value amount)
         {
-            Api.Assert(CheckTickets(amount), $"Tickets of {Api.GetTransaction().From.DumpHex()} is not enough.");
+            Api.Assert(CheckTickets(amount), $"Tickets of {Api.GetFromAddress().DumpHex()} is not enough.");
 
             Api.Assert(await IsCandidate(candidateAddress), $"{candidateAddress.DumpHex()} is not a candidate.");
 
@@ -831,7 +831,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 {
                     tickets.VotingRecord.Add(new VotingRecord
                     {
-                        From = Api.GetTransaction().From,
+                        From = Api.GetFromAddress(),
                         TicketsCount = amount.Value
                     });
                 }
@@ -842,7 +842,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private async Task Regret(Address candidateAddress, UInt64Value amount)
         {
-            var voterAddress = Api.GetTransaction().From;
+            var voterAddress = Api.GetFromAddress();
             if (_balanceMap.TryGet(candidateAddress, out var tickets))
             {
                 var record = tickets.VotingRecord.FirstOrDefault(vr => vr.From == voterAddress);
@@ -882,7 +882,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private bool CheckTickets(UInt64Value amount)
         {
-            if (_balanceMap.TryGet(Api.GetTransaction().From, out var tickets))
+            if (_balanceMap.TryGet(Api.GetFromAddress(), out var tickets))
             {
                 return tickets.RemainingTickets >= amount.Value;
             }

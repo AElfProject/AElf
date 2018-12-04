@@ -204,7 +204,7 @@ namespace AElf.Contracts.CrossChain
             new SideChainCreationRequested
             {
                 ChainId = chainId,
-                Creator = Api.GetTransaction().From
+                Creator = Api.GetFromAddress()
             }.Fire();
             return chainId.DumpByteArray();
         }

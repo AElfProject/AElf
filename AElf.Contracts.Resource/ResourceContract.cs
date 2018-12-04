@@ -102,7 +102,7 @@ namespace AElf.Contracts.Resource
             var payout = this.BuyResourceFromExchange(resourceType, paidElf);
             var urk = new UserResourceKey()
             {
-                Address = Api.GetTransaction().From,
+                Address = Api.GetFromAddress(),
                 Type = (ResourceType) Enum.Parse(typeof(ResourceType),
                     resourceType)
             };
@@ -116,12 +116,12 @@ namespace AElf.Contracts.Resource
             var elfToReceive = this.SellResourceToExchange(resourceType, resToSell);
             var urk = new UserResourceKey()
             {
-                Address = Api.GetTransaction().From,
+                Address = Api.GetFromAddress(),
                 Type = (ResourceType) Enum.Parse(typeof(ResourceType),
                     resourceType)
             };
             UserResources[urk] = UserResources[urk].Sub(resToSell);
-            ElfToken.TransferByContract(Api.GetTransaction().From, elfToReceive);
+            ElfToken.TransferByContract(Api.GetFromAddress(), elfToReceive);
         }
 
         public void LockResource(Address to, ulong amount, string resourceType)
@@ -129,7 +129,7 @@ namespace AElf.Contracts.Resource
             AssertCorrectResourceType(resourceType);
             var urkFrom = new UserResourceKey
             {
-                Address = Api.GetTransaction().From,
+                Address = Api.GetFromAddress(),
                 Type = (ResourceType) Enum.Parse(typeof(ResourceType),
                     resourceType)
             };
@@ -148,7 +148,7 @@ namespace AElf.Contracts.Resource
             AssertCorrectResourceType(resourceType);
             var urkFrom = new UserResourceKey
             {
-                Address = Api.GetTransaction().From,
+                Address = Api.GetFromAddress(),
                 Type = (ResourceType) Enum.Parse(typeof(ResourceType),
                     resourceType)
             };

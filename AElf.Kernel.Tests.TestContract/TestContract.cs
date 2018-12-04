@@ -51,7 +51,7 @@ namespace AElf.Kernel.Tests.TestContract
             Console.WriteLine("To: " + to.DumpHex());
 
             // This is for testing batched transaction sequence
-            TransactionStartTimes.SetValue(Api.GetTransaction().GetHash(), Now());
+            TransactionStartTimes.SetValue(Api.GetTxnHash(), Now());
             var fromBal = Balances.GetValue(from);
             Console.WriteLine("Old From Balance: " + fromBal);
 
@@ -69,7 +69,7 @@ namespace AElf.Kernel.Tests.TestContract
             Balances.SetValue(to, newToBal);
 
             // This is for testing batched transaction sequence
-            TransactionEndTimes.SetValue(Api.GetTransaction().GetHash(), Now());
+            TransactionEndTimes.SetValue(Api.GetTxnHash(), Now());
             return true;
         }
 

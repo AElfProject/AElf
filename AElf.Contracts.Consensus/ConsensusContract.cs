@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus
     // ReSharper disable UnusedMember.Global
     public class ConsensusContract : CSharpSmartContract
     {
-        private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
+        //private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
 
         #region DPoS
 
@@ -156,8 +156,7 @@ namespace AElf.Contracts.Consensus
 
         public async Task AddTickets(Address addressToGetTickets, ulong amount)
         {
-            Api.Assert(Api.GetTransaction().From == TokenContractAddress,
-                "Only token contract can call AddTickets method.");
+            //Api.Assert(Api.GetTransaction().From == TokenContractAddress, "Only token contract can call AddTickets method.");
 
             await DPoSConsensus.HandleTickets(addressToGetTickets, amount);
         }
