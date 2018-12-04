@@ -217,5 +217,11 @@ namespace AElf.CLI2.JS
                 Console.Error.WriteLine(e.Message);
             }
         }
+
+        public void Dispose()
+        {
+            Console.WriteLine("disposing");
+            _context.Dispose();
+        }
     }
 }

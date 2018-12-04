@@ -14,15 +14,13 @@ namespace AElf.CLI2.Commands
     }
 
 
-    public class CreateCommand : ICommand
+    public class CreateCommand : Command
     {
-        private readonly IJSEngine _engine;
         private readonly CreateOption _option;
 
-        public CreateCommand(BaseOption option)
+        public CreateCommand(BaseOption option) : base(option)
         {
             _option = (CreateOption) option;
-            _engine = IoCContainerBuilder.Build(_option).Resolve<IJSEngine>();
         }
 
         private string PromptPassword()
@@ -40,7 +38,7 @@ namespace AElf.CLI2.Commands
             return p0;
         }
 
-        public void Execute()
+        public override void Execute()
         {
             var obj = _engine.Evaluate("Aelf.wallet.createNewWallet()");
             string mnemonic = obj.ReadProperty<string>("mnemonic");

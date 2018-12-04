@@ -22,19 +22,29 @@ namespace AElf.CLI2
                 .MapResult(
                     (CreateOption opt) =>
                     {
-//                        var sdk = IoCContainerBuilder.Build(opt).Resolve<IAElfSdk>();
-//                        sdk.Chain().ConnectChain();
-                        new CreateCommand(opt).Execute();
+                        using (var cmd = new CreateCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
                         return 0;
                     },
                     (InteractiveOption opt) =>
                     {
-                        new InteractiveCommand(opt).Execute();
+                        using (var cmd = new InteractiveCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
                         return 0;
                     },
                     (DeployOption opt) =>
                     {
-                        new DeployCommand(opt).Execute();
+                        using (var cmd = new DeployCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
                         return 0;
                     },
                     (AnotherVerb opt) => 0,

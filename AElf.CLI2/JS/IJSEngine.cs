@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
@@ -14,7 +15,7 @@ namespace AElf.CLI2.JS
         JavaScriptValue Value { get; }
     }
 
-    public interface IJSEngine
+    public interface IJSEngine : IDisposable
     {
         IServiceNode ServiceNode { get; }
         JSValue GlobalObject { get; }

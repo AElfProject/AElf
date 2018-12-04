@@ -22,12 +22,11 @@ namespace AElf.CLI2.Commands
     }
 
 
-    public class InteractiveCommand : ICommand
+    public class InteractiveCommand : Command
     {
         private readonly InteractiveOption _option;
-        private readonly IJSEngine _engine;
 
-        public InteractiveCommand(InteractiveOption option)
+        public InteractiveCommand(InteractiveOption option) : base(option)
         {
             _option = option;
             // TODO: Test endpoint ok
@@ -35,8 +34,6 @@ namespace AElf.CLI2.Commands
             {
                 Colors.WriteLine("Endpoint is not set, some functionalities cannot work.".DarkRed());
             }
-
-            _engine = IoCContainerBuilder.Build(_option).Resolve<IJSEngine>();
         }
 
         private HashSet<string> _jsBuiltins = new HashSet<string>
@@ -90,7 +87,7 @@ namespace AElf.CLI2.Commands
             }
         }
 
-        public void Execute()
+        public override void Execute()
         {
             Colors.WriteLine(
                 new Span("Welcome to aelf interactive console. Type "),

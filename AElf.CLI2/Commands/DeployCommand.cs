@@ -23,18 +23,16 @@ namespace AElf.CLI2.Commands
         public string Codefile { get; set; }
     }
 
-    public class DeployCommand : ICommand
+    public class DeployCommand : Command
     {
-        private readonly IJSEngine _engine;
-        private DeployOption _option;
+        private readonly DeployOption _option;
 
-        public DeployCommand(DeployOption option)
+        public DeployCommand(DeployOption option) : base(option)
         {
             _option = option;
-            _engine = IoCContainerBuilder.Build(_option).Resolve<IJSEngine>();
         }
 
-        public void Execute()
+        public override void Execute()
         {
             var accountfile = _option.GetPathForAccount(_option.Account);
             if (!File.Exists(accountfile))
