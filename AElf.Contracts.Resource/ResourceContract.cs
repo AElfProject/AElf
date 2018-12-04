@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -17,8 +18,8 @@ namespace AElf.Contracts.Resource
 
         static ResourceContract()
         {
-            ResourceTypes = Enum.GetValues(typeof(UserResourceKey.Types.ResourceType))
-                .Cast<UserResourceKey.Types.ResourceType>().Select(x => x.ToString()).ToList();
+            ResourceTypes = Enum.GetValues(typeof(ResourceType))
+                .Cast<ResourceType>().Select(x => x.ToString()).ToList();
         }
 
         internal static void AssertCorrectResourceType(string resourceType)
@@ -32,6 +33,7 @@ namespace AElf.Contracts.Resource
 
         internal Map<StringValue, ConnectorPair> ConnectorPairs = new Map<StringValue, ConnectorPair>("ConnectorPairs");
         internal MapToUInt64<UserResourceKey> UserResources = new MapToUInt64<UserResourceKey>("UserResources");
+        internal MapToUInt64<UserResourceKey> LockedUserResources = new MapToUInt64<UserResourceKey>("LockedUserResources");
         internal BoolField Initialized = new BoolField("Initialized");
         internal PbField<Address> ElfTokenAddress = new PbField<Address>("ElfTokenAddress");
 
@@ -58,7 +60,7 @@ namespace AElf.Contracts.Resource
             var urk = new UserResourceKey()
             {
                 Address = address,
-                Type = (UserResourceKey.Types.ResourceType) Enum.Parse(typeof(UserResourceKey.Types.ResourceType),
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
                     resourceType)
             };
             return UserResources[urk];
@@ -101,7 +103,7 @@ namespace AElf.Contracts.Resource
             var urk = new UserResourceKey()
             {
                 Address = Api.GetTransaction().From,
-                Type = (UserResourceKey.Types.ResourceType) Enum.Parse(typeof(UserResourceKey.Types.ResourceType),
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
                     resourceType)
             };
             UserResources[urk] = UserResources[urk].Add(payout);
@@ -115,13 +117,51 @@ namespace AElf.Contracts.Resource
             var urk = new UserResourceKey()
             {
                 Address = Api.GetTransaction().From,
-                Type = (UserResourceKey.Types.ResourceType) Enum.Parse(typeof(UserResourceKey.Types.ResourceType),
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
                     resourceType)
             };
             UserResources[urk] = UserResources[urk].Sub(resToSell);
             ElfToken.TransferByContract(Api.GetTransaction().From, elfToReceive);
         }
 
+        public void LockResource(Address to, ulong amount, string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            var urkFrom = new UserResourceKey
+            {
+                Address = Api.GetTransaction().From,
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            UserResources[urkFrom] = UserResources[urkFrom].Sub(amount);
+            var lurkTo = new UserResourceKey
+            {
+                Address = to,
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            LockedUserResources[lurkTo] = UserResources[lurkTo].Add(amount);
+        }
+        
+        public void WithdrawResource(Address to, ulong amount, string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            var urkFrom = new UserResourceKey
+            {
+                Address = Api.GetTransaction().From,
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            UserResources[urkFrom] = UserResources[urkFrom].Add(amount);
+            var lurkTo = new UserResourceKey
+            {
+                Address = to,
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            LockedUserResources[lurkTo] = UserResources[lurkTo].Sub(amount);
+        }
+        
         #endregion Actions
     }
 }
