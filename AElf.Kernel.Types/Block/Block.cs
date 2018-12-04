@@ -58,6 +58,7 @@ namespace AElf.Kernel
             ECSignature signature = signer.Sign(keyPair, bytes);
 
             Header.Sig = ByteString.CopyFrom(signature.SigBytes);
+            Header.P = ByteString.CopyFrom(keyPair.PublicKey);
         }
 
         public ParentChainBlockInfo ParentChainBlockInfo { get; set; }
