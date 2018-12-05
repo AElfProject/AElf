@@ -447,7 +447,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 }
             }
 
-            Console.WriteLine($"{pubKey.ToPlainBase58()}'s tickets changed: {amount}");
+            Console.WriteLine($"{pubKey.ToHex()}'s tickets changed: {amount}");
         }
 
         public async Task AnnounceElection(byte[] candidatePubKey)
@@ -540,7 +540,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             var candidates = new Candidates();
             foreach (var pubKey in miners.Producers)
             {
-                ConsoleWriteLine(nameof(Initialize), $"Set miner {pubKey.ToByteArray().ToPlainBase58()} to state store.");
+                ConsoleWriteLine(nameof(Initialize), $"Set miner {pubKey.ToByteArray().ToHex()} to state store.");
 
                 candidates.PubKeys.Add(pubKey);
 
@@ -552,7 +552,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 if (_balanceMap.TryGet(bv, out var tickets))
                 {
                     ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {bv.Value.ToByteArray().ToPlainBase58()}: {tickets.TotalTickets}");
+                        $"Remaining tickets of {bv.Value.ToByteArray().ToHex()}: {tickets.TotalTickets}");
                 }
                  else
                 {
@@ -560,7 +560,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     tickets = new Tickets {TotalTickets = GlobalConfig.LockTokenForElection};
                     await _balanceMap.SetValueAsync(bv, tickets);
                     ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {bv.Value.ToByteArray().ToPlainBase58()}: {tickets.TotalTickets}");
+                        $"Remaining tickets of {bv.Value.ToByteArray().ToHex()}: {tickets.TotalTickets}");
                 }
             }
 
@@ -786,7 +786,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         private async Task<BlockProducer> GetBPInfoOfCurrentRound(byte[] pubKey)
         {
             return (await _dPoSInfoMap.GetValueAsync(new UInt64Value {Value = CurrentRoundNumber})).BlockProducers[
-                pubKey.ToPlainBase58()];
+                pubKey.ToHex()];
         }
 
         private bool IsBlockProducer(byte[] pubKey)
@@ -823,7 +823,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         {
             Api.Assert(CheckTickets(amount), $"Tickets of {Api.GetFromAddress().GetFormatted()} is not enough.");
 
-            Api.Assert(await IsCandidate(pubKey), $"{pubKey.ToPlainBase58()} is not a candidate.");
+            Api.Assert(await IsCandidate(pubKey), $"{pubKey.ToHex()} is not a candidate.");
 
             var bv = new BytesValue
             {

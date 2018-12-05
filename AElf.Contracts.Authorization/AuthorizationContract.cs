@@ -140,7 +140,7 @@ namespace AElf.Contracts.Authorization
             Api.Assert(!authorization.Equals(new Kernel.Types.Proposal.Authorization()), "Authorization not found."); // should never happen
             
             var array = proposal.TxnData.TxnData.ToByteArray();
-            byte[] toSig = SHA256.Create().ComputeHash(array);
+            byte[] toSig = array.CalculateHash();
             
             byte[] pubKey = Api.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
             Api.Assert(authorization.Reviewers.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)), "Not authorized approval.");
