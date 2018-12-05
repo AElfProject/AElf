@@ -5,6 +5,7 @@
   <ItemGroup>
     <PackageReference Include="BouncyCastle.NetCore" Version="1.8.2" />
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
+    <PackageReference Include="Secp256k1.Net" Version="0.1.52" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />

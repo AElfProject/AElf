@@ -15,15 +15,9 @@ message Transaction {
     string MethodName = 6;
     bytes Params = 7;
     uint64 Fee = 8;
-    repeated Sig Sigs = 9;
+    repeated bytes Sigs = 9;
     TransactionType type = 10;
     google.protobuf.Timestamp Time = 11;
-}
-
-message Sig{
-    bytes R = 1;
-    bytes S = 2;
-    bytes P = 3;
 }
 
 message TransactionReceipt {
@@ -163,13 +157,12 @@ message BlockHeader {
     Hash MerkleTreeRootOfWorldState = 4;
     bytes Bloom = 5;
     uint64 Index = 6;
-    bytes R = 7;
-    bytes S = 8;
-    bytes P = 9;
-    google.protobuf.Timestamp Time = 10;
-    Hash ChainId = 11;
-    Hash SideChainBlockHeadersRoot = 12;
-    Hash SideChainTransactionsRoot =13;
+    bytes Sig = 7;
+    bytes P = 8;
+    google.protobuf.Timestamp Time = 9;
+    Hash ChainId = 10;
+    Hash SideChainBlockHeadersRoot = 11;
+    Hash SideChainTransactionsRoot = 12;
 }
 
 message BlockBody {
@@ -246,11 +239,11 @@ message OngoingMiners {
 
 message Miners {
     uint64 TakeEffectRoundNumber = 1;
-    repeated Address Nodes = 2;
+    repeated bytes Producers = 2;
 }
 
 message Candidates {
-    repeated Address Nodes = 1;
+    repeated bytes PubKeys = 1;
 }
 
 message Tickets {
@@ -276,7 +269,7 @@ message ElectionSnapshot {
 }
 
 message MinerSnapshot {
-    Address MinerAddress = 1;
+    bytes MinerPubKey = 1;
     uint64 VotersWeights = 2;
 }
 

@@ -34,7 +34,7 @@ namespace AElf.Kernel
         
         public ECSignature GetSignature()
         {
-            return new ECSignature(R.ToByteArray(), S.ToByteArray());
+            return new ECSignature(Sig.ToByteArray());
         }
 
         private byte[] GetSignatureData()
@@ -58,7 +58,7 @@ namespace AElf.Kernel
 
         public Hash GetDisambiguationHash()
         {
-            return HashHelpers.GetDisambiguationHash(Index, Address.FromRawBytes(P.ToByteArray()));
+            return HashHelpers.GetDisambiguationHash(Index, Hash.FromRawBytes(P.ToByteArray()));
         }
     }
 }

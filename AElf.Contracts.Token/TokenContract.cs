@@ -43,7 +43,7 @@ namespace AElf.Contracts.Token
 
     public class TokenContract : CSharpSmartContract
     {
-        private Address ConsensusContractAddress => ContractHelpers.GetConsensusContractAddress(Api.GetChainId());
+        private Address ConsensusContractAddress;
 
         [SmartContractFieldData("${this}._initialized", DataAccessMode.ReadWriteAccountSharing)]
         private readonly BoolField _initialized = new BoolField("_Initialized_");
@@ -62,9 +62,6 @@ namespace AElf.Contracts.Token
 
         [SmartContractFieldData("${this}._balances", DataAccessMode.AccountSpecific)]
         private readonly MapToUInt64<Address> _balances = new MapToUInt64<Address>("_Balances_");
-
-        [SmartContractFieldData("${this}._candidates", DataAccessMode.AccountSpecific)]
-        private readonly PbField<Candidates> _candidates = new PbField<Candidates>("_Candidates_");
 
         [SmartContractFieldData("${this}._allowancePlaceHolder", DataAccessMode.AccountSpecific)]
         private readonly object _allowancePlaceHolder;
@@ -127,28 +124,28 @@ namespace AElf.Contracts.Token
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
             Api.Assert(!_initialized.GetValue(), "Already initialized.");
-            // Api.Assert(Api.GetContractOwner().Equals(Api.GetTransaction().From), "Only owner can initialize the contract state.");
+            // Api.Assert(Api.GetContractOwner().Equals(Api.GetFromAddress()), "Only owner can initialize the contract state.");
             _symbol.SetValue(symbol);
             _tokenName.SetValue(tokenName);
             _totalSupply.SetValue(totalSupply);
             _decimals.SetValue(decimals);
-            _balances[Api.GetTransaction().From] = totalSupply;
+            _balances[Api.GetFromAddress()] = totalSupply;
             _initialized.SetValue(true);
         }
 
         [SmartContractFunction("${this}.Transfer", new string[] {"${this}.DoTransfer"}, new string[] { })]
         public void Transfer(Address to, ulong amount)
         {
-            var from = Api.GetTransaction().From;
+            var from = Api.GetFromAddress();
             DoTransfer(from, to, amount);
-            Console.WriteLine($"Transferred {amount} tokens to - {to.DumpHex()}");
+            Console.WriteLine($"Transferred {amount} tokens to - {to.GetFormatted()}");
         }
 
         [SmartContractFunction("${this}.TransferFrom", new string[] {"${this}.DoTransfer"},
             new string[] {"${this}._allowancePlaceHolder"})]
         public void TransferFrom(Address from, Address to, ulong amount)
         {
-            var allowance = Allowances.GetAllowance(from, Api.GetTransaction().From);
+            var allowance = Allowances.GetAllowance(from, Api.GetFromAddress());
             Api.Assert(allowance > amount, "Insufficient allowance.");
 
             DoTransfer(from, to, amount);
@@ -161,7 +158,7 @@ namespace AElf.Contracts.Token
             Allowances.Approve(spender, amount);
             new Approved()
             {
-                Owner = Api.GetTransaction().From,
+                Owner = Api.GetFromAddress(),
                 Spender = spender,
                 Amount = amount
             }.Fire();
@@ -173,73 +170,13 @@ namespace AElf.Contracts.Token
             Allowances.Reduce(spender, amount);
             new UnApproved()
             {
-                Owner = Api.GetTransaction().From,
+                Owner = Api.GetFromAddress(),
                 Spender = spender,
                 Amount = amount
             }.Fire();
         }
 
-        [SmartContractFunction("${this}.AnnounceElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
-        public void AnnounceElection()
-        {
-            Console.WriteLine($"Start announcing election - {Api.GetTransaction().From.DumpHex()}");
-
-            var candidateAddress = Api.GetTransaction().From;
-
-            // Transfer tokens to consensus contract account.
-            Transfer(ConsensusContractAddress, GlobalConfig.LockTokenForElection);
-
-            // Add this candidate to candidates list.
-            var candidates = _candidates.GetValue();
-            if (candidates == null || !candidates.Nodes.Any())
-            {
-                candidates = new Candidates();
-            }
-
-            candidates.Nodes.Add(Api.GetTransaction().From);
-            _candidates.SetValue(candidates);
-
-            // Get this candidate a specific amount of tickets.
-            Api.Call(ConsensusContractAddress, "AddTickets",
-                ByteString.CopyFrom(ParamsPacker.Pack(candidateAddress, GlobalConfig.LockTokenForElection))
-                    .ToByteArray());
-
-            Api.Call(ConsensusContractAddress, "AnnounceElection",
-                ByteString.CopyFrom(ParamsPacker.Pack(candidateAddress))
-                    .ToByteArray());
-            
-            Console.WriteLine($"End announcing election - {Api.GetTransaction().From.DumpHex()}");
-        }
-
-        [SmartContractFunction("${this}.CancelElection", new string[] {"${this}.DoTransfer"}, new string[] { })]
-        public void CancelElection(Address candidateAddress)
-        {
-            Api.Assert(Api.GetTransaction().From == ConsensusContractAddress,
-                "Only consensus contract can call CancelElection method.");
-
-            var candidates = _candidates.GetValue();
-
-            Api.Assert(candidates != null, "Candidates list in token contract is null.");
-            Api.Assert(candidates != null && candidates.Nodes.Contains(candidateAddress),
-                "This candidate doesn't contained by the candidates list in token contract.");
-            
-            if (candidates == null) return;
-
-            Transfer(candidateAddress, GlobalConfig.LockTokenForElection);
-            candidates.Nodes.Remove(candidateAddress);
-            _candidates.SetValue(candidates);
-        }
-
-        [SmartContractFunction("${this}.GetTickets", new string[] {"${this}.DoTransfer"}, new string[] { })]
-        public void GetTickets(ulong amount)
-        {
-            var voter = Api.GetTransaction().From;
-            Api.Assert(_balances.TryGet(voter, out var balance), $"No balance: {voter.DumpHex()}");
-            Api.Assert(balance.Value >= amount, $"Balance of {Api.GetTransaction().From.DumpHex()} is not enough.");
-            Transfer(ConsensusContractAddress, amount);
-            Api.Call(ConsensusContractAddress, "AddTickets",
-                ByteString.CopyFrom(ParamsPacker.Pack(voter, amount)).ToByteArray());
-        }
+        
 
         #endregion Actions
 
@@ -281,13 +218,13 @@ namespace AElf.Contracts.Token
 
         public static void Approve(Address spender, ulong amount)
         {
-            var pair = new AddressPair() {First = Api.GetTransaction().From, Second = spender};
+            var pair = new AddressPair() {First = Api.GetFromAddress(), Second = spender};
             _allowances[pair] = _allowances[pair].Add(amount);
         }
 
         public static void Reduce(Address owner, ulong amount)
         {
-            var pair = new AddressPair() {First = owner, Second = Api.GetTransaction().From};
+            var pair = new AddressPair() {First = owner, Second = Api.GetFromAddress()};
             _allowances[pair] = _allowances[pair].Sub(amount);
         }
     }

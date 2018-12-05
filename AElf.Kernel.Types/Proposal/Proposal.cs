@@ -1,3 +1,4 @@
+using System.IO;
 using AElf.Common;
 using Google.Protobuf;
 
@@ -7,7 +8,18 @@ namespace AElf.Kernel.Types.Proposal
     {
         public Hash GetHash()
         {
-            return Hash.FromTwoHashes(Hash.FromRawBytes(MultiSigAccount.DumpByteArray()), Hash.FromString(Name));
+            using (var mm = new MemoryStream())
+            using (var stream = new CodedOutputStream(mm))
+            {
+                MultiSigAccount.WriteTo(stream);
+                Proposer.WriteTo(stream);
+                TxnData.WriteTo(stream);
+                ExpiredTime.WriteTo(stream);
+                stream.Flush();
+                mm.Flush();
+                return Hash.FromRawBytes(mm.ToArray());
+            }
+
         }
     }
 }

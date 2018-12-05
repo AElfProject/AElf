@@ -119,7 +119,7 @@ namespace AElf.Miner.Tests.Grpc
             
             
             var headerInfoServer = new SideChainBlockInfoRpcServerImpl(MockChainService().Object, _logger);
-            var chainId = Hash.Generate();
+            var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
             headerInfoServer.Init(chainId);
             await headerInfoServer.IndexDuplexStreaming(MockRequestStream(_requestIndexedInfoList.Count).Object,
                 MockResponseStream().Object, null);

@@ -46,7 +46,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 
             hashes.Add(transaction.From);
 
-            return await Task.FromResult(hashes.Select(a => a.DumpHex()));
+            return await Task.FromResult(hashes.Select(a => a.GetFormatted()));
         }
     }
 }

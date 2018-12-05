@@ -28,7 +28,7 @@ namespace AElf.Execution
                             break;
                         case WireFormat.WireType.LengthDelimited:
                             var bytes = input.ReadBytes();
-                            if (bytes.Length == GlobalConfig.AddressLength + 2)
+                            if (bytes.Length == 18 + 2) // todo what leength should this be ?
                             {
                                 var h = new Address();
                                 h.MergeFrom(bytes);
@@ -42,7 +42,7 @@ namespace AElf.Execution
 
             addresses.Add(transaction.From);
 
-            return await Task.FromResult(addresses.Select(a=>a.DumpHex()));
+            return await Task.FromResult(addresses.Select(a => a.GetFormatted()));
         }
     }
 }

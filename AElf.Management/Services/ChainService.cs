@@ -68,7 +68,8 @@ namespace AElf.Management.Services
 
         private string GenerateChainId()
         {
-            return SHA256.Create().ComputeHash(Guid.NewGuid().ToByteArray()).Take(GlobalConfig.AddressLength).ToArray().ToHex();
+            // todo 
+            return SHA256.Create().ComputeHash(Guid.NewGuid().ToByteArray()).Take(GlobalConfig.ChainIdLength).ToArray().ToHex();
         }
     }
 }

@@ -37,8 +37,8 @@ namespace AElf.Kernel.Tests.BlockSyncTests
                 for (ulong j = 0; j < 3; j++)
                 {
                     Transaction t = new Transaction();
-                    t.From = Address.FromRawBytes(Hash.FromRawBytes(_from).ToByteArray());
-                    t.To = Address.FromRawBytes(Hash.FromRawBytes(_to).ToByteArray());
+                    t.From = Address.Generate();
+                    t.To = Address.Generate();
                     t.IncrementId = j;
                     
                     txList.Add(t);

@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.RPC;
+using Base58Check;
 using Community.AspNetCore.JsonRpc;
 using Newtonsoft.Json.Linq;
 
@@ -40,12 +42,18 @@ namespace AElf.Wallet.Rpc
         {
             try
             {
-                var keypair = KeyStore.Create(password);
+                var chainPrefixBase58 =
+                    Base58CheckEncoding.EncodePlain(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId));
+
+                var chainPrefix = chainPrefixBase58.Substring(0, 4);
+                
+                var keypair = KeyStore.Create(password, chainPrefix);
                 if (keypair != null)
                 {
+                    // todo warning return null for now
                     return new JObject
                     {
-                        ["address"] = keypair.GetAddressHex()
+                        //["address"] = keypair.FormattedAddress()
                     };
                 }
 
@@ -90,11 +98,10 @@ namespace AElf.Wallet.Rpc
             ECSignature signature = signer.Sign(kp, toSig);
 
             // TODO: Standardize encoding
+            // todo test
             return new JObject()
             {
-                ["R"] = signature.R,
-                ["S"] = signature.S,
-                ["P"] = kp.PublicKey.Q.GetEncoded()
+                ["sig"] = signature.SigBytes
             };
         }
 

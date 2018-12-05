@@ -1,6 +1,5 @@
 ﻿using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Types;
 using Xunit;
 using AElf.Common;
 
@@ -19,8 +18,8 @@ namespace AElf.Cryptography.Tests.ECDSA
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
         
             Transaction tx = new Transaction();
-            tx.From = Address.FromRawBytes(CryptoHelpers.RandomFill(ADR_LENGTH));
-            tx.To = Address.FromRawBytes(CryptoHelpers.RandomFill(ADR_LENGTH));
+            tx.From = Address.Generate();
+            tx.To = Address.Generate();
             
             Block block = new Block();
             block.AddTransaction(tx);
@@ -32,7 +31,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             ECSigner signer = new ECSigner();
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
         
-            ECVerifier verifier = new ECVerifier(keyPair);
+            ECVerifier verifier = new ECVerifier();
         
             Assert.True(verifier.Verify(signature, hash.DumpByteArray()));
         }

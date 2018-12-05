@@ -17,6 +17,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
     [UseAutofacTestFramework]
     public class ContractTest
     {
+        // todo warning this test obviously uses bad  
+        
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
         private static int _incrementId;
@@ -37,8 +39,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         private IFunctionMetadataService _functionMetadataService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
-
-        private Hash ChainId { get; } = Hash.Generate();
 
         public ContractTest(IStateStore stateStore,
             IChainCreationService chainCreationService, IChainService chainService,
@@ -63,6 +63,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task SmartContractZeroByCreation()
         {
+            Hash ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+        
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -82,6 +84,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task DeployUserContract()
         {
+            Hash ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x04 });
+            
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -114,7 +118,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             
             Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
-            var address = Address.FromRawBytes(txnCtxt.Trace.RetVal.Data.DeserializeToBytes());
+            var address = Address.FromBytes(txnCtxt.Trace.RetVal.Data.DeserializeToBytes());
 
             var regExample = new SmartContractRegistration
             {
@@ -131,6 +135,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task Invoke()
         {
+            Hash ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x05 });
+            
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -163,11 +169,11 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             await executive.SetTransactionContext(txnCtxt).Apply();
             await txnCtxt.Trace.CommitChangesAsync(_stateStore);
 
-            var bs = txnCtxt.Trace.RetVal;
-            var address = Address.FromRawBytes(bs.Data.DeserializeToBytes());
+            var returnVal = txnCtxt.Trace.RetVal;
+            var address = Address.FromBytes(returnVal.Data.DeserializeToBytes());
 
             #region initialize account balance
-            var account = Address.FromRawBytes(Hash.Generate().ToByteArray());
+            var account = Address.Generate();
             var txnInit = new Transaction
             {
                 From = Address.Zero,

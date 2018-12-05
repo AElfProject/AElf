@@ -21,7 +21,7 @@ namespace AElf.Synchronization
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadHex(ChainConfig.Instance.ChainId)));
+                                                  Hash.LoadBase58(ChainConfig.Instance.ChainId)));
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(BlockHeaderValidator));
 

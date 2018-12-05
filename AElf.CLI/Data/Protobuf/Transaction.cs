@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
+using Base58Check;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using ProtoBuf;
@@ -52,11 +53,10 @@ namespace AElf.CLI.Data.Protobuf
         public UInt64 Fee { get; set; }
         
         [ProtoMember(9)]
-        public List<Sig> Sigs { get; set; }
+        public List<byte[]> Sigs { get; set; }
         
         [ProtoMember(10)]
         public TransactionType  Type { get; set; }
-        
         
         public static Transaction CreateTransaction(string elementAt, string genesisAddress,
             string methodName, byte[] serializedParams, TransactionType contracttransaction)
@@ -64,8 +64,8 @@ namespace AElf.CLI.Data.Protobuf
             try
             {
                 Transaction t = new Transaction();
-                t.From = ByteArrayHelpers.FromHexString(elementAt);
-                t.To = ByteArrayHelpers.FromHexString(genesisAddress);
+                t.From = Address.Parse(elementAt);
+                t.To = Address.Parse(genesisAddress);
                 t.MethodName = methodName;
                 t.Params = serializedParams;
                 t.Type = contracttransaction;
@@ -82,8 +82,8 @@ namespace AElf.CLI.Data.Protobuf
             try
             {
                 Transaction tr = new Transaction();
-                tr.From = ByteArrayHelpers.FromHexString(j["from"].ToString());
-                tr.To = ByteArrayHelpers.FromHexString(j["to"].ToString());
+                tr.From = Address.Parse(j["from"].ToString());
+                tr.To = Address.Parse(j["to"].ToString());
                 tr.MethodName = j["method"].ToObject<string>();
                 return tr;
             }
@@ -111,16 +111,5 @@ namespace AElf.CLI.Data.Protobuf
         
         [ProtoMember(5)]
         ContractDeployTransaction=4,
-    }
-
-    [ProtoContract]
-    public class Sig
-    {
-        [ProtoMember(1)]
-        public byte[] R { get; set; }
-        [ProtoMember(2)]
-        public byte[] S { get; set; }
-        [ProtoMember(3)]
-        public byte[] P { get; set; }
     }
 }

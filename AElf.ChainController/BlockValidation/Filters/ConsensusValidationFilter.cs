@@ -6,6 +6,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Consensus;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
@@ -22,10 +23,16 @@ namespace AElf.ChainController
     {
         private readonly ISmartContractService _smartContractService;
         private readonly ILogger _logger;
+        
+        private readonly Address _nodeAddress;
+        private readonly ECKeyPair _nodeKeyPair;
 
         public ConsensusBlockValidationFilter(ISmartContractService smartContractService)
         {
             _smartContractService = smartContractService;
+            
+            _nodeAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
+            _nodeKeyPair = NodeConfig.Instance.ECKeyPair;
             
             _logger = LogManager.GetLogger(nameof(ConsensusBlockValidationFilter));
         }
@@ -54,9 +61,9 @@ namespace AElf.ChainController
             }
 
             // Get BP address
+            // todo temp solution
             var uncompressedPrivateKey = block.Header.P.ToByteArray();
-            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
-            var address = recipientKeyPair.GetAddress().DumpHex();
+            var address = Address.FromPublicKey(ChainConfig.Instance.ChainId.DecodeBase58(), uncompressedPrivateKey);
 
             // Get the address of consensus contract
             var contractAccountHash = ContractHelpers.GetConsensusContractAddress(context.ChainId);
@@ -100,6 +107,7 @@ namespace AElf.ChainController
             {
                 _smartContractService.PutExecutiveAsync(contractAccountHash, executive).Wait();
             }
+            
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())
             {
@@ -130,7 +138,7 @@ namespace AElf.ChainController
         }
 
         private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair,
-            string recipientAddress, Timestamp timestamp, long roundId)
+            Address recipientAddress, Timestamp timestamp, long roundId)
         {
             if (contractAccountHash == null || keyPair == null || recipientAddress == null)
             {
@@ -138,29 +146,22 @@ namespace AElf.ChainController
                 return null;
             }
 
-            var sig = new Sig
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
-            };
             var tx = new Transaction
             {
-                From = keyPair.GetAddress(),
+                From = contractAccountHash,
                 To = contractAccountHash,
                 IncrementId = 0,
                 MethodName = "Validation",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(
-                    new StringValue {Value = recipientAddress.RemoveHexPrefix()}.ToByteArray(),
+                    new StringValue {Value = recipientAddress.GetFormatted()}.ToByteArray(),
                     timestamp.ToByteArray(),
                     new Int64Value {Value = roundId}))
             };
-            tx.Sigs.Add(sig);
 
+            // todo review
             var signer = new ECSigner();
             var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
-
-            // Update the signature
-            sig.R = ByteString.CopyFrom(signature.R);
-            sig.S = ByteString.CopyFrom(signature.S);
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes)); 
 
             return tx;
         }

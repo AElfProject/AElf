@@ -3,6 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "AElf.Kernel";
 
 import "common.proto";
+import "resource.proto";
 
 message SideChainBlockInfo{
     uint64 Height = 1;
@@ -31,4 +32,12 @@ message ParentChainBlockRootInfo
 
 message MerklePath{
     repeated Hash Path = 1;
+}
+
+message ChainCreationRequest{
+    uint64 IndexingPrice = 1;
+    uint64 LockedTokenAmount = 2;
+    repeated ResourceTypeBalancePair ResourceBalances = 3; // this must be set as order of enum ResourceType 
+    bytes ContractCode = 4;
+    Address Proposer = 5;
 }

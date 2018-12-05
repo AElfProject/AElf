@@ -19,7 +19,7 @@ using Google.Protobuf;
 using AElf.Kernel.Managers;
 using Newtonsoft.Json.Linq;
 using NLog;
-using SideChainInfo = AElf.Contracts.SideChain.SideChainInfo;
+using SideChainInfo = AElf.Contracts.CrossChain.SideChainInfo;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 
@@ -45,7 +45,7 @@ namespace AElf.SideChain.Creation
             _chainManagerBasic = chainManagerBasic;
             _interestedLogEvent = new LogEvent()
             {
-                Address = ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId)),
+                Address = ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId)),
                 Topics =
                 {
                     ByteString.CopyFrom("SideChainCreationRequestApproved".CalculateHash())
@@ -140,11 +140,11 @@ namespace AElf.SideChain.Creation
     
         private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash sideChainId, Hash parentChainId)
         {
-            var chainId = parentChainId.DumpHex();
+            var chainId = parentChainId.DumpBase58();
             var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + chainId;
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var deployArg = new DeployArg();
-            deployArg.SideChainId = sideChainId.DumpHex();
+            deployArg.SideChainId = sideChainId.DumpBase58();
             deployArg.AccountPassword = "123";
             deployArg.LauncherArg.IsConsensusInfoGenerator = true;
             deployArg.LighthouseArg.IsCluster = false;

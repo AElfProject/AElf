@@ -120,9 +120,9 @@ namespace AElf.Contracts.Genesis
         public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
             var serialNumber = _contractSerialNumber.Increment().Value;
-            var contractAddress = Address.FromRawBytes(serialNumber.ToString().CalculateHash());
+            var contractAddress = Address.BuildContractAddress(Api.ChainId.DumpByteArray(), serialNumber);
             
-            var creator = Api.GetTransaction().From;
+            var creator = Api.GetFromAddress();
             var contractHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
@@ -155,7 +155,7 @@ namespace AElf.Contracts.Genesis
             }.Fire();
             */
             Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.DumpHex());
-            Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.DumpHex());
+            Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 
@@ -186,7 +186,7 @@ namespace AElf.Contracts.Genesis
         public void ChangeContractOwner(Address contractAddress, Address newOwner)
         {
             var info = _contractInfos[contractAddress];
-            Api.Assert(info.Owner.Equals(Api.GetTransaction().From));
+            Api.Assert(info.Owner.Equals(Api.GetFromAddress()));
             var oldOwner = info.Owner;
             info.Owner = newOwner;
             _contractInfos[contractAddress] = info;

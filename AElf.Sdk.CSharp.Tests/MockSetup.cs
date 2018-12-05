@@ -25,7 +25,7 @@ namespace AElf.Sdk.CSharp.Tests
             return (ulong)n;
         }
 
-        public Hash ChainId1 { get; } = Hash.Generate();
+        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
         private IFunctionMetadataService _functionMetadataService;
@@ -84,7 +84,7 @@ namespace AElf.Sdk.CSharp.Tests
 
             DataProvider1 = DataProvider.GetRootDataProvider(
                 chain1.Id,
-                Address.FromRawBytes(ChainId1.OfType(HashType.AccountZero).ToByteArray())
+                Address.Generate() // todo warning adr contract adress
             );
             DataProvider1.StateStore = StateStore;
         }

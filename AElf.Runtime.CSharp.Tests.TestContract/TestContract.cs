@@ -30,7 +30,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         public bool Transfer(Address from, Address to, ulong qty)
         {
             // This is for testing batched transaction sequence
-            TransactionStartTimes.SetValue(Api.GetTransaction().GetHash(), Now());
+            TransactionStartTimes.SetValue(Api.GetTxnHash(), Now());
 
             var fromBal = Balances.GetValue(from);
 
@@ -42,7 +42,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
             Balances.SetValue(to, newToBal);
 
             // This is for testing batched transaction sequence
-            TransactionEndTimes.SetValue(Api.GetTransaction().GetHash(), Now());
+            TransactionEndTimes.SetValue(Api.GetTxnHash(), Now());
             return true;
         }
 

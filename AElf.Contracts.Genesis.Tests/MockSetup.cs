@@ -32,7 +32,7 @@ namespace AElf.Contracts.Genesis.Tests
         }
 
         public IStateStore StateStore { get; }
-        public Hash ChainId1 { get; } = Hash.Generate();
+        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
         private IFunctionMetadataService _functionMetadataService;

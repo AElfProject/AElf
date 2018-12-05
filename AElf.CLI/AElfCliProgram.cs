@@ -21,7 +21,9 @@ using AElf.CLI.Streaming;
 using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
+using AElf.Common.Application;
 using AElf.Cryptography.ECDSA;
+using Base58Check;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -62,6 +64,8 @@ namespace AElf.CLI
         private readonly int _port;
 
         private string _genesisAddress;
+        private string _chainId;
+            
         private string _authorizationAddress;
 
         private static readonly RpcCalls Rpc = new RpcCalls();
@@ -93,7 +97,6 @@ namespace AElf.CLI
         private readonly Dictionary<string, byte[]> _txnInProposal = new Dictionary<string, byte[]>();
         #endregion
         
-        
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
@@ -113,6 +116,44 @@ namespace AElf.CLI
             _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
+            
+            LoadOrCreateChainConfig();
+        }
+        
+        private void LoadOrCreateChainConfig()
+        {
+            string fileFolder = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config");
+            string filePath = Path.Combine(fileFolder, @"chain.json");
+            
+            // If exists load the value
+            if (File.Exists(filePath))
+            {
+                using (StreamReader r = new StreamReader(filePath))
+                {
+                    string json = r.ReadToEnd();
+                    JObject file = JObject.Parse(json);
+                    _chainId = file["ChainId"].ToObject<string>();
+                }
+            }
+            else
+            {
+                var obj = new JObject(new JProperty("ChainId", GlobalConfig.DefaultChainId));
+
+                if (!Directory.Exists(fileFolder))
+                {
+                    Directory.CreateDirectory(fileFolder);
+                }
+
+                using (var file = File.CreateText(filePath))
+                using (var writer = new JsonTextWriter(file))
+                {
+                    obj.WriteTo(writer);
+                }
+
+                _chainId = GlobalConfig.DefaultChainId;
+            }
+            
+            _accountManager.SetChainId(_chainId);
         }
         
         public void StartRepl()
@@ -127,7 +168,6 @@ namespace AElf.CLI
             {
                 //string command = _screenManager.GetCommand();
                 string command = ReadLine.Read("aelf> ");
-                
                 
                 if (string.IsNullOrWhiteSpace(command))
                     continue;
@@ -680,7 +720,7 @@ namespace AElf.CLI
                             return;
                         }
                         
-                        Sig sig = _accountManager.Sign(from, txnData);
+                        byte[] sig = _accountManager.Sign(from, txnData);
 
                         Approval approval = new Approval
                         {
@@ -786,12 +826,12 @@ namespace AElf.CLI
                             Transaction tr ;
 
                             tr = Transaction.ConvertFromJson(j);
-                            string hex = tr.To.Value.ToHex();
+                            string toAdr = tr.To.GetFormatted();
 
                             Module m;
-                            if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
+                            if (!_loadedModules.TryGetValue(toAdr, out m))
                             {
-                                if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
+                                if (!_loadedModules.TryGetValue(toAdr, out m))
                                 {
                                     _screenManager.PrintError(AbiNotLoaded);
                                     return;
@@ -916,6 +956,12 @@ namespace AElf.CLI
                         {
                             _genesisAddress = j["result"][GlobalConfig.GenesisSmartContractZeroAssemblyName].ToString();
                             _authorizationAddress = j["result"][GlobalConfig.GenesisAuthorizationContractAssemblyName].ToString();
+                        }
+                        
+                        if (j["result"]?["chain_id"] != null)
+                        {
+                            _chainId = j["result"]["chain_id"].ToString();
+                            _accountManager.SetChainId(_chainId);
                         }
                         
                         string toPrint = def.GetPrintString(JObject.FromObject(j));

@@ -26,46 +26,40 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using NServiceKit.Common.Extensions;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
 {
-    // ReSharper disable IdentifierTypo
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
+        private int TimeoutMilliseconds => ConsensusConfig.Instance.DPoSMiningInterval / 4 * 3;
+        
+        private readonly ILogger _logger;
         private readonly ITxHub _txHub;
-        private readonly ECKeyPair _keyPair = NodeConfig.Instance.ECKeyPair;
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly int _timeoutMilliseconds = ConsensusConfig.Instance.DPoSMiningInterval / 4 * 3;
-        private readonly ILogger _logger;
-        private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
-        private readonly ServerManager _serverManager;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
-        private readonly IChainManagerBasic _chainManagerBasic;
-
-        private IBlockChain _blockChain;
-
-        private IBlockChain BlockChain => _blockChain ?? (_blockChain = _chainService.GetBlockChain(
-                                              Hash.LoadHex(ChainConfig.Instance.ChainId)));
         
-        private Address ProducerAddress => Address.LoadHex(NodeConfig.Instance.NodeAccount);
+        private IBlockChain _blockChain;
+        
+        private readonly ClientManager _clientManager;
+        private readonly ServerManager _serverManager;
+
+        private Address _producerAddress;
+        private ECKeyPair _keyPair;
 
         private IMinerConfig Config { get; }
 
-        public Address Coinbase => Config.CoinBase;
-        private readonly TransactionFilter _txFilter;
+        private TransactionFilter _txFilter;
 
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
-            IBlockValidationService blockValidationService, IChainContextService chainContextService, IChainManagerBasic chainManagerBasic)
+            IBlockValidationService blockValidationService, IChainContextService chainContextService)
         {
-            Config = config;
             _txHub = txHub;
             _chainService = chainService;
             _executingService = executingService;
@@ -76,8 +70,30 @@ namespace AElf.Miner.Miner
             _serverManager = serverManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
-            _chainManagerBasic = chainManagerBasic;
+            
+            Config = config;
+        }
+        
+        /// <summary>
+        /// Initializes the mining with the producers key pair.
+        /// </summary>
+        public void Init(ECKeyPair nodeKeyPair)
+        {
             _txFilter = new TransactionFilter();
+            
+            _keyPair = NodeConfig.Instance.ECKeyPair;
+            _producerAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
+            
+            _blockChain = _chainService.GetBlockChain(Config.ChainId);
+        }
+
+        /// <summary>
+        /// Stop mining
+        /// </summary>
+        public void Close()
+        {
+            _clientManager.CloseClientsToSideChain();
+            _serverManager.Close();
         }
 
         /// <inheritdoc />
@@ -143,7 +159,7 @@ namespace AElf.Miner.Miner
                 _logger?.Info($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
-                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
                 if (blockValidationResult != BlockValidationResult.Success)
                 {
@@ -151,7 +167,7 @@ namespace AElf.Miner.Miner
                     return null;
                 }
                 // append block
-                await BlockChain.AddBlocksAsync(new List<IBlock> {block});
+                await _blockChain.AddBlocksAsync(new List<IBlock> {block});
 
                 MessageHub.Instance.Publish(new BlockMined(block));
 
@@ -200,12 +216,12 @@ namespace AElf.Miner.Miner
                 }
             }))
             {
-                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
+                timer.Change(TimeoutMilliseconds, Timeout.Infinite);
 
                 if (cts.IsCancellationRequested)
                     return null;
                 var disambiguationHash =
-                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), ProducerAddress);
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), Hash.FromRawBytes(_keyPair.PublicKey));
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
@@ -236,18 +252,14 @@ namespace AElf.Miner.Miner
                 return;
             try
             {
-                var bn = await BlockChain.GetCurrentBlockHeightAsync();
+                var bn = await _blockChain.GetCurrentBlockHeightAsync();
                 bn = bn > 4 ? bn - 4 : 0;
-                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
+                var bh = bn == 0 ? Hash.Genesis : (await _blockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
-                var sig = new Sig
-                {
-                    P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey())
-                };
                 var tx = new Transaction
                 {
-                    From = _keyPair.GetAddress(),
-                    To = ContractHelpers.GetSideChainContractAddress(Config.ChainId),
+                    From = _producerAddress,
+                    To = ContractHelpers.GetCrossChainContractAddress(Config.ChainId),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
@@ -255,11 +267,10 @@ namespace AElf.Miner.Miner
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo)),
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 };
-                tx.Sigs.Add(sig);
+                
                 // sign tx
                 var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
-                sig.R = ByteString.CopyFrom(signature.R);
-                sig.S = ByteString.CopyFrom(signature.S);
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
                 await InsertTransactionToPool(tx);
                 _logger?.Trace($"Generated Cross chain info transaction {tx.GetHash()}");
@@ -443,7 +454,7 @@ namespace AElf.Miner.Miner
 
             // calculate and set tx merkle tree root 
             block.Complete();
-            block.Sign(NodeConfig.Instance.ECKeyPair);
+            block.Sign(_keyPair);
             return block;
         }
 
@@ -506,15 +517,6 @@ namespace AElf.Miner.Miner
                     return null;
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Stop mining
-        /// </summary>
-        public void Close()
-        {
-            _clientManager.CloseClientsToSideChain();
-            _serverManager.Close();
         }
     }
 }

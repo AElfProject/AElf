@@ -36,6 +36,6 @@ namespace AElf.CLI.Data.Protobuf
         [ProtoMember(1)]
         public Hash ProposalHash { get; set; }
         [ProtoMember(2)]
-        public Sig Signature { get; set; }
+        public byte[] Signature { get; set; }
     }
 }

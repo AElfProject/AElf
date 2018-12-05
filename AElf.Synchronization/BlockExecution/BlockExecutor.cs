@@ -146,13 +146,14 @@ namespace AElf.Synchronization.BlockExecution
                 txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
+                var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                
                 _logger?.Trace("Transaction Results:");
                 foreach (var re in txnRes)
                 {
                     _logger?.Trace(re.StateHash.DumpHex);
                 }
 
-                var blockChain = _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
                     res = BlockExecutionResult.AlreadyAppended;

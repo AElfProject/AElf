@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Base58Check;
 
 namespace AElf.Common
 {
@@ -8,6 +9,16 @@ namespace AElf.Common
         private static bool IsWithPrefix(string value)
         {
             return value.Length >= 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X');
+        }
+
+        public static string ToPlainBase58(this byte[] value)
+        {
+            return Base58CheckEncoding.EncodePlain(value);
+        }
+
+        public static byte[] DecodeBase58(this string value)
+        {
+            return Base58CheckEncoding.DecodePlain(value);
         }
 
         public static string ToHex(this byte[] bytes, bool withPrefix=false)

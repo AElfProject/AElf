@@ -18,7 +18,7 @@ namespace AElf.ChainController
         {
             if (chainId == null)
             {
-                chainId = Hash.LoadHex(ChainConfig.Instance.ChainId);
+                chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
             }
             
             var blockchain = _chainService.GetBlockChain(chainId);

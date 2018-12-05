@@ -2,24 +2,33 @@ using System;
 
 namespace AElf.Common
 {
-    // ReSharper disable InconsistentNaming
     public static class GlobalConfig
     {
-        public static int AddressLength = 18;
+        public static string DefaultChainId = "AELF";
+        public static string AElfAddressPrefix = "ELF";
+        
+        public static int ChainIdLength = 3;
+        public static int ContractAddressHashLength = 18;
+        
+        public static int AddressHashLength = 32; // length of sha256
+        
         public const ulong GenesisBlockHeight = 1;
+        
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
         public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
-        public static readonly string GenesisSideChainContractAssemblyName = "AElf.Contracts.SideChain";
+        public static readonly string GenesisCrossChainContractAssemblyName = "AElf.Contracts.CrossChain";
         public static readonly string GenesisAuthorizationContractAssemblyName = "AElf.Contracts.Authorization";
+        public static readonly string GenesisResourceContractAssemblyName = "AElf.Contracts.Resource";
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
         public static readonly UInt64 GenesisBasicContract = 0;
         public static readonly UInt64 ConsensusContract = 1;
         public static readonly UInt64 TokenContract = 2;
-        public static readonly UInt64 SideChainContract = 3;
+        public static readonly UInt64 CrossChainContract = 3;
         public static readonly UInt64 AuthorizationContract = 4;
+        public static readonly UInt64 ResourceContract = 5;
         
         public static int InvertibleChainHeight = 4;
 
