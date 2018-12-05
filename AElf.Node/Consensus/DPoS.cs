@@ -15,14 +15,12 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Miner.Miner;
-using AElf.Node;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Miner.TxMemPool;
-using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Common;
 using AElf.Synchronization.EventMessages;
 
@@ -53,7 +51,7 @@ namespace AElf.Kernel.Node
 
         private readonly ILogger _logger;
 
-        private readonly AElfDPoSHelper _helper;
+        private readonly ConsensusHelper _helper;
 
         private static int _lockNumber;
 
@@ -83,7 +81,7 @@ namespace AElf.Kernel.Node
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
         public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
-            AElfDPoSHelper helper)
+            ConsensusHelper helper)
         {
             _txHub = txHub;
             _miner = miner;

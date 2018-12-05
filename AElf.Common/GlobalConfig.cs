@@ -2,6 +2,7 @@ using System;
 
 namespace AElf.Common
 {
+    // ReSharper disable InconsistentNaming
     public static class GlobalConfig
     {
         public static string DefaultChainId = "AELF";
@@ -49,11 +50,11 @@ namespace AElf.Common
         public const string AElfDPoSExtraBlockTimeSlotString = "__AElfExtraBlockTimeSlot__";
         public const string AElfDPoSFirstPlaceOfEachRoundString = "__AElfFirstPlaceOfEachRound__";
         public const string AElfDPoSMiningIntervalString = "__AElfDPoSMiningInterval__";
-        public const string AElfDPoSMiningRoundHashMapString = "__AElfDPoSMiningRoundHashMap__";
         public const string AElfDPoSBalanceMapString = "__AElfDPoSBalanceMapString__";
         public const string AElfDPoSCandidatesString = "__AElfDPoSCandidatesString__";
         public const string AElfDPoSSnapshotFieldString = "__AElfDPoSSnapshotFieldString__";
         public const string AElfDPoSDividendsMapString = "__AElfDPoSDividendsMapString__";
+        public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
 
         #endregion
 

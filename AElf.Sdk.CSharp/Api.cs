@@ -75,17 +75,17 @@ namespace AElf.Sdk.CSharp
 
         public static Hash ChainId => _smartContractContext.ChainId.ToReadOnly();
 
-        private static Address ContractZeroAddress => ContractHelpers.GetGenesisBasicContractAddress(ChainId);
+        public static Address ContractZeroAddress => ContractHelpers.GetGenesisBasicContractAddress(ChainId);
 
-        private static Address CrossChainContractAddress => ContractHelpers.GetCrossChainContractAddress(ChainId);
+        public static Address CrossChainContractAddress => ContractHelpers.GetCrossChainContractAddress(ChainId);
 
-        private static Address AuthorizationContractAddress => ContractHelpers.GetAuthorizationContractAddress(ChainId);
+        public static Address AuthorizationContractAddress => ContractHelpers.GetAuthorizationContractAddress(ChainId);
         
-        private static Address ResourceContractAddress => ContractHelpers.GetResourceContractAddress(ChainId);
+        public static Address ResourceContractAddress => ContractHelpers.GetResourceContractAddress(ChainId);
 
-        private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
+        public static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
 
-        private static Address ConsensusContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
+        public static Address ConsensusContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
 
         public static Address Genesis => Address.Genesis;
 

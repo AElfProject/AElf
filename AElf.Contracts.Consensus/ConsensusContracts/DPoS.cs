@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common.Enums;
 using AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections;
 using AElf.Common;
+using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
 using AElf.Kernel.Types;
 using AElf.Sdk.CSharp;
@@ -16,25 +17,11 @@ using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus.ConsensusContracts
 {
-    // ReSharper disable UnusedMember.Global
-    // ReSharper disable InconsistentNaming
-    // ReSharper disable MemberCanBeMadeStatic.Local
     public class DPoS
     {
-        public ConsensusType Type => ConsensusType.AElfDPoS;
-
         public ulong CurrentRoundNumber => _currentRoundNumberField.GetAsync().Result;
-
-        public int Interval
-        {
-            get
-            {
-                var interval = _miningIntervalField.GetAsync().Result;
-                return interval == 0 ? 4000 : interval;
-            }
-        }
-
-        public int LogLevel { get; set; }
+        
+        private int LogLevel { get; set; }
 
         public Hash Nonce { get; set; } = Hash.Default;
 
@@ -129,7 +116,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             {
                 ConsoleWriteLine(nameof(Initialize), "Failed to set block producers.", e);
             }
-
 
             // 2. Set current round number to 1;
             try

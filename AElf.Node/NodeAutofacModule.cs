@@ -29,7 +29,7 @@ namespace AElf.Node
             {
                 case ConsensusType.AElfDPoS:
                     builder.RegisterType<DPoS>().As<IConsensus>().SingleInstance();
-                    builder.RegisterType<AElfDPoSHelper>();
+                    builder.RegisterType<ConsensusHelper>();
                     break;
                 case ConsensusType.PoW:
                     builder.RegisterType<PoW>().As<IConsensus>().SingleInstance();

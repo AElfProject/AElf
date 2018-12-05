@@ -3,7 +3,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
+namespace AElf.Contracts.Consensus
 {
     // ReSharper disable InconsistentNaming
     public class AElfDPoSFieldMapCollection
@@ -26,7 +26,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
         /// <summary>
         /// Extra block producer of each round.
         /// </summary>
-        public Map<UInt64Value, StringValue> EBPMap;
+        public Map<UInt64Value, BytesValue> EBPMap;
         
         /// <summary>
         /// Time slot of extra block of current round.
@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
         /// <summary>
         /// First block producer of each round, used for generating DPoS information of next round.
         /// </summary>
-        public Map<UInt64Value, StringValue> FirstPlaceMap;
+        public Map<UInt64Value, BytesValue> FirstPlaceMap;
         
         /// <summary>
         /// DPoS mining interval.
@@ -56,5 +56,11 @@ namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
         public Map<UInt64Value, ElectionSnapshot> SnapshotField;
 
         public Map<UInt64Value, UInt64Value> DividendsMap;
+
+        public Map<BytesValue, StringValue> AliasesMap;
+
+        public Map<UInt64Value, Miners> MinersMap;
+
+        public PbField<RoundNumberMap> RoundNumberField;
     }
 }

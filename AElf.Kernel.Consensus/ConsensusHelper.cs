@@ -18,14 +18,13 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable InconsistentNaming
     // ReSharper disable MemberCanBeMadeStatic.Local
     // ReSharper disable UnusedMember.Global
-    public class AElfDPoSHelper
+    public class ConsensusHelper
     {
         private static Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
-
         private static Address ContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
         
         private readonly IMinersManager _minersManager;
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
+        private readonly ILogger _logger = LogManager.GetLogger(nameof(ConsensusHelper));
         private readonly IStateStore _stateStore;
 
         public List<byte[]> Miners => _minersManager.GetMiners().Result.Producers.Select(p => p.ToByteArray()).ToList();
@@ -139,7 +138,7 @@ namespace AElf.Kernel.Consensus
                 : DataProvider.GetAsync<T>(keyHash).Result;
         }
 
-        public AElfDPoSHelper(IStateStore stateStore, IMinersManager minersManager)
+        public ConsensusHelper(IStateStore stateStore, IMinersManager minersManager)
         {
             _stateStore = stateStore;
             _minersManager = minersManager;

@@ -97,7 +97,6 @@ message TransactionResult {
     Hash DeferredTxnId = 11; 
 }
 
-
 enum ExecutionStatus {
     Undefined = 0;
     ExecutedAndCommitted = 1;
@@ -231,67 +230,6 @@ message WorldState {
 message Chain {
     Hash Id = 1;
     Hash GenesisBlockHash = 2;
-}
-
-message OngoingMiners {
-    repeated Miners Miners = 1;
-}
-
-message Miners {
-    uint64 TakeEffectRoundNumber = 1;
-    repeated bytes Producers = 2;
-}
-
-message Candidates {
-    repeated bytes PubKeys = 1;
-}
-
-message Tickets {
-    uint64 TotalTickets = 1;
-    uint64 ExpiredTickets = 2;
-    repeated VotingRecord VotingRecords = 3;
-}
-
-message VotingRecord {
-    Address From = 1;
-    Address To = 2;
-    uint64 Count = 3;
-    uint64 RoundNumber = 4;
-    Hash TransactionId = 5;
-    google.protobuf.Timestamp VoteTimestamp = 6;
-    repeated uint64 LockDaysList = 7;
-}
-
-message ElectionSnapshot {
-    uint64 EndRoundNumber = 1;
-    uint64 BlocksCount = 2;
-    repeated MinerSnapshot MinersSnapshot = 3;
-}
-
-message MinerSnapshot {
-    bytes MinerPubKey = 1;
-    uint64 VotersWeights = 2;
-}
-
-message BlockProducer {
-    int32 Order = 1;
-    bool IsEBP = 2; //EBP: Extra Block Producer
-    Hash InValue = 3;
-    Hash OutValue = 4;
-    Hash Signature = 5;
-    google.protobuf.Timestamp TimeSlot = 6;
-    repeated uint64 Terms = 7;
-    uint64 BlocksOfCurrentTerm = 8;
-    uint64 BlocksOfAllTerms = 9;
-}
-
-message Round {
-    uint64 RoundNumber = 1;
-    map<string, BlockProducer> BlockProducers = 2;
-}
-
-message AElfDPoSInformation {
-    repeated Round Rounds = 1;
 }
 
 enum DataAccessMode {
