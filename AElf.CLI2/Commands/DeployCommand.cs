@@ -34,35 +34,11 @@ namespace AElf.CLI2.Commands
 
         public override void Execute()
         {
-            var accountfile = _option.GetPathForAccount(_option.Account);
-            if (!File.Exists(accountfile))
-            {
-                Colors.WriteLine($@"Account file ""{accountfile}"" doesn't exist.".DarkRed());
-            }
-
+            InitChain();
             if (!File.Exists(_option.Codefile))
             {
                 Colors.WriteLine($@"Code file ""{_option.Codefile}"" doesn't exist.".DarkRed());
             }
-
-            Console.WriteLine("Unlocking account ...");
-            var p = ReadLine.ReadPassword("Enter the password: ");
-
-
-            var acc = EncryptedAccount.LoadFromFile(accountfile).Decrypt(p);
-
-            if (!string.IsNullOrEmpty(acc.Mnemonic))
-            {
-                _engine.RunScript($@"_account = Aelf.wallet.getWalletByMnemonic(""{acc.Mnemonic}"")");
-            }
-
-            if (!string.IsNullOrEmpty(acc.PrivateKey))
-            {
-                _engine.RunScript($@"_account = Aelf.wallet.getWalletByPrivateKey(""{acc.PrivateKey}"")");
-            }
-
-            _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI2.Scripts.init-chain.js"));
             _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
                 .GetManifestResourceStream("AElf.CLI2.Scripts.deploy-command.js"));
             _engine.GlobalObject.CallMethod<int, string>("deployCommand", _option.Category,

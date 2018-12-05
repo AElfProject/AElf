@@ -24,6 +24,10 @@ namespace AElf.CLI2.Commands
         [Option('a', "account", HelpText = "The account to be used to interact with the blockchain.")]
         public string Account { get; set; } = "";
 
+        [JsonIgnore]
+        [Option('p', "password", HelpText = "The passwod for unlocking the account.")]
+        public string Password { get; set; } = "";
+
         [JsonProperty("accountsdir")]
         public string AccountsDir
         {
