@@ -266,6 +266,12 @@ namespace AElf.ChainController.Rpc
         {
             return s.CrossChainInfo.GetBoundParentChainHeight(height);
         }
+
+        internal static async Task<Block> GetBlock(this Svc s, Hash blockHash)
+        {
+            var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            return (Block) await blockchain.GetBlockByHashAsync(blockHash);
+        }
     }
     
 }
