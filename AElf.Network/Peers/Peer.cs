@@ -17,7 +17,7 @@ namespace AElf.Network.Peers
     public class PeerDisconnectedArgs : EventArgs
     {
         public DisconnectReason Reason { get; set; }
-        public Peer Peer { get; set; }
+        public IPeer Peer { get; set; }
     }
 
     public class AuthFinishedArgs : EventArgs
@@ -47,7 +47,8 @@ namespace AElf.Network.Peers
 
     public enum DisconnectReason
     {
-        StreamClosed
+        StreamClosed,
+        BlockRequestTimeout
     }
 
     public class PeerMessageReceivedArgs : EventArgs

@@ -332,6 +332,8 @@ namespace AElf.Network.Peers
                     _logger?.Warn($"[{this}] request failed {req}.");
 
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
+                    
+                    Dispose();
                 }
             }
         }

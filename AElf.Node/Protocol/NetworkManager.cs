@@ -210,35 +210,8 @@ namespace AElf.Node.Protocol
                     
                         _logger?.Trace($"Catched up to announcements with {CurrentSyncSource}.");
                     }
-
-                    var oldSyncSource = CurrentSyncSource;
                     
-                    // At this point the current sync source either doesn't have the next announcement 
-                    // or has none at all.
-                    CurrentSyncSource = null;
-
-                    // Try and find a peer with an anouncement that corresponds to the next block we need.
-                    foreach (var p in _peers.Where(p => p.AnyStashed && p != oldSyncSource))
-                    {
-                        if (p.SyncNextAnnouncement())
-                        {
-                            CurrentSyncSource = p;
-                            
-                            FireSyncStateChanged(true);
-                            _logger?.Debug($"Catching up with {p}.");
-                            
-                            return;
-                        }
-                    }
-
-                    if (CurrentSyncSource != null)
-                    {
-                        _logger?.Error($"The current sync source {CurrentSyncSource} is not null even though sync should be finished.");
-                    }
-                    
-                    FireSyncStateChanged(false);
-                    
-                    _logger?.Debug("Catched up all peers.");
+                    SyncNext();
                 }
             });
 
@@ -364,6 +337,38 @@ namespace AElf.Node.Protocol
             Task.Run(() => MessageHub.Instance.Publish(new SyncStateChanged(newState)));
         }
 
+        internal void SyncNext()
+        {
+            var oldSyncSource = CurrentSyncSource;
+                    
+            // At this point the current sync source either doesn't have the next announcement 
+            // or has none at all.
+            CurrentSyncSource = null;
+            
+            // Try and find a peer with an anouncement that corresponds to the next block we need.
+            foreach (var p in _peers.Where(p => p.AnyStashed && p != oldSyncSource))
+            {
+                if (p.SyncNextAnnouncement())
+                {
+                    CurrentSyncSource = p;
+                            
+                    FireSyncStateChanged(true);
+                    _logger?.Debug($"Catching up with {p}.");
+                            
+                    return;
+                }
+            }
+
+            if (CurrentSyncSource != null)
+            {
+                _logger?.Error($"The current sync source {CurrentSyncSource} is not null even though sync should be finished.");
+            }
+                    
+            FireSyncStateChanged(false);
+                    
+            _logger?.Debug("Catched up all peers.");
+        }
+
         /// <summary>
         /// This method start the server that listens for incoming
         /// connections and sets up the manager.
@@ -454,6 +459,11 @@ namespace AElf.Node.Protocol
                 peer.PeerDisconnected -= ProcessClientDisconnection;
 
                 _peers.Remove(args.Peer);
+
+                lock (_syncLock)
+                {
+                    SyncNext();
+                }
             }
         }
 
@@ -698,7 +708,7 @@ namespace AElf.Node.Protocol
 
                 if (_lastBlocksReceived.Contains(blockHash))
                 {
-                    _logger.Warn("Block already in network cache");
+                    _logger.Warn($"Block {blockHash} already in network cache.");
                     return null;
                 }
 
