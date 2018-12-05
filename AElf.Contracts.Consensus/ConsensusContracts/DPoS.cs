@@ -195,7 +195,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             }
         }
 
-        /// <inheritdoc />
         /// <summary>
         /// 1. Supply DPoS information of current round (in case of some block producers failed to
         ///     publish their out value, signature or in value);
@@ -243,19 +242,18 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             await SetDPoSInformationOfNextRound(nextRoundInfo, nextExtraBlockProducer);
         }
 
-        /// <inheritdoc />
         /// <summary>
         /// </summary>
         /// <param name="args">
         /// (I) Publish out value and signature
-        /// 5 args:
+        /// 4 args:
         /// [0] UInt64Value
         /// [1] Hash
         /// [2] Hash
         /// [3] Int64Value
         /// 
         /// (II) Publish in value
-        /// 4 args:
+        /// 3 args:
         /// [0] UInt64Value
         /// [1] Hash
         /// [2] Int64Value
@@ -263,8 +261,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         /// <returns></returns>
         public async Task Publish(List<byte[]> args)
         {
-            var fromAddressToHex = new StringValue {Value = Api.GetFromAddress().GetFormatted()};
-
             UInt64Value roundNumber;
             try
             {
@@ -300,7 +296,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     return;
                 }
 
-                await PublishOutValueAndSignature(roundNumber, fromAddressToHex, outValue, signature);
+                await PublishOutValueAndSignature(roundNumber, Api.RecoverPublicKey(), outValue, signature);
             }
 
             if (args.Count == 3)
@@ -324,7 +320,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                     return;
                 }
 
-                await PublishInValue(roundNumber, fromAddressToHex, inValue);
+                await PublishInValue(roundNumber, Api.RecoverPublicKey(), inValue);
             }
         }
 
@@ -747,39 +743,39 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             await _currentRoundNumberField.SetAsync(CurrentRoundNumber + 1);
         }
 
-        private async Task PublishOutValueAndSignature(UInt64Value roundNumber, StringValue accountAddress,
+        private async Task PublishOutValueAndSignature(UInt64Value roundNumber, byte[] pubKey,
             Hash outValue, Hash signature)
         {
-            var info = await GetBPInfoOfSpecificRound(accountAddress, roundNumber);
+            var info = await GetBPInfoOfSpecificRound(pubKey, roundNumber);
             info.OutValue = outValue;
             if (roundNumber.Value > 1)
                 info.Signature = signature;
             var roundInfo = await _dPoSInfoMap.GetValueAsync(roundNumber);
-            roundInfo.BlockProducers[accountAddress.Value] = info;
+            roundInfo.BlockProducers[pubKey.ToPlainBase58()] = info;
 
             await _dPoSInfoMap.SetValueAsync(roundNumber, roundInfo);
         }
 
-        private async Task PublishInValue(UInt64Value roundNumber, StringValue accountAddress, Hash inValue)
+        private async Task PublishInValue(UInt64Value roundNumber, byte[] pubKey, Hash inValue)
         {
-            var info = await GetBPInfoOfSpecificRound(accountAddress, roundNumber);
+            var info = await GetBPInfoOfSpecificRound(pubKey, roundNumber);
             info.InValue = inValue;
 
             var roundInfo = await _dPoSInfoMap.GetValueAsync(roundNumber);
-            roundInfo.BlockProducers[accountAddress.Value] = info;
+            roundInfo.BlockProducers[pubKey.ToPlainBase58()] = info;
 
             await _dPoSInfoMap.SetValueAsync(roundNumber, roundInfo);
         }
 
-        private async Task<BlockProducer> GetBPInfoOfSpecificRound(StringValue accountAddress, UInt64Value roundNumber)
+        private async Task<BlockProducer> GetBPInfoOfSpecificRound(byte[] pubKey, UInt64Value roundNumber)
         {
-            return (await _dPoSInfoMap.GetValueAsync(roundNumber)).BlockProducers[accountAddress.Value];
+            return (await _dPoSInfoMap.GetValueAsync(roundNumber)).BlockProducers[pubKey.ToPlainBase58()];
         }
 
         private async Task<BlockProducer> GetBPInfoOfCurrentRound(byte[] pubKey)
         {
             return (await _dPoSInfoMap.GetValueAsync(new UInt64Value {Value = CurrentRoundNumber})).BlockProducers[
-                pubKey.ToHex()];
+                pubKey.ToPlainBase58()];
         }
 
         private bool IsBlockProducer(byte[] pubKey)

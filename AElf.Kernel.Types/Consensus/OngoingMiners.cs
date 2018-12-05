@@ -30,7 +30,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Miners GetCurrentMiners(ulong roundNumber)
         {
-            PrintMiners();
+            //PrintMiners();
             
             return Miners.OrderByDescending(m => m.TakeEffectRoundNumber)
                 .First(m => m.TakeEffectRoundNumber <= roundNumber);

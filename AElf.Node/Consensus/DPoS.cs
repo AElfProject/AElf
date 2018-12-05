@@ -184,6 +184,7 @@ namespace AElf.Kernel.Node
         public void DisposeConsensusList()
         {
             ConsensusDisposable?.Dispose();
+            ConsensusDisposable = null;
             _logger?.Trace("Mining stopped. Disposed previous consensus observables list.");
         }
 
