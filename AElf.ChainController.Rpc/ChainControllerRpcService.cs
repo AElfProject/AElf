@@ -356,7 +356,7 @@ namespace AElf.ChainController.Rpc
             {
                 txHash = Hash.LoadHex(txhash);
             }
-            catch (Exception e)
+            catch
             {
                 return JObject.FromObject(new JObject
                 {
@@ -366,56 +366,128 @@ namespace AElf.ChainController.Rpc
 
             try
             {
-                var receipt = await this.GetTransactionReceipt(txHash);
-                JObject txInfo = null;
-                if (receipt != null)
-                {
-                    var transaction = receipt.Transaction;
-                    txInfo = transaction.GetTransactionInfo();
-                    ((JObject) txInfo["tx"]).Add("params",
-                        String.Join(", ", await this.GetTransactionParameters(transaction)));
-                    ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
-                    ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
-                    ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
-                    ((JObject) txInfo["tx"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
-                }
-                else
-                {
-                    txInfo = new JObject {["tx"] = "Not Found"};
-                }
-
-                var txResult = await this.GetTransactionResult(txHash);
-                var response = new JObject
-                {
-                    ["tx_status"] = txResult.Status.ToString(),
-                    ["tx_info"] = txInfo["tx"]
-                };
-#if DEBUG
-                var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
-                response["tx_trc"] = txtrc?.ToString();
-#endif
-                if (txResult.Status == Status.Failed)
-                {
-                    response["tx_error"] = txResult.RetVal.ToStringUtf8();
-                }
-
-                if (txResult.Status == Status.Mined)
-                {
-                    response["block_number"] = txResult.BlockNumber;
-                    response["block_hash"] = txResult.BlockHash.DumpHex();
-                    response["return"] = txResult.RetVal.ToByteArray().ToHex();
-                }
-                // Todo: it should be deserialized to obj ion cli, 
-
+                var response = await GetTx(txHash);
                 return JObject.FromObject(new JObject {["result"] = response});
             }
             catch (Exception e)
             {
                 return new JObject
                 {
-                    ["error"] = e.ToString()
+                    ["error"] = e.Message
                 };
             }
+        }
+
+        [JsonRpcMethod("get_txs_result", "blockhash", "offset", "num")]
+        public async Task<JObject> GetTxsResult(string blockhash, int offset = 0, int num = 10)
+        {
+            if (offset < 0)
+            {
+                return JObject.FromObject(new JObject
+                {
+                    ["error"] = "offset must greater than or equal to 0."
+                });
+            }
+
+            if (num<=0 || num > 100)
+            {
+                return JObject.FromObject(new JObject
+                {
+                    ["error"] = "num must between 0 and 100."
+                });
+            }
+
+            Hash blockHash;
+            try
+            {
+                blockHash = Hash.LoadHex(blockhash);
+            }
+            catch
+            {
+                return JObject.FromObject(new JObject
+                {
+                    ["error"] = "Invalid Block Hash Format"
+                });
+            }
+
+            try
+            {
+                var block = await this.GetBlock(blockHash);
+                if (block == null)
+                {
+                    return JObject.FromObject(new JObject
+                    {
+                        ["error"] = "Invalid Block Hash"
+                    });
+                }
+                var txs = new JArray();
+
+                if (offset <= block.Body.Transactions.Count - 1)
+                {
+                    num = Math.Min(num, block.Body.Transactions.Count - offset);
+
+                    var txHashs = block.Body.Transactions.ToList().GetRange(offset, num);
+                    foreach (var hash in txHashs)
+                    {
+                        txs.Add(await GetTx(hash));
+                    }
+                }
+
+                return JObject.FromObject(new JObject {["result"] = txs});
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = e.Message
+                };
+            }
+        }
+
+        private async Task<JObject> GetTx(Hash txHash)
+        {
+            var receipt = await this.GetTransactionReceipt(txHash);
+            JObject txInfo = null;
+            if (receipt != null)
+            {
+                var transaction = receipt.Transaction;
+                txInfo = transaction.GetTransactionInfo();
+                ((JObject) txInfo["tx"]).Add("params",
+                    String.Join(", ", await this.GetTransactionParameters(transaction)));
+                ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
+                ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
+                ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
+                ((JObject) txInfo["tx"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
+            }
+            else
+            {
+                txInfo = new JObject {["tx"] = "Not Found"};
+            }
+
+            var txResult = await this.GetTransactionResult(txHash);
+            var response = new JObject
+            {
+                ["tx_status"] = txResult.Status.ToString(),
+                ["tx_info"] = txInfo["tx"]
+            };
+#if DEBUG
+            var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
+            response["tx_trc"] = txtrc?.ToString();
+#endif
+            if (txResult.Status == Status.Failed)
+            {
+                response["tx_error"] = txResult.RetVal.ToStringUtf8();
+            }
+
+            if (txResult.Status == Status.Mined)
+            {
+                response["block_number"] = txResult.BlockNumber;
+                response["block_hash"] = txResult.BlockHash.DumpHex();
+                response["return"] = txResult.RetVal.ToByteArray().ToHex();
+            }
+            // Todo: it should be deserialized to obj ion cli, 
+
+            return response;
         }
 
         [JsonRpcMethod("get_block_height")]
