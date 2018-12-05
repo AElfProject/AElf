@@ -580,7 +580,7 @@ namespace AElf.Kernel.Node
 
             // Update observer.
             var miners = _helper.Miners;
-            if (!miners.Any(m  => m.SequenceEqual(_ownPubKey)))
+            if (miners.All(m  => !m.SequenceEqual(_ownPubKey)))
             {
                 return;
             }
