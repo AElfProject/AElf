@@ -378,8 +378,8 @@ namespace AElf.ChainController.Rpc
             }
         }
 
-        [JsonRpcMethod("get_txs_result_by_blockhash", "blockhash", "offset", "num")]
-        public async Task<JObject> GetTxsResult(string blochHash, int offset = 0, int num = 10)
+        [JsonRpcMethod("get_txs_result", "blockhash", "offset", "num")]
+        public async Task<JObject> GetTxsResult(string blockhash, int offset = 0, int num = 10)
         {
             if (offset < 0)
             {
@@ -400,7 +400,7 @@ namespace AElf.ChainController.Rpc
             Hash blockHash;
             try
             {
-                blockHash = Hash.LoadHex(blochHash);
+                blockHash = Hash.LoadHex(blockhash);
             }
             catch
             {
