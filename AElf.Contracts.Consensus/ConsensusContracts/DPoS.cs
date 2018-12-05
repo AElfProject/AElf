@@ -6,14 +6,12 @@ using AElf.Common.Enums;
 using AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using ServiceStack;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus.ConsensusContracts
@@ -26,8 +24,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         public ConsensusType Type => ConsensusType.AElfDPoS;
 
         public ulong CurrentRoundNumber => _currentRoundNumberField.GetAsync().Result;
-
-        private Address TokenContractAddress ;
 
         public int Interval
         {
@@ -346,7 +342,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
                 var parameter =
                     ByteString.CopyFrom(ParamsPacker.Pack(minerWannaQuitElection));
-                Api.Call(TokenContractAddress, "CancelElection", parameter.ToByteArray());
                 candidates.PubKeys.Remove(ByteString.CopyFrom(minerWannaQuitElection));
                 await _candidatesField.SetAsync(candidates);
             }
@@ -431,12 +426,12 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 
                 if (_balanceMap.TryGet(bv, out var tickets))
                 {
-                    tickets.RemainingTickets += amount;
+                    tickets.TotalTickets += amount;
                     await _balanceMap.SetValueAsync(bv, tickets);
                 }
                 else
                 {
-                    tickets = new Tickets {RemainingTickets = amount};
+                    tickets = new Tickets {TotalTickets = amount};
                     await _balanceMap.SetValueAsync(bv, tickets);
                 }
             }
@@ -444,12 +439,10 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             {
                 if (_balanceMap.TryGet(bv, out var tickets))
                 {
-                    Api.Assert(tickets.RemainingTickets >= amount,
+                    Api.Assert(tickets.TotalTickets >= amount,
                         $"{Api.GetFromAddress().GetFormatted()} can't withdraw tickets.");
 
-                    tickets.RemainingTickets -= amount;
-                    Api.Call(TokenContractAddress, "Transfer",
-                        ByteString.CopyFrom(ParamsPacker.Pack(amount)).ToByteArray());
+                    tickets.TotalTickets -= amount;
                     await _balanceMap.SetValueAsync(bv, tickets);
                 }
             }
@@ -469,7 +462,6 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             await _candidatesField.SetAsync(candidates);
         }
 
-        /// <inheritdoc />
         /// <summary>
         /// Checking steps:
         /// 1. Contained by BlockProducer.Nodes;
@@ -560,15 +552,15 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 if (_balanceMap.TryGet(bv, out var tickets))
                 {
                     ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {bv.Value.ToByteArray().ToPlainBase58()}: {tickets.RemainingTickets}");
+                        $"Remaining tickets of {bv.Value.ToByteArray().ToPlainBase58()}: {tickets.TotalTickets}");
                 }
                  else
                 {
                     // Miners in the white list
-                    tickets = new Tickets {RemainingTickets = GlobalConfig.LockTokenForElection};
+                    tickets = new Tickets {TotalTickets = GlobalConfig.LockTokenForElection};
                     await _balanceMap.SetValueAsync(bv, tickets);
                     ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {bv.Value.ToByteArray().ToPlainBase58()}: {tickets.RemainingTickets}");
+                        $"Remaining tickets of {bv.Value.ToByteArray().ToPlainBase58()}: {tickets.TotalTickets}");
                 }
             }
 
@@ -593,8 +585,9 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
             foreach (var candidate in _candidatesField.GetValue().PubKeys)
             {
-                snapshot.TicketsMap.Add(new TicketsMap
-                    {Candidate = candidate, TicketsCount = await GetTicketCount(candidate.ToByteArray())});
+                snapshot.MinersSnapshot.Add(new MinerSnapshot
+                    {MinerPubKey = candidate,
+                        VotersWeights = await GetTicketCount(candidate.ToByteArray())});
             }
 
             await _snapshotMap.SetValueAsync(new UInt64Value {Value = CurrentRoundNumber.Add(1)}, snapshot);
@@ -838,20 +831,20 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             };
             if (_balanceMap.TryGet(bv, out var tickets))
             {
-                tickets.RemainingTickets.Add(amount.Value);
-                var record = tickets.VotingRecord.FirstOrDefault();
+                tickets.TotalTickets.Add(amount.Value);
+                var record = tickets.VotingRecords.FirstOrDefault();
                 if (record != null)
                 {
-                    tickets.VotingRecord.Remove(record);
-                    record.TicketsCount += amount.Value;
-                    tickets.VotingRecord.Add(record);
+                    tickets.VotingRecords.Remove(record);
+                    record.Count += amount.Value;
+                    tickets.VotingRecords.Add(record);
                 }
                 else
                 {
-                    tickets.VotingRecord.Add(new VotingRecord
+                    tickets.VotingRecords.Add(new VotingRecord
                     {
                         From = Api.GetFromAddress(),
-                        TicketsCount = amount.Value
+                        Count = amount.Value
                     });
                 }
             }
@@ -865,7 +858,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             {
                 Value = ByteString.CopyFrom(pubKey)
             };
-            var balance = (await _balanceMap.GetValueAsync(bv)).RemainingTickets;
+            var balance = (await _balanceMap.GetValueAsync(bv)).TotalTickets;
             return balance >= GlobalConfig.LockTokenForElection ? balance - GlobalConfig.LockTokenForElection : 0;
         }
 
@@ -883,7 +876,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             };
             if (_balanceMap.TryGet(bv, out var tickets))
             {
-                return tickets.RemainingTickets >= amount.Value;
+                return tickets.TotalTickets >= amount.Value;
             }
 
             return false;

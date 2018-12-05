@@ -8,7 +8,7 @@ namespace AElf.Kernel
     {
         public byte[] GetNextCandidate(Miners currentMiners)
         {
-            var ranking = TicketsMap.OrderBy(tm => tm.TicketsCount).Select(tm => tm.Candidate).ToList();
+            var ranking = MinersSnapshot.OrderBy(ms => ms.VotersWeights).Select(ms => ms.MinerPubKey).ToList();
             for (var i = GlobalConfig.BlockProducerNumber + 1; i < ranking.Count(); i++)
             {
                 if (!currentMiners.Producers.Contains(ranking[i]))
