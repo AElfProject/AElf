@@ -549,18 +549,11 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
                 {
                     Value = pubKey
                 };
-                if (_balanceMap.TryGet(bv, out var tickets))
-                {
-                    ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {bv.Value.ToByteArray().ToHex()}: {tickets.TotalTickets}");
-                }
-                 else
+                if (!_balanceMap.TryGet(bv, out var tickets))
                 {
                     // Miners in the white list
                     tickets = new Tickets {TotalTickets = GlobalConfig.LockTokenForElection};
                     await _balanceMap.SetValueAsync(bv, tickets);
-                    ConsoleWriteLine(nameof(InitializeBlockProducer),
-                        $"Remaining tickets of {bv.Value.ToByteArray().ToHex()}: {tickets.TotalTickets}");
                 }
             }
 

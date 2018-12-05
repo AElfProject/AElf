@@ -574,12 +574,13 @@ namespace AElf.Kernel.Node
             if (ConsensusDisposable != null)
             {
                 ConsensusDisposable.Dispose();
+                ConsensusDisposable = null;
                 _logger?.Trace("Disposed previous consensus observables list. Will update DPoS information.");
             }
 
             // Update observer.
             var miners = _helper.Miners;
-            if (!miners.Contains(_ownPubKey))
+            if (!miners.Any(m  => m.SequenceEqual(_ownPubKey)))
             {
                 return;
             }
