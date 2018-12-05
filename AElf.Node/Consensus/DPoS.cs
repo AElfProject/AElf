@@ -25,7 +25,6 @@ using AElf.Miner.TxMemPool;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Common;
 using AElf.Synchronization.EventMessages;
-using Base58Check;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
