@@ -27,7 +27,7 @@ namespace AElf.Network.Peers
         bool Start();
         
         NodeData DistantNodeData { get; }
-        byte[] DistantNodeAddress { get; }
+        string DistantNodeAddress { get; }
         void EnqueueOutgoing(Message msg, Action<Message> successCallback = null);
 
         void ResetSync();

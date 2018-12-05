@@ -8,7 +8,6 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
-using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -16,12 +15,12 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
+using AElf.Miner.TxMemPool;
 using AElf.Types.CSharp;
+using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
 using NServiceKit.Common.Extensions;
-using AElf.Miner.TxMemPool;
-using Easy.MessageHub;
 
 namespace AElf.Synchronization.BlockExecution
 {
@@ -52,7 +51,7 @@ namespace AElf.Synchronization.BlockExecution
             _txHub = txHub;
             _chainManagerBasic = chainManagerBasic;
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
-            
+
             Cts = new CancellationTokenSource();
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
@@ -60,7 +59,7 @@ namespace AElf.Synchronization.BlockExecution
             _executing = false;
             _prepareTerminated = false;
             _terminated = false;
-            
+
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
             {
                 if (signal.Module == TerminatedModuleEnum.BlockExecutor)
@@ -92,7 +91,7 @@ namespace AElf.Synchronization.BlockExecution
         {
             if (_isMining)
             {
-                _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution," + 
+                _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution," +
                                "for this node is doing mining.");
                 return BlockExecutionResult.Mining;
             }
@@ -106,8 +105,6 @@ namespace AElf.Synchronization.BlockExecution
                 return result;
             }
 
-            //_logger?.Trace($"Executing block {block.GetHash()}");
-
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -120,35 +117,43 @@ namespace AElf.Synchronization.BlockExecution
             var txnRes = new List<TransactionResult>();
             var readyTxs = new List<Transaction>();
 
-            BlockExecutionResult res = BlockExecutionResult.Fatal;
+            var res = BlockExecutionResult.Fatal;
             try
             {
-                MessageHub.Instance.Publish(new ExecutionStateChanged(true));
-
                 // get txn from pool
                 var tuple = CollectTransactions(block);
                 result = tuple.Item1;
-                if (result.IsFailed())
+                readyTxs = tuple.Item2;
+                if (result.IsFailed() || readyTxs.Count == 0)
                 {
+                    _logger?.Warn($"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
+                                  $"block hash: {block.BlockHashToHex}.");
                     res = result;
                     return res;
                 }
 
-                readyTxs = tuple.Item2;
-
                 var trs = await _txHub.GetReceiptsForAsync(readyTxs);
+
                 foreach (var tr in trs)
                 {
                     if (!tr.IsExecutable)
                     {
-                        throw new InvalidBlockException($"Transaction is not executable. {tr}");
+                        throw new InvalidBlockException($"Transaction is not executable, transaction: {tr}, " +
+                                                        $"block height: {block.Header.Index}, block hash: {block.BlockHashToHex}");
                     }
                 }
 
                 txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
-                var blockChain = _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                
+                _logger?.Trace("Transaction Results:");
+                foreach (var re in txnRes)
+                {
+                    _logger?.Trace(re.StateHash.DumpHex);
+                }
+
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
                     res = BlockExecutionResult.AlreadyAppended;
@@ -161,17 +166,18 @@ namespace AElf.Synchronization.BlockExecution
                     res = result;
                     return res;
                 }
+
                 await UpdateCrossChainInfo(block, txnRes);
-                
+
                 // BlockExecuting -> BlockAppending
                 // ExecutingLoop -> BlockAppending
                 MessageHub.Instance.Publish(StateEvent.StateUpdated);
-                
+
                 await AppendBlock(block);
                 InsertTxs(txnRes, block);
 
-                await _txHub.OnNewBlock((Block)block);
-                
+                await _txHub.OnNewBlock((Block) block);
+
                 res = BlockExecutionResult.Success;
                 return res;
             }
@@ -185,7 +191,6 @@ namespace AElf.Synchronization.BlockExecution
             }
             finally
             {
-                MessageHub.Instance.Publish(new ExecutionStateChanged(false));
                 _current = null;
                 _executing = false;
                 if (_prepareTerminated)
@@ -193,12 +198,15 @@ namespace AElf.Synchronization.BlockExecution
                     _terminated = true;
                     MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockExecutor));
                 }
+
                 stopwatch.Stop();
-                if (!res.CanExecuteAgain())
+                if (res.CanExecuteAgain())
                 {
-                    _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
-                                  $"duration {stopwatch.ElapsedMilliseconds} ms.");
+                    _logger?.Warn($"Block {block.BlockHashToHex} can execute again.");
                 }
+
+                _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, {block.Body.Transactions.Count} txns, " +
+                              $"duration {stopwatch.ElapsedMilliseconds} ms.");
             }
         }
 
@@ -221,7 +229,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 var res = new TransactionResult
                 {
-                    TransactionId = trace.TransactionId,
+                    TransactionId = trace.TransactionId
                 };
                 if (string.IsNullOrEmpty(trace.StdErr))
                 {
@@ -232,11 +240,21 @@ namespace AElf.Synchronization.BlockExecution
                 }
                 else
                 {
+                    _logger?.Trace($"Executing failed, \n Error:{trace.StdErr}");
                     res.Status = Status.Failed;
                     res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     res.StateHash = trace.GetSummarizedStateHash();
+                    _logger?.Error($"Transaction execute failed. TransactionId: {res.TransactionId.DumpHex()}, " +
+                                   $"StateHash: {res.StateHash} Transaction deatils: {readyTxs.Find(x => x.GetHash() == trace.TransactionId)}" +
+                                   $"\n {trace.StdErr}");
                 }
 
+                if (trace.DeferredTransaction.Length != 0)
+                {
+                    var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                    _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
+                    res.DeferredTxnId = deferredTxn.GetHash();
+                }
                 results.Add(res);
             }
 
@@ -309,7 +327,6 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns></returns>
         private Tuple<BlockExecutionResult, List<Transaction>> CollectTransactions(IBlock block)
         {
-            //string errorLog = null;
             var res = BlockExecutionResult.CollectTransactionsSuccess;
             var txs = block.Body.TransactionList.ToList();
             var readyTxs = new List<Transaction>();
@@ -337,7 +354,11 @@ namespace AElf.Synchronization.BlockExecution
             if (res.IsSuccess() && readyTxs.Count(t => t.Type == TransactionType.CrossChainBlockInfoTransaction) > 1)
             {
                 res = BlockExecutionResult.TooManyTxsForParentChainBlock;
-                //errorLog = "More than one transaction to record parent chain block info.";
+            }
+
+            if (txs.Count == 0)
+            {
+                res = BlockExecutionResult.NoTransaction;
             }
 
             return new Tuple<BlockExecutionResult, List<Transaction>>(res, readyTxs);
@@ -354,7 +375,7 @@ namespace AElf.Synchronization.BlockExecution
             try
             {
                 var cached = _clientManager.TryGetParentChainBlockInfo(parentBlockInfo);
-                if (cached != null) 
+                if (cached != null)
                     return cached.Equals(parentBlockInfo);
                 //_logger.Warn("Not found cached parent block info");
                 return false;
@@ -384,7 +405,17 @@ namespace AElf.Synchronization.BlockExecution
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
+                _logger?.Trace($"{root.DumpHex()} != {block.Header.MerkleTreeRootOfWorldState.DumpHex()}");
                 _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
+                _logger?.Trace("Transaction Results:");
+                foreach (var r in results)
+                {
+                    _logger?.Trace($"TransactionId: {r.TransactionId.DumpHex()}, " +
+                                   $"StateHash: {r.StateHash.DumpHex()}，" +
+                                   $"Status: {r.Status}, " +
+                                   $"{r.RetVal}");
+                }
+
                 res = BlockExecutionResult.IncorrectStateMerkleTree;
             }
 
@@ -451,7 +482,6 @@ namespace AElf.Synchronization.BlockExecution
                 await _chainManagerBasic.UpdateCurrentBlockHeightAsync(block.ParentChainBlockInfo.ChainId,
                     block.ParentChainBlockInfo.Height);
             }*/
-                
         }
 
         #endregion
@@ -479,7 +509,7 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager.UpdateRequestInterval();
         }
     }
-    
+
     internal class InvalidBlockException : Exception
     {
         public InvalidBlockException(string message) : base(message)

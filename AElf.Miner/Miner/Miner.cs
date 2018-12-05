@@ -9,6 +9,7 @@ using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -25,41 +26,40 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using NServiceKit.Common.Extensions;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.Miner.Miner
 {
-    // ReSharper disable IdentifierTypo
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
+        private int TimeoutMilliseconds => ConsensusConfig.Instance.DPoSMiningInterval / 4 * 3;
+        
+        private readonly ILogger _logger;
         private readonly ITxHub _txHub;
-        private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private int _timeoutMilliseconds;
-        private readonly ILogger _logger;
-        private IBlockChain _blockChain;
-        private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
-        private readonly ServerManager _serverManager;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
+        
+        private IBlockChain _blockChain;
+        
+        private readonly ClientManager _clientManager;
+        private readonly ServerManager _serverManager;
+
         private Address _producerAddress;
-        private readonly IChainManagerBasic _chainManagerBasic;
+        private ECKeyPair _keyPair;
 
         private IMinerConfig Config { get; }
 
-        public Address Coinbase => Config.CoinBase;
-        private readonly TransactionFilter _txFilter;
+        private TransactionFilter _txFilter;
 
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
-            IBlockValidationService blockValidationService, IChainContextService chainContextService, IChainManagerBasic chainManagerBasic)
+            IBlockValidationService blockValidationService, IChainContextService chainContextService)
         {
-            Config = config;
             _txHub = txHub;
             _chainService = chainService;
             _executingService = executingService;
@@ -70,8 +70,30 @@ namespace AElf.Miner.Miner
             _serverManager = serverManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
-            _chainManagerBasic = chainManagerBasic;
+            
+            Config = config;
+        }
+        
+        /// <summary>
+        /// Initializes the mining with the producers key pair.
+        /// </summary>
+        public void Init(ECKeyPair nodeKeyPair)
+        {
             _txFilter = new TransactionFilter();
+            
+            _keyPair = NodeConfig.Instance.ECKeyPair;
+            _producerAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
+            
+            _blockChain = _chainService.GetBlockChain(Config.ChainId);
+        }
+
+        /// <summary>
+        /// Stop mining
+        /// </summary>
+        public void Close()
+        {
+            _clientManager.CloseClientsToSideChain();
+            _serverManager.Close();
         }
 
         /// <inheritdoc />
@@ -125,9 +147,9 @@ namespace AElf.Miner.Miner
                     traces.AddRange(await ExecuteTransactions(regTxs));
                     _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
                     
-                    _logger?.Trace($"Start executing {regTxs.Count} contract transactions.");
+                    _logger?.Trace($"Start executing {contractTxs.Count} contract transactions.");
                     traces.AddRange(await ExecuteTransactions(contractTxs, transactionType: TransactionType.ContractDeployTransaction));
-                    _logger?.Trace($"Finish executing {regTxs.Count} contract transactions.");
+                    _logger?.Trace($"Finish executing {contractTxs.Count} contract transactions.");
                 }
 
                 ExtractTransactionResults(traces, out var results);
@@ -137,7 +159,7 @@ namespace AElf.Miner.Miner
                 _logger?.Info($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
-                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
                 if (blockValidationResult != BlockValidationResult.Success)
                 {
@@ -147,6 +169,8 @@ namespace AElf.Miner.Miner
                 // append block
                 await _blockChain.AddBlocksAsync(new List<IBlock> {block});
 
+                MessageHub.Instance.Publish(new BlockMined(block));
+
                 // insert to db
                 Update(results, block);
                 /*if (pcb != null)
@@ -154,7 +178,7 @@ namespace AElf.Miner.Miner
                     await _chainManagerBasic.UpdateCurrentBlockHeightAsync(pcb.ChainId, pcb.Height);
                 }*/
                 await _txHub.OnNewBlock((Block)block);
-                MessageHub.Instance.Publish(new BlockMined(block));
+                MessageHub.Instance.Publish(new BlockMinedAndStored(block));
                 stopwatch.Stop();
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
@@ -167,9 +191,9 @@ namespace AElf.Miner.Miner
                 return null;
             }
         }
-       
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false, TransactionType transactionType = TransactionType.ContractTransaction)
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, bool noTimeout = false,
+            TransactionType transactionType = TransactionType.ContractTransaction)
         {
             using (var cts = new CancellationTokenSource())
             using (var timer = new Timer(s =>
@@ -192,12 +216,12 @@ namespace AElf.Miner.Miner
                 }
             }))
             {
-                timer.Change(_timeoutMilliseconds, Timeout.Infinite);
+                timer.Change(TimeoutMilliseconds, Timeout.Infinite);
 
                 if (cts.IsCancellationRequested)
                     return null;
                 var disambiguationHash =
-                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), _producerAddress);
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), Hash.FromRawBytes(_keyPair.PublicKey));
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
@@ -234,23 +258,19 @@ namespace AElf.Miner.Miner
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
                 var tx = new Transaction
                 {
-                    From = _keyPair.GetAddress(),
+                    From = _producerAddress,
                     To = ContractHelpers.GetSideChainContractAddress(Config.ChainId),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
-                    Sig = new Signature
-                    {
-                        P = ByteString.CopyFrom(_keyPair.GetEncodedPublicKey())
-                    },
                     Type = TransactionType.CrossChainBlockInfoTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo)),
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 };
+                
                 // sign tx
                 var signature = new ECSigner().Sign(_keyPair, tx.GetHash().DumpByteArray());
-                tx.Sig.R = ByteString.CopyFrom(signature.R);
-                tx.Sig.S = ByteString.CopyFrom(signature.S);
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
                 await InsertTransactionToPool(tx);
                 _logger?.Trace($"Generated Cross chain info transaction {tx.GetHash()}");
@@ -277,61 +297,77 @@ namespace AElf.Miner.Miner
         private void ExtractTransactionResults(IEnumerable<TransactionTrace> traces, out HashSet<TransactionResult> results)
         {
             results = new HashSet<TransactionResult>();
-            int index = 0;
-            foreach (var trace in traces)
+            try
             {
-                switch (trace.ExecutionStatus)
+                int index = 0;
+                foreach (var trace in traces)
                 {
-                    case ExecutionStatus.Canceled:
-                        // Put back transaction
-                        break;
-                    case ExecutionStatus.ExecutedAndCommitted:
-                        // Successful
-                        var txRes = new TransactionResult()
-                        {
-                            TransactionId = trace.TransactionId,
-                            Status = Status.Mined,
-                            RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
-                            StateHash = trace.GetSummarizedStateHash(),
-                            Index = index++
-                        };
-                        txRes.UpdateBloom();
-                        results.Add(txRes);
-                        break;
-                    case ExecutionStatus.ContractError:
-                        var txResF = new TransactionResult()
-                        {
-                            TransactionId = trace.TransactionId,
-                            RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
-                            Status = Status.Failed,
-                            StateHash = trace.GetSummarizedStateHash(),
-                            Index = index++
-                        };
-                        results.Add(txResF);
-                        break;
-                    case ExecutionStatus.Undefined:
-                        _logger?.Fatal(
-                            $@"Transaction Id ""{
-                                    trace.TransactionId
-                                } is executed with status Undefined. Transaction trace: {trace}""");
-                        break;
-                    case ExecutionStatus.SystemError:
-                        // SystemError shouldn't happen, and need to fix
-                        _logger?.Fatal(
-                            $@"Transaction Id ""{
-                                    trace.TransactionId
-                                } is executed with status SystemError. Transaction trace: {trace}""");
-                        break;
-                    case ExecutionStatus.ExecutedButNotCommitted:
-                        // If this happens, there's problem with the code
-                        _logger?.Fatal(
-                            $@"Transaction Id ""{
-                                    trace.TransactionId
-                                } is executed with status ExecutedButNotCommitted. Transaction trace: {
-                                    trace
-                                }""");
-                        break;
+                    switch (trace.ExecutionStatus)
+                    {
+                        case ExecutionStatus.Canceled:
+                            // Put back transaction
+                            break;
+                        case ExecutionStatus.ExecutedAndCommitted:
+                            // Successful
+                            var txRes = new TransactionResult()
+                            {
+                                TransactionId = trace.TransactionId,
+                                Status = Status.Mined,
+                                RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                                StateHash = trace.GetSummarizedStateHash(),
+                                Index = index++
+                            };
+                            txRes.UpdateBloom();
+
+                            // insert deferred txn to transaction pool and wait for execution 
+                            if (trace.DeferredTransaction.Length != 0)
+                            {
+                                var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                                InsertTransactionToPool(deferredTxn).ConfigureAwait(false);
+                                txRes.DeferredTxnId = deferredTxn.GetHash();
+                            }
+
+                            results.Add(txRes);
+                            break;
+                        case ExecutionStatus.ContractError:
+                            var txResF = new TransactionResult()
+                            {
+                                TransactionId = trace.TransactionId,
+                                RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
+                                Status = Status.Failed,
+                                StateHash = trace.GetSummarizedStateHash(),
+                                Index = index++
+                            };
+                            results.Add(txResF);
+                            break;
+                        case ExecutionStatus.Undefined:
+                            _logger?.Fatal(
+                                $@"Transaction Id ""{
+                                        trace.TransactionId
+                                    } is executed with status Undefined. Transaction trace: {trace}""");
+                            break;
+                        case ExecutionStatus.SystemError:
+                            // SystemError shouldn't happen, and need to fix
+                            _logger?.Fatal(
+                                $@"Transaction Id ""{
+                                        trace.TransactionId
+                                    } is executed with status SystemError. Transaction trace: {trace}""");
+                            break;
+                        case ExecutionStatus.ExecutedButNotCommitted:
+                            // If this happens, there's problem with the code
+                            _logger?.Fatal(
+                                $@"Transaction Id ""{
+                                        trace.TransactionId
+                                    } is executed with status ExecutedButNotCommitted. Transaction trace: {
+                                        trace
+                                    }""");
+                            break;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error in ExtractTransactionResults");
             }
         }
 
@@ -481,27 +517,6 @@ namespace AElf.Miner.Miner
                     return null;
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Start mining
-        /// init clients to side chain node 
-        /// </summary>
-        public void Init()
-        {
-            _timeoutMilliseconds = GlobalConfig.AElfMiningInterval;
-            _keyPair = NodeConfig.Instance.ECKeyPair;
-            _producerAddress = Address.FromRawBytes(_keyPair.GetEncodedPublicKey());
-            _blockChain = _chainService.GetBlockChain(Config.ChainId);
-        }
-
-        /// <summary>
-        /// Stop mining
-        /// </summary>
-        public void Close()
-        {
-            _clientManager.CloseClientsToSideChain();
-            _serverManager.Close();
         }
     }
 }

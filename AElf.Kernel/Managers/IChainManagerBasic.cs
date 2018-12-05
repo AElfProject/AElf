@@ -12,7 +12,5 @@ namespace AElf.Kernel.Managers
         Task<Hash> GetCurrentBlockHashAsync(Hash chainId);
         Task UpdateCurrentBlockHeightAsync(Hash chainId, ulong height);
         Task<ulong> GetCurrentBlockHeightAsync(Hash chainId);
-        Task AddSideChainId(Hash chainId);
-        Task<SideChainIdList> GetSideChainIdList();
     }
 }

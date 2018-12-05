@@ -8,6 +8,7 @@ using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
@@ -31,8 +32,8 @@ namespace AElf.Miner.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            ChainConfig.Instance.ChainId = Hash.Generate().DumpHex();
-            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
+            ChainConfig.Instance.ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }).DumpBase58();
+            NodeConfig.Instance.NodeAccount = Address.Generate().GetFormatted();
 
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());

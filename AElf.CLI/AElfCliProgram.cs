@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -9,6 +10,7 @@ using AElf.ABI.CSharp;
 using AElf.CLI.Certificate;
 using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
+using AElf.CLI.Command.MultiSig;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Helpers;
 using AElf.CLI.Http;
@@ -19,7 +21,10 @@ using AElf.CLI.Streaming;
 using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
+using AElf.Common.Application;
 using AElf.Cryptography.ECDSA;
+using Base58Check;
+using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ProtoBuf;
@@ -29,6 +34,9 @@ using Module = AElf.CLI.Data.Protobuf.Module;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 using TransactionType = AElf.CLI.Data.Protobuf.TransactionType;
 using Microsoft.AspNetCore.SignalR.Client;
+using static System.DateTime;
+using Address = AElf.CLI.Data.Protobuf.Address;
+using Hash = AElf.CLI.Data.Protobuf.Hash;
 
 namespace AElf.CLI
 {
@@ -56,7 +64,10 @@ namespace AElf.CLI
         private readonly int _port;
 
         private string _genesisAddress;
+        private string _chainId;
             
+        private string _authorizationAddress;
+
         private static readonly RpcCalls Rpc = new RpcCalls();
         
         private static readonly Deserializer Deserializer = new Deserializer();
@@ -75,6 +86,16 @@ namespace AElf.CLI
         private const string UpdateSmartContract = "UpdateSmartContract";
         private const string WrongInputFormat = "Invalid input format.";
         private const string UriFormatEroor = "Invalid uri format.";
+        public const string UnknownError = "Unknown error.";
+
+        #region Proposal
+        private const string CreateMultiSigAccount = "CreateMultiSigAccount";
+        private const string Propose = "Propose";
+        private const string SayYes = "SayYes";
+        private const string Release = "Release";
+        private const string ProposalNotFound = "Get proposal first.";
+        private readonly Dictionary<string, byte[]> _txnInProposal = new Dictionary<string, byte[]>();
+        #endregion
         
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
@@ -82,7 +103,7 @@ namespace AElf.CLI
         private readonly CertificatManager _certificatManager;
 
         private readonly Dictionary<string, Module> _loadedModules;
-        
+
         public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, CertificatManager certificatManager, string host = "http://localhost:5000")
         {
             _rpcAddress = host;
@@ -95,6 +116,44 @@ namespace AElf.CLI
             _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
+            
+            LoadOrCreateChainConfig();
+        }
+        
+        private void LoadOrCreateChainConfig()
+        {
+            string fileFolder = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config");
+            string filePath = Path.Combine(fileFolder, @"chain.json");
+            
+            // If exists load the value
+            if (File.Exists(filePath))
+            {
+                using (StreamReader r = new StreamReader(filePath))
+                {
+                    string json = r.ReadToEnd();
+                    JObject file = JObject.Parse(json);
+                    _chainId = file["ChainId"].ToObject<string>();
+                }
+            }
+            else
+            {
+                var obj = new JObject(new JProperty("ChainId", GlobalConfig.DefaultChainId));
+
+                if (!Directory.Exists(fileFolder))
+                {
+                    Directory.CreateDirectory(fileFolder);
+                }
+
+                using (var file = File.CreateText(filePath))
+                using (var writer = new JsonTextWriter(file))
+                {
+                    obj.WriteTo(writer);
+                }
+
+                _chainId = GlobalConfig.DefaultChainId;
+            }
+            
+            _accountManager.SetChainId(_chainId);
         }
         
         public void StartRepl()
@@ -109,7 +168,6 @@ namespace AElf.CLI
             {
                 //string command = _screenManager.GetCommand();
                 string command = ReadLine.Read("aelf> ");
-                
                 
                 if (string.IsNullOrWhiteSpace(command))
                     continue;
@@ -325,41 +383,12 @@ namespace AElf.CLI
                         byte[] serializedParams = meth.SerializeParams(new List<string> {"1", hex});
             
                         Transaction t = new Transaction();
-                        t = CreateTransaction(parsedCmd.Args.ElementAt(1), _genesisAddress, 
+                        t = Transaction.CreateTransaction(parsedCmd.Args.ElementAt(1), _genesisAddress, 
                             DeploySmartContract, serializedParams, TransactionType.ContractTransaction);
-
-                        t = t.AddBlockReference(_rpcAddress);
-                        
-                        MemoryStream ms = new MemoryStream();
-                        Serializer.Serialize(ms, t);
-                        byte[] b = ms.ToArray();
-                        byte[] toSig = SHA256.Create().ComputeHash(b);
-                        ECSigner signer = new ECSigner();
-                        ECSignature signature;
-                        ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(1));
-                        if (kp == null)
-                            throw new AccountLockedException(parsedCmd.Args.ElementAt(1));
-                        signature = signer.Sign(kp, toSig);
-                        
-                        // Update the signature
-                        t.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
-                        
+                      
                         var resp = SignAndSendTransaction(t);
                         
-                        if (resp == null)
-                        { 
-                            _screenManager.PrintError(ServerConnError);
-                            return;
-                        }
-                        if (resp.IsEmpty())
-                        {
-                            _screenManager.PrintError(NoReplyContentError);
-                            return;
-                        }
-                        JObject jObj = JObject.Parse(resp);
-                        
-                        string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
-                        _screenManager.PrintLine(toPrint);
+                        CheckTxnResult(resp, dcc);
                         return;
 
                     }
@@ -385,7 +414,6 @@ namespace AElf.CLI
                     }
                     
                 }
-                
                 if (def is UpdateContractCommand ucc)
                 {
                     if (_genesisAddress == null)
@@ -428,41 +456,11 @@ namespace AElf.CLI
                         byte[] serializedParams = meth.SerializeParams(new List<string> {parsedCmd.Args.ElementAt(0), hex} );
             
                         Transaction t = new Transaction();
-                        t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, 
+                        t = Transaction.CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, 
                             UpdateSmartContract, serializedParams, TransactionType.ContractTransaction);
 
-                        t = t.AddBlockReference(_rpcAddress);
-                        
-                        MemoryStream ms = new MemoryStream();
-                        Serializer.Serialize(ms, t);
-                        byte[] b = ms.ToArray();
-                        byte[] toSig = SHA256.Create().ComputeHash(b);
-                        ECSigner signer = new ECSigner();
-                        ECSignature signature;
-                        ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(2));
-                        if (kp == null)
-                            throw new AccountLockedException(parsedCmd.Args.ElementAt(2));
-                        signature = signer.Sign(kp, toSig);
-                        
-                        // Update the signature
-                        t.Sig = new Signature {R = signature.R, S = signature.S, P = kp.PublicKey.Q.GetEncoded()};
-                        
                         var resp = SignAndSendTransaction(t);
-                        
-                        if (resp == null)
-                        { 
-                            _screenManager.PrintError(ServerConnError);
-                            return;
-                        }
-                        if (resp.IsEmpty())
-                        {
-                            _screenManager.PrintError(NoReplyContentError);
-                            return;
-                        }
-                        JObject jObj = JObject.Parse(resp);
-                        
-                        string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
-                        _screenManager.PrintLine(toPrint);
+                        CheckTxnResult(resp, ucc);
                         return;
 
                     }
@@ -488,12 +486,338 @@ namespace AElf.CLI
                     }
                     
                 }
+                if (def is CreateMSigCmd createMSig)
+                {
+                    try
+                    {
+                        string err = createMSig.Validate(parsedCmd);
+                        if (!string.IsNullOrEmpty(err))
+                        {
+                            _screenManager.PrintLine(err);
+                            return;
+                        }
+                        int i = 0;
+                        var from = parsedCmd.Args.ElementAt(i++);
+                        uint executingThreshold = UInt32.Parse(parsedCmd.Args.ElementAt(i++));
+                        uint proposerThreshold = UInt32.Parse(parsedCmd.Args.ElementAt(i++));
+    
+                        Authorization authorization = new Authorization
+                        {
+                            ExecutionThreshold = executingThreshold,
+                            ProposerThreshold = proposerThreshold,
+                        };
                 
+                        uint totalWeight = 0;
+                        bool canBeProposed = false;
+                        for (; i < parsedCmd.Args.Count; i++)
+                        {
+                            JObject j = JObject.Parse(parsedCmd.Args.ElementAt(i));
+                            Reviewer reviewer = new Reviewer
+                            {
+                                PubKey = ByteArrayHelpers.FromHexString(j["Pubkey"].ToString()),
+                                Weight = Convert.ToUInt32(j["Weight"].ToString())
+                            };
+                            totalWeight += reviewer.Weight;
+                            if (reviewer.Weight >= authorization.ProposerThreshold)
+                                canBeProposed = true;
+                            authorization.Reviewers.Add(reviewer);
+                        }
+
+                        if (authorization.ExecutionThreshold < authorization.ProposerThreshold ||
+                            totalWeight < authorization.ExecutionThreshold || !canBeProposed)
+                        {
+                            _screenManager.PrintError("Invalid weight in authorization.");
+                            return;
+                        }
+                        
+                        if (_authorizationAddress == null)
+                        {
+                            _screenManager.PrintError(NotConnected);
+                            return;
+                        }
+                        if (!_loadedModules.TryGetValue(_authorizationAddress, out var m))
+                        {
+                            _screenManager.PrintError("Authorization contract " + AbiNotLoaded);
+                            return;
+                        }
+                
+                        Method meth = m.Methods.FirstOrDefault(mt => mt.Name.Equals(CreateMultiSigAccount));
+                            
+                        if (meth == null)
+                        {
+                            _screenManager.PrintError(MethodNotFound);
+                            return;
+                        }
+    
+                        MemoryStream ms = new MemoryStream();
+                        Serializer.Serialize(ms, authorization);
+        
+                        byte[] b = ms.ToArray();
+                        byte[] serializedParams = meth.SerializeParams(new List<string> {b.ToHex()});
+
+                        Transaction t = Transaction.CreateTransaction(from, _authorizationAddress,
+                            CreateMultiSigAccount, serializedParams, TransactionType.ContractTransaction);
+                        var resp = SignAndSendTransaction(t);
+                        CheckTxnResult(resp, createMSig);
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is ContractLoadedException || e is AccountLockedException)
+                        {
+                            _screenManager.PrintError(e.Message);
+                            return;
+                        }
+
+                        if (e is InvalidTransactionException)
+                        {
+                            _screenManager.PrintError(InvalidTransaction);
+                            return;
+                        }
+                        if (e is JsonReaderException)
+                        {
+                            _screenManager.PrintError(WrongInputFormat);
+                            return;
+                        }
+                        return;
+                    }
+                }
+
+                if (def is ProposeCmd pcmd)
+                {
+                    try
+                    {
+                        string err = pcmd.Validate(parsedCmd);
+                        if (!string.IsNullOrEmpty(err))
+                        {
+                            _screenManager.PrintLine(err);
+                            return;
+                        }
+                        int i = 0;
+                        var from = parsedCmd.Args.ElementAt(i++);
+                        var msig = parsedCmd.Args.ElementAt(i++);
+                        var proposalName = parsedCmd.Args.ElementAt(i++);
+                        var expiredTime = UtcNow.AddSeconds(UInt64.Parse(parsedCmd.Args.ElementAt(i++)));
+                        Proposal proposal = new Proposal
+                        {
+                            MultiSigAccount = new Address(ByteArrayHelpers.FromHexString(msig)),
+                            Name = proposalName,
+                            ExpiredTime = expiredTime,
+                            Proposer = ByteArrayHelpers.FromHexString(from),
+                            Status = ProposalStatus.ToBeDecided
+                        };
+                        
+                        #region Generate pedning txn
+                        
+                        JObject j = JObject.Parse(parsedCmd.Args.ElementAt(i));
+                        Transaction tr ;
+                        tr = Transaction.ConvertFromJson(j);
+                        string hex = tr.To.Value.ToHex();
+                        Module m;
+                        if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
+                        {
+                            if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
+                            {
+                                _screenManager.PrintError(AbiNotLoaded + "for Address " + "0x"+hex.Replace("0x", ""));
+                                return;
+                            }
+                        }
+
+                        Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
+
+                        if (method == null)
+                        {
+                            _screenManager.PrintError(MethodNotFound);
+                            return;
+                        }
+                            
+                        JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
+                        tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
+                        tr.Type = TransactionType.MsigTransaction;
+
+                        MemoryStream ms = new MemoryStream();
+                        Serializer.Serialize(ms, tr);
+                        
+                        var pendingTxn = new PendingTxn
+                        {
+                            ProposalName = proposalName,
+                            TxnData = ms.ToArray()
+                        };
+                        #endregion Generate pedning txn
+
+                        proposal.TxnData = pendingTxn;
+                        
+                        if (_authorizationAddress == null || !_loadedModules.TryGetValue(_authorizationAddress, out m))
+                        {
+                            _screenManager.PrintError("Authorization contract " + AbiNotLoaded);
+                            return;
+                        }
+                        method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(Propose));
+                        if (method == null)
+                        {
+                            _screenManager.PrintError(MethodNotFound);
+                            return;
+                        }
+                        ms = new MemoryStream();
+                        Serializer.Serialize(ms, proposal);
+        
+                        byte[] serializedParams = method.SerializeParams(new List<string> {ms.ToArray().ToHex()});
+
+                        Transaction t = Transaction.CreateTransaction(from, _authorizationAddress,
+                            Propose, serializedParams, TransactionType.ContractTransaction);
+                        var resp = SignAndSendTransaction(t);
+                        CheckTxnResult(resp, pcmd);
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        switch (e)
+                        {
+                            case ContractLoadedException _:
+                            case AccountLockedException _:
+                                _screenManager.PrintError(e.Message);
+                                return;
+                            case InvalidTransactionException _:
+                                _screenManager.PrintError(InvalidTransaction);
+                                return;
+                            case JsonReaderException _:
+                                _screenManager.PrintError(WrongInputFormat);
+                                return;
+                            default:
+                                return;
+                        }
+                    }
+                }
+                
+                if (def is ApproveCmd acmd)
+                {
+                    try
+                    {
+                        string err = acmd.Validate(parsedCmd);
+                        if (!string.IsNullOrEmpty(err))
+                        {
+                            _screenManager.PrintLine(err);
+                            return;
+                        }
+                        int i = 0;
+                        var from = parsedCmd.Args.ElementAt(i++);
+                        var proposalHash = parsedCmd.Args.ElementAt(i++);
+                        if (!_txnInProposal.TryGetValue(proposalHash, out var txnData))
+                        {
+                            _screenManager.PrintError(ProposalNotFound + " Use " + CheckProposalCmd.CommandName + ".");
+                            return;
+                        }
+                        if (_authorizationAddress == null || !_loadedModules.TryGetValue(_authorizationAddress, out var m))
+                        {
+                            _screenManager.PrintError("Authorization contract " + AbiNotLoaded);
+                            return;
+                        }
+                        
+                        Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(SayYes));
+                        if (method == null)
+                        {
+                            _screenManager.PrintError(MethodNotFound);
+                            return;
+                        }
+                        
+                        byte[] sig = _accountManager.Sign(from, txnData);
+
+                        Approval approval = new Approval
+                        {
+                            ProposalHash = ByteArrayHelpers.FromHexString(proposalHash),
+                            Signature = sig
+                        };
+                        
+                        MemoryStream ms = new MemoryStream();
+                        Serializer.Serialize(ms, approval);
+        
+                        byte[] serializedParams = method.SerializeParams(new List<string> {ms.ToArray().ToHex()});
+
+                        Transaction t = Transaction.CreateTransaction(from, _authorizationAddress,
+                            SayYes, serializedParams, TransactionType.ContractTransaction);
+                        var resp = SignAndSendTransaction(t);
+                        CheckTxnResult(resp, acmd);
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        switch (e)
+                        {
+                            case ContractLoadedException _:
+                            case AccountLockedException _:
+                                _screenManager.PrintError(e.Message);
+                                return;
+                            case InvalidTransactionException _:
+                                _screenManager.PrintError(InvalidTransaction);
+                                return;
+                            case JsonReaderException _:
+                                _screenManager.PrintError(WrongInputFormat);
+                                return;
+                            default:
+                                return;
+                        }
+                    }
+                }
+                
+                if (def is ReleaseProposalCmd rcmd)
+                {
+                    try
+                    {
+                        string err = rcmd.Validate(parsedCmd);
+                        if (!string.IsNullOrEmpty(err))
+                        {
+                            _screenManager.PrintLine(err);
+                            return;
+                        }
+                        int i = 0;
+                        var from = parsedCmd.Args.ElementAt(i++);
+                        var proposalHash = parsedCmd.Args.ElementAt(i++);
+                        
+                        if (_authorizationAddress == null || !_loadedModules.TryGetValue(_authorizationAddress, out var m))
+                        {
+                            _screenManager.PrintError("Authorization contract " + AbiNotLoaded);
+                            return;
+                        }
+                        
+                        Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(Release));
+                        if (method == null)
+                        {
+                            _screenManager.PrintError(MethodNotFound);
+                            return;
+                        }
+
+                        byte[] serializedParams = method.SerializeParams(new List<string> {ByteArrayHelpers.FromHexString(proposalHash).ToHex()});
+
+                        Transaction t = Transaction.CreateTransaction(from, _authorizationAddress,
+                            Release, serializedParams, TransactionType.ContractTransaction);
+                        var resp = SignAndSendTransaction(t);
+                        CheckTxnResult(resp, rcmd);
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        switch (e)
+                        {
+                            case ContractLoadedException _:
+                            case AccountLockedException _:
+                                _screenManager.PrintError(e.Message);
+                                return;
+                            case InvalidTransactionException _:
+                                _screenManager.PrintError(InvalidTransaction);
+                                return;
+                            case JsonReaderException _:
+                                _screenManager.PrintError(WrongInputFormat);
+                                return;
+                            default:
+                                return;
+                        }
+                    }
+                }
                 // Execute
                 // 2 cases : RPC command, Local command (like account management)
                 if (def.IsLocal)
                 {
-                    if (def is SendTransactionCmd c)
+                    if (def is SendTransactionCmd stc)
                     {
                         try
                         {
@@ -501,13 +825,13 @@ namespace AElf.CLI
                             
                             Transaction tr ;
 
-                            tr = ConvertFromJson(j);
-                            string hex = tr.To.Value.ToHex();
+                            tr = Transaction.ConvertFromJson(j);
+                            string toAdr = tr.To.GetFormatted();
 
-                            Module m = null;
-                            if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
+                            Module m;
+                            if (!_loadedModules.TryGetValue(toAdr, out m))
                             {
-                                if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
+                                if (!_loadedModules.TryGetValue(toAdr, out m))
                                 {
                                     _screenManager.PrintError(AbiNotLoaded);
                                     return;
@@ -524,87 +848,69 @@ namespace AElf.CLI
                             
                             JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
                             tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
-                            tr.type = TransactionType.ContractTransaction;
+                            tr.Type = TransactionType.ContractTransaction;
 
-                            tr = tr.AddBlockReference(_rpcAddress);
-
-                            _accountManager.SignTransaction(tr);
                             var resp = SignAndSendTransaction(tr);
-                            
-                            if (resp == null)
-                            { 
-                                _screenManager.PrintError(ServerConnError);
-                                return;
-                            }
-                            if (resp.IsEmpty())
-                            {
-                                _screenManager.PrintError(NoReplyContentError);
-                                return;
-                            }
-                            JObject jObj = JObject.Parse(resp);
-
-                            string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
-                            _screenManager.PrintLine(toPrint);
-
+                            CheckTxnResult(resp, stc);
                         }
                         catch (Exception e)
                         {
                             if (e is AccountLockedException || e is InvalidTransactionException ||
                                 e is InvalidInputException)
                                 _screenManager.PrintError(e.Message);
-                            if (e is JsonReaderException || e is FormatException)
+                            if (e is JsonReaderException || e is FormatException || e is ArgumentOutOfRangeException)
                             {
                                 _screenManager.PrintError(WrongInputFormat);
-                                return;
                             }
+                            _screenManager.PrintError(UnknownError);
                         }
                     }
                     else if (def is CallReadOnlyCmd)
                     {
-                            JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
-                            
-                            Transaction tr ;
+                        JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
+                        
+                        Transaction tr ;
 
-                            tr = ConvertFromJson(j);
-                            string hex = tr.To.Value.ToHex();
+                        tr = Transaction.ConvertFromJson(j);
+                        string hex = tr.To.Value.ToHex();
 
-                            Module m = null;
-                            if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
+                        Module m = null;
+                        if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
+                        {
+                            if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
                             {
-                                if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
-                                {
-                                    _screenManager.PrintError(AbiNotLoaded);
-                                    return;
-                                }
-                            }
-
-                            Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
-
-                            if (method == null)
-                            {
-                                _screenManager.PrintError(MethodNotFound);
+                                _screenManager.PrintError(AbiNotLoaded);
                                 return;
                             }
-                            
-                            JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
-                            tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
+                        }
 
-                            var resp = CallTransaction(tr);
-                            
-                            if (resp == null)
-                            { 
-                                _screenManager.PrintError(ServerConnError);
-                                return;
-                            }
-                            if (resp.IsEmpty())
-                            {
-                                _screenManager.PrintError(NoReplyContentError);
-                                return;
-                            }
-                            JObject jObj = JObject.Parse(resp);
+                        Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
 
-                            string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
-                            _screenManager.PrintLine(toPrint);
+                        if (method == null)
+                        {
+                            _screenManager.PrintError(MethodNotFound);
+                            return;
+                        }
+                        
+                        JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
+                        tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
+
+                        var resp = CallTransaction(tr, "call");
+                        
+                        if (resp == null)
+                        { 
+                            _screenManager.PrintError(ServerConnError);
+                            return;
+                        }
+                        if (resp.IsEmpty())
+                        {
+                            _screenManager.PrintError(NoReplyContentError);
+                            return;
+                        }
+                        JObject jObj = JObject.Parse(resp);
+
+                        string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
+                        _screenManager.PrintLine(toPrint);
                     }
                     else if (def is AccountCmd)
                     {
@@ -645,12 +951,26 @@ namespace AElf.CLI
                             return;
                         }
                         
-                        if (j["result"]?["BasicContractZero"] != null)
+                        // set genesis contract address if rpc api is connect_chain
+                        if (j["result"]?[GlobalConfig.GenesisSmartContractZeroAssemblyName] != null)
                         {
-                            _genesisAddress = j["result"]["BasicContractZero"].ToString();
+                            _genesisAddress = j["result"][GlobalConfig.GenesisSmartContractZeroAssemblyName].ToString();
+                            _authorizationAddress = j["result"][GlobalConfig.GenesisAuthorizationContractAssemblyName].ToString();
+                        }
+                        
+                        if (j["result"]?["chain_id"] != null)
+                        {
+                            _chainId = j["result"]["chain_id"].ToString();
+                            _accountManager.SetChainId(_chainId);
                         }
                         
                         string toPrint = def.GetPrintString(JObject.FromObject(j));
+
+                        if (def is CheckProposalCmd && j["result"]["TxnData"] != null)
+                        {
+                            var txnData = ByteArrayHelpers.FromHexString(j["result"]["TxnData"].ToString());
+                            _txnInProposal.TryAdd(parsedCmd.Args.ElementAt(0), txnData);
+                        }
                         
                         _screenManager.PrintLine(toPrint);
                     }
@@ -673,43 +993,36 @@ namespace AElf.CLI
             }
         }
 
-        private Transaction CreateTransaction(string elementAt, string genesisAddress,
-            string methodName, byte[] serializedParams, TransactionType contracttransaction)
-        {
-            try
-            {
-                Transaction t = new Transaction();
-                t.From = ByteArrayHelpers.FromHexString(elementAt);
-                t.To = ByteArrayHelpers.FromHexString(genesisAddress);
-                t.MethodName = methodName;
-                t.Params = serializedParams;
-                t.type = contracttransaction;
-                return t;
-            }
-            catch (Exception e)
-            {
-                throw new InvalidTransactionException();
-            }
-        }
-
         private string SignAndSendTransaction(Transaction tx)
         {
-            MemoryStream ms = new MemoryStream();
-            Serializer.Serialize(ms, tx);
-                        
-            byte[] b = ms.ToArray();
-            string payload = b.ToHex();
-            var reqParams = new JObject { ["rawtx"] = payload };
-            var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
-                        
-            // todo send raw tx
-            HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
-            string resp = reqhttp.DoRequest(req.ToString());
-
+            // add block reference
+            tx.AddBlockReference(_rpcAddress);
+            
+            // sign
+            _accountManager.SignTransaction(tx);
+            string resp = CallTransaction(tx, "broadcast_tx");
             return resp;
         }
+
+        private void CheckTxnResult(string resp, CliCommandDefinition def)
+        {
+            if (resp == null)
+            { 
+                _screenManager.PrintError(ServerConnError);
+                return;
+            }
+            if (resp.IsEmpty())
+            {
+                _screenManager.PrintError(NoReplyContentError);
+                return;
+            }
+            JObject jObj = JObject.Parse(resp);
+                        
+            string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
+            _screenManager.PrintLine(toPrint);
+        }
         
-        private string CallTransaction(Transaction tx)
+        private string CallTransaction(Transaction tx, string api)
         {
             MemoryStream ms = new MemoryStream();
             Serializer.Serialize(ms, tx);
@@ -717,7 +1030,7 @@ namespace AElf.CLI
             byte[] b = ms.ToArray();
             string payload = b.ToHex();
             var reqParams = new JObject { ["rawtx"] = payload };
-            var req = JsonRpcHelpers.CreateRequest(reqParams, "call", 1);
+            var req = JsonRpcHelpers.CreateRequest(reqParams, api, 1);
                         
             // todo send raw tx
             HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
@@ -740,22 +1053,6 @@ namespace AElf.CLI
         private void Stop()
         {
             
-        }
-
-        private Transaction ConvertFromJson(JObject j)
-        {
-            try
-            {
-                Transaction tr = new Transaction();
-                tr.From = ByteArrayHelpers.FromHexString(j["from"].ToString());
-                tr.To = ByteArrayHelpers.FromHexString(j["to"].ToString());
-                tr.MethodName = j["method"].ToObject<string>();
-                return tr;
-            }
-            catch (Exception e)
-            {
-                throw new InvalidTransactionException();
-            }
         }
     }
 }

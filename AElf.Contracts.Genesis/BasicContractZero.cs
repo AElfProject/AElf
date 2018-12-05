@@ -89,7 +89,7 @@ namespace AElf.Contracts.Genesis
 
     #endregion Customized Field Types
 
-    public class BasicContractZero : CSharpSmartContract, ISmartContractZero
+    public class BasicContractZero : CSharpSmartContract, ISmartContractZero 
     {
         #region Fields
 
@@ -120,7 +120,7 @@ namespace AElf.Contracts.Genesis
         public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
             var serialNumber = _contractSerialNumber.Increment().Value;
-            var contractAddress = Address.FromRawBytes(serialNumber.ToString().CalculateHash());
+            var contractAddress = Address.BuildContractAddress(Api.GetChainId().DumpByteArray(), serialNumber);
             
             var creator = Api.GetTransaction().From;
             var contractHash = Hash.FromRawBytes(code);
@@ -155,7 +155,7 @@ namespace AElf.Contracts.Genesis
             }.Fire();
             */
             Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.DumpHex());
-            Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.DumpHex());
+            Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 

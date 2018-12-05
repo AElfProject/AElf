@@ -69,6 +69,7 @@ namespace AElf.Execution.Execution
         {
             if (cancellationToken.IsCancellationRequested)
             {
+                Console.WriteLine("IsCancellationRequested");
                 return new TransactionTrace()
                 {
                     TransactionId = transaction.GetHash(),

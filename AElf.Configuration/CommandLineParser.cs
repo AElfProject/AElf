@@ -133,11 +133,6 @@ namespace AElf.Configuration
                 NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
             }
 
-            if (opts.IsConsensusInfoGenerator.HasValue)
-            {
-                NodeConfig.Instance.ConsensusInfoGenerator = opts.IsConsensusInfoGenerator.Value;
-            }
-
             // TODO: 
             NodeConfig.Instance.ConsensusKind = ConsensusKind.AElfDPoS;
 

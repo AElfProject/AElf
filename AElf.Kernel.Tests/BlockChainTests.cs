@@ -39,7 +39,7 @@ namespace AElf.Kernel.Tests
                     ChainId = _mock.ChainId1,
                     Index = _mock.BlockChain.GetCurrentBlockHeightAsync().Result + 1,
                     PreviousBlockHash = _mock.BlockChain.GetCurrentBlockHashAsync().Result,
-                    P = ByteString.CopyFrom(key.GetEncodedPublicKey())
+                    P = ByteString.CopyFrom(key.PublicKey)
                 },
                 Body =  new BlockBody()
             };
@@ -66,7 +66,7 @@ namespace AElf.Kernel.Tests
                     ChainId = _mock.ChainId1,
                     Index = _mock.BlockChain.GetCurrentBlockHeightAsync().Result + 1,
                     PreviousBlockHash = _mock.BlockChain.GetCurrentBlockHashAsync().Result,
-                    P = ByteString.CopyFrom(key.GetEncodedPublicKey())
+                    P = ByteString.CopyFrom(key.PublicKey)
                 },
                 Body =  new BlockBody()
             };

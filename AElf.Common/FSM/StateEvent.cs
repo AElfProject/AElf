@@ -10,7 +10,7 @@ namespace AElf.Common.FSM
         InvalidBlock,
 
         StateUpdated,
-        StateNotUpdated, //Can execute again
+        StateNotUpdated, //Will execute again
         
         BlockAppended,
 

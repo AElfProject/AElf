@@ -23,7 +23,7 @@ namespace AElf.Execution
         {
 
             var addrs = GetRelatedAccount(transaction).ToImmutableHashSet()
-                .Select(addr => addr.DumpHex()).ToList();
+                .Select(addr => addr.GetFormatted()).ToList();
 
             var results = new List<string>();
             var functionMetadata = await _functionMetadataService.GetFunctionMetadata(chainId, GetFunctionName(transaction));
@@ -49,7 +49,7 @@ namespace AElf.Execution
 
         private string GetFunctionName(Transaction tx)
         {
-            return tx.To.DumpHex() + "." + tx.MethodName;
+            return tx.To.GetFormatted() + "." + tx.MethodName;
         }
 
         private List<Address> GetRelatedAccount(Transaction transaction)
@@ -69,7 +69,7 @@ namespace AElf.Execution
                             break;
                         case WireFormat.WireType.LengthDelimited:
                             var bytes = input.ReadBytes();
-                            if (bytes.Length == GlobalConfig.AddressLength + 2)
+                            if (bytes.Length == 18 + 2) // todo what leength should this be ?
                             {
                                 // TODO: Ignore if parsing failed, which means our guess is wrong - the bytes is not an address
                                 var h = new Address();

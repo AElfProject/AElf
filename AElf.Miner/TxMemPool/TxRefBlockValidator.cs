@@ -26,7 +26,7 @@ namespace AElf.Miner.TxMemPool
                 if (_blockChain == null)
                 {
                     _blockChain =
-                        _chainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                        _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 }
 
                 return _blockChain;
@@ -35,8 +35,15 @@ namespace AElf.Miner.TxMemPool
 
         public TxRefBlockValidator(IChainService chainService)
         {
-            _chainService = chainService;
-            _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain, LogManager.GetLogger(nameof(TxRefBlockValidator)));
+            try
+            {
+                _chainService = chainService;
+                _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain, LogManager.GetLogger(nameof(TxRefBlockValidator)));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         public async Task ValidateAsync(Transaction tx)

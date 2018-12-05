@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.ChainController.CrossChain;
 using AElf.Common;
 using AElf.Common.Attributes;
+using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
@@ -88,10 +89,10 @@ namespace AElf.Miner.Rpc.Client
         /// </summary>
         public void UpdateRequestInterval()
         {
-            _clientToParentChain?.UpdateRequestInterval(GlobalConfig.AElfMiningInterval);
+            _clientToParentChain?.UpdateRequestInterval(ConsensusConfig.Instance.DPoSMiningInterval);
             _clientsToSideChains.AsParallel().ForEach(kv =>
             {
-                kv.Value.UpdateRequestInterval(GlobalConfig.AElfMiningInterval);
+                kv.Value.UpdateRequestInterval(ConsensusConfig.Instance.DPoSMiningInterval);
             });
         }
 
@@ -123,7 +124,7 @@ namespace AElf.Miner.Rpc.Client
             foreach (var sideChainId in ChildChains.Keys)
             {
                 var client = CreateClientToSideChain(sideChainId);
-                var height = await GetSideChainTargetHeight(Hash.LoadHex(sideChainId));
+                var height = await GetSideChainTargetHeight(Hash.LoadBase58(sideChainId));
 
                 // keep-alive
                 client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height).ConfigureAwait(false);
@@ -147,7 +148,7 @@ namespace AElf.Miner.Rpc.Client
                 if (!ChildChains.TryGetValue(targetChainId, out var chainUri))
                     throw new ChainInfoNotFoundException($"Unable to get chain Info of {targetChainId}.");
                 ClientToSideChain clientToSideChain = (ClientToSideChain) CreateClient(chainUri, targetChainId, true);
-                _clientsToSideChains.Add(Hash.LoadHex(targetChainId), clientToSideChain);
+                _clientsToSideChains.Add(Hash.LoadBase58(targetChainId), clientToSideChain);
                 return clientToSideChain;
             }
             catch (Exception e)
@@ -202,8 +203,8 @@ namespace AElf.Miner.Rpc.Client
             var uriStr = uri.ToString();
             var channel = CreateChannel(uriStr, targetChainId);
             if (toSideChain)
-                return new ClientToSideChain(channel, _logger, Hash.LoadHex(targetChainId), _interval, GlobalConfig.InvertibleChainHeight);
-            return new ClientToParentChain(channel, _logger, Hash.LoadHex(targetChainId), _interval, GlobalConfig.InvertibleChainHeight);
+                return new ClientToSideChain(channel, _logger, Hash.LoadBase58(targetChainId), _interval, GlobalConfig.InvertibleChainHeight);
+            return new ClientToParentChain(channel, _logger, Hash.LoadBase58(targetChainId), _interval, GlobalConfig.InvertibleChainHeight);
         }
 
         /// <summary>
@@ -293,7 +294,7 @@ namespace AElf.Miner.Rpc.Client
             var chainId = GrpcRemoteConfig.Instance.ParentChain?.ElementAtOrDefault(0).Key;
             if (chainId == null)
                 return null;
-            Hash parentChainId = Hash.LoadHex(chainId);
+            Hash parentChainId = Hash.LoadBase58(chainId);
             ulong targetHeight = GetParentChainTargetHeight();
             // _logger?.Trace($"To get pcb at height {targetHeight}");
             if (pcb != null && !(pcb.ChainId.Equals(parentChainId) && targetHeight == pcb.Height))

@@ -10,10 +10,11 @@ namespace AElf.Synchronization.BlockSynchronization
     {
         ulong KeepHeight { get; set; }
         void AddBlock(IBlock block);
+        void AddOrUpdateBlock(IBlock block);
         void Tell(IBlock currentExecutedBlock);
         bool IsBlockReceived(Hash blockHash, ulong height);
         IBlock GetBlockByHash(Hash blockHash);
-        List<IBlock> GetBlocksByHeight(ulong height);
+        IEnumerable<IBlock> GetBlocksByHeight(ulong height);
         ulong AnyLongerValidChain(ulong rollbackHeight);
         void InformRollback(ulong targetHeight, ulong currentHeight);
     }

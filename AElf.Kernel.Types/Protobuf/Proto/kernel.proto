@@ -4,6 +4,7 @@ option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
 import "common.proto";
+import "crosschain.proto";
 
 message Transaction {
     Address From = 1;
@@ -14,15 +15,9 @@ message Transaction {
     string MethodName = 6;
     bytes Params = 7;
     uint64 Fee = 8;
-    Signature Sig = 9;
+    repeated bytes Sigs = 9;
     TransactionType type = 10;
     google.protobuf.Timestamp Time = 11;
-}
-
-message Signature{
-    bytes R = 1;
-    bytes S = 2;
-    bytes P = 3;
 }
 
 message TransactionReceipt {
@@ -76,7 +71,8 @@ enum TransactionType {
     ContractTransaction = 0;
     DposTransaction = 1;
     CrossChainBlockInfoTransaction = 2;
-    ContractDeployTransaction=3;
+    MsigTransaction = 3;
+    ContractDeployTransaction=4;
 }
 
 enum Status {
@@ -98,6 +94,7 @@ message TransactionResult {
     Hash StateHash = 9;
     // Merkle proof path for this transaction
     MerklePath MerklePath = 10;
+    Hash DeferredTxnId = 11; 
 }
 
 
@@ -123,6 +120,7 @@ message TransactionTrace {
     repeated StateChange StateChanges = 9;
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
+    bytes DeferredTransaction = 12;
 }
 
 message LogEvent {
@@ -159,13 +157,12 @@ message BlockHeader {
     Hash MerkleTreeRootOfWorldState = 4;
     bytes Bloom = 5;
     uint64 Index = 6;
-    bytes R = 7;
-    bytes S = 8;
-    bytes P = 9;
-    google.protobuf.Timestamp Time = 10;
-    Hash ChainId = 11;
-    Hash SideChainBlockHeadersRoot = 12;
-    Hash SideChainTransactionsRoot =13;
+    bytes Sig = 7;
+    bytes P = 8;
+    google.protobuf.Timestamp Time = 9;
+    Hash ChainId = 10;
+    Hash SideChainBlockHeadersRoot = 11;
+    Hash SideChainTransactionsRoot = 12;
 }
 
 message BlockBody {
@@ -178,31 +175,6 @@ message BlockBody {
 message Block {
     BlockHeader Header = 1;
     BlockBody Body = 2;
-}
-
-message SideChainBlockInfo{
-    uint64 Height = 1;
-    Hash BlockHeaderHash = 2;
-    Hash TransactionMKRoot = 3;
-    Hash ChainId = 4;
-}
-
-message ParentChainBlockInfo{
-    ParentChainBlockRootInfo Root = 1;
-    
-    // Indexed block height from side chain and merkle path for this side chain block
-    map<uint64, MerklePath> IndexedBlockInfo = 2;
-}
-
-message ParentChainBlockRootInfo
-{
-    uint64 Height = 1;
-    // Merkle tree root of side chain block headers
-    Hash SideChainBlockHeadersRoot = 2;
-
-    // Merkle tree root of side chain block transaction roots
-    Hash SideChainTransactionsRoot = 3;
-    Hash ChainId = 4;
 }
 
 message SmartContractRegistration {
@@ -261,17 +233,56 @@ message Chain {
     Hash GenesisBlockHash = 2;
 }
 
+message OngoingMiners {
+    repeated Miners Miners = 1;
+}
+
+message Candidates {
+    repeated Address Nodes = 1;
+}
+
+message Tickets {
+    uint64 RemainingTickets = 1;
+    repeated VotingRecord VotingRecord = 2;
+}
+
+message VotingRecord {
+    Address From = 1;
+    Address To = 2;
+    uint64 TicketsCount = 3;
+    uint64 RoundNumber = 4;
+    Hash TransactionId = 5;
+    bool State = 6;
+}
+
 message Miners {
-    repeated string Nodes = 1;
+    uint64 TakeEffectRoundNumber = 1;
+    repeated Address Nodes = 2;
+}
+
+message ElectionSnapshot {
+    uint64 StartRoundNumber = 1;
+    uint64 EndRoundNumber = 2;
+    uint64 Blocks = 3;
+    repeated TicketsMap TicketsMap = 4;
+}
+
+message TicketsMap {
+    Address CandidateAddress = 1;
+    uint64 TicketsCount = 2;
+    uint64 TotalWeights = 3;
 }
 
 message BlockProducer {
     int32 Order = 1;
-    bool IsEBP = 2; //EBP = Extra Block Producer
+    bool IsEBP = 2; //EBP: Extra Block Producer
     Hash InValue = 3;
     Hash OutValue = 4;
     Hash Signature = 5;
     google.protobuf.Timestamp TimeSlot = 6;
+    repeated uint64 Terms = 7;
+    uint64 BlocksOfCurrentTerm = 8;
+    uint64 BlocksOfAllTerms = 9;
 }
 
 message Round {
@@ -295,10 +306,6 @@ message Key {
     uint32 HashType = 3;
 }
 
-message SideChainIdList {
-    repeated Hash chainIds =1;
-}
-
 message DataPath {
     Hash ChainId = 1;
     uint64 BlockHeight = 2;
@@ -313,8 +320,4 @@ message BinaryMerkleTree{
     repeated Hash Nodes = 1;
     Hash Root = 2;
     int32 LeafCount = 3;
-}
-
-message MerklePath{
-    repeated Hash Path = 1;
 }

@@ -21,8 +21,10 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution.Execution;
+using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
+using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 
@@ -53,6 +55,7 @@ namespace AElf.Miner.Tests
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
         private IChainManagerBasic _chainManagerBasic;
+        private IAuthorizationInfo _authorizationInfo;
 
         public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
         {
@@ -92,13 +95,15 @@ namespace AElf.Miner.Tests
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
             _chainContextService = new ChainContextService(_chainService);
+            _authorizationInfo = new AuthorizationInfo(StateStore);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
         public async Task<IChain> CreateChain()
         {            
-            var chainId = Hash.Generate();
+            var chainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -115,7 +120,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _chainContextService, _chainManagerBasic);
+                MockBlockValidationService().Object, _chainContextService);
 
             return miner;
         }
@@ -124,7 +129,7 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _signatureVerifier, _refBlockValidator), _chainManagerBasic);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManagerBasic);
 
             return blockExecutor;
         }
@@ -134,20 +139,16 @@ namespace AElf.Miner.Tests
             return _chainService.GetBlockChain(chainId);
         }
         
-        internal ITxHub CreateTxPool()
+        internal ITxHub CreateAndInitTxHub()
         {
-            var validator = new TxValidator(TxPoolConfig.Default, _chainService, _logger);
-            return new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _signatureVerifier, _refBlockValidator);
-//            return new TxPool(_logger, new NewTxHub(_transactionManager, _chainService, _signatureVerifier, _refBlockValidator));
+            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null);
+            hub.Initialize();
+            return hub;
         }
 
-        public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
+        public IMinerConfig GetMinerConfig(Hash chainId)
         {
-            return new MinerConfig
-            {
-                ChainId = chainId,
-                CoinBase = Address.FromRawBytes(getAddress)
-            };
+            return new MinerConfig { ChainId = chainId };
         }
 
         private Mock<ILightChain> MockLightChain()
@@ -186,7 +187,7 @@ namespace AElf.Miner.Tests
                 MerkleTreeRootOfTransactions = Hash.Generate(),
                 SideChainTransactionsRoot = Hash.Generate(),
                 SideChainBlockHeadersRoot = Hash.Generate(),
-                ChainId = Hash.Generate(),
+                ChainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId()),
                 PreviousBlockHash = Hash.Generate(),
                 MerkleTreeRootOfWorldState = Hash.Generate()
             };
@@ -205,7 +206,7 @@ namespace AElf.Miner.Tests
             return new SideChainBlockInfo
             {
                 Height = height,
-                ChainId = chainId ?? Hash.Generate(),
+                ChainId = chainId ?? Hash.LoadByteArray(ChainHelpers.GetRandomChainId()),
                 TransactionMKRoot = Hash.Generate(),
                 BlockHeaderHash = Hash.Generate()
             };
@@ -280,7 +281,7 @@ namespace AElf.Miner.Tests
         {
             
             var certificateStore = new CertificateStore(dir);
-            var name = chainId.DumpHex();
+            var name = chainId.DumpBase58();
             var keyPair = certificateStore.WriteKeyAndCertificate(name, "127.0.0.1");
         }
         
@@ -293,8 +294,8 @@ namespace AElf.Miner.Tests
                 MockBlockHeader()
             };
             
-            var sideChainId = Hash.Generate();
-            ChainConfig.Instance.ChainId = sideChainId.DumpHex();
+            var sideChainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            ChainConfig.Instance.ChainId = sideChainId.DumpBase58();
             
             MockKeyPair(sideChainId, dir);
             GrpcLocalConfig.Instance.LocalSideChainServerPort = port;
@@ -308,7 +309,7 @@ namespace AElf.Miner.Tests
         public Hash MockParentChainServer(int port, string address, string dir, Hash chainId = null)
         {
             
-            chainId = chainId??Hash.Generate();
+            chainId = chainId??Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
             
             _headers = new List<IBlockHeader>
             {
@@ -328,7 +329,7 @@ namespace AElf.Miner.Tests
             GrpcLocalConfig.Instance.LocalParentChainServerPort = port;
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.ParentChainServer = true;
-            ChainConfig.Instance.ChainId = chainId.DumpHex();
+            ChainConfig.Instance.ChainId = chainId.DumpBase58();
             
             return chainId;
         }

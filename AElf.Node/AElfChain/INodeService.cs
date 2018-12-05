@@ -3,6 +3,7 @@ using AElf.Kernel;
 
 namespace AElf.Node.AElfChain
 {
+    // ReSharper disable InconsistentNaming
     public interface INodeService
     {
         void Initialize(NodeConfiguration conf);

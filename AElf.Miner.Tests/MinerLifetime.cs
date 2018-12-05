@@ -21,6 +21,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
+using NServiceKit.Text;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Kernel.Tests.Miner
@@ -58,14 +59,13 @@ namespace AElf.Kernel.Tests.Miner
         {
             var contractAddressZero = ContractHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
             Console.WriteLine($"zero {contractAddressZero}");
-            var code = ExampleContractCode;
             
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
             
             var txPrint = new Transaction()
             {
-                From = keyPair.GetAddress(),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "Print",
@@ -85,12 +85,7 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txPrint.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txPrint.Sig = new Signature
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                R = ByteString.CopyFrom(signature.R),
-                S = ByteString.CopyFrom(signature.S),
-            };
+            txPrint.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
             
             var txs = new List<Transaction>(){
                 txPrint
@@ -124,14 +119,14 @@ namespace AElf.Kernel.Tests.Miner
             
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
+            
             var txnDep = new Transaction()
             {
-                From = keyPair.GetAddress(),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack((int)0, code)),
-                
                 Fee = TxPoolConfig.Default.FeeThreshold + 1,
                 Type = TransactionType.ContractTransaction
             };
@@ -139,35 +134,25 @@ namespace AElf.Kernel.Tests.Miner
             Hash hash = txnDep.GetHash();
 
             ECSignature signature1 = signer.Sign(keyPair, hash.DumpByteArray());
-            txnDep.Sig = new Signature
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                R = ByteString.CopyFrom(signature1.R),
-                S = ByteString.CopyFrom(signature1.S),
-            };
+            txnDep.Sigs.Add(ByteString.CopyFrom(signature1.SigBytes));
             
             var txInv_1 = new Transaction
             {
-                From = keyPair.GetAddress(),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 IncrementId = 1,
                 MethodName = "Print",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack("AElf")),
-                
                 Fee = TxPoolConfig.Default.FeeThreshold + 1,
                 Type = TransactionType.ContractTransaction
             };
-            ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().DumpByteArray());
-            txInv_1.Sig = new Signature{
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                R = ByteString.CopyFrom(signature2.R),
-                S = ByteString.CopyFrom(signature2.S)
-            };
             
+            ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().DumpByteArray());
+            txInv_1.Sigs.Add(ByteString.CopyFrom(signature2.SigBytes));
             
             var txInv_2 = new Transaction
             {
-                From = keyPair.GetAddress(),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 IncrementId =txInv_1.IncrementId,
                 MethodName = "Print",
@@ -178,12 +163,7 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().DumpByteArray());
-            txInv_2.Sig = new Signature
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
-            };
-            txInv_2.Sig.R = ByteString.CopyFrom(signature3.R); 
-            txInv_2.Sig.S = ByteString.CopyFrom(signature3.S);
+            txInv_2.Sigs.Add(ByteString.CopyFrom(signature3.SigBytes));
             
             var txs = new List<Transaction>(){
                 txnDep, txInv_1, txInv_2
@@ -193,42 +173,41 @@ namespace AElf.Kernel.Tests.Miner
         }
         
         [Fact]
-        public async Task Mine()
+        public async Task Mine_ProduceSecondBlock_WithCorrectSig()
         {
+            // create the miners keypair, this is the miners identity
+            var minerKeypair = new KeyPairGenerator().Generate();
+            var minerAddress = AddressHelpers.BuildAddress(minerKeypair.PublicKey);
+            
             var chain = await _mock.CreateChain();
-            // create miner
-            var keypair = new KeyPairGenerator().Generate();
-            var minerconfig = _mock.GetMinerConfig(chain.Id, 10, keypair.GetAddress().DumpByteArray());
-            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
-            NodeConfig.Instance.NodeAccount = keypair.GetAddressHex();
-            var txPool = _mock.CreateTxPool();
-            txPool.Start();
+            var minerconfig = _mock.GetMinerConfig(chain.Id);
+
+            NodeConfig.Instance.NodeAccount = minerAddress.GetFormatted();
+            NodeConfig.Instance.ECKeyPair = minerKeypair;
+            
+            var txHub = _mock.CreateAndInitTxHub();
+            txHub.Start();
 
             var txs = CreateTx(chain.Id);
             foreach (var tx in txs)
             {
-                await txPool.AddTransactionAsync(tx);
+                await txHub.AddTransactionAsync(tx);
             }
             
             var manager = _mock.MinerClientManager();
-            var miner = _mock.GetMiner(minerconfig, txPool, manager);
+            var miner = _mock.GetMiner(minerconfig, txHub, manager);
 
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
-            NodeConfig.Instance.ECKeyPair = keypair;
-            miner.Init();
+            
+            miner.Init(minerKeypair);
             
             var block = await miner.Mine();
             
             Assert.NotNull(block);
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
-            byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
-            Address addr = Address.FromRawBytes(uncompressedPrivKey);
-            Assert.Equal(minerconfig.CoinBase, addr);
-            
-            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-            ECVerifier verifier = new ECVerifier(recipientKeyPair);
+            ECVerifier verifier = new ECVerifier();
             Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().DumpByteArray()));
         }
 
@@ -236,8 +215,8 @@ namespace AElf.Kernel.Tests.Miner
         public async Task SyncGenesisBlock_False_Rollback()
         {
             var chain = await _mock.CreateChain();
-            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
-            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
+            ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
+            NodeConfig.Instance.NodeAccount = Address.Generate().GetFormatted();
             
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
             
@@ -290,7 +269,7 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
                 {
                     {
-                        sideChainId.DumpHex(), new Uri{
+                        sideChainId.DumpBase58(), new Uri{
                             Address = address,
                             Port = port
                         }
@@ -356,7 +335,7 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcRemoteConfig.Instance.ParentChain = new Dictionary<string, Uri>
                 {
                     {
-                        parentChainId.DumpHex(), new Uri{
+                        parentChainId.DumpBase58(), new Uri{
                             Address = address,
                             Port = port
                         }
@@ -405,15 +384,22 @@ namespace AElf.Kernel.Tests.Miner
         [Fact]
         public async Task MineWithIndexingSideChain()
         {
+            // create the miners keypair, this is the miners identity
+            var minerKeypair = new KeyPairGenerator().Generate();
+            
             GlobalConfig.InvertibleChainHeight = 0;
             string dir = @"/tmp/minerpems";
+            
             var chain = await _mock.CreateChain();
-            var keyPair = new KeyPairGenerator().Generate();
-            var minerConfig = _mock.GetMinerConfig(chain.Id, 10, keyPair.GetAddress().DumpByteArray());
-            NodeConfig.Instance.ECKeyPair = keyPair;
-            NodeConfig.Instance.NodeAccount = keyPair.GetAddressHex();
-            ChainConfig.Instance.ChainId = chain.Id.DumpHex();
-            var pool = _mock.CreateTxPool();
+            
+            var minerConfig = _mock.GetMinerConfig(chain.Id);
+            
+            ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
+            
+            NodeConfig.Instance.ECKeyPair = minerKeypair;
+            NodeConfig.Instance.NodeAccount = AddressHelpers.BuildAddress(chain.Id.DumpByteArray(), minerKeypair.PublicKey).GetFormatted();
+            
+            var pool = _mock.CreateAndInitTxHub();
             pool.Start();
 
             try
@@ -437,7 +423,7 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcRemoteConfig.Instance.ChildChains = new Dictionary<string, Uri>
                 {
                     {
-                        sideChainId.DumpHex(), new Uri{
+                        sideChainId.DumpBase58(), new Uri{
                             Address = address,
                             Port = sidePort
                         }
@@ -447,11 +433,14 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcLocalConfig.Instance.ClientToSideChain = true;
                 GrpcLocalConfig.Instance.ClientToParentChain = false;
                 manager.Init(dir, t);
+                
                 var miner = _mock.GetMiner(minerConfig, pool, manager);
-                miner.Init();
-            
-                //Thread.Sleep(t/2);
+                miner.Init(minerKeypair);
+                
+                ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
+                
                 var block = await miner.Mine();
+                
                 Assert.NotNull(block);
                 Assert.NotNull(block.Body.IndexedInfo);
                 int count = block.Body.IndexedInfo.Count;

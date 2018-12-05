@@ -13,7 +13,7 @@ namespace AElf.Contracts.Token.Tests
     public class ContractZeroShim
     {
         private MockSetup _mock;
-        public Address ContractAddres = Common.Address.FromRawBytes(Hash.Generate().ToByteArray());
+        public Address ContractAddres = Address.Generate();
         public IExecutive Executive { get; set; }
 
         public TransactionContext TransactionContext { get; private set; }

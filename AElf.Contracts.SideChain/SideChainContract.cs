@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -143,7 +144,7 @@ namespace AElf.Contracts.SideChain
                 Status = SideChainStatus.Pending,
                 LockedAddress = lockedAddress,
                 LockedToken = lockedToken,
-                CreationHeight = Api.GetCurerntHeight() + 1 
+                CreationHeight = Api.GetCurrentHeight() + 1 
             };
             _sideChainInfos[chainId] = info;
             new SideChainCreationRequested()
@@ -191,7 +192,7 @@ namespace AElf.Contracts.SideChain
             Console.WriteLine("ParentChainBlockInfo.Height is correct.");
             
             var key = new UInt64Value {Value = parentChainHeight};
-            Api.Assert(_parentChainBlockInfo.GetValue(key) == null,
+            Api.Assert(_parentChainBlockInfo.GetValue(key).Equals(new ParentChainBlockInfo()),
                 $"Already written parent chain block info at height {parentChainHeight}");
             Console.WriteLine("Writing ParentChainBlockInfo..");
             foreach (var _ in parentChainBlockInfo.IndexedBlockInfo)
@@ -220,7 +221,7 @@ namespace AElf.Contracts.SideChain
         private void BindParentChainHeight(ulong childHeight, ulong parentHeight)
         {
             var key = new UInt64Value {Value = childHeight};
-            Api.Assert(_childHeightToParentChainHeight.GetValue(key) == null,
+            Api.Assert(_childHeightToParentChainHeight.GetValue(key).Value == 0,
                 $"Already bound at height {childHeight} with parent chain");
 //            _childHeightToParentChainHeight[key] = new UInt64Value {Value = parentHeight};
             _childHeightToParentChainHeight.SetValueAsync(key, new UInt64Value{Value = parentHeight}).Wait();
@@ -229,7 +230,7 @@ namespace AElf.Contracts.SideChain
         private void AddIndexedTxRootMerklePathInParentChain(ulong height, MerklePath path)
         {
             var key = new UInt64Value {Value = height};
-            Api.Assert(_txRootMerklePathInParentChain.GetValue(key) == null,
+            Api.Assert(_txRootMerklePathInParentChain.GetValue(key).Equals(new MerklePath()),
                 $"Merkle path already bound at height {height}.");
 //            _txRootMerklePathInParentChain[key] = path;
             _txRootMerklePathInParentChain.SetValueAsync(key, path).Wait();
@@ -241,7 +242,7 @@ namespace AElf.Contracts.SideChain
 
         public int GetChainStatus(Hash chainId)
         {
-            Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain.");
+            Api.Assert(!_sideChainInfos.GetValue(chainId).Equals(new SideChainInfo()), "Not existed side chain.");
             var info = _sideChainInfos[chainId];
             return (int) info.Status;
         } 

@@ -56,7 +56,7 @@ namespace AElf.Kernel.Tests
                 ContractHash = Hash.Zero
             };
 
-            var chainId = Hash.Generate();
+            var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
             return await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
         }
      

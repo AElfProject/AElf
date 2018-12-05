@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel";
+
+import "common.proto";
+
+message SideChainBlockInfo{
+    uint64 Height = 1;
+    Hash BlockHeaderHash = 2;
+    Hash TransactionMKRoot = 3;
+    Hash ChainId = 4;
+}
+
+message ParentChainBlockInfo{
+    ParentChainBlockRootInfo Root = 1;
+
+    // Indexed block height from side chain and merkle path for this side chain block
+    map<uint64, MerklePath> IndexedBlockInfo = 2;
+}
+
+message ParentChainBlockRootInfo
+{
+    uint64 Height = 1;
+    // Merkle tree root of side chain block headers
+    Hash SideChainBlockHeadersRoot = 2;
+
+    // Merkle tree root of side chain block transaction roots
+    Hash SideChainTransactionsRoot = 3;
+    Hash ChainId = 4;
+}
+
+message MerklePath{
+    repeated Hash Path = 1;
+}

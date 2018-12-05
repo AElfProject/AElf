@@ -10,6 +10,7 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Network;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
@@ -65,7 +66,7 @@ namespace AElf.Network.Peers
         private List<byte[]> _whiteList;
 
         // Temp solution until the BP voting gets implemented
-        internal readonly List<byte[]> _bpAddresses;
+        internal readonly List<string> _bpAddresses;
         internal bool _isBp;
 
         private ECKeyPair _nodeKey;
@@ -74,7 +75,7 @@ namespace AElf.Network.Peers
         public PeerManager(IConnectionListener connectionListener, IChainService chainService, ILogger logger)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
-            _bpAddresses = new List<byte[]>();
+            _bpAddresses = new List<string>();
             _whiteList = new List<byte[]>();
 
             _connectionListener = connectionListener;
@@ -112,7 +113,7 @@ namespace AElf.Network.Peers
             {
                 foreach (var bp in producers.Values)
                 {
-                    byte[] key = ByteArrayHelpers.FromHexString(bp["address"]);
+                    string key = bp["address"];
                     _bpAddresses.Add(key);
                 }
             }
@@ -124,7 +125,8 @@ namespace AElf.Network.Peers
             _nodeKey = NetworkConfig.Instance.EcKeyPair;
 
             // This nodes key
-            _isBp = _bpAddresses.Any(k => k.BytesEqual(_nodeKey.GetAddress().DumpByteArray()));
+            var thisAddr = Address.FromPublicKey(ChainConfig.Instance.ChainId.DecodeBase58(), _nodeKey.PublicKey).GetFormatted();
+            _isBp = _bpAddresses.Any(k => k.Equals(thisAddr));
         }
 
         public void Start()
@@ -137,7 +139,7 @@ namespace AElf.Network.Peers
             if (!_isBp)
                 _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
 
-            // Add the provided bootnodes
+            // Add the provided boot nodes
             if (NetworkConfig.Instance.Bootnodes != null && NetworkConfig.Instance.Bootnodes.Any())
             {
                 // todo add jobs
@@ -161,7 +163,7 @@ namespace AElf.Network.Peers
             return Task.CompletedTask;
         }
 
-        public async Task<JObject> GetPeers()
+        public Task<JObject> GetPeers()
         {
             var peers = new JObject
             {
@@ -172,7 +174,7 @@ namespace AElf.Network.Peers
                 peers["peers"] = JArray.Parse(JsonConvert.SerializeObject(_peers));
             }
 
-            return peers;
+            return Task.FromResult(peers);
         }
 
         private void StartProcessing()
@@ -308,13 +310,12 @@ namespace AElf.Network.Peers
 
             if (!authArgs.IsAuthentified)
             {
-                //_logger?.Warn($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
-                _logger?.Warn($"Peernot authentified, reason.");
+                _logger?.Warn($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
                 RemovePeer(peer);
                 return;
             }
 
-            peer.IsBp = peer.DistantNodeAddress != null && _bpAddresses.Any(k => k.BytesEqual(peer.DistantNodeAddress));
+            peer.IsBp = peer.DistantNodeAddress != null && _bpAddresses.Any(k => k.Equals(peer.DistantNodeAddress));
 
             switch (_allowedConnections)
             {
@@ -327,8 +328,8 @@ namespace AElf.Network.Peers
                 case AllowedConnection.Listed:
                 case AllowedConnection.BPsAndListed:
                 {
-                    byte[] pub = peer.DistantNodeKeyPair.GetEncodedPublicKey();
-                    bool inWhiteList = _whiteList.Any(p => p.BytesEqual(pub));
+                    string pub = peer.DistantNodeAddress;
+                    bool inWhiteList = _whiteList.Any(p => p.Equals(pub));
 
                     if (_allowedConnections == AllowedConnection.Listed && !inWhiteList)
                     {
@@ -389,7 +390,7 @@ namespace AElf.Network.Peers
                 _peers.Add(peer);
             }
 
-            _logger?.Info($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress.ToHex()}, bp: {peer.IsBp} }}");
+            _logger?.Info($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress}, bp: {peer.IsBp} }}");
 
             peer.MessageReceived += OnPeerMessageReceived;
 
@@ -462,6 +463,7 @@ namespace AElf.Network.Peers
 
             if (_peers.Remove(peer))
             {
+                _logger?.Debug($"{peer} removed.");
                 PeerEvent?.Invoke(this, new PeerEventArgs(peer, PeerEventType.Removed));
             }
             else

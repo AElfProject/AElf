@@ -9,6 +9,7 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Types.Proposal;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -183,7 +184,7 @@ namespace AElf.ChainController.Rpc
                 return null;
             }
 
-            var prodAddr = Address.FromRawBytes(b.Header.P.ToByteArray());
+            var prodAddr = Hash.FromRawBytes(b.Header.P.ToByteArray());
             var res = await s.TransactionTraceManager.GetTransactionTraceAsync(txHash,
                 HashHelpers.GetDisambiguationHash(height, prodAddr));
             return res;
@@ -196,13 +197,13 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)
         {
-            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             return chainContext.BlockHeight;
         }
 
         internal static async Task<Block> GetBlockAtHeight(this Svc s, ulong height)
         {
-            var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var blockchain = s.ChainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHeightAsync(height);
         }
 
@@ -224,7 +225,7 @@ namespace AElf.ChainController.Rpc
                 TransactionId = tx.GetHash()
             };
 
-            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
@@ -233,7 +234,7 @@ namespace AElf.ChainController.Rpc
                 BlockHeight = chainContext.BlockHeight
             };
 
-            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
             try
             {
@@ -246,6 +247,8 @@ namespace AElf.ChainController.Rpc
 
             return trace.RetVal.ToFriendlyBytes();
         }
+
+        #region Cross chain
 
         internal static MerklePath GetTxRootMerklePathInParentChain(this Svc s, ulong height)
         {
@@ -261,6 +264,24 @@ namespace AElf.ChainController.Rpc
         {
             return s.CrossChainInfo.GetBoundParentChainHeight(height);
         }
+
+        #endregion
+
+        #region Proposal
+
+        internal static Proposal GetProposal(this Svc s, Hash proposalHash)
+        {
+            return s.AuthorizationInfo.GetProposal(proposalHash);
+        }
+
+        internal static Authorization GetAuthorization(this Svc s, Address msig)
+        {
+            return s.AuthorizationInfo.GetAuthorization(msig);
+        }
+
+        #endregion
+
+        
     }
     
 }

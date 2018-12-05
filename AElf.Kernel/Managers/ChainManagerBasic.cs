@@ -71,17 +71,5 @@ namespace AElf.Kernel.Managers
             return height?.Value ?? 0;
         }
         
-        public async Task AddSideChainId(Hash chainId)
-        {
-            var idList = await GetSideChainIdList();
-            idList = idList ?? new SideChainIdList();
-            idList.ChainIds.Add(chainId);
-            await _dataStore.InsertAsync(_sideChainIdListKey, idList);
-        }
-
-        public async Task<SideChainIdList> GetSideChainIdList()
-        {
-            return await _dataStore.GetAsync<SideChainIdList>(_sideChainIdListKey);
-        }
     }
 }

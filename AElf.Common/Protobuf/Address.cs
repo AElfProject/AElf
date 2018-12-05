@@ -1,35 +1,46 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using Base58Check;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
+[assembly: InternalsVisibleTo("AElf.Contracts.Authorization.Tests")]
 
 namespace AElf.Common
 {
     public partial class Address : ICustomDiagnosticMessage, IComparable<Address>
     {
+        public static readonly byte[] _fakeChainId = {0x01, 0x02, 0x03};
+        
         /// <summary>
         /// Used to override IMessage's default string representation.
         /// </summary>
         /// <returns></returns>
         public string ToDiagnosticString()
         {
-            return $@"""{DumpHex()}""";
+            return $@"""{GetFormatted()}""";
         }
 
         // Make private to avoid confusion
-        private Address(byte[] bytes)
+        private Address(byte[] chainId, byte[] bytes)
         {
-            if (bytes.Length < GlobalConfig.AddressLength)
+            if (bytes.Length != GlobalConfig.AddressHashLength)
             {
                 throw new ArgumentOutOfRangeException(
-                    $"Address bytes has to be at least {GlobalConfig.AddressLength}. The input is {bytes.Length} bytes long.");
+                    $"Address (sha256 of pubkey) bytes has to be {GlobalConfig.AddressHashLength}. The input is {bytes.Length} bytes long.");
             }
 
-            var toTruncate = bytes.Length - GlobalConfig.AddressLength;
-            Value = ByteString.CopyFrom(bytes.Skip(toTruncate).ToArray());
+            if (chainId.Length != GlobalConfig.ChainIdLength)
+            {
+                throw new ArgumentOutOfRangeException(
+                    $"The chain id length has to be {GlobalConfig.ChainIdLength}. The input is {bytes.Length} bytes long.");
+            }
+
+            Value = ByteString.CopyFrom(ByteArrayHelpers.Combine(chainId, bytes));
         }
 
         /// <summary>
@@ -38,9 +49,32 @@ namespace AElf.Common
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static Address FromRawBytes(byte[] bytes)
+//        public static Address FromRawBytes(byte[] bytes)
+//        {
+//            return new Address(bytes);
+//        }
+        
+        public static Address FromPublicKey(byte[] chainId, byte[] bytes)
         {
-            return new Address(bytes);
+            var hash = SHA256.Create().ComputeHash(SHA256.Create().ComputeHash(bytes));
+            return new Address(chainId, hash);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="contractName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Address BuildContractAddress(byte[] chainId, ulong serialNumber)
+        {
+            var hash = Hash.FromTwoHashes(Hash.LoadByteArray(chainId), Hash.FromRawBytes(serialNumber.ToBytes()));
+            return new Address(chainId, hash.DumpByteArray());
+        }
+
+        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        {
+            return BuildContractAddress(chainId.DumpByteArray(), serialNumber);
         }
 
         /// <summary>
@@ -49,29 +83,37 @@ namespace AElf.Common
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        internal static Address FromString(string name)
+        public static Address FromString(string name)
         {
-            return new Address(name.CalculateHash());
+            return new Address( _fakeChainId, name.CalculateHash());
         }
 
-        // ReSharper disable once InconsistentNaming
-        // public static Address FromECKeyPair(ECKeyPair keyPair)
-        // {
-        //    return new Address(keyPair.GetEncodedPublicKey());
-        // }
-
+        /// <summary>
+        /// Only used in tests to generate random addresses.
+        /// </summary>
+        /// <returns></returns>
         public static Address Generate()
         {
-            return FromRawBytes(Guid.NewGuid().ToByteArray().CalculateHash());
+            return new Address(_fakeChainId, Guid.NewGuid().ToByteArray().CalculateHash());
+        }
+        
+        /// <summary>
+        /// Only used in tests to generate random addresses.
+        /// </summary>
+        /// <returns></returns>
+        public static Address Generate(byte[] chainId)
+        {
+            return new Address(chainId, Guid.NewGuid().ToByteArray().CalculateHash());
         }
         
         #region Predefined
 
         public static readonly Address AElf = FromString("AElf");
 
-        public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
+        public static readonly Address Zero = new Address( _fakeChainId, new byte[] { }.CalculateHash());
 
         public static readonly Address Genesis = FromString("Genesis");
+        
         #endregion
 
         #region Comparing
@@ -139,13 +181,20 @@ namespace AElf.Common
             return Value.ToByteArray();
         }
 
-        /// <summary>
-        /// Dumps the content value to hex string.
-        /// </summary>
-        /// <returns></returns>
-        public string DumpHex()
+        private string _formattedAddress;
+        public string GetFormatted()
         {
-            return Value.ToByteArray().ToHex();
+            if (Value.Length != GlobalConfig.AddressHashLength + GlobalConfig.ChainIdLength)
+            {
+                throw new ArgumentOutOfRangeException(
+                    $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
+            }
+
+            string chainId = Base58CheckEncoding.EncodePlain(Value.Take(3).ToArray());
+            string pubKeyHash = Base58CheckEncoding.Encode(Value.Skip(3).ToArray());
+            
+            return string.IsNullOrEmpty(_formattedAddress) 
+                ? (_formattedAddress = GlobalConfig.AElfAddressPrefix + '_' + chainId + '_' + pubKeyHash) : _formattedAddress;
         }
 
         /// <summary>
@@ -154,30 +203,30 @@ namespace AElf.Common
         /// <param name="bytes"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Address LoadByteArray(byte[] bytes)
+        public static Address FromBytes(byte[] bytes)
         {
-            if (bytes.Length != GlobalConfig.AddressLength)
-            {
-                throw new ArgumentOutOfRangeException(nameof(bytes));
-            }
-
             return new Address
             {
                 Value = ByteString.CopyFrom(bytes)
             };
         }
 
-        /// <summary>
-        /// Loads the content value represented in hex string.
-        /// </summary>
-        /// <param name="hex"></param>
-        /// <returns></returns>
-        public static Address LoadHex(string hex)
+        public static Address Parse(string inputStr)
         {
-            var bytes = ByteArrayHelpers.FromHexString(hex);
-            return LoadByteArray(bytes);
-        }
+            string[] split = inputStr.Split('_');
 
+            if (split.Length != 3)
+                return null;
+
+            if (String.CompareOrdinal(split[0], "ELF") != 0)
+                return null;
+
+            if (split[1].Length != 4)
+                return null;
+            
+            return new Address(Base58CheckEncoding.DecodePlain(split[1]), Base58CheckEncoding.Decode(split[2]));
+        }
+        
         #endregion Load and dump
     }
 }

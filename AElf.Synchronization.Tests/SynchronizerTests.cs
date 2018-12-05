@@ -77,7 +77,7 @@ namespace AElf.Synchronization.Tests
                 MerkleTreeRootOfTransactions = Hash.Generate(),
                 SideChainTransactionsRoot = Hash.Generate(),
                 SideChainBlockHeadersRoot = Hash.Generate(),
-                ChainId = Hash.Generate(),
+                ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }),
                 PreviousBlockHash = preBlockHash,
                 MerkleTreeRootOfWorldState = Hash.Generate()
             };
@@ -93,7 +93,7 @@ namespace AElf.Synchronization.Tests
 
             var txPrint = new Transaction()
             {
-                From = keyPair.GetAddress(),
+                From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 MethodName = "Print",
                 Params = ByteString.CopyFrom(new Parameters()
@@ -113,12 +113,7 @@ namespace AElf.Synchronization.Tests
             var hash = txPrint.GetHash();
 
             var signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txPrint.Sig = new Signature
-            {
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                R = ByteString.CopyFrom(signature.R),
-                S = ByteString.CopyFrom(signature.S)
-            };
+            txPrint.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             var txs = new List<Transaction>
             {

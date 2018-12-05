@@ -4,6 +4,7 @@ using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockSynchronization;
 using Autofac;

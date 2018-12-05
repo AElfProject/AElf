@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Common.Enums;
 using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Consensus
 {
@@ -24,7 +25,7 @@ namespace AElf.Kernel.Consensus
 
         /// <summary>
         /// How soon to produce a block.
-        /// (Milisenconds)
+        /// (Milliseconds)
         /// </summary>
         int Interval { get; }
         
@@ -67,5 +68,10 @@ namespace AElf.Kernel.Consensus
         /// </summary>
         /// <returns></returns>
         Task<int> Validation(List<byte[]> args);
+
+        Task Election(List<byte[]> args);
+
+        Miners GetCurrentMiners();
+        Task HandleTickets(Address address, ulong amount, bool withdraw = false);
     }
 }

@@ -331,7 +331,7 @@ namespace AElf.Node.Protocol
                     }
                     
                     CurrentSyncSource = target;
-                    CurrentSyncSource.SyncToHeight(LocalHeight + 1, target.KnownHeight);
+                    CurrentSyncSource?.SyncToHeight(LocalHeight + 1, target.KnownHeight);
                     
                     FireSyncStateChanged(true);
                 }
@@ -356,13 +356,21 @@ namespace AElf.Node.Protocol
         public async Task Start()
         {
             // init the queue
-            _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
-            _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
-            _lastAnnouncementsReceived = new BoundedByteArrayQueue(MaxBlockHistory);
+            try
+            {
+                _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
+                _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
+                _lastAnnouncementsReceived = new BoundedByteArrayQueue(MaxBlockHistory);
 
-            LocalHeight = await _nodeService.GetCurrentBlockHeightAsync();
+                LocalHeight = await _nodeService.GetCurrentBlockHeightAsync();
 
-            _logger?.Info($"Network initialized at height {LocalHeight}.");
+                _logger?.Info($"Network initialized at height {LocalHeight}.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         public async Task Stop()
@@ -401,26 +409,34 @@ namespace AElf.Node.Protocol
 
         private void OnPeerAdded(object sender, EventArgs eventArgs)
         {
-            if (eventArgs is PeerEventArgs peer && peer.Peer != null && peer.Actiontype == PeerEventType.Added)
+            try
             {
-                int peerHeight = peer.Peer.KnownHeight;
-                
-                _peers.Add(peer.Peer);
-
-                peer.Peer.MessageReceived += HandleNewMessage;
-                peer.Peer.PeerDisconnected += ProcessClientDisconnection;
-
-                // Sync if needed
-                lock (_syncLock)
+                if (eventArgs is PeerEventArgs peer && peer.Peer != null && peer.Actiontype == PeerEventType.Added)
                 {
-                    if (CurrentSyncSource == null && LocalHeight < peerHeight)
+                    int peerHeight = peer.Peer.KnownHeight;
+                
+                    _peers.Add(peer.Peer);
+
+                    peer.Peer.MessageReceived += HandleNewMessage;
+                    peer.Peer.PeerDisconnected += ProcessClientDisconnection;
+
+                    // Sync if needed
+                    lock (_syncLock)
                     {
-                        CurrentSyncSource = peer.Peer;
-                        CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
+                        if (CurrentSyncSource == null && LocalHeight < peerHeight)
+                        {
+                            CurrentSyncSource = peer.Peer;
+                            CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
                         
-                        FireSyncStateChanged(true);
+                            FireSyncStateChanged(true);
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
         }
 
@@ -578,7 +594,7 @@ namespace AElf.Node.Protocol
                     req.Id = args.Message.Id;
 
                 // Send response
-                args.Peer.EnqueueOutgoing(req, (_) =>
+                args.Peer.EnqueueOutgoing(req, _ =>
                 {
                     _logger?.Debug($"Block sent {{ hash: {b.BlockHashToHex}, to: {args.Peer} }}");
                 });

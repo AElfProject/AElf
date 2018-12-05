@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using Google.Protobuf.WellKnownTypes;
 
-// ReSharper disable once CheckNamespace
+// ReSharper disable CheckNamespace
 // ReSharper disable InconsistentNaming
 namespace AElf.Kernel
 {

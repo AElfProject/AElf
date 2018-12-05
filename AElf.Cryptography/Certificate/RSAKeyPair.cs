@@ -11,7 +11,7 @@ namespace AElf.Cryptography.Certificate
 {
     public class RSAKeyPair
     {
-        public static int AddressLength { get; } = 18;
+        //public static int AddressLength { get; } = 18;
 
         public AsymmetricKeyParameter PrivateKey { get; private set; }
         public AsymmetricKeyParameter PublicKey { get; private set; }
@@ -29,14 +29,14 @@ namespace AElf.Cryptography.Certificate
             return info.GetEncoded ();
         }
         
-        public byte[] GetAddress()
-        {
-            return GetEncodedPublicKey().Take(AddressLength).ToArray();
-        } 
+//        public byte[] GetAddress()
+//        {
+//            return GetEncodedPublicKey().Take(AddressLength).ToArray();
+//        } 
         
-        public string GetAddressHex()
-        {
-            return "0x" + BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
-        }
+//        public string GetAddressHex()
+//        {
+//            return "0x" + BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
+//        }
     }
 }

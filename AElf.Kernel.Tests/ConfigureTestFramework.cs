@@ -7,12 +7,14 @@ using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
+using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using Autofac;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Frameworks.Autofac;
+using ITxSignatureVerifier = AElf.Kernel.Types.Transaction.ITxSignatureVerifier;
 
 [assembly: TestFramework("AElf.Kernel.Tests.ConfigureTestFramework", "AElf.Kernel.Tests")]
 
@@ -27,8 +29,8 @@ namespace AElf.Kernel.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            ChainConfig.Instance.ChainId = Hash.Generate().DumpHex();
-            NodeConfig.Instance.NodeAccount = Address.Generate().DumpHex();
+            ChainConfig.Instance.ChainId = "kPBx";
+            NodeConfig.Instance.NodeAccount = Address.FromString("ELF_kPBx_TestContractA").GetFormatted();
 
             var assembly1 = typeof(IDataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
@@ -63,7 +65,6 @@ namespace AElf.Kernel.Tests
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
-            builder.RegisterType<TxValidator>().As<ITxValidator>();
             builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
             builder.RegisterType<TxHub>().As<ITxHub>();

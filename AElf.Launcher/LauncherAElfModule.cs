@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using AElf.Common.Module;
+using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Types.Common;
 using Autofac;
 using Easy.MessageHub;
@@ -12,11 +15,11 @@ namespace AElf.Launcher
 {
     public class LauncherAElfModule:IAElfModule
     {
-        private static readonly ILogger _logger = LogManager.GetLogger("Launcher");
-        private int _stopped;
+        private static readonly ILogger Logger = LogManager.GetLogger("Launcher");
         private readonly AutoResetEvent _closing = new AutoResetEvent(false);
         private readonly Queue<TerminatedModuleEnum> _modules = new Queue<TerminatedModuleEnum>();
         private TerminatedModuleEnum _prepareTerminatedModule;
+        private static System.Timers.Timer _timer;
         
         public void Init(ContainerBuilder builder)
         {
@@ -28,19 +31,45 @@ namespace AElf.Launcher
             _modules.Enqueue(TerminatedModuleEnum.BlockSynchronizer);
             _modules.Enqueue(TerminatedModuleEnum.BlockExecutor);
             _modules.Enqueue(TerminatedModuleEnum.BlockRollback);
+
+            _timer = new System.Timers.Timer(ConsensusConfig.Instance.DPoSMiningInterval * 2);
+            _timer.AutoReset = false;
+            _timer.Elapsed += TimerOnElapsed;
+            
+            AssemblyLoadContext.Default.Unloading += DefaultOnUnloading;           
+            Console.CancelKeyPress += OnCancelKeyPress;
+
+        }
+
+        private void DefaultOnUnloading(AssemblyLoadContext obj)
+        {
+            _closing.Set();
+            if (_modules.Count != 0)
+            {
+                PublishMessage();
+                _closing.WaitOne();
+            }
+        }
+
+        private void TimerOnElapsed(object sender, ElapsedEventArgs e)
+        {
+            OnModuleTerminated(new TerminatedModule(_prepareTerminatedModule));
         }
 
         public void Run(ILifetimeScope scope)
         {
-            Console.CancelKeyPress += OnExit;
             _closing.WaitOne();
         }
-        
-        protected void OnExit(object sender, ConsoleCancelEventArgs args)
+
+        private void OnCancelKeyPress(object sender, EventArgs args)
         {
             if (_modules.Count != 0)
             {
                 PublishMessage();
+            }
+            else
+            {
+                _closing.Set();
             }
         }
 
@@ -48,10 +77,11 @@ namespace AElf.Launcher
         {
             Task.Run(() =>
             {
+                _timer.Stop();
                 if (_prepareTerminatedModule == moduleTerminated.Module)
                 {
                     _modules.Dequeue();
-                    _logger.Trace($"{_prepareTerminatedModule.ToString()} stopped.");
+                    Logger.Trace($"{_prepareTerminatedModule.ToString()} stopped.");
                 }
                 else
                 {
@@ -60,14 +90,14 @@ namespace AElf.Launcher
 
                 if (_modules.Count == 0)
                 {
-                    _logger.Trace("node will be shut down after 5s...");
+                    Logger.Trace("node will be closed after 5s...");
                     for (var i = 0; i < 5; i++)
                     {
-                        _logger.Trace($"{5 - i}");
+                        Logger.Trace($"{5 - i}");
                         Thread.Sleep(1000);
                     }
 
-                    _logger.Trace("node is shut down.");
+                    Logger.Trace("node is closed.");
                     _closing.Set();
                 }
                 else
@@ -80,8 +110,10 @@ namespace AElf.Launcher
         private void PublishMessage()
         {
             _prepareTerminatedModule = _modules.Peek();
-            _logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}...");
+            Logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}...");
             MessageHub.Instance.Publish(new TerminationSignal(_prepareTerminatedModule));
+            
+            _timer.Start();
         }
     }
 }

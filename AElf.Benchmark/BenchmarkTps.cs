@@ -56,7 +56,7 @@ namespace AElf.Benchmark
             IChainContextService chainContextService, ISmartContractService smartContractService,
             ILogger logger, IFunctionMetadataService functionMetadataService,BenchmarkOptions options, IExecutingService executingService)
         {
-            ChainId = Hash.Generate();
+            ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
             _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;

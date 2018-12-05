@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.SmartContract;
 using AElf.Kernel;
 using Google.Protobuf;
 using AElf.Types.CSharp;
 using Org.BouncyCastle.Asn1.Mozilla;
-using AElf.Common;
 
 namespace AElf.Contracts.SideChain.Tests
 {
@@ -205,6 +205,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Transaction = tx
             };
             await Executive.SetTransactionContext(TransactionContext).Apply();
+            Console.WriteLine($"\r\n{TransactionContext.Trace}\r\n");
             await CommitChangesAsync(TransactionContext.Trace);
         }
 

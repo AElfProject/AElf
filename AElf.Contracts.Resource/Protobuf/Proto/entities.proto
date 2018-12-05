@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "common.proto";
+
+option csharp_namespace = "AElf.Contracts.Resource";
+
+message ConnectorPair
+{
+    uint64 ResBalance = 1;
+    uint64 ElfBalance = 2;
+}
+
+message UserResourceKey
+{
+    enum ResourceType
+    {
+        UndefinedResourceType = 0;
+        Ram = 1;
+        Cpu = 2;
+        Net = 3;
+    }
+    Address Address = 1;
+    ResourceType Type = 2;
+}

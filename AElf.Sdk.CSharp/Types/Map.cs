@@ -73,8 +73,8 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task<TValue> GetValueAsync(TKey key)
         {
-            var bytes = await DataProvider.GetAsync<TValue>(Hash.FromMessage(key));
-            return bytes == null || bytes.Length == 0 ? default(TValue) : Api.Serializer.Deserialize<TValue>(bytes);
+            var bytes = await DataProvider.GetAsync<TValue>(Hash.FromMessage(key)) ?? new byte[0];
+            return Api.Serializer.Deserialize<TValue>(bytes);
         }
 
         public bool TryGet(TKey key, out TValue value)
@@ -89,11 +89,6 @@ namespace AElf.Sdk.CSharp.Types
             value = Api.Serializer.Deserialize<TValue>(bytes);
             return true;
         }
-
-//        public async Task SetValueAsync(TKey key, TValue value)
-//        {
-//            await DataProvider.SetDataAsync(Hash.FromMessage(key), value);
-//        }
     }
 
     public class MapToBool<TKey> : Map<TKey, BoolValue> where TKey : IMessage
@@ -111,7 +106,7 @@ namespace AElf.Sdk.CSharp.Types
             get => GetValue(key);
             set => SetValue(key, value);
         }
-        
+
         public void SetValue(TKey keyHash, bool value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -155,7 +150,7 @@ namespace AElf.Sdk.CSharp.Types
             get => GetValue(key);
             set => SetValue(key, value);
         }
-        
+
         public void SetValue(TKey keyHash, uint value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -199,7 +194,7 @@ namespace AElf.Sdk.CSharp.Types
             get => GetValue(key);
             set => SetValue(key, value);
         }
-        
+
         public void SetValue(TKey keyHash, int value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -243,7 +238,7 @@ namespace AElf.Sdk.CSharp.Types
             get => GetValue(key);
             set => SetValue(key, value);
         }
-        
+
         public void SetValue(TKey keyHash, ulong value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -287,7 +282,7 @@ namespace AElf.Sdk.CSharp.Types
             get => GetValue(key);
             set => SetValue(key, value);
         }
-        
+
         public void SetValue(TKey keyHash, long value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -331,7 +326,7 @@ namespace AElf.Sdk.CSharp.Types
             get => GetValue(key);
             set => SetValue(key, value);
         }
-        
+
         public void SetValue(TKey keyHash, byte[] value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -375,7 +370,7 @@ namespace AElf.Sdk.CSharp.Types
             get => GetValue(key);
             set => SetValue(key, value);
         }
-        
+
         public void SetValue(TKey keyHash, string value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -419,7 +414,7 @@ namespace AElf.Sdk.CSharp.Types
             get => GetValue(key);
             set => SetValue(key, value);
         }
-        
+
         public void SetValue(TKey keyHash, TValue value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -446,6 +441,7 @@ namespace AElf.Sdk.CSharp.Types
             {
                 return default(TValue);
             }
+
             var userTypeHolder = Api.Serializer.Deserialize<UserTypeHolder>(bytes);
             obj.Unpack(userTypeHolder);
             return obj;
