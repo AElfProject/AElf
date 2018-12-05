@@ -1,8 +1,6 @@
 using System;
 using AElf.CLI2.Commands;
 using AElf.CLI2.JS;
-using AElf.CLI2.Tests.Utils;
-using Alba.CsConsoleFormat.Fluent;
 using Autofac;
 using Xunit;
 using Xunit.Abstractions;
@@ -15,10 +13,7 @@ namespace AElf.CLI2.Tests
         {
             var option = new CreateOption
             {
-                Endpoint = serverAddress,
-                Password = "",
-                Action = AccountAction.create,
-                AccountFileName = "a.account"
+                Endpoint = serverAddress
             };
             return IoCContainerBuilder.Build(option).Resolve<IJSEngine>();
         }
@@ -96,16 +91,5 @@ namespace AElf.CLI2.Tests
             Assert.Equal(privKey, obj.ReadProperty<string>("privateKey"));
             Assert.Equal(address, obj.ReadProperty<string>("address"));
         }
-
-//        [Fact]
-//        public void TestXMLHttpRequest()
-//        {
-//            var jsEngine = GetJSEngine();
-//            jsEngine.RunScript(@"
-//                var request = new XMLHttpRequest()
-//                request.open(""GET"", ""http://www.baidu.com"")
-//            ");
-//            Assert.Equal(jsEngine.Get("request").Get("readyState").Value.ToInt32(), 1);
-//        }
     }
 }
