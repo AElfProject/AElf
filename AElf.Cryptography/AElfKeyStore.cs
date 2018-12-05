@@ -76,10 +76,10 @@ namespace AElf.Cryptography
 
                 if (split[1].Length != 4)
                     return Errors.WrongAccountFormat;
-                
+
                 if (_openAccounts.Any(x => x.AccountName == address))
                     return Errors.AccountAlreadyUnlocked;
-                
+
                 if (withTimeout)
                 {
                     OpenAsync(address, password, _defaultTimeoutToClose);
@@ -140,23 +140,7 @@ namespace AElf.Cryptography
 
                 if (cypherKeyPair == null)
                     return null;
-                
-                // Extract bouncy params
-                ECPrivateKeyParameters _newPrivateKeyParam = (ECPrivateKeyParameters)cypherKeyPair.Private;
-                ECPublicKeyParameters _newPublicKeyParam = (ECPublicKeyParameters)cypherKeyPair.Public;
-                
-                byte[] readPrivateKey = _newPrivateKeyParam.D.ToByteArrayUnsigned();
-                byte[] readPublicKey = _newPublicKeyParam.Q.GetEncoded(false);
-
-                byte[] deserializedPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
-                using (var secp256k1 = new Secp256k1())
-                {
-                    secp256k1.PublicKeyParse(deserializedPubKey, readPublicKey);
-                }
-
-                ECKeyPair kp = new ECKeyPair(readPrivateKey, deserializedPubKey);
-
-                return kp;
+                return new ECKeyPair(cypherKeyPair);
             }
             catch (FileNotFoundException ex)
             {
@@ -202,9 +186,12 @@ namespace AElf.Cryptography
                 Console.WriteLine("Could not calculate the address from the keypair.", e);
                 return false;
             }
-            
-            ECPrivateKeyParameters privateKeyParam = new ECPrivateKeyParameters(new BigInteger(keyPair.PrivateKey), ECParameters.DomainParams);
-            ECPublicKeyParameters publicKeyParam = new ECPublicKeyParameters(ECParameters.Curve.Curve.DecodePoint(keyPair.SerializedPublicKey()), ECParameters.DomainParams);
+
+            ECPrivateKeyParameters privateKeyParam =
+                new ECPrivateKeyParameters(new BigInteger(keyPair.PrivateKey), ECParameters.DomainParams);
+            ECPublicKeyParameters publicKeyParam =
+                new ECPublicKeyParameters(ECParameters.Curve.Curve.DecodePoint(keyPair.PublicKey),
+                    ECParameters.DomainParams);
 
             var akp = new AsymmetricCipherKeyPair(publicKeyParam, privateKeyParam);
 
