@@ -304,6 +304,11 @@ namespace AElf.ChainController.Rpc
                     throw new ArgumentException($"[{type}] not found");
             }
         }
+        
+        internal static async Task<int> GetRollBackTimes(this Svc s)
+        {
+            return s.BlockSynchronizer.RollBackTimes;
+        }
     }
     
 }

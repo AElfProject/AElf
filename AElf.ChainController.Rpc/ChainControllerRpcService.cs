@@ -45,6 +45,7 @@ namespace AElf.ChainController.Rpc
         public ICrossChainInfo CrossChainInfo { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSet BlockSet { get; set; }
+        public IBlockSynchronizer BlockSynchronizer { get; set; }
 
         #endregion Properties
 
@@ -602,7 +603,7 @@ namespace AElf.ChainController.Rpc
             return JObject.FromObject(response);
         }
 
-        [JsonRpcMethod("get_Invalid_Block")]
+        [JsonRpcMethod("get_invalid_block")]
         public async Task<JObject> InvalidBlockCount()
         {
             var invalidBlockCount = await this.GetInvalidBlockCount();
@@ -610,6 +611,19 @@ namespace AElf.ChainController.Rpc
             var response = new JObject
             {
                 ["InvalidBlockCount"] = invalidBlockCount
+            };
+
+            return JObject.FromObject(response);
+        }
+        
+        [JsonRpcMethod("get_rollback_times")]
+        public async Task<JObject> RollBackTimes()
+        {
+            var rollBackTimes = await this.GetRollBackTimes();
+                
+            var response = new JObject
+            {
+                ["RollBackTimes"] = rollBackTimes
             };
 
             return JObject.FromObject(response);
