@@ -95,7 +95,7 @@ namespace AElf.ChainController.Rpc
                 var basicContractZero =
                     ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var crosschainContract =
-                    ContractHelpers.GetCrossChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetCrossChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var authorizationContract =
                     ContractHelpers.GetAuthorizationContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));

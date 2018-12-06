@@ -88,7 +88,7 @@ namespace AElf.Contracts.Authorization
         {
             // TODO: check public key -- if no Multisig account then ELF_chainID_SHA^2(authorization)
             Address multiSigAccount = authorization.MultiSigAccount ??
-                                      Address.FromPublicKey(Api.ChainId.ToByteArray(),
+                                      Address.FromPublicKey(Api.ChainId.DumpByteArray(),
                                           authorization.ToByteArray().ToArray());
             Api.Assert(_multiSig.GetValue(multiSigAccount).Equals(new Kernel.Types.Proposal.Authorization()),
                 "MultiSigAccount already existed.");
@@ -133,15 +133,14 @@ namespace AElf.Contracts.Authorization
             // check authorization and permission 
             var proposal = _proposals.GetValue(hash);
             Api.Assert(!proposal.Equals(new Proposal()), "Proposal not found.");
+            Api.Assert(DateTime.UtcNow < proposal.ExpiredTime.ToDateTime(), "Expired proposal.");
             
             var msig = proposal.MultiSigAccount;
             var authorization = GetAuth(msig);
             
             Api.Assert(!authorization.Equals(new Kernel.Types.Proposal.Authorization()), "Authorization not found."); // should never happen
             
-            var array = proposal.TxnData.TxnData.ToByteArray();
-            byte[] toSig = array.CalculateHash();
-            
+            byte[] toSig = proposal.TxnData.TxnData.ToByteArray().CalculateHash();
             byte[] pubKey = Api.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
             Api.Assert(authorization.Reviewers.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)), "Not authorized approval.");
             
@@ -215,7 +214,8 @@ namespace AElf.Contracts.Authorization
             };
             auth.Reviewers.AddRange(reviewers.Select(r => new Reviewer
             {
-                
+                PubKey = ByteString.CopyFrom(r),
+                Weight = 1 // BP weight
             }));
             
             return auth;
@@ -251,7 +251,7 @@ namespace AElf.Contracts.Authorization
             {
                 // Proposal should not be from multi sig account.
                 // As a result, only check first public key.
-                Reviewer reviewer = authorization.Reviewers.FirstOrDefault(r => r.PubKey.Equals(Api.GetPublicKey()));
+                Reviewer reviewer = authorization.Reviewers.FirstOrDefault(r => r.PubKey.Equals(ByteString.CopyFrom(Api.RecoverPublicKey())));
                 var proposerPerm = reviewer?.Weight ?? 0;
                 Api.Assert(
                     Api.GetFromAddress().Equals(proposal.Proposer) &&
@@ -265,33 +265,27 @@ namespace AElf.Contracts.Authorization
         private bool CheckPermission(Approved approved, Kernel.Types.Proposal.Authorization authorization, Proposal proposal)
         {
             uint weight = 0;
-            byte[] txnData = proposal.TxnData.TxnData.ToByteArray();
-            byte[] toSig = SHA256.Create().ComputeHash(txnData);
+            byte[] toSig = proposal.TxnData.TxnData.ToByteArray().CalculateHash();
             
-            // todo review 
-            using (var secp256k1 = new Secp256k1())
+            // processing approvals 
+            var validApprovals = approved.Approvals.All(a =>
             {
-                // processing approvals 
-                var validApprovals = approved.Approvals.All(a =>
-                {
-                    byte[] recovered = new byte[Secp256k1.PUBKEY_LENGTH];
-                    secp256k1.Recover(recovered, a.Signature.ToByteArray(), toSig);
+                byte[] recovered = Api.RecoverPublicKey(a.Signature.ToByteArray(), toSig);
                         
-                    var reviewer = authorization.Reviewers.FirstOrDefault(r => r.PubKey.SequenceEqual(recovered));
+                var reviewer = authorization.Reviewers.FirstOrDefault(r => r.PubKey.SequenceEqual(recovered));
 
-                    if (reviewer == null)
-                        return false;
+                if (reviewer == null)
+                    return false;
                     
-                    weight += reviewer.Weight;
+                weight += reviewer.Weight;
                     
-                    return true;
-                });
+                return true;
+            });
 
-                //Api.Assert(validApprovals, "Unauthorized approval."); //This should never happen.
-                //Api.Assert(weight >= authorization.ExecutionThreshold, "Not enough approvals.");
-
-                return validApprovals && weight >= authorization.ExecutionThreshold;
-            }
+            //Api.Assert(validApprovals, "Unauthorized approval."); //This should never happen.
+            //Api.Assert(weight >= authorization.ExecutionThreshold, "Not enough approvals.");
+            Console.WriteLine($"weight {weight}, {validApprovals}, {weight >= authorization.ExecutionThreshold}");
+            return validApprovals && weight >= authorization.ExecutionThreshold;
         }
 
         private void CheckSignature(PendingTxn txnData, byte[] approvalSignature)
@@ -304,7 +298,7 @@ namespace AElf.Contracts.Authorization
         private void CheckTxnData(Address msigAccount, PendingTxn txnData)
         {
             var proposedTxn = txnData.GetTransaction();
-            // packed transaction should not be signed.
+            // packed transaction should not be signed.`
             Api.Assert(proposedTxn.From.Equals(msigAccount),
                 "From address in proposed transaction is not valid multisig account.");
             Api.Assert(proposedTxn.Sigs.Count == 0, "Invalid signatures in proposed transaction.");

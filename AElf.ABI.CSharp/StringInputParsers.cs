@@ -43,7 +43,8 @@ namespace AElf.ABI.CSharp
                 {typeof(PendingTxn), (s) => PendingTxn.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Proposal), (s) => Proposal.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Timestamp), (s) => Timestamp.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
-                {typeof(Approval), (s) => Approval.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
+                {typeof(Approval), (s) => Approval.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
+                {typeof(SideChainInfo), s => SideChainInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
             };
 
 
@@ -69,7 +70,8 @@ namespace AElf.ABI.CSharp
                 {typeof(PendingTxn), obj => ((PendingTxn) obj).ToByteArray().ToHex()},
                 {typeof(Proposal), obj => ((Proposal) obj).ToByteArray().ToHex()},
                 {typeof(Timestamp), obj => ((Timestamp) obj).ToByteArray().ToHex()},
-                {typeof(Approval), obj => ((Approval) obj).ToByteArray().ToHex()}
+                {typeof(Approval), obj => ((Approval) obj).ToByteArray().ToHex()},
+                {typeof(SideChainInfo), obj => ((SideChainInfo) obj).ToByteArray().ToHex()}
             };
 
         static StringInputParsers()

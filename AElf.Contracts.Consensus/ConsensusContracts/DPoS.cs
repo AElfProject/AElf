@@ -399,15 +399,13 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             }
         }
 
-        public Miners GetCurrentMiners()
+        public Miners  GetCurrentMiners()
         {
-            var ongoingMiners = _ongoingMinersField.GetValue();
-            if (ongoingMiners == null || !ongoingMiners.Miners.Any())
-            {
-                ongoingMiners = new OngoingMiners();
-            }
-
-            return ongoingMiners.GetCurrentMiners(CurrentRoundNumber);
+            // Todo: real miners needed, fake it now
+            var miner = new Miners();
+            miner.Producers.Add(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(
+                "d3b2c98f413dc4cf35093e52e3ec1e501cf671949f296d1f22cafc6500b4e1dee14b619f485d333ba6f4b4a964a2a92d84ef8a776595352e7f2e5ceb84091035")));
+            return miner;
         }
 
         public async Task HandleTickets(byte[] pubKey, ulong amount, bool withdraw = false)
@@ -861,7 +859,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
         {
             var bv = new BytesValue
             {
-                Value = Api.GetPublicKey()
+                Value = ByteString.CopyFrom(Api.RecoverPublicKey())
             };
             if (_balanceMap.TryGet(bv, out var tickets))
             {
