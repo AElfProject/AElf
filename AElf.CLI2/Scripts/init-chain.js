@@ -1,8 +1,14 @@
 (function () {
     function getContractZero() {
-        var addressZero = aelf.chain.connectChain().result.BasicContractZero;
-        var contractZero = aelf.chain.contractAt(addressZero, _account);
-        return contractZero;
+        var cRes = aelf.chain.connectChain().result;
+        var addressZero = cRes.BasicContractZero;
+        if (typeof addressZero === 'undefined') {
+            addressZero = cRes['AElf.Contracts.Genesis'];
+        }
+        if(typeof addressZero === 'undefined'){
+            throw "Cannot find contract zero's address.";
+        }
+        return aelf.chain.contractAt(addressZero, _account);
     }
 
     if (aelf.isConnected()) {
