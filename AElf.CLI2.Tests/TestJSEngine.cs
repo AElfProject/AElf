@@ -84,7 +84,7 @@ namespace AElf.CLI2.Tests
 
             string mnenomic = "degree family lab shrimp such demand stay popular inflict immune attack mouse";
             string privKey = "69fbc2a6020e93e8b1390505d89434d5be3d60e04dcfc48b4c02854619a8c93d";
-            string address = "648043cd7ceea25ba5c7a2b4e3789064cec3";
+            string address = "ELF_34KtfUu9WUXXdnfuLB5gtjMYejJNnXpTBwUskVkyy5oQvz66B";
             var obj = jsEngine.Evaluate($@"Aelf.wallet.getWalletByMnemonic(""{mnenomic}"")");
 
             Assert.Equal(mnenomic, obj.ReadProperty<string>("mnemonic"));
