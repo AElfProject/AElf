@@ -21,7 +21,7 @@ namespace AElf.Network.Tests
             {
                 NodeInfo = nodeInfo,
                 PublicKey = ByteString.CopyFrom(key.GetEncodedPublicKey()),
-                Version = GlobalConfig.ReleaseVersion,
+                Version = GlobalConfig.ProtocolVersion,
                 R = ByteString.CopyFrom(sig.R),
                 S = ByteString.CopyFrom(sig.S),
             };

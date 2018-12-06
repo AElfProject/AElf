@@ -277,9 +277,9 @@ namespace AElf.Network.Peers
                 NodeInfo = nodeInfo,
                 PublicKey = ByteString.CopyFrom(_nodeKey.GetEncodedPublicKey()),
                 Height = CurrentHeight,
-                Version = GlobalConfig.ReleaseVersion,
+                Version = GlobalConfig.ProtocolVersion,
                 R = ByteString.CopyFrom(sig.R),
-                S = ByteString.CopyFrom(sig.S),
+                S = ByteString.CopyFrom(sig.S)
             };
 
             byte[] packet = nd.ToByteArray();
@@ -361,7 +361,7 @@ namespace AElf.Network.Peers
 
             try
             {
-                if (string.IsNullOrEmpty(handshakeMsg.Version) || handshakeMsg.Version != GlobalConfig.ReleaseVersion)
+                if (handshakeMsg.Version != GlobalConfig.ProtocolVersion)
                 {
                     FireInvalidAuth(RejectReason.AuthWrongVersion);
                     return;
