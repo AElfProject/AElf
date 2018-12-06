@@ -16,6 +16,7 @@ using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.RPC;
 using AElf.SmartContract;
+using AElf.Synchronization.BlockSynchronization;
 using Community.AspNetCore.JsonRpc;
 using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
@@ -43,6 +44,8 @@ namespace AElf.ChainController.Rpc
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfo CrossChainInfo { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
+        public IBlockSet BlockSet { get; set; }
+        public IBlockSynchronizer BlockSynchronizer { get; set; }
 
         #endregion Properties
 
@@ -565,7 +568,7 @@ namespace AElf.ChainController.Rpc
         }
 
         [JsonRpcMethod("get_txpool_size")]
-        public async Task<JObject> ProGetTxPoolSize()
+        public async Task<JObject> GetTxPoolSize()
         {
             var transactionPoolSize = await this.GetTransactionPoolSize();
             var response = new JObject
@@ -577,7 +580,7 @@ namespace AElf.ChainController.Rpc
         }
         
         [JsonRpcMethod("dpos_isalive")]
-        public async Task<JObject> ProIsDPoSAlive()
+        public async Task<JObject> IsDPoSAlive()
         {
             var isAlive = MainchainNodeService.IsDPoSAlive();
             var response = new JObject
@@ -589,7 +592,7 @@ namespace AElf.ChainController.Rpc
         }
         
         [JsonRpcMethod("node_isforked")]
-        public async Task<JObject> ProNodeIsForked()
+        public async Task<JObject> NodeIsForked()
         {
             var isForked = MainchainNodeService.IsForked();
             var response = new JObject
@@ -600,36 +603,58 @@ namespace AElf.ChainController.Rpc
             return JObject.FromObject(response);
         }
 
-        #region Admin
-
-        [JsonRpcMethod("set_block_volume", "minimal", "maximal")]
-        public async Task<JObject> ProcSetBlockVolume(string minimal, string maximal)
+        [JsonRpcMethod("get_invalid_block")]
+        public async Task<JObject> InvalidBlockCount()
         {
-            /* TODO: This is a privileged method, need:
-             *   1. Optional enabling of this method (maybe separate endpoint), and/or
-             *   2. Authentication / authorization
-             */
-            try
+            var invalidBlockCount = await this.GetInvalidBlockCount();
+                
+            var response = new JObject
             {
-                var min = int.Parse(minimal);
-                var max = int.Parse(maximal);
-                this.SetBlockVolume(min, max);
-                return await Task.FromResult(new JObject
-                {
-                    ["result"] = "Success"
-                });
-            }
-            catch (Exception e)
+                ["InvalidBlockCount"] = invalidBlockCount
+            };
+
+            return JObject.FromObject(response);
+        }
+        
+        [JsonRpcMethod("get_rollback_times")]
+        public async Task<JObject> RollBackTimes()
+        {
+            var rollBackTimes = await this.GetRollBackTimes();
+                
+            var response = new JObject
             {
-                _logger.Error(e, "Exception while ProcSetBlockVolume.");
-                return await Task.FromResult(new JObject
-                {
-                    ["error"] = "Failed"
-                });
-            }
+                ["RollBackTimes"] = rollBackTimes
+            };
+
+            return JObject.FromObject(response);
         }
 
-        #endregion Admin
+//        [JsonRpcMethod("set_block_volume", "minimal", "maximal")]
+//        public async Task<JObject> ProcSetBlockVolume(string minimal, string maximal)
+//        {
+//            /* TODO: This is a privileged method, need:
+//             *   1. Optional enabling of this method (maybe separate endpoint), and/or
+//             *   2. Authentication / authorization
+//             */
+//            try
+//            {
+//                var min = int.Parse(minimal);
+//                var max = int.Parse(maximal);
+//                this.SetBlockVolume(min, max);
+//                return await Task.FromResult(new JObject
+//                {
+//                    ["result"] = "Success"
+//                });
+//            }
+//            catch (Exception e)
+//            {
+//                _logger.Error(e, "Exception while ProcSetBlockVolume.");
+//                return await Task.FromResult(new JObject
+//                {
+//                    ["error"] = "Failed"
+//                });
+//            }
+//        }
         
         [JsonRpcMethod("get_db_value","key")]
         public async Task<JObject> GetDbValue(string key)
@@ -660,7 +685,7 @@ namespace AElf.ChainController.Rpc
                     type = keyObj.Type;
                     id = JObject.Parse(keyObj.ToString());
                     var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
-                    var obj = GetInstance(type);
+                    var obj = this.GetInstance(type);
                     obj.MergeFrom(valueBytes);
                     value = obj;
                 }
@@ -682,33 +707,6 @@ namespace AElf.ChainController.Rpc
                     ["Value"] = e.Message
                 };
                 return JObject.FromObject(response);
-            }
-        }
-
-        private IMessage GetInstance(string type)
-        {
-            switch (type)
-            {
-                case "MerklePath":
-                    return new MerklePath();
-                case "BinaryMerkleTree":
-                    return new BinaryMerkleTree ();
-                case "BlockHeader":
-                    return new BlockHeader();
-                case "BlockBody":
-                    return new BlockBody();
-                case "Hash":
-                    return new Hash();
-                case "SmartContractRegistration":
-                    return new SmartContractRegistration();
-                case "Transaction":
-                    return new Transaction();
-                case "TransactionResult":
-                    return new TransactionResult();
-                case "TransactionTrace":
-                    return new TransactionTrace();
-                default:
-                    throw new ArgumentException($"[{type}] not found");
             }
         }
 

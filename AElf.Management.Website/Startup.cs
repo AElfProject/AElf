@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Common;
 using AElf.Management.Interfaces;
 using AElf.Management.Services;
 using Autofac;
@@ -38,6 +39,7 @@ namespace AElf.Management.Website
             
             var builder = new ContainerBuilder();
 
+            builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterType<SideChainService>().As<ISideChainService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
             builder.RegisterType<WorkerService>().As<IWorkerService>().SingleInstance();

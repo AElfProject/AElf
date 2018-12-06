@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
 using AElf.Management.Commands;
@@ -14,7 +15,7 @@ namespace AElf.Management.Services
 {
     public class SideChainService : ISideChainService
     {
-        public void Deploy(DeployArg arg)
+        public async Task Deploy(DeployArg arg)
         {
             if (string.IsNullOrWhiteSpace(arg.MainChainId))
             {
@@ -46,7 +47,7 @@ namespace AElf.Management.Services
             commands.ForEach(c => c.Action(arg));
         }
 
-        public void Remove(string chainId)
+        public async Task  Remove(string chainId)
         {
             GetHandler().Execute(DeployType.Remove, chainId);
         }
