@@ -11,17 +11,17 @@ namespace AElf.CLI2.Commands
     {
         [JsonProperty("datadir")]
         [LoadDefaultFromEnvironmentVariable("AELF_CLI_DATADIR")]
-        [Option('d', "datadir", HelpText = "The directory that contains the files.")]
+        [Option('d', "datadir", HelpText = "The directory that contains the files. Default from env variable: AELF_CLI_DATADIR")]
         public string DataDir { get; set; } = ".";
 
         [JsonProperty("endpoint")]
         [LoadDefaultFromEnvironmentVariable("AELF_CLI_ENDPOINT")]
-        [Option('e', "endpoint", HelpText = "The endpoint for the rpc service.")]
+        [Option('e', "endpoint", HelpText = "The endpoint for the rpc service. Default from env variable: AELF_CLI_ENDPOINT")]
         public string Endpoint { get; set; } = "";
 
         [JsonProperty("account")]
         [LoadDefaultFromEnvironmentVariable("AELF_CLI_ACCOUNT")]
-        [Option('a', "account", HelpText = "The account to be used to interact with the blockchain.")]
+        [Option('a', "account", HelpText = "The account to be used to interact with the blockchain. Default from env variable: AELF_CLI_ACCOUNT")]
         public string Account { get; set; } = "";
 
         [JsonIgnore]
