@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common.Enums;
-using AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections;
 using AElf.Common;
-using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
 using AElf.Kernel.Types;
 using AElf.Sdk.CSharp;
@@ -33,11 +30,11 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
 
         private readonly Map<UInt64Value, Round> _dPoSInfoMap;
 
-        private readonly Map<UInt64Value, StringValue> _eBPMap;
+        private readonly Map<UInt64Value, BytesValue> _eBPMap;
 
         private readonly PbField<Timestamp> _timeForProducingExtraBlockField;
 
-        private readonly Map<UInt64Value, StringValue> _firstPlaceMap;
+        private readonly Map<UInt64Value, BytesValue> _firstPlaceMap;
 
         private readonly Int32Field _miningIntervalField;
 

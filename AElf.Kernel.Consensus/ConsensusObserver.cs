@@ -10,7 +10,7 @@ using AElf.Configuration.Config.Consensus;
 namespace AElf.Kernel.Consensus
 {
     // ReSharper disable InconsistentNaming
-    public class AElfDPoSObserver : IObserver<ConsensusBehavior>
+    public class ConsensusObserver : IObserver<ConsensusBehavior>
     {
         private readonly ILogger _logger;
 
@@ -20,14 +20,14 @@ namespace AElf.Kernel.Consensus
 
         private readonly Func<Task> _miningWithUpdatingAElfDPoSInformation;
 
-        public AElfDPoSObserver(params Func<Task>[] miningFunctions)
+        public ConsensusObserver(params Func<Task>[] miningFunctions)
         {
             if (miningFunctions.Length < 4)
             {
                 throw new ArgumentException("Incorrect functions count.", nameof(miningFunctions));
             }
 
-            _logger = LogManager.GetLogger(nameof(AElfDPoSObserver));
+            _logger = LogManager.GetLogger(nameof(ConsensusObserver));
 
             _miningWithInitializingAElfDPoSInformation = miningFunctions[0];
             _miningWithPublishingOutValueAndSignature = miningFunctions[1];
@@ -37,12 +37,12 @@ namespace AElf.Kernel.Consensus
 
         public void OnCompleted()
         {
-            _logger?.Trace($"{nameof(AElfDPoSObserver)} completed.");
+            _logger?.Trace($"{nameof(ConsensusObserver)} completed.");
         }
 
         public void OnError(Exception error)
         {
-            _logger?.Error(error, $"{nameof(AElfDPoSObserver)} error.");
+            _logger?.Error(error, $"{nameof(ConsensusObserver)} error.");
         }
 
         public void OnNext(ConsensusBehavior value)

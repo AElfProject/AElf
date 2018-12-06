@@ -12,13 +12,13 @@ using NLog;
 namespace AElf.Kernel.Consensus
 {
     // ReSharper disable InconsistentNaming
-    public class DPoSInfoProvider
+    public class ConsensusDataProvider
     {
         private readonly IStateStore _stateStore;
 
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(DPoSInfoProvider));
+        private readonly ILogger _logger = LogManager.GetLogger(nameof(ConsensusDataProvider));
 
-        public DPoSInfoProvider(IStateStore stateStore)
+        public ConsensusDataProvider(IStateStore stateStore)
         {
             _stateStore = stateStore;
         }

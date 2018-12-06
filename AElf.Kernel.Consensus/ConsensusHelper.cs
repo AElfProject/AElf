@@ -2,14 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Managers;
-using AElf.Common.Extensions;
-using AElf.Common.Attributes;
 using AElf.Configuration.Config.Consensus;
-using AElf.Kernel.Storages;
-using AElf.SmartContract;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 
@@ -20,24 +14,12 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable UnusedMember.Global
     public class ConsensusHelper
     {
-        private static Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
-        private static Address ContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
-        
         private readonly IMinersManager _minersManager;
+        private readonly ConsensusDataReader _reader;
+
         private readonly ILogger _logger = LogManager.GetLogger(nameof(ConsensusHelper));
-        private readonly IStateStore _stateStore;
 
         public List<byte[]> Miners => _minersManager.GetMiners().Result.Producers.Select(p => p.ToByteArray()).ToList();
-
-        private DataProvider DataProvider
-        {
-            get
-            {
-                var dp = DataProvider.GetRootDataProvider(ChainId, ContractAddress);
-                dp.StateStore = _stateStore;
-                return dp;
-            }
-        }
 
         public UInt64Value CurrentRoundNumber
         {
@@ -45,9 +27,8 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var number = UInt64Value.Parser.ParseFrom(
-                        GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber)));
-                    return number;
+                    return UInt64Value.Parser.ParseFrom(
+                            _reader.ReadFiled<UInt64Value>(GlobalConfig.AElfDPoSCurrentRoundNumber));
                 }
                 catch (Exception)
                 {
@@ -63,7 +44,7 @@ namespace AElf.Kernel.Consensus
                 try
                 {
                     return Timestamp.Parser.ParseFrom(
-                        GetBytes<Timestamp>(Hash.FromString(GlobalConfig.AElfDPoSExtraBlockTimeSlotString)));
+                        _reader.ReadFiled<Timestamp>(GlobalConfig.AElfDPoSExtraBlockTimeSlotString));
                 }
                 catch (Exception e)
                 {
@@ -80,7 +61,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return Round.Parser.ParseFrom(GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber),
+                    return Round.Parser.ParseFrom(_reader.ReadMap<Round>(CurrentRoundNumber,
                         GlobalConfig.AElfDPoSInformationString));
                 }
                 catch (Exception e)
@@ -98,7 +79,7 @@ namespace AElf.Kernel.Consensus
                 try
                 {
                     return SInt32Value.Parser.ParseFrom(
-                        GetBytes<SInt32Value>(Hash.FromString(GlobalConfig.AElfDPoSMiningIntervalString)));
+                        _reader.ReadFiled<SInt32Value>(GlobalConfig.AElfDPoSMiningIntervalString));
                 }
                 catch (Exception)
                 {
@@ -114,7 +95,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return StringValue.Parser.ParseFrom(GetBytes<StringValue>(Hash.FromMessage(CurrentRoundNumber),
+                    return StringValue.Parser.ParseFrom(_reader.ReadMap<StringValue>(CurrentRoundNumber,
                         GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString));
                 }
                 catch (Exception e)
@@ -125,23 +106,11 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        /// <summary>
-        /// Assert: Related value has surely exists in database.
-        /// </summary>
-        /// <param name="keyHash"></param>
-        /// <param name="resourceStr"></param>
-        /// <returns></returns>
-        private byte[] GetBytes<T>(Hash keyHash, string resourceStr = "") where T : IMessage, new()
-        {
-            return resourceStr != ""
-                ? DataProvider.GetChild(resourceStr).GetAsync<T>(keyHash).Result
-                : DataProvider.GetAsync<T>(keyHash).Result;
-        }
 
-        public ConsensusHelper(IStateStore stateStore, IMinersManager minersManager)
+        public ConsensusHelper(IMinersManager minersManager, ConsensusDataReader reader)
         {
-            _stateStore = stateStore;
             _minersManager = minersManager;
+            _reader = reader;
         }
 
         /// <summary>
@@ -154,8 +123,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = GetBytes<Round>(Hash.FromMessage(CurrentRoundNumber),
-                        GlobalConfig.AElfDPoSInformationString);
+                    var bytes = _reader.ReadMap<Round>(CurrentRoundNumber, GlobalConfig.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
                     if (round.BlockProducers.ContainsKey(accountAddressHex))
                         return round.BlockProducers[accountAddressHex];
@@ -179,7 +147,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = GetBytes<Round>(Hash.FromMessage(roundNumber), GlobalConfig.AElfDPoSInformationString);
+                    var bytes = _reader.ReadMap<Round>(roundNumber, GlobalConfig.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
                     return round;
                 }

@@ -24,6 +24,7 @@ namespace AElf.Node
             builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
             builder.RegisterGeneric(typeof(EqualityIndex<,>)).As(typeof(IEqualityIndex<>));
             builder.RegisterGeneric(typeof(ComparisionIndex<,>)).As(typeof(IComparisionIndex<>));
+            builder.RegisterType<ConsensusDataReader>();
 
             switch (ConsensusConfig.Instance.ConsensusType)
             {

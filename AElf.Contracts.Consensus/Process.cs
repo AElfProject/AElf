@@ -75,7 +75,7 @@ namespace AElf.Contracts.Consensus
                 }
             }
 
-            await _collection.CandidatesField.SetAsync(candidates);
+            _collection.CandidatesField.SetValue(candidates);
         }
         
         private DateTime GetLocalTime()

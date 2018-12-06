@@ -77,7 +77,7 @@ namespace AElf.Kernel.Node
 
         private static bool _terminated;
 
-        private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(MiningWithInitializingAElfDPoSInformation,
+        private ConsensusObserver ConsensusObserver => new ConsensusObserver(MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
         public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
@@ -167,7 +167,7 @@ namespace AElf.Kernel.Node
 
             if (!await _minersManager.IsMinersInDatabase())
             {
-                ConsensusDisposable = AElfDPoSObserver.Initialization();
+                ConsensusDisposable = ConsensusObserver.Initialization();
                 return;
             }
 
@@ -175,7 +175,7 @@ namespace AElf.Kernel.Node
 
             if (_helper.CanRecoverDPoSInformation())
             {
-                ConsensusDisposable = AElfDPoSObserver.RecoverMining();
+                ConsensusDisposable = ConsensusObserver.RecoverMining();
             }
         }
 
@@ -585,7 +585,7 @@ namespace AElf.Kernel.Node
             }
 
             var blockProducerInfoOfCurrentRound = _helper[_ownPubKey];
-            ConsensusDisposable = AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
+            ConsensusDisposable = ConsensusObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
                 _helper.ExtraBlockTimeSlot);
 
             // Update current round number.

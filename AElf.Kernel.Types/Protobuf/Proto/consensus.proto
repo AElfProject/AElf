@@ -55,6 +55,9 @@ message BlockProducer {
     repeated uint64 Terms = 7;
     uint64 BlocksOfCurrentTerm = 8;
     uint64 BlocksOfAllTerms = 9;
+    bool IsForked = 10;
+    int32 FaithBreak = 11;
+    uint64 Reappointment = 12;
 }
 
 message Round {
