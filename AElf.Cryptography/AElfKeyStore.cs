@@ -66,17 +66,6 @@ namespace AElf.Cryptography
         {
             try
             {
-                string[] split = address.Split('_');
-
-                if (split.Length != 3)
-                    return Errors.WrongAccountFormat;
-
-                if (String.CompareOrdinal(split[0], "ELF") != 0)
-                    return Errors.WrongAccountFormat;
-
-                if (split[1].Length != 4)
-                    return Errors.WrongAccountFormat;
-
                 if (_openAccounts.Any(x => x.AccountName == address))
                     return Errors.AccountAlreadyUnlocked;
 
