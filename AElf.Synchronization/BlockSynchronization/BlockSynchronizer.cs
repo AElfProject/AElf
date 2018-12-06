@@ -42,6 +42,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private static bool _executionNextBlock;
 
+        public int RollBackTimes { get; private set; }
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet, IBlockHeaderValidator blockHeaderValidator)
         {
@@ -356,6 +358,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (forkHeight != 0)
             {
                 await RollbackToHeight(forkHeight, currentHeight - GlobalConfig.ForkDetectionLength);
+                RollBackTimes++;
             }
             else
             {

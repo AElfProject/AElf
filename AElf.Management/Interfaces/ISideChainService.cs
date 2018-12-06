@@ -1,11 +1,12 @@
-﻿using AElf.Management.Models;
+﻿using System.Threading.Tasks;
+using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
     public interface ISideChainService
     {
-        void Deploy(DeployArg arg);
+        Task Deploy(DeployArg arg);
 
-        void Remove(string chainId);
+        Task Remove(string chainId);
     }
 }

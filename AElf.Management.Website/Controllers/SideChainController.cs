@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AElf.Configuration;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
@@ -19,7 +20,7 @@ namespace AElf.Management.Website.Controllers
         }
 
         [HttpPost("{chainId}")]
-        public ApiEmptyResult Post(string chainId, [FromBody] DeployArg arg)
+        public async Task<ApiEmptyResult> Post(string chainId, [FromBody] DeployArg arg)
         {
             Console.WriteLine(JsonSerializer.Instance.Serialize(arg));
             arg.MainChainId = chainId;
@@ -28,7 +29,7 @@ namespace AElf.Management.Website.Controllers
         }
 
         [HttpDelete("{chainId}")]
-        public ApiEmptyResult Delete(string chainId)
+        public async Task<ApiEmptyResult> Delete(string chainId)
         {
             _sideChainService.Remove(chainId);
             return ApiEmptyResult.Default;

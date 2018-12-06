@@ -4,6 +4,7 @@ using System.Timers;
 using AElf.Configuration;
 using AElf.Configuration.Config.Management;
 using AElf.Management.Interfaces;
+using NLog;
 
 namespace AElf.Management.Services
 {
@@ -15,8 +16,12 @@ namespace AElf.Management.Services
         private readonly INetworkService _networkService;
         private readonly Timer _timer;
 
+        private readonly ILogger _logger;
+
         public RecordService(IChainService chainService, ITransactionService transactionService, INodeService nodeService, INetworkService networkService)
         {
+            _logger = LogManager.GetLogger("RecordService");
+
             _chainService = chainService;
             _transactionService = transactionService;
             _nodeService = nodeService;
@@ -34,40 +39,22 @@ namespace AElf.Management.Services
         private void TimerOnElapsed(object sender, ElapsedEventArgs e)
         {
             var time = DateTime.Now;
-//            Parallel.ForEach(ServiceUrlConfig.Instance.ServiceUrls.Keys, chainId =>
-//                {
-//                    var txPoolSize = _transactionService.GetPoolSize(chainId);
-//                    _transactionService.RecordPoolSize(chainId, time, txPoolSize);
-//
-//                    var isAlive = _nodeService.IsAlive(chainId);
-//                    var isForked = _nodeService.IsForked(chainId);
-//                    _nodeService.RecordPoolState(chainId, time, isAlive, isForked);
-//
-////                    var networkState = _networkService.GetPoolState(chainId);
-////                    _networkService.RecordPoolState(chainId, time, networkState.RequestPoolSize, networkState.ReceivePoolSize);
-//                    
-//                    _nodeService.RecordBlockInfo(chainId);
-//                }
-//            );
-
-            foreach (var chainId in ServiceUrlConfig.Instance.ServiceUrls.Keys)
-            {
-                try
+            Parallel.ForEach(ServiceUrlConfig.Instance.ServiceUrls.Keys, chainId =>
                 {
-                    var txPoolSize = _transactionService.GetPoolSize(chainId);
-                    _transactionService.RecordPoolSize(chainId, time, txPoolSize);
-
-                    var isAlive = _nodeService.IsAlive(chainId);
-                    var isForked = _nodeService.IsForked(chainId);
-                    _nodeService.RecordPoolState(chainId, time, isAlive, isForked);
-                    
-                    _nodeService.RecordBlockInfo(chainId);
+                    try
+                    {
+                        _transactionService.RecordPoolSize(chainId, time);
+                        _nodeService.RecordPoolState(chainId, time);
+                        _nodeService.RecordBlockInfo(chainId);
+                        _nodeService.RecordInvalidBlockCount(chainId, time);
+                        _nodeService.RecordRollBackTimes(chainId, time);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, "record data error.");
+                    }
                 }
-                catch (Exception exception)
-                {
-                    //Console.WriteLine(exception);
-                }
-            }
+            );
         }
     }
 }

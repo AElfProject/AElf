@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using AElf.Management.Commands;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
@@ -13,7 +14,7 @@ namespace AElf.Management.Services
 {
     public class ChainService : IChainService
     {
-        public List<ChainResult> GetAllChains()
+        public async Task<List<ChainResult>> GetAllChains()
         {
             var namespaces = K8SRequestHelper.GetClient().ListNamespace();
 
@@ -27,7 +28,7 @@ namespace AElf.Management.Services
                 }).ToList();
         }
 
-        public void DeployMainChain(DeployArg arg)
+        public async Task DeployMainChain(DeployArg arg)
         {
             if (string.IsNullOrWhiteSpace(arg.MainChainId))
             {
@@ -56,7 +57,7 @@ namespace AElf.Management.Services
             commands.ForEach(c => c.Action(arg));
         }
 
-        public void RemoveMainChain(string chainId)
+        public async Task RemoveMainChain(string chainId)
         {
             var commands = new List<IDeployCommand>
             {
