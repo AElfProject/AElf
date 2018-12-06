@@ -277,15 +277,18 @@ namespace AElf.Contracts.Authorization
                 var validApprovals = approved.Approvals.All(a =>
                 {
                     byte[] recovered = new byte[Secp256k1.PUBKEY_LENGTH];
-                    secp256k1.Recover(recovered, a.Signature.ToByteArray(), toSig);
-                        
+                    var compactSig = a.Signature.ToByteArray();
+                    var recSig = new byte[65];
+                    secp256k1.RecoverableSignatureParseCompact(recSig, compactSig, compactSig.Last());
+                    secp256k1.Recover(recovered, recSig, toSig);
+
                     var reviewer = authorization.Reviewers.FirstOrDefault(r => r.PubKey.SequenceEqual(recovered));
 
                     if (reviewer == null)
                         return false;
-                    
+
                     weight += reviewer.Weight;
-                    
+
                     return true;
                 });
 

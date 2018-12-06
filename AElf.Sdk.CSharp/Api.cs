@@ -113,7 +113,9 @@ namespace AElf.Sdk.CSharp
             using (var secp = new Secp256k1())
             {
                 byte[] recover = new byte[Secp256k1.PUBKEY_LENGTH];
-                secp.Recover(recover, signature, hash);
+                var recSig = new byte[65];
+                secp.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
+                secp.Recover(recover, recSig, hash);
                 
                 return recover;
             }
@@ -178,7 +180,10 @@ namespace AElf.Sdk.CSharp
 
             using (var secp256k1 = new Secp256k1())
             {
-                secp256k1.Recover(recoveredKey, tx.Sigs.First().ToByteArray(), hash);
+                var recSig = new byte[65];
+                var compactSig = tx.Sigs.First().ToByteArray();
+                secp256k1.RecoverableSignatureParseCompact(recSig, compactSig, compactSig.Last());
+                secp256k1.Recover(recoveredKey, recSig, hash);
             }
 
             return ByteString.CopyFrom(recoveredKey);
@@ -319,7 +324,10 @@ namespace AElf.Sdk.CSharp
                 for(int i = 0; i < sigCount; i++)
                 {
                     publicKeys[i] = new byte[Secp256k1.PUBKEY_LENGTH];
-                    secp256k1.Recover(publicKeys[i], _transactionContext.Transaction.Sigs[i].ToByteArray(), hash);
+                    var compactSig = _transactionContext.Transaction.Sigs[i].ToByteArray();
+                    var recSig = new byte[65];
+                    secp256k1.RecoverableSignatureParseCompact(recSig, compactSig, compactSig.Last());
+                    secp256k1.Recover(publicKeys[i], recSig, hash);
                 }
                 
                 //todo review correctness

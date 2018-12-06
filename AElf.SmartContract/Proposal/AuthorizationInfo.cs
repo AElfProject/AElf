@@ -37,7 +37,10 @@ namespace AElf.SmartContract.Proposal
                 for(int i = 0; i < transaction.Sigs.Count; i++)
                 {
                     publicKey[i] = new byte[Secp256k1.PUBKEY_LENGTH];
-                    secp256k1.Recover(publicKey[i], transaction.Sigs[i].ToByteArray(), hash);
+                    var compactSig = transaction.Sigs[i].ToByteArray();
+                    var recSig = new byte[65];
+                    secp256k1.RecoverableSignatureParseCompact(recSig, compactSig, compactSig.Last());
+                    secp256k1.Recover(publicKey[i], recSig, hash);
                 }
                 return CheckAuthority(transaction.From, publicKey);
             }
