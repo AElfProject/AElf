@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
     public interface ITransactionService
     {
-        ulong GetPoolSize(string chainId);
+        Task<ulong> GetPoolSize(string chainId);
 
-        void RecordPoolSize(string chainId, DateTime time, ulong poolSize);
+        Task RecordPoolSize(string chainId, DateTime timee);
 
-        List<PoolSizeHistory> GetPoolSizeHistory(string chainId);
+        Task<List<PoolSizeHistory>> GetPoolSizeHistory(string chainId);
     }
 }
