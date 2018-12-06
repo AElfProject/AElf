@@ -40,6 +40,7 @@ namespace AElf.Network.Peers
     public enum RejectReason
     {
         AuthTimeout,
+        AuthWrongVersion,
         AuthInvalidHandshakeMsg,
         AuthInvalidKey,
         AuthInvalidSig
@@ -276,6 +277,7 @@ namespace AElf.Network.Peers
                 NodeInfo = nodeInfo,
                 PublicKey = ByteString.CopyFrom(_nodeKey.GetEncodedPublicKey()),
                 Height = CurrentHeight,
+                Version = GlobalConfig.ReleaseVersion,
                 R = ByteString.CopyFrom(sig.R),
                 S = ByteString.CopyFrom(sig.S),
             };
@@ -359,6 +361,12 @@ namespace AElf.Network.Peers
 
             try
             {
+                if (handshakeMsg.Version != GlobalConfig.ReleaseVersion)
+                {
+                    FireInvalidAuth(RejectReason.AuthWrongVersion);
+                    return;
+                }
+                    
                 DistantNodeKeyPair = ECKeyPair.FromPublicKey(handshakeMsg.PublicKey.ToByteArray());
 
                 if (DistantNodeKeyPair == null)

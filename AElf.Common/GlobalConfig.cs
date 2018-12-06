@@ -3,6 +3,9 @@ namespace AElf.Common
     // ReSharper disable InconsistentNaming
     public static class GlobalConfig
     {
+        // current release version
+        public static string ReleaseVersion = "0.6"; 
+        
         public static int AddressLength = 18;
         public const ulong GenesisBlockHeight = 1;
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
