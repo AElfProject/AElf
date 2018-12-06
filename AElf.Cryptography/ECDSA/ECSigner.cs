@@ -16,7 +16,7 @@ namespace AElf.Cryptography.ECDSA
                 compactSig[64] = (byte)recoverID;
             }
             
-            return new ECSignature(recSig);
+            return new ECSignature(compactSig);
         }
     }
 }
