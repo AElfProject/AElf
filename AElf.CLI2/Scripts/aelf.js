@@ -774,6 +774,12 @@ var methods = function () {
         inputFormatter: [null]
     });
 
+    var getTxsResultByBlockhash = new Method({
+        name: 'getTxsResult',
+        call: 'get_txs_result',
+        params: ['blockhash', 'offset', 'num']
+    });
+
     var getMerklePath = new Method({
         name: 'getMerklePath',
         call: 'get_merkle_path',
@@ -805,6 +811,7 @@ var methods = function () {
         sendTransaction,
         callReadOnly,
         getTxResult,
+        getTxsResultByBlockhash,
         getMerklePath
     ];
 };
@@ -4262,7 +4269,7 @@ module.exports = {
 
 },{"./base58check":28,"bignumber.js":44,"buffer":59,"utf8":197}],31:[function(require,module,exports){
 module.exports={
-    "version": "1.1.0"
+    "version": "1.1.13"
 }
 
 },{}],32:[function(require,module,exports){
