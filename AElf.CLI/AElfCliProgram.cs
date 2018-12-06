@@ -11,6 +11,7 @@ using AElf.CLI.Certificate;
 using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
 using AElf.CLI.Command.MultiSig;
+using AElf.CLI.Command.SideChain;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Helpers;
 using AElf.CLI.Http;
@@ -64,9 +65,10 @@ namespace AElf.CLI
         private readonly int _port;
 
         private string _genesisAddress;
+        private string _authorizationAddress;
+        private string _crossChainContractAddress;
         private string _chainId;
             
-        private string _authorizationAddress;
 
         private static readonly RpcCalls Rpc = new RpcCalls();
         
@@ -96,7 +98,13 @@ namespace AElf.CLI
         private const string ProposalNotFound = "Get proposal first.";
         private readonly Dictionary<string, byte[]> _txnInProposal = new Dictionary<string, byte[]>();
         #endregion
-        
+
+        #region Cross chain
+        private const string ReuqestChainCreation = "ReuqestChainCreation";
+        private const string RequestChainDisposal = "RequestChainDisposal";
+        private const string WithdrawRequest = "WithdrawRequest";
+        #endregion
+
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
@@ -486,6 +494,8 @@ namespace AElf.CLI
                     }
                     
                 }
+
+                #region Proposal
                 if (def is CreateMSigCmd createMSig)
                 {
                     try
@@ -582,7 +592,6 @@ namespace AElf.CLI
                         return;
                     }
                 }
-
                 if (def is ProposeCmd pcmd)
                 {
                     try
@@ -600,10 +609,10 @@ namespace AElf.CLI
                         var expiredTime = UtcNow.AddSeconds(UInt64.Parse(parsedCmd.Args.ElementAt(i++)));
                         Proposal proposal = new Proposal
                         {
-                            MultiSigAccount = new Address(ByteArrayHelpers.FromHexString(msig)),
+                            MultiSigAccount = Address.Parse(msig),
                             Name = proposalName,
                             ExpiredTime = expiredTime,
-                            Proposer = ByteArrayHelpers.FromHexString(from),
+                            Proposer = Address.Parse(from),
                             Status = ProposalStatus.ToBeDecided
                         };
                         
@@ -612,15 +621,12 @@ namespace AElf.CLI
                         JObject j = JObject.Parse(parsedCmd.Args.ElementAt(i));
                         Transaction tr ;
                         tr = Transaction.ConvertFromJson(j);
-                        string hex = tr.To.Value.ToHex();
+                        string target = tr.To.GetFormatted();
                         Module m;
-                        if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
+                        if (!_loadedModules.TryGetValue(target.Replace("0x", ""), out m))
                         {
-                            if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
-                            {
-                                _screenManager.PrintError(AbiNotLoaded + "for Address " + "0x"+hex.Replace("0x", ""));
-                                return;
-                            }
+                            _screenManager.PrintError(AbiNotLoaded + "for Address " + target);
+                            return;
                         }
 
                         Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
@@ -688,7 +694,6 @@ namespace AElf.CLI
                         }
                     }
                 }
-                
                 if (def is ApproveCmd acmd)
                 {
                     try
@@ -758,7 +763,6 @@ namespace AElf.CLI
                         }
                     }
                 }
-                
                 if (def is ReleaseProposalCmd rcmd)
                 {
                     try
@@ -813,6 +817,153 @@ namespace AElf.CLI
                         }
                     }
                 }
+                #endregion
+
+                #region SideChain
+
+                if (def is ChainCreationRequestCmd ccrc)
+                {
+                    try
+                    {
+                        string err = ccrc.Validate(parsedCmd);
+                        if (!string.IsNullOrEmpty(err))
+                        {
+                            _screenManager.PrintLine(err);
+                            return;
+                        }
+                        
+                        if (_crossChainContractAddress == null)
+                        {
+                            _screenManager.PrintError(NotConnected);
+                            return;
+                        }
+                        if (!_loadedModules.TryGetValue(_crossChainContractAddress, out var m))
+                        {
+                            _screenManager.PrintError("Cross chain contract " + AbiNotLoaded);
+                            return;
+                        }
+
+                        Method meth = m.Methods.FirstOrDefault(mt => mt.Name.Equals(ReuqestChainCreation));
+                            
+                        if (meth == null)
+                        {
+                            _screenManager.PrintError(MethodNotFound);
+                            return;
+                        }
+                        
+                        int i = 0;
+                        var proposer = parsedCmd.Args.ElementAt(i++);
+                        UInt64 lockedAmount = UInt64.Parse(parsedCmd.Args.ElementAt(i++));
+                        UInt64 indexiPrice = UInt64.Parse(parsedCmd.Args.ElementAt(i++));
+                        string contractName = parsedCmd.Args.ElementAt(i++);
+                        
+                        SmartContractReader scReader = new SmartContractReader();
+                        byte[] sc = scReader.Read(contractName);
+                        SideChainInfo sideChainInfo = new SideChainInfo
+                        {
+                            IndexingPrice = indexiPrice,
+                            LockedTokenAmount = lockedAmount,
+                            ContractCode = sc,
+                            Proposer = Address.Parse(proposer),
+                            SideChainStatus = SideChainStatus.Apply
+                            // todo : resource needed
+                        };
+                        
+                        MemoryStream ms = new MemoryStream();
+                        Serializer.Serialize(ms, sideChainInfo);
+        
+                        byte[] b = ms.ToArray();
+                        byte[] serializedParams = meth.SerializeParams(new List<string> {b.ToHex()});
+
+                        Transaction t = Transaction.CreateTransaction(proposer, _crossChainContractAddress,
+                            ReuqestChainCreation, serializedParams, TransactionType.ContractTransaction);
+                        var resp = SignAndSendTransaction(t);
+                        CheckTxnResult(resp, ccrc);
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        switch (e)
+                        {
+                            case ContractLoadedException _:
+                            case AccountLockedException _:
+                                _screenManager.PrintError(e.Message);
+                                return;
+                            case InvalidTransactionException _:
+                                _screenManager.PrintError(InvalidTransaction);
+                                return;
+                            case JsonReaderException _:
+                                _screenManager.PrintError(WrongInputFormat);
+                                return;
+                            default:
+                                return;
+                        }
+                    }
+                }
+
+                if (def is ChainDisposalRequestCmd || def is WithdrawChainCreationRequestCmd)
+                {
+                    try
+                    {
+                        string err = def.Validate(parsedCmd);
+                        if (!string.IsNullOrEmpty(err))
+                        {
+                            _screenManager.PrintLine(err);
+                            return;
+                        }
+                        
+                        if (_crossChainContractAddress == null)
+                        {
+                            _screenManager.PrintError(NotConnected);
+                            return;
+                        }
+                        if (!_loadedModules.TryGetValue(_crossChainContractAddress, out var m))
+                        {
+                            _screenManager.PrintError("Cross chain contract " + AbiNotLoaded);
+                            return;
+                        }
+
+                        var methodName = def is ChainDisposalRequestCmd ? RequestChainDisposal : WithdrawRequest;
+                        Method meth = m.Methods.FirstOrDefault(mt => mt.Name.Equals(methodName));
+                            
+                        if (meth == null)
+                        {
+                            _screenManager.PrintError(MethodNotFound);
+                            return;
+                        }
+                        
+                        int i = 0;
+                        var proposer = parsedCmd.Args.ElementAt(i++);
+                        var chainId = parsedCmd.Args.ElementAt(i++);
+
+                        byte[] serializedParams = meth.SerializeParams(new[] {chainId});
+
+                        Transaction t = Transaction.CreateTransaction(proposer, _crossChainContractAddress,
+                            methodName, serializedParams, TransactionType.ContractTransaction);
+                        var resp = SignAndSendTransaction(t);
+                        CheckTxnResult(resp, (ChainDisposalRequestCmd)def);
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        switch (e)
+                        {
+                            case ContractLoadedException _:
+                            case AccountLockedException _:
+                                _screenManager.PrintError(e.Message);
+                                return;
+                            case InvalidTransactionException _:
+                                _screenManager.PrintError(InvalidTransaction);
+                                return;
+                            case JsonReaderException _:
+                                _screenManager.PrintError(WrongInputFormat);
+                                return;
+                            default:
+                                return;
+                        }
+                    }
+                }
+                #endregion
                 // Execute
                 // 2 cases : RPC command, Local command (like account management)
                 if (def.IsLocal)
@@ -956,6 +1107,7 @@ namespace AElf.CLI
                         {
                             _genesisAddress = j["result"][GlobalConfig.GenesisSmartContractZeroAssemblyName].ToString();
                             _authorizationAddress = j["result"][GlobalConfig.GenesisAuthorizationContractAssemblyName].ToString();
+                            _crossChainContractAddress = j["result"][GlobalConfig.GenesisCrossChainContractAssemblyName].ToString();
                         }
                         
                         if (j["result"]?["chain_id"] != null)
