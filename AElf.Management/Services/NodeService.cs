@@ -91,6 +91,42 @@ namespace AElf.Management.Services
             }
         }
 
+        public async Task RecordInvalidBlockCount(string chainId,DateTime time)
+        {
+            var count = await GetInvalidBlockCount(chainId);
+            
+            var fields = new Dictionary<string, object> {{"count", count}};
+            InfluxDBHelper.Set(chainId, "block_invalid", fields, null, time);
+        }
+        
+        public async Task RecordRollBackTimes(string chainId,DateTime time)
+        {
+            var times = await GetRollBackTimes(chainId);
+            
+            var fields = new Dictionary<string, object> {{"times", times}};
+            InfluxDBHelper.Set(chainId, "chain_rollback", fields, null, time);
+        }
+        
+        private async Task<int> GetInvalidBlockCount(string chainId)
+        {
+            var jsonRpcArg = new JsonRpcArg();
+            jsonRpcArg.Method = "get_invalid_block";
+
+            var state = await HttpRequestHelper.Request<JsonRpcResult<InvalidBlockResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/chain", jsonRpcArg);
+
+            return state.Result.InvalidBlockCount;
+        }
+
+        private async Task<int> GetRollBackTimes(string chainId)
+        {
+            var jsonRpcArg = new JsonRpcArg();
+            jsonRpcArg.Method = "get_rollback_times";
+
+            var state = await HttpRequestHelper.Request<JsonRpcResult<RollBackResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/chain", jsonRpcArg);
+
+            return state.Result.RollBackTimes;
+        }
+
         private async Task<BlockInfoResult> GetBlockInfo(string chainId, ulong height)
         {
             var jsonRpcArg = new JsonRpcArg<BlockInfoArg>();

@@ -44,10 +44,10 @@ namespace AElf.Management.Services
                     try
                     {
                         _transactionService.RecordPoolSize(chainId, time);
-
                         _nodeService.RecordPoolState(chainId, time);
-
                         _nodeService.RecordBlockInfo(chainId);
+                        _nodeService.RecordInvalidBlockCount(chainId, time);
+                        _nodeService.RecordRollBackTimes(chainId, time);
                     }
                     catch (Exception ex)
                     {
