@@ -361,7 +361,7 @@ namespace AElf.Network.Peers
 
             try
             {
-                if (handshakeMsg.Version != GlobalConfig.ReleaseVersion)
+                if (string.IsNullOrEmpty(handshakeMsg.Version) || handshakeMsg.Version != GlobalConfig.ReleaseVersion)
                 {
                     FireInvalidAuth(RejectReason.AuthWrongVersion);
                     return;

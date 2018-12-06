@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -20,6 +21,7 @@ namespace AElf.Network.Tests
             {
                 NodeInfo = nodeInfo,
                 PublicKey = ByteString.CopyFrom(key.GetEncodedPublicKey()),
+                Version = GlobalConfig.ReleaseVersion,
                 R = ByteString.CopyFrom(sig.R),
                 S = ByteString.CopyFrom(sig.S),
             };
