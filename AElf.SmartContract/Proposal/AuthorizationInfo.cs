@@ -14,7 +14,7 @@ namespace AElf.SmartContract.Proposal
     {
         private readonly ContractInfoReader _contractInfoReader;
         private Address AuthorizationContractAddress =>
-            ContractHelpers.GetAuthorizationContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            ContractHelpers.GetAuthorizationContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
         public AuthorizationInfo(IStateStore stateStore)
         {
             var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);

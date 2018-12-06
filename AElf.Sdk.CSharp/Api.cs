@@ -85,7 +85,7 @@ namespace AElf.Sdk.CSharp
 
         private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
 
-        private static Address ConsensusContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
+        private static Address ConsensusContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
 
         public static Address Genesis => Address.Genesis;
 
@@ -156,22 +156,6 @@ namespace AElf.Sdk.CSharp
             return _transactionContext.Transaction.ToReadOnly();
         }
         
-        public static ByteString GetPublicKey()
-        {
-            //todo review maybe not do all this in here
-            var tx = GetTransaction();
-            var hash = tx.GetHash().DumpByteArray();
-            
-            byte[] recoveredKey = new byte[Secp256k1.PUBKEY_LENGTH];
-
-            using (var secp256k1 = new Secp256k1())
-            {
-                secp256k1.Recover(recoveredKey, tx.Sigs.First().ToByteArray(), hash);
-            }
-
-            return ByteString.CopyFrom(recoveredKey);
-        }
-
         public static Hash GetTxnHash()
         {
             return GetTransaction().GetHash();
@@ -274,10 +258,12 @@ namespace AElf.Sdk.CSharp
             return _lastCallContext.Trace.IsSuccessful();
         }
 
-        public static byte[] GetCallResult()
+        private static byte[] GetCallResult()
         {
             if (_lastCallContext != null)
             {
+                if(!_lastCallContext.Trace.StdErr.IsEmpty())
+                    Console.WriteLine($"Error: {_lastCallContext.Trace.StdErr}");
                 return _lastCallContext.Trace.RetVal.Data.ToByteArray();
             }
 
@@ -311,9 +297,9 @@ namespace AElf.Sdk.CSharp
             SendInline(TokenContractAddress, "Transfer", GetContractAddress(), amount);
         }
         
-        public static void WithdrawToken(ulong amount)
+        public static void WithdrawToken(Address address, ulong amount)
         {
-            SendInlineByContract(TokenContractAddress, "Transfer", GetFromAddress(), amount);
+            SendInlineByContract(TokenContractAddress, "Transfer", address, amount);
         }
 
         public static void LockResource(ulong amount, ResourceType resourceType)
@@ -402,21 +388,22 @@ namespace AElf.Sdk.CSharp
             
         }
 
-                
+
         /// <summary>
         /// Create and propose a proposal. Proposer is current transaction from account.
         /// </summary>
         /// <param name="proposalName">Proposal name.</param>
+        /// <param name="targetAddress">To address of packed transaction.</param>
         /// <param name="invokingMethod">The method to be invoked in packed transaction.</param>
         /// <param name="waitingPeriod">Expired time in second for proposal.</param>
         /// <param name="args">The arguments for packed transaction.</param>
-        public static void Propose(string proposalName, double waitingPeriod, string invokingMethod, params object []args)
+        public static Hash Propose(string proposalName, double waitingPeriod, Address targetAddress, string invokingMethod, params object []args)
         {
             // packed txn
             byte[] txnData = new Transaction
             {
-                From = GetFromAddress(),
-                To = AuthorizationContractAddress,
+                From = Genesis,
+                To = targetAddress,
                 MethodName = invokingMethod,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args)),
                 Type = TransactionType.MsigTransaction
@@ -435,7 +422,8 @@ namespace AElf.Sdk.CSharp
                 Status = ProposalStatus.ToBeDecided,
                 Proposer = GetFromAddress()
             };
-            SendInline(AuthorizationContractAddress, "Propose", ParamsPacker.Pack(proposal));
+            SendInline(AuthorizationContractAddress, "Propose", proposal);
+            return proposal.GetHash();
         }
         
     }
