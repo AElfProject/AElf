@@ -9,6 +9,7 @@ namespace AElf.Synchronization.BlockSynchronization
     public interface IBlockSet
     {
         ulong KeepHeight { get; set; }
+        int InvalidBlockCount { get; }
         void AddBlock(IBlock block);
         void AddOrUpdateBlock(IBlock block);
         void Tell(IBlock currentExecutedBlock);

@@ -216,11 +216,11 @@ namespace AElf.ChainController.Rpc
             return (ulong)(await s.TxHub.GetReceiptsOfExecutablesAsync()).Count;
         }
 
-        internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
-        {
-            // TODO: Maybe control this in miner
-//            s.TxPool.SetBlockVolume(minimal, maximal);
-        }
+//        internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
+//        {
+//            // TODO: Maybe control this in miner
+////            s.TxPool.SetBlockVolume(minimal, maximal);
+//        }
 
         internal static async Task<byte[]> CallReadOnly(this Svc s, Transaction tx)
         {
@@ -271,6 +271,38 @@ namespace AElf.ChainController.Rpc
         {
             var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHashAsync(blockHash);
+        }
+
+        internal static async Task<int> GetInvalidBlockCount(this Svc s)
+        {
+            return s.BlockSet.InvalidBlockCount;
+        }
+        
+        internal static IMessage GetInstance(this Svc s,string type)
+        {
+            switch (type)
+            {
+                case "MerklePath":
+                    return new MerklePath();
+                case "BinaryMerkleTree":
+                    return new BinaryMerkleTree ();
+                case "BlockHeader":
+                    return new BlockHeader();
+                case "BlockBody":
+                    return new BlockBody();
+                case "Hash":
+                    return new Hash();
+                case "SmartContractRegistration":
+                    return new SmartContractRegistration();
+                case "Transaction":
+                    return new Transaction();
+                case "TransactionResult":
+                    return new TransactionResult();
+                case "TransactionTrace":
+                    return new TransactionTrace();
+                default:
+                    throw new ArgumentException($"[{type}] not found");
+            }
         }
     }
     
