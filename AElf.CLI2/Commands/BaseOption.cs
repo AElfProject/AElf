@@ -49,7 +49,7 @@ namespace AElf.CLI2.Commands
 
         public string GetPathForAccount(string address)
         {
-            return Path.GetFullPath(Path.Combine(AccountsDir, address + ".json"));
+            return Path.GetFullPath(Path.Combine(AccountsDir, address + ".ak"));
         }
 
         public BaseOption()

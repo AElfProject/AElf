@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using System.Xml.Serialization;
 using AElf.CLI2.JS;
+using AElf.CLI2.Utils;
 using Autofac;
+using ChakraCore.NET;
 using CommandLine;
 using NLog.Targets;
 
@@ -44,6 +46,8 @@ namespace AElf.CLI2.Commands
             string mnemonic = obj.ReadProperty<string>("mnemonic");
             string privKey = obj.ReadProperty<string>("privateKey");
             string address = obj.ReadProperty<string>("address");
+            JSValue keyPair = obj.ReadProperty<JSValue>("keyPair");
+            string pubKey = keyPair.CallFunction<string, string>("getPublic", "hex");
             PrintAccount(address, mnemonic, privKey);
 
             if (!ReadLine.Read("Saving account info to file? (Y/N): ").Equals("y", StringComparison.OrdinalIgnoreCase))
@@ -52,14 +56,10 @@ namespace AElf.CLI2.Commands
             }
 
             var password = PromptPassword();
-            var encryptedMnemonic = Utils.Cryptography.Encrypt(mnemonic, password);
 
             var accountFile = _option.GetPathForAccount(address);
 
-            new EncryptedAccount()
-            {
-                EncryptedMnemonic = encryptedMnemonic
-            }.DumpToFile(accountFile);
+            Pem.WriteKeyPair(accountFile, privKey, pubKey, password);
 
             Console.WriteLine($@"Account info has been saved to ""{accountFile}""");
         }
