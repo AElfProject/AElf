@@ -1,5 +1,5 @@
 OUT_DIR=$1
-FROM_FILE="ChakraCore.dll"
+FROM_FILE=
 TO_FILE="ChakraCore.dll"
 
 GET_OS()
@@ -14,6 +14,7 @@ GET_OS()
 
     if [[ "${UNAME_OUTPUT}" =~ 'Linux' ]]; then
         CURRENT_OS="Linux"
+        FROM_FILE="libChakraCore.so"
         return
     fi
 
