@@ -11,9 +11,7 @@ using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using Org.BouncyCastle.Asn1.Ocsp;
 using ProtoBuf;
-using Secp256k1Net;
 using Address = AElf.Common.Address;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 
@@ -238,21 +236,7 @@ namespace AElf.CLI.Wallet
 
             // Sign the hash
             byte[] hash = SHA256.Create().ComputeHash(txnData);
-            return SignWithPrivateKey(kp.PrivateKey, hash);
-        }
-
-        private byte[] SignWithPrivateKey(byte[] privateKey, byte[] hash)
-        {
-            var recSig = new byte[65];
-            var compactSig = new byte[65];
-            using (var secp256k1 = new Secp256k1())
-            {
-                secp256k1.SignRecoverable(recSig, hash, privateKey);
-                secp256k1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig);
-                compactSig[64] = (byte) recoverId; // put recover id at the last slot
-            }
-
-            return compactSig;
+            return CryptoHelpers.SignWithPrivateKey(kp.PrivateKey, hash);
         }
     }
 }

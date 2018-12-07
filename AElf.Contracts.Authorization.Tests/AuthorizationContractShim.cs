@@ -9,7 +9,6 @@ using AElf.Kernel;
 using AElf.Kernel.Types.Proposal;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Secp256k1Net;
 
 namespace AElf.Contracts.Authorization.Tests
 {

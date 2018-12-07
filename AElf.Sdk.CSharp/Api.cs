@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Types.Proposal;
 using AElf.Kernel.Types.Transaction;
@@ -12,9 +13,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 using AElf.Sdk.CSharp.ReadOnly;
-using AElf.SmartContract.Proposal;
-using NServiceKit.Common.Extensions;
-using Secp256k1Net;
 
 namespace AElf.Sdk.CSharp
 {
@@ -63,7 +61,7 @@ namespace AElf.Sdk.CSharp
             await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration,
                 false);
         }
-        
+
         public static async Task UpdateContractAsync(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
@@ -87,7 +85,7 @@ namespace AElf.Sdk.CSharp
         {
             return ContractHelpers.GetSideChainContractAddress(_smartContractContext.ChainId);
         }
-        
+
         public static Address GetAuthorizationContractAddress()
         {
             return ContractHelpers.GetAuthorizationContractAddress(_smartContractContext.ChainId);
@@ -110,23 +108,15 @@ namespace AElf.Sdk.CSharp
 
         public static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            using (var secp = new Secp256k1())
-            {
-                byte[] recover = new byte[Secp256k1.PUBKEY_LENGTH];
-                var recSig = new byte[65];
-                secp.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
-                secp.Recover(recover, recSig, hash);
-                
-                return recover;
-            }
+            return CryptoHelpers.RecoverPublicKey(signature, hash);
         }
-        
+
         public static List<Reviewer> GetSystemReviewers()
         {
             // TODO: Get current miners and chain creators
             throw new NotImplementedException();
         }
-        
+
         public static Address GetContractOwner()
         {
             if (Call(GetContractZeroAddress(), "GetContractOwner",
@@ -169,24 +159,14 @@ namespace AElf.Sdk.CSharp
         {
             return _transactionContext.Transaction.ToReadOnly();
         }
-        
+
         public static ByteString GetPublicKey()
         {
             //todo review maybe not do all this in here
             var tx = GetTransaction();
             var hash = tx.GetHash().DumpByteArray();
-            
-            byte[] recoveredKey = new byte[Secp256k1.PUBKEY_LENGTH];
 
-            using (var secp256k1 = new Secp256k1())
-            {
-                var recSig = new byte[65];
-                var compactSig = tx.Sigs.First().ToByteArray();
-                secp256k1.RecoverableSignatureParseCompact(recSig, compactSig, compactSig.Last());
-                secp256k1.Recover(recoveredKey, recSig, hash);
-            }
-
-            return ByteString.CopyFrom(recoveredKey);
+            return ByteString.CopyFrom(CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(), hash));
         }
 
         public static Address GetTransactionFromAddress()
@@ -269,7 +249,7 @@ namespace AElf.Sdk.CSharp
         {
             return new TxSignatureVerifier().Verify(proposedTxn);
         }
-        
+
         #endregion Transaction API
 
         #region Utility API
@@ -308,35 +288,30 @@ namespace AElf.Sdk.CSharp
             if (_transactionContext.Transaction.Sigs.Count == 1)
                 // No need to verify signature again if it is not multi sig account.
                 return true;
-            
+
             Call(GetAuthorizationContractAddress(), "GetAuth", ParamsPacker.Pack(_transactionContext.Transaction.From));
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
-            
+
             // Get tx hash
             var hash = _transactionContext.Transaction.GetHash().DumpByteArray();
-            
-            using (var secp256k1 = new Secp256k1())
+
+
+            // Get pub keys
+            int sigCount = _transactionContext.Transaction.Sigs.Count;
+            List<byte[]> publicKeys = new List<byte[]>(sigCount);
+
+            for (int i = 0; i < sigCount; i++)
             {
-                // Get pub keys
-                int sigCount = _transactionContext.Transaction.Sigs.Count;
-                List<byte[]> publicKeys = new List<byte[]>(sigCount);
-                
-                for(int i = 0; i < sigCount; i++)
-                {
-                    publicKeys[i] = new byte[Secp256k1.PUBKEY_LENGTH];
-                    var compactSig = _transactionContext.Transaction.Sigs[i].ToByteArray();
-                    var recSig = new byte[65];
-                    secp256k1.RecoverableSignatureParseCompact(recSig, compactSig, compactSig.Last());
-                    secp256k1.Recover(publicKeys[i], recSig, hash);
-                }
-                
-                //todo review correctness
-                uint provided = publicKeys
-                    .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
-                    .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
-                
-                return provided >= auth.ExecutionThreshold;
+                publicKeys[i] =
+                    CryptoHelpers.RecoverPublicKey(_transactionContext.Transaction.Sigs[i].ToByteArray(), hash);
             }
+
+            //todo review correctness
+            uint provided = publicKeys
+                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
+                .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
+
+            return provided >= auth.ExecutionThreshold;
         }
     }
 }

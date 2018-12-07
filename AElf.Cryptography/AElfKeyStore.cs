@@ -11,7 +11,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
-using Secp256k1Net;
 
 namespace AElf.Cryptography
 {
