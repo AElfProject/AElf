@@ -147,12 +147,10 @@ namespace AElf.CLI.Wallet
             if (tryOpen == AElfKeyStore.Errors.None)
             {
                 _screenManager.PrintLine("account successfully unlocked!");
+                var kp = _keyStore.GetAccountKeyPair(address);
+                _screenManager.PrintLine($"Pub : {kp.PublicKey.ToHex()}");
                 return;
             }
-
-            var kp = _keyStore.GetAccountKeyPair(address);
-            
-            _screenManager.PrintLine($"Pub : {kp.PublicKey.ToHex()}");
         }
 
         private void CreateNewAccount()
