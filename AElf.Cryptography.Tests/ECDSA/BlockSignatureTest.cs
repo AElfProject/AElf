@@ -1,4 +1,5 @@
-﻿using AElf.Cryptography.ECDSA;
+﻿using System;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Xunit;
 using AElf.Common;
@@ -32,7 +33,6 @@ namespace AElf.Cryptography.Tests.ECDSA
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
         
             ECVerifier verifier = new ECVerifier();
-        
             Assert.True(verifier.Verify(signature, hash.DumpByteArray()));
         }
     }

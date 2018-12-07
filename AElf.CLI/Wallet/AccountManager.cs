@@ -11,7 +11,6 @@ using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using Org.BouncyCastle.Asn1.Ocsp;
 using ProtoBuf;
 using Address = AElf.Common.Address;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
@@ -23,7 +22,7 @@ namespace AElf.CLI.Wallet
         private const string NewCmdName = "new";
         private const string ListAccountsCmdName = "list";
         private const string UnlockAccountCmdName = "unlock";
-        
+
         private AElfKeyStore _keyStore;
         private ScreenManager _screenManager;
 
@@ -60,10 +59,10 @@ namespace AElf.CLI.Wallet
 
             if (!_subCommands.Contains(parsedCmd.Args.ElementAt(0)))
                 return CliCommandDefinition.InvalidParamsError;
-            
+
             return null;
         }
-        
+
         public void ProcessCommand(CmdParseResult parsedCmd)
         {
             string validationError = Validate(parsedCmd);
@@ -83,7 +82,7 @@ namespace AElf.CLI.Wallet
                     _screenManager.PrintError("No chain id loaded - please connect to node (connect_chain).");
                     return;
                 }
-                
+
                 CreateNewAccount();
             }
             else if (subCommand.Equals(ListAccountsCmdName, StringComparison.OrdinalIgnoreCase))
@@ -117,13 +116,13 @@ namespace AElf.CLI.Wallet
                 _screenManager.PrintError("error: the account '" + address + "' does not exist.");
                 return;
             }
-            
+
             if (!accounts.Contains(address))
             {
                 _screenManager.PrintError("account does not exist!");
                 return;
             }
-                
+
             var password = _screenManager.AskInvisible("password: ");
             var tryOpen = _keyStore.OpenAsync(address, password, timeout);
 
@@ -132,6 +131,7 @@ namespace AElf.CLI.Wallet
                 _screenManager.PrintError("incorrect password!");
                 return;
             }
+
             if (tryOpen == AElfKeyStore.Errors.AccountAlreadyUnlocked)
             {
                 _screenManager.PrintError("account already unlocked!");
@@ -160,11 +160,12 @@ namespace AElf.CLI.Wallet
             var password = _screenManager.AskInvisible("password: ");
             var keypair = _keyStore.Create(password, _chainId);
             var pubKey = keypair.PublicKey;
-            
+
             var addr = Address.FromPublicKey(_chainId.DecodeBase58(), pubKey);
-            
+
             if (addr != null)
             {
+                _screenManager.PrintLine("Account private key: " + keypair.PrivateKey.ToHex());
                 _screenManager.PrintLine("Account pub key: " + pubKey.ToHex());
                 _screenManager.PrintLine("Account address: " + addr.GetFormatted());
             }
@@ -178,7 +179,7 @@ namespace AElf.CLI.Wallet
             {
                 _screenManager.PrintLine("account #" + i + " : " + accnts.ElementAt(i));
             }
-            
+
             if (accnts.Count == 0)
                 _screenManager.PrintLine("no accounts available");
         }
@@ -217,12 +218,12 @@ namespace AElf.CLI.Wallet
         public Transaction SignTransaction(Transaction tx)
         {
             string addr = tx.From.GetFormatted();
-            
+
             MemoryStream ms = new MemoryStream();
             Serializer.Serialize(ms, tx);
-                
+
             // Update the signature
-            tx.Sigs = new List<byte[]> { Sign(addr, ms.ToArray()) };
+            tx.Sigs = new List<byte[]> {Sign(addr, ms.ToArray())};
             return tx;
         }
 
@@ -232,13 +233,10 @@ namespace AElf.CLI.Wallet
 
             if (kp == null)
                 throw new AccountLockedException(addr);
-            
-            // Sign the hash
-            ECSigner signer = new ECSigner();
-            byte[] toSig = SHA256.Create().ComputeHash(txnData);
-            ECSignature signature = signer.Sign(kp, toSig);
 
-            return signature.SigBytes;
+            // Sign the hash
+            byte[] hash = SHA256.Create().ComputeHash(txnData);
+            return CryptoHelpers.SignWithPrivateKey(kp.PrivateKey, hash);
         }
     }
 }

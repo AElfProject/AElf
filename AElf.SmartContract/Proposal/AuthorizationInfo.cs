@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Proposal;
-using Secp256k1Net;
 
 namespace AElf.SmartContract.Proposal
 {
@@ -13,14 +13,16 @@ namespace AElf.SmartContract.Proposal
     public class AuthorizationInfo : IAuthorizationInfo
     {
         private readonly ContractInfoReader _contractInfoReader;
+
         private Address AuthorizationContractAddress =>
             ContractHelpers.GetAuthorizationContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+
         public AuthorizationInfo(IStateStore stateStore)
         {
             var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
             _contractInfoReader = new ContractInfoReader(chainId, stateStore);
         }
-        
+
         // todo review
         public bool CheckAuthority(Transaction transaction)
         {
@@ -29,18 +31,15 @@ namespace AElf.SmartContract.Proposal
 
             if (transaction.Sigs.Count == 1)
                 return true;
-            
-            using (var secp256k1 = new Secp256k1())
+
+            // Get pub keys
+            List<byte[]> publicKey = new List<byte[]>(transaction.Sigs.Count);
+            for (int i = 0; i < transaction.Sigs.Count; i++)
             {
-                // Get pub keys
-                List<byte[]> publicKey = new List<byte[]>(transaction.Sigs.Count);
-                for(int i = 0; i < transaction.Sigs.Count; i++)
-                {
-                    publicKey[i] = new byte[Secp256k1.PUBKEY_LENGTH];
-                    secp256k1.Recover(publicKey[i], transaction.Sigs[i].ToByteArray(), hash);
-                }
-                return CheckAuthority(transaction.From, publicKey);
+                publicKey[i] = CryptoHelpers.RecoverPublicKey(transaction.Sigs[i].ToByteArray(), hash);
             }
+
+            return CheckAuthority(transaction.From, publicKey);
         }
 
         public Kernel.Types.Proposal.Proposal GetProposal(Hash proposalHash)
@@ -64,7 +63,7 @@ namespace AElf.SmartContract.Proposal
         }
 
         private bool CheckAuthority(Authorization authorization, IEnumerable<byte[]> pubKeys)
-        { 
+        {
             long provided = pubKeys
                 .Select(pubKey => authorization.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
                 .Where(r => r != null).Aggregate<Reviewer, long>(0, (current, r) => current + r.Weight);

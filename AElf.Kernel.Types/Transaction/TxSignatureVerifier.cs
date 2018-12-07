@@ -1,5 +1,7 @@
+using System;
+using System.Linq;
 using AElf.Common;
-using AElf.Cryptography.ECDSA;
+using AElf.Cryptography;
 
 namespace AElf.Kernel.Types.Transaction
 {
@@ -14,23 +16,13 @@ namespace AElf.Kernel.Types.Transaction
 
             if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
             {
-                // todo Check the address of signer if only one signer.
-//                var pubKey = tx.Sigs[0].P.ToByteArray();
-//                var addr = Address.FromRawBytes(pubKey);
-//
-//                if (!addr.Equals(tx.From))
-//                    return false;
+                var pubkey =
+                    CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(), tx.GetHash().DumpByteArray());
+                return Address.FromPublicKey(new byte[0], pubkey) == tx.From;
             }
-            
-            foreach (var sig in tx.Sigs)
-            {
-                var verifier = new ECVerifier();
-                
-                if(verifier.Verify(new ECSignature(sig.ToByteArray()), tx.GetHash().DumpByteArray()))
-                    continue;
-                
-                return false;
-            }
+
+            // Multi sig, TODO old logic tries to recover pubkey here (do we really need)
+
             return true;
         }
     }
