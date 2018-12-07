@@ -24,6 +24,10 @@ namespace AElf.SmartContract.Proposal
         // todo review
         public bool CheckAuthority(Transaction transaction)
         {
+            var sigCount = transaction.Sigs.Count;
+            if (sigCount == 0)
+                return false;
+            
             // Get tx hash
             var hash = transaction.GetHash().DumpByteArray();
 
@@ -33,7 +37,7 @@ namespace AElf.SmartContract.Proposal
             using (var secp256k1 = new Secp256k1())
             {
                 // Get pub keys
-                List<byte[]> publicKey = new List<byte[]>(transaction.Sigs.Count);
+                List<byte[]> publicKey = new List<byte[]>();
                 for(int i = 0; i < transaction.Sigs.Count; i++)
                 {
                     publicKey[i] = new byte[Secp256k1.PUBKEY_LENGTH];
