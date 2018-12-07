@@ -34,10 +34,7 @@ namespace AElf.Cryptography
 
             var pubkey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
 
-            using (var secp256k1 = new Secp256k1())
-            {
-                secp256k1.PublicKeySerialize(pubkey, _secp256K1PubKey);
-            }
+            _secp256k1.PublicKeySerialize(pubkey, _secp256K1PubKey);
 
             return new ECKeyPair(privateKey, pubkey);
         }
