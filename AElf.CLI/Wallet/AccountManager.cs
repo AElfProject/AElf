@@ -135,6 +135,8 @@ namespace AElf.CLI.Wallet
             if (tryOpen == AElfKeyStore.Errors.AccountAlreadyUnlocked)
             {
                 _screenManager.PrintError("account already unlocked!");
+                var kpp = _keyStore.GetAccountKeyPair(address);
+                _screenManager.PrintLine($"Pub : {kpp.PublicKey.ToHex()}");
                 return;
             }
 
@@ -147,11 +149,9 @@ namespace AElf.CLI.Wallet
             if (tryOpen == AElfKeyStore.Errors.None)
             {
                 _screenManager.PrintLine("account successfully unlocked!");
-                return;
             }
 
             var kp = _keyStore.GetAccountKeyPair(address);
-            
             _screenManager.PrintLine($"Pub : {kp.PublicKey.ToHex()}");
         }
 
