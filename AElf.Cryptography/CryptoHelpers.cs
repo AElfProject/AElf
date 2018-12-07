@@ -10,31 +10,34 @@ namespace AElf.Cryptography
     {
         // ReSharper disable once InconsistentNaming
         // ReSharper disable once IdentifierTypo
-        private static readonly Secp256k1 _secp256k1 = new Secp256k1();
+        /*private static readonly Secp256k1 secp256k1 = new Secp256k1();
 
         static CryptoHelpers()
         {
-            AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { _secp256k1.Dispose(); };
-        }
+            AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { secp256k1.Dispose(); };
+        }*/
 
         public static ECKeyPair GenerateKeyPair()
         {
             var privateKey = new byte[32];
-            var _secp256K1PubKey = new byte[64];
+            var secp256k1PubKey = new byte[64];
 
             // Generate a private key.
             var rnd = RandomNumberGenerator.Create();
-
-            do
+            byte[] pubkey;
+            using (Secp256k1 secp256k1 = new Secp256k1())
             {
-                rnd.GetBytes(privateKey);
-            } while (!_secp256k1.SecretKeyVerify(privateKey));
+                do
+                {
+                    rnd.GetBytes(privateKey);
+                } while (!secp256k1.SecretKeyVerify(privateKey));
 
-            _secp256k1.PublicKeyCreate(_secp256K1PubKey, privateKey);
+                secp256k1.PublicKeyCreate(secp256k1PubKey, privateKey);
 
-            var pubkey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+                pubkey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
 
-            _secp256k1.PublicKeySerialize(pubkey, _secp256K1PubKey);
+                secp256k1.PublicKeySerialize(pubkey, secp256k1PubKey);
+            }
 
             return new ECKeyPair(privateKey, pubkey);
         }
@@ -43,29 +46,38 @@ namespace AElf.Cryptography
         {
             var recSig = new byte[65];
             var compactSig = new byte[65];
-
-            _secp256k1.SignRecoverable(recSig, hash, privateKey);
-            _secp256k1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig);
-            compactSig[64] = (byte) recoverId; // put recover id at the last slot
-
+            using (Secp256k1 secp256k1 = new Secp256k1())
+            {
+                secp256k1.SignRecoverable(recSig, hash, privateKey);
+                secp256k1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig);
+                compactSig[64] = (byte) recoverId; // put recover id at the last slot
+            }
             return compactSig;
         }
 
         public static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            byte[] recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
-            var recSig = new byte[65];
-            _secp256k1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
-            _secp256k1.Recover(recoveredPubKey, recSig, hash);
-
-            return recoveredPubKey;
+            byte[] pubkey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+            using (Secp256k1 secp256k1 = new Secp256k1())
+            {
+                byte[] recoveredPubKey;
+                recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
+                var recSig = new byte[65];
+                secp256k1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
+                secp256k1.Recover(recoveredPubKey, recSig, hash);
+                secp256k1.PublicKeySerialize(pubkey, recoveredPubKey);
+            }
+            return pubkey;
         }
 
         public static bool Verify(byte[] signature, byte[] hash, byte[] pubKey)
         {
-            var recSig = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];
-            _secp256k1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
-            return _secp256k1.Verify(recSig, hash, pubKey);
+            using (Secp256k1 secp256K1 = new Secp256k1())
+            {
+                var recSig = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];
+                secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
+                return secp256K1.Verify(recSig, hash, pubKey);
+            }
         }
 
         /// <summary>

@@ -181,7 +181,6 @@ namespace AElf.Contracts.Authorization
             // check approvals
             var approved = _approved.GetValue(proposalHash);
 
-            Console.WriteLine($"Assert {proposal.Status} == Decided and permissions...");
             Api.Assert(proposal.Status == ProposalStatus.Decided && CheckPermission(approved, auth, proposal),
                 "Not authorized to release.");
 
@@ -293,7 +292,6 @@ namespace AElf.Contracts.Authorization
 
             //Api.Assert(validApprovals, "Unauthorized approval."); //This should never happen.
             //Api.Assert(weight >= authorization.ExecutionThreshold, "Not enough approvals.");
-
             return validApprovals && weight >= authorization.ExecutionThreshold;
         }
 
