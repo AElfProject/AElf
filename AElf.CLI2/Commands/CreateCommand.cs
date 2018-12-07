@@ -8,7 +8,7 @@ using NLog.Targets;
 
 namespace AElf.CLI2.Commands
 {
-    [Verb("create", HelpText = "Account related options")]
+    [Verb("create", HelpText = "Create a new account.")]
     public class CreateOption : BaseOption
     {
     }

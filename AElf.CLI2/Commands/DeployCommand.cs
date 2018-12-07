@@ -12,7 +12,7 @@ using CommandLine;
 
 namespace AElf.CLI2.Commands
 {
-    [Verb("deploy", HelpText = "Account related options")]
+    [Verb("deploy", HelpText = "Deploy a smart contract.")]
     public class DeployOption : BaseOption
     {
         [Value(0, MetaName = "category", HelpText = "The category of the contract to be deployed.", Required = true)]

@@ -16,7 +16,7 @@ using Console = System.Console;
 
 namespace AElf.CLI2.Commands
 {
-    [Verb("interactive", HelpText = "Account related options")]
+    [Verb("interactive", HelpText = "Open the interactive console.")]
     public class InteractiveOption : BaseOption
     {
     }
