@@ -1,0 +1,1 @@
+../AElf.CLI2/DownloadChakraCore.sh
