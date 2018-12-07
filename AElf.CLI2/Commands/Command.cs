@@ -26,6 +26,7 @@ namespace AElf.CLI2.Commands
             if (!File.Exists(accountFile))
             {
                 Colors.WriteLine($@"Account file ""{accountFile}"" doesn't exist.".DarkRed());
+                return;
             }
 
             Console.WriteLine("Unlocking account ...");
