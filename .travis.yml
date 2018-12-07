@@ -9,6 +9,8 @@ before_install:
 install:
   - export DOTNET_CLI_TELEMETRY_OPTOUT=1
 before_script:
+  - curl -SL https://aka.ms/chakracore/install | bash
+  - export LD_LIBRARY_PATH=$(pwd)/ChakraCoreFiles/lib/:$LD_LIBRARY_PATH
   - chmod a+x ./build.sh
   - chmod a+x ./deploy.sh
 script:

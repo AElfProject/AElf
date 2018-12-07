@@ -36,7 +36,8 @@ namespace AElf.Common
                     target.FileName = "logs/" + _nodeName + ".log";
                     target.ArchiveFileName = "logs/archives/" + _nodeName + "--{#}.arc";
                 }
-
+                
+                HookLogConfiguration(LogManager.Configuration);
                 LogManager.ReconfigExistingLoggers();
             }
             catch (Exception ex)
@@ -51,6 +52,9 @@ namespace AElf.Common
             // Handle constructor parameters.
             registration.Preparing += OnComponentPreparing;
         }
+        
+        
+        protected virtual void HookLogConfiguration(LoggingConfiguration configuration) {}
 
         private void OnComponentPreparing(object sender, PreparingEventArgs e)
         {
