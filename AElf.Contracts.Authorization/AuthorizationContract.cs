@@ -86,6 +86,8 @@ namespace AElf.Contracts.Authorization
 
         public byte[] CreateMultiSigAccount(Kernel.Types.Proposal.Authorization authorization)
         {
+            Api.Assert(authorization.Reviewers.Count > 0 && authorization.Reviewers.All(r => r.PubKey.Length > 0),
+                "Invalid authorization for multi signature.");
             // TODO: check public key -- if no Multisig account then ELF_chainID_SHA^2(authorization)
             Address multiSigAccount = authorization.MultiSigAccount ??
                                       Address.FromPublicKey(Api.ChainId.DumpByteArray(),
