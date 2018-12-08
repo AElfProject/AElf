@@ -124,10 +124,10 @@ namespace AElf.Sdk.CSharp
             return RecoverPublicKey(GetTransaction().Sigs.First().ToByteArray(), GetTxnHash().DumpByteArray());
         }
         
-        public static List<byte[]> GetSystemReviewers()
+        public static List<string> GetSystemReviewers()
         {
             Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<Miners>().Producers.Select(p => p.ToByteArray()).ToList();
+            return GetCallResult().DeserializeToPbMessage<Miners>().PublicKeys.ToList();
         }
         
         public static Address GetContractOwner()

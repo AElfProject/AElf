@@ -160,7 +160,7 @@ namespace AElf.Kernel.Node
             _consensusInitialized = true;
 
             // Check whether this node contained BP list.
-            if (!Miners.Producers.Contains(ByteString.CopyFrom(_ownPubKey)))
+            if (!Miners.PublicKeys.Contains(_ownPubKey.ToHex()))
             {
                 return;
             }
@@ -224,7 +224,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        private async Task<Transaction> GenerateTransactionAsync(string methodName, List<byte[]> parameters)
+        private async Task<Transaction> GenerateTransactionAsync(string methodName, List<object> parameters)
         {
             try
             {
@@ -242,7 +242,7 @@ namespace AElf.Kernel.Node
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = methodName,
                     Type = TransactionType.DposTransaction,
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.Select(p => (object) p).ToArray()))
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
                 };
                 
                 var signer = new ECSigner();
@@ -273,7 +273,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithInitializingAElfDPoSInformation()
         {
-            const ConsensusBehavior behavior = ConsensusBehavior.InitializeAElfDPoS;
+            const ConsensusBehavior behavior = ConsensusBehavior.InitialTerm;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
@@ -303,12 +303,10 @@ namespace AElf.Kernel.Node
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
-                    var parameters = new List<byte[]>
+                    var parameters = new List<object>
                     {
-                        Miners.ToByteArray(),
-                        _helper.GenerateInfoForFirstTwoRounds().ToByteArray(),
-                        new SInt32Value {Value = ConsensusConfig.Instance.DPoSMiningInterval}.ToByteArray(),
-                        logLevel.ToByteArray()
+                        _helper.GenerateInfoForFirstTwoRounds(),
+                        logLevel
                     };
                     var txToInitializeAElfDPoS = await GenerateTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToInitializeAElfDPoS);
@@ -344,7 +342,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithPublishingOutValueAndSignature()
         {
-            const ConsensusBehavior behavior = ConsensusBehavior.PublishOutValueAndSignature;
+            /*const ConsensusBehavior behavior = ConsensusBehavior.PublishOutValueAndSignature;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
@@ -415,7 +413,7 @@ namespace AElf.Kernel.Node
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
-            }
+            }*/
         }
 
         /// <summary>
@@ -464,7 +462,7 @@ namespace AElf.Kernel.Node
                         return;
                     }
 
-                    var parameters = new List<byte[]>
+                    var parameters = new List<object>
                     {
                         currentRoundNumber.ToByteArray(),
                         _consensusData.Pop().ToByteArray(),
@@ -501,7 +499,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithUpdatingAElfDPoSInformation()
         {
-            const ConsensusBehavior behavior = ConsensusBehavior.UpdateAElfDPoS;
+            /*const ConsensusBehavior behavior = ConsensusBehavior.UpdateAElfDPoS;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
@@ -559,7 +557,7 @@ namespace AElf.Kernel.Node
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
-            }
+            }*/
         }
 
         public async Task UpdateConsensusEventList()
@@ -579,14 +577,12 @@ namespace AElf.Kernel.Node
 
             // Update observer.
             var miners = _helper.Miners;
-            if (!miners.Any(m  => m.SequenceEqual(_ownPubKey)))
+            if (miners.All(m => m != _ownPubKey.ToHex()))
             {
                 return;
             }
 
-            var blockProducerInfoOfCurrentRound = _helper[_ownPubKey];
-            ConsensusDisposable = ConsensusObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
-                _helper.ExtraBlockTimeSlot);
+            ConsensusDisposable = ConsensusObserver.SubscribeMiningProcess(_helper.GetCurrentRoundInfo());
 
             // Update current round number.
             ConsensusMemory = _helper.CurrentRoundNumber.Value;
@@ -596,7 +592,7 @@ namespace AElf.Kernel.Node
         {
             var currentTime = DateTime.UtcNow;
             var currentRound = _helper.GetCurrentRoundInfo();
-            var startTimeSlot = currentRound.BlockProducers.First(bp => bp.Value.Order == 1).Value.TimeSlot
+            var startTimeSlot = currentRound.RealTimeMinersInfo.First(bp => bp.Value.Order == 1).Value.ExpectMiningTime
                 .ToDateTime();
 
             var endTimeSlot =

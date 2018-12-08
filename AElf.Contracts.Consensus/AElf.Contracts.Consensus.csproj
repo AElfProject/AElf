@@ -6,9 +6,6 @@
     <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ConsensusContracts" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Remove="ConsensusContracts\DPoS.cs" />
   </ItemGroup>
 </Project>

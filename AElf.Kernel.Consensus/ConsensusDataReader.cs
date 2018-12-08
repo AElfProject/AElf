@@ -54,7 +54,7 @@ namespace AElf.Kernel.Consensus
         
         public async Task<byte[]> ReadMapAsync<T>(string key, string resourceStr) where T : IMessage, new()
         {
-            return await ReadMapAsync<T>(Hash.FromString(key), resourceStr);
+            return await ReadMapAsync<T>(Hash.LoadHex(key), resourceStr);
         }
         
         public byte[] ReadMap<T>(Hash keyHash, string resourceStr) where T : IMessage, new()

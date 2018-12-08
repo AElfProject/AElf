@@ -7,7 +7,7 @@ namespace AElf.Kernel
     {
         public bool IsEmpty()
         {
-            return !Producers.Any();
+            return !PublicKeys.Any();
         }
     }
 }

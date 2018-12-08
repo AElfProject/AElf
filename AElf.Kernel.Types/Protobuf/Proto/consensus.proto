@@ -5,23 +5,26 @@ option csharp_namespace = "AElf.Kernel";
 import "common.proto";
 import "google/protobuf/timestamp.proto";
 
-message OngoingMiners {
-    repeated Miners Miners = 1;
+// Just used as parameter of consensus contract method.
+message Term {
+    Miners Miners = 1;
+    Round FirstRound = 2;
+    Round SecondRound = 3;
+    int32 MiningInterval = 4;
 }
 
 message Miners {
     uint64 TakeEffectRoundNumber = 1;
-    repeated bytes Producers = 2;
+    repeated string PublicKeys = 2;
 }
 
 message Candidates {
-    repeated bytes PubKeys = 1;
+    repeated string PublicKeys = 1;
 }
 
 message Tickets {
-    uint64 TotalTickets = 1;
+    repeated VotingRecord VotingRecords = 1;
     uint64 ExpiredTickets = 2;
-    repeated VotingRecord VotingRecords = 3;
 }
 
 message VotingRecord {
@@ -31,49 +34,40 @@ message VotingRecord {
     uint64 RoundNumber = 4;
     Hash TransactionId = 5;
     google.protobuf.Timestamp VoteTimestamp = 6;
-    repeated uint64 LockDaysList = 7;
+    repeated uint32 LockDaysList = 7;// Can be renewed by adding items.
 }
 
-message ElectionSnapshot {
+message TermSnapshot {
     uint64 EndRoundNumber = 1;
-    uint64 BlocksCount = 2;
-    repeated MinerSnapshot MinersSnapshot = 3;
-}
-
-message MinerSnapshot {
-    bytes MinerPubKey = 1;
-    uint64 VotersWeights = 2;
-}
-
-message BlockProducer {
-    int32 Order = 1;
-    bool IsEBP = 2; //EBP: Extra Block Producer
-    Hash InValue = 3;
-    Hash OutValue = 4;
-    Hash Signature = 5;
-    google.protobuf.Timestamp TimeSlot = 6;
-    repeated uint64 Terms = 7;
-    uint64 BlocksOfCurrentTerm = 8;
-    uint64 BlocksOfAllTerms = 9;
-    bool IsForked = 10;
-    int32 FaithBreak = 11;
-    uint64 Reappointment = 12;
+    uint64 TotalBlocks = 2;
+    repeated MinerInTerm MinersSnapshot = 3;
 }
 
 message Round {
     uint64 RoundNumber = 1;
-    map<string, BlockProducer> BlockProducers = 2;
+    map<string, MinerInRound> RealTimeMinersInfo = 2;
 }
 
-message AElfDPoSInformation {
-    repeated Round Rounds = 1;
+message MinerInTerm {
+    string PublicKey = 1;
+    uint64 VotersWeights = 2;
 }
 
-message RoundNumberMap {
-    repeated LookUp LookUps = 1;
+message MinerInRound {
+    int32 Order = 1;
+    bool IsExtraBlockProducer = 2;
+    Hash InValue = 3;
+    Hash OutValue = 4;
+    Hash Signature = 5;
+    google.protobuf.Timestamp ExpectMiningTime = 6;
+    uint64 ProducedBlocks = 7;
+    bool IsForked = 8;
+    uint64 MissedTimeSlots = 9;
 }
 
-message LookUp {
-    uint64 RoundNumber = 1;
-    uint64 RoundNumberAsKey = 2;
+message MinerInHistory {
+    repeated uint64 Terms = 1;
+    uint64 ProducedBlocks = 2;
+    uint64 MissedTimeSlots = 3;
+    uint64 ReappointmentCount = 4;
 }

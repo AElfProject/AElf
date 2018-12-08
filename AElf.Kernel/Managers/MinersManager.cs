@@ -31,8 +31,7 @@ namespace AElf.Kernel.Managers
 
             foreach (var bp in dict.Values)
             {
-                var pubKey = ByteArrayHelpers.FromHexString(bp["public_key"]);
-                miners.Producers.Add(ByteString.CopyFrom(pubKey));
+                miners.PublicKeys.Add(bp["public_key"]);
             }
 
             return miners;
@@ -46,9 +45,9 @@ namespace AElf.Kernel.Managers
 
         public async Task SetMiners(Miners miners)
         {
-            foreach (var miner in miners.Producers)
+            foreach (var publicKey in miners.PublicKeys)
             {
-                _logger?.Trace($"Set miner {miner.ToByteArray().ToHex()} to data store.");
+                _logger?.Trace($"Set miner {publicKey} to data store.");
             }
 
             await _dataStore.InsertAsync(Key, miners);

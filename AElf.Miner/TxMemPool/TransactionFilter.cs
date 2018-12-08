@@ -65,7 +65,7 @@ namespace AElf.Miner.TxMemPool
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneInitialTx = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
-            var count = list.Count(tx => tx.MethodName == ConsensusBehavior.InitializeAElfDPoS.ToString());
+            var count = list.Count(tx => tx.MethodName == ConsensusBehavior.InitialTerm.ToString());
             if (count > 1)
             {
                 toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
@@ -74,7 +74,7 @@ namespace AElf.Miner.TxMemPool
             _latestTxs.Clear();
 
             toRemove.AddRange(
-                list.FindAll(tx => tx.MethodName != ConsensusBehavior.InitializeAElfDPoS.ToString()));
+                list.FindAll(tx => tx.MethodName != ConsensusBehavior.InitialTerm.ToString()));
 
             if (count == 0)
             {
@@ -145,7 +145,7 @@ namespace AElf.Miner.TxMemPool
                         "will reset dpos tx filter.");
                     switch (inState.ConsensusBehavior)
                     {
-                        case ConsensusBehavior.InitializeAElfDPoS:
+                        case ConsensusBehavior.InitialTerm:
                             _txFilter = null;
                             _txFilter += _generatedByMe;
                             _txFilter += _oneInitialTx;

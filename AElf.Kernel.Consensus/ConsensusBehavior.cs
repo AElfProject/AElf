@@ -6,7 +6,8 @@ namespace AElf.Kernel.Consensus
     public enum ConsensusBehavior
     {
         NoOperationPerformed = 0,
-        InitializeAElfDPoS,
+        InitialTerm,
+        NextTerm,
         UpdateAElfDPoS,
         PublishOutValueAndSignature,
 

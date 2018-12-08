@@ -45,16 +45,17 @@ namespace AElf.Common
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
         public const string AElfDPoSOngoingMinersString = "__AElfBlockProducer__";
-        public const string AElfDPoSInformationString = "__AElfDPoSInformation__";
+        public const string AElfDPoSRoundsMapString = "__AElfDPoSRoundsMapString__";
         public const string AElfDPoSExtraBlockProducerString = "__AElfExtraBlockProducer__";
         public const string AElfDPoSExtraBlockTimeSlotString = "__AElfExtraBlockTimeSlot__";
         public const string AElfDPoSFirstPlaceOfEachRoundString = "__AElfFirstPlaceOfEachRound__";
         public const string AElfDPoSMiningIntervalString = "__AElfDPoSMiningInterval__";
-        public const string AElfDPoSBalanceMapString = "__AElfDPoSBalanceMapString__";
+        public const string AElfDPoSTicketsMapString = "__AElfDPoSTicketsMapString__";
         public const string AElfDPoSCandidatesString = "__AElfDPoSCandidatesString__";
         public const string AElfDPoSSnapshotFieldString = "__AElfDPoSSnapshotFieldString__";
         public const string AElfDPoSDividendsMapString = "__AElfDPoSDividendsMapString__";
         public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
+        public const string AElfDPoSTermLookUpString = "__AElfDPoSTermLookUpString__";
 
         #endregion
 

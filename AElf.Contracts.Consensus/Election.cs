@@ -6,9 +6,9 @@ namespace AElf.Contracts.Consensus
     public class Election
     {
         
-        private readonly AElfDPoSFieldMapCollection _collection;
+        private readonly DataCollection _collection;
 
-        public Election(AElfDPoSFieldMapCollection collection)
+        public Election(DataCollection collection)
         {
             _collection = collection;
         }

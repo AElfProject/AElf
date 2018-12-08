@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 
 namespace AElf.Kernel.Consensus
@@ -52,7 +53,7 @@ namespace AElf.Kernel.Consensus
                 case ConsensusBehavior.NoOperationPerformed:
                     _logger?.Trace("DPoS NOP.");
                     break;
-                case ConsensusBehavior.InitializeAElfDPoS:
+                case ConsensusBehavior.InitialTerm:
                     _miningWithInitializingAElfDPoSInformation();
                     break;
                 case ConsensusBehavior.PublishOutValueAndSignature:
@@ -72,7 +73,7 @@ namespace AElf.Kernel.Consensus
             var timeWaitingOtherNodes = TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval * 2.5);
             var delayInitialize = Observable
                 .Timer(timeWaitingOtherNodes)
-                .Select(_ => ConsensusBehavior.InitializeAElfDPoS);
+                .Select(_ => ConsensusBehavior.InitialTerm);
             _logger?.Trace(
                 $"Will initialize dpos information after {timeWaitingOtherNodes.TotalSeconds} seconds - " +
                 $"{DateTime.UtcNow.AddMilliseconds(timeWaitingOtherNodes.TotalMilliseconds):HH:mm:ss.fff}.");
@@ -96,13 +97,15 @@ namespace AElf.Kernel.Consensus
                 .Subscribe(this);
         }
 
-        public IDisposable SubscribeAElfDPoSMiningProcess(BlockProducer infoOfMe, Timestamp extraBlockTimeSlot)
+        public IDisposable SubscribeMiningProcess(Round roundInfo)
         {
+            var infoOfMe = roundInfo.RealTimeMinersInfo[NodeConfig.Instance.ECKeyPair.PublicKey.ToHex()];
+            var extraBlockTimeSlot = roundInfo.GetEBPMiningTime().ToTimestamp();
             var nopObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
                 .Select(_ => ConsensusBehavior.NoOperationPerformed);
 
-            var timeSlot = infoOfMe.TimeSlot;
+            var timeSlot = infoOfMe.ExpectMiningTime;
             var now = DateTime.UtcNow.ToTimestamp();
             var distanceToProduceNormalBlock = (timeSlot - now).Seconds;
 
@@ -153,7 +156,7 @@ namespace AElf.Kernel.Consensus
                     produceExtraBlock = nopObservable;
                 }
             }
-            else if (infoOfMe.IsEBP)
+            else if (infoOfMe.IsExtraBlockProducer)
             {
                 var after = distanceToPublishInValue + ConsensusConfig.Instance.DPoSMiningInterval / 1000;
                 produceExtraBlock = Observable

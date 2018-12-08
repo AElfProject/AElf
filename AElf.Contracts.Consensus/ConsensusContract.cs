@@ -3,6 +3,7 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using ServiceStack.Templates;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus
@@ -12,36 +13,39 @@ namespace AElf.Contracts.Consensus
     // ReSharper disable UnusedMember.Global
     public class ConsensusContract : CSharpSmartContract
     {
-        #region DPoS
-
-        private AElfDPoSFieldMapCollection Collection => new AElfDPoSFieldMapCollection
+        private DataCollection Collection => new DataCollection
         {
             CurrentRoundNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber),
-            OngoingMinersField = new PbField<OngoingMiners>(GlobalConfig.AElfDPoSOngoingMinersString),
-            TimeForProducingExtraBlockField = new PbField<Timestamp>(GlobalConfig.AElfDPoSExtraBlockTimeSlotString),
             MiningIntervalField = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString),
             CandidatesField = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
 
-            DPoSInfoMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSInformationString),
-            EBPMap = new Map<UInt64Value, BytesValue>(GlobalConfig.AElfDPoSExtraBlockProducerString),
-            FirstPlaceMap = new Map<UInt64Value, BytesValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString),
-            BalanceMap = new Map<BytesValue, Tickets>(GlobalConfig.AElfDPoSBalanceMapString),
-            SnapshotField = new Map<UInt64Value, ElectionSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString),
+            RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
+            TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
+            SnapshotField = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString),
             DividendsMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSDividendsMapString),
-            AliasesMap = new Map<BytesValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString)
+            AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString)
         };
 
         private Process Process => new Process(Collection);
 
         private Election Election => new Election(Collection);
 
-        public void InitializeAElfDPoS(Miners miners, AElfDPoSInformation dpoSInformation, int miningInterval,
-            int logLevel)
+        #region Process
+        
+        public void InitialTerm(Term term, int logLevel)
         {
-            Process.Initialize(miners, dpoSInformation, miningInterval, logLevel);
+            Api.Assert(term.FirstRound.RoundNumber == 1);
+            Api.Assert(term.SecondRound.RoundNumber == 2);
+            
+            Process.Initialize(term, logLevel);
+        }
+        
+        public void NewTerm()
+        {
+            
         }
 
-        public void UpdateAElfDPoS(Round currentRoundInfo, Round nextRoundInfo, string nextExtraBlockProducer,
+        public void UpdateConsensus(Round currentRoundInfo, Round nextRoundInfo, string nextExtraBlockProducer,
             long roundId)
         {
             Process.Update(currentRoundInfo, nextRoundInfo, nextExtraBlockProducer, roundId);
@@ -56,7 +60,11 @@ namespace AElf.Contracts.Consensus
         {
             Process.PublishInValue(roundNumber, inValue, roundId);
         }
+        
+        #endregion
 
+        #region Election
+        
         public void AnnounceElection()
         {
             Election.AnnounceElection();
@@ -72,11 +80,6 @@ namespace AElf.Contracts.Consensus
             Election.Vote();
         }
 
-        public void ReElection(byte[] roundNumber)
-        {
-
-        }
-
         public void Complain()
         {
 
@@ -87,13 +90,13 @@ namespace AElf.Contracts.Consensus
         {
             var currentRoundNumber = Collection.CurrentRoundNumberField.GetValue();
             Api.Assert(currentRoundNumber != 0, "DPoS process hasn't started yet.");
-            return Collection.OngoingMinersField.GetValue().GetCurrentMiners(currentRoundNumber);
+            return null;
         }
 
         public void Withdraw(byte[] pubKey, ulong amount)
         {
         }
-
+        
         #endregion
     }
 }

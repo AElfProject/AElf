@@ -1,5 +1,5 @@
 // ReSharper disable once CheckNamespace
-namespace AElf.Synchronization.EventMessages
+namespace AElf.Kernel.EventMessages
 {
     public enum UpdateConsensus
     {

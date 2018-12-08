@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using AElf.Common;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
-using NLog.Fluent;
 
 namespace AElf.Contracts.Consensus
 {
@@ -24,18 +24,28 @@ namespace AElf.Contracts.Consensus
 
         private int LogLevel { get; set; }
 
-        private readonly AElfDPoSFieldMapCollection _collection;
+        private readonly DataCollection _collection;
 
-        public Process(AElfDPoSFieldMapCollection collection)
+        public Process(DataCollection collection)
         {
             _collection = collection;
         }
 
-        public void Initialize(Miners miners, AElfDPoSInformation dpoSInformation, int miningInterval, int logLevel)
+        public void Initialize(Term firstTerm, int logLevel)
         {
-            InitializeMiners(miners);
+            _collection.CurrentRoundNumberField.SetValue(1);
+
+            SetAliases(firstTerm);
+
+            _collection.RoundsMap.SetValue(new UInt64Value {Value = 1}, firstTerm.FirstRound);
+            _collection.RoundsMap.SetValue(new UInt64Value {Value = 2}, firstTerm.SecondRound);
 
             LogLevel = logLevel;
+        }
+
+        public void NextTerm()
+        {
+            
         }
 
         public void Update(Round currentRoundInfo, Round nextRoundInfo, string nextExtraBlockProducer, long roundId)
@@ -52,32 +62,27 @@ namespace AElf.Contracts.Consensus
         {
 
         }
+        
+        #region Vital Steps
 
-        private void InitializeMiners(Miners miners)
+        private void SetAliases(Term term)
         {
-            var candidates = new Candidates();
-            foreach (var pubKey in miners.Producers)
+            var index = 0;
+            foreach (var publicKey in term.Miners.PublicKeys)
             {
-                ConsoleWriteLine(nameof(Initialize), $"Set miner {pubKey.ToByteArray().ToHex()} to state store.");
+                if (index >= Config.Aliases.Count) 
+                    continue;
 
-                candidates.PubKeys.Add(pubKey);
-
-                // This should only happen on main chain. 
-                var bv = new BytesValue
-                {
-                    Value = pubKey
-                };
-                if (!_collection.BalanceMap.TryGet(bv, out var tickets))
-                {
-                    // Miners in the white list
-                    tickets = new Tickets {TotalTickets = GlobalConfig.LockTokenForElection};
-                    _collection.BalanceMap.SetValue(bv, tickets);
-                }
+                var alias = Config.Aliases[index];
+                _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
+                    new StringValue {Value = alias});
+                ConsoleWriteLine(nameof(SetAliases), $"Set alias {alias} to {publicKey}");
+                index++;
             }
-
-            _collection.CandidatesField.SetValue(candidates);
         }
         
+        #endregion
+
         private DateTime GetLocalTime()
         {
             return DateTime.UtcNow.ToLocalTime();
@@ -88,13 +93,32 @@ namespace AElf.Contracts.Consensus
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
         }
 
+        private string GetAlias(string publicKey)
+        {
+            return _collection.AliasesMap.TryGet(new StringValue {Value = publicKey}, out var alias)
+                ? alias.Value
+                : publicKey;
+        }
+
+        /// <summary>
+        /// Debug level:
+        /// 6 = Off
+        /// 5 = Fatal
+        /// 4 = Error
+        /// 3 = Warn
+        /// 2 = Info
+        /// 1 = Debug
+        /// 0 = Trace
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="log"></param>
+        /// <param name="ex"></param>
         private void ConsoleWriteLine(string prefix, string log, Exception ex = null)
         {
-            // Debug level: 6=Off, 5=Fatal 4=Error, 3=Warn, 2=Info, 1=Debug, 0=Trace
             if (LogLevel == 6)
                 return;
 
-            Console.WriteLine($"[{GetLocalTime():yyyy-MM-dd HH:mm:ss.fff} - AElfDPoS]{prefix} - {log}.");
+            Console.WriteLine($"[{GetLocalTime():yyyy-MM-dd HH:mm:ss.fff} - Consensus]{prefix} - {log}.");
             if (ex != null)
             {
                 Console.WriteLine(ex);

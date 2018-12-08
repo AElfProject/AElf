@@ -88,7 +88,7 @@ namespace AElf.Kernel.Consensus
             try
             {
                 var bytes = await GetBytes<Round>(Hash.FromMessage(new UInt64Value {Value = currentRoundNumber}),
-                    GlobalConfig.AElfDPoSInformationString);
+                    GlobalConfig.AElfDPoSRoundsMapString);
                 var round = Round.Parser.ParseFrom(bytes);
                 return round;
             }
@@ -100,7 +100,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<BlockProducer> GetBPInfo(string addressToHex = null)
+        public async Task<MinerInRound> GetMinerInfo(string addressToHex = null)
         {
             if (addressToHex == null)
             {
@@ -108,18 +108,18 @@ namespace AElf.Kernel.Consensus
             }
             
             var round = await GetCurrentRoundInfo();
-            return round.BlockProducers[addressToHex.RemoveHexPrefix()];
+            return round.RealTimeMinersInfo[addressToHex.RemoveHexPrefix()];
         }
 
-        public async Task<Timestamp> GetTimeSlot(string addressToHex = null)
+        public async Task<Timestamp> GetExpectMiningTime(string addressToHex = null)
         {
             if (addressToHex == null)
             {
                 addressToHex = NodeConfig.Instance.NodeAccount;
             }
 
-            var info = await GetBPInfo(addressToHex);
-            return info.TimeSlot;
+            var info = await GetMinerInfo(addressToHex);
+            return info.ExpectMiningTime;
         }
 
         public async Task<double> GetDistanceToTimeSlot(string addressToHex = null)
@@ -131,7 +131,7 @@ namespace AElf.Kernel.Consensus
                 addressToHex = NodeConfig.Instance.NodeAccount;
             }
 
-            var timeSlot = await GetTimeSlot(addressToHex);
+            var timeSlot = await GetExpectMiningTime(addressToHex);
             var distance = timeSlot - now;
             return distance.ToTimeSpan().TotalMilliseconds;
         }
