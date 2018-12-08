@@ -87,7 +87,7 @@ namespace AElf.Miner.TxMemPool
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _onePublishOutValueTx = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
-            var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PublishOutValueAndSignature.ToString());
+            var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PackageSpecialData.ToString());
             if (count > 1)
             {
                 toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
@@ -96,7 +96,7 @@ namespace AElf.Miner.TxMemPool
             _latestTxs.Clear();
 
             toRemove.AddRange(
-                list.FindAll(tx => tx.MethodName != ConsensusBehavior.PublishOutValueAndSignature.ToString()));
+                list.FindAll(tx => tx.MethodName != ConsensusBehavior.PackageSpecialData.ToString()));
 
             if (count == 0)
             {
@@ -109,21 +109,21 @@ namespace AElf.Miner.TxMemPool
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneUpdateAElfDPoSTxAndOnePublishInValueTxByMe = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
-            var count = list.Count(tx => tx.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString());
+            var count = list.Count(tx => tx.MethodName == ConsensusBehavior.NextRound.ToString());
             toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
 
             _latestTxs.Clear();
 
-            var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.PublishInValue.ToString())?.RefBlockNumber;
+            var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastValidationData.ToString())?.RefBlockNumber;
             if (correctRefBlockNumber.HasValue)
             {
-                toRemove.AddRange(list.FindAll(tx => tx.RefBlockNumber != correctRefBlockNumber && tx.MethodName == ConsensusBehavior.PublishInValue.ToString()));
+                toRemove.AddRange(list.FindAll(tx => tx.RefBlockNumber != correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastValidationData.ToString()));
             }
             
             toRemove.AddRange(
                 list.FindAll(tx =>
-                    tx.MethodName != ConsensusBehavior.UpdateAElfDPoS.ToString() &&
-                    tx.MethodName != ConsensusBehavior.PublishInValue.ToString()));
+                    tx.MethodName != ConsensusBehavior.NextRound.ToString() &&
+                    tx.MethodName != ConsensusBehavior.BroadcastValidationData.ToString()));
 
             if (count == 0)
             {
@@ -150,12 +150,12 @@ namespace AElf.Miner.TxMemPool
                             _txFilter += _generatedByMe;
                             _txFilter += _oneInitialTx;
                             break;
-                        case ConsensusBehavior.PublishOutValueAndSignature:
+                        case ConsensusBehavior.PackageSpecialData:
                             _txFilter = null;
                             _txFilter += _generatedByMe;
                             _txFilter += _onePublishOutValueTx;
                             break;
-                        case ConsensusBehavior.UpdateAElfDPoS:
+                        case ConsensusBehavior.NextRound:
                             _txFilter = null;
                             _txFilter += _oneUpdateAElfDPoSTxAndOnePublishInValueTxByMe;
                             break;

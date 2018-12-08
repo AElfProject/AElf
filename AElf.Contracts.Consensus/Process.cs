@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using AElf.Common;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus
 {
@@ -33,37 +33,61 @@ namespace AElf.Contracts.Consensus
 
         public void Initialize(Term firstTerm, int logLevel)
         {
-            _collection.CurrentRoundNumberField.SetValue(1);
+            UpdateCurrentRoundNumber();
 
             SetAliases(firstTerm);
 
-            _collection.RoundsMap.SetValue(new UInt64Value {Value = 1}, firstTerm.FirstRound);
-            _collection.RoundsMap.SetValue(new UInt64Value {Value = 2}, firstTerm.SecondRound);
+            _collection.RoundsMap.SetValue(((ulong) 1).ToUInt64Value(), firstTerm.FirstRound);
+            _collection.RoundsMap.SetValue(((ulong) 2).ToUInt64Value(), firstTerm.SecondRound);
 
             LogLevel = logLevel;
         }
 
-        public void NextTerm()
+        public void NextTerm(Term term)
         {
+            UpdateCurrentRoundNumber();
+
+            _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
+            _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
+        }
+
+        public void Update(Forwarding forwarding)
+        {
+            var forwardingCurrentRoundInfo = forwarding.CurrentRoundInfo;
+            if (_collection.RoundsMap.TryGet(forwardingCurrentRoundInfo.RoundNumber.ToUInt64Value(), out var currentRoundInfo))
+            {
+                Api.Assert(forwardingCurrentRoundInfo.RoundId == currentRoundInfo.RoundId, "Round Id not matched.");
+            }
+
+            SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
             
+            WindUp();
         }
 
-        public void Update(Round currentRoundInfo, Round nextRoundInfo, string nextExtraBlockProducer, long roundId)
+        public void PublishOutValue(ToPackage toPackage)
         {
 
         }
 
-        public void PublishOutValue(ulong roundNumber, Hash outValue, Hash signature, long roundId)
-        {
-
-        }
-
-        public void PublishInValue(ulong roundNumber, Hash inValue, long roundId)
+        public void PublishInValue(ToBroadcast toBroadcast)
         {
 
         }
         
         #region Vital Steps
+
+        private void UpdateCurrentRoundNumber()
+        {
+            var currentRoundNumber = CurrentRoundNumber;
+            if (currentRoundNumber == 0)
+            {
+                _collection.CurrentRoundNumberField.SetValue(1);
+            }
+            else
+            {
+                _collection.CurrentRoundNumberField.SetValue(currentRoundNumber + 1);
+            }
+        }
 
         private void SetAliases(Term term)
         {
@@ -79,6 +103,22 @@ namespace AElf.Contracts.Consensus
                 ConsoleWriteLine(nameof(SetAliases), $"Set alias {alias} to {publicKey}");
                 index++;
             }
+        }
+
+        /// <summary>
+        /// Can only supply signature, out value, in value if one missed his time slot.
+        /// </summary>
+        /// <param name="roundInfo"></param>
+        /// <param name="forwardingRoundInfo"></param>
+        private void SupplyCurrentRoundInfo(Round roundInfo, Round forwardingRoundInfo)
+        {
+            
+        }
+
+        private void WindUp()
+        {
+            // Check in and out value, complain if not match.
+            
         }
         
         #endregion
@@ -97,7 +137,7 @@ namespace AElf.Contracts.Consensus
         {
             return _collection.AliasesMap.TryGet(new StringValue {Value = publicKey}, out var alias)
                 ? alias.Value
-                : publicKey;
+                : publicKey.Substring(5);
         }
 
         /// <summary>

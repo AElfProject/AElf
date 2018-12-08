@@ -56,13 +56,13 @@ namespace AElf.Kernel.Consensus
                 case ConsensusBehavior.InitialTerm:
                     _miningWithInitializingAElfDPoSInformation();
                     break;
-                case ConsensusBehavior.PublishOutValueAndSignature:
+                case ConsensusBehavior.PackageSpecialData:
                     _miningWithPublishingOutValueAndSignature();
                     break;
-                case ConsensusBehavior.PublishInValue:
+                case ConsensusBehavior.BroadcastValidationData:
                     _publishInValue();
                     break;
-                case ConsensusBehavior.UpdateAElfDPoS:
+                case ConsensusBehavior.NextRound:
                     _miningWithUpdatingAElfDPoSInformation();
                     break;
             }
@@ -86,7 +86,7 @@ namespace AElf.Kernel.Consensus
                 ConsensusConfig.Instance.DPoSMiningInterval * GlobalConfig.BlockProducerNumber);
             var recoverMining = Observable
                 .Timer(timeSureToRecover)
-                .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
+                .Select(_ => ConsensusBehavior.NextRound);
 
             _logger?.Trace(
                 $"Will produce extra block after {timeSureToRecover.Seconds} seconds due to recover mining process - " +
@@ -114,7 +114,7 @@ namespace AElf.Kernel.Consensus
             {
                 produceNormalBlock = Observable
                     .Timer(TimeSpan.FromSeconds(distanceToProduceNormalBlock))
-                    .Select(_ => ConsensusBehavior.PublishOutValueAndSignature);
+                    .Select(_ => ConsensusBehavior.PackageSpecialData);
 
                 if (distanceToProduceNormalBlock >= 0)
                 {
@@ -135,7 +135,7 @@ namespace AElf.Kernel.Consensus
                 var after = distanceToPublishInValue - distanceToProduceNormalBlock;
                 publishInValue = Observable
                     .Timer(TimeSpan.FromSeconds(after))
-                    .Select(_ => ConsensusBehavior.PublishInValue);
+                    .Select(_ => ConsensusBehavior.BroadcastValidationData);
 
                 if (distanceToPublishInValue >= 0)
                 {
@@ -161,7 +161,7 @@ namespace AElf.Kernel.Consensus
                 var after = distanceToPublishInValue + ConsensusConfig.Instance.DPoSMiningInterval / 1000;
                 produceExtraBlock = Observable
                     .Timer(TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval))
-                    .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
+                    .Select(_ => ConsensusBehavior.NextRound);
 
                 if (after >= 0)
                 {
@@ -177,7 +177,7 @@ namespace AElf.Kernel.Consensus
                     .Timer(TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval +
                                                      ConsensusConfig.Instance.DPoSMiningInterval * infoOfMe.Order +
                                                      ConsensusConfig.Instance.DPoSMiningInterval / 2))
-                    .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
+                    .Select(_ => ConsensusBehavior.NextRound);
 
                 if (after >= 0)
                 {

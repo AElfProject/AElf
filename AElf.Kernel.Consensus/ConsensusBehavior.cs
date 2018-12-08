@@ -8,10 +8,10 @@ namespace AElf.Kernel.Consensus
         NoOperationPerformed = 0,
         InitialTerm,
         NextTerm,
-        UpdateAElfDPoS,
-        PublishOutValueAndSignature,
+        NextRound,
+        PackageSpecialData,
 
-        PublishInValue = 11
+        BroadcastValidationData = 11
     }
 
     public static class ConsensusBehaviorExtensions

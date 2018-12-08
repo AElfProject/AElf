@@ -1,9 +1,10 @@
-﻿using AElf.Kernel;
+﻿using System.Collections.Generic;
+using System.Linq;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
-using ServiceStack.Templates;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus
@@ -40,25 +41,24 @@ namespace AElf.Contracts.Consensus
             Process.Initialize(term, logLevel);
         }
         
-        public void NewTerm()
+        public void NextTerm(Term term)
         {
-            
+            Process.NextTerm(term);
         }
 
-        public void UpdateConsensus(Round currentRoundInfo, Round nextRoundInfo, string nextExtraBlockProducer,
-            long roundId)
+        public void NextRound(Forwarding forwarding)
         {
-            Process.Update(currentRoundInfo, nextRoundInfo, nextExtraBlockProducer, roundId);
+            Process.Update(forwarding);
         }
 
-        public void PublishOutValueAndSignature(ulong roundNumber, Hash outValue, Hash signature, long roundId)
+        public void PackageSpecialData(ToPackage toPackage)
         {
-            Process.PublishOutValue(roundNumber, outValue, signature, roundId);
+            Process.PublishOutValue(toPackage);
         }
 
-        public void PublishInValue(ulong roundNumber, Hash inValue, long roundId)
+        public void BroadcastValidationData(ToBroadcast toBroadcast)
         {
-            Process.PublishInValue(roundNumber, inValue, roundId);
+            Process.PublishInValue(toBroadcast);
         }
         
         #endregion
@@ -75,26 +75,28 @@ namespace AElf.Contracts.Consensus
             Election.QuitElection();
         }
 
-        public void Vote(byte[] candidatePubKey, ulong amount)
+        public void Vote(string candidatePublicKey, ulong amount)
         {
             Election.Vote();
         }
 
-        public void Complain()
-        {
-
-        }
-
         [View]
-        public Miners GetCurrentMiners()
+        public List<string> GetCurrentMiners()
         {
             var currentRoundNumber = Collection.CurrentRoundNumberField.GetValue();
             Api.Assert(currentRoundNumber != 0, "DPoS process hasn't started yet.");
-            return null;
+            if (Collection.RoundsMap.TryGet(currentRoundNumber.ToUInt64Value(), out var currentRoundInfo))
+            {
+                var realTimeMiners = currentRoundInfo.RealTimeMinersInfo;
+                return realTimeMiners.Keys.ToList();
+            }
+            
+            return new List<string>();
         }
 
         public void Withdraw(byte[] pubKey, ulong amount)
         {
+            
         }
         
         #endregion

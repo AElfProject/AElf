@@ -426,7 +426,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task PublishInValue()
         {
-            const ConsensusBehavior behavior = ConsensusBehavior.PublishInValue;
+            const ConsensusBehavior behavior = ConsensusBehavior.BroadcastValidationData;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
