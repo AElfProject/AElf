@@ -105,7 +105,7 @@ namespace AElf.Kernel.Consensus
                 .Timer(TimeSpan.FromSeconds(0))
                 .Select(_ => ConsensusBehavior.NoOperationPerformed);
 
-            var timeSlot = infoOfMe.ExpectMiningTime;
+            var timeSlot = infoOfMe.ExpectedMiningTime;
             var now = DateTime.UtcNow.ToTimestamp();
             var distanceToProduceNormalBlock = (timeSlot - now).Seconds;
 

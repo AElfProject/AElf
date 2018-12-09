@@ -119,7 +119,7 @@ namespace AElf.Kernel.Consensus
             }
 
             var info = await GetMinerInfo(addressToHex);
-            return info.ExpectMiningTime;
+            return info.ExpectedMiningTime;
         }
 
         public async Task<double> GetDistanceToTimeSlot(string addressToHex = null)

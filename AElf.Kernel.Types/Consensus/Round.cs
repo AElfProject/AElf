@@ -8,7 +8,7 @@ namespace AElf.Kernel
     // ReSharper disable InconsistentNaming
     public partial class Round
     {
-        public long RoundId => RealTimeMinersInfo.Values.Select(bpInfo => bpInfo.ExpectMiningTime.Seconds).Sum();
+        public long RoundId => RealTimeMinersInfo.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
 
         public MinerInRound GetEBPInfo()
         {
@@ -17,7 +17,7 @@ namespace AElf.Kernel
 
         public DateTime GetEBPMiningTime()
         {
-            return RealTimeMinersInfo.OrderBy(m => m.Value.Order).Last().Value.ExpectMiningTime.ToDateTime()
+            return RealTimeMinersInfo.OrderBy(m => m.Value.Order).Last().Value.ExpectedMiningTime.ToDateTime()
                 .AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval);
         }
 

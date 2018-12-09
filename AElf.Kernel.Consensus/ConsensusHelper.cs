@@ -173,7 +173,7 @@ namespace AElf.Kernel.Consensus
 
                 bpInfo.Order = i + 1;
                 bpInfo.Signature = Hash.Generate();
-                bpInfo.ExpectMiningTime =
+                bpInfo.ExpectedMiningTime =
                     GetTimestampOfUtcNow(i * ConsensusConfig.Instance.DPoSMiningInterval +
                                          GlobalConfig.AElfWaitFirstRoundTime);
 
@@ -210,7 +210,7 @@ namespace AElf.Kernel.Consensus
                     bpInfo.IsExtraBlockProducer = true;
                 }
 
-                bpInfo.ExpectMiningTime = GetTimestampOfUtcNow(i * ConsensusConfig.Instance.DPoSMiningInterval +
+                bpInfo.ExpectedMiningTime = GetTimestampOfUtcNow(i * ConsensusConfig.Instance.DPoSMiningInterval +
                                                                addition +
                                                                GlobalConfig.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
@@ -552,7 +552,7 @@ namespace AElf.Kernel.Consensus
                     result += GetAlias(minerInfo.Key) + ":\n";
                     result += "Is EBP:\t\t" + minerInfo.Value.IsExtraBlockProducer + "\n";
                     result += "Order:\t\t" + minerInfo.Value.Order + "\n";
-                    result += "Mining Time:\t" + minerInfo.Value.ExpectMiningTime.ToDateTime().ToLocalTime().ToString("u") + "\n";
+                    result += "Mining Time:\t" + minerInfo.Value.ExpectedMiningTime.ToDateTime().ToLocalTime().ToString("u") + "\n";
                     result += "Signature:\t" + minerInfo.Value.Signature?.Value.ToByteArray().ToHex().RemoveHexPrefix() +
                               "\n";
                     result += "Out Value:\t" + minerInfo.Value.OutValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() +

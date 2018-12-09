@@ -120,8 +120,17 @@ namespace AElf.Contracts.Consensus
         /// <param name="forwardingRoundInfo"></param>
         private void SupplyCurrentRoundInfo(Round roundInfo, Round forwardingRoundInfo)
         {
-            var previousRoundInfo = _collection.
-            var supplement = roundInfo.Supplement()
+            foreach (var suppliedMiner in forwardingRoundInfo.RealTimeMinersInfo)
+            {
+                if (suppliedMiner.Value.MissedTimeSlots > roundInfo.RealTimeMinersInfo[suppliedMiner.Key].MissedTimeSlots
+                    && roundInfo.RealTimeMinersInfo[suppliedMiner.Key].OutValue == null)
+                {
+                    roundInfo.RealTimeMinersInfo[suppliedMiner.Key].OutValue = suppliedMiner.Value.OutValue;
+                    roundInfo.RealTimeMinersInfo[suppliedMiner.Key].InValue = suppliedMiner.Value.InValue;
+                    roundInfo.RealTimeMinersInfo[suppliedMiner.Key].Signature = suppliedMiner.Value.Signature;
+                    roundInfo.RealTimeMinersInfo[suppliedMiner.Key].MissedTimeSlots += 1;
+                }
+            }
         }
 
         private void WindUp()

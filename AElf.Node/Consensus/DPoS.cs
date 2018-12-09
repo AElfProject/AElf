@@ -592,7 +592,7 @@ namespace AElf.Kernel.Node
         {
             var currentTime = DateTime.UtcNow;
             var currentRound = _helper.GetCurrentRoundInfo();
-            var startTimeSlot = currentRound.RealTimeMinersInfo.First(bp => bp.Value.Order == 1).Value.ExpectMiningTime
+            var startTimeSlot = currentRound.RealTimeMinersInfo.First(bp => bp.Value.Order == 1).Value.ExpectedMiningTime
                 .ToDateTime();
 
             var endTimeSlot =

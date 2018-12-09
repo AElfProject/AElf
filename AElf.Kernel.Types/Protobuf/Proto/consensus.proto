@@ -78,7 +78,7 @@ message MinerInRound {
     Hash InValue = 3;
     Hash OutValue = 4;
     Hash Signature = 5;
-    google.protobuf.Timestamp ExpectMiningTime = 6;
+    google.protobuf.Timestamp ExpectedMiningTime = 6;
     uint64 ProducedBlocks = 7;
     bool IsForked = 8;
     uint64 MissedTimeSlots = 9;
