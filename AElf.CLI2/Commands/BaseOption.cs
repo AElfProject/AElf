@@ -33,7 +33,7 @@ namespace AElf.CLI2.Commands
         {
             get
             {
-                var dir = Path.GetFullPath(Path.Combine(DataDir, "accounts"));
+                var dir = Path.GetFullPath(Path.Combine(DataDir, "keys"));
                 try
                 {
                     Directory.CreateDirectory(dir);
