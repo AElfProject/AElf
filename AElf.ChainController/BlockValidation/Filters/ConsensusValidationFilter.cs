@@ -19,7 +19,7 @@ using ServiceStack;
 namespace AElf.ChainController
 {
     // ReSharper disable InconsistentNaming
-    public class ConsensusBlockValidationFilter : IBlockValidationFilter
+    public class ConsensusBlockValidationFilter
     {
         private readonly ISmartContractService _smartContractService;
         private readonly ILogger _logger;

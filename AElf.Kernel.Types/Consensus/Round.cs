@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AElf.Common;
+using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -13,6 +14,19 @@ namespace AElf.Kernel
         public MinerInRound GetEBPInfo()
         {
             return RealTimeMinersInfo.First(bp => bp.Value.IsExtraBlockProducer).Value;
+        }
+
+        public MinerInRound GetEBPInfoForNextRound(int miningInterval)
+        {
+            var info = GetEBPInfo().Clone();
+            info.Order = 1;
+            info.RoundNumber += 1;
+            info.Signature = null;
+            info.OutValue = null;
+            info.InValue = null;
+            info.ExpectedMiningTime = DateTime.UtcNow.AddMilliseconds(miningInterval).ToTimestamp();
+
+            return info;
         }
 
         public DateTime GetEBPMiningTime()

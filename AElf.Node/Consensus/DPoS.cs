@@ -305,7 +305,7 @@ namespace AElf.Kernel.Node
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
                     var parameters = new List<object>
                     {
-                        _helper.GenerateInfoForFirstTwoRounds(),
+                        _minersManager.GetMiners().Result.GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval),
                         logLevel
                     };
                     var txToInitializeAElfDPoS = await GenerateTransactionAsync(behavior.ToString(), parameters);
@@ -342,7 +342,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithPublishingOutValueAndSignature()
         {
-            /*const ConsensusBehavior behavior = ConsensusBehavior.PublishOutValueAndSignature;
+            const ConsensusBehavior behavior = ConsensusBehavior.PackageOutValue;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
@@ -379,18 +379,22 @@ namespace AElf.Kernel.Node
                     }
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
+                    var roundInfo = _helper.GetCurrentRoundInfo(currentRoundNumber);
+
                     var signature = Hash.Default;
                     if (currentRoundNumber.Value > 1)
                     {
-                        signature = _helper.CalculateSignature(inValue);
+                        signature = roundInfo.CalculateSignature(inValue);
                     }
 
-                    var parameters = new List<byte[]>
+                    var parameters = new List<object>
                     {
-                        _helper.CurrentRoundNumber.ToByteArray(),
-                        _consensusData.Pop().ToByteArray(),
-                        signature.ToByteArray(),
-                        new Int64Value {Value = _helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
+                        new ToPackage
+                        {
+                            OutValue = _consensusData.Pop(),
+                            Signature = signature,
+                            RoundId = roundInfo.RoundId
+                        }
                     };
 
                     var txToPublishOutValueAndSignature =
@@ -398,6 +402,8 @@ namespace AElf.Kernel.Node
                     await BroadcastTransaction(txToPublishOutValueAndSignature);
 
                     await Mine();
+
+                    await PublishInValue();
                 }
             }
             catch (Exception e)
@@ -413,7 +419,7 @@ namespace AElf.Kernel.Node
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
-            }*/
+            }
         }
 
         /// <summary>
@@ -426,7 +432,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task PublishInValue()
         {
-            const ConsensusBehavior behavior = ConsensusBehavior.BroadcastValidationData;
+            const ConsensusBehavior behavior = ConsensusBehavior.BroadcastInValue;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
@@ -456,6 +462,7 @@ namespace AElf.Kernel.Node
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
+                    var roundInfo = _helper.GetCurrentRoundInfo(currentRoundNumber);
 
                     if (!_consensusData.Any())
                     {
@@ -464,9 +471,11 @@ namespace AElf.Kernel.Node
 
                     var parameters = new List<object>
                     {
-                        currentRoundNumber.ToByteArray(),
-                        _consensusData.Pop().ToByteArray(),
-                        new Int64Value {Value = _helper.GetCurrentRoundInfo(currentRoundNumber).RoundId}.ToByteArray()
+                        new ToBroadcast
+                        {
+                            InValue = _consensusData.Pop(),
+                            RoundId = roundInfo.RoundId
+                        }
                     };
 
                     var txToPublishInValue = await GenerateTransactionAsync(behavior.ToString(), parameters);
@@ -499,7 +508,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         private async Task MiningWithUpdatingAElfDPoSInformation()
         {
-            /*const ConsensusBehavior behavior = ConsensusBehavior.UpdateAElfDPoS;
+            const ConsensusBehavior behavior = ConsensusBehavior.NextRound;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
@@ -528,14 +537,16 @@ namespace AElf.Kernel.Node
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
-                    var extraBlockResult = _helper.ExecuteTxsForExtraBlock();
+                    var currentRoundNumber = _helper.CurrentRoundNumber;
+                    var roundInfo = _helper.GetCurrentRoundInfo(currentRoundNumber);
 
-                    var parameters = new List<byte[]>
+                    var parameters = new List<object>
                     {
-                        extraBlockResult.Item1.ToByteArray(),
-                        extraBlockResult.Item2.ToByteArray(),
-                        extraBlockResult.Item3.ToByteArray(),
-                        new Int64Value {Value = _helper.GetCurrentRoundInfo().RoundId}.ToByteArray()
+                        new Forwarding
+                        {
+                            CurrentRoundInfo = roundInfo,
+                            NextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo)
+                        }
                     };
 
                     var txForExtraBlock = await GenerateTransactionAsync(behavior.ToString(), parameters);
@@ -557,7 +568,7 @@ namespace AElf.Kernel.Node
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
-            }*/
+            }
         }
 
         public async Task UpdateConsensusEventList()

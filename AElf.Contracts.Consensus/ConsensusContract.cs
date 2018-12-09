@@ -38,7 +38,7 @@ namespace AElf.Contracts.Consensus
             Api.Assert(term.FirstRound.RoundNumber == 1);
             Api.Assert(term.SecondRound.RoundNumber == 2);
             
-            Process.Initialize(term, logLevel);
+            Process.InitialTerm(term, logLevel);
         }
         
         public void NextTerm(Term term)
@@ -51,12 +51,12 @@ namespace AElf.Contracts.Consensus
             Process.Update(forwarding);
         }
 
-        public void PackageSpecialData(ToPackage toPackage)
+        public void PackageOutValue(ToPackage toPackage)
         {
             Process.PublishOutValue(toPackage);
         }
 
-        public void BroadcastValidationData(ToBroadcast toBroadcast)
+        public void BroadcastInValue(ToBroadcast toBroadcast)
         {
             Process.PublishInValue(toBroadcast);
         }

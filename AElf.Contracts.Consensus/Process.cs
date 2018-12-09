@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus
             _collection = collection;
         }
 
-        public void Initialize(Term firstTerm, int logLevel)
+        public void InitialTerm(Term firstTerm, int logLevel)
         {
             _collection.CurrentRoundNumberField.SetValue(1);
 
@@ -61,8 +61,19 @@ namespace AElf.Contracts.Consensus
             var currentRoundInfo = GetRoundInfo(forwardingCurrentRoundInfo.RoundNumber);
             Api.Assert(forwardingCurrentRoundInfo.RoundId == currentRoundInfo.RoundId, RoundIdNotMatched);
 
-            SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
+            var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
+
+            // Update produced blocks for each miner.
+            foreach (var minerInRound in completeCurrentRoundInfo.RealTimeMinersInfo)
+            {
+                forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].MissedTimeSlots =
+                    minerInRound.Value.MissedTimeSlots;
+                forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
+                    minerInRound.Value.ProducedBlocks;
+            }
             
+            _collection.RoundsMap.SetValue(forwarding.NextRoundInfo.RoundNumber.ToUInt64Value(),
+                forwarding.NextRoundInfo);
             _collection.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
 
             WindUp();
@@ -118,7 +129,7 @@ namespace AElf.Contracts.Consensus
         /// </summary>
         /// <param name="roundInfo"></param>
         /// <param name="forwardingRoundInfo"></param>
-        private void SupplyCurrentRoundInfo(Round roundInfo, Round forwardingRoundInfo)
+        private Round SupplyCurrentRoundInfo(Round roundInfo, Round forwardingRoundInfo)
         {
             foreach (var suppliedMiner in forwardingRoundInfo.RealTimeMinersInfo)
             {
@@ -130,7 +141,15 @@ namespace AElf.Contracts.Consensus
                     roundInfo.RealTimeMinersInfo[suppliedMiner.Key].Signature = suppliedMiner.Value.Signature;
                     roundInfo.RealTimeMinersInfo[suppliedMiner.Key].MissedTimeSlots += 1;
                 }
+                else
+                {
+                    roundInfo.RealTimeMinersInfo[suppliedMiner.Key].ProducedBlocks += 1;
+                }
             }
+            
+            _collection.RoundsMap.SetValue(roundInfo.RoundNumber.ToUInt64Value(), roundInfo);
+
+            return roundInfo;
         }
 
         private void WindUp()

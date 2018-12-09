@@ -65,6 +65,7 @@ message TermSnapshot {
 message Round {
     uint64 RoundNumber = 1;
     map<string, MinerInRound> RealTimeMinersInfo = 2;
+    int32 MiningInterval = 3;
 }
 
 message MinerInTerm {
@@ -83,6 +84,7 @@ message MinerInRound {
     bool IsForked = 8;
     uint64 MissedTimeSlots = 9;
     uint64 RoundNumber = 10;
+    string PublicKey = 11;
 }
 
 message MinerInHistory {

@@ -24,12 +24,12 @@ namespace AElf.Common
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
-        public static readonly UInt64 GenesisBasicContract = 0;
-        public static readonly UInt64 ConsensusContract = 1;
-        public static readonly UInt64 TokenContract = 2;
-        public static readonly UInt64 CrossChainContract = 3;
-        public static readonly UInt64 AuthorizationContract = 4;
-        public static readonly UInt64 ResourceContract = 5;
+        public static readonly ulong GenesisBasicContract = 0;
+        public static readonly ulong ConsensusContract = 1;
+        public static readonly ulong TokenContract = 2;
+        public static readonly ulong CrossChainContract = 3;
+        public static readonly ulong AuthorizationContract = 4;
+        public static readonly ulong ResourceContract = 5;
         
         public static int InvertibleChainHeight = 4;
 
@@ -39,6 +39,7 @@ namespace AElf.Common
         #region AElf DPoS
 
         public const ulong LockTokenForElection = 100_000;
+        public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 4000;
         public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;

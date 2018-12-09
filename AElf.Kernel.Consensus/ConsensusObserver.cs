@@ -56,10 +56,10 @@ namespace AElf.Kernel.Consensus
                 case ConsensusBehavior.InitialTerm:
                     _miningWithInitializingAElfDPoSInformation();
                     break;
-                case ConsensusBehavior.PackageSpecialData:
+                case ConsensusBehavior.PackageOutValue:
                     _miningWithPublishingOutValueAndSignature();
                     break;
-                case ConsensusBehavior.BroadcastValidationData:
+                case ConsensusBehavior.BroadcastInValue:
                     _publishInValue();
                     break;
                 case ConsensusBehavior.NextRound:
@@ -114,7 +114,7 @@ namespace AElf.Kernel.Consensus
             {
                 produceNormalBlock = Observable
                     .Timer(TimeSpan.FromSeconds(distanceToProduceNormalBlock))
-                    .Select(_ => ConsensusBehavior.PackageSpecialData);
+                    .Select(_ => ConsensusBehavior.PackageOutValue);
 
                 if (distanceToProduceNormalBlock >= 0)
                 {
@@ -135,7 +135,7 @@ namespace AElf.Kernel.Consensus
                 var after = distanceToPublishInValue - distanceToProduceNormalBlock;
                 publishInValue = Observable
                     .Timer(TimeSpan.FromSeconds(after))
-                    .Select(_ => ConsensusBehavior.BroadcastValidationData);
+                    .Select(_ => ConsensusBehavior.BroadcastInValue);
 
                 if (distanceToPublishInValue >= 0)
                 {

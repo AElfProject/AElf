@@ -9,9 +9,9 @@ namespace AElf.Kernel.Consensus
         InitialTerm,
         NextTerm,
         NextRound,
-        PackageSpecialData,
+        PackageOutValue,
 
-        BroadcastValidationData = 11
+        BroadcastInValue = 11
     }
 
     public static class ConsensusBehaviorExtensions

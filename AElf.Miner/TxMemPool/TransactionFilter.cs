@@ -87,7 +87,7 @@ namespace AElf.Miner.TxMemPool
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _onePublishOutValueTx = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
-            var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PackageSpecialData.ToString());
+            var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PackageOutValue.ToString());
             if (count > 1)
             {
                 toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
@@ -96,7 +96,7 @@ namespace AElf.Miner.TxMemPool
             _latestTxs.Clear();
 
             toRemove.AddRange(
-                list.FindAll(tx => tx.MethodName != ConsensusBehavior.PackageSpecialData.ToString()));
+                list.FindAll(tx => tx.MethodName != ConsensusBehavior.PackageOutValue.ToString()));
 
             if (count == 0)
             {
@@ -114,16 +114,16 @@ namespace AElf.Miner.TxMemPool
 
             _latestTxs.Clear();
 
-            var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastValidationData.ToString())?.RefBlockNumber;
+            var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString())?.RefBlockNumber;
             if (correctRefBlockNumber.HasValue)
             {
-                toRemove.AddRange(list.FindAll(tx => tx.RefBlockNumber != correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastValidationData.ToString()));
+                toRemove.AddRange(list.FindAll(tx => tx.RefBlockNumber != correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString()));
             }
             
             toRemove.AddRange(
                 list.FindAll(tx =>
                     tx.MethodName != ConsensusBehavior.NextRound.ToString() &&
-                    tx.MethodName != ConsensusBehavior.BroadcastValidationData.ToString()));
+                    tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString()));
 
             if (count == 0)
             {
@@ -150,7 +150,7 @@ namespace AElf.Miner.TxMemPool
                             _txFilter += _generatedByMe;
                             _txFilter += _oneInitialTx;
                             break;
-                        case ConsensusBehavior.PackageSpecialData:
+                        case ConsensusBehavior.PackageOutValue:
                             _txFilter = null;
                             _txFilter += _generatedByMe;
                             _txFilter += _onePublishOutValueTx;

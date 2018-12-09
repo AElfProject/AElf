@@ -1,6 +1,7 @@
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus
+// ReSharper disable once CheckNamespace
+namespace AElf.Kernel
 {
     public static class Extensions
     {
