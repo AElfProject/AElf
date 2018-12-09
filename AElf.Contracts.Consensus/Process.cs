@@ -11,6 +11,8 @@ namespace AElf.Contracts.Consensus
     // ReSharper disable InconsistentNaming
     public class Process
     {
+        private string RoundIdNotMatched => "Round Id not matched.";
+        
         private int Interval
         {
             get
@@ -33,7 +35,7 @@ namespace AElf.Contracts.Consensus
 
         public void Initialize(Term firstTerm, int logLevel)
         {
-            UpdateCurrentRoundNumber();
+            _collection.CurrentRoundNumberField.SetValue(1);
 
             SetAliases(firstTerm);
 
@@ -45,7 +47,9 @@ namespace AElf.Contracts.Consensus
 
         public void NextTerm(Term term)
         {
-            UpdateCurrentRoundNumber();
+            // TODO: Handle the dividends.
+
+            _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
 
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
@@ -54,40 +58,44 @@ namespace AElf.Contracts.Consensus
         public void Update(Forwarding forwarding)
         {
             var forwardingCurrentRoundInfo = forwarding.CurrentRoundInfo;
-            if (_collection.RoundsMap.TryGet(forwardingCurrentRoundInfo.RoundNumber.ToUInt64Value(), out var currentRoundInfo))
-            {
-                Api.Assert(forwardingCurrentRoundInfo.RoundId == currentRoundInfo.RoundId, "Round Id not matched.");
-            }
+            var currentRoundInfo = GetRoundInfo(forwardingCurrentRoundInfo.RoundNumber);
+            Api.Assert(forwardingCurrentRoundInfo.RoundId == currentRoundInfo.RoundId, RoundIdNotMatched);
 
             SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
             
+            _collection.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
+
             WindUp();
         }
 
         public void PublishOutValue(ToPackage toPackage)
         {
+            Api.Assert(toPackage.RoundId == GetCurrentRoundInfo().RoundId, RoundIdNotMatched);
+            
+            var roundInfo = GetCurrentRoundInfo();
 
+            roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].Signature = toPackage.Signature;
+            roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].OutValue = toPackage.OutValue;
+            
+            _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), roundInfo);
         }
 
         public void PublishInValue(ToBroadcast toBroadcast)
         {
+            Api.Assert(toBroadcast.RoundId == GetCurrentRoundInfo().RoundId, RoundIdNotMatched);
+            
+            var roundInfo = GetCurrentRoundInfo();
+            Api.Assert(roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].OutValue != null,
+                $"Out Value of {Api.GetPublicKeyToHex()} is null");
+            Api.Assert(roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].Signature != null,
+                $"Signature of {Api.GetPublicKeyToHex()} is null");
 
+            roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].InValue = toBroadcast.InValue;
+            
+            _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), roundInfo);
         }
         
         #region Vital Steps
-
-        private void UpdateCurrentRoundNumber()
-        {
-            var currentRoundNumber = CurrentRoundNumber;
-            if (currentRoundNumber == 0)
-            {
-                _collection.CurrentRoundNumberField.SetValue(1);
-            }
-            else
-            {
-                _collection.CurrentRoundNumberField.SetValue(currentRoundNumber + 1);
-            }
-        }
 
         private void SetAliases(Term term)
         {
@@ -112,7 +120,8 @@ namespace AElf.Contracts.Consensus
         /// <param name="forwardingRoundInfo"></param>
         private void SupplyCurrentRoundInfo(Round roundInfo, Round forwardingRoundInfo)
         {
-            
+            var previousRoundInfo = _collection.
+            var supplement = roundInfo.Supplement()
         }
 
         private void WindUp()
@@ -138,6 +147,22 @@ namespace AElf.Contracts.Consensus
             return _collection.AliasesMap.TryGet(new StringValue {Value = publicKey}, out var alias)
                 ? alias.Value
                 : publicKey.Substring(5);
+        }
+
+        private Round GetCurrentRoundInfo()
+        {
+            Api.Assert(_collection.RoundsMap.TryGet(CurrentRoundNumber.ToUInt64Value(), out var currentRoundInfo),
+                $"Can't get information of round {CurrentRoundNumber}");
+
+            return currentRoundInfo;
+        }
+
+        private Round GetRoundInfo(ulong roundNumber)
+        {
+            Api.Assert(_collection.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out var roundInfo),
+                $"Can't get information of round {roundNumber}");
+
+            return roundInfo;
         }
 
         /// <summary>

@@ -25,5 +25,36 @@ namespace AElf.Kernel
         {
             return RealTimeMinersInfo.FirstOrDefault().Value;
         }
+
+        public Round Supplement(Round previousRound)
+        {
+            foreach (var minerInRound in RealTimeMinersInfo.Values)
+            {
+                if (minerInRound.InValue != null && minerInRound.OutValue != null)
+                {
+                    continue;
+                }
+
+                minerInRound.MissedTimeSlots += 1;
+                
+                var inValue = Hash.Generate();
+                var outValue = Hash.FromMessage(inValue);
+
+                minerInRound.OutValue = outValue;
+                minerInRound.InValue = inValue;
+
+                var signature = previousRound.CalculateSignature(inValue);
+                minerInRound.Signature = signature;
+            }
+
+            return this;
+        }
+
+        public Hash CalculateSignature(Hash inValue)
+        {
+            return Hash.FromTwoHashes(inValue,
+                RealTimeMinersInfo.Values.Aggregate(Hash.Default,
+                    (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
+        }
     }
 }

@@ -168,8 +168,24 @@ namespace AElf.Sdk.CSharp
             {
                 secp256k1.Recover(recoveredKey, tx.Sigs.First().ToByteArray(), hash);
             }
-
+            
             return ByteString.CopyFrom(recoveredKey);
+        }
+        
+        public static string GetPublicKeyToHex()
+        {
+            //todo review maybe not do all this in here
+            var tx = GetTransaction();
+            var hash = tx.GetHash().DumpByteArray();
+            
+            byte[] recoveredKey = new byte[Secp256k1.PUBKEY_LENGTH];
+
+            using (var secp256k1 = new Secp256k1())
+            {
+                secp256k1.Recover(recoveredKey, tx.Sigs.First().ToByteArray(), hash);
+            }
+
+            return recoveredKey.ToHex();
         }
 
         public static Hash GetTxnHash()
