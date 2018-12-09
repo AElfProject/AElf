@@ -19,6 +19,7 @@ namespace AElf.Contracts.Consensus
             CurrentRoundNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber),
             MiningIntervalField = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString),
             CandidatesField = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
+            AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
 
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
             TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
@@ -77,9 +78,14 @@ namespace AElf.Contracts.Consensus
 
         public void Vote(string candidatePublicKey, ulong amount)
         {
-            Election.Vote();
+            Election.Vote(candidatePublicKey, amount);
         }
 
+        public void Withdraw(string candidatePublicKey, ulong amount)
+        {
+            Election.Withdraw(candidatePublicKey, amount);
+        }
+        
         [View]
         public List<string> GetCurrentMiners()
         {
@@ -92,11 +98,6 @@ namespace AElf.Contracts.Consensus
             }
             
             return new List<string>();
-        }
-
-        public void Withdraw(byte[] pubKey, ulong amount)
-        {
-            
         }
         
         #endregion

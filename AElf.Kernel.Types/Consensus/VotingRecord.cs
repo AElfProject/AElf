@@ -6,6 +6,8 @@ namespace AElf.Kernel
     public partial class VotingRecord
     {
         private TimeSpan PastTime => DateTime.UtcNow - VoteTimestamp.ToDateTime();
+
+        public ulong Weight => (GetCurrentLockingDays() / 270 + 2 / 3) * Count;
         
         public bool IsExpired()
         {

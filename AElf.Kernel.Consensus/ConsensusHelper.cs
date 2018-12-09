@@ -71,24 +71,6 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        private StringValue FirstPlaceBlockProducerOfCurrentRound
-        {
-            get
-            {
-                try
-                {
-                    return StringValue.Parser.ParseFrom(_reader.ReadMap<StringValue>(CurrentRoundNumber,
-                        GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString));
-                }
-                catch (Exception e)
-                {
-                    _logger?.Error(e, "Failed to get first order prodocuer of current round.");
-                    return new StringValue {Value = ""};
-                }
-            }
-        }
-
-
         public ConsensusHelper(IMinersManager minersManager, ConsensusDataReader reader)
         {
             _minersManager = minersManager;
@@ -227,29 +209,6 @@ namespace AElf.Kernel.Consensus
         public bool CanRecoverDPoSInformation()
         {
             return false;
-            /*try
-            {
-                //If DPoS information is already generated, return false;
-                //Because this method doesn't responsible to initialize DPoS information.
-                if (CurrentRoundNumber.Value == 0)
-                {
-                    return false;
-                }
-
-                var extraBlockTimeSlot = ExtraBlockTimeSlot.ToDateTime();
-                var now = DateTime.UtcNow;
-                if (now < extraBlockTimeSlot)
-                {
-                    return false;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Failed to check whether this node can recover DPoS mining.");
-                return false;
-            }
-
-            return true;*/
         }
 
         public void SyncMiningInterval()
@@ -329,41 +288,6 @@ namespace AElf.Kernel.Consensus
         {
             return StringValue.Parser.ParseFrom(_reader.ReadMap<StringValue>(new StringValue {Value = publicKey},
                 GlobalConfig.AElfDPoSAliasesMapString)).Value;
-        }
-
-        private UInt64Value RoundNumberMinusOne(UInt64Value currentCount)
-        {
-            var current = currentCount.Value;
-            current--;
-            return new UInt64Value {Value = current};
-        }
-
-        /// <summary>
-        /// Get local time
-        /// </summary>
-        /// <param name="offset">minutes</param>
-        /// <returns></returns>
-        private Timestamp GetTimestampOfUtcNow(int offset = 0)
-        {
-            return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
-        }
-
-        private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
-        {
-            return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
-        }
-
-        /// <summary>
-        /// In case of forgetting to check negative value.
-        /// For now this method only used for generating order,
-        /// so integer should be enough.
-        /// </summary>
-        /// <param name="uLongVal"></param>
-        /// <param name="intVal"></param>
-        /// <returns></returns>
-        private int GetModulus(ulong uLongVal, int intVal)
-        {
-            return Math.Abs((int) (uLongVal % (ulong) intVal));
         }
     }
 }

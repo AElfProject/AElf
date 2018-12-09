@@ -35,6 +35,8 @@ namespace AElf.Contracts.Consensus
 
         public void InitialTerm(Term firstTerm, int logLevel)
         {
+            _collection.AgeField.SetValue(1);
+            
             _collection.CurrentRoundNumberField.SetValue(1);
 
             SetAliases(firstTerm);
@@ -51,6 +53,18 @@ namespace AElf.Contracts.Consensus
 
             _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
 
+            foreach (var minerInRound in term.FirstRound.RealTimeMinersInfo.Values)
+            {
+                minerInRound.MissedTimeSlots = 0;
+                minerInRound.ProducedBlocks = 0;
+            }
+            
+            foreach (var minerInRound in term.SecondRound.RealTimeMinersInfo.Values)
+            {
+                minerInRound.MissedTimeSlots = 0;
+                minerInRound.ProducedBlocks = 0;
+            }
+            
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
         }

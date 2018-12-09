@@ -9,5 +9,10 @@ namespace AElf.Kernel
         {
             return new UInt64Value {Value = value};
         }
+
+        public static StringValue ToStringValue(this string value)
+        {
+            return new StringValue {Value = value};
+        }
     }
 }

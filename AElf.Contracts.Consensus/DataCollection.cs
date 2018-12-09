@@ -17,6 +17,11 @@ namespace AElf.Contracts.Consensus
         /// The nodes declared join the election for Miners.
         /// </summary>
         public PbField<Candidates> CandidatesField;
+
+        /// <summary>
+        /// Days since we started this blockchain.
+        /// </summary>
+        public UInt64Field AgeField;
         
         /// <summary>
         /// DPoS information of each round.
