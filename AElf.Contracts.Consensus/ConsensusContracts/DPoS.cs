@@ -404,7 +404,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             // Todo: real miners needed, fake it now
             var miner = new Miners();
             miner.Producers.Add(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(
-                "042c01352f2992f494003a876874ccdd05f0ed595a1ac3531a46175177beebde64d7887a51e1a04b08d6659853d120c00892c603be803e8fb0e2901c616c46d768")));
+                "04131c00c85d4a2407d2b625338636dbdda9622b3b845929070a8cd1fab6abbe18e1d15f34ad8ec97e5be0eb9fbb8f1180eaf4ea9af06d9887b9d961ef3b174ab1")));
             return miner;
         }
 

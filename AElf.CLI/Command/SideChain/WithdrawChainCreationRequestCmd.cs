@@ -13,12 +13,12 @@ namespace AElf.CLI.Command.SideChain
 
         public override string GetUsage()
         {
-            return CommandName + "<address> <chain_Id>";
+            return CommandName + " <address> <chain_Id>";
         }
 
         public override string Validate(CmdParseResult parsedCmd)
         {
-            if (parsedCmd.Args == null || parsedCmd.Args.Count != 1)
+            if (parsedCmd.Args == null || parsedCmd.Args.Count != 2)
             {
                 return "Wrong arguments. " + GetUsage();
             }
