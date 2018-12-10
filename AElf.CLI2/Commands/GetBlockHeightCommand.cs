@@ -5,7 +5,7 @@ using CommandLine;
 
 namespace AElf.CLI2.Commands
 {
-    [Verb("get-blk-height", HelpText = "Get the abi for a contract or contract method.")]
+    [Verb("get-blk-height", HelpText = "Get the block height.")]
     public class GetBlockHeightOption : BaseOption
     {
     }
