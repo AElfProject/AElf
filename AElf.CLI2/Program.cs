@@ -20,7 +20,7 @@ namespace AElf.CLI2
         {
             return Parser.Default
                 .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, SendTransactionOption,
-                    AnotherVerb>(args)
+                    GetTxResultOption, AnotherVerb>(args)
                 .MapResult(
                     (CreateOption opt) =>
                     {
@@ -61,6 +61,15 @@ namespace AElf.CLI2
                     (SendTransactionOption opt) =>
                     {
                         using (var cmd = new SendTransactionCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (GetTxResultOption opt) =>
+                    {
+                        using (var cmd = new GetTxResultCommand(opt))
                         {
                             cmd.Execute();
                         }
