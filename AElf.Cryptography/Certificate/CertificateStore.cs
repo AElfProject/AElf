@@ -53,7 +53,7 @@ namespace AElf.Cryptography.Certificate
         public bool AddCertificate(string name, string certificate)
         {
             Directory.CreateDirectory(Path.Combine(_dataDirectory, FolderName));
-            name = PrefixString(name);
+            //name = PrefixString(name);
             using (StreamWriter streamWriter = new StreamWriter(Path.Combine(_dataDirectory, FolderName, name + CertExtension)))
             {
                 PemWriter pem = new PemWriter(streamWriter);
@@ -78,7 +78,7 @@ namespace AElf.Cryptography.Certificate
         {
             try
             {
-                name = PrefixString(name);
+                //name = PrefixString(name);
                 string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + CertExtension));
                 return crt;
             }
@@ -97,7 +97,7 @@ namespace AElf.Cryptography.Certificate
         {
             try
             {
-                name = PrefixString(name);
+                //name = PrefixString(name);
                 string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + KeyExtension));
                 return crt;
             }
@@ -116,7 +116,7 @@ namespace AElf.Cryptography.Certificate
         {
             // create directory if not exists
             Directory.CreateDirectory(dir);
-            fileName = PrefixString(fileName);
+            //fileName = PrefixString(fileName);
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(dir, fileName + extension), false)) {
                 PemWriter pw = new PemWriter(outputFile);
                 try
@@ -132,6 +132,10 @@ namespace AElf.Cryptography.Certificate
                     }
 
                     return true;
+                }
+                catch (Exception)
+                {
+                    return false;
                 }
                 finally
                 {

@@ -11,14 +11,11 @@ namespace AElf.CLI2
 {
     class Program
     {
-        [Verb("another", HelpText = "...")]
-        class AnotherVerb : BaseOption
-        {
-        }
-
         static int Main(string[] args)
         {
-            return Parser.Default.ParseArguments<CreateOption, InteractiveOption, DeployOption, AnotherVerb>(args)
+            return Parser.Default
+                .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, SendTransactionOption,
+                    GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption, GetMerkelPathOption>(args)
                 .MapResult(
                     (CreateOption opt) =>
                     {
@@ -47,7 +44,60 @@ namespace AElf.CLI2
 
                         return 0;
                     },
-                    (AnotherVerb opt) => 0,
+                    (GetAbiOption opt) =>
+                    {
+                        using (var cmd = new GetAbiCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (SendTransactionOption opt) =>
+                    {
+                        using (var cmd = new SendTransactionCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (GetTxResultOption opt) =>
+                    {
+                        using (var cmd = new GetTxResultCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (GetBlockHeightOption opt) =>
+                    {
+                        using (var cmd = new GetBlockHeightCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (GetBlockInfoOption opt) =>
+                    {
+                        using (var cmd = new GetBlockInfoCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (GetMerkelPathOption opt) =>
+                    {
+                        using (var cmd = new GetMerkelPathCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
                     errs => 1);
         }
     }

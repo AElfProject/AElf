@@ -22,6 +22,12 @@ namespace AElf.CLI2.Commands
                 [typeof(CreateOption)] = typeof(CreateCommand),
                 [typeof(InteractiveOption)] = typeof(InteractiveCommand),
                 [typeof(DeployOption)] = typeof(DeployCommand),
+                [typeof(GetAbiOption)] = typeof(GetAbiCommand),
+                [typeof(SendTransactionOption)] = typeof(SendTransactionCommand),
+                [typeof(GetTxResultOption)] = typeof(GetTxResultCommand),
+                [typeof(GetBlockHeightOption)] = typeof(GetBlockHeightCommand),
+                [typeof(GetBlockInfoOption)] = typeof(GetBlockInfoCommand),
+                [typeof(GetMerkelPathOption)] = typeof(GetMerkelPathCommand),
             };
         }
 

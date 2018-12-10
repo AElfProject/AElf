@@ -55,18 +55,14 @@ namespace AElf.CLI.Data.Protobuf
        
         public string GetFormatted()
         {
-            //if (Value.Length != GlobalConfig.AddressHashLength + GlobalConfig.ChainIdLength)
             if (Value.Length != GlobalConfig.AddressHashLength)
             {
                 throw new ArgumentOutOfRangeException(
                     $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
             }
-
-            //string chainId = Base58CheckEncoding.EncodePlain(Value.Take(3).ToArray());
             //string pubKeyHash = Base58CheckEncoding.Encode(Value.Skip(3).ToArray());
             
-            string pubKeyHash = Base58CheckEncoding.Encode(Value.ToArray());
-           
+            string pubKeyHash = Base58CheckEncoding.Encode(Value);
             return GlobalConfig.AElfAddressPrefix + '_' + pubKeyHash;
         }
     }

@@ -30,8 +30,8 @@ namespace AElf.ChainController.CrossChain
         {
             var bytes = _contractInfoReader.GetBytes<MerklePath>(SideChainContractAddress,
                             Hash.FromMessage(new UInt64Value {Value = blockHeight}),
-                            GlobalConfig.AElfTxRootMerklePathInParentChain) ?? new byte[0];
-            return MerklePath.Parser.ParseFrom(bytes);
+                            GlobalConfig.AElfTxRootMerklePathInParentChain);
+            return bytes == null ? null : MerklePath.Parser.ParseFrom(bytes);
         }
 
         /// <summary>
@@ -43,8 +43,8 @@ namespace AElf.ChainController.CrossChain
         {
             var bytes = _contractInfoReader.GetBytes<UInt64Value>(SideChainContractAddress,
                             Hash.FromMessage(new UInt64Value {Value = localChainHeight}),
-                            GlobalConfig.AElfBoundParentChainHeight) ?? new byte[0];
-            return UInt64Value.Parser.ParseFrom(bytes).Value;
+                            GlobalConfig.AElfBoundParentChainHeight);
+            return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
         }
 
         /// <summary>
@@ -54,8 +54,8 @@ namespace AElf.ChainController.CrossChain
         public ulong GetParentChainCurrentHeight()
         {
             var bytes = _contractInfoReader.GetBytes<UInt64Value>(SideChainContractAddress,
-                            Hash.FromString(GlobalConfig.AElfCurrentParentChainHeight)) ?? new byte[0];
-            return UInt64Value.Parser.ParseFrom(bytes).Value;
+                            Hash.FromString(GlobalConfig.AElfCurrentParentChainHeight));
+            return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
         }
 
         /// <summary>
@@ -67,8 +67,8 @@ namespace AElf.ChainController.CrossChain
         {
             var bytes = _contractInfoReader.GetBytes<ParentChainBlockInfo>(SideChainContractAddress,
                             Hash.FromMessage(new UInt64Value {Value = localChainHeight}),
-                            GlobalConfig.AElfParentChainBlockInfo) ?? new byte[0];
-            return ParentChainBlockInfo.Parser.ParseFrom(bytes);
+                            GlobalConfig.AElfParentChainBlockInfo);
+            return bytes == null ? null : ParentChainBlockInfo.Parser.ParseFrom(bytes);
         }
     }
 }
