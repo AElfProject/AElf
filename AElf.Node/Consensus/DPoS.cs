@@ -302,10 +302,13 @@ namespace AElf.Kernel.Node
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
+                    var firstTerm = _minersManager.GetMiners().Result
+                        .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
+                    
                     var parameters = new List<object>
                     {
-                        _minersManager.GetMiners().Result.GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval),
+                        firstTerm,
                         logLevel
                     };
                     var txToInitializeAElfDPoS = await GenerateTransactionAsync(behavior.ToString(), parameters);
@@ -380,11 +383,12 @@ namespace AElf.Kernel.Node
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
                     var roundInfo = _helper.GetCurrentRoundInfo(currentRoundNumber);
-
+                    
                     var signature = Hash.Default;
-                    if (currentRoundNumber.Value > 1)
+
+                    if (_helper.TryGetRoundInfo(currentRoundNumber.Value - 1, out var previousRoundInfo))
                     {
-                        signature = roundInfo.CalculateSignature(inValue);
+                        signature = previousRoundInfo.CalculateSignature(inValue);
                     }
 
                     var parameters = new List<object>
@@ -539,6 +543,14 @@ namespace AElf.Kernel.Node
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
                     var roundInfo = _helper.GetCurrentRoundInfo(currentRoundNumber);
+                    if (_helper.TryGetRoundInfo(currentRoundNumber.Value - 1, out var previousRoundInfo))
+                    {
+                        roundInfo = roundInfo.Supplement(previousRoundInfo);
+                    }
+                    else
+                    {
+                        roundInfo = roundInfo.ForceSupplement();
+                    }
 
                     var parameters = new List<object>
                     {

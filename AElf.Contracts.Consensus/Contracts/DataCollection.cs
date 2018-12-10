@@ -3,7 +3,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus
+namespace AElf.Contracts.Consensus.Contracts
 {
     // ReSharper disable InconsistentNaming
     public class DataCollection

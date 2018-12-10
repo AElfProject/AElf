@@ -64,8 +64,38 @@ namespace AElf.Kernel
             return this;
         }
 
+        public Round ForceSupplement()
+        {
+            foreach (var minerInRound in RealTimeMinersInfo.Values)
+            {
+                if (minerInRound.InValue != null && minerInRound.OutValue != null)
+                {
+                    continue;
+                }
+                
+                minerInRound.MissedTimeSlots += 1;
+                
+                var inValue = Hash.Generate();
+                var outValue = Hash.FromMessage(inValue);
+
+                minerInRound.OutValue = outValue;
+                minerInRound.InValue = inValue;
+            }
+
+            return this;
+        }
+
         public Hash CalculateSignature(Hash inValue)
         {
+            // Check the signatures
+            foreach (var minerInRound in RealTimeMinersInfo)
+            {
+                if (minerInRound.Value.Signature == null)
+                {
+                    throw new Exception("Signature can't be null.");
+                }
+            }
+            
             return Hash.FromTwoHashes(inValue,
                 RealTimeMinersInfo.Values.Aggregate(Hash.Default,
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));

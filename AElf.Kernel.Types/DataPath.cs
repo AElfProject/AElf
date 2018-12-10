@@ -49,13 +49,6 @@ namespace AElf.Kernel
         /// For pipeline setting.
         /// </summary>
         public Hash Key => ResourcePointerHash;
-//            Hash.FromMessage( 
-//            new Key
-//        {
-//            Type =  Type,
-//            Value = ByteString.CopyFrom(ResourcePointerHash.GetHashBytes()),
-//            HashType = (uint) HashType.ResourcePointer
-//        });
             
         public string Type { get; set; }
 
@@ -223,8 +216,6 @@ namespace AElf.Kernel
         }
 
         #endregion
-
-        
     }
 
     public class DataPath<T> where T : IMessage, new()

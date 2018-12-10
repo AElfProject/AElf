@@ -37,19 +37,20 @@ namespace AElf.Kernel
             var selected = PublicKeys.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
-                var bpInfo = new MinerInRound {IsExtraBlockProducer = false};
+                var minerInRound = new MinerInRound {IsExtraBlockProducer = false};
 
                 if (i == selected)
                 {
-                    bpInfo.IsExtraBlockProducer = true;
+                    minerInRound.IsExtraBlockProducer = true;
                 }
 
-                bpInfo.Order = i + 1;
-                bpInfo.Signature = Hash.Generate();
-                bpInfo.ExpectedMiningTime =
+                minerInRound.Order = i + 1;
+                minerInRound.Signature = Hash.Generate();
+                minerInRound.ExpectedMiningTime =
                     GetTimestampOfUtcNow(i * miningInterval + GlobalConfig.AElfWaitFirstRoundTime);
+                minerInRound.PublicKey = enumerable[i];
 
-                infosOfRound1.RealTimeMinersInfo.Add(enumerable[i], bpInfo);
+                infosOfRound1.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
             }
 
             // Second round
@@ -69,29 +70,31 @@ namespace AElf.Kernel
 
             var infosOfRound2 = new Round();
 
-            var addition = enumerable.Count * miningInterval +
-                           miningInterval;
+            var addition = enumerable.Count * miningInterval + miningInterval;
 
             selected = PublicKeys.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
-                var bpInfo = new MinerInRound {IsExtraBlockProducer = false};
+                var minerInRound = new MinerInRound {IsExtraBlockProducer = false};
 
                 if (i == selected)
                 {
-                    bpInfo.IsExtraBlockProducer = true;
+                    minerInRound.IsExtraBlockProducer = true;
                 }
 
-                bpInfo.ExpectedMiningTime = GetTimestampOfUtcNow(i * miningInterval +
-                                                               addition +
-                                                               GlobalConfig.AElfWaitFirstRoundTime);
-                bpInfo.Order = i + 1;
+                minerInRound.ExpectedMiningTime =
+                    GetTimestampOfUtcNow(i * miningInterval + addition + GlobalConfig.AElfWaitFirstRoundTime);
+                minerInRound.Order = i + 1;
+                minerInRound.PublicKey = enumerable[i];
 
-                infosOfRound2.RealTimeMinersInfo.Add(enumerable[i], bpInfo);
+                infosOfRound2.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
             }
 
             infosOfRound1.RoundNumber = 1;
             infosOfRound2.RoundNumber = 2;
+
+            infosOfRound1.MiningInterval = miningInterval;
+            infosOfRound2.MiningInterval = miningInterval;
 
             var term = new Term
             {
@@ -176,12 +179,12 @@ namespace AElf.Kernel
 
             var newEBP = CalculateNextExtraBlockProducer(round);
             round.RealTimeMinersInfo[newEBP].IsExtraBlockProducer = true;
-            
+
             // Exchange
-            var relatedOrder = round.RealTimeMinersInfo[extraBlockProducer].Order;
+            var oldOrder = round.RealTimeMinersInfo[extraBlockProducer].Order;
             round.RealTimeMinersInfo[extraBlockProducer].Order = 1;
-            round.RealTimeMinersInfo[round.GetFirstPlaceMinerInfo().PublicKey].Order = relatedOrder;
-            
+            round.RealTimeMinersInfo.First().Value.Order = oldOrder;
+
             return round;
         }
 
@@ -199,11 +202,11 @@ namespace AElf.Kernel
             var blockProducerCount = roundInfo.RealTimeMinersInfo.Count;
             var order = GetModulus(sigNum, blockProducerCount);
 
-            var nextEBP = roundInfo.RealTimeMinersInfo.Values.ToList()[order];
+            var nextEBP = roundInfo.RealTimeMinersInfo.Keys.ToList()[order];
 
-            return nextEBP.PublicKey;
+            return nextEBP;
         }
-        
+
         /// <summary>
         /// Get local time
         /// </summary>
@@ -213,12 +216,12 @@ namespace AElf.Kernel
         {
             return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
         }
-        
+
         private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
         }
-        
+
         /// <summary>
         /// In case of forgetting to check negative value.
         /// For now this method only used for generating order,

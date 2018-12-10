@@ -237,6 +237,12 @@ namespace AElf.Kernel.Consensus
 
         public bool TryGetRoundInfo(ulong roundNumber, out Round roundInfo)
         {
+            if (roundNumber == 1)
+            {
+                roundInfo = null;
+                return false;
+            }
+            
             var info = this[roundNumber.ToUInt64Value()];
             if (info != null)
             {

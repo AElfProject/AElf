@@ -5,22 +5,13 @@ using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
-namespace AElf.Contracts.Consensus
+namespace AElf.Contracts.Consensus.Contracts
 {
     // ReSharper disable UnusedMember.Global
     // ReSharper disable InconsistentNaming
     public class Process
     {
         private string RoundIdNotMatched => "Round Id not matched.";
-        
-        private int Interval
-        {
-            get
-            {
-                var interval = _collection.MiningIntervalField.GetValue();
-                return interval == 0 ? ConsensusConfig.Instance.DPoSMiningInterval : interval;
-            }
-        }
 
         private ulong CurrentRoundNumber => _collection.CurrentRoundNumberField.GetValue();
 
@@ -77,7 +68,7 @@ namespace AElf.Contracts.Consensus
 
             var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
 
-            // Update produced blocks for each miner.
+            // Update missed time slots and  produced blocks for each miner.
             foreach (var minerInRound in completeCurrentRoundInfo.RealTimeMinersInfo)
             {
                 forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].MissedTimeSlots =
@@ -85,6 +76,8 @@ namespace AElf.Contracts.Consensus
                 forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
                     minerInRound.Value.ProducedBlocks;
             }
+
+            forwarding.NextRoundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
             
             _collection.RoundsMap.SetValue(forwarding.NextRoundInfo.RoundNumber.ToUInt64Value(),
                 forwarding.NextRoundInfo);
@@ -101,6 +94,8 @@ namespace AElf.Contracts.Consensus
 
             roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].Signature = toPackage.Signature;
             roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].OutValue = toPackage.OutValue;
+
+            roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
             
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), roundInfo);
         }
@@ -153,11 +148,8 @@ namespace AElf.Contracts.Consensus
                     roundInfo.RealTimeMinersInfo[suppliedMiner.Key].OutValue = suppliedMiner.Value.OutValue;
                     roundInfo.RealTimeMinersInfo[suppliedMiner.Key].InValue = suppliedMiner.Value.InValue;
                     roundInfo.RealTimeMinersInfo[suppliedMiner.Key].Signature = suppliedMiner.Value.Signature;
+
                     roundInfo.RealTimeMinersInfo[suppliedMiner.Key].MissedTimeSlots += 1;
-                }
-                else
-                {
-                    roundInfo.RealTimeMinersInfo[suppliedMiner.Key].ProducedBlocks += 1;
                 }
             }
             

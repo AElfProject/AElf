@@ -7,7 +7,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
-namespace AElf.Contracts.Consensus
+namespace AElf.Contracts.Consensus.Contracts
 {
     public class Election
     {
