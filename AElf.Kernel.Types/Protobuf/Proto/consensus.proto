@@ -44,6 +44,7 @@ message Candidates {
 message Tickets {
     repeated VotingRecord VotingRecords = 1;
     uint64 ExpiredTickets = 2;
+    uint64 TotalTickets = 3;
 }
 
 message VotingRecord {

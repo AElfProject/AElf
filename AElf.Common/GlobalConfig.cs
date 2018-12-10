@@ -30,7 +30,8 @@ namespace AElf.Common
         public static readonly ulong CrossChainContract = 3;
         public static readonly ulong AuthorizationContract = 4;
         public static readonly ulong ResourceContract = 5;
-        
+        public static readonly ulong DividendsContract = 5;
+
         public static int InvertibleChainHeight = 4;
 
         public static int BlockProducerNumber = 17;

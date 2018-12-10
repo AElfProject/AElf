@@ -14,5 +14,17 @@ namespace AElf.Kernel
         {
             return new StringValue {Value = value};
         }
+
+        /// <summary>
+        /// Include both min and max value.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public static bool InRange(this int value, int min, int max)
+        {
+            return value >= min && value <= max;
+        }
     }
 }

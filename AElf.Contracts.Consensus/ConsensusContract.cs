@@ -77,14 +77,14 @@ namespace AElf.Contracts.Consensus
             Election.QuitElection();
         }
 
-        public void Vote(string candidatePublicKey, ulong amount)
+        public void Vote(string candidatePublicKey, ulong amount, int lockDays)
         {
-            Election.Vote(candidatePublicKey, amount);
+            Election.Vote(candidatePublicKey, amount, lockDays);
         }
 
-        public void Withdraw(string candidatePublicKey, ulong amount)
+        public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
         {
-            Election.Withdraw(candidatePublicKey, amount);
+            Election.Withdraw(candidatePublicKey, amount, lockDays);
         }
         
         [View]

@@ -42,7 +42,9 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextTerm(Term term)
         {
-            // TODO: Handle the dividends.
+            // TODO: Transfer the dividends to miners.
+            
+            
 
             _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
 
@@ -218,6 +220,11 @@ namespace AElf.Contracts.Consensus.Contracts
                 $"Can't get information of round {roundNumber}");
 
             return roundInfo;
+        }
+
+        private bool ValidateMiners(Round roundInfo)
+        {
+            
         }
 
         /// <summary>

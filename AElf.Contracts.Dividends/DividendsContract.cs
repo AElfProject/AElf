@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -38,6 +39,32 @@ namespace AElf.Contracts.Dividends
             var termRounds = _termRoundsField.GetValue();
             termRounds?.RoundNumbers.Add(roundNumber);
             _termRoundsField.SetValue(termRounds);
+        }
+
+        public void AddWights(ulong weights)
+        {
+            var latestTermRoundNumber = GetLatestTermRoundNumber();
+            if (_totalWeightsMap.TryGet(latestTermRoundNumber, out var totalWeights))
+            {
+                var newWeights = totalWeights.Value + weights;
+                _totalWeightsMap.SetValue(latestTermRoundNumber, newWeights.ToUInt64Value());
+            }
+        }
+        
+        public void SubWeights(ulong weights)
+        {
+            var latestTermRoundNumber = GetLatestTermRoundNumber();
+            if (_totalWeightsMap.TryGet(latestTermRoundNumber, out var totalWeights))
+            {
+                var newWeights = totalWeights.Value - weights;
+                _totalWeightsMap.SetValue(latestTermRoundNumber, newWeights.ToUInt64Value());
+            }
+        }
+
+        private UInt64Value GetLatestTermRoundNumber()
+        {
+            var termRounds = _termRoundsField.GetValue();
+            return termRounds?.RoundNumbers?.Last().ToUInt64Value();
         }
     }
 }

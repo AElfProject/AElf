@@ -87,6 +87,8 @@ namespace AElf.Sdk.CSharp
 
         public static Address ConsensusContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
 
+        public static Address DividendsContractAddress => ContractHelpers.GetDividendsContractAddress(ChainId);
+
         public static Address Genesis => Address.Genesis;
 
         public static Hash GetPreviousBlockHash()
