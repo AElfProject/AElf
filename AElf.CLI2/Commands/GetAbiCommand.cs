@@ -29,7 +29,8 @@ namespace AElf.CLI2.Commands
         {
             if (string.IsNullOrEmpty(_option.Endpoint))
             {
-                Colors.WriteLine("Endpoint is not provided. Cannot get abi.");
+                Colors.WriteLine("Endpoint is not provided. Cannot get abi.".DarkRed());
+                return;
             }
 
             InitChain();
