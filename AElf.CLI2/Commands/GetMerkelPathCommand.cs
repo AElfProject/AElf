@@ -5,7 +5,7 @@ using CommandLine;
 
 namespace AElf.CLI2.Commands
 {
-    [Verb("get-merkle-path", HelpText = "Get a transaction result.")]
+    [Verb("get-merkle-path", HelpText = "Get the merkle path info for an executed transaction.")]
     public class GetMerkelPathOption : BaseOption
     {
         [Value(0, HelpText = "The tx hash to query.", Required = true)]
