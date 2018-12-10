@@ -625,7 +625,7 @@ namespace AElf.CLI
                         Module m;
                         if (!_loadedModules.TryGetValue(target.Replace("0x", ""), out m))
                         {
-                            _screenManager.PrintError(AbiNotLoaded + "for Address " + target);
+                            _screenManager.PrintError($"Address {target} {AbiNotLoaded}");
                             return;
                         }
 
