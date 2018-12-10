@@ -11,17 +11,11 @@ namespace AElf.CLI2
 {
     class Program
     {
-        [Verb("another", HelpText = "...")]
-        class AnotherVerb : BaseOption
-        {
-        }
-
         static int Main(string[] args)
         {
             return Parser.Default
                 .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, SendTransactionOption,
-                    GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption, GetMerkelPathOption,
-                    AnotherVerb>(args)
+                    GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption, GetMerkelPathOption>(args)
                 .MapResult(
                     (CreateOption opt) =>
                     {
@@ -104,7 +98,6 @@ namespace AElf.CLI2
 
                         return 0;
                     },
-                    (AnotherVerb opt) => 0,
                     errs => 1);
         }
     }
