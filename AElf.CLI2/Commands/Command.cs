@@ -5,6 +5,7 @@ using System.IO;
 using Alba.CsConsoleFormat.Fluent;
 using System.Reflection;
 using AElf.CLI2.Utils;
+using Org.BouncyCastle.Bcpg;
 
 namespace AElf.CLI2.Commands
 {
