@@ -27,6 +27,7 @@ namespace AElf.CLI2.Commands
                 [typeof(GetTxResultOption)] = typeof(GetTxResultCommand),
                 [typeof(GetBlockHeightOption)] = typeof(GetBlockHeightCommand),
                 [typeof(GetBlockInfoOption)] = typeof(GetBlockInfoCommand),
+                [typeof(GetMerkelPathOption)] = typeof(GetMerkelPathCommand),
             };
         }
 

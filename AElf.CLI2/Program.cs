@@ -20,7 +20,7 @@ namespace AElf.CLI2
         {
             return Parser.Default
                 .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, SendTransactionOption,
-                    GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption,
+                    GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption, GetMerkelPathOption,
                     AnotherVerb>(args)
                 .MapResult(
                     (CreateOption opt) =>
@@ -89,6 +89,15 @@ namespace AElf.CLI2
                     (GetBlockInfoOption opt) =>
                     {
                         using (var cmd = new GetBlockInfoCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (GetMerkelPathOption opt) =>
+                    {
+                        using (var cmd = new GetMerkelPathCommand(opt))
                         {
                             cmd.Execute();
                         }
