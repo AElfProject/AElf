@@ -60,8 +60,6 @@ namespace AElf.CLI2.Commands
             var accountFile = _option.GetPathForAccount(address);
 
             Pem.WriteKeyPair(accountFile, privKey, pubKey, password);
-
-            Console.WriteLine($@"Account info has been saved to ""{accountFile}""");
         }
 
         private void PrintAccount(string address, string mnemonic, string privKey)

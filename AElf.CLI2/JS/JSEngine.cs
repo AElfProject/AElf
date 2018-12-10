@@ -11,6 +11,7 @@ using AElf.CLI2.JS.Crypto;
 using AElf.CLI2.JS.IO;
 using AElf.CLI2.JS.Net;
 using AElf.CLI2.Utils;
+using AElf.Common;
 using Alba.CsConsoleFormat;
 using Alba.CsConsoleFormat.Fluent;
 using ChakraCore.NET;
@@ -87,6 +88,7 @@ namespace AElf.CLI2.JS
             LoadHelpersJs();
             ExposeHttpRequestorToContext();
             ExposeTimerCallsHelper();
+            ExposeAccountSaver();
         }
 
         private void LoadAelfJs()
@@ -113,6 +115,15 @@ namespace AElf.CLI2.JS
             _context.GlobalObject.Binding.SetFunction("__randomNextInt__", _randomGenerator.NextInt);
             _context.GlobalObject.Binding.SetFunction<JSValue, JSValue, JSValue, JSValue, string>("__getHmacDigest__",
                 HmacHelper.GetHmacDigest);
+        }
+
+        private void ExposeAccountSaver()
+        {
+            _context.GlobalObject.Binding.SetMethod<string, string, string, string>("__saveAccount__",
+                (address, privKey, pubKey, password) =>
+                {
+                    Pem.WriteKeyPair(_option.GetPathForAccount(address), privKey, pubKey, password);
+                });
         }
 
         private void ExposeAElfOption()
@@ -183,7 +194,8 @@ namespace AElf.CLI2.JS
 
         private void ExposeTimerCallsHelper()
         {
-            _context.GlobalObject.Binding.SetMethod<JSValue,int,int>("__repeatedCalls__", _timerCallsHelper.RepeatedCalls);
+            _context.GlobalObject.Binding.SetMethod<JSValue, int, int>("__repeatedCalls__",
+                _timerCallsHelper.RepeatedCalls);
         }
 
         public void RunScript(Stream stream)

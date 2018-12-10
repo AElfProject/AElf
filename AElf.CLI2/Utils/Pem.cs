@@ -104,6 +104,7 @@ namespace AElf.CLI2.Utils
                 pw.Writer.Close();
             }
 
+            Console.WriteLine($@"Account info has been saved to ""{filePath}""");
             return true;
         }
     }

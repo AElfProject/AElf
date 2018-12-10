@@ -39,3 +39,10 @@ function _repeatedCalls(callback, milliSenconds, repetitions=0) {
     }
     __repeatedCalls__(callback, milliSenconds, repetitions);
 }
+
+function _saveAccount(account, password) {
+    var address = account.address;
+    var privKey = account.privateKey;
+    var pubKey = account.keyPair.getPublic('hex');
+    __saveAccount__(address, privKey, pubKey, password);
+}
