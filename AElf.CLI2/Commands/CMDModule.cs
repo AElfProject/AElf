@@ -26,6 +26,7 @@ namespace AElf.CLI2.Commands
                 [typeof(SendTransactionOption)] = typeof(SendTransactionCommand),
                 [typeof(GetTxResultOption)] = typeof(GetTxResultCommand),
                 [typeof(GetBlockHeightOption)] = typeof(GetBlockHeightCommand),
+                [typeof(GetBlockInfoOption)] = typeof(GetBlockInfoCommand),
             };
         }
 
