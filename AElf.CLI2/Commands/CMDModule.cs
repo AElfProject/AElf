@@ -22,6 +22,7 @@ namespace AElf.CLI2.Commands
                 [typeof(CreateOption)] = typeof(CreateCommand),
                 [typeof(InteractiveOption)] = typeof(InteractiveCommand),
                 [typeof(DeployOption)] = typeof(DeployCommand),
+                [typeof(GetAbiOption)] = typeof(GetAbiCommand),
             };
         }
 

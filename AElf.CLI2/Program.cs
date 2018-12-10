@@ -18,7 +18,8 @@ namespace AElf.CLI2
 
         static int Main(string[] args)
         {
-            return Parser.Default.ParseArguments<CreateOption, InteractiveOption, DeployOption, AnotherVerb>(args)
+            return Parser.Default
+                .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, AnotherVerb>(args)
                 .MapResult(
                     (CreateOption opt) =>
                     {
@@ -41,6 +42,15 @@ namespace AElf.CLI2
                     (DeployOption opt) =>
                     {
                         using (var cmd = new DeployCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (GetAbiOption opt) =>
+                    {
+                        using (var cmd = new GetAbiCommand(opt))
                         {
                             cmd.Execute();
                         }
