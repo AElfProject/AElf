@@ -1,5 +1,6 @@
 using System;
 using Alba.CsConsoleFormat.Fluent;
+using ChakraCore.NET.API;
 using CommandLine;
 using CSharpx;
 
@@ -32,28 +33,35 @@ namespace AElf.CLI2.Commands
             }
 
             InitChain();
-            // Get abi
-            _engine.RunScript($@"
-                var abi = aelf.chain.getContractAbi('{_option.Contract}');
-            ");
-            // Format abi
-            if (string.IsNullOrEmpty(_option.Method))
+            try
             {
-                // For contract
+                // Get abi
                 _engine.RunScript($@"
-                    var abiStr = JSON.stringify(abi, null, 2);
+                    var abi = aelf.chain.getContractAbi('{_option.Contract}');
                 ");
-            }
-            else
-            {
-                // For method
-                _engine.RunScript($@"
-                    var methodAbi = abi.Methods.find(x => x.Name === '{_option.Method}');
-                    var abiStr = JSON.stringify(methodAbi, null, 2);
-                ");
-            }
+                // Format abi
+                if (string.IsNullOrEmpty(_option.Method))
+                {
+                    // For contract
+                    _engine.RunScript($@"
+                        var abiStr = JSON.stringify(abi, null, 2);
+                    ");
+                }
+                else
+                {
+                    // For method
+                    _engine.RunScript($@"
+                        var methodAbi = abi.Methods.find(x => x.Name === '{_option.Method}');
+                        var abiStr = JSON.stringify(methodAbi, null, 2);
+                    ");
+                }
 
-            Console.WriteLine(_engine.GlobalObject.ReadProperty<string>("abiStr"));
+                Console.WriteLine(_engine.GlobalObject.ReadProperty<string>("abiStr"));
+            }
+            catch (JavaScriptException e)
+            {
+                Colors.WriteLine(e.Message.Replace("Script threw an exception. ", "").DarkRed());
+            }
         }
     }
 }
