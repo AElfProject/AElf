@@ -89,6 +89,7 @@ namespace AElf.CLI2.Commands
 
         public override void Execute()
         {
+            InitChain();
             Colors.WriteLine(
                 new Span("Welcome to aelf interactive console. Type "),
                 "exit".Cyan(), new Span(" to terminate the program. Type "),

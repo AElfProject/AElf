@@ -4,6 +4,7 @@ using Autofac;
 using System.IO;
 using Alba.CsConsoleFormat.Fluent;
 using System.Reflection;
+using AElf.CLI2.Utils;
 
 namespace AElf.CLI2.Commands
 {
@@ -35,7 +36,11 @@ namespace AElf.CLI2.Commands
                 _baseOption.Password = ReadLine.ReadPassword("Enter the password: ");
             }
 
-            var acc = EncryptedAccount.LoadFromFile(accountFile).Decrypt(_baseOption.Password);
+            var acc = new Account()
+            {
+                PrivateKey = Pem.ReadPrivateKey(accountFile, _baseOption.Password)
+            };
+
             if (!string.IsNullOrEmpty(acc.Mnemonic))
             {
                 _engine.RunScript($@"_account = Aelf.wallet.getWalletByMnemonic(""{acc.Mnemonic}"")");
