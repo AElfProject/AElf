@@ -20,7 +20,7 @@ namespace AElf.CLI2
         {
             return Parser.Default
                 .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, SendTransactionOption,
-                    GetTxResultOption, AnotherVerb>(args)
+                    GetTxResultOption, GetBlockHeightOption, AnotherVerb>(args)
                 .MapResult(
                     (CreateOption opt) =>
                     {
@@ -70,6 +70,15 @@ namespace AElf.CLI2
                     (GetTxResultOption opt) =>
                     {
                         using (var cmd = new GetTxResultCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (GetBlockHeightOption opt) =>
+                    {
+                        using (var cmd = new GetBlockHeightCommand(opt))
                         {
                             cmd.Execute();
                         }

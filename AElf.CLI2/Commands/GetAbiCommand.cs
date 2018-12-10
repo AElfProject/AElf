@@ -33,7 +33,6 @@ namespace AElf.CLI2.Commands
                 return;
             }
 
-            InitChain();
             try
             {
                 // Get abi

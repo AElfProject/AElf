@@ -5,18 +5,16 @@ using CommandLine;
 
 namespace AElf.CLI2.Commands
 {
-    [Verb("get-tx-result", HelpText = "Get a transaction result.")]
-    public class GetTxResultOption : BaseOption
+    [Verb("get-blk-height", HelpText = "Get the abi for a contract or contract method.")]
+    public class GetBlockHeightOption : BaseOption
     {
-        [Value(0, HelpText = "The tx hash to query.", Required = true)]
-        public string TxHash { get; set; } = "";
     }
 
-    public class GetTxResultCommand : Command
+    public class GetBlockHeightCommand : Command
     {
-        private GetTxResultOption _option;
+        private GetBlockHeightOption _option;
 
-        public GetTxResultCommand(GetTxResultOption option) : base(option)
+        public GetBlockHeightCommand(GetBlockHeightOption option) : base(option)
         {
             _option = option;
         }
@@ -29,18 +27,11 @@ namespace AElf.CLI2.Commands
                 return;
             }
 
-            _option.TxHash = _option.TxHash.Replace("0x", "");
-            if (string.IsNullOrEmpty(_option.TxHash) || _option.TxHash.Length != 64)
-            {
-                Colors.WriteLine("Provided tx hash is not valid.".DarkRed());
-                return;
-            }
-
             try
             {
                 // Get res
                 _engine.RunScript($@"
-                    var res = aelf.chain.getTxResult('{_option.TxHash}');
+                    var res = aelf.chain.getBlockHeight();
                 ");
                 // Format res
                 _engine.RunScript($@"

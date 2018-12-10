@@ -25,6 +25,7 @@ namespace AElf.CLI2.Commands
                 [typeof(GetAbiOption)] = typeof(GetAbiCommand),
                 [typeof(SendTransactionOption)] = typeof(SendTransactionCommand),
                 [typeof(GetTxResultOption)] = typeof(GetTxResultCommand),
+                [typeof(GetBlockHeightOption)] = typeof(GetBlockHeightCommand),
             };
         }
 
