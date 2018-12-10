@@ -78,7 +78,7 @@ namespace AElf.Kernel.Node
         private static bool _terminated;
 
         private ConsensusObserver ConsensusObserver => new ConsensusObserver(MiningWithInitializingAElfDPoSInformation,
-            MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
+            MiningWithPublishingOutValueAndSignature, MiningWithUpdatingAElfDPoSInformation);
 
         public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
             ConsensusHelper helper)
@@ -406,8 +406,6 @@ namespace AElf.Kernel.Node
                     await BroadcastTransaction(txToPublishOutValueAndSignature);
 
                     await Mine();
-
-                    await PublishInValue();
                 }
             }
             catch (Exception e)
@@ -420,9 +418,10 @@ namespace AElf.Kernel.Node
                 {
                     Thread.VolatileWrite(ref _flag, 0);
                 }
-
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                
+                await PublishInValue();
             }
         }
 
@@ -552,12 +551,13 @@ namespace AElf.Kernel.Node
                         roundInfo = roundInfo.ForceSupplement();
                     }
 
+                    var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
                     var parameters = new List<object>
                     {
                         new Forwarding
                         {
                             CurrentRoundInfo = roundInfo,
-                            NextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo)
+                            NextRoundInfo = nextRoundInfo
                         }
                     };
 

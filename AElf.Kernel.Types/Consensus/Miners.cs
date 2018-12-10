@@ -34,7 +34,7 @@ namespace AElf.Kernel
 
             var infosOfRound1 = new Round();
 
-            var selected = PublicKeys.Count / 2;
+            var selected = new Random().Next(0, PublicKeys.Count);
             for (var i = 0; i < enumerable.Count; i++)
             {
                 var minerInRound = new MinerInRound {IsExtraBlockProducer = false};
@@ -52,7 +52,7 @@ namespace AElf.Kernel
 
                 infosOfRound1.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
             }
-
+            
             // Second round
             dict = new Dictionary<string, int>();
 
@@ -70,9 +70,9 @@ namespace AElf.Kernel
 
             var infosOfRound2 = new Round();
 
-            var addition = enumerable.Count * miningInterval + miningInterval;
+            var totalSecondsOfFirstRound = (enumerable.Count + 1) * miningInterval;
 
-            selected = PublicKeys.Count / 2;
+            selected = new Random().Next(0, PublicKeys.Count);
             for (var i = 0; i < enumerable.Count; i++)
             {
                 var minerInRound = new MinerInRound {IsExtraBlockProducer = false};
@@ -83,7 +83,7 @@ namespace AElf.Kernel
                 }
 
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow(i * miningInterval + addition + GlobalConfig.AElfWaitFirstRoundTime);
+                    GetTimestampOfUtcNow(i * miningInterval + totalSecondsOfFirstRound + GlobalConfig.AElfWaitFirstRoundTime);
                 minerInRound.Order = i + 1;
                 minerInRound.PublicKey = enumerable[i];
 
@@ -113,6 +113,10 @@ namespace AElf.Kernel
 
         public Round GenerateNextRound(Round previousRound)
         {
+            if (previousRound.RoundNumber == 1)
+            {
+                return new Round {RoundNumber = 0};
+            }
             var miningInterval = previousRound.MiningInterval;
             var round = new Round {RoundNumber = previousRound.RoundNumber + 1};
 
@@ -155,7 +159,7 @@ namespace AElf.Kernel
                 orderDict.Add(order, signatureDict[sig]);
             }
 
-            var extraBlockMiningTime = previousRound.GetEBPMiningTime().ToTimestamp();
+            var extraBlockMiningTime = previousRound.GetEBPMiningTime(miningInterval).ToTimestamp();
 
             // Maybe because something happened with setting extra block time slot.
             if (extraBlockMiningTime.ToDateTime().AddMilliseconds(miningInterval * 1.5) <
@@ -168,10 +172,10 @@ namespace AElf.Kernel
             {
                 var minerInRound = new MinerInRound
                 {
-                    ExpectedMiningTime = GetTimestampWithOffset(extraBlockMiningTime,
-                        i * miningInterval +
-                        miningInterval * 2),
-                    Order = i + 1
+                    ExpectedMiningTime =
+                        GetTimestampWithOffset(extraBlockMiningTime, i * miningInterval + miningInterval),
+                    Order = i + 1,
+                    PublicKey = orderDict[i]
                 };
 
                 round.RealTimeMinersInfo[orderDict[i]] = minerInRound;
@@ -182,8 +186,15 @@ namespace AElf.Kernel
 
             // Exchange
             var oldOrder = round.RealTimeMinersInfo[extraBlockProducer].Order;
+            var tempTime = round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime;
             round.RealTimeMinersInfo[extraBlockProducer].Order = 1;
+            round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime =
+                round.RealTimeMinersInfo.First().Value.ExpectedMiningTime;
+
             round.RealTimeMinersInfo.First().Value.Order = oldOrder;
+            round.RealTimeMinersInfo.First().Value.ExpectedMiningTime = tempTime;
+
+            round.MiningInterval = previousRound.MiningInterval;
 
             return round;
         }
@@ -214,7 +225,8 @@ namespace AElf.Kernel
         /// <returns></returns>
         private Timestamp GetTimestampOfUtcNow(int offset = 0)
         {
-            return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
+            var now = Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
+            return now;
         }
 
         private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)

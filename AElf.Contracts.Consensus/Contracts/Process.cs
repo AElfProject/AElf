@@ -32,6 +32,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
             SetAliases(firstTerm);
 
+            firstTerm.FirstRound.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
+
             _collection.RoundsMap.SetValue(((ulong) 1).ToUInt64Value(), firstTerm.FirstRound);
             _collection.RoundsMap.SetValue(((ulong) 2).ToUInt64Value(), firstTerm.SecondRound);
 
@@ -55,6 +57,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
             }
+
+            term.FirstRound.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
             
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
@@ -68,20 +72,37 @@ namespace AElf.Contracts.Consensus.Contracts
 
             var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
 
-            // Update missed time slots and  produced blocks for each miner.
-            foreach (var minerInRound in completeCurrentRoundInfo.RealTimeMinersInfo)
+            if (forwarding.NextRoundInfo.RoundNumber == 0)
             {
-                forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].MissedTimeSlots =
-                    minerInRound.Value.MissedTimeSlots;
-                forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
-                    minerInRound.Value.ProducedBlocks;
+                if (_collection.RoundsMap.TryGet((currentRoundInfo.RoundNumber + 1).ToUInt64Value(), out var nextRoundInfo))
+                {
+                    foreach (var minerInRound in completeCurrentRoundInfo.RealTimeMinersInfo)
+                    {
+                        nextRoundInfo.RealTimeMinersInfo[minerInRound.Key].MissedTimeSlots =
+                            minerInRound.Value.MissedTimeSlots;
+                        nextRoundInfo.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
+                            minerInRound.Value.ProducedBlocks;
+                    }
+                    nextRoundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
+                    _collection.RoundsMap.SetValue(nextRoundInfo.RoundNumber.ToUInt64Value(), nextRoundInfo);
+                    _collection.CurrentRoundNumberField.SetValue(nextRoundInfo.RoundNumber);
+                }
             }
-
-            forwarding.NextRoundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
-            
-            _collection.RoundsMap.SetValue(forwarding.NextRoundInfo.RoundNumber.ToUInt64Value(),
-                forwarding.NextRoundInfo);
-            _collection.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
+            else
+            {
+                // Update missed time slots and  produced blocks for each miner.
+                foreach (var minerInRound in completeCurrentRoundInfo.RealTimeMinersInfo)
+                {
+                    forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].MissedTimeSlots =
+                        minerInRound.Value.MissedTimeSlots;
+                    forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
+                        minerInRound.Value.ProducedBlocks;
+                }
+                forwarding.NextRoundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
+                _collection.RoundsMap.SetValue(forwarding.NextRoundInfo.RoundNumber.ToUInt64Value(),
+                    forwarding.NextRoundInfo);
+                _collection.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
+            }
 
             WindUp();
         }

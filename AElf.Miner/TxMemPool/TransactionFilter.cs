@@ -109,11 +109,22 @@ namespace AElf.Miner.TxMemPool
         private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneUpdateAElfDPoSTxAndOnePublishInValueTxByMe = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
-            var count = list.Count(tx => tx.MethodName == ConsensusBehavior.NextRound.ToString());
+            
+            var count = list.Count(tx =>
+                tx.MethodName == ConsensusBehavior.NextRound.ToString() ||
+                tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
+            
+            if (count == 0)
+            {
+                logger?.Warn("No NextRound tx or BroadcastInValue tx in pool.");
+                return toRemove;
+            }
+            
             toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
 
             _latestTxs.Clear();
-
+            Console.WriteLine("Cleared latest txs.");
+            
             var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString())?.RefBlockNumber;
             if (correctRefBlockNumber.HasValue)
             {
@@ -125,17 +136,17 @@ namespace AElf.Miner.TxMemPool
                     tx.MethodName != ConsensusBehavior.NextRound.ToString() &&
                     tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString()));
 
-            if (count == 0)
-            {
-                logger?.Warn("No UpdateAElfDPoS tx or PublishInValue tx in pool.");
-            }
-
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
 
         public TransactionFilter()
         {
-            MessageHub.Instance.Subscribe<DPoSTransactionGenerated>(inTxId => { _latestTxs.Add(inTxId.TransactionId); });
+            MessageHub.Instance.Subscribe<DPoSTransactionGenerated>(inTxId =>
+            {
+                _latestTxs.Add(inTxId.TransactionId);
+                _logger?.Trace($"Added tx: {inTxId.TransactionId}");
+            });
+            
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
                 if (inState.IsMining)
@@ -188,6 +199,9 @@ namespace AElf.Miner.TxMemPool
                     throw;
                 }
             }
+
+            Console.WriteLine("After filter:");
+            PrintTxList(txs);
         }
 
         private void PrintTxList(IEnumerable<Transaction> txs)

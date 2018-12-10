@@ -65,7 +65,6 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception)
                 {
-                    //_logger?.Error(e, "Failed to get DPoS mining interval.\n");
                     return new SInt32Value {Value = ConsensusConfig.Instance.DPoSMiningInterval};
                 }
             }
@@ -115,10 +114,8 @@ namespace AElf.Kernel.Consensus
                     var round = Round.Parser.ParseFrom(bytes);
                     return round;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    _logger.Error(e,
-                        $"Failed to get Round information of provided round number. - {roundNumber.Value}\n");
                     return default(Round);
                 }
             }
@@ -237,7 +234,7 @@ namespace AElf.Kernel.Consensus
 
         public bool TryGetRoundInfo(ulong roundNumber, out Round roundInfo)
         {
-            if (roundNumber == 1)
+            if (roundNumber == 0)
             {
                 roundInfo = null;
                 return false;
@@ -261,10 +258,9 @@ namespace AElf.Kernel.Consensus
                 var result = "";
 
                 var roundInfo = this[roundNumber];
-                foreach (var minerInfo in roundInfo.RealTimeMinersInfo)
+                foreach (var minerInfo in roundInfo.RealTimeMinersInfo.OrderBy(m => m.Value.Order))
                 {
-                    result += GetAlias(minerInfo.Key) + ":\n";
-                    result += "Is EBP:\t\t" + minerInfo.Value.IsExtraBlockProducer + "\n";
+                    result += GetAlias(minerInfo.Key) + (minerInfo.Value.IsExtraBlockProducer ? " [Current EBP]:\n" : ":\n");
                     result += "Order:\t\t" + minerInfo.Value.Order + "\n";
                     result += "Mining Time:\t" +
                               minerInfo.Value.ExpectedMiningTime.ToDateTime().ToLocalTime().ToString("u") + "\n";
@@ -275,13 +271,12 @@ namespace AElf.Kernel.Consensus
                               "\n";
                     result += "In Value:\t" + minerInfo.Value.InValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() +
                               "\n";
-                    result += "Blocks:\t\t" + minerInfo.Value.ProducedBlocks + "\n";
+                    result += "Mined Blocks:\t" + minerInfo.Value.ProducedBlocks + "\n";
                     result += "Is Forked:\t" + minerInfo.Value.IsForked + "\n";
-                    result += "Missed:\t\t" + minerInfo.Value.MissedTimeSlots + "\n";
-
+                    result += "Missed Slots:\t" + minerInfo.Value.MissedTimeSlots + "\n";
                 }
 
-                return result + $"\nEBP TimeSlot of current round: {roundInfo.GetEBPMiningTime().ToLocalTime():u}\n";
+                return result + $"\nEBP TimeSlot of current round: {roundInfo.GetEBPMiningTime(MiningInterval.Value).ToLocalTime():u}\n";
             }
             catch (Exception e)
             {

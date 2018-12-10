@@ -15,25 +15,28 @@ namespace AElf.Kernel.Consensus
     {
         private readonly ILogger _logger;
 
-        private readonly Func<Task> _miningWithInitializingAElfDPoSInformation;
-        private readonly Func<Task> _miningWithPublishingOutValueAndSignature;
-        private readonly Func<Task> _publishInValue;
+        private readonly Func<Task> _nextTerm;
+        private readonly Func<Task> _packageOutValue;
+        private readonly Func<Task> _nextRound;
 
-        private readonly Func<Task> _miningWithUpdatingAElfDPoSInformation;
+        private readonly IObservable<ConsensusBehavior> _nop = Observable
+            .Timer(TimeSpan.FromSeconds(0))
+            .Select(_ => ConsensusBehavior.NoOperationPerformed);
+
+        private int Interval => ConsensusConfig.Instance.DPoSMiningInterval;
 
         public ConsensusObserver(params Func<Task>[] miningFunctions)
         {
-            if (miningFunctions.Length < 4)
+            if (miningFunctions.Length < 3)
             {
                 throw new ArgumentException("Incorrect functions count.", nameof(miningFunctions));
             }
 
             _logger = LogManager.GetLogger(nameof(ConsensusObserver));
 
-            _miningWithInitializingAElfDPoSInformation = miningFunctions[0];
-            _miningWithPublishingOutValueAndSignature = miningFunctions[1];
-            _publishInValue = miningFunctions[2];
-            _miningWithUpdatingAElfDPoSInformation = miningFunctions[3];
+            _nextTerm = miningFunctions[0];
+            _packageOutValue = miningFunctions[1];
+            _nextRound = miningFunctions[2];
         }
 
         public void OnCompleted()
@@ -51,31 +54,27 @@ namespace AElf.Kernel.Consensus
             switch (value)
             {
                 case ConsensusBehavior.NoOperationPerformed:
-                    _logger?.Trace("DPoS NOP.");
                     break;
                 case ConsensusBehavior.InitialTerm:
-                    _miningWithInitializingAElfDPoSInformation();
+                    _nextTerm();
                     break;
                 case ConsensusBehavior.PackageOutValue:
-                    _miningWithPublishingOutValueAndSignature();
-                    break;
-                case ConsensusBehavior.BroadcastInValue:
-                    _publishInValue();
+                    _packageOutValue();
                     break;
                 case ConsensusBehavior.NextRound:
-                    _miningWithUpdatingAElfDPoSInformation();
+                    _nextRound();
                     break;
             }
         }
 
         public IDisposable Initialization()
         {
-            var timeWaitingOtherNodes = TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval * 2.5);
+            var timeWaitingOtherNodes = TimeSpan.FromMilliseconds(Interval * 2.5);
             var delayInitialize = Observable
                 .Timer(timeWaitingOtherNodes)
                 .Select(_ => ConsensusBehavior.InitialTerm);
             _logger?.Trace(
-                $"Will initialize dpos information after {timeWaitingOtherNodes.TotalSeconds} seconds - " +
+                $"Will initialize next term information after {timeWaitingOtherNodes.TotalSeconds} seconds - " +
                 $"{DateTime.UtcNow.AddMilliseconds(timeWaitingOtherNodes.TotalMilliseconds):HH:mm:ss.fff}.");
             return Observable.Return(ConsensusBehavior.NoOperationPerformed).Concat(delayInitialize).Subscribe(this);
         }
@@ -83,7 +82,7 @@ namespace AElf.Kernel.Consensus
         public IDisposable RecoverMining()
         {
             var timeSureToRecover = TimeSpan.FromMilliseconds(
-                ConsensusConfig.Instance.DPoSMiningInterval * GlobalConfig.BlockProducerNumber);
+                Interval * GlobalConfig.BlockProducerNumber);
             var recoverMining = Observable
                 .Timer(timeSureToRecover)
                 .Select(_ => ConsensusBehavior.NextRound);
@@ -99,95 +98,56 @@ namespace AElf.Kernel.Consensus
 
         public IDisposable SubscribeMiningProcess(Round roundInfo)
         {
-            var infoOfMe = roundInfo.RealTimeMinersInfo[NodeConfig.Instance.ECKeyPair.PublicKey.ToHex()];
-            var extraBlockTimeSlot = roundInfo.GetEBPMiningTime().ToTimestamp();
-            var nopObservable = Observable
-                .Timer(TimeSpan.FromSeconds(0))
-                .Select(_ => ConsensusBehavior.NoOperationPerformed);
-
-            var timeSlot = infoOfMe.ExpectedMiningTime;
+            var welcome = roundInfo.RealTimeMinersInfo[NodeConfig.Instance.ECKeyPair.PublicKey.ToHex()];
+            var extraBlockTimeSlot = roundInfo.GetEBPMiningTime(Interval).ToTimestamp();
+            var myMiningTime = welcome.ExpectedMiningTime;
             var now = DateTime.UtcNow.ToTimestamp();
-            var distanceToProduceNormalBlock = (timeSlot - now).Seconds;
+            var distanceToProduceNormalBlock = (myMiningTime - now).Seconds;
 
-            IObservable<ConsensusBehavior> produceNormalBlock;
+            var produceNormalBlock = _nop;
             if (distanceToProduceNormalBlock >= 0)
             {
                 produceNormalBlock = Observable
                     .Timer(TimeSpan.FromSeconds(distanceToProduceNormalBlock))
                     .Select(_ => ConsensusBehavior.PackageOutValue);
 
-                if (distanceToProduceNormalBlock >= 0)
+                _logger?.Trace($"Will produce normal block after {distanceToProduceNormalBlock} seconds - " +
+                               $"{myMiningTime.ToDateTime():HH:mm:ss.fff}.");
+            }
+
+            var distanceToProduceExtraBlock = (extraBlockTimeSlot - now).Seconds;
+
+            var produceExtraBlock = _nop;
+            if (distanceToProduceExtraBlock < 0 && GlobalConfig.BlockProducerNumber != 1)
+            {
+                // No time, give up.
+            }
+            else if (welcome.IsExtraBlockProducer)
+            {
+                if (distanceToProduceExtraBlock >= 0)
                 {
-                    _logger?.Trace($"Will produce normal block after {distanceToProduceNormalBlock} seconds - {timeSlot.ToDateTime():HH:mm:ss.fff}.");
+                    produceExtraBlock = Observable
+                        .Timer(TimeSpan.FromSeconds(distanceToProduceExtraBlock - distanceToProduceNormalBlock))
+                        .Select(_ => ConsensusBehavior.NextRound);
+                    _logger?.Trace($"Will produce extra block after {distanceToProduceExtraBlock} seconds - " +
+                                   $"{extraBlockTimeSlot.ToDateTime():HH:mm:ss.fff}.");
                 }
             }
             else
             {
-                distanceToProduceNormalBlock = 0;
-                produceNormalBlock = nopObservable;
-            }
-
-            var distanceToPublishInValue = (extraBlockTimeSlot - now).Seconds;
-
-            IObservable<ConsensusBehavior> publishInValue;
-            if (distanceToPublishInValue >= 0)
-            {
-                var after = distanceToPublishInValue - distanceToProduceNormalBlock;
-                publishInValue = Observable
-                    .Timer(TimeSpan.FromSeconds(after))
-                    .Select(_ => ConsensusBehavior.BroadcastInValue);
-
-                if (distanceToPublishInValue >= 0)
+                var distanceToHelpProducingExtraBlock = distanceToProduceExtraBlock + Interval * welcome.Order / 1000;
+                if (distanceToHelpProducingExtraBlock >= 0)
                 {
-                    _logger?.Trace($"Will publish in value after {distanceToPublishInValue} seconds - {extraBlockTimeSlot.ToDateTime():HH:mm:ss.fff}.");
-                }
-            }
-            else
-            {
-                publishInValue = nopObservable;
-            }
-
-            IObservable<ConsensusBehavior> produceExtraBlock;
-            if (distanceToPublishInValue < 0 && GlobalConfig.BlockProducerNumber != 1)
-            {
-                produceExtraBlock = nopObservable;
-                if (GlobalConfig.BlockProducerNumber != 1)
-                {
-                    produceExtraBlock = nopObservable;
-                }
-            }
-            else if (infoOfMe.IsExtraBlockProducer)
-            {
-                var after = distanceToPublishInValue + ConsensusConfig.Instance.DPoSMiningInterval / 1000;
-                produceExtraBlock = Observable
-                    .Timer(TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval))
-                    .Select(_ => ConsensusBehavior.NextRound);
-
-                if (after >= 0)
-                {
-                    _logger?.Trace($"Will produce extra block after {after} seconds - {extraBlockTimeSlot.ToDateTime().AddMilliseconds(4000):HH:mm:ss.fff}.");
-                }
-            }
-            else
-            {
-                var after = distanceToPublishInValue + ConsensusConfig.Instance.DPoSMiningInterval / 1000 +
-                            ConsensusConfig.Instance.DPoSMiningInterval * infoOfMe.Order / 1000 +
-                            ConsensusConfig.Instance.DPoSMiningInterval / 750;
-                produceExtraBlock = Observable
-                    .Timer(TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval +
-                                                     ConsensusConfig.Instance.DPoSMiningInterval * infoOfMe.Order +
-                                                     ConsensusConfig.Instance.DPoSMiningInterval / 2))
-                    .Select(_ => ConsensusBehavior.NextRound);
-
-                if (after >= 0)
-                {
-                    _logger?.Trace($"Will help to produce extra block after {after} seconds.");
+                    produceExtraBlock = Observable
+                        .Timer(TimeSpan.FromSeconds(distanceToHelpProducingExtraBlock - distanceToProduceNormalBlock))
+                        .Select(_ => ConsensusBehavior.NextRound);
+                    _logger?.Trace($"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
+                                   $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * welcome.Order):HH:mm:ss.fff}");
                 }
             }
 
             return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(produceNormalBlock)
-                .Concat(publishInValue)
                 .Concat(produceExtraBlock)
                 .SubscribeOn(NewThreadScheduler.Default)
                 .Subscribe(this);

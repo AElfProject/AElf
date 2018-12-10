@@ -29,10 +29,10 @@ namespace AElf.Kernel
             return info;
         }
 
-        public DateTime GetEBPMiningTime()
+        public DateTime GetEBPMiningTime(int miningInterval)
         {
-            return RealTimeMinersInfo.OrderBy(m => m.Value.Order).Last().Value.ExpectedMiningTime.ToDateTime()
-                .AddMilliseconds(GlobalConfig.AElfDPoSMiningInterval);
+            return RealTimeMinersInfo.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value.ExpectedMiningTime.ToDateTime()
+                .AddMilliseconds(miningInterval);
         }
 
         public MinerInRound GetFirstPlaceMinerInfo()
@@ -44,7 +44,7 @@ namespace AElf.Kernel
         {
             foreach (var minerInRound in RealTimeMinersInfo.Values)
             {
-                if (minerInRound.InValue != null && minerInRound.OutValue != null)
+                if (minerInRound.OutValue != null)
                 {
                     continue;
                 }
