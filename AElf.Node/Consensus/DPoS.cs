@@ -322,8 +322,7 @@ namespace AElf.Kernel.Node
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace(
-                    $"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
 
@@ -473,7 +472,6 @@ namespace AElf.Kernel.Node
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
@@ -607,7 +605,7 @@ namespace AElf.Kernel.Node
                     var parameters = new List<object>
                     {
                         _helper.GetVictories().ToMiners()
-                            .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval)
+                            .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval, _helper.CurrentRoundNumber.Value + 1)
                     };
 
                     var txForNextTerm = await GenerateTransactionAsync(behavior.ToString(), parameters);

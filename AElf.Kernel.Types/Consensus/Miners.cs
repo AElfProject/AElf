@@ -15,7 +15,7 @@ namespace AElf.Kernel
             return !PublicKeys.Any();
         }
 
-        public Term GenerateNewTerm(int miningInterval)
+        public Term GenerateNewTerm(int miningInterval, ulong roundNumber = 1)
         {
             var dict = new Dictionary<string, int>();
 
@@ -90,8 +90,8 @@ namespace AElf.Kernel
                 infosOfRound2.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
             }
 
-            infosOfRound1.RoundNumber = 1;
-            infosOfRound2.RoundNumber = 2;
+            infosOfRound1.RoundNumber = roundNumber;
+            infosOfRound2.RoundNumber = roundNumber + 1;
 
             infosOfRound1.MiningInterval = miningInterval;
             infosOfRound2.MiningInterval = miningInterval;
