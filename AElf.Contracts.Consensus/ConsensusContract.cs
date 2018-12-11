@@ -26,7 +26,8 @@ namespace AElf.Contracts.Consensus
             TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
             SnapshotField = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString),
             DividendsMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSDividendsMapString),
-            AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString)
+            AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString),
+            HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString)
         };
 
         private Process Process => new Process(Collection);

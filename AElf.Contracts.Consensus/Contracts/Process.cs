@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
+using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -15,6 +18,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
         private ulong CurrentRoundNumber => _collection.CurrentRoundNumberField.GetValue();
 
+        private ulong CurrentTermNumber => _collection.CurrentTermNumberField.GetValue();
+
         private int LogLevel { get; set; }
 
         private readonly DataCollection _collection;
@@ -27,6 +32,8 @@ namespace AElf.Contracts.Consensus.Contracts
         public void InitialTerm(Term firstTerm, int logLevel)
         {
             _collection.AgeField.SetValue(1);
+
+            _collection.CurrentTermNumberField.SetValue(1);
             
             _collection.CurrentRoundNumberField.SetValue(1);
 
@@ -42,11 +49,22 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextTerm(Term term)
         {
-            // TODO: Transfer the dividends to miners.
-            
-            
+            Api.Assert(ValidateMiners(term.FirstRound),
+                $"Miners list is wrong of round {term.FirstRound.RoundNumber}.");
+            Api.Assert(ValidateMiners(term.SecondRound),
+                $"Miners list is wrong of round {term.SecondRound.RoundNumber}.");
 
-            _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
+            SnapshotAndDividends();
+
+            if (CurrentTermNumber == term.TermNumber - 1)
+            {
+                _collection.CurrentTermNumberField.SetValue(term.TermNumber);
+            }
+            
+            if (CurrentRoundNumber == term.FirstRound.RoundNumber - 1)
+            {
+                _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
+            }
 
             foreach (var minerInRound in term.FirstRound.RealTimeMinersInfo.Values)
             {
@@ -68,6 +86,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void Update(Forwarding forwarding)
         {
+            // TODO: time slot validation
+
             var forwardingCurrentRoundInfo = forwarding.CurrentRoundInfo;
             var currentRoundInfo = GetRoundInfo(forwardingCurrentRoundInfo.RoundNumber);
             Api.Assert(forwardingCurrentRoundInfo.RoundId == currentRoundInfo.RoundId, RoundIdNotMatched);
@@ -224,7 +244,161 @@ namespace AElf.Contracts.Consensus.Contracts
 
         private bool ValidateMiners(Round roundInfo)
         {
+            var minersList = roundInfo.RealTimeMinersInfo.Keys;
+            return !GetVictories().Except(minersList).Any();
+        }
+
+        private IEnumerable<string> GetVictories()
+        {
+            var candidates = _collection.CandidatesField.GetValue();
+            var ticketsMap = new Dictionary<string, ulong>();
+            foreach (var candidate in candidates.PublicKeys)
+            {
+                if (_collection.TicketsMap.TryGet(candidate.ToStringValue(), out var tickets))
+                {
+                    ticketsMap.Add(candidate, tickets.TotalTickets);
+                }
+            }
+
+            return ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
+                .ToList();
+        }
+
+        private void SnapshotAndDividends()
+        {
+            var currentRoundInfo = GetCurrentRoundInfo();
+
+            UpdateCandidatesInfoInHistory(currentRoundInfo, GetPreviousTerm());
             
+            var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
+                (current, minerInRound) => current + minerInRound.ProducedBlocks);
+            var candidateInTerms = new List<CandidateInTerm>();
+  
+            var dividendsForEveryMiner = minedBlocks * GlobalConfig.ElfTokenPerBlock * 0.4 / GlobalConfig.BlockProducerNumber;
+            var dividendsForTicketsCount = minedBlocks * GlobalConfig.ElfTokenPerBlock * 0.1;
+            var dividendsForReappointment = minedBlocks * GlobalConfig.ElfTokenPerBlock * 0.1;
+            var dividendsForBackupNodes = minedBlocks * GlobalConfig.ElfTokenPerBlock * 0.2;
+
+            ulong totalVotes = 0;
+            ulong totalReappointment = 0;
+            var temp = new Dictionary<string, ulong>();
+            foreach (var minerInRound in currentRoundInfo.RealTimeMinersInfo)
+            {
+                ulong votes = 0;
+                if (_collection.TicketsMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateTickets))
+                {
+                    foreach (var votingRecord in candidateTickets.VotingRecords)
+                    {
+                        votes += votingRecord.Count;
+                    }
+                }
+
+                totalVotes += votes;
+                candidateInTerms.Add(new CandidateInTerm
+                {
+                    PublicKey = minerInRound.Key,
+                    Votes = votes
+                });
+
+                if (_collection.HistoryMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateInHistory))
+                {
+                    totalReappointment += candidateInHistory.ReappointmentCount;
+                    temp.Add(minerInRound.Key, candidateInHistory.ReappointmentCount);
+                }
+            }
+
+            // Transfer dividends for actual miners. (The miners list based on last round of current term.)
+            foreach (var candidateInTerm in candidateInTerms)
+            {
+                Api.Call(Api.TokenContractAddress, "Transfer",
+                    ParamsPacker.Pack(new List<object>
+                    {
+                        candidateInTerm.PublicKey,
+                        dividendsForEveryMiner + dividendsForTicketsCount * candidateInTerm.Votes / totalVotes +
+                        dividendsForReappointment * temp[candidateInTerm.PublicKey] / totalReappointment
+                    }));
+            }
+
+            var pureCandidates = _collection.CandidatesField.GetValue().PublicKeys
+                .Except(candidateInTerms.Select(cit => cit.PublicKey)).ToList();
+            foreach (var pureCandidate in pureCandidates)
+            {
+                Api.Call(Api.TokenContractAddress, "Transfer",
+                    ParamsPacker.Pack(new List<object>
+                    {
+                        pureCandidate,
+                        dividendsForBackupNodes / pureCandidates.Count
+                    }));
+            }
+
+            var currentTermNumber =
+                CurrentTermNumber == 0 ? ((ulong) 1).ToUInt64Value() : CurrentTermNumber.ToUInt64Value();
+            
+            _collection.TermKeyLookUpMap.SetValue(CurrentRoundNumber.ToUInt64Value(),currentTermNumber);
+            _collection.SnapshotField.SetValue(currentTermNumber, new TermSnapshot
+            {
+                TermNumber = currentTermNumber.Value,
+                EndRoundNumber = CurrentRoundNumber,
+                TotalBlocks = minedBlocks,
+                CandidatesSnapshot = {candidateInTerms}
+            });
+        }
+
+        private void UpdateCandidatesInfoInHistory(Round currentRoundInfo, TermSnapshot previousTerm)
+        {
+            if (previousTerm == null)
+            {
+                // Initial history information for every miner.
+                foreach (var candidate in currentRoundInfo.RealTimeMinersInfo)
+                {
+                    _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
+                    {
+                        MissedTimeSlots = candidate.Value.MissedTimeSlots,
+                        ProducedBlocks = candidate.Value.ProducedBlocks,
+                        ReappointmentCount = 0,
+                        Terms = {1}
+                    });
+                }
+            }
+            else
+            {
+                foreach (var candidate in currentRoundInfo.RealTimeMinersInfo)
+                {
+                    if (_collection.HistoryMap.TryGet(candidate.Key.ToStringValue(), out var historyInfo))
+                    {
+                        _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
+                        {
+                            MissedTimeSlots = historyInfo.MissedTimeSlots + candidate.Value.MissedTimeSlots,
+                            ProducedBlocks = historyInfo.ProducedBlocks + candidate.Value.ProducedBlocks,
+                            ReappointmentCount =
+                                previousTerm.CandidatesSnapshot.Any(cit => cit.PublicKey == candidate.Key)
+                                    ? historyInfo.ReappointmentCount + 1
+                                    : 0,
+                            Terms = {historyInfo.Terms, previousTerm.TermNumber}
+                        });
+                    }
+                    else
+                    {
+                        _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
+                        {
+                            MissedTimeSlots = candidate.Value.MissedTimeSlots,
+                            ProducedBlocks = candidate.Value.ProducedBlocks,
+                            ReappointmentCount = 0,
+                            Terms = {previousTerm.TermNumber}
+                        });
+                    }
+                }
+            }
+        }
+
+        private TermSnapshot GetPreviousTerm()
+        {
+            if (_collection.SnapshotField.TryGet((CurrentTermNumber - 1).ToUInt64Value(), out var previousTerm))
+            {
+                return previousTerm;
+            }
+
+            return null;
         }
 
         /// <summary>

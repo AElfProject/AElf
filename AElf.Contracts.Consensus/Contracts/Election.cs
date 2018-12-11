@@ -46,6 +46,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 lockDays *= 30;
             }
 
+            Api.Assert(lockDays.InRange(90,1080), "Lock days is illegal.");
+
             var ageOfBlockchain = _collection.AgeField.GetValue();
 
             var votingRecord = new VotingRecord

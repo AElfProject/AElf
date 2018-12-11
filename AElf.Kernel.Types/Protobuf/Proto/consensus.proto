@@ -11,6 +11,7 @@ message Term {
     Round FirstRound = 2;
     Round SecondRound = 3;
     int32 MiningInterval = 4;
+    uint64 TermNumber = 5;
 }
 
 // Just used as parameter of consensus contract method.
@@ -61,7 +62,8 @@ message VotingRecord {
 message TermSnapshot {
     uint64 EndRoundNumber = 1;
     uint64 TotalBlocks = 2;
-    repeated MinerInTerm MinersSnapshot = 3;
+    repeated CandidateInTerm CandidatesSnapshot = 3;
+    uint64 TermNumber = 4;
 }
 
 message Round {
@@ -70,9 +72,9 @@ message Round {
     int32 MiningInterval = 3;
 }
 
-message MinerInTerm {
+message CandidateInTerm {
     string PublicKey = 1;
-    uint64 VotersWeights = 2;
+    uint64 Votes = 2;
 }
 
 message MinerInRound {
@@ -89,7 +91,7 @@ message MinerInRound {
     string PublicKey = 11;
 }
 
-message MinerInHistory {
+message CandidateInHistory {
     repeated uint64 Terms = 1;
     uint64 ProducedBlocks = 2;
     uint64 MissedTimeSlots = 3;

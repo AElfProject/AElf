@@ -14,6 +14,11 @@ namespace AElf.Contracts.Consensus.Contracts
         public UInt64Field CurrentRoundNumberField;
         
         /// <summary>
+        /// Current term number.
+        /// </summary>
+        public UInt64Field CurrentTermNumberField;
+
+        /// <summary>
         /// The nodes declared join the election for Miners.
         /// </summary>
         public PbField<Candidates> CandidatesField;
@@ -33,6 +38,9 @@ namespace AElf.Contracts.Consensus.Contracts
         /// </summary>
         public Int32Field MiningIntervalField;
 
+        /// <summary>
+        /// Round Number -> Term Number
+        /// </summary>
         public Map<UInt64Value, UInt64Value> TermKeyLookUpMap;
 
         /// <summary>
@@ -45,5 +53,7 @@ namespace AElf.Contracts.Consensus.Contracts
         public Map<UInt64Value, UInt64Value> DividendsMap;
 
         public Map<StringValue, StringValue> AliasesMap;
+
+        public Map<StringValue, CandidateInHistory> HistoryMap;
     }
 }
