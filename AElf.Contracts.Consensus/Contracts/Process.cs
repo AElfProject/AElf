@@ -321,8 +321,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 if (_collection.HistoryMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateInHistory))
                 {
-                    totalReappointment += candidateInHistory.ReappointmentCount;
-                    temp.Add(minerInRound.Key, candidateInHistory.ReappointmentCount);
+                    totalReappointment += candidateInHistory.ContinualAppointmentCount;
+                    temp.Add(minerInRound.Key, candidateInHistory.ContinualAppointmentCount);
                 }
             }
             
@@ -375,6 +375,7 @@ namespace AElf.Contracts.Consensus.Contracts
                     {
                         MissedTimeSlots = candidate.Value.MissedTimeSlots,
                         ProducedBlocks = candidate.Value.ProducedBlocks,
+                        ContinualAppointmentCount = 0,
                         ReappointmentCount = 0,
                         Terms = {1}
                     });
@@ -390,10 +391,11 @@ namespace AElf.Contracts.Consensus.Contracts
                         {
                             MissedTimeSlots = historyInfo.MissedTimeSlots + candidate.Value.MissedTimeSlots,
                             ProducedBlocks = historyInfo.ProducedBlocks + candidate.Value.ProducedBlocks,
-                            ReappointmentCount =
+                            ContinualAppointmentCount =
                                 previousTerm.CandidatesSnapshot.Any(cit => cit.PublicKey == candidate.Key)
-                                    ? historyInfo.ReappointmentCount + 1
+                                    ? historyInfo.ContinualAppointmentCount + 1
                                     : 0,
+                            ReappointmentCount = historyInfo.ReappointmentCount + 1,
                             Terms = {historyInfo.Terms, previousTerm.TermNumber}
                         });
                     }
@@ -403,6 +405,7 @@ namespace AElf.Contracts.Consensus.Contracts
                         {
                             MissedTimeSlots = candidate.Value.MissedTimeSlots,
                             ProducedBlocks = candidate.Value.ProducedBlocks,
+                            ContinualAppointmentCount = 0,
                             ReappointmentCount = 0,
                             Terms = {previousTerm.TermNumber}
                         });

@@ -27,7 +27,6 @@ namespace AElf.Contracts.Consensus
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
             TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
             SnapshotField = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString),
-            DividendsMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSDividendsMapString),
             AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString),
             HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString),
             TermKeyLookUpMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSTermLookUpString)
@@ -86,9 +85,34 @@ namespace AElf.Contracts.Consensus
             Election.Vote(candidatePublicKey, amount, lockDays);
         }
 
+        public void GetDividends(string candidatePublicKey, ulong amount, int lockDays)
+        {
+            Election.GetDividends(candidatePublicKey, amount, lockDays);
+        }
+
+        public void GetDividends(Hash transactionId)
+        {
+            Election.GetDividends(transactionId);
+        }
+        
+        public void GetDividends()
+        {
+            Election.GetDividends();
+        }
+        
         public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
         {
             Election.Withdraw(candidatePublicKey, amount, lockDays);
+        }
+        
+        public void Withdraw(Hash transactionId)
+        {
+            Election.Withdraw(transactionId);
+        }
+
+        public void Withdraw()
+        {
+            Election.Withdraw();
         }
         
         [View]

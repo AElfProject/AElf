@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -16,9 +15,11 @@ namespace AElf.Kernel.Consensus
     {
         private readonly ILogger _logger;
 
-        private readonly Func<Task> _nextTerm;
+        private readonly Func<Task> _initialTerm;
         private readonly Func<Task> _packageOutValue;
+        private readonly Func<Task> _broadcastInValue;
         private readonly Func<Task> _nextRound;
+        private readonly Func<Task> _nextTerm;
 
         private readonly IObservable<ConsensusBehavior> _nop = Observable
             .Timer(TimeSpan.FromSeconds(0))
@@ -28,16 +29,18 @@ namespace AElf.Kernel.Consensus
 
         public ConsensusObserver(params Func<Task>[] miningFunctions)
         {
-            if (miningFunctions.Length < 3)
+            if (miningFunctions.Length != 5)
             {
                 throw new ArgumentException("Incorrect functions count.", nameof(miningFunctions));
             }
 
             _logger = LogManager.GetLogger(nameof(ConsensusObserver));
 
-            _nextTerm = miningFunctions[0];
+            _initialTerm = miningFunctions[0];
             _packageOutValue = miningFunctions[1];
-            _nextRound = miningFunctions[2];
+            _broadcastInValue = miningFunctions[2];
+            _nextRound = miningFunctions[3];
+            _nextTerm = miningFunctions[4];
         }
 
         public void OnCompleted()
@@ -57,10 +60,13 @@ namespace AElf.Kernel.Consensus
                 case ConsensusBehavior.NoOperationPerformed:
                     break;
                 case ConsensusBehavior.InitialTerm:
-                    _nextTerm();
+                    _initialTerm();
                     break;
                 case ConsensusBehavior.PackageOutValue:
                     _packageOutValue();
+                    break;
+                case ConsensusBehavior.BroadcastInValue:
+                    _broadcastInValue();
                     break;
                 case ConsensusBehavior.NextRound:
                     _nextRound();

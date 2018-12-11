@@ -68,7 +68,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
             else
             {
-                tickets.ExpiredTickets = 0;
+                tickets = new Tickets();
                 tickets.VotingRecords.Add(votingRecord);
             }
 
@@ -81,6 +81,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
             else
             {
+                candidateTickets = new Tickets();
                 candidateTickets.VotingRecords.Add(votingRecord);
             }
 
@@ -92,7 +93,7 @@ namespace AElf.Contracts.Consensus.Contracts
                     {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
         }
 
-        public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
+        public void GetDividends(string candidatePublicKey, ulong amount, int lockDays)
         {
             if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
             {
@@ -102,14 +103,90 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 if (votingRecord != null)
                 {
-                    Api.Call(Api.TokenContractAddress, "Transfer",
-                        ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), amount}));
-                    Api.Call(Api.DividendsContractAddress, "SubWeights",
-                        ParamsPacker.Pack(new List<object>
-                            {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
                     var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
                     Api.Call(Api.DividendsContractAddress, "TransferDividends",
                         ParamsPacker.Pack(new List<object> {votingRecord, maxTermNumber}));
+                }
+            }
+        }
+        
+        public void GetDividends(Hash transactionId)
+        {
+            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            {
+                var votingRecord = tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
+
+                if (votingRecord != null)
+                {
+                    var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
+                    Api.Call(Api.DividendsContractAddress, "TransferDividends",
+                        ParamsPacker.Pack(new List<object> {votingRecord, maxTermNumber}));
+                }
+            }
+        }
+        
+        public void GetDividends()
+        {
+            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            {
+                foreach (var votingRecord in tickets.VotingRecords)
+                {
+                    var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
+                    Api.Call(Api.DividendsContractAddress, "TransferDividends",
+                        ParamsPacker.Pack(new List<object> {votingRecord, maxTermNumber}));
+                }
+            }
+        }
+
+        public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
+        {
+            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            {
+                var votingRecord =
+                    tickets.VotingRecords.FirstOrDefault(vr =>
+                        vr.To == candidatePublicKey && vr.Count == amount && vr.LockDaysList.Last() == lockDays);
+
+                if (votingRecord != null && votingRecord.UnlockAge >= _collection.AgeField.GetValue())
+                {
+                    Api.Call(Api.TokenContractAddress, "Transfer",
+                        ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), votingRecord.Count}));
+                    Api.Call(Api.DividendsContractAddress, "SubWeights",
+                        ParamsPacker.Pack(new List<object>
+                            {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
+                }
+            }
+        }
+        
+        public void Withdraw(Hash transactionId)
+        {
+            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            {
+                var votingRecord = tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
+
+                if (votingRecord != null && votingRecord.UnlockAge >= _collection.AgeField.GetValue())
+                {
+                    Api.Call(Api.TokenContractAddress, "Transfer",
+                        ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), votingRecord.Count}));
+                    Api.Call(Api.DividendsContractAddress, "SubWeights",
+                        ParamsPacker.Pack(new List<object>
+                            {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
+                }
+            }
+        }
+        
+        public void Withdraw()
+        {
+            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            {
+                var votingRecords = tickets.VotingRecords.Where(vr => vr.UnlockAge >= _collection.AgeField.GetValue());
+
+                foreach (var votingRecord in votingRecords)
+                {
+                    Api.Call(Api.TokenContractAddress, "Transfer",
+                        ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), votingRecord.Count}));
+                    Api.Call(Api.DividendsContractAddress, "SubWeights",
+                        ParamsPacker.Pack(new List<object>
+                            {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
                 }
             }
         }

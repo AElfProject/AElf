@@ -97,5 +97,6 @@ message CandidateInHistory {
     repeated uint64 Terms = 1;
     uint64 ProducedBlocks = 2;
     uint64 MissedTimeSlots = 3;
-    uint64 ReappointmentCount = 4;
+    uint64 ContinualAppointmentCount = 4;
+    uint64 ReappointmentCount = 5;
 }

@@ -1,5 +1,4 @@
-﻿using AElf.Common;
-using AElf.Kernel;
+﻿using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -51,8 +50,6 @@ namespace AElf.Contracts.Consensus.Contracts
         public Map<StringValue, Tickets> TicketsMap;
 
         public Map<UInt64Value, TermSnapshot> SnapshotField;
-
-        public Map<UInt64Value, UInt64Value> DividendsMap;
 
         public Map<StringValue, StringValue> AliasesMap;
 

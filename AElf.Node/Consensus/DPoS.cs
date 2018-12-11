@@ -65,7 +65,7 @@ namespace AElf.Kernel.Node
         private ECKeyPair _nodeKey;
         private byte[] _ownPubKey;
 
-        private Hash _chainId;
+        private readonly Hash _chainId;
 
         public Address ContractAddress =>
             ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
@@ -79,7 +79,7 @@ namespace AElf.Kernel.Node
         private static bool _terminated;
 
         private ConsensusObserver ConsensusObserver =>
-            new ConsensusObserver(InitialTerm, PackageOutValue, NextRound, NextTerm);
+            new ConsensusObserver(InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
 
         public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
             ConsensusHelper helper)
@@ -366,7 +366,7 @@ namespace AElf.Kernel.Node
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
                     var roundInfo = _helper.GetCurrentRoundInfo(currentRoundNumber);
-                    
+
                     var signature = Hash.Default;
 
                     if (_helper.TryGetRoundInfo(currentRoundNumber.Value - 1, out var previousRoundInfo))
@@ -401,9 +401,10 @@ namespace AElf.Kernel.Node
                 {
                     Thread.VolatileWrite(ref _flag, 0);
                 }
+
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
-                
+
                 await BroadcastInValue();
             }
         }
