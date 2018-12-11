@@ -274,11 +274,6 @@ namespace AElf.Contracts.Consensus.Contracts
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
             var candidateInTerms = new List<CandidateInTerm>();
   
-            var dividendsForEveryMiner = minedBlocks * GlobalConfig.ElfTokenPerBlock * 0.4 / GlobalConfig.BlockProducerNumber;
-            var dividendsForTicketsCount = minedBlocks * GlobalConfig.ElfTokenPerBlock * 0.1;
-            var dividendsForReappointment = minedBlocks * GlobalConfig.ElfTokenPerBlock * 0.1;
-            var dividendsForBackupNodes = minedBlocks * GlobalConfig.ElfTokenPerBlock * 0.2;
-
             ulong totalVotes = 0;
             ulong totalReappointment = 0;
             var temp = new Dictionary<string, ulong>();
@@ -314,20 +309,20 @@ namespace AElf.Contracts.Consensus.Contracts
                     ParamsPacker.Pack(new List<object>
                     {
                         candidateInTerm.PublicKey,
-                        dividendsForEveryMiner + dividendsForTicketsCount * candidateInTerm.Votes / totalVotes +
-                        dividendsForReappointment * temp[candidateInTerm.PublicKey] / totalReappointment
+                        (ulong) (Config.GetDividendsForEveryMiner(minedBlocks) + Config.GetDividendsForTicketsCount(minedBlocks) * candidateInTerm.Votes / totalVotes +
+                         Config.GetDividendsForReappointment(minedBlocks) * temp[candidateInTerm.PublicKey] / totalReappointment)
                     }));
             }
 
-            var pureCandidates = _collection.CandidatesField.GetValue().PublicKeys
+            var backups = _collection.CandidatesField.GetValue().PublicKeys
                 .Except(candidateInTerms.Select(cit => cit.PublicKey)).ToList();
-            foreach (var pureCandidate in pureCandidates)
+            foreach (var backup in backups)
             {
                 Api.Call(Api.TokenContractAddress, "Transfer",
                     ParamsPacker.Pack(new List<object>
                     {
-                        pureCandidate,
-                        dividendsForBackupNodes / pureCandidates.Count
+                        backup,
+                        (ulong) (Config.GetDividendsForBackupNodes(minedBlocks) / (ulong) backups.Count)
                     }));
             }
 

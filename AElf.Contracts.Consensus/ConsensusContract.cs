@@ -21,6 +21,7 @@ namespace AElf.Contracts.Consensus
             MiningIntervalField = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString),
             CandidatesField = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
             AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
+            CurrentTermNumberField= new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
 
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
             TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),

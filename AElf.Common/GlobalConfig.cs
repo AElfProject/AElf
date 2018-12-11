@@ -60,6 +60,7 @@ namespace AElf.Common
         public const string AElfDPoSTermLookUpString = "__AElfDPoSTermLookUpString__";
         public const string AElfVotingRecordsString = "__AElfVotingRecordsString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
+        public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
 
         #endregion
 
@@ -81,6 +82,10 @@ namespace AElf.Common
         #region Dividends
 
         public const ulong ElfTokenPerBlock = 1;
+        public const double DividendsForEveryMiner = 0.4;
+        public const double DividendsForTicketsCount = 0.1;
+        public const double DividendsForReappointment = 0.1;
+        public const double DividendsForBackupNodes = 0.2;
         public const string DividendsMapString = "__DividendsMapString__";
         public const string WeightsMapString = "__WeightsMapString__";
         public const string TotalWeightsMapString = "__TotalWeightsMapString__";
