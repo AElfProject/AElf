@@ -14,11 +14,15 @@ namespace AElf.Contracts.Consensus.Contracts
     // ReSharper disable InconsistentNaming
     public class Process
     {
-        private string RoundIdNotMatched => "Round Id not matched.";
+        private static string RoundIdNotMatched => "Round Id not matched.";
 
         private ulong CurrentRoundNumber => _collection.CurrentRoundNumberField.GetValue();
 
         private ulong CurrentTermNumber => _collection.CurrentTermNumberField.GetValue();
+
+        private ulong CurrentAge => _collection.AgeField.GetValue();
+
+        private Timestamp StartTimestamp => _collection.BlockchainStartTimestamp.GetValue();
 
         private int LogLevel { get; set; }
 
@@ -31,11 +35,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void InitialTerm(Term firstTerm, int logLevel)
         {
-            _collection.AgeField.SetValue(1);
-
-            _collection.CurrentTermNumberField.SetValue(1);
-            
-            _collection.CurrentRoundNumberField.SetValue(1);
+            InitialBlockchain();
 
             SetAliases(firstTerm);
 
@@ -87,6 +87,15 @@ namespace AElf.Contracts.Consensus.Contracts
         public void Update(Forwarding forwarding)
         {
             // TODO: time slot validation
+            
+            // First handle the age of this blockchain
+            if (forwarding.CurrentAge != CurrentAge)
+            {
+                if (forwarding.CurrentAge == (ulong) ((DateTime.UtcNow - StartTimestamp.ToDateTime()).TotalDays + 1))
+                {
+                    _collection.AgeField.SetValue(forwarding.CurrentAge);
+                }
+            }
 
             var forwardingCurrentRoundInfo = forwarding.CurrentRoundInfo;
             var currentRoundInfo = GetRoundInfo(forwardingCurrentRoundInfo.RoundNumber);
@@ -160,6 +169,17 @@ namespace AElf.Contracts.Consensus.Contracts
         
         #region Vital Steps
 
+        private void InitialBlockchain()
+        {
+            _collection.CurrentTermNumberField.SetValue(1);
+            
+            _collection.CurrentRoundNumberField.SetValue(1);
+
+            _collection.BlockchainStartTimestamp.SetValue(DateTime.UtcNow.ToTimestamp());
+            
+            _collection.AgeField.SetValue(1);
+        }
+        
         private void SetAliases(Term term)
         {
             var index = 0;

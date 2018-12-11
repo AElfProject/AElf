@@ -36,6 +36,54 @@ namespace AElf.Kernel.Consensus
                 }
             }
         }
+        
+        public UInt64Value BlockchainAge
+        {
+            get
+            {
+                try
+                {
+                    return UInt64Value.Parser.ParseFrom(
+                        _reader.ReadFiled<UInt64Value>(GlobalConfig.AElfDPoSAgeFieldString));
+                }
+                catch (Exception)
+                {
+                    return new UInt64Value {Value = 0};
+                }
+            }
+        }
+        
+        public Timestamp BlockchainStartTimestamp
+        {
+            get
+            {
+                try
+                {
+                    return Timestamp.Parser.ParseFrom(
+                        _reader.ReadFiled<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp));
+                }
+                catch (Exception)
+                {
+                    return DateTime.UtcNow.ToTimestamp();
+                }
+            }
+        }
+
+        public Candidates Candidates
+        {
+            get
+            {
+                try
+                {
+                    return Candidates.Parser.ParseFrom(
+                        _reader.ReadFiled<Candidates>(GlobalConfig.AElfDPoSCandidatesString));
+                }
+                catch (Exception)
+                {
+                    return _minersManager.GetMiners().Result.PublicKeys.ToCandidates();
+                }
+            }
+        }
 
         private Round CurrentRoundInfo
         {
@@ -121,6 +169,30 @@ namespace AElf.Kernel.Consensus
             }
         }
 
+        public ulong CalculateBlockchainAge()
+        {
+            return (ulong) ((DateTime.UtcNow - BlockchainStartTimestamp.ToDateTime()).TotalDays + 1);
+        }
+
+        public List<string> GetVictories()
+        {
+            var ticketsMap = new Dictionary<string, ulong>();
+            foreach (var candidate in Candidates.PublicKeys)
+            {
+                var tickets = GetTickets(candidate);
+                ticketsMap.Add(candidate, tickets.TotalTickets);
+            }
+
+            return ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
+                .ToList();
+        }
+
+        private Tickets GetTickets(string candidatePublicKey)
+        {
+            return Tickets.Parser.ParseFrom(_reader.ReadMap<Tickets>(candidatePublicKey.ToStringValue(),
+                GlobalConfig.AElfDPoSTicketsMapString));
+        }
+        
         public StringValue GetDPoSInfoToString()
         {
             ulong count = 1;
@@ -231,6 +303,8 @@ namespace AElf.Kernel.Consensus
 
             return currentRoundNumber.Value != 0 ? this[currentRoundNumber] : null;
         }
+        
+
 
         public bool TryGetRoundInfo(ulong roundNumber, out Round roundInfo)
         {

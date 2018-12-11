@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -64,6 +65,9 @@ namespace AElf.Kernel.Consensus
                 case ConsensusBehavior.NextRound:
                     _nextRound();
                     break;
+                case ConsensusBehavior.NextTerm:
+                    _nextTerm();
+                    break;
             }
         }
 
@@ -94,6 +98,11 @@ namespace AElf.Kernel.Consensus
             return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(recoverMining)
                 .Subscribe(this);
+        }
+        
+        public IDisposable NextTerm()
+        {
+            return Observable.Return(ConsensusBehavior.NextTerm).Subscribe(this);
         }
 
         public IDisposable SubscribeMiningProcess(Round roundInfo)

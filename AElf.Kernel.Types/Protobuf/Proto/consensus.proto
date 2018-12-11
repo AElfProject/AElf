@@ -18,6 +18,7 @@ message Term {
 message Forwarding {
     Round CurrentRoundInfo = 1;
     Round NextRoundInfo = 2;
+    uint64 CurrentAge = 3;
 }
 
 // Just used as parameter of consensus contract method.

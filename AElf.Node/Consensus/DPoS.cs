@@ -67,7 +67,8 @@ namespace AElf.Kernel.Node
 
         private Hash _chainId;
 
-        public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+        public Address ContractAddress =>
+            ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
         private readonly IMinersManager _minersManager;
 
@@ -77,8 +78,8 @@ namespace AElf.Kernel.Node
 
         private static bool _terminated;
 
-        private ConsensusObserver ConsensusObserver => new ConsensusObserver(MiningWithInitializingAElfDPoSInformation,
-            MiningWithPublishingOutValueAndSignature, MiningWithUpdatingAElfDPoSInformation);
+        private ConsensusObserver ConsensusObserver =>
+            new ConsensusObserver(InitialTerm, PackageOutValue, NextRound, NextTerm);
 
         public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
             ConsensusHelper helper)
@@ -263,15 +264,7 @@ namespace AElf.Kernel.Node
             return null;
         }
 
-        /// <summary>
-        /// Related tx has 4 params:
-        /// 1. Miners list
-        /// 2. Information of first rounds
-        /// 3. Mining interval
-        /// 4. Log level
-        /// </summary>
-        /// <returns></returns>
-        private async Task MiningWithInitializingAElfDPoSInformation()
+        private async Task InitialTerm()
         {
             const ConsensusBehavior behavior = ConsensusBehavior.InitialTerm;
 
@@ -311,15 +304,15 @@ namespace AElf.Kernel.Node
                         firstTerm,
                         logLevel
                     };
-                    var txToInitializeAElfDPoS = await GenerateTransactionAsync(behavior.ToString(), parameters);
-                    await BroadcastTransaction(txToInitializeAElfDPoS);
+                    var txToInitialTerm = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    await BroadcastTransaction(txToInitialTerm);
 
                     await Mine();
                 }
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(MiningWithInitializingAElfDPoSInformation)}");
+                _logger?.Trace(e, $"Error in {nameof(InitialTerm)}");
             }
             finally
             {
@@ -334,16 +327,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        /// <summary>
-        /// Related tx has 5 params:
-        /// 1. Current round number
-        /// 2. BP Address
-        /// 3. Out value
-        /// 4. Signature
-        /// 5. Round Id
-        /// </summary>
-        /// <returns></returns>
-        private async Task MiningWithPublishingOutValueAndSignature()
+        private async Task PackageOutValue()
         {
             const ConsensusBehavior behavior = ConsensusBehavior.PackageOutValue;
 
@@ -401,16 +385,16 @@ namespace AElf.Kernel.Node
                         }
                     };
 
-                    var txToPublishOutValueAndSignature =
+                    var txToPackageOutValue =
                         await GenerateTransactionAsync(behavior.ToString(), parameters);
-                    await BroadcastTransaction(txToPublishOutValueAndSignature);
+                    await BroadcastTransaction(txToPackageOutValue);
 
                     await Mine();
                 }
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(MiningWithPublishingOutValueAndSignature)}");
+                _logger?.Trace(e, $"Error in {nameof(PackageOutValue)}");
             }
             finally
             {
@@ -421,19 +405,11 @@ namespace AElf.Kernel.Node
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
                 
-                await PublishInValue();
+                await BroadcastInValue();
             }
         }
 
-        /// <summary>
-        /// Related tx has 3 params:
-        /// 1. Current round number
-        /// 2. BP Address
-        /// 3. In value
-        /// 4. Round Id
-        /// </summary>
-        /// <returns></returns>
-        private async Task PublishInValue()
+        private async Task BroadcastInValue()
         {
             const ConsensusBehavior behavior = ConsensusBehavior.BroadcastInValue;
 
@@ -487,7 +463,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(PublishInValue)}");
+                _logger?.Trace(e, $"Error in {nameof(BroadcastInValue)}");
             }
             finally
             {
@@ -502,16 +478,10 @@ namespace AElf.Kernel.Node
             }
         }
 
-        /// <summary>
-        /// Related tx has 3 params:
-        /// 1. Current round info
-        /// 2. New round info
-        /// 3. Extra block producer of new round
-        /// </summary>
-        /// <returns></returns>
-        private async Task MiningWithUpdatingAElfDPoSInformation()
+        private async Task NextRound()
         {
             const ConsensusBehavior behavior = ConsensusBehavior.NextRound;
+            var goNextTerm = false;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
@@ -552,24 +522,103 @@ namespace AElf.Kernel.Node
                     }
 
                     var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
+
+                    var ageInDatabase = _helper.BlockchainAge.Value;
+                    var calculateAge = _helper.CalculateBlockchainAge();
+
+                    if (calculateAge % GlobalConfig.DaysEachTerm == 0)
+                    {
+                        throw new NextTermException();
+                    }
+
                     var parameters = new List<object>
                     {
                         new Forwarding
                         {
                             CurrentRoundInfo = roundInfo,
-                            NextRoundInfo = nextRoundInfo
+                            NextRoundInfo = nextRoundInfo,
+                            CurrentAge = ageInDatabase == calculateAge ? ageInDatabase : calculateAge
                         }
                     };
 
-                    var txForExtraBlock = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    var txForNextRound = await GenerateTransactionAsync(behavior.ToString(), parameters);
 
-                    await BroadcastTransaction(txForExtraBlock);
+                    await BroadcastTransaction(txForNextRound);
+                    await Mine();
+                }
+            }
+            catch (NextTermException)
+            {
+                goNextTerm = true;
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Error in {nameof(NextRound)}");
+            }
+            finally
+            {
+                if (lockWasTaken)
+                {
+                    Thread.VolatileWrite(ref _flag, 0);
+                }
+
+                MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
+                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+
+                if (goNextTerm)
+                {
+                    ConsensusDisposable?.Dispose();
+                    ConsensusDisposable = ConsensusObserver.NextTerm();
+                }
+            }
+        }
+
+        private async Task NextTerm()
+        {
+            const ConsensusBehavior behavior = ConsensusBehavior.NextTerm;
+
+            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
+
+            if (_terminated)
+            {
+                return;
+            }
+
+            if (!CurrentState.AbleToMine())
+            {
+                return;
+            }
+
+            var lockWasTaken = false;
+            try
+            {
+                lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
+                if (lockWasTaken)
+                {
+                    MessageHub.Instance.Publish(new DPoSStateChanged(behavior, true));
+
+                    if (MiningLocked())
+                    {
+                        return;
+                    }
+
+                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+
+                    var parameters = new List<object>
+                    {
+                        _helper.GetVictories().ToMiners()
+                            .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval)
+                    };
+
+                    var txForNextTerm = await GenerateTransactionAsync(behavior.ToString(), parameters);
+
+                    await BroadcastTransaction(txForNextTerm);
                     await Mine();
                 }
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(MiningWithUpdatingAElfDPoSInformation)}");
+                _logger?.Trace(e, $"Error in {nameof(NextRound)}");
             }
             finally
             {

@@ -18,6 +18,8 @@ namespace AElf.Contracts.Consensus.Contracts
         /// </summary>
         public UInt64Field CurrentTermNumberField;
 
+        public PbField<Timestamp> BlockchainStartTimestamp;
+
         /// <summary>
         /// The nodes declared join the election for Miners.
         /// </summary>
@@ -55,5 +57,6 @@ namespace AElf.Contracts.Consensus.Contracts
         public Map<StringValue, StringValue> AliasesMap;
 
         public Map<StringValue, CandidateInHistory> HistoryMap;
+        
     }
 }

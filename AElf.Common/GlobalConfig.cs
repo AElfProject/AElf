@@ -40,6 +40,7 @@ namespace AElf.Common
         #region AElf DPoS
 
         public const ulong LockTokenForElection = 100_000;
+        public const ulong DaysEachTerm = 7;
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 4000;
@@ -61,6 +62,7 @@ namespace AElf.Common
         public const string AElfVotingRecordsString = "__AElfVotingRecordsString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
+        public const string AElfDPoSBlockchainStartTimestamp = "__AElfDPoSBlockchainStartTimestamp__";
 
         #endregion
 

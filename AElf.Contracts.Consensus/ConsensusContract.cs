@@ -22,13 +22,15 @@ namespace AElf.Contracts.Consensus
             CandidatesField = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
             AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
             CurrentTermNumberField= new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
+            BlockchainStartTimestamp= new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
 
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
             TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
             SnapshotField = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString),
             DividendsMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSDividendsMapString),
             AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString),
-            HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString)
+            HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString),
+            TermKeyLookUpMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSTermLookUpString)
         };
 
         private Process Process => new Process(Collection);
