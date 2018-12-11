@@ -199,6 +199,11 @@ namespace AElf.Sdk.CSharp
         {
             return GetTransaction().From.Clone();
         }
+        
+        public static Address GetToAddress()
+        {
+            return GetTransaction().To.Clone();
+        }
 
         /// <summary>
         /// Return resource balance of from account.

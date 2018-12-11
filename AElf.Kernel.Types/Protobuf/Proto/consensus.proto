@@ -58,6 +58,7 @@ message VotingRecord {
     google.protobuf.Timestamp VoteTimestamp = 6;
     repeated uint32 LockDaysList = 7;// Can be renewed by adding items.
     uint64 UnlockAge = 8;
+    uint64 TermNumber = 9;
 }
 
 message TermSnapshot {

@@ -40,13 +40,13 @@ namespace AElf.Contracts.Consensus.Contracts
             if (lockDays.InRange(1, 3))
             {
                 lockDays *= 360;
-            } 
+            }
             else if (lockDays.InRange(12, 36))
             {
                 lockDays *= 30;
             }
 
-            Api.Assert(lockDays.InRange(90,1080), "Lock days is illegal.");
+            Api.Assert(lockDays.InRange(90, 1080), "Lock days is illegal.");
 
             var ageOfBlockchain = _collection.AgeField.GetValue();
 
@@ -59,6 +59,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 TransactionId = Api.GetTxnHash(),
                 VoteTimestamp = DateTime.UtcNow.ToTimestamp(),
                 UnlockAge = ageOfBlockchain + (ulong) lockDays,
+                TermNumber = _collection.CurrentTermNumberField.GetValue()
             };
 
             if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
@@ -70,9 +71,10 @@ namespace AElf.Contracts.Consensus.Contracts
                 tickets.ExpiredTickets = 0;
                 tickets.VotingRecords.Add(votingRecord);
             }
+
             tickets.TotalTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(Api.GetPublicKeyToHex().ToStringValue(), tickets);
-            
+
             if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var candidateTickets))
             {
                 candidateTickets.VotingRecords.Add(votingRecord);
@@ -81,11 +83,13 @@ namespace AElf.Contracts.Consensus.Contracts
             {
                 candidateTickets.VotingRecords.Add(votingRecord);
             }
+
             candidateTickets.TotalTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
 
             Api.Call(Api.DividendsContractAddress, "AddWeights",
-                ParamsPacker.Pack(new List<object> {votingRecord.Weight}));
+                ParamsPacker.Pack(new List<object>
+                    {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
         }
 
         public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
@@ -96,14 +100,16 @@ namespace AElf.Contracts.Consensus.Contracts
                     tickets.VotingRecords.FirstOrDefault(vr =>
                         vr.To == candidatePublicKey && vr.Count == amount && vr.LockDaysList.Last() == lockDays);
 
-                var ageOfBlockchain = _collection.AgeField.GetValue();
-                
-                if (votingRecord != null && votingRecord.UnlockAge >= ageOfBlockchain)
+                if (votingRecord != null)
                 {
                     Api.Call(Api.TokenContractAddress, "Transfer",
                         ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), amount}));
                     Api.Call(Api.DividendsContractAddress, "SubWeights",
-                        ParamsPacker.Pack(new List<object> {votingRecord.Weight}));
+                        ParamsPacker.Pack(new List<object>
+                            {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
+                    var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
+                    Api.Call(Api.DividendsContractAddress, "TransferDividends",
+                        ParamsPacker.Pack(new List<object> {votingRecord, maxTermNumber}));
                 }
             }
         }

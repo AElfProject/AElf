@@ -35,5 +35,11 @@ namespace AElf.Contracts.Consensus
             return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForBackupNodes /
                             GlobalConfig.BlockProducerNumber);
         }
+
+        public static ulong GetDividendsForVoters(ulong minedBlocks)
+        {
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForVoters /
+                            GlobalConfig.BlockProducerNumber);
+        }
     }
 }

@@ -292,6 +292,10 @@ namespace AElf.Contracts.Consensus.Contracts
             
             var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
+
+            Api.Call(Api.DividendsContractAddress, "AddDividends",
+                ParamsPacker.Pack(new List<object> {CurrentTermNumber, minedBlocks * GlobalConfig.ElfTokenPerBlock}));
+
             var candidateInTerms = new List<CandidateInTerm>();
   
             ulong totalVotes = 0;
@@ -321,6 +325,7 @@ namespace AElf.Contracts.Consensus.Contracts
                     temp.Add(minerInRound.Key, candidateInHistory.ReappointmentCount);
                 }
             }
+            
 
             // Transfer dividends for actual miners. (The miners list based on last round of current term.)
             foreach (var candidateInTerm in candidateInTerms)

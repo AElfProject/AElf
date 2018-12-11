@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
@@ -36,6 +37,22 @@ namespace AElf.Kernel
         public static Miners ToMiners(this IEnumerable<string> minerPublicKeys)
         {
             return new Miners {PublicKeys = {minerPublicKeys}};
+        }
+
+        /// <summary>
+        /// For calculating hash.
+        /// </summary>
+        /// <param name="votingRecord"></param>
+        /// <returns></returns>
+        public static VotingRecord ToSimpleRecord(this VotingRecord votingRecord)
+        {
+            return new VotingRecord
+            {
+                Count = votingRecord.Count,
+                From = votingRecord.From,
+                To = votingRecord.To,
+                VoteTimestamp = votingRecord.VoteTimestamp
+            };
         }
     }
 }

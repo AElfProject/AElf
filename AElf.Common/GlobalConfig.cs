@@ -88,10 +88,11 @@ namespace AElf.Common
         public const double DividendsForTicketsCount = 0.1;
         public const double DividendsForReappointment = 0.1;
         public const double DividendsForBackupNodes = 0.2;
+        public const double DividendsForVoters = 0.2;
         public const string DividendsMapString = "__DividendsMapString__";
         public const string WeightsMapString = "__WeightsMapString__";
         public const string TotalWeightsMapString = "__TotalWeightsMapString__";
-        public const string TermRoundsFieldString = "__TermRoundsFieldString__";
+        public const string TransferMapString = "__TransferMapString__";
 
         #endregion
 
