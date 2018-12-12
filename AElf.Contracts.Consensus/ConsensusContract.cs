@@ -75,6 +75,12 @@ namespace AElf.Contracts.Consensus
         {
             return Collection.CandidatesField.GetValue().PublicKeys.Contains(publicKey);
         }
+
+        [View]
+        public Tickets GetTicketsInfo(string publicKey)
+        {
+            return Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets) ? tickets : null;
+        }
         
         public void AnnounceElection()
         {

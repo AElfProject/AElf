@@ -92,12 +92,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Symbol",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -112,12 +112,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "TokenName",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -132,12 +132,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "TotalSupply",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -152,12 +152,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Decimals",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -172,7 +172,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "BalanceOf",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(owner))
             };
@@ -192,12 +192,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Allowance",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(owner, spender))
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -208,7 +208,6 @@ namespace AElf.Contracts.Consensus.Tests
 
         #endregion View Only Methods
 
-
         #region Actions
 
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
@@ -217,7 +216,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Initialize",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(symbol, tokenName, totalSupply, decimals))
             };
@@ -233,7 +232,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Transfer",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(to, amount))
             };
@@ -249,7 +248,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "TransferFrom",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, amount))
             };
@@ -265,7 +264,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Approve",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
@@ -281,7 +280,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = TokenContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "UnApprove",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
@@ -299,7 +298,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = scZeroAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetContractOwner",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(TokenContractAddress))
             };

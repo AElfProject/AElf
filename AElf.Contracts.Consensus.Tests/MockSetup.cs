@@ -4,63 +4,45 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
-using AElf.Execution.Execution;
 
 namespace AElf.Contracts.Consensus.Tests
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class MockSetup
     {
         // To differentiate txn identified by From/To/IncrementId
         private static int _incrementId;
 
-        public ulong NewIncrementId()
+        public static ulong NewIncrementId
         {
-            var n = Interlocked.Increment(ref _incrementId);
-            return (ulong) n;
+            get
+            {
+                var n = Interlocked.Increment(ref _incrementId);
+                return (ulong) n;
+            }
         }
 
         public IStateStore StateStore { get; }
-        public Hash ChainId { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
-        public ISmartContractManager SmartContractManager;
-        public ISmartContractService SmartContractService { get; }
-        private IFunctionMetadataService _functionMetadataService;
+        public Hash ChainId { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
+        private ISmartContractService SmartContractService { get; }
 
-        public Address ConsensusContractAddress { get; private set; }
-        public Address DividendsContractAddress { get; private set; }
+        public readonly IChainContextService ChainContextService;
 
-        public IChainContextService ChainContextService;
-
-        public ServicePack ServicePack;
-
-        private IChainCreationService _chainCreationService;
-
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private readonly IChainCreationService _chainCreationService;
 
         public MockSetup(IStateStore stateStore, ISmartContractService smartContractService,
-            IChainCreationService chainCreationService, IChainContextService chainContextService,
-            IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+            IChainCreationService chainCreationService, IChainContextService chainContextService)
         {
             StateStore = stateStore;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService = smartContractService;
-
-            ServicePack = new ServicePack
-            {
-                ChainContextService = chainContextService,
-                SmartContractService = SmartContractService,
-                ResourceDetectionService = null,
-                StateStore = StateStore
-            };
         }
 
         public string ConsensusContractName => "AElf.Contracts.Consensus";
@@ -112,9 +94,8 @@ namespace AElf.Contracts.Consensus.Tests
                 SerialNumber = GlobalConfig.GenesisBasicContract
             };
 
-            var chain1 =
-                await _chainCreationService.CreateNewChainAsync(ChainId,
-                    new List<SmartContractRegistration> {basicReg, consensusReg, dividendsReg, tokenReg});
+            await _chainCreationService.CreateNewChainAsync(ChainId,
+                new List<SmartContractRegistration> {basicReg, consensusReg, dividendsReg, tokenReg});
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Address address)

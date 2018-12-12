@@ -91,7 +91,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "IsCandidate",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(publicKey))
             };
@@ -105,24 +105,28 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBool();
         }
 
-        public string TokenName()
+        public Tickets GetTicketsInfo(ECKeyPair keyPair)
         {
             var tx = new Transaction
             {
-                From = Sender,
+                From = GetAddress(keyPair),
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
-                MethodName = "TokenName",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "GetTicketsInfo",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(keyPair.PublicKey.ToHex()))
             };
+            var signer = new ECSigner();
+            var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
+            
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Tickets>();
         }
 
         public ulong TotalSupply()
@@ -131,7 +135,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "TotalSupply",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
@@ -151,7 +155,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Decimals",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
@@ -171,7 +175,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "BalanceOf",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(owner))
             };
@@ -191,7 +195,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Allowance",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(owner, spender))
             };
@@ -215,7 +219,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = GetAddress(candidateKeyPair),
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "AnnounceElection",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
@@ -228,29 +232,51 @@ namespace AElf.Contracts.Consensus.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
-        public void Transfer(Address to, ulong amount)
+        public void QuitElection(ECKeyPair candidateKeyPair)
         {
             var tx = new Transaction
             {
-                From = Sender,
+                From = GetAddress(candidateKeyPair),
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
-                MethodName = "Transfer",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(to, amount))
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "QuitElection",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
+            var signer = new ECSigner();
+            var signature = signer.Sign(candidateKeyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = PrepareTransactionContext(tx);
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
+        
+        public void Vote(ECKeyPair voterKeyPair, ECKeyPair candidateKeyPair, ulong amount, int lockDays)
+        {
+            var tx = new Transaction
+            {
+                From = GetAddress(voterKeyPair),
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "Vote",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(candidateKeyPair.PublicKey.ToHex(), amount, lockDays))
+            };
+            var signer = new ECSigner();
+            var signature = signer.Sign(voterKeyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+        
         public void TransferFrom(Address from, Address to, ulong amount)
         {
             var tx = new Transaction
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "TransferFrom",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, amount))
             };
@@ -266,7 +292,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Approve",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
@@ -282,7 +308,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "UnApprove",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
@@ -300,7 +326,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = scZeroAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetContractOwner",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(ConsensusContractAddress))
             };

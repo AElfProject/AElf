@@ -333,6 +333,11 @@ namespace AElf.Sdk.CSharp
             SendInline(TokenContractAddress, "Transfer", GetContractAddress(), amount);
         }
         
+        public static void LockTokenTo(ulong amount, Address contractAddress)
+        {
+            SendInline(TokenContractAddress, "Transfer", contractAddress, amount);
+        }
+        
         public static void WithdrawToken(ulong amount)
         {
             SendInlineByContract(TokenContractAddress, "Transfer", GetFromAddress(), amount);

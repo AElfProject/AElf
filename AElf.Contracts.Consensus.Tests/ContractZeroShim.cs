@@ -43,12 +43,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(category, code))
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -63,12 +63,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "ChangeContractOwner",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(contractAddress, newOwner))
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -82,12 +82,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = ConsensusContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetContractOwner",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(contractAddress))
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };

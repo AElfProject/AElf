@@ -34,7 +34,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private void Init()
         {
-            DeployTokenContractAsync().Wait();
+            DeployDividendsContractAsync().Wait();
             var task = _mock.GetExecutiveAsync(DividendsContractAddress);
             task.Wait();
             Executive = task.Result;
@@ -66,9 +66,8 @@ namespace AElf.Contracts.Consensus.Tests
 //            await _mock.StateDictator.ApplyCachedDataAction(changes);
         }
 
-        private async Task DeployTokenContractAsync()
+        private async Task DeployDividendsContractAsync()
         {
-            
             var address0 = ContractHelpers.GetGenesisBasicContractAddress(_mock.ChainId);
             var executive0 = await _mock.GetExecutiveAsync(address0);
 
@@ -97,12 +96,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Symbol",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -117,12 +116,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "TokenName",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -137,12 +136,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "TotalSupply",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -157,12 +156,12 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Decimals",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -177,7 +176,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "BalanceOf",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(owner))
             };
@@ -197,7 +196,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Allowance",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(owner, spender))
             };
@@ -213,7 +212,6 @@ namespace AElf.Contracts.Consensus.Tests
 
         #endregion View Only Methods
 
-
         #region Actions
 
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
@@ -222,7 +220,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Initialize",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(symbol, tokenName, totalSupply, decimals))
             };
@@ -238,7 +236,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Transfer",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(to, amount))
             };
@@ -254,7 +252,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "TransferFrom",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, amount))
             };
@@ -270,7 +268,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Approve",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
@@ -286,7 +284,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = DividendsContractAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "UnApprove",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
@@ -304,7 +302,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 From = Sender,
                 To = scZeroAddress,
-                IncrementId = _mock.NewIncrementId(),
+                IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetContractOwner",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(DividendsContractAddress))
             };

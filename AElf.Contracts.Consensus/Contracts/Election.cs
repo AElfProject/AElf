@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void AnnounceElection()
         {
-            Api.LockToken(GlobalConfig.LockTokenForElection);
+            Api.LockTokenTo(GlobalConfig.LockTokenForElection, Api.ConsensusContractAddress);
             var candidates = _collection.CandidatesField.GetValue();
             candidates.PublicKeys.Add(Api.GetPublicKeyToHex());
             _collection.CandidatesField.SetValue(candidates);
@@ -48,6 +48,12 @@ namespace AElf.Contracts.Consensus.Contracts
 
             Api.Assert(lockDays.InRange(90, 1080), "Lock days is illegal.");
 
+            Api.Assert(_collection.CandidatesField.GetValue().PublicKeys.Contains(candidatePublicKey),
+                "Voting target didn't announce election.");
+
+            Api.Assert(!_collection.CandidatesField.GetValue().PublicKeys.Contains(Api.GetPublicKeyToHex()),
+                "Candidate can't vote.");
+            
             var ageOfBlockchain = _collection.AgeField.GetValue();
 
             var votingRecord = new VotingRecord
@@ -61,6 +67,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 UnlockAge = ageOfBlockchain + (ulong) lockDays,
                 TermNumber = _collection.CurrentTermNumberField.GetValue()
             };
+            votingRecord.LockDaysList.Add((uint) lockDays);
 
             if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
             {
