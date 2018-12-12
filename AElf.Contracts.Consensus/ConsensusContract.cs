@@ -69,6 +69,12 @@ namespace AElf.Contracts.Consensus
         #endregion
 
         #region Election
+
+        [View]
+        public bool IsCandidate(string publicKey)
+        {
+            return Collection.CandidatesField.GetValue().PublicKeys.Contains(publicKey);
+        }
         
         public void AnnounceElection()
         {
@@ -85,32 +91,32 @@ namespace AElf.Contracts.Consensus
             Election.Vote(candidatePublicKey, amount, lockDays);
         }
 
-        public void GetDividends(string candidatePublicKey, ulong amount, int lockDays)
+        public void GetDividendsByDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
             Election.GetDividends(candidatePublicKey, amount, lockDays);
         }
 
-        public void GetDividends(Hash transactionId)
+        public void GetDividendsByTransactionId(Hash transactionId)
         {
             Election.GetDividends(transactionId);
         }
         
-        public void GetDividends()
+        public void GetAllDividends()
         {
             Election.GetDividends();
         }
         
-        public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
+        public void WithdrawByDetial(string candidatePublicKey, ulong amount, int lockDays)
         {
             Election.Withdraw(candidatePublicKey, amount, lockDays);
         }
         
-        public void Withdraw(Hash transactionId)
+        public void WithdrawByTransactionId(Hash transactionId)
         {
             Election.Withdraw(transactionId);
         }
 
-        public void Withdraw()
+        public void WithdrawAll()
         {
             Election.Withdraw();
         }

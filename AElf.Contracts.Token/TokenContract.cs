@@ -176,8 +176,6 @@ namespace AElf.Contracts.Token
             }.Fire();
         }
 
-        
-
         #endregion Actions
 
         #endregion ABI (Public) Methods

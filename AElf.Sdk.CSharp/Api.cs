@@ -179,7 +179,6 @@ namespace AElf.Sdk.CSharp
             //todo review maybe not do all this in here
             var tx = GetTransaction();
             var hash = tx.GetHash().DumpByteArray();
-            
             byte[] recoveredKey = new byte[Secp256k1.PUBKEY_LENGTH];
 
             using (var secp256k1 = new Secp256k1())

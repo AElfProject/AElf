@@ -190,5 +190,10 @@ namespace AElf.Contracts.Consensus.Contracts
                 }
             }
         }
+
+        private void LockToken()
+        {
+            Api.Call(Api.TokenContractAddress, "Transfer", ParamsPacker.Pack(new List<object>()));
+        }
     }
 }

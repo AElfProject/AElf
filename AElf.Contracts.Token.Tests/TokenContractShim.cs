@@ -213,7 +213,6 @@ namespace AElf.Contracts.Token.Tests
 
         #endregion View Only Methods
 
-
         #region Actions
 
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
