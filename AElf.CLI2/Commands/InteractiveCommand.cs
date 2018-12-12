@@ -144,6 +144,11 @@ namespace AElf.CLI2.Commands
 
         public string[] GetSuggestions(string line, int index)
         {
+            if (index > 0)
+            {
+                line = line.Substring(index, line.Length - index);
+            }
+
             var parts = line.Split(".");
             var objRef = "this";
             var prefix = line;
@@ -189,6 +194,6 @@ namespace AElf.CLI2.Commands
             return results.ToArray();
         }
 
-        public char[] Separators { get; set; } = {' '};
+        public char[] Separators { get; set; } = {' ', '=', '{'};
     }
 }
