@@ -40,7 +40,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private NodeState CurrentState => (NodeState) _stateFSM.CurrentState;
 
-        private static bool _executionNextBlock;
+        private static bool _executeNextBlock;
 
         public int RollBackTimes { get; private set; }
 
@@ -58,7 +58,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
             _terminated = false;
-            _executionNextBlock = true;
+            _executeNextBlock = true;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
             {
@@ -223,9 +223,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task ReceiveNextValidBlock()
         {
-            if (!_executionNextBlock)
+            if (!_executeNextBlock)
             {
-                _executionNextBlock = true;
+                _executeNextBlock = true;
                 return;
             }
 
@@ -294,7 +294,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (executionResult.CannotExecute())
             {
-                _executionNextBlock = false;
+                _executeNextBlock = false;
             }
             else
             {
