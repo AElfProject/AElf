@@ -252,17 +252,26 @@ namespace AElf.ChainController.Rpc
 
         internal static MerklePath GetTxRootMerklePathInParentChain(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetTxRootMerklePathInParentChain(height);
+            var merklePath = s.CrossChainInfo.GetTxRootMerklePathInParentChain(height);
+            if (merklePath != null)
+                return merklePath;
+            throw new Exception();
         }
 
         internal static ParentChainBlockInfo GetParentChainBlockInfo(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetBoundParentChainBlockInfo(height);
+            var parentChainBlockInfo = s.CrossChainInfo.GetBoundParentChainBlockInfo(height);
+            if (parentChainBlockInfo != null)
+                return parentChainBlockInfo;
+            throw new Exception();
         }
 
         internal static ulong GetBoundParentChainHeight(this Svc s, ulong height)
         {
-            return s.CrossChainInfo.GetBoundParentChainHeight(height);
+            var parentHeight = s.CrossChainInfo.GetBoundParentChainHeight(height);
+            if (parentHeight != 0)
+                return parentHeight;
+            throw new Exception();
         }
 
         #endregion
