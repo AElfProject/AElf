@@ -49,7 +49,5 @@ namespace AElf.Kernel
 
             return 0;
         }
-        
-        
     }
 }

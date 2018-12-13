@@ -108,5 +108,19 @@ namespace AElf.Common
         public static ulong BlockCacheLimit = 64; 
         
         public const ulong ForkDetectionLength = 4;
+
+        #region Consensus Error String
+
+        public const string TicketsNotFound = "Tickets not found.";
+        public const string RoundNumberNotFound = "Round information not found.";
+        public const string TargetNotAnnounceElection = "Target didn't announce election.";
+        public const string CandidateCannotVote = "Candidate can't vote.";
+        public const string LockDayIllegal = "Lock days is illegal.";
+        public const string RoundIdNotMatched = "Round Id not matched.";
+        public const string InValueNotMatchToOutValue = "In Value not match to Out Value";
+        public const string OutValueIsNull = "Out Value is null";
+        public const string SignatureIsNull = "Signature is null";
+
+        #endregion
     }
 }

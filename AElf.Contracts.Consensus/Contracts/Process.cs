@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -14,8 +13,6 @@ namespace AElf.Contracts.Consensus.Contracts
     // ReSharper disable InconsistentNaming
     public class Process
     {
-        private static string RoundIdNotMatched => "Round Id not matched.";
-
         private ulong CurrentRoundNumber => _collection.CurrentRoundNumberField.GetValue();
 
         private ulong CurrentTermNumber => _collection.CurrentTermNumberField.GetValue();
@@ -99,7 +96,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
             var forwardingCurrentRoundInfo = forwarding.CurrentRoundInfo;
             var currentRoundInfo = GetRoundInfo(forwardingCurrentRoundInfo.RoundNumber);
-            Api.Assert(forwardingCurrentRoundInfo.RoundId == currentRoundInfo.RoundId, RoundIdNotMatched);
+            Api.Assert(forwardingCurrentRoundInfo.RoundId == currentRoundInfo.RoundId, GlobalConfig.RoundIdNotMatched);
 
             var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
 
@@ -140,11 +137,14 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void PublishOutValue(ToPackage toPackage)
         {
-            Api.Assert(toPackage.RoundId == GetCurrentRoundInfo().RoundId, RoundIdNotMatched);
+            Api.Assert(toPackage.RoundId == GetCurrentRoundInfo().RoundId, GlobalConfig.RoundIdNotMatched);
             
             var roundInfo = GetCurrentRoundInfo();
 
-            roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].Signature = toPackage.Signature;
+            if (roundInfo.RoundNumber != 1)
+            {
+                roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].Signature = toPackage.Signature;
+            }
             roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].OutValue = toPackage.OutValue;
 
             roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
@@ -154,13 +154,16 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void PublishInValue(ToBroadcast toBroadcast)
         {
-            Api.Assert(toBroadcast.RoundId == GetCurrentRoundInfo().RoundId, RoundIdNotMatched);
+            Api.Assert(toBroadcast.RoundId == GetCurrentRoundInfo().RoundId, GlobalConfig.RoundIdNotMatched);
             
             var roundInfo = GetCurrentRoundInfo();
             Api.Assert(roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].OutValue != null,
-                $"Out Value of {Api.GetPublicKeyToHex()} is null");
+                GlobalConfig.OutValueIsNull);
             Api.Assert(roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].Signature != null,
-                $"Signature of {Api.GetPublicKeyToHex()} is null");
+                GlobalConfig.SignatureIsNull);
+            Api.Assert(
+                roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].OutValue == Hash.FromMessage(toBroadcast.InValue),
+                GlobalConfig.InValueNotMatchToOutValue);
 
             roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].InValue = toBroadcast.InValue;
             
@@ -268,7 +271,7 @@ namespace AElf.Contracts.Consensus.Contracts
             return !GetVictories().Except(minersList).Any();
         }
 
-        private IEnumerable<string> GetVictories()
+        public IEnumerable<string> GetVictories()
         {
             var candidates = _collection.CandidatesField.GetValue();
             var ticketsMap = new Dictionary<string, ulong>();

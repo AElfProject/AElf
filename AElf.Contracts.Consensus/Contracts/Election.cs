@@ -46,13 +46,13 @@ namespace AElf.Contracts.Consensus.Contracts
                 lockDays *= 30;
             }
 
-            Api.Assert(lockDays.InRange(90, 1080), "Lock days is illegal.");
+            Api.Assert(lockDays.InRange(90, 1080), GlobalConfig.LockDayIllegal);
 
             Api.Assert(_collection.CandidatesField.GetValue().PublicKeys.Contains(candidatePublicKey),
-                "Voting target didn't announce election.");
+                GlobalConfig.TargetNotAnnounceElection);
 
             Api.Assert(!_collection.CandidatesField.GetValue().PublicKeys.Contains(Api.GetPublicKeyToHex()),
-                "Candidate can't vote.");
+                GlobalConfig.CandidateCannotVote);
             
             var ageOfBlockchain = _collection.AgeField.GetValue();
 
@@ -196,11 +196,6 @@ namespace AElf.Contracts.Consensus.Contracts
                             {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
                 }
             }
-        }
-
-        private void LockToken()
-        {
-            Api.Call(Api.TokenContractAddress, "Transfer", ParamsPacker.Pack(new List<object>()));
         }
     }
 }

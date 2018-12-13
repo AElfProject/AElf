@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             get => Address.Zero;
         }
-        
+
         public Address ConsensusContractAddress { get; set; }
 
         public ConsensusContractShim(MockSetup mock)
@@ -81,7 +81,96 @@ namespace AElf.Contracts.Consensus.Tests
             ConsensusContractAddress = Address.FromBytes(tc.Trace.RetVal.ToFriendlyBytes());
         }
 
-        #region ABI (Public) Methods
+        #region Process
+
+        #region View Only Methods
+        
+        public Round GetRoundInfo(ECKeyPair senderKeyPair, ulong roundNumber)
+        {
+            var tx = new Transaction
+            {
+                From = GetAddress(senderKeyPair),
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "GetRoundInfo",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(roundNumber))
+            };
+            
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Round>();
+        }
+
+        #endregion View Only Methods
+
+        #region Actions
+
+        public void InitialTerm(ECKeyPair minerKeyPair, Term initialTerm)
+        {
+            var tx = new Transaction
+            {
+                From = GetAddress(minerKeyPair),
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "InitialTerm",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(initialTerm, 1))
+            };
+            var signer = new ECSigner();
+            var signature = signer.Sign(minerKeyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+        
+        public void PackageOutValue(ECKeyPair minerKeyPair, ToPackage toPackage)
+        {
+            var tx = new Transaction
+            {
+                From = GetAddress(minerKeyPair),
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "PackageOutValue",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(toPackage))
+            };
+            var signer = new ECSigner();
+            var signature = signer.Sign(minerKeyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+        
+        public void BroadcastInValue(ECKeyPair minerKeyPair, ToBroadcast toBroadcast)
+        {
+            var tx = new Transaction
+            {
+                From = GetAddress(minerKeyPair),
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "BroadcastInValue",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(toBroadcast))
+            };
+            var signer = new ECSigner();
+            var signature = signer.Sign(minerKeyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+
+        #endregion Actions
+
+        #endregion
+
+        #region Election
 
         #region View Only Methods
 
@@ -123,7 +212,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 Transaction = tx
             };
-            
+
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Tickets>();
@@ -146,7 +235,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
         public uint Decimals()
@@ -166,7 +255,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32() ?? 0;
         }
 
         public ulong BalanceOf(Hash owner)
@@ -186,7 +275,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
         public ulong Allowance(Address owner, Address spender)
@@ -206,11 +295,11 @@ namespace AElf.Contracts.Consensus.Tests
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
         #endregion View Only Methods
-        
+
         #region Actions
 
         public void AnnounceElection(ECKeyPair candidateKeyPair)
@@ -250,7 +339,7 @@ namespace AElf.Contracts.Consensus.Tests
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
-        
+
         public void Vote(ECKeyPair voterKeyPair, ECKeyPair candidateKeyPair, ulong amount, int lockDays)
         {
             var tx = new Transaction
@@ -269,7 +358,7 @@ namespace AElf.Contracts.Consensus.Tests
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
-        
+
         public void TransferFrom(Address from, Address to, ulong amount)
         {
             var tx = new Transaction
@@ -321,7 +410,7 @@ namespace AElf.Contracts.Consensus.Tests
         public Address GetContractOwner(Address scZeroAddress)
         {
             var executive = _mock.GetExecutiveAsync(scZeroAddress).Result;
-            
+
             var tx = new Transaction
             {
                 From = Sender,
@@ -336,11 +425,11 @@ namespace AElf.Contracts.Consensus.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
         }
-        
+
         #endregion Actions
 
-        #endregion ABI (Public) Methods
-        
+        #endregion Election
+
         private Address GetAddress(ECKeyPair keyPair)
         {
             return Address.FromPublicKey(_mock.ChainId.DumpByteArray(), keyPair.PublicKey);

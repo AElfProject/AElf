@@ -38,6 +38,13 @@ namespace AElf.Contracts.Consensus
 
         #region Process
         
+        [View]
+        public Round GetRoundInfo(ulong roundNumber)
+        {
+            Api.Assert(Collection.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out var roundInfo), GlobalConfig.RoundNumberNotFound);
+            return roundInfo;
+        }
+        
         public void InitialTerm(Term term, int logLevel)
         {
             Api.Assert(term.FirstRound.RoundNumber == 1);
@@ -79,7 +86,20 @@ namespace AElf.Contracts.Consensus
         [View]
         public Tickets GetTicketsInfo(string publicKey)
         {
-            return Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets) ? tickets : null;
+            Api.Assert(Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets), GlobalConfig.TicketsNotFound);
+            return tickets;
+        }
+
+        [View]
+        public ulong GetBlockchainAge()
+        {
+            return Collection.AgeField.GetValue();
+        }
+
+        [View]
+        public List<string> GetCurrentVictories()
+        {
+            return Process.GetVictories().ToList();
         }
         
         public void AnnounceElection()
@@ -112,7 +132,7 @@ namespace AElf.Contracts.Consensus
             Election.GetDividends();
         }
         
-        public void WithdrawByDetial(string candidatePublicKey, ulong amount, int lockDays)
+        public void WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
             Election.Withdraw(candidatePublicKey, amount, lockDays);
         }
