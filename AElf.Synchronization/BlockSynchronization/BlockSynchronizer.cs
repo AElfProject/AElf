@@ -245,7 +245,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     return false;
                 }
 
-                if (_blockSet.IsFull())
+                if (_blockSet.IsFull() && _syncHeight == ulong.MaxValue)
                 {
                     _syncHeight = block.Index;
                     return false;
