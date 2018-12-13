@@ -36,13 +36,17 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private readonly FSM _stateFSM;
 
-        private static bool _terminated;
+        private bool _terminated;
 
         private NodeState CurrentState => (NodeState) _stateFSM.CurrentState;
 
-        private static bool _executionNextBlock;
+        private bool _executeNextBlock;
 
         public int RollBackTimes { get; private set; }
+
+        private ulong _syncHeight;
+        
+        private object _receiveBlockLock = new object();
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet, IBlockHeaderValidator blockHeaderValidator)
@@ -58,7 +62,8 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
             _terminated = false;
-            _executionNextBlock = true;
+            _executeNextBlock = true;
+            _syncHeight = ulong.MaxValue;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
             {
@@ -178,13 +183,18 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
+            var isReceiveBlock = await IsReceiveBlock(block);
+            if (!isReceiveBlock)
+            {
+                return;
+            }
+
             if (!_blockSet.IsBlockReceived(block.GetHash(), block.Index))
             {
                 _blockSet.AddBlock(block);
                 // Notify the network layer the block has been accepted.
                 MessageHub.Instance.Publish(new BlockAccepted(block));
             }
-
 
             if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
             {
@@ -219,13 +229,51 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 MessageHub.Instance.Publish(new LockMining(false));
             }
+            
+            if (await IsRequestNextBlockAgain(block))
+            {
+                MessageHub.Instance.Publish(new BlockAccepted(block));
+            }
+        }
+
+        private async Task<bool> IsReceiveBlock(IBlock block)
+        {
+            lock (_receiveBlockLock)
+            {
+                if (block.Index >= _syncHeight)
+                {
+                    return false;
+                }
+
+                if (_blockSet.IsFull() && _syncHeight == ulong.MaxValue)
+                {
+                    _syncHeight = block.Index;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private async Task<bool> IsRequestNextBlockAgain(IBlock block)
+        {
+            lock (_receiveBlockLock)
+            {
+                if (block.Index == _syncHeight - 1)
+                {
+                    _syncHeight = ulong.MaxValue;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private async Task ReceiveNextValidBlock()
         {
-            if (!_executionNextBlock)
+            if (!_executeNextBlock)
             {
-                _executionNextBlock = true;
+                _executeNextBlock = true;
                 return;
             }
 
@@ -294,7 +342,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (executionResult.CannotExecute())
             {
-                _executionNextBlock = false;
+                _executeNextBlock = false;
             }
             else
             {

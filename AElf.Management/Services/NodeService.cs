@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
@@ -85,6 +86,8 @@ namespace AElf.Management.Services
             {
                 var fields = new Dictionary<string, object> {{"height", currentHeight}, {"tx_count", blockInfo.Result.Body.TransactionsCount}};
                 InfluxDBHelper.Set(chainId, "block_info", fields, null, blockInfo.Result.Header.Time);
+                
+                Thread.Sleep(1000);
 
                 currentHeight++;
                 blockInfo = await GetBlockInfo(chainId,currentHeight);
