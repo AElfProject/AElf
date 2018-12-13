@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -11,7 +12,7 @@ namespace AElf.ChainController.Rpc
     {
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITxHub _txHub;
-        private readonly Dictionary<Hash, TransactionResult> _cacheResults = new Dictionary<Hash, TransactionResult>();
+        private readonly ConcurrentDictionary<Hash, TransactionResult> _cacheResults = new ConcurrentDictionary<Hash, TransactionResult>();
 
         public TransactionResultService(ITxHub txHub, ITransactionResultManager transactionResultManager)
         {
