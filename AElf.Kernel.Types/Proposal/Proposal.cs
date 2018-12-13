@@ -1,8 +1,9 @@
 using System.IO;
 using AElf.Common;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.Types.Proposal
+namespace AElf.Kernel
 {
     public partial class Proposal
     {
@@ -13,8 +14,8 @@ namespace AElf.Kernel.Types.Proposal
             {
                 MultiSigAccount.WriteTo(stream);
                 Proposer.WriteTo(stream);
-                TxnData.WriteTo(stream);
-                ExpiredTime.WriteTo(stream);
+                stream.WriteBytes(TxnData);
+                new DoubleValue {Value = ExpiredTime}.WriteTo(stream);
                 stream.Flush();
                 mm.Flush();
                 return Hash.FromRawBytes(mm.ToArray());

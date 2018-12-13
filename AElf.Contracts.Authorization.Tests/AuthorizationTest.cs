@@ -3,7 +3,6 @@ using System.IO;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Types.Proposal;
 using AElf.Kernel.Types.Transaction;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -40,7 +39,7 @@ namespace AElf.Contracts.Authorization.Tests
             Init();
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             Address msig = Address.Generate();
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,
@@ -82,7 +81,7 @@ namespace AElf.Contracts.Authorization.Tests
             var kpMsig = new KeyPairGenerator().Generate();
             Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
             
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,
@@ -192,7 +191,7 @@ namespace AElf.Contracts.Authorization.Tests
             var kpMsig = new KeyPairGenerator().Generate();
             Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
             
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,
@@ -254,7 +253,7 @@ namespace AElf.Contracts.Authorization.Tests
             var kpMsig = new KeyPairGenerator().Generate();
             Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
             
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,
@@ -349,7 +348,7 @@ namespace AElf.Contracts.Authorization.Tests
             var kpMsig = new KeyPairGenerator().Generate();
             Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
             
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,

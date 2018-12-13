@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Types.Proposal;
 using AElf.Kernel.Types.Transaction;
 using AElf.SmartContract;
 using Google.Protobuf;
@@ -394,17 +393,15 @@ namespace AElf.Sdk.CSharp
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args)),
                 Type = TransactionType.MsigTransaction
             }.ToByteArray();
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            TimeSpan diff = DateTime.UtcNow.ToUniversalTime() - origin;
             
             Proposal proposal = new Proposal
             {
                 MultiSigAccount = Genesis,
                 Name = proposalName,
-                TxnData = new PendingTxn
-                {
-                    ProposalName = proposalName,
-                    TxnData = ByteString.CopyFrom(txnData)
-                },
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(waitingPeriod)),
+                TxnData = ByteString.CopyFrom(txnData),
+                ExpiredTime = diff.TotalSeconds,
                 Status = ProposalStatus.ToBeDecided,
                 Proposer = GetFromAddress()
             };

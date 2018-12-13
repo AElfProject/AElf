@@ -5,7 +5,6 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Types.Proposal;
 
 namespace AElf.SmartContract.Proposal
 {
@@ -46,11 +45,11 @@ namespace AElf.SmartContract.Proposal
             return CheckAuthority(transaction.From, publicKey);
         }
 
-        public Kernel.Types.Proposal.Proposal GetProposal(Hash proposalHash)
+        public Kernel.Proposal GetProposal(Hash proposalHash)
         {
             var bytes = _contractInfoReader.GetBytes<Authorization>(AuthorizationContractAddress,
                 Hash.FromMessage(proposalHash), GlobalConfig.AElfProposal);
-            return Kernel.Types.Proposal.Proposal.Parser.ParseFrom(bytes);
+            return Kernel.Proposal.Parser.ParseFrom(bytes);
         }
 
         public Authorization GetAuthorization(Address msig)

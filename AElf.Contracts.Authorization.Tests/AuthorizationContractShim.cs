@@ -6,7 +6,6 @@ using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using AElf.Kernel;
-using AElf.Kernel.Types.Proposal;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
@@ -53,7 +52,7 @@ namespace AElf.Contracts.Authorization.Tests
             await trace.CommitChangesAsync(_mock.StateStore);
         }
 
-        public async Task<byte[]> CreateMSigAccount(Kernel.Types.Proposal.Authorization authorization)
+        public async Task<byte[]> CreateMSigAccount(Kernel.Authorization authorization)
         {
             var tx = new Transaction
             {
