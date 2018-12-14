@@ -25,9 +25,9 @@ namespace AElf.Kernel.Consensus
             _stateStore = stateStore;
         }
 
-        public Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
+        public Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
         public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(
-            Hash.LoadHex(ChainConfig.Instance.ChainId));
+            Hash.LoadBase58(ChainConfig.Instance.ChainId));
         
         private DataProvider DataProvider
         {
