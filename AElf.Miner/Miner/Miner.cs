@@ -322,7 +322,7 @@ namespace AElf.Miner.Miner
                                 TransactionId = trace.TransactionId,
                                 RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
                                 Status = Status.Failed,
-                                StateHash = trace.GetSummarizedStateHash(),
+                                StateHash = Hash.Default,
                                 Index = index++
                             };
                             results.Add(txResF);

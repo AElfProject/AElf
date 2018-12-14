@@ -47,5 +47,17 @@ namespace AElf.Kernel
             hashes.AddRange(InlineTraces.Select(x => x.GetSummarizedStateHash()));
             return Hash.FromRawBytes(ByteArrayHelpers.Combine(hashes.Select(x => x.DumpByteArray()).ToArray()));
         }
+
+        public void SurfaceUpError()
+        {
+            foreach (var inline in InlineTraces)
+            {
+                inline.SurfaceUpError();
+                if (inline.ExecutionStatus < ExecutionStatus)
+                {
+                    ExecutionStatus = inline.ExecutionStatus;
+                }
+            }
+        }
     }
 }
