@@ -102,17 +102,21 @@ namespace AElf.Contracts.Authorization.Tests
             }
         }
 
-        public async Task<bool> SayYes(Approval approval, Address sender)
+        public async Task<bool> SayYes(Approval approval, ECKeyPair sender)
         {
             try
             {
                 var tx = new Transaction
                 {
-                    From = sender,
+                    From = Address.FromPublicKey(_chainId, sender.PublicKey),
                     To = AuthorizationContractAddress,
                     MethodName = "SayYes",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(approval))
                 };
+                var signer = new ECSigner();
+                var signature = signer.Sign(sender, tx.GetHash().DumpByteArray());
+                
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
                 TransactionContext = new TransactionContext()
                 {
                     Transaction = tx
@@ -127,17 +131,25 @@ namespace AElf.Contracts.Authorization.Tests
             }
         }
 
-        public async Task<Transaction> Release(Hash proposalHash, Address sender)
+        public async Task<Transaction> Release(Hash proposalHash, ECKeyPair sender)
         {
             try
             {
                 var tx = new Transaction
                 {
-                    From = sender,
+                    From = Address.FromPublicKey(_chainId, sender.PublicKey),
                     To = AuthorizationContractAddress,
                     MethodName = "Release",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(proposalHash))
                 };
+                TransactionContext = new TransactionContext()
+                {
+                    Transaction = tx
+                };
+                var signer = new ECSigner();
+                var signature = signer.Sign(sender, tx.GetHash().DumpByteArray());
+                
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
                 TransactionContext = new TransactionContext()
                 {
                     Transaction = tx

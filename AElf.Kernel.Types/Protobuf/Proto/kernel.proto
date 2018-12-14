@@ -16,7 +16,7 @@ message Transaction {
     bytes Params = 7;
     uint64 Fee = 8;
     repeated bytes Sigs = 9;
-    TransactionType type = 10;
+    TransactionType Type = 10;
     google.protobuf.Timestamp Time = 11;
 }
 
