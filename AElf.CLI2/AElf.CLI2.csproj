@@ -28,5 +28,6 @@
         <EmbeddedResource Include="Scripts\requestor.js" />
         <EmbeddedResource Include="Scripts\init-chain.js" />
         <EmbeddedResource Include="Scripts\deploy-command.js" />
+        <EmbeddedResource Include="Scripts\proposal.js" />
     </ItemGroup>
 </Project>

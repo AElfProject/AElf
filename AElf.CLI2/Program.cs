@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using AElf.CLI2.Commands;
+using AElf.CLI2.Commands.Proposal;
 using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
 using Autofac;
@@ -15,7 +16,8 @@ namespace AElf.CLI2
         {
             return Parser.Default
                 .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, SendTransactionOption,
-                    GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption, GetMerkelPathOption>(args)
+                    GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption, GetMerkelPathOption, 
+                    CreateMultiSigOption, ProposalOption, CheckProposalOption, ApprovalOption, ReleaseProposalOption>(args)
                 .MapResult(
                     (CreateOption opt) =>
                     {
@@ -92,6 +94,51 @@ namespace AElf.CLI2
                     (GetMerkelPathOption opt) =>
                     {
                         using (var cmd = new GetMerkelPathCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (CreateMultiSigOption opt) =>
+                    {
+                        using (var cmd = new CreateMultiSigAddressCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (ProposalOption opt) =>
+                    {
+                        using (var cmd = new ProposeCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (CheckProposalOption opt) =>
+                    {
+                        using (var cmd = new CheckProposalCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (ApprovalOption opt) =>
+                    {
+                        using (var cmd = new ApproveCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (ReleaseProposalOption opt) =>
+                    {
+                        using (var cmd = new ReleaseProposalCommand(opt))
                         {
                             cmd.Execute();
                         }

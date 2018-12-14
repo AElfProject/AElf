@@ -11,9 +11,17 @@
         return aelf.chain.contractAt(addressZero, _account);
     }
 
+    function getAuthorization() {
+        var cRes = aelf.chain.connectChain().result;
+        var authorizationAddress = cRes['AElf.Contracts.Authorization'];
+        //console.log('authorizationAddress ', authorizationAddress, '\n');
+        return aelf.chain.contractAt(authorizationAddress, _account);
+    }
+
     if (aelf.isConnected()) {
         chain = {
-            contractZero: getContractZero()
+            contractZero: getContractZero(),
+            authorizationContract: getAuthorization()
         };
     }
 })();

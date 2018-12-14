@@ -6,18 +6,18 @@ namespace AElf.Kernel
 {
     public partial class ElectionSnapshot
     {
-        public Address GetNextCandidate(Miners currentMiners)
+        public byte[] GetNextCandidate(Miners currentMiners)
         {
-            var ranking = TicketsMap.OrderBy(tm => tm.TicketsCount).Select(tm => tm.CandidateAddress).ToList();
+            var ranking = MinersSnapshot.OrderBy(ms => ms.VotersWeights).Select(ms => ms.MinerPubKey).ToList();
             for (var i = GlobalConfig.BlockProducerNumber + 1; i < ranking.Count(); i++)
             {
-                if (!currentMiners.Nodes.Contains(ranking[i]))
+                if (!currentMiners.Producers.Contains(ranking[i]))
                 {
-                    return ranking[i];
+                    return ranking[i].ToByteArray();
                 }
             }
 
-            return Address.Zero;
+            return new byte[0];
         }
     }
 }

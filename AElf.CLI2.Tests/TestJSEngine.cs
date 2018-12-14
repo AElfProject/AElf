@@ -82,9 +82,9 @@ namespace AElf.CLI2.Tests
             #endregion
 
 
-            string mnenomic = "degree family lab shrimp such demand stay popular inflict immune attack mouse";
-            string privKey = "69fbc2a6020e93e8b1390505d89434d5be3d60e04dcfc48b4c02854619a8c93d";
-            string address = "ELF_34KtfUu9WUXXdnfuLB5gtjMYejJNnXpTBwUskVkyy5oQvz66B";
+            string mnenomic = "gap annual carpet joy math cereal remain awake choice denial social crouch";
+            string privKey = "69a9313a13db0893cb0e8dbe63992696b03aa8849f358b41a188df139b7eebf3";
+            string address = "ELF_3d1HBjLsyeeAEd5LFGWB3tjZ9XTa8nMFdoAgHRMDH5oh2zk";
             var obj = jsEngine.Evaluate($@"Aelf.wallet.getWalletByMnemonic(""{mnenomic}"")");
 
             Assert.Equal(mnenomic, obj.ReadProperty<string>("mnemonic"));

@@ -18,5 +18,10 @@ namespace AElf.Common
 
             return randomBytes;
         }
+
+        public static Hash GetChainId(ulong serialNumber)
+        {
+            return Hash.FromString(serialNumber + "_AElf");
+        }
     }
 }

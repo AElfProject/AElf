@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 
 namespace AElf.Kernel.Types.Transaction
 {
@@ -18,11 +19,18 @@ namespace AElf.Kernel.Types.Transaction
             {
                 var pubkey =
                     CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(), tx.GetHash().DumpByteArray());
-                return Address.FromPublicKey(new byte[0], pubkey) == tx.From;
+                return Address.FromPublicKey(new byte[0], pubkey).Equals(tx.From);
             }
-
-            // Multi sig, TODO old logic tries to recover pubkey here (do we really need)
-
+            
+            foreach (var sig in tx.Sigs)
+            {
+                var verifier = new ECVerifier();
+                
+                if(verifier.Verify(new ECSignature(sig.ToByteArray()), tx.GetHash().DumpByteArray()))
+                    continue;
+                
+                return false;
+            }
             return true;
         }
     }

@@ -25,7 +25,7 @@ namespace AElf.CLI2.Commands
         public string Account { get; set; } = "";
 
         [JsonIgnore]
-        [Option('p', "password", HelpText = "The passwod for unlocking the account.")]
+        [Option('p', "password", HelpText = "The password for unlocking the account.")]
         public string Password { get; set; } = "";
 
         [JsonProperty("accountsdir")]

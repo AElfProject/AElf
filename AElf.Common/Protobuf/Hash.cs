@@ -94,6 +94,7 @@ namespace AElf.Common
                 return FromRawBytes(mm.ToArray());
             }
         }
+        
 
         public static Hash Generate()
         {
