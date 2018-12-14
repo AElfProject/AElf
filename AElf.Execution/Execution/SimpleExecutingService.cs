@@ -30,7 +30,8 @@ namespace AElf.Execution.Execution
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken cancellationToken, Hash disambiguationHash=null, TransactionType transactionType = TransactionType.ContractTransaction)
+            CancellationToken cancellationToken, Hash disambiguationHash = null,
+            TransactionType transactionType = TransactionType.ContractTransaction)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<DataPath, StateCache>();
@@ -39,21 +40,22 @@ namespace AElf.Execution.Execution
             {
                 var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
                 //Console.WriteLine($"{transaction.GetHash().ToHex()} : {trace.ExecutionStatus.ToString()}");
-                if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
+                if (trace.IsSuccessful())
                 {
-                    //Console.WriteLine($"tx executed successfully: {transaction.GetHash().ToHex()}");
-                    await trace.CommitChangesAsync(_stateStore);
-//                    await _stateDictator.ApplyCachedDataAction(bufferedStateUpdates);
-//                    foreach (var kv in bufferedStateUpdates)
-//                    {
-//                        stateCache[kv.Key] = kv.Value;
-//                    }
+                    if (trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
+                    {
+                        await trace.CommitChangesAsync(_stateStore);
+                    }
+                }
+                else
+                {
+                    trace.SurfaceUpError();
                 }
 
                 if (_transactionTraceManager != null)
                 {
                     // Will be null only in tests
-                    await _transactionTraceManager.AddTransactionTraceAsync(trace, disambiguationHash);    
+                    await _transactionTraceManager.AddTransactionTraceAsync(trace, disambiguationHash);
                 }
 
                 traces.Add(trace);
