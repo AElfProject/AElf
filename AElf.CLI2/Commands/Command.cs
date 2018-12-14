@@ -5,6 +5,7 @@ using System.IO;
 using Alba.CsConsoleFormat.Fluent;
 using System.Reflection;
 using AElf.CLI2.Utils;
+using AElf.Common;
 using Org.BouncyCastle.Bcpg;
 
 namespace AElf.CLI2.Commands
@@ -54,6 +55,24 @@ namespace AElf.CLI2.Commands
 
             _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
                 .GetManifestResourceStream("AElf.CLI2.Scripts.init-chain.js"));
+        }
+        
+        public static string GetCode(string path)
+        {
+            using (var br = File.OpenRead(path))
+            {
+                return ReadFully(br).ToHex().ToLower();
+            }
+        }
+        
+        private static byte[] ReadFully(Stream stream)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                ms.Position = 0;
+                return ms.ToArray();
+            }
         }
 
         public abstract void Execute();

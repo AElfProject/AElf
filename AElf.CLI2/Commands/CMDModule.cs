@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.CLI2.Commands.CrossChain;
 using AElf.CLI2.Commands.Proposal;
 using Autofac;
 
@@ -33,7 +34,8 @@ namespace AElf.CLI2.Commands
                 [typeof(ProposalOption)] = typeof(ProposeCommand),
                 [typeof(CheckProposalOption)] = typeof(CheckProposalCommand),
                 [typeof(ApprovalOption)] = typeof(ApproveCommand),
-                [typeof(ReleaseProposalOption)] = typeof(ReleaseProposalCommand)
+                [typeof(ReleaseProposalOption)] = typeof(ReleaseProposalCommand),
+                [typeof(ChainCreationRequestOption)] = typeof(ChainCreationRequestCommand)
             };
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using AElf.CLI2.Commands;
+using AElf.CLI2.Commands.CrossChain;
 using AElf.CLI2.Commands.Proposal;
 using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
@@ -17,7 +18,8 @@ namespace AElf.CLI2
             return Parser.Default
                 .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, SendTransactionOption,
                     GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption, GetMerkelPathOption, 
-                    CreateMultiSigOption, ProposalOption, CheckProposalOption, ApprovalOption, ReleaseProposalOption>(args)
+                    CreateMultiSigOption, ProposalOption, CheckProposalOption, ApprovalOption, ReleaseProposalOption,
+                    ChainCreationRequestOption>(args)
                 .MapResult(
                     (CreateOption opt) =>
                     {
@@ -139,6 +141,15 @@ namespace AElf.CLI2
                     (ReleaseProposalOption opt) =>
                     {
                         using (var cmd = new ReleaseProposalCommand(opt))
+                        {
+                            cmd.Execute();
+                        }
+
+                        return 0;
+                    },
+                    (ChainCreationRequestOption opt) =>
+                    {
+                        using (var cmd = new ChainCreationRequestCommand(opt))
                         {
                             cmd.Execute();
                         }

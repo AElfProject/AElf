@@ -4,9 +4,6 @@
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
-    <Target Name="DownloadChakraCore" AfterTargets="AfterBuild">
-        <Exec Command="bash DownloadChakraCore.sh $(OutDir)" />
-    </Target>
     <ItemGroup>
         <PackageReference Include="Alba.CsConsoleFormat" Version="1.0.0" />
         <PackageReference Include="Autofac" Version="4.8.1" />
@@ -29,5 +26,6 @@
         <EmbeddedResource Include="Scripts\init-chain.js" />
         <EmbeddedResource Include="Scripts\deploy-command.js" />
         <EmbeddedResource Include="Scripts\proposal.js" />
+        <EmbeddedResource Include="Scripts\cross-chain.js" />
     </ItemGroup>
 </Project>
