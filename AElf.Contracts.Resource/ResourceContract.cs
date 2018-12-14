@@ -18,12 +18,12 @@ namespace AElf.Contracts.Resource
         static ResourceContract()
         {
             ResourceTypes = Enum.GetValues(typeof(UserResourceKey.Types.ResourceType))
-                .Cast<UserResourceKey.Types.ResourceType>().Select(x => x.ToString()).ToList();
+                .Cast<UserResourceKey.Types.ResourceType>().Select(x => x.ToString().ToUpper()).ToList();
         }
 
         internal static void AssertCorrectResourceType(string resourceType)
         {
-            Api.Assert(ResourceTypes.Contains(resourceType), "Incorrect resource type.");
+            Api.Assert(ResourceTypes.Contains(resourceType.ToUpper()), "Incorrect resource type.");
         }
 
         internal static UserResourceKey.Types.ResourceType ParseResourceType(string resourceType)
