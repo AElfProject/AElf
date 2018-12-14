@@ -1,6 +1,6 @@
 ﻿namespace AElf.Management.Interfaces
 {
-    public interface IRecrodService
+    public interface IRecordService
     {
         void Start();
     }

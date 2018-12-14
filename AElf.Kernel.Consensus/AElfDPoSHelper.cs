@@ -15,9 +15,7 @@ using NLog;
 
 namespace AElf.Kernel.Consensus
 {
-    // ReSharper disable InconsistentNaming
-    // ReSharper disable MemberCanBeMadeStatic.Local
-    // ReSharper disable UnusedMember.Global
+    // TODO: Cache
     public class AElfDPoSHelper
     {
         private static Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);

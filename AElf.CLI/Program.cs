@@ -46,11 +46,11 @@ namespace AElf.CLI
             ).WithParsed(
                 result => { cmdOptions = result; });
             
-            ApplicationHelpers.SetConfigPath(cmdOptions.ConfigPath);
+            ApplicationHelpers.ConfigPath = cmdOptions.ConfigPath;
             
             ScreenManager screenManager = new ScreenManager();
 
-            AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultConfigPath());
+            AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
             AccountManager accountManager = new AccountManager(kstore, screenManager);
             CertificatManager certificatManager = new CertificatManager(screenManager);
 

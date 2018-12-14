@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Website.Models;
@@ -19,27 +20,27 @@ namespace AElf.Management.Website.Controllers
 
         [HttpGet]
         [Route("isalive/{chainId}")]
-        public ApiResult<bool> IsAlive(string chainId)
+        public async Task<ApiResult<bool>> IsAlive(string chainId)
         {
-            var result = _nodeService.IsAlive(chainId);
+            var result = await _nodeService.IsAlive(chainId);
             
             return new ApiResult<bool>(result);
         }
         
         [HttpGet]
         [Route("isforked/{chainId}")]
-        public ApiResult<bool> IsForked(string chainId)
+        public async Task<ApiResult<bool>> IsForked(string chainId)
         {
-            var result = _nodeService.IsForked(chainId);
+            var result = await _nodeService.IsForked(chainId);
             
             return new ApiResult<bool>(result);
         }
         
         [HttpGet]
         [Route("statehistory/{chainId}")]
-        public ApiResult<List<NodeStateHistory>> StateHistory(string chainId)
+        public async Task<ApiResult<List<NodeStateHistory>>> StateHistory(string chainId)
         {
-            var result = _nodeService.GetHistoryState(chainId);
+            var result = await _nodeService.GetHistoryState(chainId);
             
             return new ApiResult<List<NodeStateHistory>>(result);
         }

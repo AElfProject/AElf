@@ -1,4 +1,5 @@
-﻿using AElf.Management.Website.Models;
+﻿using System.Threading.Tasks;
+using AElf.Management.Website.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AElf.Management.Website.Controllers
@@ -8,7 +9,7 @@ namespace AElf.Management.Website.Controllers
     public class TestController : ControllerBase
     {
         [HttpGet("{value}")]
-        public ApiResult<string> Test(string value)
+        public async Task<ApiResult<string>> Test(string value)
         {
             return new ApiResult<string>(value);
         }

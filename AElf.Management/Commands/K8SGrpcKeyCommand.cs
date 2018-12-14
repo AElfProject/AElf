@@ -16,9 +16,9 @@ namespace AElf.Management.Commands
         {
             CreateGrpcKey(arg);
             var certFileName = arg.SideChainId + ".cert.pem";
-            var cert = File.ReadAllText(Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "certs", certFileName));
+            var cert = File.ReadAllText(Path.Combine(ApplicationHelpers.ConfigPath, "certs", certFileName));
             var keyFileName = arg.SideChainId + ".key.pem";
-            var key = File.ReadAllText(Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "certs", keyFileName));
+            var key = File.ReadAllText(Path.Combine(ApplicationHelpers.ConfigPath, "certs", keyFileName));
 
             var configMapData = new Dictionary<string, string> {{certFileName, cert}, {keyFileName, key}};
 
@@ -53,7 +53,7 @@ namespace AElf.Management.Commands
 
         private void CreateGrpcKey(DeployArg arg)
         {
-            var certificateStore = new CertificateStore(ApplicationHelpers.GetDefaultConfigPath());
+            var certificateStore = new CertificateStore(ApplicationHelpers.ConfigPath);
             certificateStore.WriteKeyAndCertificate(arg.SideChainId, arg.LauncherArg.ClusterIp);
         }
     }

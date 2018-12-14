@@ -122,7 +122,7 @@ namespace AElf.CLI
         
         private void LoadOrCreateChainConfig()
         {
-            string fileFolder = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config");
+            string fileFolder = Path.Combine(ApplicationHelpers.ConfigPath, "config");
             string filePath = Path.Combine(fileFolder, @"chain.json");
             
             // If exists load the value

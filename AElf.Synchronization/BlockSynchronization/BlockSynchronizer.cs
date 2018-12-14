@@ -36,9 +36,17 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private readonly FSM<NodeState> _stateFSM;
 
-        private static bool _terminated;
+        private bool _terminated;
 
         private NodeState CurrentState => _stateFSM.CurrentState;
+
+        private bool _executeNextBlock;
+
+        public int RollBackTimes { get; private set; }
+
+        private ulong _syncHeight;
+        
+        private object _receiveBlockLock = new object();
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IBlockSet blockSet, IBlockHeaderValidator blockHeaderValidator)
@@ -54,6 +62,8 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
             _terminated = false;
+            _executeNextBlock = true;
+            _syncHeight = ulong.MaxValue;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
             {
@@ -67,13 +77,13 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     MessageHub.Instance.Publish(new LockMining(true));
                 }
-
+                
                 switch (inState.NodeState)
                 {
                     case NodeState.Catching:
                         await ReceiveNextValidBlock();
                         break;
-
+                    
                     case NodeState.Caught:
                         await ReceiveNextValidBlock();
                         break;
@@ -82,11 +92,11 @@ namespace AElf.Synchronization.BlockSynchronization
                         // This node is free to mine a block during executing maybe-incorrect block again and again.
                         MessageHub.Instance.Publish(new LockMining(false));
                         break;
-
+                    
                     case NodeState.GeneratingConsensusTx:
                         MessageHub.Instance.Publish(new LockMining(false));
                         break;
-
+                    
                     case NodeState.Reverting:
                         await HandleFork();
                         break;
@@ -172,6 +182,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
+            var isReceiveBlock = await IsReceiveBlock(block);
+            if (!isReceiveBlock)
+            {
+                return;
+            }
+
             if (!_blockSet.IsBlockReceived(block.GetHash(), block.Index))
             {
                 _blockSet.AddBlock(block);
@@ -210,13 +226,56 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (blockHeaderValidationResult == BlockHeaderValidationResult.Branched)
             {
-                
                 MessageHub.Instance.Publish(new LockMining(false));
             }
+            
+            if (await IsRequestNextBlockAgain(block))
+            {
+                MessageHub.Instance.Publish(new BlockAccepted(block));
+            }
+        }
+
+        private async Task<bool> IsReceiveBlock(IBlock block)
+        {
+            lock (_receiveBlockLock)
+            {
+                if (block.Index >= _syncHeight)
+                {
+                    return false;
+                }
+
+                if (_blockSet.IsFull() && _syncHeight == ulong.MaxValue)
+                {
+                    _syncHeight = block.Index;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private async Task<bool> IsRequestNextBlockAgain(IBlock block)
+        {
+            lock (_receiveBlockLock)
+            {
+                if (block.Index == _syncHeight - 1)
+                {
+                    _syncHeight = ulong.MaxValue;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private async Task ReceiveNextValidBlock()
         {
+            if (!_executeNextBlock)
+            {
+                _executeNextBlock = true;
+                return;
+            }
+            
             if (_stateFSM.CurrentState != NodeState.Catching && _stateFSM.CurrentState != NodeState.Caught)
             {
                 IncorrectStateLog(nameof(ReceiveNextValidBlock));
@@ -283,7 +342,14 @@ namespace AElf.Synchronization.BlockSynchronization
                 return BlockExecutionResult.InvalidSideChainInfo;
             }
 
-            _blockSet.Tell(block);
+            if (executionResult.CannotExecute())
+            {
+                _executeNextBlock = false;
+            }
+            else
+            {
+                _blockSet.Tell(block);
+            }
 
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
@@ -342,6 +408,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (forkHeight != 0)
             {
                 await RollbackToHeight(forkHeight, currentHeight - GlobalConfig.ForkDetectionLength);
+                RollBackTimes++;
             }
             else
             {
