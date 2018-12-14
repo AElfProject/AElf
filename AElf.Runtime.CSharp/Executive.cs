@@ -185,6 +185,11 @@ namespace AElf.Runtime.CSharp
                         _currentTransactionContext.Trace.RetVal = retVal;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
                     }
+                    catch (TargetInvocationException ex)
+                    {
+                        _currentTransactionContext.Trace.StdErr += ex.InnerException.Message;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                    }
                     catch (Exception ex)
                     {
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
@@ -206,7 +211,7 @@ namespace AElf.Runtime.CSharp
                         _currentTransactionContext.Trace.RetVal = retVal;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
                     }
-                    catch (TargetInvocationException ex) when (ex.InnerException.GetType().Namespace == "AElf.Sdk.CSharp")
+                    catch (TargetInvocationException ex)
                     {
                         _currentTransactionContext.Trace.StdErr += ex.InnerException.Message;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;

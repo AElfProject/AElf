@@ -29,9 +29,10 @@
             'From': multiSigAccount,
             'To': to,
             'MethodName': methodName,
-            'Params': params,
+            'Params': JSON.parse(params),
             'MethodAbi' : methodAbi
         };
+        //console.log('packedtxn - ', packedTxn);
         var time = new Date();
         time.setSeconds(new Date().getSeconds() + expiredTime);
         var proposal = {

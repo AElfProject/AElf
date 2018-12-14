@@ -937,6 +937,7 @@ var getAuthorization = function (decided_threshold, proposer_threshold, reviewer
 var getProposal = function (multisig_account, proposal_name, raw_txn, expired_time, proposer) {
     var txn_data = encodeTransaction(raw_txn);
     var decodedTxn = kernelRoot.Transaction.decode(txn_data);
+    console.log('decodedTxn - ', decodedTxn);
     var proposal = {
         "MultiSigAccount" : getAddressFromRep(multisig_account),
         "Name" : proposal_name,
@@ -4647,9 +4648,12 @@ var formatInputProposal = function (proposal, fieldNumber) {
         return i.Type;
     });
     //var c = new coder();
+    console.log('types - ', types);
     var coder = require('./coder');
-    var raw_txn = proto.getMsigTransaction(proposal.TxnData.From, proposal.TxnData.To, proposal.TxnData.MethodName, coder.encodeParams(types, proposal.TxnData.Params));
-
+    var args = Array.prototype.slice.call(proposal.TxnData.Params).filter(function (a) {return a !== undefined; });
+    console.log('args - ', args);
+    var raw_txn = proto.getMsigTransaction(proposal.TxnData.From, proposal.TxnData.To, proposal.TxnData.MethodName, coder.encodeParams(types, args));
+    console.log('raw_txn' - raw_txn);
     var p = proto.getProposal(proposal.MultiSigAccount, proposal.Name, raw_txn, proposal.ExpiredTime, proposal.Proposer);
     return proto.encodeProposal(p, fieldNumber);
 };
