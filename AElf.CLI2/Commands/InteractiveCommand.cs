@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
-using AElf.CLI2.Commands;
 using AElf.CLI2.JS;
-using AElf.CLI2.JS.IO;
 using Alba.CsConsoleFormat;
 using Alba.CsConsoleFormat.Fluent;
-using Autofac;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
 using CommandLine;
@@ -99,37 +95,115 @@ namespace AElf.CLI2.Commands
             PrintInjectedObjects();
 
             ReadLine.AutoCompletionHandler = new CompleteHandler(_engine);
+            List<string> lines = new List<string>();
             while (true)
             {
-                //string command = _screenManager.GetCommand();
-                string line = ReadLine.Read("> ");
+                var line = "";
+                if (lines.Count == 0)
+                {
+                    line = ReadLine.Read("> ");
+                }
+                else
+                {
+                    line = ReadLine.Read("... ");
+                }
 
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
 
-                ReadLine.AddHistory(line);
+                lines.Add(line);
+                var indents = CountIndents(lines);
+                if (indents > 0)
+                {
+                    continue;
+                }
+
+                var input = string.Join("\n", lines);
+                ReadLine.AddHistory(input);
 
                 // stop the repl if "quit", "Quit", "QuiT", ... is encountered
-                if (line.Trim().Equals("quit", StringComparison.OrdinalIgnoreCase) ||
-                    line.Trim().Equals("exit", StringComparison.OrdinalIgnoreCase))
+                if (input.Trim().Equals("quit", StringComparison.OrdinalIgnoreCase) ||
+                    input.Trim().Equals("exit", StringComparison.OrdinalIgnoreCase))
                 {
                     break;
                 }
 
-                if (line.Trim().Equals("dir"))
+                if (input.Trim().Equals("dir"))
                 {
                     PrintInjectedObjects();
                     continue;
                 }
 
-                if (line.Trim().Equals("dir all"))
+                if (input.Trim().Equals("dir all"))
                 {
                     PrintInjectedObjects(false);
                     continue;
                 }
 
-                _engine.Execute(line);
+                _engine.Execute(input);
+                lines = new List<string>();
             }
+        }
+
+        private int CountIndents(IEnumerable<string> lines)
+        {
+            var indents = 0;
+            var inString = false;
+            var strOpenChar = ' '; // keep track of the string open char to allow var str = "I'm ....";
+            var charEscaped = false; // keep track if the previous char was the '\' char, allow var str = "abc\"def";
+            foreach (var line in lines)
+            {
+                foreach (var c in line)
+                {
+                    switch (c)
+                    {
+                        case '\\':
+                            if (!charEscaped && inString)
+                            {
+                                charEscaped = true;
+                            }
+
+                            break;
+                        case '\'':
+                        case '"':
+                            if (inString && !charEscaped && strOpenChar == c)
+                            {
+                                inString = false;
+                            }
+                            else if (!inString && !charEscaped)
+                            {
+                                inString = true;
+                                strOpenChar = c;
+                            }
+
+                            charEscaped = false;
+                            break;
+                        case '{':
+                        case '(':
+                            if (!inString)
+                            {
+                                indents++;
+                            }
+
+                            charEscaped = false;
+                            break;
+                        case '}':
+                        case ')':
+                            if (!inString)
+                            {
+                                indents--;
+                            }
+
+                            charEscaped = false;
+                            break;
+                        default:
+                            charEscaped = false;
+                            break;
+                    }
+                }
+            }
+
+            return indents;
         }
     }
 
@@ -144,6 +218,11 @@ namespace AElf.CLI2.Commands
 
         public string[] GetSuggestions(string line, int index)
         {
+            if (index > 0)
+            {
+                line = line.Substring(index, line.Length - index);
+            }
+
             var parts = line.Split(".");
             var objRef = "this";
             var prefix = line;
@@ -189,6 +268,6 @@ namespace AElf.CLI2.Commands
             return results.ToArray();
         }
 
-        public char[] Separators { get; set; } = {' '};
+        public char[] Separators { get; set; } = {' ', '=', '{'};
     }
 }

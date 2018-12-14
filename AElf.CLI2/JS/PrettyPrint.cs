@@ -158,7 +158,7 @@ namespace AElf.CLI2.JS
                 case JavaScriptValueType.Undefined:
                     return new Span[] {new Span("undefined")};
                 case JavaScriptValueType.String:
-                    return new Span[] {$"\"{value.ToString()}\"".DarkGreen()};
+                    return new Span[] {$"\"{value.ToString().Replace("\"", "\\\"")}\"".DarkGreen()};
                 case JavaScriptValueType.Boolean:
                     return new Span[] {new Span(value.ToBoolean() ? "true" : "false")};
                 case JavaScriptValueType.Number:
