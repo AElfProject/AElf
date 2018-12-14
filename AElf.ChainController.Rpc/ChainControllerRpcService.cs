@@ -58,6 +58,7 @@ namespace AElf.ChainController.Rpc
 
             MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
+        
         #region Methods
 
         [JsonRpcMethod("get_commands")]

@@ -60,7 +60,7 @@ namespace AElf.Contracts.Consensus
 
         public void NextRound(Forwarding forwarding)
         {
-            Process.Update(forwarding);
+            Process.NextRound(forwarding);
         }
 
         public void PackageOutValue(ToPackage toPackage)
@@ -97,9 +97,9 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public List<string> GetCurrentVictories()
+        public string GetCurrentVictories()
         {
-            return Process.GetVictories().ToList();
+            return Process.GetCurrentVictories();
         }
         
         public void AnnounceElection()

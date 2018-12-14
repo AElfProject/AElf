@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
@@ -37,6 +38,12 @@ namespace AElf.Kernel
         public static Miners ToMiners(this IEnumerable<string> minerPublicKeys)
         {
             return new Miners {PublicKeys = {minerPublicKeys}};
+        }
+
+        public static string ToAString(this IEnumerable<string> minerPublicKeys)
+        {
+            var res = minerPublicKeys.Aggregate("", (current, minerPublicKey) => current + minerPublicKey + ";");
+            return res.Substring(0, res.Length - 1);
         }
 
         /// <summary>

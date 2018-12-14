@@ -35,31 +35,28 @@ namespace AElf.Contracts.Consensus.Tests
             _tokenContract = new TokenContractShim(mock);
             _consensusContract = new ConsensusContractShim(mock);
             _dividendsContract = new DividendsContractShim(mock);
-
-            InitializeToken();
         }
 
         private void InitializeToken()
         {
-            _tokenContract.Initialize("ELF", "AElf Token", 1000000000, 2);
-            _tokenContract.Transfer(Address.FromPublicKey(_mock.ChainId.DumpByteArray(), _candidate1.PublicKey),
-                GlobalConfig.LockTokenForElection + PinMoney);
-            _tokenContract.Transfer(Address.FromPublicKey(_mock.ChainId.DumpByteArray(), _candidate2.PublicKey),
-                GlobalConfig.LockTokenForElection + PinMoney);
-            _tokenContract.Transfer(Address.FromPublicKey(_mock.ChainId.DumpByteArray(), _candidate3.PublicKey),
-                GlobalConfig.LockTokenForElection + PinMoney);
-            _tokenContract.Transfer(Address.FromPublicKey(_mock.ChainId.DumpByteArray(), _candidate4.PublicKey),
-                GlobalConfig.LockTokenForElection + PinMoney);
+            _tokenContract.Initialize("ELF", "AElf Token", 100_000_000, 2);
             
-            _tokenContract.Transfer(Address.FromPublicKey(_mock.ChainId.DumpByteArray(), _voter1.PublicKey), 100_000);
-            _tokenContract.Transfer(Address.FromPublicKey(_mock.ChainId.DumpByteArray(), _voter2.PublicKey), 100_000);
-            _tokenContract.Transfer(Address.FromPublicKey(_mock.ChainId.DumpByteArray(), _voter3.PublicKey), 100_000);
-            _tokenContract.Transfer(Address.FromPublicKey(_mock.ChainId.DumpByteArray(), _voter4.PublicKey), 100_000);
+            _tokenContract.Transfer(GetAddress(_candidate1), GlobalConfig.LockTokenForElection + PinMoney);
+            _tokenContract.Transfer(GetAddress(_candidate2), GlobalConfig.LockTokenForElection + PinMoney);
+            _tokenContract.Transfer(GetAddress(_candidate3), GlobalConfig.LockTokenForElection + PinMoney);
+            _tokenContract.Transfer(GetAddress(_candidate4), GlobalConfig.LockTokenForElection + PinMoney);
+            
+            _tokenContract.Transfer(GetAddress(_voter1), 100_000);
+            _tokenContract.Transfer(GetAddress(_voter2), 100_000);
+            _tokenContract.Transfer(GetAddress(_voter3), 100_000);
+            _tokenContract.Transfer(GetAddress(_voter4), 100_000);
         }
 
         [Fact]
         public void AnnounceElectionTest()
         {
+            InitializeToken();
+
             var balance = _tokenContract.BalanceOf(GetAddress(_candidate1));
             Assert.True(balance >= GlobalConfig.LockTokenForElection);
             
@@ -75,6 +72,8 @@ namespace AElf.Contracts.Consensus.Tests
         [Fact]
         public void QuitElectionTest()
         {
+            InitializeToken();
+
             _consensusContract.QuitElection(_candidate1);
             var res = _consensusContract.IsCandidate(_candidate1.PublicKey.ToHex());
             Assert.False(res);
@@ -83,6 +82,8 @@ namespace AElf.Contracts.Consensus.Tests
         [Fact]
         public void VoteTest()
         {
+            InitializeToken();
+
             // Candidate announce election.
             _consensusContract.AnnounceElection(_candidate2);
             
@@ -130,6 +131,8 @@ namespace AElf.Contracts.Consensus.Tests
         [Fact]
         public void VoteTest_VoteToSomeoneDidNotAnnounceElection()
         {
+            InitializeToken();
+
             const ulong amount = 10_000;
 
             // Voter vote to a passerby.
@@ -149,6 +152,8 @@ namespace AElf.Contracts.Consensus.Tests
         [Fact]
         public void VoteTest_CandidateVote()
         {
+            InitializeToken();
+
             // Candidates announce election.
             _consensusContract.AnnounceElection(_candidate1);
             _consensusContract.AnnounceElection(_candidate2);
@@ -181,6 +186,8 @@ namespace AElf.Contracts.Consensus.Tests
         [Fact]
         public void VoteTest_VoteWithInvalidLockDays()
         {
+            InitializeToken();
+
             // Candidate announce election.
             _consensusContract.AnnounceElection(_candidate2);
             

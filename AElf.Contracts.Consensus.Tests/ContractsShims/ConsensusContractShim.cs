@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.Kernel;
@@ -85,11 +86,11 @@ namespace AElf.Contracts.Consensus.Tests
 
         #region View Only Methods
         
-        public Round GetRoundInfo(ECKeyPair senderKeyPair, ulong roundNumber)
+        public Round GetRoundInfo(ulong roundNumber)
         {
             var tx = new Transaction
             {
-                From = GetAddress(senderKeyPair),
+                From = Sender,
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetRoundInfo",
@@ -118,6 +119,25 @@ namespace AElf.Contracts.Consensus.Tests
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "InitialTerm",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(initialTerm, 1))
+            };
+            var signer = new ECSigner();
+            var signature = signer.Sign(minerKeyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+
+            TransactionContext = PrepareTransactionContext(tx);
+            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+        
+        public void NextTerm(ECKeyPair minerKeyPair, Term nextTerm)
+        {
+            var tx = new Transaction
+            {
+                From = GetAddress(minerKeyPair),
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "NextTerm",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(nextTerm))
             };
             var signer = new ECSigner();
             var signature = signer.Sign(minerKeyPair, tx.GetHash().DumpByteArray());
@@ -185,7 +205,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(publicKey))
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
@@ -198,7 +218,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             var tx = new Transaction
             {
-                From = GetAddress(keyPair),
+                From = Sender,
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetTicketsInfo",
@@ -218,24 +238,24 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Tickets>();
         }
 
-        public ulong TotalSupply()
+        public string GetCurrentVictories()
         {
             var tx = new Transaction
             {
                 From = Sender,
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
-                MethodName = "TotalSupply",
+                MethodName = "GetCurrentVictories",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
-            TransactionContext = new TransactionContext()
+            TransactionContext = new TransactionContext
             {
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
         public uint Decimals()
