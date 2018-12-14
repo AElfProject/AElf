@@ -11,7 +11,58 @@ using NLog;
 
 namespace AElf.Synchronization.BlockSynchronization
 {
-    // ReSharper disable FieldCanBeMadeReadOnly.Local
+    public class BlockState
+    {
+        private readonly IBlock _block;
+        
+        private Dictionary<byte[], int> _minersToConfirmations;
+
+        public BlockBody BlockBody => _block?.Body; // todo refactor out
+        public BlockHeader BlockHeader => _block?.Header; // todo refactor out
+
+        public Hash Previous => _block.Header.PreviousBlockHash;
+            
+        public Hash BlockHash => _block.GetHash();
+        public ulong Index => _block.Header.Index;
+
+        public BlockState(IBlock block, BlockState previous)
+        {
+            _block = block.Clone();
+            Init(previous);
+        }
+
+        private void Init(BlockState previous)
+        {
+            
+        }
+        
+        public static bool operator ==(BlockState bs1, BlockState bs2)
+        {
+            return bs1?.Equals(bs2) ?? ReferenceEquals(bs2, null);
+        }
+
+        public static bool operator !=(BlockState bs1, BlockState bs2)
+        {
+            return !(bs1 == bs2);
+        }
+        
+        public override bool Equals(Object obj)
+        {
+            var other = obj as BlockState;
+
+            if (other == null)
+                return false;
+
+            // Instances are considered equal if the ReferenceId matches.
+            return BlockHash == other.BlockHash;
+        }
+
+        public IBlock GetClonedBlock()
+        {
+            return _block.Clone();
+        }
+    }
+    
     public class BlockSet : IBlockSet
     {
         private const int Timeout = int.MaxValue;
@@ -56,9 +107,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private readonly ILogger _logger;
 
-        private static List<IBlock> _blockCache = new List<IBlock>();
+        private static List<BlockState> _blockCache = new List<BlockState>();
 
-        private readonly Dictionary<ulong, IBlock> _executedBlocks = new Dictionary<ulong, IBlock>();
+        private readonly Dictionary<ulong, BlockState> _executedBlocks = new Dictionary<ulong, BlockState>();
 
         private ReaderWriterLock _rwLock = new ReaderWriterLock();
 
@@ -73,18 +124,20 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public void AddBlock(IBlock block)
         {
-            var hash = block.BlockHashToHex;
-            _logger?.Trace($"Added block {hash} to block cache.");
+            BlockState newState = new BlockState(block, null); // todo null
+            
             _rwLock.AcquireReaderLock(Timeout);
+            
             try
             {
-                if (_blockCache.Any(b => b.BlockHashToHex == block.BlockHashToHex))
+                if (_blockCache.Any(b => newState == b))
                     return;
 
                 var lc = _rwLock.UpgradeToWriterLock(Timeout);
+                
                 try
                 {
-                    _blockCache.Add(block.Clone());
+                    _blockCache.Add(newState);
                     _blockCache = _blockCache.OrderBy(b => b.Index).ToList();
                 }
                 finally
@@ -98,34 +151,40 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        public void AddOrUpdateBlock(IBlock block)
+        public void AddOrUpdateMinedBlock(IBlock block)
         {
-            var hash = block.BlockHashToHex;
-            _logger?.Trace($"Add or update block {hash} to block cache.");
+            if (block?.Header == null)
+                throw new ArgumentNullException(nameof(block), "Null block or block header.");
+            
             _rwLock.AcquireWriterLock(Timeout);
+            
             try
             {
-                var toRemove = _blockCache.FirstOrDefault(b => b.BlockHashToHex == hash);
-                if (toRemove?.Header != null)
-                {
-                    _blockCache.Remove(toRemove);
-                }
+                BlockState blockState = new BlockState(block, null); // todo null confirmations
+                
+                // todo review old behaviour would first remove any with the same hash (??)
+                _blockCache.RemoveAll(bs => bs == blockState);
 
-                _blockCache.Add(block.Clone());
+                _blockCache.Add(blockState);
                 _blockCache = _blockCache.OrderBy(b => b.Index).ToList();
             }
             finally
             {
                 _rwLock.ReleaseWriterLock();
             }
+            
+            _logger?.Trace($"Add or update block {block.BlockHashToHex} to block cache.");
         }
 
-        public void RemoveExecutedBlock(string blockHashHex)
+        private void RemoveExecutedBlockFromCache(IBlock block)
         {
-            var toRemove = _blockCache.FirstOrDefault(b => b.BlockHashToHex == blockHashHex);
-            if (toRemove?.Header == null)
-                return;
+            var toRemove = _blockCache.FirstOrDefault(b => b.BlockHash == block.GetHash());
+            
+            if (toRemove == null)
+                throw new InvalidOperationException("Block not present in block cache.");
+            
             _rwLock.AcquireWriterLock(Timeout);
+
             try
             {
                 _blockCache.Remove(toRemove);
@@ -134,9 +193,9 @@ namespace AElf.Synchronization.BlockSynchronization
             finally
             {
                 _rwLock.ReleaseWriterLock();
-                _logger?.Trace($"Removed block {blockHashHex} from block cache.");
-                _logger?.Trace($"Added block {blockHashHex} to executed block dict.");
             }
+            
+            _logger?.Trace($"Transfered {toRemove.BlockHash.DumpHex()} from block cache to executed.");
         }
 
         /// <summary>
@@ -146,19 +205,20 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <returns></returns>
         public void Tell(IBlock currentExecutedBlock)
         {
-            RemoveExecutedBlock(currentExecutedBlock.BlockHashToHex);
+            RemoveExecutedBlockFromCache(currentExecutedBlock);
 
             if (currentExecutedBlock.Index >= KeepHeight)
                 RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
         }
 
-        public bool IsBlockReceived(Hash blockHash, ulong height)
+        public bool IsBlockReceived(IBlock block)
         {
-            bool res;
             _rwLock.AcquireReaderLock(Timeout);
+            
+            bool res;
             try
             {
-                res = _blockCache.Any(b => b.Index == height && b.BlockHashToHex == blockHash.DumpHex());
+                res = _blockCache.Any(b => block.GetHash() == b.BlockHash);
             }
             finally
             {
@@ -170,33 +230,37 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public IBlock GetBlockByHash(Hash blockHash)
         {
-            IBlock block;
             _rwLock.AcquireReaderLock(Timeout);
+            
+            BlockState blockSate;
             try
             {
-                block = _blockCache.FirstOrDefault(b => b.BlockHashToHex == blockHash.DumpHex());
+                blockSate = _blockCache.FirstOrDefault(b => b.BlockHash == blockHash);
             }
             finally
             {
                 _rwLock.ReleaseReaderLock();
             }
 
-            return block?.Body == null ? null : block.Clone();
+            // todo review check blockbody (old behaviour)
+            return blockSate?.BlockBody == null ? null : blockSate.GetClonedBlock();
         }
 
+        // todo refactor this 
         public IEnumerable<IBlock> GetBlocksByHeight(ulong height)
         {
             _rwLock.AcquireReaderLock(Timeout);
+            
             var blocks = new List<IBlock>();
             try
             {
-                if (_blockCache.Any(b => b.Index == height))
+                if (_blockCache.Any(b => b.Index == height)) // todo refactor any / FirstOrDefault
                 {
-                    _blockCache.Where(b => b.Index == height).ForEach(b => blocks.Add(b.Clone()));
+                    _blockCache.Where(b => b.Index == height).ForEach(b => blocks.Add(b.GetClonedBlock()));
                 }
-                else if (_executedBlocks.TryGetValue(height, out var block) && block?.Header != null)
+                else if (_executedBlocks.TryGetValue(height, out var bs) && bs?.BlockHeader != null)
                 {
-                    blocks.Add(block.Clone());
+                    blocks.Add(bs.GetClonedBlock());
                 }
             }
             finally
@@ -212,6 +276,7 @@ namespace AElf.Synchronization.BlockSynchronization
             try
             {
                 _rwLock.AcquireWriterLock(Timeout);
+                
                 try
                 {
                     for (var i = _executedBlocks.OrderBy(p => p.Key).FirstOrDefault().Key; i < targetHeight; i++)
@@ -224,13 +289,16 @@ namespace AElf.Synchronization.BlockSynchronization
                     }
 
                     var toRemove = _blockCache.Where(b => b.Index <= targetHeight).ToList();
+                    
                     if (!toRemove.Any())
                         return;
+                    
                     foreach (var block in toRemove)
                     {
                         _blockCache.Remove(block);
-                        _logger?.Trace($"Removed block {block.BlockHashToHex} from block cache.");
+                        _logger?.Trace($"Removed block {block.BlockHash} from block cache.");
                     }
+                    
                 }
                 finally
                 {
@@ -276,21 +344,17 @@ namespace AElf.Synchronization.BlockSynchronization
                     while (true)
                     {
                         _rwLock.AcquireReaderLock(Timeout);
+                        
                         try
                         {
-                            // If a linkable block can be found in the invalid block list,
-                            // update blockToCheck and indexToCheck.
-                            if (_blockCache.Any(b => b.Index == blockToCheck.Index - 1 &&
-                                                     b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex()))
+                            // If a linkable block can be found in the invalid block list, update blockToCheck and indexToCheck.
+                            if (_blockCache.Any(b => b.Index == blockToCheck.Index - 1 && b.BlockHash == blockToCheck.Previous)) // todo refactor any / FirstOrDefault
                             {
-                                blockToCheck = _blockCache.FirstOrDefault(b =>
-                                    b.Index == blockToCheck.Index - 1 &&
-                                    b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex());
-                                if (blockToCheck?.Header == null)
-                                {
+                                blockToCheck = _blockCache.FirstOrDefault(b => b.Index == blockToCheck.Index - 1 && b.BlockHash == blockToCheck.Previous);
+                                
+                                if (blockToCheck?.BlockHeader == null) // todo ??
                                     break;
-                                }
-
+                                
                                 forkHeight = blockToCheck.Index;
                             }
                             else
@@ -317,7 +381,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 if (forkHeight + GlobalConfig.BlockCacheLimit < currentHeight)
                 {
                     KeepHeight = ulong.MaxValue;
-                    MessageHub.Instance.Publish(new UnlinkableHeader(_blockCache.First(b => b.Index == forkHeight).Header));
+                    MessageHub.Instance.Publish(new UnlinkableHeader(_blockCache.First(b => b.Index == forkHeight).BlockHeader));
                 }
 
                 return forkHeight;
@@ -339,7 +403,8 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <param name="currentHeight"></param>
         public void InformRollback(ulong targetHeight, ulong currentHeight)
         {
-            var toRemove = new List<IBlock>();
+            // todo review acquire lock ?
+            var toRemove = new List<BlockState>();
             for (var i = targetHeight; i < currentHeight; i++)
             {
                 if (_executedBlocks.TryGetValue(i, out var block))
@@ -351,6 +416,7 @@ namespace AElf.Synchronization.BlockSynchronization
             foreach (var block in toRemove)
             {
                 _rwLock.AcquireWriterLock(Timeout);
+                
                 try
                 {
                     _executedBlocks.Remove(block.Index);
@@ -361,8 +427,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
 
                 _logger?.Trace($"Removed block of height {block.Index} from executed block dict.");
-                _blockCache.Add(block);
-                _logger?.Trace($"Added block {block.BlockHashToHex} to block cache.");
+                
+                _blockCache.Add(block); // todo review no order by ?
+                _logger?.Trace($"Added block {block.BlockHash} to block cache.");
             }
         }
 
@@ -371,7 +438,7 @@ namespace AElf.Synchronization.BlockSynchronization
             var str = "\nInvalid Block List:\n";
             foreach (var block in _blockCache.OrderBy(b => b.Index))
             {
-                str += $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}\n";
+                str += $"{block.BlockHash} - {block.Index}\n\tPreBlockHash:{block.Previous}\n";
             }
 
             _logger?.Trace(str);

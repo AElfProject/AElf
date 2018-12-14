@@ -172,7 +172,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
-            if (!_blockSet.IsBlockReceived(block.GetHash(), block.Index))
+            if (!_blockSet.IsBlockReceived(block))
             {
                 _blockSet.AddBlock(block);
                 // Notify the network layer the block has been accepted.
@@ -312,7 +312,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private void AddMinedBlock(IBlock block)
         {
-            _blockSet.AddOrUpdateBlock(block);
+            _blockSet.AddOrUpdateMinedBlock(block);
             SetKeepHeight();
         }
         
