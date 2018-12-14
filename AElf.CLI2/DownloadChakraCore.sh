@@ -1,6 +1,11 @@
-OUT_DIR=$1
+FILE_NAME="ChakraCore.dll"
+TO_FILE=$1$FILE_NAME
 FROM_FILE=
-TO_FILE="ChakraCore.dll"
+
+if [ -f "$TO_FILE" ]; then
+    echo "$TO_FILE exists, no need to download again"
+    exit
+fi
 
 GET_OS()
 {
@@ -29,5 +34,5 @@ cd temp
 curl -SL https://aka.ms/chakracore/install | bash
 
 cd ..
-cp temp/ChakraCoreFiles/lib/$FROM_FILE $OUT_DIR$TO_FILE
+cp temp/ChakraCoreFiles/lib/$FROM_FILE $TO_FILE
 rm -rf temp
