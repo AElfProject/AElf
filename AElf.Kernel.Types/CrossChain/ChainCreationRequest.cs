@@ -4,7 +4,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public partial class ChainCreationRequest
+    public partial class SideChainInfo
     {
         public Hash GetHash()
         {

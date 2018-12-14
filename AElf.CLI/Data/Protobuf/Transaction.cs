@@ -58,14 +58,14 @@ namespace AElf.CLI.Data.Protobuf
         [ProtoMember(10)]
         public TransactionType  Type { get; set; }
         
-        public static Transaction CreateTransaction(string elementAt, string genesisAddress,
+        public static Transaction CreateTransaction(string from, string to,
             string methodName, byte[] serializedParams, TransactionType contracttransaction)
         {
             try
             {
                 Transaction t = new Transaction();
-                t.From = Address.Parse(elementAt);
-                t.To = Address.Parse(genesisAddress);
+                t.From = Address.Parse(from);
+                t.To = Address.Parse(to);
                 t.MethodName = methodName;
                 t.Params = serializedParams;
                 t.Type = contracttransaction;

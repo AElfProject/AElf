@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Types.Proposal;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Bcpg;
-using Org.BouncyCastle.Crypto.Prng.Drbg;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.CrossChain
@@ -114,13 +106,10 @@ namespace AElf.Contracts.CrossChain
 
         private readonly UInt64Field _currentParentChainHeight = new UInt64Field(FieldNames.CurrentParentChainHeight);
 
-        private readonly Map<Hash, ChainCreationRequest> _requestInfo =
-            new Map<Hash, ChainCreationRequest>(FieldNames.NewChainCreationRequest);
-
-        private readonly MapToUInt64<Address> _indexingBalance = new MapToUInt64<Address>(FieldNames.IndexingBalance);
+        private readonly MapToUInt64<Hash> _indexingBalance = new MapToUInt64<Hash>(FieldNames.IndexingBalance);
 
         private static string CreateSideChainMethodName { get; } = "CreateSideChain";
-
+        private static string DisposeSideChainMethodName { get; } = "DisposeSideChain";
         #endregion Fields
 
         private double RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
@@ -135,70 +124,69 @@ namespace AElf.Contracts.CrossChain
         {
             Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
             var info = _sideChainInfos[chainId];
-            Api.Assert(info.Status != (SideChainStatus) 3, "Disposed side chain.");
-            return info.LockedToken;
+            Api.Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
+            return info.LockedTokenAmount;
         }
         
         public byte[] LockedAddress(Hash chainId)
         {
             Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
             var info = _sideChainInfos[chainId];
-            Api.Assert(info.Status != (SideChainStatus) 3, "Disposed side chain.");
-            return info.LockedAddress.DumpByteArray();
+            Api.Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
+            return info.Proposer.DumpByteArray();
         }
 
         #region Side chain lifetime actions
 
-        public byte[] ReuqestChainCreation(ChainCreationRequest request)
+        public byte[] ReuqestChainCreation(SideChainInfo request)
         {
-            Api.Assert(request.Proposer != null && Api.GetFromAddress().Equals(request.Proposer),
-                "Invalid chain creation request.");
-            Hash requestHash = request.GetHash();
-            Api.Assert(_requestInfo[requestHash].Equals(new ChainCreationRequest()),
+            Api.Assert(
+                request.SideChainStatus == SideChainStatus.Apply && request.Proposer != null &&
+                Api.GetFromAddress().Equals(request.Proposer), "Invalid chain creation request.");
+            
+            var serialNumber = _sideChainSerialNumber.Increment().Value;
+            Hash chainId = ChainHelpers.GetChainId(serialNumber);
+            Api.Assert(_sideChainInfos[chainId].Equals(new SideChainInfo()),
                 "Chain creation request already exists.");
-            foreach (var resourceBalance in request.ResourceBalances)
-            {
-                var balance = Api.GetResourceBalance(request.Proposer, resourceBalance.Type);
-                Api.Assert(balance >= resourceBalance.Amount, "Not enough resource.");
-            }
             
-            Api.Assert(Api.GetTokenBalance(request.Proposer) >= request.LockedTokenAmount, "Not enough balance.");
-            
-            // Todo: temp chainId calculation method
-            Hash chainId = Hash.Generate();
+            // lock token and resource
+            request.ChainId = chainId;
+            Api.Assert(_indexingBalance[chainId] == 0, "Chain Id already used"); // This should not happen.  
+            LockTokenAndResource(request);
+
             // side chain creation proposal
-            Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, CreateSideChainMethodName, chainId, requestHash);
-            
-            _requestInfo.SetValue(requestHash, request);
-            return requestHash.DumpByteArray();
+            Hash hash = Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.GetContractAddress(),
+                CreateSideChainMethodName, chainId);
+            request.SideChainStatus = SideChainStatus.Review;
+            _sideChainInfos.SetValue(chainId, request);
+            return hash.DumpByteArray();
         }
 
-        public byte[] CreateSideChain(Hash chainId, Hash requestHash)
+        public void WithdrawRequest(Hash chainId)
+        {
+            var sideChainInfo = _sideChainInfos[chainId];
+            
+            // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
+            Api.Assert(!sideChainInfo.Equals(new SideChainInfo()) && sideChainInfo.SideChainStatus == SideChainStatus.Review,
+                "Side chain creation request not found.");
+            Api.Assert(Api.GetFromAddress().Equals(sideChainInfo.Proposer), "Not authorized to withdraw request.");
+            WithdrawTokenAndResource(sideChainInfo);
+            sideChainInfo.SideChainStatus = SideChainStatus.Terminated;
+            _sideChainInfos[chainId] = sideChainInfo;
+        }
+
+        public byte[] CreateSideChain(Hash chainId)
         {
             // side chain creation should be triggered by multi sig txn from system address.
             Api.CheckAuthority(Api.Genesis);
-            var request = _requestInfo[requestHash];
-            Api.Assert(!request.Equals(new ChainCreationRequest()), "Side chain creation request not found.");
-            Api.Assert(_sideChainInfos[chainId].Equals(new SideChainInfo()), "Side chain already created."); //This should not happen. 
+            var request = _sideChainInfos[chainId];
             
-            // lock token and resource
-            LockTokenAndResource(request);
+            // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
+            Api.Assert(!request.Equals(new SideChainInfo()) && request.SideChainStatus == SideChainStatus.Review,
+                "Side chain creation request not found.");
 
-            ulong serialNumber = _sideChainSerialNumber.Increment().Value;
-            var info = new SideChainInfo
-            {
-                ChainId = chainId,
-                SerialNumer = serialNumber,
-                Status = SideChainStatus.Active,
-                LockedAddress = request.Proposer,
-                CreationHeight = Api.GetCurrentHeight() + 1
-            };
-            info.ResourceBalances.AddRange(request.ResourceBalances);          
-            _sideChainInfos[chainId] = info;
-            
-            // remove request
-            // Todo: null or new object?
-            _requestInfo[requestHash] = new ChainCreationRequest();
+            request.SideChainStatus = SideChainStatus.Active;          
+            _sideChainInfos[chainId] = request;
             
             // fire event
             new SideChainCreationRequested
@@ -209,6 +197,25 @@ namespace AElf.Contracts.CrossChain
             return chainId.DumpByteArray();
         }
 
+        
+        public void ChargeForIndexing()
+        {
+            // Todo : more changes needed for indexing fee.    
+        }
+
+        public byte[] RequestChainDisposal(Hash chainId)
+        {
+            var request = _sideChainInfos[chainId];
+            Api.Assert(!request.Equals(new SideChainInfo()) && request.SideChainStatus == SideChainStatus.Active,
+                "Side chain not found");
+            Api.Assert(Api.GetFromAddress().Equals(request.Proposer), "Not authorized to dispose.");
+                        
+            // side chain disposal
+            Hash hash = Api.Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Api.GetContractAddress(),
+                DisposeSideChainMethodName, chainId);
+            return hash.DumpByteArray();
+        }
+
         public void DisposeSideChain(Hash chainId)
         {            
             // side chain disposal should be triggered by multi sig txn from system address.
@@ -216,9 +223,10 @@ namespace AElf.Contracts.CrossChain
             Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
             // TODO: Only privileged account can trigger this method
             var info = _sideChainInfos[chainId];
-            Api.Assert(info.Status < SideChainStatus.Terminated, "Side chain already terminated.");
+            Api.Assert(info.SideChainStatus == SideChainStatus.Active, "Unable to dispose this side chain.");
+            
             WithdrawTokenAndResource(info);
-            info.Status = SideChainStatus.Terminated;
+            info.SideChainStatus = SideChainStatus.Terminated;
             _sideChainInfos[chainId] = info;
             new SideChainDisposal    
             {
@@ -230,7 +238,7 @@ namespace AElf.Contracts.CrossChain
         {
             Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
             var info = _sideChainInfos[chainId];
-            return (int) info.Status;
+            return (int) info.SideChainStatus;
         }
         
         #endregion Side chain lifetime actions
@@ -294,36 +302,38 @@ namespace AElf.Contracts.CrossChain
             _txRootMerklePathInParentChain[key] = path;
         }
         
-        private void LockTokenAndResource(ChainCreationRequest request)
+        private void LockTokenAndResource(SideChainInfo request)
         {
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
             
             // update locked token balance
-            _indexingBalance[request.Proposer] = _indexingBalance[request.Proposer].Add(request.LockedTokenAmount);
             Api.LockToken(request.LockedTokenAmount);
-            
+            _indexingBalance[request.ChainId] = request.LockedTokenAmount;
+
+            // Todo: enable resource
             // lock 
-            foreach (var resourceBalance in request.ResourceBalances)
+            /*foreach (var resourceBalance in request.ResourceBalances)
             {
                 Api.LockResource(resourceBalance.Amount, resourceBalance.Type);
-            }
+            }*/
         }
         
         private void WithdrawTokenAndResource(SideChainInfo sideChainInfo)
         {
             //Api.Assert(sideChainInfo.LockedAddress.Equals(Api.GetFromAddress()), "Unable to withdraw token or resource.");
             // withdraw token
-            var balance = _indexingBalance[sideChainInfo.LockedAddress];
-            Api.WithdrawToken(balance);
-            _indexingBalance[sideChainInfo.LockedAddress] = 0;
-            
+            var balance = _indexingBalance[sideChainInfo.ChainId];
+            if(balance != 0 )
+                Api.WithdrawToken(sideChainInfo.Proposer, balance);
+            _indexingBalance[sideChainInfo.ChainId] = 0;
+
             // unlock resource 
-            foreach (var resourceBalance in sideChainInfo.ResourceBalances)
+            /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
             {
                 Api.WithdrawResource(resourceBalance.Amount, resourceBalance.Type);
-            }
+            }*/
         }
-
+        
         #endregion
         
     }

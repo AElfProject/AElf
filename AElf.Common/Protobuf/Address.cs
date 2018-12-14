@@ -14,8 +14,6 @@ namespace AElf.Common
 {
     public partial class Address : ICustomDiagnosticMessage, IComparable<Address>
     {
-        public static readonly byte[] _fakeChainId = {0x01, 0x02, 0x03};
-        
         /// <summary>
         /// Used to override IMessage's default string representation.
         /// </summary>
@@ -26,7 +24,7 @@ namespace AElf.Common
         }
 
         // Make private to avoid confusion
-        private Address(byte[] chainId, byte[] bytes)
+        private Address(byte[] bytes)
         {
             if (bytes.Length != GlobalConfig.AddressHashLength)
             {
@@ -34,13 +32,7 @@ namespace AElf.Common
                     $"Address (sha256 of pubkey) bytes has to be {GlobalConfig.AddressHashLength}. The input is {bytes.Length} bytes long.");
             }
 
-            if (chainId.Length != GlobalConfig.ChainIdLength)
-            {
-                throw new ArgumentOutOfRangeException(
-                    $"The chain id length has to be {GlobalConfig.ChainIdLength}. The input is {bytes.Length} bytes long.");
-            }
-
-            Value = ByteString.CopyFrom(ByteArrayHelpers.Combine(chainId, bytes));
+            Value = ByteString.CopyFrom(bytes);
         }
 
         /// <summary>
@@ -56,8 +48,8 @@ namespace AElf.Common
         
         public static Address FromPublicKey(byte[] chainId, byte[] bytes)
         {
-            var hash = SHA256.Create().ComputeHash(SHA256.Create().ComputeHash(bytes));
-            return new Address(chainId, hash);
+            var hash = TakeByAddressLength(SHA256.Create().ComputeHash(SHA256.Create().ComputeHash(bytes)));
+            return new Address(hash);
         }
 
         /// <summary>
@@ -69,7 +61,7 @@ namespace AElf.Common
         public static Address BuildContractAddress(byte[] chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(Hash.LoadByteArray(chainId), Hash.FromRawBytes(serialNumber.ToBytes()));
-            return new Address(chainId, hash.DumpByteArray());
+            return new Address(TakeByAddressLength(hash.DumpByteArray()));
         }
 
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
@@ -85,7 +77,7 @@ namespace AElf.Common
         /// <returns></returns>
         public static Address FromString(string name)
         {
-            return new Address( _fakeChainId, name.CalculateHash());
+            return new Address(TakeByAddressLength(name.CalculateHash()));
         }
 
         /// <summary>
@@ -94,23 +86,28 @@ namespace AElf.Common
         /// <returns></returns>
         public static Address Generate()
         {
-            return new Address(_fakeChainId, Guid.NewGuid().ToByteArray().CalculateHash());
+            return new Address(TakeByAddressLength(Guid.NewGuid().ToByteArray().CalculateHash()));
         }
-        
+
         /// <summary>
         /// Only used in tests to generate random addresses.
         /// </summary>
         /// <returns></returns>
         public static Address Generate(byte[] chainId)
         {
-            return new Address(chainId, Guid.NewGuid().ToByteArray().CalculateHash());
+            return Generate();
         }
-        
+
+        public static byte[] TakeByAddressLength(byte[] raw)
+        {
+            return raw.Take(GlobalConfig.AddressHashLength).ToArray();
+        }
+
         #region Predefined
 
         public static readonly Address AElf = FromString("AElf");
 
-        public static readonly Address Zero = new Address( _fakeChainId, new byte[] { }.CalculateHash());
+        public static readonly Address Zero = new Address(TakeByAddressLength(new byte[] { }.CalculateHash()));
 
         public static readonly Address Genesis = FromString("Genesis");
         
@@ -184,17 +181,16 @@ namespace AElf.Common
         private string _formattedAddress;
         public string GetFormatted()
         {
-            if (Value.Length != GlobalConfig.AddressHashLength + GlobalConfig.ChainIdLength)
+            if (Value.Length != GlobalConfig.AddressHashLength)
             {
                 throw new ArgumentOutOfRangeException(
                     $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
             }
 
-            string chainId = Base58CheckEncoding.EncodePlain(Value.Take(3).ToArray());
-            string pubKeyHash = Base58CheckEncoding.Encode(Value.Skip(3).ToArray());
+            string pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
             
             return string.IsNullOrEmpty(_formattedAddress) 
-                ? (_formattedAddress = GlobalConfig.AElfAddressPrefix + '_' + chainId + '_' + pubKeyHash) : _formattedAddress;
+                ? (_formattedAddress = GlobalConfig.AElfAddressPrefix + '_' + pubKeyHash) : _formattedAddress;
         }
 
         /// <summary>
@@ -205,6 +201,11 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Address FromBytes(byte[] bytes)
         {
+            if (bytes.Length != GlobalConfig.AddressHashLength)
+            {
+                throw new ArgumentOutOfRangeException(
+                    $"Input value does not represent a valid address. The input is {bytes.Length} bytes long.");
+            }
             return new Address
             {
                 Value = ByteString.CopyFrom(bytes)
@@ -215,16 +216,13 @@ namespace AElf.Common
         {
             string[] split = inputStr.Split('_');
 
-            if (split.Length != 3)
+            if (split.Length < 2)
                 return null;
 
-            if (String.CompareOrdinal(split[0], "ELF") != 0)
-                return null;
-
-            if (split[1].Length != 4)
+            if (String.CompareOrdinal(split.First(), "ELF") != 0)
                 return null;
             
-            return new Address(Base58CheckEncoding.DecodePlain(split[1]), Base58CheckEncoding.Decode(split[2]));
+            return new Address(Base58CheckEncoding.Decode(split.Last()));
         }
         
         #endregion Load and dump

@@ -96,7 +96,7 @@ namespace AElf.ChainController.Rpc
                 var basicContractZero =
                     ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var crosschainContract =
-                    ContractHelpers.GetCrossChainContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetCrossChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var authorizationContract =
                     ContractHelpers.GetAuthorizationContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
@@ -564,14 +564,15 @@ namespace AElf.ChainController.Rpc
                 }
 
                 var proposal = this.GetProposal(proposalHash);
+                DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
                 return new JObject
                 {
                     ["result"] = new JObject
                     {
                         ["proposal_name"] = proposal.Name,
                         ["multi_sig"] = proposal.MultiSigAccount.GetFormatted(),
-                        ["expired_time"] = proposal.ExpiredTime.ToDateTime(),
-                        ["TxnData"] = proposal.TxnData.TxnData.ToByteArray().ToHex(),
+                        ["expired_time"] = origin.AddSeconds(proposal.ExpiredTime),
+                        ["TxnData"] = proposal.TxnData.ToByteArray().ToHex(),
                         ["status"] = proposal.Status.ToString(),
                         ["proposer"] = proposal.Proposer.GetFormatted()
                     }

@@ -11,7 +11,7 @@ namespace AElf.Common
         public static int ChainIdLength = 3;
         public static int ContractAddressHashLength = 18;
         
-        public static int AddressHashLength = 32; // length of sha256
+        public static int AddressHashLength = 30; // length of sha256
         
         public const ulong GenesisBlockHeight = 1;
         

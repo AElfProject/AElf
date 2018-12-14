@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
 using Google.Protobuf;
-using Authorization = AElf.Kernel.Types.Proposal.Authorization;
 
 namespace AElf.SmartContract.Proposal
 {
@@ -10,7 +9,7 @@ namespace AElf.SmartContract.Proposal
     {
         bool CheckAuthority(Address mSigAddress, IEnumerable<byte[]> pubKeys);
         bool CheckAuthority(Transaction transaction);
-        Kernel.Types.Proposal.Proposal GetProposal(Hash proposalHash);
+        Kernel.Proposal GetProposal(Hash proposalHash);
         Authorization GetAuthorization(Address msig);
     }
 }

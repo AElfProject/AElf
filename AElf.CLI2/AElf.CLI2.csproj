@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    </PropertyGroup>
+    <Target Name="DownloadChakraCore" AfterTargets="AfterBuild">
+        <Exec Command="bash DownloadChakraCore.sh $(OutDir)" />
+    </Target>
+    <ItemGroup>
+        <PackageReference Include="Alba.CsConsoleFormat" Version="1.0.0" />
+        <PackageReference Include="Autofac" Version="4.8.1" />
+        <PackageReference Include="BouncyCastle.NetCore" Version="1.8.2" />
+        <PackageReference Include="ChakraCore.NET" Version="1.3.1" />
+        <PackageReference Include="ChakraCore.NET.Hosting" Version="1.0.2" />
+        <PackageReference Include="CommandLineParser" Version="2.2.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+        <PackageReference Include="NLog" Version="4.5.7" />
+        <PackageReference Include="ReadLine" Version="2.0.1" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Scripts\aelf.js" />
+        <EmbeddedResource Include="Scripts\helpers.js" />
+        <EmbeddedResource Include="Scripts\crypto.js" />
+        <EmbeddedResource Include="Scripts\requestor.js" />
+        <EmbeddedResource Include="Scripts\init-chain.js" />
+        <EmbeddedResource Include="Scripts\deploy-command.js" />
+        <EmbeddedResource Include="Scripts\proposal.js" />
+    </ItemGroup>
+</Project>

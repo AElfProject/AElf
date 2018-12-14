@@ -7,6 +7,7 @@ using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
 using AElf.CLI.Command.Election;
 using AElf.CLI.Command.MultiSig;
+using AElf.CLI.Command.SideChain;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
@@ -82,6 +83,11 @@ namespace AElf.CLI
             program.RegisterCommand(new ApproveCmd());
             program.RegisterCommand(new ReleaseProposalCmd());
             
+            
+            program.RegisterCommand(new ChainCreationRequestCmd());
+            program.RegisterCommand(new ChainDisposalRequestCmd());
+            program.RegisterCommand(new WithdrawChainCreationRequestCmd());
+
             program.RegisterCommand(new AnnounceElectionCmd());
 
             // Start the CLI

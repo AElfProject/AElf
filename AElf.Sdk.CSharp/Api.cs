@@ -4,17 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Types.Proposal;
 using AElf.Kernel.Types.Transaction;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 using AElf.Sdk.CSharp.ReadOnly;
-using AElf.SmartContract.Proposal;
-using NServiceKit.Common.Extensions;
-using Secp256k1Net;
 
 namespace AElf.Sdk.CSharp
 {
@@ -108,13 +105,7 @@ namespace AElf.Sdk.CSharp
 
         public static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            using (var secp = new Secp256k1())
-            {
-                byte[] recover = new byte[Secp256k1.PUBKEY_LENGTH];
-                secp.Recover(recover, signature, hash);
-                
-                return recover;
-            }
+            return CryptoHelpers.RecoverPublicKey(signature, hash);
         }
 
         /// <summary>
@@ -156,37 +147,6 @@ namespace AElf.Sdk.CSharp
         private static Transaction GetTransaction()
         {
             return _transactionContext.Transaction.ToReadOnly();
-        }
-        
-        public static ByteString GetPublicKey()
-        {
-            //todo review maybe not do all this in here
-            var tx = GetTransaction();
-            var hash = tx.GetHash().DumpByteArray();
-            
-            byte[] recoveredKey = new byte[Secp256k1.PUBKEY_LENGTH];
-
-            using (var secp256k1 = new Secp256k1())
-            {
-                secp256k1.Recover(recoveredKey, tx.Sigs.First().ToByteArray(), hash);
-            }
-            
-            return ByteString.CopyFrom(recoveredKey);
-        }
-        
-        public static string GetPublicKeyToHex()
-        {
-            //todo review maybe not do all this in here
-            var tx = GetTransaction();
-            var hash = tx.GetHash().DumpByteArray();
-            byte[] recoveredKey = new byte[Secp256k1.PUBKEY_LENGTH];
-
-            using (var secp256k1 = new Secp256k1())
-            {
-                secp256k1.Recover(recoveredKey, tx.Sigs.First().ToByteArray(), hash);
-            }
-
-            return recoveredKey.ToHex();
         }
 
         public static Hash GetTxnHash()
@@ -296,7 +256,7 @@ namespace AElf.Sdk.CSharp
             return _lastCallContext.Trace.IsSuccessful();
         }
 
-        public static byte[] GetCallResult()
+        private static byte[] GetCallResult()
         {
             if (_lastCallContext != null)
             {
@@ -338,9 +298,9 @@ namespace AElf.Sdk.CSharp
             SendInline(TokenContractAddress, "Transfer", contractAddress, amount);
         }
         
-        public static void WithdrawToken(ulong amount)
+        public static void WithdrawToken(Address address, ulong amount)
         {
-            SendInlineByContract(TokenContractAddress, "Transfer", GetFromAddress(), amount);
+            SendInlineByContract(TokenContractAddress, "Transfer", address, amount);
         }
 
         public static void LockResource(ulong amount, ResourceType resourceType)
@@ -402,68 +362,63 @@ namespace AElf.Sdk.CSharp
                 return;
             
             Call(AuthorizationContractAddress, "GetAuth", ParamsPacker.Pack(_transactionContext.Transaction.From));
+
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
-                
-                   
+            
             // Get tx hash
             var hash = _transactionContext.Transaction.GetHash().DumpByteArray();
-            
-            using (var secp256k1 = new Secp256k1())
+
+            // Get pub keys
+            int sigCount = _transactionContext.Transaction.Sigs.Count;
+            List<byte[]> publicKeys = new List<byte[]>(sigCount);
+
+            for (int i = 0; i < sigCount; i++)
             {
-                // Get pub keys
-                int sigCount = _transactionContext.Transaction.Sigs.Count;
-                List<byte[]> publicKeys = new List<byte[]>(sigCount);
-                
-                for(int i = 0; i < sigCount; i++)
-                {
-                    publicKeys[i] = new byte[Secp256k1.PUBKEY_LENGTH];
-                    secp256k1.Recover(publicKeys[i], _transactionContext.Transaction.Sigs[i].ToByteArray(), hash);
-                }
-                
-                //todo review correctness
-                uint provided = publicKeys
-                    .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
-                    .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
-                Assert(provided >= auth.ExecutionThreshold, "Invalid authority.");
+                publicKeys[i] =
+                    CryptoHelpers.RecoverPublicKey(_transactionContext.Transaction.Sigs[i].ToByteArray(), hash);
             }
-            
+
+            //todo review correctness
+            uint provided = publicKeys
+                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
+                .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
+
         }
 
-                
+
         /// <summary>
         /// Create and propose a proposal. Proposer is current transaction from account.
         /// </summary>
         /// <param name="proposalName">Proposal name.</param>
+        /// <param name="targetAddress">To address of packed transaction.</param>
         /// <param name="invokingMethod">The method to be invoked in packed transaction.</param>
         /// <param name="waitingPeriod">Expired time in second for proposal.</param>
         /// <param name="args">The arguments for packed transaction.</param>
-        public static void Propose(string proposalName, double waitingPeriod, string invokingMethod, params object []args)
+        public static Hash Propose(string proposalName, double waitingPeriod, Address targetAddress, string invokingMethod, params object []args)
         {
             // packed txn
             byte[] txnData = new Transaction
             {
-                From = GetFromAddress(),
-                To = AuthorizationContractAddress,
+                From = Genesis,
+                To = targetAddress,
                 MethodName = invokingMethod,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args)),
                 Type = TransactionType.MsigTransaction
             }.ToByteArray();
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            TimeSpan diff = DateTime.UtcNow.ToUniversalTime() - origin;
             
             Proposal proposal = new Proposal
             {
                 MultiSigAccount = Genesis,
                 Name = proposalName,
-                TxnData = new PendingTxn
-                {
-                    ProposalName = proposalName,
-                    TxnData = ByteString.CopyFrom(txnData)
-                },
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(waitingPeriod)),
+                TxnData = ByteString.CopyFrom(txnData),
+                ExpiredTime = diff.TotalSeconds,
                 Status = ProposalStatus.ToBeDecided,
                 Proposer = GetFromAddress()
             };
-            SendInline(AuthorizationContractAddress, "Propose", ParamsPacker.Pack(proposal));
+            SendInline(AuthorizationContractAddress, "Propose", proposal);
+            return proposal.GetHash();
         }
-        
     }
 }

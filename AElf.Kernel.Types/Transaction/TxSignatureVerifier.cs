@@ -1,6 +1,8 @@
+using System;
+using System.Linq;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using Google.Protobuf;
 
 namespace AElf.Kernel.Types.Transaction
 {
@@ -15,12 +17,9 @@ namespace AElf.Kernel.Types.Transaction
 
             if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
             {
-                // todo Check the address of signer if only one signer.
-//                var pubKey = tx.Sigs[0].P.ToByteArray();
-//                var addr = Address.FromRawBytes(pubKey);
-//
-//                if (!addr.Equals(tx.From))
-//                    return false;
+                var pubkey =
+                    CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(), tx.GetHash().DumpByteArray());
+                return Address.FromPublicKey(new byte[0], pubkey).Equals(tx.From);
             }
             
             foreach (var sig in tx.Sigs)

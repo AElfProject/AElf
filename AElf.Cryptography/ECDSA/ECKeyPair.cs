@@ -1,28 +1,34 @@
-﻿using Secp256k1Net;
+﻿using System;
+using Secp256k1Net;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace AElf.Cryptography.ECDSA
 {
     public class ECKeyPair
     {
-        public byte[] PrivateKey { get; private set; }
-        public byte[] PublicKey { get; private set; }
+        public byte[] PrivateKey { get; }
+        public byte[] PublicKey { get; }
 
-        public ECKeyPair(byte[] privateKey, byte[] publicKey)
+        internal ECKeyPair(byte[] privateKey, byte[] publicKey)
         {
             PublicKey = publicKey;
             PrivateKey = privateKey;
         }
 
-        public byte[] SerializedPublicKey()
+        public ECKeyPair(AsymmetricCipherKeyPair cipherKeyPair)
         {
-            byte[] serializedKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-            
-            using (var secp256k1 = new Secp256k1())
+            if (cipherKeyPair == null)
             {
-                secp256k1.PublicKeySerialize(serializedKey, PublicKey);
+                throw new Exception($"Invalid input null for {nameof(cipherKeyPair)}");
             }
 
-            return serializedKey;
+            // Extract bouncy params
+            ECPrivateKeyParameters newPrivateKeyParam = (ECPrivateKeyParameters) cipherKeyPair.Private;
+            ECPublicKeyParameters newPublicKeyParam = (ECPublicKeyParameters) cipherKeyPair.Public;
+
+            PrivateKey = newPrivateKeyParam.D.ToByteArrayUnsigned();
+            PublicKey = newPublicKeyParam.Q.GetEncoded(false);
         }
 
 //        public byte[] GetEncodedPublicKey(bool compressed = false)

@@ -34,10 +34,20 @@ message MerklePath{
     repeated Hash Path = 1;
 }
 
-message ChainCreationRequest{
+enum SideChainStatus
+{
+    Apply = 0;
+    Review = 1;
+    Active = 2;
+    Terminated = 3;
+}
+
+message SideChainInfo{
     uint64 IndexingPrice = 1;
     uint64 LockedTokenAmount = 2;
     repeated ResourceTypeBalancePair ResourceBalances = 3; // this must be set as order of enum ResourceType 
     bytes ContractCode = 4;
     Address Proposer = 5;
+    SideChainStatus SideChainStatus = 6;
+    Hash ChainId = 7;
 }
