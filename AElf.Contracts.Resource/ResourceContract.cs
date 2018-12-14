@@ -77,14 +77,22 @@ namespace AElf.Contracts.Resource
             return ConnectorPairs[rt].ResBalance;
         }
 
+        [View]
+        public ulong GetElfBalance(string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            var rt = new StringValue() {Value = resourceType};
+            return ConnectorPairs[rt].ElfBalance;
+        }
+
         #endregion Views
 
         #region Actions
 
         public void Initialize(Address elfTokenAddress)
         {
-            var i = Initialized.GetValue();
-            Api.Assert(!i, $"Already initialized {i}.");
+            var initialized = Initialized.GetValue();
+            Api.Assert(!initialized, $"Already initialized.");
             ElfTokenAddress.SetValue(elfTokenAddress);
             foreach (var resourceType in ResourceTypes)
             {
@@ -123,7 +131,7 @@ namespace AElf.Contracts.Resource
         public void SellResource(string resourceType, ulong resToSell)
         {
             var bal = GetUserBalance(Api.GetTransaction().From, resourceType);
-            Api.Assert(bal >= resToSell, "Insufficient balance.");
+            Api.Assert(bal >= resToSell, $"Insufficient {resourceType.ToUpper()} balance.");
             AssertCorrectResourceType(resourceType);
             var elfToReceive = this.SellResourceToExchange(resourceType, resToSell);
             var urk = new UserResourceKey()
