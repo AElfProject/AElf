@@ -542,8 +542,6 @@ namespace AElf.ChainController.Rpc
             if (blockinfo == null)
                 return invalidBlockHeightError;
 
-            var transactionPoolSize = await this.GetTransactionPoolSize();
-
             // TODO: Create DTO Exntension for Block
             var response = new JObject
             {
@@ -565,8 +563,7 @@ namespace AElf.ChainController.Rpc
                     {
                         ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
                         ["IndexedSideChainBlcokInfo"] = blockinfo.GetIndexedSideChainBlockInfo()
-                    },
-                    ["CurrentTransactionPoolSize"] = transactionPoolSize
+                    }
                 }
             };
 
