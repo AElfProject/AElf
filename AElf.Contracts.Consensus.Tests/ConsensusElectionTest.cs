@@ -67,10 +67,10 @@ namespace AElf.Contracts.Consensus.Tests
         {
             InitializeToken();
 
-            _consensusContract.AnnounceElection(_candidate1);
+            _consensusContract.AnnounceElection(_candidate2);
 
-            _consensusContract.QuitElection(_candidate1);
-            var res = _consensusContract.IsCandidate(_candidate1.PublicKey.ToHex());
+            _consensusContract.QuitElection(_candidate2);
+            var res = _consensusContract.IsCandidate(_candidate2.PublicKey.ToHex());
             Assert.False(res);
         }
 

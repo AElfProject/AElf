@@ -12,8 +12,8 @@ namespace AElf.Contracts.Consensus.Tests
     [UseAutofacTestFramework]
     public class DividendsTest
     {
-        private const int CandidatesCount = 30;
-        private const int VotersCount = 50;
+        private const int CandidatesCount = 20;
+        private const int VotersCount = 10;
         
         private readonly ConsensusContractShim _consensusContract;
 
@@ -51,7 +51,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 foreach (var candidate in _candidates)
                 {
-                    if (new Random().Next(0, 100) < 2)
+                    if (new Random().Next(0, 100) < 5)
                     {
                         mustVotedVoter = voter;
                         _consensusContract.Vote(voter, candidate, (ulong) new Random().Next(1, 100), 90);

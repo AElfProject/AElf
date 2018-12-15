@@ -12,8 +12,8 @@ namespace AElf.Contracts.Consensus.Tests
     [UseAutofacTestFramework]
     public class TermTest
     {
-        private const int CandidatesCount = 30;
-        private const int VotersCount = 50;
+        private const int CandidatesCount = 20;
+        private const int VotersCount = 10;
         
         private readonly ConsensusContractShim _consensusContract;
 
