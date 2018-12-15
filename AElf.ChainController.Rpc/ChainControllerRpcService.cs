@@ -270,6 +270,7 @@ namespace AElf.ChainController.Rpc
             };
         }
 
+        
         [JsonRpcMethod("get_merkle_path", "txid")]
         public async Task<JObject> ProcGetTxMerklePath(string txid)
         {
@@ -406,12 +407,14 @@ namespace AElf.ChainController.Rpc
                 {
                     response["tx_error"] = txResult.RetVal.ToStringUtf8();
                 }
+                
+                
 
                 if (txResult.Status == Status.Mined)
                 {
                     response["block_number"] = txResult.BlockNumber;
                     response["block_hash"] = txResult.BlockHash.DumpHex();
-                    
+                    response["return_type"] = txtrc.RetVal.Type.ToString();
                     try
                     {
                         response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
