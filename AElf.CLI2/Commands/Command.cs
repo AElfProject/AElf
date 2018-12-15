@@ -53,6 +53,9 @@ namespace AElf.CLI2.Commands
                 _engine.RunScript($@"_account = Aelf.wallet.getWalletByPrivateKey(""{acc.PrivateKey}"")");
             }
 
+            Console.WriteLine("Your public key is ");
+            _engine.RunScript(@"console.log(_account.keyPair.pub.encode('hex'))");
+
             _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
                 .GetManifestResourceStream("AElf.CLI2.Scripts.init-chain.js"));
         }

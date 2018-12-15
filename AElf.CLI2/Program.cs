@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using AElf.CLI2.Commands;
 using AElf.CLI2.Commands.CrossChain;
@@ -15,11 +16,94 @@ namespace AElf.CLI2
     {
         static int Main(string[] args)
         {
+
+            #region proposal
+
+            if (args[0].Contains("proposal"))
+            {
+                return Parser.Default
+                    .ParseArguments<ProposalOption, CheckProposalOption, ApprovalOption, ReleaseProposalOption>(args)
+                    .MapResult((ProposalOption opt) =>
+                        {
+                            using (var cmd = new ProposeCommand(opt))
+                            {
+                                cmd.Execute();
+                            }
+
+                            return 0;
+                        },
+                        (CheckProposalOption opt) =>
+                        {
+                            using (var cmd = new CheckProposalCommand(opt))
+                            {
+                                cmd.Execute();
+                            }
+
+                            return 0;
+                        },
+                        (ApprovalOption opt) =>
+                        {
+                            using (var cmd = new ApproveCommand(opt))
+                            {
+                                cmd.Execute();
+                            }
+
+                            return 0;
+                        },
+                        (ReleaseProposalOption opt) =>
+                        {
+                            using (var cmd = new ReleaseProposalCommand(opt))
+                            {
+                                cmd.Execute();
+                            }
+
+                            return 0;
+                        }, errs => 1);
+            }
+            
+            #endregion
+
+            #region sidechain
+
+            if (args[0].Contains("sidechain"))
+            {
+                return Parser.Default
+                    .ParseArguments<ChainCreationRequestOption, ChainDisposalRequestOption, CheckChainStatusOption
+                    >(args).MapResult((ChainCreationRequestOption opt) =>
+                        {
+                            using (var cmd = new ChainCreationRequestCommand(opt))
+                            {
+                                cmd.Execute();
+                            }
+
+                            return 0;
+                        },
+                        (ChainDisposalRequestOption opt) =>
+                        {
+                            using (var cmd = new ChainDisposalRequestCommand(opt))
+                            {
+                                cmd.Execute();
+                            }
+
+                            return 0;
+                        },
+                        (CheckChainStatusOption opt) =>
+                        {
+                            using (var cmd = new CheckChainStatusCommand(opt))
+                            {
+                                cmd.Execute();
+                            }
+
+                            return 0;
+                        }, errs => 1);
+            }
+
+            #endregion
+
             return Parser.Default
                 .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, SendTransactionOption,
                     GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption, GetMerkelPathOption, 
-                    CreateMultiSigOption, ProposalOption, CheckProposalOption, ApprovalOption, ReleaseProposalOption,
-                    ChainCreationRequestOption>(args)
+                    CreateMultiSigOption>(args)
                 .MapResult(
                     (CreateOption opt) =>
                     {
@@ -105,51 +189,6 @@ namespace AElf.CLI2
                     (CreateMultiSigOption opt) =>
                     {
                         using (var cmd = new CreateMultiSigAddressCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (ProposalOption opt) =>
-                    {
-                        using (var cmd = new ProposeCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (CheckProposalOption opt) =>
-                    {
-                        using (var cmd = new CheckProposalCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (ApprovalOption opt) =>
-                    {
-                        using (var cmd = new ApproveCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (ReleaseProposalOption opt) =>
-                    {
-                        using (var cmd = new ReleaseProposalCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (ChainCreationRequestOption opt) =>
-                    {
-                        using (var cmd = new ChainCreationRequestCommand(opt))
                         {
                             cmd.Execute();
                         }

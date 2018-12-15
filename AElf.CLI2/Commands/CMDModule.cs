@@ -35,7 +35,9 @@ namespace AElf.CLI2.Commands
                 [typeof(CheckProposalOption)] = typeof(CheckProposalCommand),
                 [typeof(ApprovalOption)] = typeof(ApproveCommand),
                 [typeof(ReleaseProposalOption)] = typeof(ReleaseProposalCommand),
-                [typeof(ChainCreationRequestOption)] = typeof(ChainCreationRequestCommand)
+                [typeof(ChainCreationRequestOption)] = typeof(ChainCreationRequestCommand),
+                [typeof(ChainDisposalRequestOption)] = typeof(ChainDisposalRequestCommand),
+                [typeof(CheckChainStatusOption)] = typeof(CheckChainStatusCommand)
             };
         }
 

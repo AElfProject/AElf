@@ -7,7 +7,7 @@ using CommandLine;
 
 namespace AElf.CLI2.Commands.CrossChain
 {
-    [Verb("request-chain-creation", HelpText = "Request chain creation.")]
+    [Verb("request-sidechain-creation", HelpText = "Request to create sidechain.")]
     public class ChainCreationRequestOption : BaseOption
     {
         [Value(0, HelpText = "Token will be locked for this chain creation. ", Required = true)]
@@ -42,7 +42,6 @@ namespace AElf.CLI2.Commands.CrossChain
                 Colors.WriteLine($@"Code file ""{_option.ContractName}"" doesn't exist.".DarkRed());
             }
 
-            Console.WriteLine($"resource - {_option.Resource}");
             _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
                 .GetManifestResourceStream("AElf.CLI2.Scripts.cross-chain.js"));
             _engine.GlobalObject.CallMethod("request_chain_creation", _option.LockedToken, _option.IndexingPrice, _option.Resource, _option.Account,
