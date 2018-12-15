@@ -37,7 +37,7 @@ namespace AElf.Node.Protocol
         public const int DefaultHeaderRequestCount = 3;
         public const int DefaultMaxBlockHistory = 15;
         public const int DefaultMaxTransactionHistory = 20;
-        public const int DefaultBlockRequestCount = 100;
+        public const int DefaultBlockRequestCount = 10;
 
         public const int DefaultRequestTimeout = 2000;
         public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
@@ -195,18 +195,16 @@ namespace AElf.Node.Protocol
                     }
                     else if (CurrentSyncSource.IsSyncingHistory)
                     {
-                        var reqNext = true;
                         bool hasReqNext =false;
 
-                        while (reqNext)
+                        for (; _blockRequestedCount < DefaultBlockRequestCount; _blockRequestedCount++)
                         {
                             hasReqNext = CurrentSyncSource.SyncNextHistory();
-                            _blockRequestedCount++;
-                            reqNext = hasReqNext && _blockRequestedCount < DefaultBlockRequestCount;
                         }
 
                         if (hasReqNext)
                         {
+                            _logger?.Trace($"Request Block paused, blockRequestedCount {_blockRequestedCount} ");
                             return;
                         }
 
