@@ -17,14 +17,8 @@ namespace AElf.CLI2
     {
         static int Main(string[] args)
         {
-            return ParseArguments(args, CmdModule.Commands.Keys.ToArray());
-        }
-
-        private static int ParseArguments(IEnumerable<string> args, params Type[] types)
-        {
-            var parsedResult = Parser.Default.ParseArguments(args, types);
-            Parsed<object> parsed = parsedResult as Parsed<object>;
-            if (parsed == null)
+            var parsedResult = Parser.Default.ParseArguments(args, CmdModule.Commands.Keys.ToArray());
+            if (!(parsedResult is Parsed<object> parsed))
                 return 1;
             Type optionType = null;
             var opt = parsed.Value;
@@ -38,7 +32,7 @@ namespace AElf.CLI2
             if (optionType == null)
                 return 1;
             var command = cmdType.GetConstructor(new[] {optionType}).Invoke(new[] {opt});
-            cmdType.GetMethod("Execute").Invoke(command, new Object[0]);
+            cmdType.GetMethod("Execute").Invoke(command, new object[0]);
             return 0;
         }
 
