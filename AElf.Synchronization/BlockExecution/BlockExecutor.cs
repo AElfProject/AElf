@@ -39,7 +39,7 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ITxHub _txHub;
         private readonly IChainManagerBasic _chainManagerBasic;
         private readonly IStateStore _stateStore;
-        private readonly DPoSInfoProvider _dpoSInfoProvider;
+        private readonly ConsensusDataProvider _consensusDataProvider;
 
         private static bool _executing;
         private static bool _prepareTerminated;
@@ -59,7 +59,7 @@ namespace AElf.Synchronization.BlockExecution
             _txHub = txHub;
             _chainManagerBasic = chainManagerBasic;
             _stateStore = stateStore;
-            _dpoSInfoProvider = new DPoSInfoProvider(_stateStore);
+            _consensusDataProvider = new ConsensusDataProvider(_stateStore);
 
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
 
@@ -155,7 +155,7 @@ namespace AElf.Synchronization.BlockExecution
                 double distanceToTimeSlot = 0;
                 if (_isLimitExecutionTime)
                 {
-                    distanceToTimeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
+                    distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
                     cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
                 }
 
