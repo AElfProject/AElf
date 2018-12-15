@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Types.Proposal;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -40,10 +39,10 @@ namespace AElf.ABI.CSharp
                 {typeof(ParentChainBlockInfo), (s) => ParentChainBlockInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(SideChainBlockInfo), (s) => SideChainBlockInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Authorization), (s) => Authorization.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
-                {typeof(PendingTxn), (s) => PendingTxn.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Proposal), (s) => Proposal.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Timestamp), (s) => Timestamp.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
-                {typeof(Approval), (s) => Approval.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
+                {typeof(Approval), (s) => Approval.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
+                {typeof(SideChainInfo), s => SideChainInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
             };
 
 
@@ -66,10 +65,10 @@ namespace AElf.ABI.CSharp
                 {typeof(ParentChainBlockInfo), obj => ((ParentChainBlockInfo) obj).ToByteArray().ToHex()},
                 {typeof(SideChainBlockInfo), obj => ((SideChainBlockInfo) obj).ToByteArray().ToHex()},
                 {typeof(Authorization), obj => ((Authorization) obj).ToByteArray().ToHex()},
-                {typeof(PendingTxn), obj => ((PendingTxn) obj).ToByteArray().ToHex()},
                 {typeof(Proposal), obj => ((Proposal) obj).ToByteArray().ToHex()},
                 {typeof(Timestamp), obj => ((Timestamp) obj).ToByteArray().ToHex()},
-                {typeof(Approval), obj => ((Approval) obj).ToByteArray().ToHex()}
+                {typeof(Approval), obj => ((Approval) obj).ToByteArray().ToHex()},
+                {typeof(SideChainInfo), obj => ((SideChainInfo) obj).ToByteArray().ToHex()}
             };
 
         static StringInputParsers()

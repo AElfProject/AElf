@@ -46,7 +46,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
         /// <summary>
         /// Balances of each address.
         /// </summary>
-        public Map<Address, Tickets> BalanceMap;
+        public Map<BytesValue, Tickets> BalanceMap;
 
         /// <summary>
         /// The nodes declared join the election for BP.
@@ -54,5 +54,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections
         public PbField<Candidates> CandidatesField;
 
         public Map<UInt64Value, ElectionSnapshot> SnapshotField;
+
+        public Map<UInt64Value, UInt64Value> DividendsMap;
     }
 }

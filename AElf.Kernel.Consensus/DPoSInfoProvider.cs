@@ -101,47 +101,46 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<BlockProducer> GetBPInfo(string addressToHex = null)
+        public async Task<BlockProducer> GetBPInfo(string bpKey = null)
         {
-            if (addressToHex == null)
+            if (bpKey == null)
             {
-                addressToHex = NodeConfig.Instance.NodeAccount;
+                bpKey = ByteString.CopyFrom(NodeConfig.Instance.ECKeyPair.PublicKey).ToByteArray().ToPlainBase58();
             }
-            
             var round = await GetCurrentRoundInfo();
-            return round.BlockProducers[addressToHex.RemoveHexPrefix()];
+            return round.BlockProducers[bpKey];
         }
 
-        public async Task<Timestamp> GetTimeSlot(string addressToHex = null)
+        public async Task<Timestamp> GetTimeSlot(string bpKey = null)
         {
-            if (addressToHex == null)
+            if (bpKey == null)
             {
-                addressToHex = NodeConfig.Instance.NodeAccount;
+                bpKey = ByteString.CopyFrom(NodeConfig.Instance.ECKeyPair.PublicKey).ToByteArray().ToPlainBase58();
             }
 
-            var info = await GetBPInfo(addressToHex);
+            var info = await GetBPInfo(bpKey);
             return info.TimeSlot;
         }
 
-        public async Task<double> GetDistanceToTimeSlot(string addressToHex = null)
+        public async Task<double> GetDistanceToTimeSlot(string bpKey = null)
         {
-            if (addressToHex == null)
+            if (bpKey == null)
             {
-                addressToHex = NodeConfig.Instance.NodeAccount;
+                bpKey = ByteString.CopyFrom(NodeConfig.Instance.ECKeyPair.PublicKey).ToByteArray().ToPlainBase58();
             }
 
-            var timeSlot = await GetTimeSlot(addressToHex);
+            var timeSlot = await GetTimeSlot(bpKey);
             var distance = timeSlot - DateTime.UtcNow.ToTimestamp();
             return distance.ToTimeSpan().TotalMilliseconds;
         }
 
-        public async Task<double> GetDistanceToTimeSlotEnd(string addressToHex = null)
+        public async Task<double> GetDistanceToTimeSlotEnd(string bpKey = null)
         {
             var distance = (double) ConsensusConfig.Instance.DPoSMiningInterval;
             var currentRoundNumber = await GetCurrentRoundNumber();
             if (currentRoundNumber != 0)
             {
-                var info = await GetBPInfo(addressToHex);
+                var info = await GetBPInfo(bpKey);
 
                 var now = DateTime.UtcNow.ToTimestamp();
                 distance += (info.TimeSlot - now).ToTimeSpan().TotalMilliseconds;

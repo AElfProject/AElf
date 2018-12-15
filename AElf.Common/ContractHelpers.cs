@@ -25,12 +25,17 @@ namespace AElf.Common
             return Address.BuildContractAddress(chainId, GlobalConfig.TokenContract);
         }
         
-        public static Address GetSideChainContractAddress(Hash chainId)
+        public static Address GetCrossChainContractAddress(Hash chainId)
         {
-            return Address.BuildContractAddress(chainId, GlobalConfig.SideChainContract);
+            return Address.BuildContractAddress(chainId, GlobalConfig.CrossChainContract);
         }
 
         public static Address GetAuthorizationContractAddress(Hash chainId)
+        {
+            return Address.BuildContractAddress(chainId, GlobalConfig.AuthorizationContract);
+        }
+
+        public static Address GetResourceContractAddress(Hash chainId)
         {
             return Address.BuildContractAddress(chainId, GlobalConfig.AuthorizationContract);
         }

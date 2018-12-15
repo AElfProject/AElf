@@ -246,7 +246,7 @@ namespace AElf.Miner.Miner
                 var tx = new Transaction
                 {
                     From = _producerAddress,
-                    To = ContractHelpers.GetSideChainContractAddress(Config.ChainId),
+                    To = ContractHelpers.GetCrossChainContractAddress(Config.ChainId),
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = "WriteParentChainBlockInfo",
@@ -322,7 +322,7 @@ namespace AElf.Miner.Miner
                                 TransactionId = trace.TransactionId,
                                 RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
                                 Status = Status.Failed,
-                                StateHash = trace.GetSummarizedStateHash(),
+                                StateHash = Hash.Default,
                                 Index = index++
                             };
                             results.Add(txResF);

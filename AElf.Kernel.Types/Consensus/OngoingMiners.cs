@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 
@@ -29,13 +30,13 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Miners GetCurrentMiners(ulong roundNumber)
         {
-            PrintMiners();
+            //PrintMiners();
             
             return Miners.OrderByDescending(m => m.TakeEffectRoundNumber)
                 .First(m => m.TakeEffectRoundNumber <= roundNumber);
         }
 
-        public void UpdateMiners(UInt64Value takeEffectRoundNumber, IEnumerable<Address> nextMinersAddresses)
+        public void UpdateMiners(UInt64Value takeEffectRoundNumber, IEnumerable<byte[]> pubKeys)
         {
             if (Miners.Any(m => m.TakeEffectRoundNumber >= takeEffectRoundNumber.Value))
             {
@@ -46,7 +47,7 @@ namespace AElf.Kernel
             {
                 TakeEffectRoundNumber = takeEffectRoundNumber.Value
             };
-            nextMiners.Nodes.AddRange(nextMinersAddresses);
+            nextMiners.Producers.AddRange(pubKeys.Select(ByteString.CopyFrom));
             Miners.Add(nextMiners);
         }
         
@@ -66,9 +67,9 @@ namespace AElf.Kernel
             foreach (var miner in Miners)
             {
                 var str = "Take effect round number:" + miner.TakeEffectRoundNumber;
-                foreach (var node in miner.Nodes)
+                foreach (var producer in miner.Producers)
                 {
-                    str += "\n" + node.GetFormatted();
+                    str += "\n" + producer.ToByteArray().ToPlainBase58();
                 }
 
                 Console.WriteLine(str);
