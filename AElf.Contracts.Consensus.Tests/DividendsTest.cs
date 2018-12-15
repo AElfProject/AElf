@@ -16,8 +16,6 @@ namespace AElf.Contracts.Consensus.Tests
         private const int VotersCount = 50;
         
         private readonly ConsensusContractShim _consensusContract;
-        private readonly TokenContractShim _tokenContract;
-        private readonly DividendsContractShim _dividendsContract;
 
         private readonly MockSetup _mock;
 
@@ -31,10 +29,11 @@ namespace AElf.Contracts.Consensus.Tests
         {
             _mock = mock;
             _consensusContract = new ConsensusContractShim(mock);
-            _tokenContract = new TokenContractShim(mock);
-            _dividendsContract = new DividendsContractShim(mock);
 
-            _tokenContract.Initialize("ELF", "AElf Token", 100_000_000_000, 2);
+            const ulong totalSupply = 100_000_000_000;
+            _consensusContract.Initialize("ELF", "AElf Token", totalSupply, 2);
+
+            _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
         }
         
         [Fact]
@@ -99,12 +98,11 @@ namespace AElf.Contracts.Consensus.Tests
             var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);
 
-            var balanceBefore = _tokenContract.BalanceOf(GetAddress(mustVotedVoter));
+            var balanceBefore = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
             _consensusContract.GetAllDividends(mustVotedVoter);
-            var balanceAfter = _tokenContract.BalanceOf(GetAddress(mustVotedVoter));
+            var balanceAfter = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
-            // TODO: The calling result is true but the balance didn't change.
-            //Assert.True(balanceAfter > balanceBefore);
+            Assert.True(balanceAfter >= balanceBefore);
         }
 
         private ECKeyPair GetCandidateKeyPair(string publicKey)
@@ -127,7 +125,7 @@ namespace AElf.Contracts.Consensus.Tests
                 var keyPair = new KeyPairGenerator().Generate();
                 _candidates.Add(keyPair);
                 // Enough for him to announce election
-                _tokenContract.Transfer(GetAddress(keyPair), GlobalConfig.LockTokenForElection);
+                _consensusContract.Transfer(GetAddress(keyPair), GlobalConfig.LockTokenForElection);
                 _consensusContract.AnnounceElection(keyPair);
             }
         }
@@ -139,7 +137,7 @@ namespace AElf.Contracts.Consensus.Tests
                 var keyPair = new KeyPairGenerator().Generate();
                 _voters.Add(keyPair);
                 // Send them some tokens to vote.
-                _tokenContract.Transfer(GetAddress(keyPair), 100_000);
+                _consensusContract.Transfer(GetAddress(keyPair), 100_000);
             }
         }
         

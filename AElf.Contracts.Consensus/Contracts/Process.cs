@@ -308,8 +308,8 @@ namespace AElf.Contracts.Consensus.Contracts
             var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
 
-            Api.Call(Api.DividendsContractAddress, "AddDividends",
-                ParamsPacker.Pack(new List<object> {CurrentTermNumber, minedBlocks * GlobalConfig.ElfTokenPerBlock}));
+            Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber,
+                minedBlocks * GlobalConfig.ElfTokenPerBlock);
 
             var candidateInTerms = new List<CandidateInTerm>();
 
@@ -345,17 +345,17 @@ namespace AElf.Contracts.Consensus.Contracts
             // Transfer dividends for actual miners. (The miners list based on last round of current term.)
             foreach (var candidateInTerm in candidateInTerms)
             {
-                Api.Call(Api.TokenContractAddress, "Transfer",
-                    ParamsPacker.Pack(new List<object>
-                    {
-                        candidateInTerm.PublicKey,
-                        Config.GetDividendsForEveryMiner(minedBlocks) +
-                        totalVotes == 0 ? 0 : Config.GetDividendsForTicketsCount(minedBlocks) * candidateInTerm.Votes / totalVotes +
-                        totalReappointment == 0
-                            ? 0
-                            : Config.GetDividendsForReappointment(minedBlocks) * temp[candidateInTerm.PublicKey] /
-                              totalReappointment
-                    }));
+                Api.SendDividends(
+                    Address.FromPublicKey(Api.ChainId.DumpByteArray(),
+                        ByteArrayHelpers.FromHexString(candidateInTerm.PublicKey)),
+                    Config.GetDividendsForEveryMiner(minedBlocks) +
+                    (totalVotes == 0
+                        ? 0
+                        : Config.GetDividendsForTicketsCount(minedBlocks) * candidateInTerm.Votes / totalVotes) +
+                    (totalReappointment == 0
+                        ? 0
+                        : Config.GetDividendsForReappointment(minedBlocks) * temp[candidateInTerm.PublicKey] /
+                          totalReappointment));
             }
 
             var backups = _collection.CandidatesField.GetValue().PublicKeys
@@ -363,12 +363,9 @@ namespace AElf.Contracts.Consensus.Contracts
             foreach (var backup in backups)
             {
                 var backupCount = (ulong) backups.Count;
-                Api.Call(Api.TokenContractAddress, "Transfer",
-                    ParamsPacker.Pack(new List<object>
-                    {
-                        backup,
-                        backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount
-                    }));
+                Api.SendDividends(
+                    Address.FromPublicKey(Api.ChainId.DumpByteArray(), ByteArrayHelpers.FromHexString(backup)),
+                    backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount);
             }
 
             var currentTermNumber =

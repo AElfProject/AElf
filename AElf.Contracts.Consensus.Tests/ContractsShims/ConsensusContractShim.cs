@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.Kernel;
@@ -12,7 +13,9 @@ namespace AElf.Contracts.Consensus.Tests
     public class ConsensusContractShim
     {
         private MockSetup _mock;
-        public IExecutive Executive { get; set; }
+        public IExecutive ExecutiveForConsensus { get; set; }
+        public IExecutive ExecutiveForToken { get; set; }
+        public IExecutive ExecutiveForDividends { get; set; }
 
         public TransactionContext TransactionContext { get; private set; }
 
@@ -22,6 +25,8 @@ namespace AElf.Contracts.Consensus.Tests
         }
 
         public Address ConsensusContractAddress { get; set; }
+        public Address TokenContractAddress { get; set; }
+        public Address DividendsContractAddress { get; set; }
 
         public ConsensusContractShim(MockSetup mock)
         {
@@ -32,9 +37,20 @@ namespace AElf.Contracts.Consensus.Tests
         private void Init()
         {
             DeployConsensusContractAsync().Wait();
-            var task = _mock.GetExecutiveAsync(ConsensusContractAddress);
-            task.Wait();
-            Executive = task.Result;
+            DeployTokenContractAsync().Wait();
+            DeployDividendsContractAsync().Wait();
+            
+            var task1 = _mock.GetExecutiveAsync(ConsensusContractAddress);
+            task1.Wait();
+            ExecutiveForConsensus = task1.Result;
+            
+            var task2 = _mock.GetExecutiveAsync(TokenContractAddress);
+            task2.Wait();
+            ExecutiveForToken = task2.Result;
+            
+            var task3 = _mock.GetExecutiveAsync(DividendsContractAddress);
+            task3.Wait();
+            ExecutiveForDividends = task3.Result;
         }
 
         private async Task<TransactionContext> PrepareTransactionContextAsync(Transaction tx)
@@ -79,9 +95,49 @@ namespace AElf.Contracts.Consensus.Tests
             var tc = await PrepareTransactionContextAsync(tx);
             await executive0.SetTransactionContext(tc).Apply();
             await CommitChangesAsync(tc.Trace);
-            ConsensusContractAddress = Address.FromBytes(tc.Trace.RetVal.ToFriendlyBytes());
+            ConsensusContractAddress = ContractHelpers.GetConsensusContractAddress(_mock.ChainId);
+        }
+        
+        private async Task DeployTokenContractAsync()
+        {
+            var address0 = ContractHelpers.GetGenesisBasicContractAddress(_mock.ChainId);
+            var executive0 = await _mock.GetExecutiveAsync(address0);
+
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = address0,
+                IncrementId = 0,
+                MethodName = "DeploySmartContract",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(1, _mock.GetContractCode(_mock.TokenContractName)))
+            };
+
+            var tc = await PrepareTransactionContextAsync(tx);
+            await executive0.SetTransactionContext(tc).Apply();
+            await CommitChangesAsync(tc.Trace);
+            TokenContractAddress = ContractHelpers.GetTokenContractAddress(_mock.ChainId);
         }
 
+        private async Task DeployDividendsContractAsync()
+        {
+            var address0 = ContractHelpers.GetGenesisBasicContractAddress(_mock.ChainId);
+            var executive0 = await _mock.GetExecutiveAsync(address0);
+
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = address0,
+                IncrementId = 0,
+                MethodName = "DeploySmartContract",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(1, _mock.GetContractCode(_mock.DividendsContractName)))
+            };
+
+            var tc = await PrepareTransactionContextAsync(tx);
+            await executive0.SetTransactionContext(tc).Apply();
+            await CommitChangesAsync(tc.Trace);
+            DividendsContractAddress = ContractHelpers.GetDividendsContractAddress(_mock.ChainId);
+        }
+        
         #region Process
 
         #region View Only Methods
@@ -101,7 +157,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Round>();
         }
@@ -125,7 +181,7 @@ namespace AElf.Contracts.Consensus.Tests
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
         
@@ -144,7 +200,24 @@ namespace AElf.Contracts.Consensus.Tests
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+
+            var tc = PrepareTransactionContext(
+                TransactionContext.Trace.InlineTransactions.FirstOrDefault(t => t.MethodName == "AddDividends"));
+            if (tc != null)
+            {
+                ExecutiveForDividends.SetTransactionContext(tc).Apply().Wait();
+                TransactionContext.Trace.InlineTraces.Add(tc.Trace);
+            }
+
+            foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t => t.MethodName == "Transfer"))
+            {
+                var tcOfTransfer = PrepareTransactionContext(transaction);
+                ExecutiveForToken.SetTransactionContext(tcOfTransfer).Apply().Wait();
+                TransactionContext.Trace.InlineTraces.Add(tcOfTransfer.Trace);
+            }
+            
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
         
@@ -163,7 +236,7 @@ namespace AElf.Contracts.Consensus.Tests
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
         
@@ -182,7 +255,7 @@ namespace AElf.Contracts.Consensus.Tests
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
@@ -209,7 +282,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBool();
         }
@@ -233,7 +306,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
 
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Tickets>();
         }
@@ -253,7 +326,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
@@ -277,7 +350,10 @@ namespace AElf.Contracts.Consensus.Tests
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            var tc = PrepareTransactionContext(TransactionContext.Trace.InlineTransactions[0]);
+            ExecutiveForToken.SetTransactionContext(tc).Apply().Wait();
+            TransactionContext.Trace.InlineTraces.Add(tc.Trace);
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
@@ -296,7 +372,10 @@ namespace AElf.Contracts.Consensus.Tests
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            var tc = PrepareTransactionContext(TransactionContext.Trace.InlineTransactions[0]);
+            ExecutiveForToken.SetTransactionContext(tc).Apply().Wait();
+            TransactionContext.Trace.InlineTraces.Add(tc.Trace);
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
@@ -315,7 +394,19 @@ namespace AElf.Contracts.Consensus.Tests
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            foreach (var inlineTx in TransactionContext.Trace.InlineTransactions.Where(t => t.To == TokenContractAddress))
+            {
+                var tc = PrepareTransactionContext(inlineTx);
+                ExecutiveForToken.SetTransactionContext(tc).Apply().Wait();
+                TransactionContext.Trace.InlineTraces.Add(tc.Trace);
+            }
+            foreach (var inlineTx in TransactionContext.Trace.InlineTransactions.Where(t => t.To == DividendsContractAddress))
+            {
+                var tc = PrepareTransactionContext(inlineTx);
+                ExecutiveForDividends.SetTransactionContext(tc).Apply().Wait();
+                TransactionContext.Trace.InlineTraces.Add(tc.Trace);
+            }
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
@@ -334,7 +425,208 @@ namespace AElf.Contracts.Consensus.Tests
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
             
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+
+            foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t => t.To == TokenContractAddress))
+            {
+                var tc = PrepareTransactionContext(transaction);
+                ExecutiveForDividends.SetTransactionContext(tc).Apply().Wait();
+                TransactionContext.Trace.InlineTraces.Add(tc.Trace);
+            }
+            foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t => t.To == DividendsContractAddress))
+            {
+                var tc = PrepareTransactionContext(transaction);
+                ExecutiveForDividends.SetTransactionContext(tc).Apply().Wait();
+                TransactionContext.Trace.InlineTraces.Add(tc.Trace);
+
+                foreach (var tx1 in tc.Trace.InlineTransactions.Where(t => t.To == TokenContractAddress))
+                {
+                    var tc1 = PrepareTransactionContext(tx1);
+                    ExecutiveForToken.SetTransactionContext(tc1).Apply().Wait();
+                    TransactionContext.Trace.InlineTraces.Add(tc1.Trace);
+                }
+            }
+            
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+
+        #endregion Actions
+
+        #endregion Election
+        
+        #region ABI (Public) Methods
+
+        #region View Only Methods
+
+        public string Symbol()
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = TokenContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "Symbol",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
+
+        public string TokenName()
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = TokenContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "TokenName",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
+
+        public ulong TotalSupply()
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = TokenContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "TotalSupply",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
+        }
+
+        public uint Decimals()
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = TokenContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "Decimals",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32()??0;
+        }
+
+        public ulong BalanceOf(Address owner)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = TokenContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "BalanceOf",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(owner))
+            };
+
+            TransactionContext = new TransactionContext()
+            {
+                Transaction = tx
+            };
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
+        }
+
+        public ulong Allowance(Address owner, Address spender)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = TokenContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "Allowance",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(owner, spender))
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
+        }
+
+        #endregion View Only Methods
+
+        #region Actions
+
+        public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = TokenContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "Initialize",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(symbol, tokenName, totalSupply, decimals))
+            };
+
+            TransactionContext = PrepareTransactionContext(tx);
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+
+        public void Transfer(Address to, ulong amount)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = TokenContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "Transfer",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(to, amount))
+            };
+
+            TransactionContext = PrepareTransactionContext(tx);
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+
+        public void TransferFrom(Address from, Address to, ulong amount)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = TokenContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "TransferFrom",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, amount))
+            };
+
+            TransactionContext = PrepareTransactionContext(tx);
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
@@ -343,14 +635,14 @@ namespace AElf.Contracts.Consensus.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = ConsensusContractAddress,
+                To = TokenContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Approve",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
 
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
@@ -359,28 +651,28 @@ namespace AElf.Contracts.Consensus.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = ConsensusContractAddress,
+                To = TokenContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "UnApprove",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
             };
 
             TransactionContext = PrepareTransactionContext(tx);
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
         public Address GetContractOwner(Address scZeroAddress)
         {
             var executive = _mock.GetExecutiveAsync(scZeroAddress).Result;
-
+            
             var tx = new Transaction
             {
                 From = Sender,
                 To = scZeroAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetContractOwner",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(ConsensusContractAddress))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(TokenContractAddress))
             };
 
             TransactionContext = PrepareTransactionContext(tx);
@@ -388,10 +680,10 @@ namespace AElf.Contracts.Consensus.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
         }
-
+        
         #endregion Actions
 
-        #endregion Election
+        #endregion ABI (Public) Methods
 
         private Address GetAddress(ECKeyPair keyPair)
         {

@@ -84,7 +84,7 @@ namespace AElf.Common
 
         #region Dividends
 
-        public const ulong ElfTokenPerBlock = 1;
+        public const ulong ElfTokenPerBlock = 100;
         public const double DividendsForEveryMiner = 0.4;
         public const double DividendsForTicketsCount = 0.1;
         public const double DividendsForReappointment = 0.1;
@@ -110,7 +110,7 @@ namespace AElf.Common
         public const ulong ForkDetectionLength = 4;
 
         #region Consensus Error String
-
+        
         public const string TicketsNotFound = "Tickets not found.";
         public const string TermSnapshotNotFound = "Term snapshot not found.";
         public const string RoundNumberNotFound = "Round information not found.";

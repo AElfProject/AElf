@@ -24,7 +24,9 @@ namespace AElf.Contracts.Dividends
         
         public void TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
         {
-            var owner = Api.GetToAddress();
+            var owner = votingRecord.From;
+            var ownerAddress =
+                Address.FromPublicKey(Api.ChainId.DumpByteArray(), ByteArrayHelpers.FromHexString(owner));
             var start = votingRecord.TermNumber;
             if (_transferMap.TryGet(Hash.FromMessage(votingRecord.ToSimpleRecord()), out var history))
             {
@@ -41,12 +43,7 @@ namespace AElf.Contracts.Dividends
                     var dividendsAmount = minedBlocks * GlobalConfig.ElfTokenPerBlock * votingRecord.Weight /
                                     totalWeights.Value;
                     Console.WriteLine($"Transferred {dividendsAmount} dividends to {owner}");
-                    Api.Call(Api.TokenContractAddress, "Transfer",
-                        ParamsPacker.Pack(new List<object>
-                        {
-                            owner,
-                            dividendsAmount
-                        }));
+                    Api.SendInline(Api.TokenContractAddress, "Transfer", ownerAddress, dividendsAmount);
                 }
             }
 
@@ -58,13 +55,18 @@ namespace AElf.Contracts.Dividends
             _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
         }
 
-        public void AddWights(ulong weights, ulong termNumber)
+        public void AddWeights(ulong weights, ulong termNumber)
         {
             if (_totalWeightsMap.TryGet(termNumber.ToUInt64Value(), out var totalWeights))
             {
                 var newWeights = totalWeights.Value + weights;
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), newWeights.ToUInt64Value());
             }
+            else
+            {
+                _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), weights.ToUInt64Value());
+            }
+            Console.WriteLine($"Added {weights} weights to {termNumber} term.");
         }
         
         public void SubWeights(ulong weights, ulong termNumber)

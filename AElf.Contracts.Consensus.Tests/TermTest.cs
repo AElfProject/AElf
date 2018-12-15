@@ -16,7 +16,6 @@ namespace AElf.Contracts.Consensus.Tests
         private const int VotersCount = 50;
         
         private readonly ConsensusContractShim _consensusContract;
-        private readonly TokenContractShim _tokenContract;
 
         private readonly MockSetup _mock;
 
@@ -30,9 +29,11 @@ namespace AElf.Contracts.Consensus.Tests
         {
             _mock = mock;
             _consensusContract = new ConsensusContractShim(mock);
-            _tokenContract = new TokenContractShim(mock);
 
-            _tokenContract.Initialize("ELF", "AElf Token", 100_000_000_000, 2);
+            const ulong totalSupply = 100_000_000_000;
+            _consensusContract.Initialize("ELF", "AElf Token", totalSupply, 2);
+
+            _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
         }
         
         private void InitialMiners()
@@ -50,7 +51,7 @@ namespace AElf.Contracts.Consensus.Tests
                 var keyPair = new KeyPairGenerator().Generate();
                 _candidates.Add(keyPair);
                 // Enough for him to announce election
-                _tokenContract.Transfer(GetAddress(keyPair), GlobalConfig.LockTokenForElection);
+                _consensusContract.Transfer(GetAddress(keyPair), GlobalConfig.LockTokenForElection);
                 _consensusContract.AnnounceElection(keyPair);
             }
         }
@@ -62,7 +63,7 @@ namespace AElf.Contracts.Consensus.Tests
                 var keyPair = new KeyPairGenerator().Generate();
                 _voters.Add(keyPair);
                 // Send them some tokens to vote.
-                _tokenContract.Transfer(GetAddress(keyPair), 100_000);
+                _consensusContract.Transfer(GetAddress(keyPair), 100_000);
             }
         }
 

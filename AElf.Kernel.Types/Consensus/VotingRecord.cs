@@ -47,7 +47,7 @@ namespace AElf.Kernel
                 }
             }
 
-            return 0;
+            return lockDays;
         }
     }
 }

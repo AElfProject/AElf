@@ -82,7 +82,7 @@ namespace AElf.Sdk.CSharp
 
         public static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
 
-        public static Address ConsensusContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
+        public static Address ConsensusContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
 
         public static Address DividendsContractAddress => ContractHelpers.GetDividendsContractAddress(ChainId);
 
@@ -125,7 +125,7 @@ namespace AElf.Sdk.CSharp
 
         public static TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            Call(ConsensusContractAddress, "GetTermSnapshot");
+            Call(ConsensusContractAddress, "GetTermSnapshot", ParamsPacker.Pack(termNumber));
             return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
         }
         
@@ -206,6 +206,17 @@ namespace AElf.Sdk.CSharp
                 From = _transactionContext.Transaction.From,
                 To = contractAddress,
                 MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+            });
+        }
+
+        public static void SendDividends(params object[] args)
+        {
+            _transactionContext.Trace.InlineTransactions.Add(new Transaction()
+            {
+                From = DividendsContractAddress,
+                To = TokenContractAddress,
+                MethodName = "Transfer",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
             });
         }
@@ -299,16 +310,11 @@ namespace AElf.Sdk.CSharp
             SendInline(TokenContractAddress, "Transfer", GetContractAddress(), amount);
         }
         
-        public static void LockTokenTo(ulong amount, Address contractAddress)
-        {
-            SendInline(TokenContractAddress, "Transfer", contractAddress, amount);
-        }
-        
         public static void WithdrawToken(Address address, ulong amount)
         {
             SendInlineByContract(TokenContractAddress, "Transfer", address, amount);
         }
-
+        
         public static void LockResource(ulong amount, ResourceType resourceType)
         {
             SendInline(ResourceContractAddress, "LockResource", GetContractAddress(), amount, resourceType);

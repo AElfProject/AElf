@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void AnnounceElection()
         {
-            Api.LockTokenTo(GlobalConfig.LockTokenForElection, Api.ConsensusContractAddress);
+            Api.LockToken(GlobalConfig.LockTokenForElection);
             var candidates = _collection.CandidatesField.GetValue();
             candidates.PublicKeys.Add(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);
@@ -28,8 +28,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void QuitElection()
         {
-            Api.Call(Api.TokenContractAddress, "Transfer",
-                ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), GlobalConfig.LockTokenForElection}));
+            Api.WithdrawToken(Api.GetFromAddress(), GlobalConfig.LockTokenForElection);
             var candidates = _collection.CandidatesField.GetValue();
             candidates.PublicKeys.Remove(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);
@@ -53,7 +52,9 @@ namespace AElf.Contracts.Consensus.Contracts
 
             Api.Assert(!_collection.CandidatesField.GetValue().PublicKeys.Contains(Api.RecoverPublicKey().ToHex()),
                 GlobalConfig.CandidateCannotVote);
-            
+
+            Api.LockToken(amount);
+
             var ageOfBlockchain = _collection.AgeField.GetValue();
 
             var votingRecord = new VotingRecord
@@ -95,9 +96,8 @@ namespace AElf.Contracts.Consensus.Contracts
             candidateTickets.TotalTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
 
-            Api.Call(Api.DividendsContractAddress, "AddWeights",
-                ParamsPacker.Pack(new List<object>
-                    {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
+            Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight,
+                _collection.CurrentTermNumberField.GetValue());
 
             Console.WriteLine($"Voted {amount} tickets to {candidatePublicKey}.");
         }
@@ -113,12 +113,11 @@ namespace AElf.Contracts.Consensus.Contracts
                 if (votingRecord != null)
                 {
                     var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
-                    Api.Call(Api.DividendsContractAddress, "TransferDividends",
-                        ParamsPacker.Pack(new List<object> {votingRecord, maxTermNumber}));
+                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
                 }
             }
         }
-        
+
         public void GetDividends(Hash transactionId)
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
@@ -128,12 +127,11 @@ namespace AElf.Contracts.Consensus.Contracts
                 if (votingRecord != null)
                 {
                     var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
-                    Api.Call(Api.DividendsContractAddress, "TransferDividends",
-                        ParamsPacker.Pack(new List<object> {votingRecord, maxTermNumber}));
+                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
                 }
             }
         }
-        
+
         public void GetDividends()
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
@@ -141,16 +139,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 foreach (var votingRecord in tickets.VotingRecords)
                 {
                     var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
-                    var result = Api.Call(Api.DividendsContractAddress, "TransferDividends",
-                        ParamsPacker.Pack(new List<object> {votingRecord, maxTermNumber}));
-                    if (result)
-                    {
-                        Console.WriteLine("Got all dividends.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Something wrong when transfer dividends.");
-                    }
+                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
                 }
             }
         }
@@ -173,7 +162,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 }
             }
         }
-        
+
         public void Withdraw(Hash transactionId)
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
@@ -190,7 +179,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 }
             }
         }
-        
+
         public void Withdraw()
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
