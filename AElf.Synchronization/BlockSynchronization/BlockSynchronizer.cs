@@ -217,6 +217,8 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 MessageHub.Instance.Publish(new LockMining(false));
             }
+            
+            MessageHub.Instance.Publish(new BlockExecuted(block));
         }
 
         private async Task ReceiveNextValidBlock()
