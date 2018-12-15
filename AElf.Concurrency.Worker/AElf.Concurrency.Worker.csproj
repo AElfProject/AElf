@@ -14,7 +14,7 @@
     <PackageReference Include="NLog" Version="4.5.6" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="WorkerDockerfile">
+    <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
