@@ -10,7 +10,7 @@ namespace AElf.CLI2.Commands
     {
         private readonly BaseOption _option;
 
-        private static readonly IDictionary<Type, Type> _commands;
+        public static readonly IDictionary<Type, Type> Commands;
 
         public CmdModule(BaseOption option)
         {
@@ -19,7 +19,7 @@ namespace AElf.CLI2.Commands
 
         static CmdModule()
         {
-            _commands = new Dictionary<Type, Type>
+            Commands = new Dictionary<Type, Type>
             {
                 [typeof(CreateOption)] = typeof(CreateCommand),
                 [typeof(InteractiveOption)] = typeof(InteractiveCommand),
@@ -44,7 +44,7 @@ namespace AElf.CLI2.Commands
         protected override void Load(ContainerBuilder builder)
         {
 //            _option.ParseEnvVars();
-            var cmdType = _commands[_option.GetType()];
+            var cmdType = Commands[_option.GetType()];
             builder.RegisterInstance(_option);
             builder.RegisterType(cmdType).As<Command>();
             base.Load(builder);
