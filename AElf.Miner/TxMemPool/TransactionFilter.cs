@@ -128,7 +128,7 @@ namespace AElf.Miner.TxMemPool
             var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString())?.RefBlockNumber;
             if (correctRefBlockNumber.HasValue)
             {
-                toRemove.AddRange(list.FindAll(tx => tx.RefBlockNumber != correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString()));
+                toRemove.RemoveAll(tx => tx.RefBlockNumber == correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
             }
             
             toRemove.AddRange(
@@ -199,9 +199,6 @@ namespace AElf.Miner.TxMemPool
                     throw;
                 }
             }
-
-            Console.WriteLine("After filter:");
-            PrintTxList(txs);
         }
 
         private void PrintTxList(IEnumerable<Transaction> txs)

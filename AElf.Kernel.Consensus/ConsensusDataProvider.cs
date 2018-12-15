@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
@@ -23,10 +24,9 @@ namespace AElf.Kernel.Consensus
             _stateStore = stateStore;
         }
 
-        public Hash ChainId => Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
-
-        public Address ContractAddress =>
-            ContractHelpers.GetConsensusContractAddress(ChainId);
+        public Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
+        public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(
+            Hash.LoadBase58(ChainConfig.Instance.ChainId));
         
         private DataProvider DataProvider
         {
@@ -100,40 +100,57 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<MinerInRound> GetMinerInfo(string addressToHex = null)
+        public async Task<MinerInRound> GetMinerInfo(string publicKey = null)
         {
-            if (addressToHex == null)
+            if (publicKey == null)
             {
-                addressToHex = NodeConfig.Instance.NodeAccount;
+                publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
             
             var round = await GetCurrentRoundInfo();
-            return round.RealTimeMinersInfo[addressToHex.RemoveHexPrefix()];
+            return round.RealTimeMinersInfo[publicKey];
         }
 
-        public async Task<Timestamp> GetExpectMiningTime(string addressToHex = null)
+        public async Task<Timestamp> GetExpectMiningTime(string publicKey = null)
         {
-            if (addressToHex == null)
+            if (publicKey == null)
             {
-                addressToHex = NodeConfig.Instance.NodeAccount;
+                publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
 
-            var info = await GetMinerInfo(addressToHex);
+            var info = await GetMinerInfo(publicKey);
             return info.ExpectedMiningTime;
         }
 
-        public async Task<double> GetDistanceToTimeSlot(string addressToHex = null)
+        public async Task<double> GetDistanceToTimeSlot(string publicKey = null)
         {
-            var now = DateTime.UtcNow.ToTimestamp();
-
-            if (addressToHex == null)
+            if (publicKey == null)
             {
-                addressToHex = NodeConfig.Instance.NodeAccount;
+                publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
 
-            var timeSlot = await GetExpectMiningTime(addressToHex);
-            var distance = timeSlot - now;
+            var timeSlot = await GetExpectMiningTime(publicKey);
+            var distance = timeSlot - DateTime.UtcNow.ToTimestamp();
             return distance.ToTimeSpan().TotalMilliseconds;
+        }
+
+        public async Task<double> GetDistanceToTimeSlotEnd(string publicKey = null)
+        {
+            var distance = (double) ConsensusConfig.Instance.DPoSMiningInterval;
+            var currentRoundNumber = await GetCurrentRoundNumber();
+            if (currentRoundNumber != 0)
+            {
+                var info = await GetMinerInfo(publicKey);
+
+                var now = DateTime.UtcNow.ToTimestamp();
+                distance += (info.ExpectedMiningTime - now).ToTimeSpan().TotalMilliseconds;
+                if (info.IsExtraBlockProducer && distance < 0)
+                {
+                    distance += (GlobalConfig.BlockProducerNumber - info.Order + 2) * ConsensusConfig.Instance.DPoSMiningInterval;
+                }
+            }
+            // Todo the time slot of dpos is not exact
+            return (distance < 1000 || distance > (double) ConsensusConfig.Instance.DPoSMiningInterval) ? ConsensusConfig.Instance.DPoSMiningInterval : distance;
         }
     }
 }

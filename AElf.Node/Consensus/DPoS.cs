@@ -95,7 +95,7 @@ namespace AElf.Kernel.Node
             _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
 
             _logger = LogManager.GetLogger(nameof(DPoS));
-
+            
             var count = MinersConfig.Instance.Producers.Count;
 
             GlobalConfig.BlockProducerNumber = count;

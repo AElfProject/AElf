@@ -5,6 +5,9 @@ namespace AElf.Common
     // ReSharper disable InconsistentNaming
     public static class GlobalConfig
     {
+        // current release version
+        public static int ProtocolVersion = 1;
+        
         public static string DefaultChainId = "AELF";
         public static string AElfAddressPrefix = "ELF";
         

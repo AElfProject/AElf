@@ -18,6 +18,7 @@ using AElf.RPC;
 using AElf.SmartContract;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
+using AElf.Synchronization.BlockSynchronization;
 using Community.AspNetCore.JsonRpc;
 using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
@@ -46,6 +47,8 @@ namespace AElf.ChainController.Rpc
         public ICrossChainInfo CrossChainInfo { get; set; }
         public IAuthorizationInfo AuthorizationInfo { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
+        public IBlockSet BlockSet { get; set; }
+        public IBlockSynchronizer BlockSynchronizer { get; set; }
         public IElectionInfo ElectionInfo { get; set; }
 
         #endregion Properties
@@ -367,7 +370,7 @@ namespace AElf.ChainController.Rpc
             {
                 txHash = Hash.LoadHex(txhash);
             }
-            catch (Exception e)
+            catch
             {
                 return JObject.FromObject(new JObject
                 {
@@ -377,38 +380,118 @@ namespace AElf.ChainController.Rpc
 
             try
             {
-                var receipt = await this.GetTransactionReceipt(txHash);
-                JObject txInfo = null;
-                if (receipt != null)
+                var response = await GetTx(txHash);
+                return JObject.FromObject(new JObject {["result"] = response});
+            }
+            catch (Exception e)
+            {
+                return new JObject
                 {
-                    var transaction = receipt.Transaction;
-                    txInfo = transaction.GetTransactionInfo();
-                    ((JObject) txInfo["tx"]).Add("params",
-                        String.Join(", ", await this.GetTransactionParameters(transaction)));
-                    ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
-                    ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
-                    ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
-                    ((JObject) txInfo["tx"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
+                    ["error"] = e.Message
+                };
+            }
+        }
+
+        [JsonRpcMethod("get_txs_result", "blockhash", "offset", "num")]
+        public async Task<JObject> GetTxsResult(string blockhash, int offset = 0, int num = 10)
+        {
+            if (offset < 0)
+            {
+                return JObject.FromObject(new JObject
+                {
+                    ["error"] = "offset must greater than or equal to 0."
+                });
+            }
+
+            if (num<=0 || num > 100)
+            {
+                return JObject.FromObject(new JObject
+                {
+                    ["error"] = "num must between 0 and 100."
+                });
+            }
+
+            Hash blockHash;
+            try
+            {
+                blockHash = Hash.LoadHex(blockhash);
+            }
+            catch
+            {
+                return JObject.FromObject(new JObject
+                {
+                    ["error"] = "Invalid Block Hash Format"
+                });
+            }
+
+            try
+            {
+                var block = await this.GetBlock(blockHash);
+                if (block == null)
+                {
+                    return JObject.FromObject(new JObject
+                    {
+                        ["error"] = "Invalid Block Hash"
+                    });
                 }
-                else
+                var txs = new JArray();
+
+                if (offset <= block.Body.Transactions.Count - 1)
                 {
-                    txInfo = new JObject {["tx"] = "Not Found"};
+                    num = Math.Min(num, block.Body.Transactions.Count - offset);
+
+                    var txHashs = block.Body.Transactions.ToList().GetRange(offset, num);
+                    foreach (var hash in txHashs)
+                    {
+                        txs.Add(await GetTx(hash));
+                    }
                 }
 
-                var txResult = await this.GetTransactionResult(txHash);
-                var response = new JObject
+                return JObject.FromObject(new JObject {["result"] = txs});
+            }
+            catch (Exception e)
+            {
+                return new JObject
                 {
-                    ["tx_status"] = txResult.Status.ToString(),
-                    ["tx_info"] = txInfo["tx"]
+                    ["error"] = e.Message
                 };
+            }
+        }
+
+        private async Task<JObject> GetTx(Hash txHash)
+        {
+            var receipt = await this.GetTransactionReceipt(txHash);
+            JObject txInfo = null;
+            if (receipt != null)
+            {
+                var transaction = receipt.Transaction;
+                txInfo = transaction.GetTransactionInfo();
+                ((JObject) txInfo["tx"]).Add("params",
+                    String.Join(", ", await this.GetTransactionParameters(transaction)));
+                ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
+                ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
+                ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
+                ((JObject) txInfo["tx"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
+            }
+            else
+            {
+                txInfo = new JObject {["tx"] = "Not Found"};
+            }
+
+            var txResult = await this.GetTransactionResult(txHash);
+            var response = new JObject
+            {
+                ["tx_status"] = txResult.Status.ToString(),
+                ["tx_info"] = txInfo["tx"]
+            };
 #if DEBUG
-                var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
-                response["tx_trc"] = txtrc?.ToString();
+            var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
+            response["tx_trc"] = txtrc?.ToString();
 #endif
-                if (txResult.Status == Status.Failed)
-                {
-                    response["tx_error"] = txResult.RetVal.ToStringUtf8();
-                }
+            if (txResult.Status == Status.Failed)
+            {
+                response["tx_error"] = txResult.RetVal.ToStringUtf8();
+            }
 
                 if (txResult.Status == Status.Mined)
                 {
@@ -428,15 +511,7 @@ namespace AElf.ChainController.Rpc
                 }
                 // Todo: it should be deserialized to obj ion cli, 
 
-                return JObject.FromObject(new JObject {["result"] = response});
-            }
-            catch (Exception e)
-            {
-                return new JObject
-                {
-                    ["error"] = e.ToString()
-                };
-            }
+            return response;
         }
 
         [JsonRpcMethod("get_block_height")]
@@ -470,8 +545,6 @@ namespace AElf.ChainController.Rpc
             if (blockinfo == null)
                 return invalidBlockHeightError;
 
-            var transactionPoolSize = await this.GetTransactionPoolSize();
-
             // TODO: Create DTO Exntension for Block
             var response = new JObject
             {
@@ -493,8 +566,7 @@ namespace AElf.ChainController.Rpc
                     {
                         ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
                         ["IndexedSideChainBlcokInfo"] = blockinfo.GetIndexedSideChainBlockInfo()
-                    },
-                    ["CurrentTransactionPoolSize"] = transactionPoolSize
+                    }
                 }
             };
 
@@ -514,7 +586,7 @@ namespace AElf.ChainController.Rpc
         }
 
         [JsonRpcMethod("get_txpool_size")]
-        public async Task<JObject> ProGetTxPoolSize()
+        public async Task<JObject> GetTxPoolSize()
         {
             var transactionPoolSize = await this.GetTransactionPoolSize();
             var response = new JObject
@@ -526,7 +598,7 @@ namespace AElf.ChainController.Rpc
         }
         
         [JsonRpcMethod("dpos_isalive")]
-        public async Task<JObject> ProIsDPoSAlive()
+        public async Task<JObject> IsDPoSAlive()
         {
             var isAlive = MainchainNodeService.IsDPoSAlive();
             var response = new JObject
@@ -538,7 +610,7 @@ namespace AElf.ChainController.Rpc
         }
         
         [JsonRpcMethod("node_isforked")]
-        public async Task<JObject> ProNodeIsForked()
+        public async Task<JObject> NodeIsForked()
         {
             var isForked = MainchainNodeService.IsForked();
             var response = new JObject
@@ -548,6 +620,8 @@ namespace AElf.ChainController.Rpc
 
             return JObject.FromObject(response);
         }
+        
+        #endregion Methods
 
         #region Proposal
         [JsonRpcMethod("check_proposal", "proposal_id")]
@@ -618,35 +692,59 @@ namespace AElf.ChainController.Rpc
         #endregion
 
         #region Admin
-
-        [JsonRpcMethod("set_block_volume", "minimal", "maximal")]
-        public async Task<JObject> ProcSetBlockVolume(string minimal, string maximal)
+        
+        [JsonRpcMethod("get_invalid_block")]
+        public async Task<JObject> InvalidBlockCount()
         {
-            /* TODO: This is a privileged method, need:
-             *   1. Optional enabling of this method (maybe separate endpoint), and/or
-             *   2. Authentication / authorization
-             */
-            try
+            var invalidBlockCount = await this.GetInvalidBlockCount();
+                
+            var response = new JObject
             {
-                var min = int.Parse(minimal);
-                var max = int.Parse(maximal);
-                this.SetBlockVolume(min, max);
-                return await Task.FromResult(new JObject
-                {
-                    ["result"] = "Success"
-                });
-            }
-            catch (Exception e)
+                ["InvalidBlockCount"] = invalidBlockCount
+            };
+
+            return JObject.FromObject(response);
+        }
+        
+        [JsonRpcMethod("get_rollback_times")]
+        public async Task<JObject> RollBackTimes()
+        {
+            var rollBackTimes = await this.GetRollBackTimes();
+                
+            var response = new JObject
             {
-                _logger.Error(e, "Exception while ProcSetBlockVolume.");
-                return await Task.FromResult(new JObject
-                {
-                    ["error"] = "Failed"
-                });
-            }
+                ["RollBackTimes"] = rollBackTimes
+            };
+
+            return JObject.FromObject(response);
         }
 
-        #endregion Admin
+//        [JsonRpcMethod("set_block_volume", "minimal", "maximal")]
+//        public async Task<JObject> ProcSetBlockVolume(string minimal, string maximal)
+//        {
+//            /* TODO: This is a privileged method, need:
+//             *   1. Optional enabling of this method (maybe separate endpoint), and/or
+//             *   2. Authentication / authorization
+//             */
+//            try
+//            {
+//                var min = int.Parse(minimal);
+//                var max = int.Parse(maximal);
+//                this.SetBlockVolume(min, max);
+//                return await Task.FromResult(new JObject
+//                {
+//                    ["result"] = "Success"
+//                });
+//            }
+//            catch (Exception e)
+//            {
+//                _logger.Error(e, "Exception while ProcSetBlockVolume.");
+//                return await Task.FromResult(new JObject
+//                {
+//                    ["error"] = "Failed"
+//                });
+//            }
+//        }
         
         [JsonRpcMethod("get_db_value","key")]
         public async Task<JObject> GetDbValue(string key)
@@ -677,7 +775,7 @@ namespace AElf.ChainController.Rpc
                     type = keyObj.Type;
                     id = JObject.Parse(keyObj.ToString());
                     var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
-                    var obj = GetInstance(type);
+                    var obj = this.GetInstance(type);
                     obj.MergeFrom(valueBytes);
                     value = obj;
                 }
@@ -699,33 +797,6 @@ namespace AElf.ChainController.Rpc
                     ["Value"] = e.Message
                 };
                 return JObject.FromObject(response);
-            }
-        }
-
-        private IMessage GetInstance(string type)
-        {
-            switch (type)
-            {
-                case "MerklePath":
-                    return new MerklePath();
-                case "BinaryMerkleTree":
-                    return new BinaryMerkleTree ();
-                case "BlockHeader":
-                    return new BlockHeader();
-                case "BlockBody":
-                    return new BlockBody();
-                case "Hash":
-                    return new Hash();
-                case "SmartContractRegistration":
-                    return new SmartContractRegistration();
-                case "Transaction":
-                    return new Transaction();
-                case "TransactionResult":
-                    return new TransactionResult();
-                case "TransactionTrace":
-                    return new TransactionTrace();
-                default:
-                    throw new ArgumentException($"[{type}] not found");
             }
         }
 
