@@ -4,7 +4,7 @@ using CommandLine;
 
 namespace AElf.CLI2.Commands.Proposal
 {
-    [Verb("propose", HelpText = "Create and propose a proposal.")]
+    [Verb("create-proposal", HelpText = "Create and propose a proposal.")]
     public class ProposalOption : BaseOption
     {
         [Value(0, HelpText = "Proposal Name.", Required = true)]
