@@ -749,7 +749,7 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             if (roundNumber.Value > 1)
                 info.Signature = signature;
             var roundInfo = await _dPoSInfoMap.GetValueAsync(roundNumber);
-            roundInfo.BlockProducers[pubKey.ToPlainBase58()] = info;
+            roundInfo.BlockProducers[pubKey.ToHex()] = info;
 
             await _dPoSInfoMap.SetValueAsync(roundNumber, roundInfo);
         }
@@ -760,20 +760,20 @@ namespace AElf.Contracts.Consensus.ConsensusContracts
             info.InValue = inValue;
 
             var roundInfo = await _dPoSInfoMap.GetValueAsync(roundNumber);
-            roundInfo.BlockProducers[pubKey.ToPlainBase58()] = info;
+            roundInfo.BlockProducers[pubKey.ToHex()] = info;
 
             await _dPoSInfoMap.SetValueAsync(roundNumber, roundInfo);
         }
 
         private async Task<BlockProducer> GetBPInfoOfSpecificRound(byte[] pubKey, UInt64Value roundNumber)
         {
-            return (await _dPoSInfoMap.GetValueAsync(roundNumber)).BlockProducers[pubKey.ToPlainBase58()];
+            return (await _dPoSInfoMap.GetValueAsync(roundNumber)).BlockProducers[pubKey.ToHex()];
         }
 
         private async Task<BlockProducer> GetBPInfoOfCurrentRound(byte[] pubKey)
         {
             return (await _dPoSInfoMap.GetValueAsync(new UInt64Value {Value = CurrentRoundNumber})).BlockProducers[
-                pubKey.ToPlainBase58()];
+                pubKey.ToHex()];
         }
 
         private bool IsBlockProducer(byte[] pubKey)

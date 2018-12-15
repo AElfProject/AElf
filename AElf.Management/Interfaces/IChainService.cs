@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
     public interface IChainService
     {
-        List<ChainResult> GetAllChains();
+        Task<List<ChainResult>> GetAllChains();
 
-        void DeployMainChain(DeployArg arg);
+        Task DeployMainChain(DeployArg arg);
 
-        void RemoveMainChain(string chainId);
+        Task RemoveMainChain(string chainId);
     }
 }

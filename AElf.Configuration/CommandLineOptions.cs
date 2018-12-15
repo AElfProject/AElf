@@ -176,5 +176,12 @@ namespace AElf.Configuration
         public string ConfigPath { get; set; }
         
         #endregion
+        
+        #region Log
+        
+        [Option("log.path", HelpText = "The directory the node uses to store log data.")]
+        public string LogPath { get; set; }
+        
+        #endregion
     }
 }

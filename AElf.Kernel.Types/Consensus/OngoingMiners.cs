@@ -69,7 +69,7 @@ namespace AElf.Kernel
                 var str = "Take effect round number:" + miner.TakeEffectRoundNumber;
                 foreach (var producer in miner.Producers)
                 {
-                    str += "\n" + producer.ToByteArray().ToPlainBase58();
+                    str += "\n" + producer.ToByteArray().ToHex();
                 }
 
                 Console.WriteLine(str);

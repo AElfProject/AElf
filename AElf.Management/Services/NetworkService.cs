@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
@@ -10,33 +11,33 @@ namespace AElf.Management.Services
 {
     public class NetworkService:INetworkService
     {
-        public PoolStateResult GetPoolState(string chainId)
+        public async Task<PoolStateResult> GetPoolState(string chainId)
         {
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_pool_state";
 
-            var state = HttpRequestHelper.Request<JsonRpcResult<PoolStateResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/net", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<PoolStateResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/net", jsonRpcArg);
 
             return state.Result;
         }
 
-        public PeerResult GetPeers(string chainId)
+        public async Task<PeerResult> GetPeers(string chainId)
         {
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_peers";
 
-            var peers = HttpRequestHelper.Request<JsonRpcResult<PeerResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/net", jsonRpcArg);
+            var peers = await HttpRequestHelper.Request<JsonRpcResult<PeerResult>>(ServiceUrlHelper.GetRpcAddress(chainId)+"/net", jsonRpcArg);
             
             return peers.Result;
         }
 
-        public void RecordPoolState(string chainId, DateTime time, int requestPoolSize, int receivePoolSize)
+        public async Task RecordPoolState(string chainId, DateTime time, int requestPoolSize, int receivePoolSize)
         {
             var fields = new Dictionary<string, object> {{"request", requestPoolSize}, {"receive", receivePoolSize}};
             InfluxDBHelper.Set(chainId, "network_pool_state", fields, null, time);
         }
 
-        public List<PoolStateHistory> GetPoolStateHistory(string chainId)
+        public async Task<List<PoolStateHistory>> GetPoolStateHistory(string chainId)
         {
             var result = new List<PoolStateHistory>();
             var record = InfluxDBHelper.Get(chainId, "select * from network_pool_state");
