@@ -15,9 +15,7 @@ using NLog;
 
 namespace AElf.Kernel.Consensus
 {
-    // ReSharper disable InconsistentNaming
-    // ReSharper disable MemberCanBeMadeStatic.Local
-    // ReSharper disable UnusedMember.Global
+    // TODO: Cache
     public class AElfDPoSHelper
     {
         private static Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
@@ -172,7 +170,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public BlockProducer this[byte[] pubKey] => this[pubKey.ToPlainBase58()];
+        public BlockProducer this[byte[] pubKey] => this[pubKey.ToHex()];
 
         private Round this[UInt64Value roundNumber]
         {
@@ -200,7 +198,7 @@ namespace AElf.Kernel.Consensus
             // First round
             foreach (var miner in Miners)
             {
-                dict.Add(miner, miner.ToPlainBase58()[0]);
+                dict.Add(miner, miner.ToHex()[0]);
             }
 
             var sortedMiningNodes =
@@ -227,7 +225,7 @@ namespace AElf.Kernel.Consensus
                 bpInfo.TimeSlot =
                     GetTimestampOfUtcNow(i * ConsensusConfig.Instance.DPoSMiningInterval + GlobalConfig.AElfWaitFirstRoundTime);
 
-                infosOfRound1.BlockProducers.Add(enumerable[i].ToPlainBase58(), bpInfo);
+                infosOfRound1.BlockProducers.Add(enumerable[i].ToHex(), bpInfo);
             }
 
             // Second round
@@ -235,7 +233,7 @@ namespace AElf.Kernel.Consensus
 
             foreach (var miner in Miners)
             {
-                dict.Add(miner, miner.ToPlainBase58()[0]);
+                dict.Add(miner, miner.ToHex()[0]);
             }
 
             sortedMiningNodes =
@@ -263,7 +261,7 @@ namespace AElf.Kernel.Consensus
                                                        GlobalConfig.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
-                infosOfRound2.BlockProducers.Add(enumerable[i].ToPlainBase58(), bpInfo);
+                infosOfRound2.BlockProducers.Add(enumerable[i].ToHex(), bpInfo);
             }
 
             infosOfRound1.RoundNumber = 1;
@@ -321,7 +319,7 @@ namespace AElf.Kernel.Consensus
                 var add = Hash.Default;
                 foreach (var miner in Miners)
                 {
-                    var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[miner.ToPlainBase58()].Signature;
+                    var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[miner.ToHex()].Signature;
                     add = Hash.FromTwoHashes(add, lastSignature);
                 }
 
@@ -353,7 +351,7 @@ namespace AElf.Kernel.Consensus
                         s = Hash.Generate();
                     }
 
-                    signatureDict[s] = miner.ToPlainBase58();
+                    signatureDict[s] = miner.ToHex();
                 }
 
                 foreach (var sig in signatureDict.Keys)
@@ -427,7 +425,7 @@ namespace AElf.Kernel.Consensus
 
                 var nextEBP = Miners[order];
 
-                return new StringValue {Value = nextEBP.ToPlainBase58().RemoveHexPrefix()};
+                return new StringValue {Value = nextEBP.ToHex().RemoveHexPrefix()};
             }
             catch (Exception e)
             {

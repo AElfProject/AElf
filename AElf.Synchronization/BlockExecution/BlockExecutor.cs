@@ -8,10 +8,14 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
+using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.Consensus;
 using AElf.Execution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
@@ -34,14 +38,18 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
         private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly IStateStore _stateStore;
+        private readonly DPoSInfoProvider _dpoSInfoProvider;
 
         private static bool _executing;
         private static bool _prepareTerminated;
         private static bool _terminated;
 
+        private static bool _isLimitExecutionTime;
+
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic, IStateStore stateStore)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -50,9 +58,10 @@ namespace AElf.Synchronization.BlockExecution
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
             _chainManagerBasic = chainManagerBasic;
-            _logger = LogManager.GetLogger(nameof(BlockExecutor));
+            _stateStore = stateStore;
+            _dpoSInfoProvider = new DPoSInfoProvider(_stateStore);
 
-            Cts = new CancellationTokenSource();
+            _logger = LogManager.GetLogger(nameof(BlockExecutor));
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
 
@@ -75,12 +84,22 @@ namespace AElf.Synchronization.BlockExecution
                     }
                 }
             });
-        }
 
-        /// <summary>
-        /// Signals to a CancellationToken that mining should be canceled
-        /// </summary>
-        private CancellationTokenSource Cts { get; set; }
+            MessageHub.Instance.Subscribe<StateEvent>(inState =>
+            {
+                if (inState == StateEvent.RollbackFinished)
+                {
+                    _isLimitExecutionTime = false;
+                }
+
+                if (inState == StateEvent.MiningStart)
+                {
+                    _isLimitExecutionTime = true;
+                }
+
+                _logger?.Trace($"Current Event: {inState.ToString()} ,IsLimitExecutionTime: {_isLimitExecutionTime}");
+            });
+        }
 
         private string _current;
 
@@ -116,6 +135,7 @@ namespace AElf.Synchronization.BlockExecution
 
             var txnRes = new List<TransactionResult>();
             var readyTxs = new List<Transaction>();
+            var cts = new CancellationTokenSource();
 
             var res = BlockExecutionResult.Fatal;
             try
@@ -132,27 +152,42 @@ namespace AElf.Synchronization.BlockExecution
                     return res;
                 }
 
-                var trs = await _txHub.GetReceiptsForAsync(readyTxs);
+                double distanceToTimeSlot = 0;
+                if (_isLimitExecutionTime)
+                {
+                    distanceToTimeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
+                    cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
+                }
+
+                var trs = await _txHub.GetReceiptsForAsync(readyTxs, cts);
+                
+                if (cts.IsCancellationRequested)
+                {
+                    return BlockExecutionResult.ExecutionCancelled;
+                }
 
                 foreach (var tr in trs)
                 {
                     if (!tr.IsExecutable)
                     {
                         throw new InvalidBlockException($"Transaction is not executable, transaction: {tr}, " +
-                                                        $"block height: {block.Header.Index}, block hash: {block.BlockHashToHex}");
+                                                        $"block height: {block.Header.Index}, block hash: {block.BlockHashToHex}, SignatureSt:{tr.SignatureSt},RefBlockSt:{tr.RefBlockSt},Status:{tr.Status}");
                     }
                 }
 
-                txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash());
+                txnRes = await ExecuteTransactions(readyTxs, block.Header.ChainId, block.Header.GetDisambiguationHash(),cts);
+                
+                if (cts.IsCancellationRequested)
+                {
+                    _logger?.Trace($"Execution Cancelled and rollback: block hash: {block.BlockHashToHex}, execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
+                    Rollback(block, txnRes).ConfigureAwait(false);
+                    return BlockExecutionResult.ExecutionCancelled;
+                }
+                
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
                 var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 
-                _logger?.Trace("Transaction Results:");
-                foreach (var re in txnRes)
-                {
-                    _logger?.Trace(re.StateHash.DumpHex);
-                }
 
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
@@ -193,6 +228,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 _current = null;
                 _executing = false;
+                cts.Dispose();
                 if (_prepareTerminated)
                 {
                     _terminated = true;
@@ -218,11 +254,11 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="disambiguationHash"></param>
         /// <returns></returns>
         private async Task<List<TransactionResult>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId,
-            Hash disambiguationHash)
+            Hash disambiguationHash,CancellationTokenSource cancellationTokenSource)
         {
             var traces = readyTxs.Count == 0
                 ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(readyTxs, chainId, Cts.Token, disambiguationHash);
+                : await _executingService.ExecuteAsync(readyTxs, chainId, cancellationTokenSource.Token, disambiguationHash);
 
             var results = new List<TransactionResult>();
             foreach (var trace in traces)
@@ -240,13 +276,15 @@ namespace AElf.Synchronization.BlockExecution
                 }
                 else
                 {
-                    _logger?.Trace($"Executing failed, \n Error:{trace.StdErr}");
                     res.Status = Status.Failed;
                     res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     res.StateHash = trace.GetSummarizedStateHash();
-                    _logger?.Error($"Transaction execute failed. TransactionId: {res.TransactionId.DumpHex()}, " +
-                                   $"StateHash: {res.StateHash} Transaction deatils: {readyTxs.Find(x => x.GetHash() == trace.TransactionId)}" +
-                                   $"\n {trace.StdErr}");
+                    if (!cancellationTokenSource.IsCancellationRequested)
+                    {
+                        _logger?.Error($"Transaction execute failed. TransactionId: {res.TransactionId.DumpHex()}, " +
+                                       $"StateHash: {res.StateHash} Transaction deatils: {readyTxs.Find(x => x.GetHash() == trace.TransactionId)}" +
+                                       $"\n {trace.StdErr}");
+                    }
                 }
 
                 if (trace.DeferredTransaction.Length != 0)
@@ -279,12 +317,7 @@ namespace AElf.Synchronization.BlockExecution
         {
             string errorLog = null;
             var res = BlockExecutionResult.PrepareSuccess;
-            if (Cts == null || Cts.IsCancellationRequested)
-            {
-                errorLog = "ExecuteBlock - Execution cancelled.";
-                res = BlockExecutionResult.ExecutionCancelled;
-            }
-            else if (block?.Header == null)
+            if (block?.Header == null)
             {
                 errorLog = "ExecuteBlock - Block is null.";
                 res = BlockExecutionResult.BlockIsNull;
@@ -482,6 +515,7 @@ namespace AElf.Synchronization.BlockExecution
                 await _chainManagerBasic.UpdateCurrentBlockHeightAsync(block.ParentChainBlockInfo.ChainId,
                     block.ParentChainBlockInfo.Height);
             }*/
+                
         }
 
         #endregion
@@ -509,7 +543,7 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager.UpdateRequestInterval();
         }
     }
-
+    
     internal class InvalidBlockException : Exception
     {
         public InvalidBlockException(string message) : base(message)

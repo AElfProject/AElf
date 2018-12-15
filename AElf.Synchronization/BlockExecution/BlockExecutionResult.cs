@@ -15,18 +15,18 @@ namespace AElf.Synchronization.BlockExecution
         InvalidParentChainBlockInfo,
 
         //     Simply cache
-        ExecutionCancelled = 21,
-        BlockIsNull,
+        BlockIsNull = 21,
         NoTransaction,
         TooManyTxsForParentChainBlock,
         AlreadyAppended,
         Terminated,
         Mining,
         IncorrectNodeState,
-        IncorrectStateMerkleTree,
 
         // Need to rollback
         Fatal = 101,
+        ExecutionCancelled,
+        IncorrectStateMerkleTree
     }
 
     public static class ExecutionResultExtensions
@@ -45,13 +45,14 @@ namespace AElf.Synchronization.BlockExecution
         {
             return (int) result > 10;
         }
-        
-        public static bool CannotExecute(this BlockExecutionResult result)
-        {
-            return (int) result > 50;
-        }
 
         public static bool NeedToRollback(this BlockExecutionResult result)
+        {
+            return (int) result > 50;
+
+        }
+                
+        public static bool CannotExecute(this BlockExecutionResult result)
         {
             return (int) result > 100;
         }
