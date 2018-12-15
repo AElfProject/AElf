@@ -112,6 +112,7 @@ namespace AElf.Common
         #region Consensus Error String
 
         public const string TicketsNotFound = "Tickets not found.";
+        public const string TermSnapshotNotFound = "Term snapshot not found.";
         public const string RoundNumberNotFound = "Round information not found.";
         public const string TargetNotAnnounceElection = "Target didn't announce election.";
         public const string CandidateCannotVote = "Candidate can't vote.";

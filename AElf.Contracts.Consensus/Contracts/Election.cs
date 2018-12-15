@@ -22,7 +22,7 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             Api.LockTokenTo(GlobalConfig.LockTokenForElection, Api.ConsensusContractAddress);
             var candidates = _collection.CandidatesField.GetValue();
-            candidates.PublicKeys.Add(Api.GetPublicKeyToHex());
+            candidates.PublicKeys.Add(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);
         }
 
@@ -31,7 +31,7 @@ namespace AElf.Contracts.Consensus.Contracts
             Api.Call(Api.TokenContractAddress, "Transfer",
                 ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), GlobalConfig.LockTokenForElection}));
             var candidates = _collection.CandidatesField.GetValue();
-            candidates.PublicKeys.Remove(Api.GetPublicKeyToHex());
+            candidates.PublicKeys.Remove(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);
         }
 
@@ -51,7 +51,7 @@ namespace AElf.Contracts.Consensus.Contracts
             Api.Assert(_collection.CandidatesField.GetValue().PublicKeys.Contains(candidatePublicKey),
                 GlobalConfig.TargetNotAnnounceElection);
 
-            Api.Assert(!_collection.CandidatesField.GetValue().PublicKeys.Contains(Api.GetPublicKeyToHex()),
+            Api.Assert(!_collection.CandidatesField.GetValue().PublicKeys.Contains(Api.RecoverPublicKey().ToHex()),
                 GlobalConfig.CandidateCannotVote);
             
             var ageOfBlockchain = _collection.AgeField.GetValue();
@@ -59,7 +59,7 @@ namespace AElf.Contracts.Consensus.Contracts
             var votingRecord = new VotingRecord
             {
                 Count = amount,
-                From = Api.GetPublicKeyToHex(),
+                From = Api.RecoverPublicKey().ToHex(),
                 To = candidatePublicKey,
                 RoundNumber = _collection.CurrentRoundNumberField.GetValue(),
                 TransactionId = Api.GetTxnHash(),
@@ -69,7 +69,7 @@ namespace AElf.Contracts.Consensus.Contracts
             };
             votingRecord.LockDaysList.Add((uint) lockDays);
 
-            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
                 tickets.VotingRecords.Add(votingRecord);
             }
@@ -80,7 +80,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
 
             tickets.TotalTickets += votingRecord.Count;
-            _collection.TicketsMap.SetValue(Api.GetPublicKeyToHex().ToStringValue(), tickets);
+            _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
 
             if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var candidateTickets))
             {
@@ -98,11 +98,13 @@ namespace AElf.Contracts.Consensus.Contracts
             Api.Call(Api.DividendsContractAddress, "AddWeights",
                 ParamsPacker.Pack(new List<object>
                     {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
+
+            Console.WriteLine($"Voted {amount} tickets to {candidatePublicKey}.");
         }
 
         public void GetDividends(string candidatePublicKey, ulong amount, int lockDays)
         {
-            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
                 var votingRecord =
                     tickets.VotingRecords.FirstOrDefault(vr =>
@@ -119,7 +121,7 @@ namespace AElf.Contracts.Consensus.Contracts
         
         public void GetDividends(Hash transactionId)
         {
-            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
                 var votingRecord = tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
 
@@ -134,20 +136,28 @@ namespace AElf.Contracts.Consensus.Contracts
         
         public void GetDividends()
         {
-            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
                 foreach (var votingRecord in tickets.VotingRecords)
                 {
                     var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
-                    Api.Call(Api.DividendsContractAddress, "TransferDividends",
+                    var result = Api.Call(Api.DividendsContractAddress, "TransferDividends",
                         ParamsPacker.Pack(new List<object> {votingRecord, maxTermNumber}));
+                    if (result)
+                    {
+                        Console.WriteLine("Got all dividends.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Something wrong when transfer dividends.");
+                    }
                 }
             }
         }
 
         public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
         {
-            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
                 var votingRecord =
                     tickets.VotingRecords.FirstOrDefault(vr =>
@@ -166,7 +176,7 @@ namespace AElf.Contracts.Consensus.Contracts
         
         public void Withdraw(Hash transactionId)
         {
-            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
                 var votingRecord = tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
 
@@ -183,7 +193,7 @@ namespace AElf.Contracts.Consensus.Contracts
         
         public void Withdraw()
         {
-            if (_collection.TicketsMap.TryGet(Api.GetPublicKeyToHex().ToStringValue(), out var tickets))
+            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
                 var votingRecords = tickets.VotingRecords.Where(vr => vr.UnlockAge >= _collection.AgeField.GetValue());
 

@@ -122,6 +122,12 @@ namespace AElf.Sdk.CSharp
             Call(ConsensusContractAddress, "GetCurrentMiners");
             return GetCallResult().DeserializeToPbMessage<Miners>().PublicKeys.ToList();
         }
+
+        public static TermSnapshot GetTermSnapshot(ulong termNumber)
+        {
+            Call(ConsensusContractAddress, "GetTermSnapshot");
+            return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
+        }
         
         public static Address GetContractOwner()
         {

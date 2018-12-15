@@ -289,6 +289,14 @@ namespace AElf.ChainController.Rpc
 
         #endregion
 
+        #region Consensus
+
+        internal static Tickets GetTickets(this Svc s, string pubKey)
+        {
+            return s.ElectionInfo.GetTicketsInfo(pubKey);
+        }
+        
+        #endregion
         
     }
     

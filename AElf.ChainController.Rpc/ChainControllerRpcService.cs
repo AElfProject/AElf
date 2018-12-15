@@ -16,6 +16,7 @@ using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.RPC;
 using AElf.SmartContract;
+using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
 using Community.AspNetCore.JsonRpc;
 using Easy.MessageHub;
@@ -45,6 +46,7 @@ namespace AElf.ChainController.Rpc
         public ICrossChainInfo CrossChainInfo { get; set; }
         public IAuthorizationInfo AuthorizationInfo { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
+        public IElectionInfo ElectionInfo { get; set; }
 
         #endregion Properties
 
@@ -586,6 +588,33 @@ namespace AElf.ChainController.Rpc
                 };
             }
         }
+        #endregion
+        
+        #region Consensus
+
+        [JsonRpcMethod("get_tickets", "pubKey")]
+        public async Task<JObject> GetVotes(string pubKey)
+        {
+            try
+            {
+                var tickets = this.GetTickets(pubKey);
+                return new JObject
+                {
+                    ["error"] = 0,
+                    ["voters_count"] = 1,
+                    ["tickets_count"] = 1,
+                };
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = 1,
+                    ["errormsg"] = e.Message
+                };
+            }
+        }
+        
         #endregion
 
         #region Admin

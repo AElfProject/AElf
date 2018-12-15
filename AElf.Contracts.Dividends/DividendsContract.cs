@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -31,16 +31,26 @@ namespace AElf.Contracts.Dividends
                 start = history.Value + 1;
             }
 
+            var actualTermNumber = start;
             for (var i = start; i <= maxTermNumber; i++)
             {
                 if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
                 {
+                    actualTermNumber = i;
+                    var minedBlocks = Api.GetTermSnapshot(i).TotalBlocks;
+                    var dividendsAmount = minedBlocks * GlobalConfig.ElfTokenPerBlock * votingRecord.Weight /
+                                    totalWeights.Value;
+                    Console.WriteLine($"Transferred {dividendsAmount} dividends to {owner}");
                     Api.Call(Api.TokenContractAddress, "Transfer",
-                        ParamsPacker.Pack(new List<object> {owner, votingRecord.Weight / totalWeights.Value}));
+                        ParamsPacker.Pack(new List<object>
+                        {
+                            owner,
+                            dividendsAmount
+                        }));
                 }
             }
 
-            _transferMap.SetValue(Hash.FromMessage(votingRecord.ToSimpleRecord()), maxTermNumber.ToUInt64Value());
+            _transferMap.SetValue(Hash.FromMessage(votingRecord.ToSimpleRecord()), actualTermNumber.ToUInt64Value());
         }
 
         public void AddDividends(ulong termNumber, ulong dividendsAmount)

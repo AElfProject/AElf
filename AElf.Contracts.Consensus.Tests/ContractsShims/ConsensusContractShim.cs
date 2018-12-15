@@ -258,66 +258,6 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
-        public uint Decimals()
-        {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "Decimals",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
-            };
-
-            TransactionContext = new TransactionContext()
-            {
-                Transaction = tx
-            };
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32() ?? 0;
-        }
-
-        public ulong BalanceOf(Hash owner)
-        {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "BalanceOf",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(owner))
-            };
-
-            TransactionContext = new TransactionContext()
-            {
-                Transaction = tx
-            };
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
-        }
-
-        public ulong Allowance(Address owner, Address spender)
-        {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "Allowance",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(owner, spender))
-            };
-
-            TransactionContext = new TransactionContext()
-            {
-                Transaction = tx
-            };
-            Executive.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
-        }
-
         #endregion View Only Methods
 
         #region Actions
@@ -379,17 +319,20 @@ namespace AElf.Contracts.Consensus.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
-        public void TransferFrom(Address from, Address to, ulong amount)
+        public void GetAllDividends(ECKeyPair ownerKeyPair)
         {
             var tx = new Transaction
             {
-                From = Sender,
+                From = GetAddress(ownerKeyPair),
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
-                MethodName = "TransferFrom",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, amount))
+                MethodName = "GetAllDividends",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
-
+            var signer = new ECSigner();
+            var signature = signer.Sign(ownerKeyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+            
             TransactionContext = PrepareTransactionContext(tx);
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();

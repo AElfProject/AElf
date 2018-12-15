@@ -101,6 +101,13 @@ namespace AElf.Contracts.Consensus
         {
             return Process.GetCurrentVictories();
         }
+
+        [View]
+        public TermSnapshot GetTermSnapshot(ulong termNumber)
+        {
+            Api.Assert(Collection.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot), GlobalConfig.TermSnapshotNotFound);
+            return snapshot;
+        }
         
         public void AnnounceElection()
         {

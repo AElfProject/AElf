@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
             SetAliases(firstTerm);
 
-            firstTerm.FirstRound.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
+            firstTerm.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
 
             _collection.RoundsMap.SetValue(((ulong) 1).ToUInt64Value(), firstTerm.FirstRound);
             _collection.RoundsMap.SetValue(((ulong) 2).ToUInt64Value(), firstTerm.SecondRound);
@@ -77,7 +77,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 minerInRound.ProducedBlocks = 0;
             }
 
-            term.FirstRound.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
+            term.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
 
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
@@ -115,7 +115,7 @@ namespace AElf.Contracts.Consensus.Contracts
                             minerInRound.Value.ProducedBlocks;
                     }
 
-                    nextRoundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
+                    nextRoundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
                     _collection.RoundsMap.SetValue(nextRoundInfo.RoundNumber.ToUInt64Value(), nextRoundInfo);
                     _collection.CurrentRoundNumberField.SetValue(nextRoundInfo.RoundNumber);
                 }
@@ -131,7 +131,7 @@ namespace AElf.Contracts.Consensus.Contracts
                         minerInRound.Value.ProducedBlocks;
                 }
 
-                forwarding.NextRoundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
+                forwarding.NextRoundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
                 _collection.RoundsMap.SetValue(forwarding.NextRoundInfo.RoundNumber.ToUInt64Value(),
                     forwarding.NextRoundInfo);
                 _collection.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
@@ -148,12 +148,12 @@ namespace AElf.Contracts.Consensus.Contracts
 
             if (roundInfo.RoundNumber != 1)
             {
-                roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].Signature = toPackage.Signature;
+                roundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].Signature = toPackage.Signature;
             }
 
-            roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].OutValue = toPackage.OutValue;
+            roundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].OutValue = toPackage.OutValue;
 
-            roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].ProducedBlocks += 1;
+            roundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
 
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), roundInfo);
         }
@@ -163,15 +163,15 @@ namespace AElf.Contracts.Consensus.Contracts
             Api.Assert(toBroadcast.RoundId == GetCurrentRoundInfo().RoundId, GlobalConfig.RoundIdNotMatched);
 
             var roundInfo = GetCurrentRoundInfo();
-            Api.Assert(roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].OutValue != null,
+            Api.Assert(roundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].OutValue != null,
                 GlobalConfig.OutValueIsNull);
-            Api.Assert(roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].Signature != null,
+            Api.Assert(roundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].Signature != null,
                 GlobalConfig.SignatureIsNull);
             Api.Assert(
-                roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].OutValue == Hash.FromMessage(toBroadcast.InValue),
+                roundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].OutValue == Hash.FromMessage(toBroadcast.InValue),
                 GlobalConfig.InValueNotMatchToOutValue);
 
-            roundInfo.RealTimeMinersInfo[Api.GetPublicKeyToHex()].InValue = toBroadcast.InValue;
+            roundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].InValue = toBroadcast.InValue;
 
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), roundInfo);
         }
