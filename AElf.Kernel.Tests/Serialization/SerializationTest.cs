@@ -27,7 +27,7 @@ namespace AElf.Kernel.Tests.Serialization
         public void Deserialize()
         {
             var bytes = ByteArrayHelpers.FromHexString(
-                "0a5c0a200a1e9dee15619106b96861d52f03ad30ac7e57aa529eb2f05f7796472d8ce4a112200a1e96d8bf2dccf2ad419d02ed4a7b7a9d77df10617c4d731e766ce8dde63535320a496e697469616c697a653a0a0a015b12012218002000");
+                "0a200a1e9dee15619106b96861d52f03ad30ac7e57aa529eb2f05f7796472d8ce4a112200a1e96d8bf2dccf2ad419d02ed4a7b7a9d77df10617c4d731e766ce8dde63535320a496e697469616c697a653a0a0a015b120122180020005003");
             var txBytes = ByteString.CopyFrom(bytes).ToByteArray();
             var txn = Transaction.Parser.ParseFrom(txBytes);
             string str =txn.From.Value.ToByteArray().ToHex();
