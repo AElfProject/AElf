@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel.Storages;
+using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Metadata;
 using AElf.SmartContract.Proposal;
 using Autofac;
@@ -19,6 +20,7 @@ namespace AElf.SmartContract
             builder.RegisterType<FunctionMetadataService>().As<IFunctionMetadataService>().SingleInstance();
             builder.RegisterType<StateStore>().As<IStateStore>().SingleInstance();
             builder.RegisterType<AuthorizationInfo>().As<IAuthorizationInfo>().SingleInstance();
+            builder.RegisterType<ElectionInfo>().As<IElectionInfo>().SingleInstance();
         }
     }
 }

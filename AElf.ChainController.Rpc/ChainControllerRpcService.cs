@@ -666,17 +666,16 @@ namespace AElf.ChainController.Rpc
         
         #region Consensus
 
-        [JsonRpcMethod("get_tickets", "pubKey")]
-        public async Task<JObject> GetVotes(string pubKey)
+        public async Task<JObject> VotesGeneral()
         {
             try
             {
-                var tickets = this.GetTickets(pubKey);
+                var general = this.GetVotesGeneral();
                 return new JObject
                 {
                     ["error"] = 0,
-                    ["voters_count"] = 1,
-                    ["tickets_count"] = 1,
+                    ["voters_count"] = general.Item1,
+                    ["tickets_count"] = general.Item2,
                 };
             }
             catch (Exception e)
@@ -688,7 +687,37 @@ namespace AElf.ChainController.Rpc
                 };
             }
         }
-        
+
+        [JsonRpcMethod("get_voting_info", "pubKey")]
+        public async Task<JObject> VotingInfo(string pubKey)
+        {
+            try
+            {
+                var info = this.GetVotingInfo(pubKey);
+                var historyTickets =
+                    info.VotingRecords.Aggregate<VotingRecord, ulong>(0,
+                        (history, votingRecord) => history + votingRecord.Count);
+                var currentTickets = info.VotingRecords.Where(vr => !vr.IsExpired())
+                    .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
+                return new JObject
+                {
+                    ["error"] = 0,
+                    ["history_tickets"] = historyTickets,
+                    ["current_tickets"] = currentTickets,
+                    ["voted_tickets"] = info.TotalTickets,
+                    ["expired_tickets"] = info.TotalTickets - currentTickets,
+                };
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = 1,
+                    ["errormsg"] = e.Message
+                };
+            }
+        }
+
         #endregion
 
         #region Admin

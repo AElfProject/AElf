@@ -302,9 +302,14 @@ namespace AElf.ChainController.Rpc
         
         #region Consensus
 
-        internal static Tickets GetTickets(this Svc s, string pubKey)
+        internal static Tuple<ulong, ulong> GetVotesGeneral(this Svc s)
         {
-            return s.ElectionInfo.GetTicketsInfo(pubKey);
+            return s.ElectionInfo.GetVotesGeneral();
+        }
+        
+        internal static Tickets GetVotingInfo(this Svc s, string pubKey)
+        {
+            return s.ElectionInfo.GetVotingInfo(pubKey);
         }
         
         #endregion
