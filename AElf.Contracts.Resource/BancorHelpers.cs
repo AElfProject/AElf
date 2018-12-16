@@ -14,8 +14,9 @@ namespace AElf.Contracts.Resource
                 ResourceContract.AssertCorrectResourceType(resourceType);
                 var rt = new StringValue() {Value = resourceType};
                 var connector = c.ConnectorPairs[rt];
-                var tokensIssued = ToSmartToken(paidElf, connector.ElfBalance);
-                var resourcePayout = (ulong) FromSmartToken(tokensIssued, connector.ResBalance);
+                decimal half = new decimal(5, 0, 0, false, 1);
+                var resourcePayout =
+                    CalculateCrossConnectorReturn(connector.ElfBalance, half, connector.ResBalance, half, paidElf);
                 connector.ElfBalance += paidElf;
                 connector.ResBalance -= resourcePayout;
                 c.ConnectorPairs[rt] = connector;
@@ -30,8 +31,9 @@ namespace AElf.Contracts.Resource
                 ResourceContract.AssertCorrectResourceType(resourceType);
                 var rt = new StringValue() {Value = resourceType};
                 var connector = c.ConnectorPairs[rt];
-                var tokensIssued = ToSmartToken(paidRes, connector.ResBalance);
-                var elfPayout = (ulong) FromSmartToken(tokensIssued, connector.ElfBalance);
+                decimal half = new decimal(5, 0, 0, false, 1);
+                var elfPayout =
+                    CalculateCrossConnectorReturn(connector.ResBalance, half, connector.ElfBalance, half, paidRes);
                 connector.ElfBalance -= elfPayout;
                 connector.ResBalance += paidRes;
                 c.ConnectorPairs[rt] = connector;
@@ -39,28 +41,23 @@ namespace AElf.Contracts.Resource
             }
         }
 
-        private static decimal ToSmartToken(decimal connected, decimal balance)
+        private static ulong CalculateCrossConnectorReturn(ulong fromConnectorBalance, decimal fromConnectorWeight,
+            ulong toConnectorBalance, decimal toConnectorWeight, ulong paidAmount)
         {
-            decimal s = 10000000000;
-            decimal c = connected;
-            decimal b = balance;
-            decimal w = new decimal(5, 0, 0, false, 1);
-            decimal x = One + c / b;
-            var tokensIssued = s * (Exp(w * Ln(x)) - One);
-            return tokensIssued;
-        }
+            decimal bf = fromConnectorBalance;
+            decimal wf = fromConnectorWeight;
+            decimal bt = toConnectorBalance;
+            decimal wt = toConnectorWeight;
+            decimal a = paidAmount;
+            if (wf == wt)
+            {
+                // if both weights are the same, the formula can be reduced
+                return (ulong) (bt * a / (bf + a));
+            }
 
-        private static decimal FromSmartToken(decimal destroyed, decimal balance)
-        {
-            decimal s = 10000000000;
-            decimal d = destroyed;
-            decimal b = balance;
-            decimal w = new decimal(5, 0, 0, false, 1);
-            // x^y = exp(ln(x^y)) = exp(y*ln(x))
-            decimal x = One + d / s;
-            decimal y = One / w;
-            var payout = b * (Exp(y * Ln(x)) - One);
-            return payout;
+            decimal x = bf / (bf + a);
+            decimal y = wf / wt;
+            return (ulong) (bt * (One - Exp(y * Ln(x))));
         }
 
         #region Exponential Helpers
