@@ -4,21 +4,23 @@ import "common.proto";
 
 option csharp_namespace = "AElf.Contracts.Resource";
 
-message ConnectorPair
-{
-    uint64 ResBalance = 1;
-    uint64 ElfBalance = 2;
+enum ResourceType {
+    UndefinedResourceType = 0;
+    Ram = 1;
+    Cpu = 2;
+    Net = 3;
+    Sto = 4;
 }
 
-message UserResourceKey
-{
-    enum ResourceType
-    {
-        UndefinedResourceType = 0;
-        Ram = 1;
-        Cpu = 2;
-        Net = 3;
-    }
+message Converter {
+    uint64 ResBalance = 1;
+    uint64 ElfBalance = 2;
+    uint64 ResWeight = 3; // Weight based on MAX of 1,000,000
+    uint64 ElfWeight = 4; // Weight based on MAX of 1,000,000
+    ResourceType ResourceType = 5;
+}
+
+message UserResourceKey {
     Address Address = 1;
     ResourceType Type = 2;
 }

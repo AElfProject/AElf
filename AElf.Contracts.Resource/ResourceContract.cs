@@ -17,8 +17,8 @@ namespace AElf.Contracts.Resource
 
         static ResourceContract()
         {
-            ResourceTypes = Enum.GetValues(typeof(UserResourceKey.Types.ResourceType))
-                .Cast<UserResourceKey.Types.ResourceType>().Select(x => x.ToString().ToUpper()).ToList();
+            ResourceTypes = Enum.GetValues(typeof(ResourceType))
+                .Cast<ResourceType>().Select(x => x.ToString().ToUpper()).ToList();
         }
 
         internal static void AssertCorrectResourceType(string resourceType)
@@ -26,10 +26,10 @@ namespace AElf.Contracts.Resource
             Api.Assert(ResourceTypes.Contains(resourceType.ToUpper()), "Incorrect resource type.");
         }
 
-        internal static UserResourceKey.Types.ResourceType ParseResourceType(string resourceType)
+        internal static ResourceType ParseResourceType(string resourceType)
         {
             AssertCorrectResourceType(resourceType);
-            return (UserResourceKey.Types.ResourceType) Enum.Parse(typeof(UserResourceKey.Types.ResourceType),
+            return (ResourceType) Enum.Parse(typeof(ResourceType),
                 resourceType, ignoreCase: true);
         }
 
@@ -37,10 +37,13 @@ namespace AElf.Contracts.Resource
 
         #region Fields
 
-        internal Map<StringValue, ConnectorPair> ConnectorPairs = new Map<StringValue, ConnectorPair>("ConnectorPairs");
-        internal MapToUInt64<UserResourceKey> UserResources = new MapToUInt64<UserResourceKey>("UserResources");
+        internal Map<StringValue, Converter> Converters = new Map<StringValue, Converter>("Converters");
+        internal MapToUInt64<UserResourceKey> UserBalances = new MapToUInt64<UserResourceKey>("UserBalances");
         internal BoolField Initialized = new BoolField("Initialized");
         internal PbField<Address> ElfTokenAddress = new PbField<Address>("ElfTokenAddress");
+        internal PbField<Address> FeeAddress = new PbField<Address>("FeeAddress");
+        internal PbField<Address> ResourceControllerAddress = new PbField<Address>("ResourceControllerAddress");
+        internal static readonly decimal FeeRate = new decimal(5, 0, 0, false, 3);
 
         #endregion Fields
 
@@ -53,9 +56,28 @@ namespace AElf.Contracts.Resource
         #region Views
 
         [View]
-        public byte[] GetElfTokenAddress()
+        public string GetElfTokenAddress()
         {
-            return ElfTokenAddress.GetValue().DumpByteArray();
+            return ElfTokenAddress.GetValue().GetFormatted();
+        }
+
+        [View]
+        public string GetFeeAddress()
+        {
+            return FeeAddress.GetValue().GetFormatted();
+        }
+
+        [View]
+        public string GetResourceControllerAddress()
+        {
+            return ResourceControllerAddress.GetValue().GetFormatted();
+        }
+
+        [View]
+        public string GetConverter(string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            return Converters[new StringValue(){Value = resourceType}].ToString();
         }
 
         [View]
@@ -66,7 +88,7 @@ namespace AElf.Contracts.Resource
                 Address = address,
                 Type = ParseResourceType(resourceType)
             };
-            return UserResources[urk];
+            return UserBalances[urk];
         }
 
         [View]
@@ -74,7 +96,7 @@ namespace AElf.Contracts.Resource
         {
             AssertCorrectResourceType(resourceType);
             var rt = new StringValue() {Value = resourceType};
-            return ConnectorPairs[rt].ResBalance;
+            return Converters[rt].ResBalance;
         }
 
         [View]
@@ -82,50 +104,64 @@ namespace AElf.Contracts.Resource
         {
             AssertCorrectResourceType(resourceType);
             var rt = new StringValue() {Value = resourceType};
-            return ConnectorPairs[rt].ElfBalance;
+            return Converters[rt].ElfBalance;
         }
 
         #endregion Views
 
         #region Actions
 
-        public void Initialize(Address elfTokenAddress)
+        public void Initialize(Address elfTokenAddress, Address feeAddress, Address resourceControllerAddress)
         {
             var initialized = Initialized.GetValue();
-            Api.Assert(!initialized, $"Already initialized.");
+            Api.Assert(!initialized, "Already initialized.");
             ElfTokenAddress.SetValue(elfTokenAddress);
+            FeeAddress.SetValue(feeAddress);
+            ResourceControllerAddress.SetValue(resourceControllerAddress);
             foreach (var resourceType in ResourceTypes)
             {
                 var rt = new StringValue() {Value = resourceType};
-                var c = ConnectorPairs[rt];
-                c.ElfBalance = 1000000;
-                ConnectorPairs[rt] = c;
+                Converters[rt] = new Converter()
+                {
+                    ElfBalance = 1000000,
+                    ElfWeight = 500000, // Denominated by 1,000,000
+                    ResBalance = 1000000,
+                    ResWeight = 500000, // Denominated by 1,000,000
+                    ResourceType = ParseResourceType(resourceType)
+                };
             }
 
             Initialized.SetValue(true);
         }
 
-        public void AdjustResourceCap(string resourceType, ulong newCap)
+        public void IssueResource(string resourceType, ulong delta)
         {
-            // TODO: Limit the permission to delegate nodes' multisig
-            AssertCorrectResourceType(resourceType);
-            var rt = new StringValue() {Value = resourceType};
-            var connector = ConnectorPairs[rt];
-            connector.ResBalance = newCap;
-            ConnectorPairs[rt] = connector;
+            checked
+            {
+                Api.Assert(ResourceControllerAddress.GetValue() == Api.GetTransaction().From,
+                    "Only resource controller is allowed to perform this action.");
+                AssertCorrectResourceType(resourceType);
+                var rt = new StringValue() {Value = resourceType};
+                var cvt = Converters[rt];
+                cvt.ResBalance += delta;
+                Converters[rt] = cvt;
+            }
         }
 
         public void BuyResource(string resourceType, ulong paidElf)
         {
             AssertCorrectResourceType(resourceType);
-            var payout = this.BuyResourceFromExchange(resourceType, paidElf);
+            var fees = (ulong) (paidElf * FeeRate);
+            var elfForRes = paidElf - fees;
+            var payout = this.BuyResourceFromExchange(resourceType, elfForRes);
             var urk = new UserResourceKey()
             {
                 Address = Api.GetTransaction().From,
                 Type = ParseResourceType(resourceType)
             };
-            UserResources[urk] = UserResources[urk].Add(payout);
-            ElfToken.TransferByUser(Api.GetContractAddress(), paidElf);
+            UserBalances[urk] = UserBalances[urk].Add(payout);
+            ElfToken.TransferByUser(Api.GetContractAddress(), elfForRes);
+            ElfToken.TransferByUser(FeeAddress.GetValue(), fees);
         }
 
         public void SellResource(string resourceType, ulong resToSell)
@@ -134,13 +170,15 @@ namespace AElf.Contracts.Resource
             Api.Assert(bal >= resToSell, $"Insufficient {resourceType.ToUpper()} balance.");
             AssertCorrectResourceType(resourceType);
             var elfToReceive = this.SellResourceToExchange(resourceType, resToSell);
+            var fees = (ulong) (elfToReceive * FeeRate);
             var urk = new UserResourceKey()
             {
                 Address = Api.GetTransaction().From,
                 Type = ParseResourceType(resourceType)
             };
-            UserResources[urk] = UserResources[urk].Sub(resToSell);
-            ElfToken.TransferByContract(Api.GetTransaction().From, elfToReceive);
+            UserBalances[urk] = UserBalances[urk].Sub(resToSell);
+            ElfToken.TransferByContract(Api.GetTransaction().From, elfToReceive - fees);
+            ElfToken.TransferByContract(FeeAddress.GetValue(), fees);
         }
 
         #endregion Actions
