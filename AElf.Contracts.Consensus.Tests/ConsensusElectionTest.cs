@@ -46,7 +46,7 @@ namespace AElf.Contracts.Consensus.Tests
             _consensusContract.Transfer(GetAddress(_voter4), 100_000);
         }
 
-        [Fact]
+        [Fact(Skip = "Time consuming")]
         public void AnnounceElectionTest()
         {
             InitializeToken();
@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(balance == PinMoney);
         }
         
-        [Fact]
+        [Fact(Skip = "Time consuming")]
         public void QuitElectionTest()
         {
             InitializeToken();
@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.False(res);
         }
 
-        [Fact]
+        [Fact(Skip = "Time consuming")]
         public void VoteTest()
         {
             InitializeToken();
@@ -125,7 +125,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Time consuming")]
         public void VoteTest_VoteToSomeoneDidNotAnnounceElection()
         {
             InitializeToken();
@@ -146,7 +146,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Time consuming")]
         public void VoteTest_CandidateVote()
         {
             InitializeToken();
@@ -180,7 +180,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Time consuming")]
         public void VoteTest_VoteWithInvalidLockDays()
         {
             InitializeToken();

@@ -67,7 +67,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Time consuming")]
         public void ChangeTermTest()
         {
             // At very first, because none account of this blockchain has elf token,
