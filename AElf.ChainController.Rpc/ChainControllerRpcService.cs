@@ -374,7 +374,7 @@ namespace AElf.ChainController.Rpc
             {
                 return JObject.FromObject(new JObject
                 {
-                    ["error"] = "Invalid Address Format"
+                    ["error"] = "Invalid Format"
                 });
             }
 
@@ -488,28 +488,31 @@ namespace AElf.ChainController.Rpc
             var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
             response["tx_trc"] = txtrc?.ToString();
 #endif
+            
             if (txResult.Status == Status.Failed)
             {
                 response["tx_error"] = txResult.RetVal.ToStringUtf8();
             }
-
-                if (txResult.Status == Status.Mined)
+            
+            if (txResult.Status == Status.Mined)
+            {
+                response["block_number"] = txResult.BlockNumber;
+                response["block_hash"] = txResult.BlockHash.DumpHex();
+#if DEBUG
+                response["return_type"] = txtrc.RetVal.Type.ToString();
+#endif
+                try
                 {
-                    response["block_number"] = txResult.BlockNumber;
-                    response["block_hash"] = txResult.BlockHash.DumpHex();
-                    
-                    try
-                    {
-                        response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
+                    response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
 
-                    }
-                    catch (Exception e)
-                    {
-                        // not an error
-                        response["return"] = txResult.RetVal.ToByteArray().ToHex();
-                    }
                 }
-                // Todo: it should be deserialized to obj ion cli, 
+                catch (Exception e)
+                {
+                    // not an error
+                    response["return"] = txResult.RetVal.ToByteArray().ToHex();
+                }
+            }
+            // Todo: it should be deserialized to obj ion cli, 
 
             return response;
         }

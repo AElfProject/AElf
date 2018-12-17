@@ -4,7 +4,7 @@ using CommandLine;
 
 namespace AElf.CLI2.Commands.Proposal
 {
-    [Verb("approve-proposal", HelpText = "Get the block info for a block height.")]
+    [Verb("approve-proposal", HelpText = "Approve the proposal provided.")]
     public class ApprovalOption : BaseOption
     {
         [Value(0, HelpText = "Hash of proposal you want to approve. ", Required = true)]
