@@ -418,7 +418,7 @@ namespace AElf.Sdk.CSharp
                 Type = TransactionType.MsigTransaction
             }.ToByteArray();
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = DateTime.UtcNow.ToUniversalTime() - origin;
+            TimeSpan diff = DateTime.UtcNow.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
             
             Proposal proposal = new Proposal
             {
