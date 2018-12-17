@@ -57,7 +57,7 @@ namespace AElf.Kernel.Consensus
             {
                 var miners =
                     Miners.Parser.ParseFrom(
-                        await GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSOngoingMinersString)));
+                        await GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSMinersString)));
                 return miners;
             }
             catch (Exception ex)

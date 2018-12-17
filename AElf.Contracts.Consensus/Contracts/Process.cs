@@ -92,7 +92,11 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextRound(Forwarding forwarding)
         {
-            // TODO: time slot validation
+            if (forwarding.NextRoundInfo.MinersHash() == GetCurrentRoundInfo().MinersHash())
+            {
+                _collection.MinersMap.SetValue(CurrentTermNumber.ToUInt64Value(),
+                    forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.ToMiners());
+            }
 
             // First handle the age of this blockchain
             if (forwarding.CurrentAge != CurrentAge)
@@ -302,6 +306,10 @@ namespace AElf.Contracts.Consensus.Contracts
                 {
                     ticketsMap.Add(candidate, tickets.TotalTickets);
                 }
+                else
+                {
+                    ticketsMap.Add(candidate, 0);
+                }
             }
 
             return ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
@@ -324,7 +332,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
             Console.WriteLine($"Mined {minedBlocks} blocks in current term.");
 
-            Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber, minedBlocks * GlobalConfig.ElfTokenPerBlock);
+            Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber, Config.GetDividendsForVoters(minedBlocks));
 
             var candidateInTerms = new List<CandidateInTerm>();
 

@@ -303,7 +303,7 @@ message CandidateInHistory {
 
 ### GetTermNumberByRoundNumber
 
-Params:
+参数:
 - ulong roundNumber
 
 获取所提供轮数所在的届数。

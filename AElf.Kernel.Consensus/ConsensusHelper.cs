@@ -310,18 +310,25 @@ namespace AElf.Kernel.Consensus
             _logger?.Trace("Log dpos information - End");
         }
 
-        public Round GetCurrentRoundInfo(UInt64Value currentRoundNumber = null)
+        public Round GetCurrentRoundInfo()
         {
-            if (currentRoundNumber == null)
-            {
-                currentRoundNumber = CurrentRoundNumber;
-            }
+            return CurrentRoundNumber.Value != 0 ? this[CurrentRoundNumber] : null;
+        }
 
-            return currentRoundNumber.Value != 0 ? this[currentRoundNumber] : null;
+        public Miners GetCurrentMiners()
+        {
+            var bytes = _reader.ReadMap<Miners>(CurrentTermNumber, GlobalConfig.AElfDPoSMinersMapString);
+            var miners = AElf.Kernel.Miners.Parser.ParseFrom(bytes);
+            return miners;
+        }
+
+        public TermSnapshot GetLatestTermSnapshot()
+        {
+            var bytes = _reader.ReadMap<TermSnapshot>(CurrentTermNumber, GlobalConfig.AElfDPoSSnapshotMapString);
+            var snapshot = TermSnapshot.Parser.ParseFrom(bytes);
+            return snapshot;
         }
         
-
-
         public bool TryGetRoundInfo(ulong roundNumber, out Round roundInfo)
         {
             if (roundNumber == 0)

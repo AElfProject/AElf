@@ -87,5 +87,10 @@ namespace AElf.Kernel
                 RealTimeMinersInfo.Values.Aggregate(Hash.Default,
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
+
+        public Hash MinersHash()
+        {
+            return Hash.FromMessage(RealTimeMinersInfo.Keys.ToMiners());
+        }
     }
 }

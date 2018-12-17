@@ -51,7 +51,7 @@ namespace AElf.Common
         public const int ProducerRepetitions = 8;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
-        public const string AElfDPoSOngoingMinersString = "__AElfBlockProducer__";
+        public const string AElfDPoSMinersString = "__AElfBlockProducer__";
         public const string AElfDPoSRoundsMapString = "__AElfDPoSRoundsMapString__";
         public const string AElfDPoSMinersMapString = "__AElfDPoSMinersMapString__";
         public const string AElfDPoSAgeFieldString = "__AElfDPoSAgeFieldString__";
@@ -59,7 +59,7 @@ namespace AElf.Common
         public const string AElfDPoSTicketsMapString = "__AElfDPoSTicketsMapString__";
         public const string AElfDPoSCandidatesString = "__AElfDPoSCandidatesString__";
         public const string AElfDPoSTermNumberLookupString = "__AElfDPoSTermNumberLookUpString__";
-        public const string AElfDPoSSnapshotFieldString = "__AElfDPoSSnapshotFieldString__";
+        public const string AElfDPoSSnapshotMapString = "__AElfDPoSSnapshotFieldString__";
         public const string AElfDPoSDividendsMapString = "__AElfDPoSDividendsMapString__";
         public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
         public const string AElfVotingRecordsString = "__AElfVotingRecordsString__";

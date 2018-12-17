@@ -1,13 +1,16 @@
 ﻿{
   "producers":{
     "1": {
-      "address": "04e4bb019b3d8eb89c12a32ede9f82c77c24"
+      "public_key": "b82d2e8c2ad6f669edb7597b03e65e9ea4fc8c657b87cded34b3ea64219cb01c07a9e67c492ecb31d5e5da8ff8dbbdcfe4eeafd53c964b829c24d48ed481333e",
+      "address": "ELF_AELF_jt7sAjMqQmqMmGSvyi8sSimG7EV97nC1quriSbqxiFmy4JdYv"
     },
     "2": {
-      "address": "04d977d9e16e6c12055da9fc5d9eca287829"
+      "public_key": "e7fd50c19ee2218721c1d901b43374562381ea0bef8af62c5cb83e178b660cb866bd4236041f63f6d2d7c6f2d95bc5597a3cf23c78d018f816125b56e3e3a6cc",
+      "address": "ELF_AELF_2vHWyZ8d6Shf4am7A6DnZLRDNHVogesaYfu4my6LHs7uYfUQNV"
     },
     "3": {
-      "address": "04b478c4e2e7ff66003f095acdaae2fcfef5"
+      "public_key": "2348c842ca2a970b93d6be4fa0afb6b9558ddef9f3d2e18a8dcfea7cdced4c9e35e753a4d37410ebf908426a73d35e0c862ac12e59a6412619984d21fd4538c8",
+      "address": "ELF_AELF_2YAmq125St9GYFSXWrXtTdqmyPPZxh45tFmXX6kRtjURLyb2hw"
     }
   }
 }

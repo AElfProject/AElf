@@ -30,10 +30,9 @@ namespace AElf.Kernel.Node
     // ReSharper disable InconsistentNaming
     public class DPoS : IConsensus
     {
-        /// <summary>
-        /// Actually store the round number of DPoS processing.
-        /// </summary>
-        private ulong ConsensusMemory { get; set; }
+        private ulong LatestRoundNumber { get; set; }
+        
+        private ulong LatestTermNumber { get; set; }
 
         private static IDisposable ConsensusDisposable { get; set; }
 
@@ -365,7 +364,7 @@ namespace AElf.Kernel.Node
                     }
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
-                    var roundInfo = _helper.GetCurrentRoundInfo(currentRoundNumber);
+                    var roundInfo = _helper.GetCurrentRoundInfo();
 
                     var signature = Hash.Default;
 
@@ -440,8 +439,7 @@ namespace AElf.Kernel.Node
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
-                    var currentRoundNumber = _helper.CurrentRoundNumber;
-                    var roundInfo = _helper.GetCurrentRoundInfo(currentRoundNumber);
+                    var roundInfo = _helper.GetCurrentRoundInfo();
 
                     if (!_consensusData.Any())
                     {
@@ -510,7 +508,7 @@ namespace AElf.Kernel.Node
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
-                    var roundInfo = _helper.GetCurrentRoundInfo(currentRoundNumber);
+                    var roundInfo = _helper.GetCurrentRoundInfo();
                     if (_helper.TryGetRoundInfo(currentRoundNumber.Value - 1, out var previousRoundInfo))
                     {
                         roundInfo = roundInfo.Supplement(previousRoundInfo);
@@ -522,12 +520,35 @@ namespace AElf.Kernel.Node
 
                     var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
 
-                    var calculateAge = _helper.CalculateBlockchainAge();
+                    var calculatedAge = _helper.CalculateBlockchainAge();
 
-                    if (calculateAge % GlobalConfig.DaysEachTerm == 0)
+                    if (calculatedAge % GlobalConfig.DaysEachTerm == 0)
                     {
                         throw new NextTermException();
                     }
+
+                    var miners = Miners;
+
+                    foreach (var minerInRound in nextRoundInfo.RealTimeMinersInfo.Values)
+                    {
+                        if (minerInRound.MissedTimeSlots >= GlobalConfig.MaxMissedTimeSlots)
+                        {
+                            var poorGuyPublicKey = minerInRound.PublicKey;
+                            var latestTermSnapshot = _helper.GetLatestTermSnapshot();
+                            var luckyGuyPublicKey = latestTermSnapshot.GetNextCandidate(miners);
+                            
+                            nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey] =
+                                nextRoundInfo.RealTimeMinersInfo[poorGuyPublicKey];
+                            nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].MissedTimeSlots = 0;
+                            nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].ProducedBlocks = 0;
+                            nextRoundInfo.RealTimeMinersInfo.Remove(poorGuyPublicKey);
+                            
+                            miners.PublicKeys.Remove(poorGuyPublicKey);
+                            miners.PublicKeys.Add(luckyGuyPublicKey);
+                        }
+                    }
+
+                    await _minersManager.SetMiners(miners);
 
                     var parameters = new List<object>
                     {
@@ -535,7 +556,7 @@ namespace AElf.Kernel.Node
                         {
                             CurrentRoundInfo = roundInfo,
                             NextRoundInfo = nextRoundInfo,
-                            CurrentAge = calculateAge
+                            CurrentAge = calculatedAge
                         }
                     };
 
@@ -634,9 +655,26 @@ namespace AElf.Kernel.Node
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
-            if (ConsensusMemory == _helper.CurrentRoundNumber.Value)
-                return;
+            // Update miners.
+            if (LatestTermNumber == _helper.CurrentTermNumber.Value + 1)
+            {
+                await _minersManager.SetMiners(_helper.GetCurrentMiners());
+            }
 
+            if (LatestRoundNumber == _helper.CurrentRoundNumber.Value)
+            {
+                return;
+            }
+
+            if (_helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
+            {
+                var currentRoundInfo = _helper.GetCurrentRoundInfo();
+                if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
+                {
+                    await _minersManager.SetMiners(_helper.GetCurrentMiners());
+                }
+            }
+            
             // Dispose previous observer.
             if (ConsensusDisposable != null)
             {
@@ -655,7 +693,7 @@ namespace AElf.Kernel.Node
             ConsensusDisposable = ConsensusObserver.SubscribeMiningProcess(_helper.GetCurrentRoundInfo());
 
             // Update current round number.
-            ConsensusMemory = _helper.CurrentRoundNumber.Value;
+            LatestRoundNumber = _helper.CurrentRoundNumber.Value;
         }
 
         public bool IsAlive()

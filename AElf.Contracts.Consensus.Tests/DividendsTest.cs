@@ -81,8 +81,11 @@ namespace AElf.Contracts.Consensus.Tests
                 inValuesList.Push(inValue);
                 outValuesList.Push(Hash.FromMessage(inValue));
             }
+
+            var index = 0;
             foreach (var newMiner in victories)
             {
+                index++;
                 _consensusContract.PackageOutValue(GetCandidateKeyPair(newMiner), new ToPackage
                 {
                     OutValue = outValuesList.Pop(),
@@ -96,6 +99,8 @@ namespace AElf.Contracts.Consensus.Tests
                     RoundId = secondRound.RoundId
                 });
             }
+
+            Console.WriteLine(index);
             
             // Third item.
             var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3, 3);

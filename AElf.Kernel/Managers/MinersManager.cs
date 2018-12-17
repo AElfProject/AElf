@@ -13,7 +13,7 @@ namespace AElf.Kernel.Managers
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(MinersManager));
 
-        private static Hash Key => Hash.FromRawBytes(GlobalConfig.AElfDPoSOngoingMinersString.CalculateHash());
+        private static Hash Key => Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash());
 
         public MinersManager(IDataStore dataStore)
         {
