@@ -84,6 +84,33 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
+        public List<string> GetCandidatesList()
+        {
+            return Collection.CandidatesField.GetValue().PublicKeys.ToList();
+        }
+
+        [View]
+        public CandidateInHistory GetCandidateHistoryInfo(string publicKey)
+        {
+            Api.Assert(Collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var info), "No such candidate.");
+            return info;
+        }
+
+        [View]
+        public List<string> GetCurrentMiners()
+        {
+            var currentRoundNumber = Collection.CurrentRoundNumberField.GetValue();
+            Api.Assert(currentRoundNumber != 0, "DPoS process hasn't started yet.");
+            if (Collection.RoundsMap.TryGet(currentRoundNumber.ToUInt64Value(), out var currentRoundInfo))
+            {
+                var realTimeMiners = currentRoundInfo.RealTimeMinersInfo;
+                return realTimeMiners.Keys.ToList();
+            }
+            
+            return new List<string>();
+        }
+
+        [View]
         public Tickets GetTicketsInfo(string publicKey)
         {
             Api.Assert(Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets), GlobalConfig.TicketsNotFound);
@@ -101,7 +128,7 @@ namespace AElf.Contracts.Consensus
         {
             return Process.GetCurrentVictories();
         }
-
+  
         [View]
         public TermSnapshot GetTermSnapshot(ulong termNumber)
         {
@@ -152,20 +179,6 @@ namespace AElf.Contracts.Consensus
         public void WithdrawAll()
         {
             Election.Withdraw();
-        }
-        
-        [View]
-        public List<string> GetCurrentMiners()
-        {
-            var currentRoundNumber = Collection.CurrentRoundNumberField.GetValue();
-            Api.Assert(currentRoundNumber != 0, "DPoS process hasn't started yet.");
-            if (Collection.RoundsMap.TryGet(currentRoundNumber.ToUInt64Value(), out var currentRoundInfo))
-            {
-                var realTimeMiners = currentRoundInfo.RealTimeMinersInfo;
-                return realTimeMiners.Keys.ToList();
-            }
-            
-            return new List<string>();
         }
         
         #endregion
