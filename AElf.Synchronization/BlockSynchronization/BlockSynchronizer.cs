@@ -307,6 +307,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
             // BlockAppending -> Catching / Caught
             MessageHub.Instance.Publish(StateEvent.BlockAppended);
+            
+            MessageHub.Instance.Publish(new BlockExecuted(block));
 
             return BlockExecutionResult.Success;
         }
@@ -441,6 +443,8 @@ namespace AElf.Synchronization.BlockSynchronization
                     if (res.IsSuccess())
                     {
                         MessageHub.Instance.Publish(StateEvent.BlockAppended);
+                        
+                        MessageHub.Instance.Publish(new BlockExecuted(block));
                     }
 
                     if (new Random().Next(10000) % 1000 == 0)
