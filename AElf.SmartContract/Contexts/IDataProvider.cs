@@ -28,7 +28,7 @@ namespace AElf.SmartContract
         /// <summary>
         /// Injected from outside for entry data provider of the executive (in worker actor)
         /// </summary>
-        Dictionary<DataPath, StateCache> StateCache { get; set; }
+        Dictionary<StatePath, StateCache> StateCache { get; set; }
         
         /// <summary>
         /// Clear cache of this instance and sub DataProviders instance.

@@ -34,7 +34,7 @@ namespace AElf.Execution.Execution
             TransactionType transactionType = TransactionType.ContractTransaction)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
-            var stateCache = new Dictionary<DataPath, StateCache>();
+            var stateCache = new Dictionary<StatePath, StateCache>();
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
@@ -71,7 +71,7 @@ namespace AElf.Execution.Execution
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
-            IChainContext chainContext, Dictionary<DataPath, StateCache> stateCache,
+            IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
             CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -106,6 +106,7 @@ namespace AElf.Execution.Execution
                 await executive.SetTransactionContext(txCtxt).Apply();
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
+                    Console.WriteLine($"Executing inline {inlineTx.MethodName}");
                     var inlineTrace = await ExecuteOneAsync(depth + 1, inlineTx, chainId, chainContext, stateCache,
                         cancellationToken);
                     trace.InlineTraces.Add(inlineTrace);
