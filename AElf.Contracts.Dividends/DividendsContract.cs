@@ -15,7 +15,8 @@ namespace AElf.Contracts.Dividends
         // Term Number -> Dividends Amount
         private readonly Map<UInt64Value, UInt64Value> _dividendsMap =
             new Map<UInt64Value, UInt64Value>(GlobalConfig.DividendsMapString);
-
+        
+        // Term Number -> Total weights
         private readonly Map<UInt64Value, UInt64Value> _totalWeightsMap =
             new Map<UInt64Value, UInt64Value>(GlobalConfig.TotalWeightsMapString);
         
@@ -39,11 +40,12 @@ namespace AElf.Contracts.Dividends
                 if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
                 {
                     actualTermNumber = i;
-                    var minedBlocks = Api.GetTermSnapshot(i).TotalBlocks;
-                    var dividendsAmount = minedBlocks * GlobalConfig.ElfTokenPerBlock * votingRecord.Weight /
-                                    totalWeights.Value;
-                    Console.WriteLine($"Transferred {dividendsAmount} dividends to {owner}");
-                    Api.SendInline(Api.TokenContractAddress, "Transfer", ownerAddress, dividendsAmount);
+                    if (_dividendsMap.TryGet(i.ToUInt64Value(), out var dividends))
+                    {
+                        var dividendsAmount = dividends.Value * votingRecord.Weight / totalWeights.Value;
+                        Console.WriteLine($"Transferred {dividendsAmount} dividends to {owner}");
+                        Api.SendInline(Api.TokenContractAddress, "Transfer", ownerAddress, dividendsAmount);
+                    }
                 }
             }
 

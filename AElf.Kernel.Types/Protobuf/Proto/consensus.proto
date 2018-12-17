@@ -91,6 +91,7 @@ message MinerInRound {
     uint64 MissedTimeSlots = 9;
     uint64 RoundNumber = 10;
     string PublicKey = 11;
+    uint64 PackagedTxsCount = 12;
 }
 
 message CandidateInHistory {

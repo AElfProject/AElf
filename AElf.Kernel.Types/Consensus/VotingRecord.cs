@@ -7,7 +7,7 @@ namespace AElf.Kernel
     {
         private TimeSpan PastTime => DateTime.UtcNow - VoteTimestamp.ToDateTime();
 
-        public ulong Weight => (GetCurrentLockingDays() / 270 + 2 / 3) * Count;
+        public ulong Weight => (GetCurrentLockingDays() * 10 / 270 + 2 / 3) * Count;
 
         public ulong DurationDays
         {

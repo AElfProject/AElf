@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -308,8 +307,7 @@ namespace AElf.Contracts.Consensus.Contracts
             var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
 
-            Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber,
-                minedBlocks * GlobalConfig.ElfTokenPerBlock);
+            Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber, minedBlocks * GlobalConfig.ElfTokenPerBlock);
 
             var candidateInTerms = new List<CandidateInTerm>();
 
