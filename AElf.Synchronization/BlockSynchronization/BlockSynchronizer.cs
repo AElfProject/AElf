@@ -359,7 +359,7 @@ namespace AElf.Synchronization.BlockSynchronization
             await BlockChain.RollbackToHeight(targetHeight - 1);
 
             // Revert block set.
-            _blockSet.InformRollback(targetHeight, currentHeight);
+            //_blockSet.InformRollback(targetHeight, currentHeight);
 
             // Reverting -> Catching
             MessageHub.Instance.Publish(StateEvent.RollbackFinished);
