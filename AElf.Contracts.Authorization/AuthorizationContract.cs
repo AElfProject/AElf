@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Timers;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -137,7 +138,7 @@ namespace AElf.Contracts.Authorization
             // check authorization and permission 
             var proposal = _proposals.GetValue(hash);
             Api.Assert(!proposal.Equals(new Proposal()), "Proposal not found.");
-            //Api.Assert(DateTime.UtcNow < proposal.ExpiredTime.ToDateTime(), "Expired proposal.");
+            Api.Assert(DateTime.UtcNow < TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime), "Expired proposal.");
             
             var msig = proposal.MultiSigAccount;
             var authorization = GetAuth(msig);

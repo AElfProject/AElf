@@ -94,7 +94,7 @@ namespace AElf.CLI2.JS
         private void LoadAelfJs()
         {
             RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI2.Scripts.aelf.js"));
+                .GetManifestResourceStream("AElf.CLI2.Scripts.aelf.min.js"));
             RunScript(@"Aelf = require('aelf');");
         }
 

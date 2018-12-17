@@ -44,23 +44,5 @@ namespace AElf.CLI2.Commands
             _engine.GlobalObject.CallMethod<int, string>("deployCommand", _option.Category,
                 GetCode(_option.Codefile));
         }
-
-        private static string GetCode(string path)
-        {
-            using (var br = File.OpenRead(path))
-            {
-                return ReadFully(br).ToHex().ToLower();
-            }
-        }
-
-        private static byte[] ReadFully(Stream stream)
-        {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                stream.CopyTo(ms);
-                ms.Position = 0;
-                return ms.ToArray();
-            }
-        }
     }
 }
