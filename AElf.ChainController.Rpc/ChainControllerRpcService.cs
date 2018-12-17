@@ -498,7 +498,9 @@ namespace AElf.ChainController.Rpc
             {
                 response["block_number"] = txResult.BlockNumber;
                 response["block_hash"] = txResult.BlockHash.DumpHex();
+#if DEBUG
                 response["return_type"] = txtrc.RetVal.Type.ToString();
+#endif
                 try
                 {
                     response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
