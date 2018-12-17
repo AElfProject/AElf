@@ -1,5 +1,115 @@
 # Voting / Election System
 
+## Available Methods
+
+### AnnounceElection
+
+*No params*
+
+To announce election.
+
+This will currently lock **100,000** elf tokens of the caller to Consensus Contract Account.
+
+At the same time, the caller's public key will be added to the candidates list.
+
+### QuitElection
+
+*No params*
+
+To quit election.
+
+Transfer the specific amount of tokens back to the caller, at the same time remove related public key from the candidates list.
+
+### Vote
+
+Params:
+- string publicKeyHexString
+- ulong amount
+- ink lockdays
+
+To vote to a candidate via specifc amount of tickets and lock days.
+
+This behavior will generate a instance of VotingReocrd, which will append to both the voter and candidate.
+
+The **Weight** of this voting (VotingRecord) will be calculated by tickets amount and lock days.
+
+In addition, current candidates can't vote to any public key.
+
+### GetAllDividends
+
+*No params*
+
+To get all the dividends for locked tokens of the caller, which should be a voter.
+
+### WithdrawAll
+
+*No params*
+
+To withdraw all the locked tokens of the caller.
+
+### IsCandidate
+
+Params:
+- string publicKeyHexString
+
+To check whether the provided public key contained by the candidates list.
+
+### GetCandidatesList
+
+*No params*
+
+To get current candidates list.
+
+### GetCandidateHistoryInfo
+
+Params:
+- string publicKeyHexString
+
+To get the history information of provided candidate.
+
+No need to be the current candidate.
+
+### GetCurrentMiners
+
+*No params*
+
+To get current miners.
+
+### GetTicketsInfo
+
+Params:
+- string publicKeyHexString
+
+To get the tickets information of provided public key.
+
+If this public key ever joined election, the voting records will also contain his supportters'.
+
+### GetBlockchainAge
+
+*No params*
+
+To get the age of this blockchain. (Currently the unit is day.)
+
+### GetCurrentVictories
+
+*No params*
+
+To get the victories of ongoing election.
+
+### GetTermSnapshot
+
+Params:
+- ulong termNumbner
+
+To get the term snapshot of provided term number.
+
+### GetTermNumberByRoundNumber
+
+Params:
+- ulong roundNumber
+
+To get the term number of provided round number.
+
 ## Data Structure
 
 ```Protobuf
@@ -7,6 +117,10 @@
 message Miners {
     uint64 TermNumber = 1;
     repeated string PublicKeys = 2;
+}
+
+message TermNumberLookUp {
+    map<uint64, uint64> Map = 1;// Term number -> Round number.
 }
 
 message Candidates {
@@ -73,55 +187,114 @@ message CandidateInHistory {
 }
 ```
 
-In `ConsensusContract`:
+# 投票/选举系统
 
-- A field of `Candidates` (called `CandidatesField`)
-  - record all the candidates.
+## 可用方法
 
-- A map of `BytesValue` to `StringValue` (called `AliasMap`)
-  - maintains all the aliases of candidates.
+### AnnounceElection
 
-- A map of `BytesValue` to `Tickets` (called `BalanceMap`)
-  - maintains all the tickets of voters, including their voting histories.
+*无参数*
 
-- A map of `UInt64Value` to `ElectionSnapshot` (called `SnapshotMap`)
-  - maintains the snapshots of every replacement of block producers; key stands for round number.
-  
-## For candidates
+用于参加下一届选举。
 
-### Announce election
-Send transaction `AnnouceElection` to `ConsensusContract`;
-- No parameter
+目前该方法会为调用者锁**100,000**个ELF，转入共识合约的账户。
 
-### Quit election
-Send transaction `QuitElection` to `ConsensusContract`
-- No parameter
+同时，调用者的公钥会被加入候选人列表中。
 
-## For voters
+### QuitElection
+
+*无参数*
+
+用于放弃下一届及以后的选举。
+
+调用者将会拿回参加竞选时锁仓的代币，其公钥也会被移出候选人列表。
 
 ### Vote
-Send transaction `Vote` to `ConsensusContract`
-- `byte[]` candidatePubKey
-- `ulong` ticketsAmount
-- `int` lockDays (default and minimum value is 90)
 
-### Renew
-Send transaction `Renew` to `ConsensusContract`
-- `byte[]` candidatePubKey
-- `ulong` ticketsAmount
-- `int` lockDays (default and minimum value is 90)
+Params:
+- string publicKeyHexString
+- ulong amount
+- ink lockamount
 
-### Withdraw (to get ELFs back)
-Send transaction `Withdraw` to `ConsensusContract`
-- `Address` candidateAddress
-- `ulong` ticketsAmount
+为候选人投票，所需参数为投票数目amount，锁仓时间lockamount。
 
-or 
+该方法会为投票人和被投票的候选人共同增加一个VotingReocrd实例。
 
-- `Hash` transactionId
+这一笔投票的**权重**与投票数目、锁仓时间都相关。
 
-### GetDividends
-- No parameter
+当前候选人不能为任何人投票。
 
-### QueryDividends
-- No parameter
+### GetAllDividends
+
+*无参数*
+
+投票者获取自己所有的锁仓分红。
+
+### WithdrawAll
+
+*无参数*
+
+投票者赎回自己的选票。
+
+### IsCandidate
+
+Params:
+- string publicKeyHexString
+
+检查提供的公钥是否是候选人的公钥。
+
+### GetCandidatesList
+
+*无参数*
+
+获取候选人公钥列表。
+
+### GetCandidateHistoryInfo
+
+Params:
+- string publicKeyHexString
+
+获取所提供公钥的候选人的贡献历史。
+
+该候选人不必是当前候选人。
+
+### GetCurrentMiners
+
+*无参数*
+
+获取当前在任的区块生产者公钥列表，
+
+### GetTicketsInfo
+
+Params:
+- string publicKeyHexString
+
+获取所提供公钥的投票详情，
+
+如果该公钥曾经参与过竞选，其投票详情中会包括其支持者对他的投票。
+
+### GetBlockchainAge
+
+*无参数*
+
+获取区块链的年龄。（当前时间为天）。
+
+### GetCurrentVictories
+
+*无参数*
+
+获取当前竞选的前17名。
+
+### GetTermSnapshot
+
+Params:
+- ulong termNumbner
+
+获取所提供届数的快照。
+
+### GetTermNumberByRoundNumber
+
+Params:
+- ulong roundNumber
+
+获取所提供轮数所在的届数。

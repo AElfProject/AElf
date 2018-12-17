@@ -123,9 +123,10 @@ namespace AElf.Common
         public const string CandidateCannotVote = "Candidate can't vote.";
         public const string LockDayIllegal = "Lock days is illegal.";
         public const string RoundIdNotMatched = "Round Id not matched.";
-        public const string InValueNotMatchToOutValue = "In Value not match to Out Value";
-        public const string OutValueIsNull = "Out Value is null";
-        public const string SignatureIsNull = "Signature is null";
+        public const string InValueNotMatchToOutValue = "In Value not match to Out Value.";
+        public const string OutValueIsNull = "Out Value is null.";
+        public const string SignatureIsNull = "Signature is null.";
+        public const string VoterCannotAnnounceElection = "Voter can't announce election.";
 
         #endregion
     }

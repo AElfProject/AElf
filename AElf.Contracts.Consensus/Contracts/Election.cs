@@ -20,6 +20,12 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void AnnounceElection()
         {
+            // A voter cannot join the election before all his voting record expired.
+            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            {
+                Api.Assert(tickets.VotingRecords.All(t => t.IsExpired()), GlobalConfig.VoterCannotAnnounceElection);
+            }
+            
             Api.LockToken(GlobalConfig.LockTokenForElection);
             var candidates = _collection.CandidatesField.GetValue();
             candidates.PublicKeys.Add(Api.RecoverPublicKey().ToHex());
@@ -34,18 +40,18 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.CandidatesField.SetValue(candidates);
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockDays)
+        public void Vote(string candidatePublicKey, ulong amount, int lockAmount)
         {
-            if (lockDays.InRange(1, 3))
+            if (lockAmount.InRange(1, 3))
             {
-                lockDays *= 360;
+                lockAmount *= 360;
             }
-            else if (lockDays.InRange(12, 36))
+            else if (lockAmount.InRange(12, 36))
             {
-                lockDays *= 30;
+                lockAmount *= 30;
             }
 
-            Api.Assert(lockDays.InRange(90, 1080), GlobalConfig.LockDayIllegal);
+            Api.Assert(lockAmount.InRange(90, 1080), GlobalConfig.LockDayIllegal);
 
             Api.Assert(_collection.CandidatesField.GetValue().PublicKeys.Contains(candidatePublicKey),
                 GlobalConfig.TargetNotAnnounceElection);
@@ -65,10 +71,10 @@ namespace AElf.Contracts.Consensus.Contracts
                 RoundNumber = _collection.CurrentRoundNumberField.GetValue(),
                 TransactionId = Api.GetTxnHash(),
                 VoteTimestamp = DateTime.UtcNow.ToTimestamp(),
-                UnlockAge = ageOfBlockchain + (ulong) lockDays,
+                UnlockAge = ageOfBlockchain + (ulong) lockAmount,
                 TermNumber = _collection.CurrentTermNumberField.GetValue()
             };
-            votingRecord.LockDaysList.Add((uint) lockDays);
+            votingRecord.LockDaysList.Add((uint) lockAmount);
 
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
