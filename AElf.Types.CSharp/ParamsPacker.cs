@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace AElf.Types.CSharp
             if (objs.Length == 0)
                 return new byte[] { };
             // Put plain clr data in Pb types.
-            if (!objs.All(o => o.GetType().IsAllowedType()))
+            if (!objs.All(o => o.GetType().IsArray && o.GetType().GetElementType().IsAllowedType() || o.GetType().IsAllowedType()))
             {
                 throw new Exception("Contains invalid type.");
             }
@@ -22,11 +23,26 @@ namespace AElf.Types.CSharp
             using (CodedOutputStream stream = new CodedOutputStream(mm))
             {
                 int fieldNumber = 1;
-                foreach (var o in objs)
+                foreach (var obj in objs)
                 {
-                    stream.WriteRawTag((byte) o.GetTagForFieldNumber(fieldNumber));
-                    o.WriteToStream(stream);
+                    stream.WriteRawTag((byte) obj.GetTagForFieldNumber(fieldNumber));
                     fieldNumber++;
+
+                    if (!obj.GetType().IsArray || obj.GetType() == typeof(byte[]))
+                    {
+                        obj.WriteToStream(stream);
+                        continue;
+                    }
+                    
+                    // object of array type
+                    var array = (ICollection) obj;
+                    // write array length
+                    stream.WriteUInt32((uint) array.Count);
+                    foreach (var o in (IEnumerable) obj)
+                    {
+                        o.WriteToStream(stream);
+                    }
+
                 }
 
                 stream.Flush();
