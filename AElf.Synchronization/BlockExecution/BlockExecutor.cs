@@ -97,7 +97,7 @@ namespace AElf.Synchronization.BlockExecution
                     _isLimitExecutionTime = true;
                 }
 
-                _logger?.Trace($"Current Event: {inState.ToString()} ,IsLimitExecutionTime: {_isLimitExecutionTime}");
+                _logger?.Trace($"Current Event: {inState.ToString()}, IsLimitExecutionTime: {_isLimitExecutionTime}.");
             });
         }
 

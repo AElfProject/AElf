@@ -1,13 +1,16 @@
 ﻿{
   "producers":{
     "1": {
-      "address": "04e4bb019b3d8eb89c12a32ede9f82c77c24"
+      "address": "ELF_4FeP2qLTgZLVFsziS7UDUA4hz2G47WHC8Lsbpx5df6QCCfq",
+      "public_key": "04c12d9459243cd31b3cc23caf9830fd35280928c4817e522b3e60235b09c7e828f777347640b15ac5102f21d9125832839973016fdcd835185079b4811725ecbb"
     },
     "2": {
-      "address": "04d977d9e16e6c12055da9fc5d9eca287829"
+      "address": "ELF_6UoVe7DGi7Kxt6qsjUrgbNrJD27L7Hh72EU65FSYDFp3o2F",
+      "public_key": "045cce2f14e7a1cf24a0923a61647be298bfaa323e5cd767c72b193b383eef92cd998961d28a777b977b4cf99e9fac18f0886753c0b3c81186e50a6848cbced2cf"
     },
     "3": {
-      "address": "04b478c4e2e7ff66003f095acdaae2fcfef5"
+      "address": "ELF_cS3xt4yHgt6YmtYPBYmm7pZ6GG3xiJaVcqHxD2qPtbw32N",
+      "public_key": "04e10d632e594d2d0f923c5dabd476a27cec5ee0efb9ee0a1840f9393e6f874b7d3b0d80116a63bec832f248e3571a2b1755d7b8ab4a06297704e7fa2f4a30e2ce"
     }
   }
 }
