@@ -12,8 +12,8 @@ namespace AElf.Contracts.Consensus.Tests
     [UseAutofacTestFramework]
     public class TermTest
     {
-        private const int CandidatesCount = 20;
-        private const int VotersCount = 10;
+        private const int CandidatesCount = 18;
+        private const int VotersCount = 2;
         
         private readonly ConsensusContractShim _consensusContract;
 
@@ -83,7 +83,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 foreach (var candidate in _candidates)
                 {
-                    if (new Random().Next(0, 100) < 2)
+                    if (new Random().Next(0, 10) < 5)
                     {
                         _consensusContract.Vote(voter, candidate, (ulong) new Random().Next(1, 100), 90);
                     }
@@ -94,7 +94,7 @@ namespace AElf.Contracts.Consensus.Tests
             var victories = _consensusContract.GetCurrentVictories().Split(';');
             
             // Next term.
-            var nextTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2);
+            var nextTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 2);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), nextTerm);
             Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
             

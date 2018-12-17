@@ -605,8 +605,8 @@ namespace AElf.Kernel.Node
 
                     var parameters = new List<object>
                     {
-                        _helper.GetVictories().ToMiners()
-                            .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval, _helper.CurrentRoundNumber.Value + 1)
+                        _helper.GetVictories().ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
+                            _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
                     };
 
                     var txForNextTerm = await GenerateTransactionAsync(behavior.ToString(), parameters);

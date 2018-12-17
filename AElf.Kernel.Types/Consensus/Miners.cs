@@ -15,7 +15,7 @@ namespace AElf.Kernel
             return !PublicKeys.Any();
         }
 
-        public Term GenerateNewTerm(int miningInterval, ulong roundNumber = 1)
+        public Term GenerateNewTerm(int miningInterval, ulong roundNumber = 1, ulong termNumber = 1)
         {
             var dict = new Dictionary<string, int>();
 
@@ -102,7 +102,7 @@ namespace AElf.Kernel
                 SecondRound = infosOfRound2,
                 Miners = new Miners
                 {
-                    TakeEffectRoundNumber = 2,
+                    TermNumber = termNumber,
                     PublicKeys = {PublicKeys}
                 },
                 MiningInterval = miningInterval

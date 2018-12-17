@@ -37,6 +37,22 @@ namespace AElf.Kernel.Consensus
             }
         }
         
+        public UInt64Value CurrentTermNumber
+        {
+            get
+            {
+                try
+                {
+                    return UInt64Value.Parser.ParseFrom(
+                        _reader.ReadFiled<UInt64Value>(GlobalConfig.AElfDPoSCurrentTermNumber));
+                }
+                catch (Exception)
+                {
+                    return new UInt64Value {Value = 0};
+                }
+            }
+        }
+        
         public UInt64Value BlockchainAge
         {
             get

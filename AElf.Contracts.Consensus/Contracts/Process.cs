@@ -33,6 +33,8 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             InitialBlockchain();
 
+            _collection.MinersMap.SetValue(firstTerm.TermNumber.ToUInt64Value(), firstTerm.Miners);
+
             SetAliases(firstTerm);
 
             firstTerm.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
@@ -77,6 +79,12 @@ namespace AElf.Contracts.Consensus.Contracts
             }
 
             term.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
+
+            _collection.MinersMap.SetValue(term.TermNumber.ToUInt64Value(), term.Miners);
+
+            var lookUp = _collection.TermNumberLookupField.GetValue();
+            lookUp.Map.Add(term.TermNumber, term.FirstRound.RoundNumber);
+            _collection.TermNumberLookupField.SetValue(lookUp);
 
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
@@ -189,6 +197,10 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.BlockchainStartTimestamp.SetValue(DateTime.UtcNow.ToTimestamp());
 
             _collection.AgeField.SetValue(1);
+            
+            var lookUp = new TermNumberLookUp();
+            lookUp.Map.Add(1, 1);
+            _collection.TermNumberLookupField.SetValue(lookUp);
         }
 
         private void SetAliases(Term term)
@@ -372,7 +384,6 @@ namespace AElf.Contracts.Consensus.Contracts
             var currentTermNumber =
                 CurrentTermNumber == 0 ? ((ulong) 1).ToUInt64Value() : CurrentTermNumber.ToUInt64Value();
 
-            _collection.TermKeyLookUpMap.SetValue(CurrentRoundNumber.ToUInt64Value(), currentTermNumber);
             _collection.SnapshotField.SetValue(currentTermNumber, new TermSnapshot
             {
                 TermNumber = currentTermNumber.Value,

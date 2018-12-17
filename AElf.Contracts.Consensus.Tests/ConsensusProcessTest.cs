@@ -215,7 +215,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Not finished yet.")]
         public void NextRoundTest()
         {
             InitialMiners();

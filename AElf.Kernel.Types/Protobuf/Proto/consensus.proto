@@ -35,8 +35,12 @@ message ToBroadcast {
 }
 
 message Miners {
-    uint64 TakeEffectRoundNumber = 1;
+    uint64 TermNumber = 1;
     repeated string PublicKeys = 2;
+}
+
+message TermNumberLookUp {
+    map<uint64, uint64> Map = 1;// Term number -> Round number.
 }
 
 message Candidates {

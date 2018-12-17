@@ -53,16 +53,15 @@ namespace AElf.Common
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
         public const string AElfDPoSOngoingMinersString = "__AElfBlockProducer__";
         public const string AElfDPoSRoundsMapString = "__AElfDPoSRoundsMapString__";
-        public const string AElfDPoSExtraBlockProducerString = "__AElfExtraBlockProducer__";
-        public const string AElfDPoSExtraBlockTimeSlotString = "__AElfExtraBlockTimeSlot__";
+        public const string AElfDPoSMinersMapString = "__AElfDPoSMinersMapString__";
         public const string AElfDPoSAgeFieldString = "__AElfDPoSAgeFieldString__";
         public const string AElfDPoSMiningIntervalString = "__AElfDPoSMiningInterval__";
         public const string AElfDPoSTicketsMapString = "__AElfDPoSTicketsMapString__";
         public const string AElfDPoSCandidatesString = "__AElfDPoSCandidatesString__";
+        public const string AElfDPoSTermNumberLookupString = "__AElfDPoSTermNumberLookUpString__";
         public const string AElfDPoSSnapshotFieldString = "__AElfDPoSSnapshotFieldString__";
         public const string AElfDPoSDividendsMapString = "__AElfDPoSDividendsMapString__";
         public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
-        public const string AElfDPoSTermLookUpString = "__AElfDPoSTermLookUpString__";
         public const string AElfVotingRecordsString = "__AElfVotingRecordsString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
@@ -115,7 +114,10 @@ namespace AElf.Common
         #region Consensus Error String
         
         public const string TicketsNotFound = "Tickets not found.";
+        public const string CandidateNotFound = "Candidate not found.";
+        public const string TermNumberNotFound = "Term number not found.";
         public const string TermSnapshotNotFound = "Term snapshot not found.";
+        public const string TermNumberLookupNotFound = "Term number lookup not found.";
         public const string RoundNumberNotFound = "Round information not found.";
         public const string TargetNotAnnounceElection = "Target didn't announce election.";
         public const string CandidateCannotVote = "Candidate can't vote.";

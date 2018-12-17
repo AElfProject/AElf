@@ -20,16 +20,17 @@ namespace AElf.Contracts.Consensus
             CurrentRoundNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber),
             MiningIntervalField = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString),
             CandidatesField = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
+            TermNumberLookupField = new PbField<TermNumberLookUp>(GlobalConfig.AElfDPoSTermNumberLookupString),
             AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
             CurrentTermNumberField= new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
             BlockchainStartTimestamp= new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
 
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
+            MinersMap = new Map<UInt64Value, Miners>(GlobalConfig.AElfDPoSMinersMapString),
             TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
             SnapshotField = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString),
             AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString),
             HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString),
-            TermKeyLookUpMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSTermLookUpString)
         };
 
         private Process Process => new Process(Collection);
@@ -92,22 +93,18 @@ namespace AElf.Contracts.Consensus
         [View]
         public CandidateInHistory GetCandidateHistoryInfo(string publicKey)
         {
-            Api.Assert(Collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var info), "No such candidate.");
+            Api.Assert(Collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var info),
+                GlobalConfig.CandidateNotFound);
             return info;
         }
 
         [View]
         public List<string> GetCurrentMiners()
         {
-            var currentRoundNumber = Collection.CurrentRoundNumberField.GetValue();
-            Api.Assert(currentRoundNumber != 0, "DPoS process hasn't started yet.");
-            if (Collection.RoundsMap.TryGet(currentRoundNumber.ToUInt64Value(), out var currentRoundInfo))
-            {
-                var realTimeMiners = currentRoundInfo.RealTimeMinersInfo;
-                return realTimeMiners.Keys.ToList();
-            }
-            
-            return new List<string>();
+            var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
+            Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
+                GlobalConfig.TermNumberNotFound);
+            return currentMiners.PublicKeys.ToList();
         }
 
         [View]
@@ -134,6 +131,14 @@ namespace AElf.Contracts.Consensus
         {
             Api.Assert(Collection.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot), GlobalConfig.TermSnapshotNotFound);
             return snapshot;
+        }
+
+        [View]
+        public ulong GetTermNumberByRoundNumber(ulong roundNumber)
+        {
+            var map = Collection.TermNumberLookupField.GetValue().Map;
+            Api.Assert(map != null, GlobalConfig.TermNumberLookupNotFound);
+            return map?.OrderBy(p => p.Key).First(p => roundNumber >= p.Value).Key ?? (ulong) 0;
         }
         
         public void AnnounceElection()
