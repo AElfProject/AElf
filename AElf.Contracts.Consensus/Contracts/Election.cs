@@ -160,11 +160,9 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 if (votingRecord != null && votingRecord.UnlockAge >= _collection.AgeField.GetValue())
                 {
-                    Api.Call(Api.TokenContractAddress, "Transfer",
-                        ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), votingRecord.Count}));
-                    Api.Call(Api.DividendsContractAddress, "SubWeights",
-                        ParamsPacker.Pack(new List<object>
-                            {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
+                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
+                        _collection.CurrentTermNumberField.GetValue());
                 }
             }
         }
@@ -177,11 +175,9 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 if (votingRecord != null && votingRecord.UnlockAge >= _collection.AgeField.GetValue())
                 {
-                    Api.Call(Api.TokenContractAddress, "Transfer",
-                        ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), votingRecord.Count}));
-                    Api.Call(Api.DividendsContractAddress, "SubWeights",
-                        ParamsPacker.Pack(new List<object>
-                            {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
+                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
+                        _collection.CurrentTermNumberField.GetValue());
                 }
             }
         }
@@ -194,11 +190,9 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 foreach (var votingRecord in votingRecords)
                 {
-                    Api.Call(Api.TokenContractAddress, "Transfer",
-                        ParamsPacker.Pack(new List<object> {Api.GetFromAddress(), votingRecord.Count}));
-                    Api.Call(Api.DividendsContractAddress, "SubWeights",
-                        ParamsPacker.Pack(new List<object>
-                            {votingRecord.Weight, _collection.CurrentTermNumberField.GetValue()}));
+                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
+                        _collection.CurrentTermNumberField.GetValue());
                 }
             }
         }

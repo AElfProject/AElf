@@ -211,7 +211,7 @@ message CandidateInHistory {
 
 ### Vote
 
-Params:
+参数:
 - string publicKeyHexString
 - ulong amount
 - ink lockamount
@@ -238,7 +238,7 @@ Params:
 
 ### IsCandidate
 
-Params:
+参数:
 - string publicKeyHexString
 
 检查提供的公钥是否是候选人的公钥。
@@ -251,7 +251,7 @@ Params:
 
 ### GetCandidateHistoryInfo
 
-Params:
+参数:
 - string publicKeyHexString
 
 获取所提供公钥的候选人的贡献历史。
@@ -266,7 +266,7 @@ Params:
 
 ### GetTicketsInfo
 
-Params:
+参数:
 - string publicKeyHexString
 
 获取所提供公钥的投票详情，
@@ -287,7 +287,7 @@ Params:
 
 ### GetTermSnapshot
 
-Params:
+参数:
 - ulong termNumbner
 
 获取所提供届数的快照。
