@@ -178,9 +178,9 @@ namespace AElf.Contracts.Consensus
             Election.QuitElection();
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockAmount, Timestamp timestamp)
+        public void Vote(string candidatePublicKey, ulong amount, int lockTime, Timestamp timestamp)
         {
-            Election.Vote(candidatePublicKey, amount, lockAmount, timestamp);
+            Election.Vote(candidatePublicKey, amount, lockTime, timestamp);
         }
 
         public void GetDividendsByDetail(string candidatePublicKey, ulong amount, int lockDays)

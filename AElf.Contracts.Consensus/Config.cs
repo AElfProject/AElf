@@ -9,7 +9,8 @@ namespace AElf.Contracts.Consensus
         {
             "YQ", "SM", "WK", "CP", "PG", 
             "SC", "ZX", "ZY", "YS", "MH", 
-            "ZZ", "ZA", "GL", "LN"
+            "ZZ", "ZA", "GL", "LN", "DW",
+            "BB",
         };
 
         public static ulong GetDividendsForEveryMiner(ulong minedBlocks)
@@ -32,14 +33,12 @@ namespace AElf.Contracts.Consensus
         
         public static ulong GetDividendsForBackupNodes(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForBackupNodes /
-                            GlobalConfig.BlockProducerNumber);
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForBackupNodes);
         }
 
         public static ulong GetDividendsForVoters(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForVoters /
-                            GlobalConfig.BlockProducerNumber);
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForVoters);
         }
     }
 }

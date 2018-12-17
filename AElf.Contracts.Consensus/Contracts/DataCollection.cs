@@ -40,6 +40,7 @@ namespace AElf.Contracts.Consensus.Contracts
         
         /// <summary>
         /// DPoS information of each round.
+        /// round number -> round information
         /// </summary>
         public Map<UInt64Value, Round> RoundsMap;
         

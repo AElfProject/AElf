@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.SmartContract;
@@ -10,6 +9,7 @@ using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using Google.Protobuf.WellKnownTypes;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.Tests
 {
     public class ConsensusContractShim
@@ -41,15 +41,15 @@ namespace AElf.Contracts.Consensus.Tests
             DeployConsensusContractAsync().Wait();
             DeployTokenContractAsync().Wait();
             DeployDividendsContractAsync().Wait();
-            
+
             var task1 = _mock.GetExecutiveAsync(ConsensusContractAddress);
             task1.Wait();
             ExecutiveForConsensus = task1.Result;
-            
+
             var task2 = _mock.GetExecutiveAsync(TokenContractAddress);
             task2.Wait();
             ExecutiveForToken = task2.Result;
-            
+
             var task3 = _mock.GetExecutiveAsync(DividendsContractAddress);
             task3.Wait();
             ExecutiveForDividends = task3.Result;
@@ -99,7 +99,7 @@ namespace AElf.Contracts.Consensus.Tests
             await CommitChangesAsync(tc.Trace);
             ConsensusContractAddress = ContractHelpers.GetConsensusContractAddress(_mock.ChainId);
         }
-        
+
         private async Task DeployTokenContractAsync()
         {
             var address0 = ContractHelpers.GetGenesisBasicContractAddress(_mock.ChainId);
@@ -139,11 +139,11 @@ namespace AElf.Contracts.Consensus.Tests
             await CommitChangesAsync(tc.Trace);
             DividendsContractAddress = ContractHelpers.GetDividendsContractAddress(_mock.ChainId);
         }
-        
+
         #region Process
 
         #region View Only Methods
-        
+
         public Round GetRoundInfo(ulong roundNumber)
         {
             var tx = new Transaction
@@ -154,7 +154,7 @@ namespace AElf.Contracts.Consensus.Tests
                 MethodName = "GetRoundInfo",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(roundNumber))
             };
-            
+
             TransactionContext = new TransactionContext
             {
                 Transaction = tx
@@ -174,7 +174,7 @@ namespace AElf.Contracts.Consensus.Tests
                 MethodName = "GetCurrentRoundNumber",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
-            
+
             TransactionContext = new TransactionContext
             {
                 Transaction = tx
@@ -184,7 +184,7 @@ namespace AElf.Contracts.Consensus.Tests
             var result = TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
             return result ?? 0;
         }
-        
+
         public ulong GetCurrentTermNumber()
         {
             var tx = new Transaction
@@ -195,7 +195,7 @@ namespace AElf.Contracts.Consensus.Tests
                 MethodName = "GetCurrentTermNumber",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
-            
+
             TransactionContext = new TransactionContext
             {
                 Transaction = tx
@@ -205,7 +205,7 @@ namespace AElf.Contracts.Consensus.Tests
             var result = TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
             return result ?? 0;
         }
-        
+
         #endregion View Only Methods
 
         #region Actions
@@ -228,7 +228,7 @@ namespace AElf.Contracts.Consensus.Tests
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
-        
+
         public void NextTerm(ECKeyPair minerKeyPair, Term nextTerm)
         {
             var tx = new Transaction
@@ -244,7 +244,7 @@ namespace AElf.Contracts.Consensus.Tests
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
             TransactionContext = PrepareTransactionContext(tx);
-            
+
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
 
             var tc = PrepareTransactionContext(
@@ -255,16 +255,17 @@ namespace AElf.Contracts.Consensus.Tests
                 TransactionContext.Trace.InlineTraces.Add(tc.Trace);
             }
 
-            foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t => t.MethodName == "Transfer"))
+            foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t =>
+                t.MethodName == "Transfer"))
             {
                 var tcOfTransfer = PrepareTransactionContext(transaction);
                 ExecutiveForToken.SetTransactionContext(tcOfTransfer).Apply().Wait();
                 TransactionContext.Trace.InlineTraces.Add(tcOfTransfer.Trace);
             }
-            
+
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
-        
+
         public void PackageOutValue(ECKeyPair minerKeyPair, ToPackage toPackage)
         {
             var tx = new Transaction
@@ -283,7 +284,7 @@ namespace AElf.Contracts.Consensus.Tests
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
-        
+
         public void BroadcastInValue(ECKeyPair minerKeyPair, ToBroadcast toBroadcast)
         {
             var tx = new Transaction
@@ -302,7 +303,7 @@ namespace AElf.Contracts.Consensus.Tests
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
-        
+
         public void NextRound(ECKeyPair minerKeyPair, Forwarding forwarding)
         {
             var tx = new Transaction
@@ -393,6 +394,26 @@ namespace AElf.Contracts.Consensus.Tests
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
+        
+        public TermSnapshot GetTermSnapshot(ulong termNumber)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "GetTermSnapshot",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(termNumber))
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TermSnapshot>();
+        }
 
         #endregion View Only Methods
 
@@ -459,18 +480,22 @@ namespace AElf.Contracts.Consensus.Tests
 
             TransactionContext = PrepareTransactionContext(tx);
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            foreach (var inlineTx in TransactionContext.Trace.InlineTransactions.Where(t => t.To == TokenContractAddress))
+            foreach (var inlineTx in TransactionContext.Trace.InlineTransactions.Where(
+                t => t.To == TokenContractAddress))
             {
                 var tc = PrepareTransactionContext(inlineTx);
                 ExecutiveForToken.SetTransactionContext(tc).Apply().Wait();
                 TransactionContext.Trace.InlineTraces.Add(tc.Trace);
             }
-            foreach (var inlineTx in TransactionContext.Trace.InlineTransactions.Where(t => t.To == DividendsContractAddress))
+
+            foreach (var inlineTx in TransactionContext.Trace.InlineTransactions.Where(t =>
+                t.To == DividendsContractAddress))
             {
                 var tc = PrepareTransactionContext(inlineTx);
                 ExecutiveForDividends.SetTransactionContext(tc).Apply().Wait();
                 TransactionContext.Trace.InlineTraces.Add(tc.Trace);
             }
+
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
@@ -487,17 +512,20 @@ namespace AElf.Contracts.Consensus.Tests
             var signer = new ECSigner();
             var signature = signer.Sign(ownerKeyPair, tx.GetHash().DumpByteArray());
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-            
+
             TransactionContext = PrepareTransactionContext(tx);
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
 
-            foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t => t.To == TokenContractAddress))
+            foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t =>
+                t.To == TokenContractAddress))
             {
                 var tc = PrepareTransactionContext(transaction);
                 ExecutiveForDividends.SetTransactionContext(tc).Apply().Wait();
                 TransactionContext.Trace.InlineTraces.Add(tc.Trace);
             }
-            foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t => t.To == DividendsContractAddress))
+
+            foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t =>
+                t.To == DividendsContractAddress))
             {
                 var tc = PrepareTransactionContext(transaction);
                 ExecutiveForDividends.SetTransactionContext(tc).Apply().Wait();
@@ -510,17 +538,37 @@ namespace AElf.Contracts.Consensus.Tests
                     TransactionContext.Trace.InlineTraces.Add(tc1.Trace);
                 }
             }
-            
+
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
         #endregion Actions
 
         #endregion Election
-        
+
         #region ABI (Public) Methods
 
         #region View Only Methods
+
+        public ulong GetTermDividends(ulong termNumber)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = DividendsContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "GetTermDividends",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(termNumber))
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForDividends.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
 
         public string Symbol()
         {
@@ -579,7 +627,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
         public uint Decimals()
@@ -599,7 +647,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32() ?? 0;
         }
 
         public ulong BalanceOf(Address owner)
@@ -619,7 +667,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
         public ulong Allowance(Address owner, Address spender)
@@ -639,7 +687,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
         #endregion View Only Methods
@@ -729,7 +777,7 @@ namespace AElf.Contracts.Consensus.Tests
         public Address GetContractOwner(Address scZeroAddress)
         {
             var executive = _mock.GetExecutiveAsync(scZeroAddress).Result;
-            
+
             var tx = new Transaction
             {
                 From = Sender,
@@ -744,7 +792,7 @@ namespace AElf.Contracts.Consensus.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
         }
-        
+
         #endregion Actions
 
         #endregion ABI (Public) Methods

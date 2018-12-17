@@ -39,6 +39,7 @@ namespace AElf.Contracts.Consensus.Tests
         [Fact(Skip = "Time consuming")]
         public void GetDividendsTest()
         {
+            GlobalConfig.ElfTokenPerBlock = 1000;
             InitialMiners();
             InitialTerm(_initialMiners[0]);
             
@@ -102,6 +103,13 @@ namespace AElf.Contracts.Consensus.Tests
             var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3, 3);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);
 
+            var snapshotOfSecondTerm = _consensusContract.GetTermSnapshot(2);
+            Assert.True(snapshotOfSecondTerm.TotalBlocks == 18);
+
+            var dividendsOfSecondTerm = _consensusContract.GetTermDividends(2);
+            var shouldBe = (ulong) (18 * GlobalConfig.ElfTokenPerBlock * 0.2);
+            Assert.True(dividendsOfSecondTerm == shouldBe);
+            
             var balanceBefore = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
             _consensusContract.GetAllDividends(mustVotedVoter);
             var balanceAfter = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));

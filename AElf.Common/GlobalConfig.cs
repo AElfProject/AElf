@@ -86,7 +86,7 @@ namespace AElf.Common
 
         #region Dividends
 
-        public const ulong ElfTokenPerBlock = 100;
+        public static ulong ElfTokenPerBlock = 100;
         public const double DividendsForEveryMiner = 0.4;
         public const double DividendsForTicketsCount = 0.1;
         public const double DividendsForReappointment = 0.1;

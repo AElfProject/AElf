@@ -25,7 +25,7 @@ Transfer the specific amount of tokens back to the caller, at the same time remo
 Params:
 - string publicKeyHexString
 - ulong amount
-- ink lockdays
+- ink lockTime
 - Timestamp timestamp
 
 To vote to a candidate via specifc amount of tickets and lock days.
@@ -224,7 +224,7 @@ message CandidateInHistory {
 参数:
 - string publicKeyHexString
 - ulong amount
-- ink lockamount
+- ink lockTime
 - Timestamp timestamp
 
 为候选人投票，所需参数为投票数目amount，锁仓时间lockamount。

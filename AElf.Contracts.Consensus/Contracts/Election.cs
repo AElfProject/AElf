@@ -41,18 +41,18 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.CandidatesField.SetValue(candidates);
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockAmount, Timestamp timestamp)
+        public void Vote(string candidatePublicKey, ulong amount, int lockTime, Timestamp timestamp)
         {
-            if (lockAmount.InRange(1, 3))
+            if (lockTime.InRange(1, 3))
             {
-                lockAmount *= 360;
+                lockTime *= 360;
             }
-            else if (lockAmount.InRange(12, 36))
+            else if (lockTime.InRange(12, 36))
             {
-                lockAmount *= 30;
+                lockTime *= 30;
             }
 
-            Api.Assert(lockAmount.InRange(90, 1080), GlobalConfig.LockDayIllegal);
+            Api.Assert(lockTime.InRange(90, 1080), GlobalConfig.LockDayIllegal);
 
             Api.Assert(_collection.CandidatesField.GetValue().PublicKeys.Contains(candidatePublicKey),
                 GlobalConfig.TargetNotAnnounceElection);
@@ -72,10 +72,10 @@ namespace AElf.Contracts.Consensus.Contracts
                 RoundNumber = _collection.CurrentRoundNumberField.GetValue(),
                 TransactionId = Api.GetTxnHash(),
                 VoteTimestamp = timestamp,
-                UnlockAge = ageOfBlockchain + (ulong) lockAmount,
+                UnlockAge = ageOfBlockchain + (ulong) lockTime,
                 TermNumber = _collection.CurrentTermNumberField.GetValue()
             };
-            votingRecord.LockDaysList.Add((uint) lockAmount);
+            votingRecord.LockDaysList.Add((uint) lockTime);
 
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
