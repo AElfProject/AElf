@@ -26,6 +26,7 @@ Params:
 - string publicKeyHexString
 - ulong amount
 - ink lockdays
+- Timestamp timestamp
 
 To vote to a candidate via specifc amount of tickets and lock days.
 
@@ -224,6 +225,7 @@ message CandidateInHistory {
 - string publicKeyHexString
 - ulong amount
 - ink lockamount
+- Timestamp timestamp
 
 为候选人投票，所需参数为投票数目amount，锁仓时间lockamount。
 
