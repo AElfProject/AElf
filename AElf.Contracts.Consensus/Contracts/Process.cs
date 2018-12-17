@@ -159,8 +159,11 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void PublishInValue(ToBroadcast toBroadcast)
         {
-            Api.Assert(toBroadcast.RoundId == GetCurrentRoundInfo().RoundId, GlobalConfig.RoundIdNotMatched);
-
+            if (toBroadcast.RoundId != GetCurrentRoundInfo().RoundId)
+            {
+                return;
+            }
+            
             var roundInfo = GetCurrentRoundInfo();
             Api.Assert(roundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].OutValue != null,
                 GlobalConfig.OutValueIsNull);

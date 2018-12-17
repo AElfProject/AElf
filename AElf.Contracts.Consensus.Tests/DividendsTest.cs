@@ -45,6 +45,9 @@ namespace AElf.Contracts.Consensus.Tests
             InitialCandidates();
             InitialVoters();
 
+            var balanceOfConsensusContract = _consensusContract.BalanceOf(_consensusContract.ConsensusContractAddress);
+            Assert.True(balanceOfConsensusContract > 0);
+
             ECKeyPair mustVotedVoter = null;
             // Vote to candidates randomized
             foreach (var voter in _voters)

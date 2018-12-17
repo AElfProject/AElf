@@ -82,7 +82,7 @@ namespace AElf.Contracts.Consensus
         {
             return Collection.CandidatesField.GetValue().PublicKeys.Contains(publicKey);
         }
-
+        
         [View]
         public List<string> GetCandidatesList()
         {
