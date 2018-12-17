@@ -25,7 +25,7 @@ namespace AElf.CLI2.Commands
         public string Account { get; set; } = "";
 
         [JsonIgnore]
-        [Option('p', "password", HelpText = "The passwod for unlocking the account.")]
+        [Option('p', "password", HelpText = "The password for unlocking the account.")]
         public string Password { get; set; } = "";
 
         [JsonProperty("accountsdir")]
@@ -34,6 +34,26 @@ namespace AElf.CLI2.Commands
             get
             {
                 var dir = Path.GetFullPath(Path.Combine(DataDir, "keys"));
+                try
+                {
+                    Directory.CreateDirectory(dir);
+                }
+                catch (Exception)
+                {
+                    // Ignore
+                }
+
+                return dir;
+            }
+        }
+
+
+        [JsonProperty("contractsdir")]
+        public string ContractDir
+        {
+            get
+            {
+                var dir = Path.GetFullPath(Path.Combine(DataDir, "contracts"));
                 try
                 {
                     Directory.CreateDirectory(dir);

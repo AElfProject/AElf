@@ -48,7 +48,7 @@ namespace AElf.CLI2.Commands
             string address = obj.ReadProperty<string>("address");
             JSValue keyPair = obj.ReadProperty<JSValue>("keyPair");
             string pubKey = keyPair.CallFunction<string, string>("getPublic", "hex");
-            PrintAccount(address, mnemonic, privKey);
+            PrintAccount(address, mnemonic, privKey, pubKey);
 
             if (!ReadLine.Read("Saving account info to file? (Y/N): ").Equals("y", StringComparison.OrdinalIgnoreCase))
             {
@@ -62,14 +62,15 @@ namespace AElf.CLI2.Commands
             Pem.WriteKeyPair(accountFile, privKey, pubKey, password);
         }
 
-        private void PrintAccount(string address, string mnemonic, string privKey)
+        private void PrintAccount(string address, string mnemonic, string privKey, string pubKey)
         {
             Console.WriteLine(
                 string.Join(
                     Environment.NewLine,
-                    $@"Your wallet info is :",
+                    @"Your wallet info is :",
                     $@"Mnemonic    : {mnemonic}",
                     $@"Private Key : {privKey}",
+                    $@"Public Key : {pubKey}",
                     $@"Address     : {address}"
                 )
             );

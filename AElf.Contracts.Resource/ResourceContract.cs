@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -17,13 +18,20 @@ namespace AElf.Contracts.Resource
 
         static ResourceContract()
         {
-            ResourceTypes = Enum.GetValues(typeof(UserResourceKey.Types.ResourceType))
-                .Cast<UserResourceKey.Types.ResourceType>().Select(x => x.ToString()).ToList();
+            ResourceTypes = Enum.GetValues(typeof(ResourceType))
+                .Cast<ResourceType>().Select(x => x.ToString().ToUpper()).ToList();
         }
 
         internal static void AssertCorrectResourceType(string resourceType)
         {
-            Api.Assert(ResourceTypes.Contains(resourceType), "Incorrect resource type.");
+            Api.Assert(ResourceTypes.Contains(resourceType.ToUpper()), "Incorrect resource type.");
+        }
+
+        internal static ResourceType ParseResourceType(string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            return (ResourceType) Enum.Parse(typeof(ResourceType),
+                resourceType, ignoreCase: true);
         }
 
         #endregion static 
@@ -32,6 +40,7 @@ namespace AElf.Contracts.Resource
 
         internal Map<StringValue, ConnectorPair> ConnectorPairs = new Map<StringValue, ConnectorPair>("ConnectorPairs");
         internal MapToUInt64<UserResourceKey> UserResources = new MapToUInt64<UserResourceKey>("UserResources");
+        internal MapToUInt64<UserResourceKey> LockedUserResources = new MapToUInt64<UserResourceKey>("LockedUserResources");
         internal BoolField Initialized = new BoolField("Initialized");
         internal PbField<Address> ElfTokenAddress = new PbField<Address>("ElfTokenAddress");
 
@@ -52,16 +61,30 @@ namespace AElf.Contracts.Resource
         }
 
         [View]
-        public ulong GetResourceBalance(Address address, string resourceType)
+        public ulong GetUserBalance(Address address, string resourceType)
         {
-            AssertCorrectResourceType(resourceType);
             var urk = new UserResourceKey()
             {
                 Address = address,
-                Type = (UserResourceKey.Types.ResourceType) Enum.Parse(typeof(UserResourceKey.Types.ResourceType),
-                    resourceType)
+                Type = ParseResourceType(resourceType)
             };
             return UserResources[urk];
+        }
+
+        [View]
+        public ulong GetExchangeBalance(string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            var rt = new StringValue() {Value = resourceType};
+            return ConnectorPairs[rt].ResBalance;
+        }
+
+        [View]
+        public ulong GetElfBalance(string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            var rt = new StringValue() {Value = resourceType};
+            return ConnectorPairs[rt].ElfBalance;
         }
 
         #endregion Views
@@ -70,8 +93,8 @@ namespace AElf.Contracts.Resource
 
         public void Initialize(Address elfTokenAddress)
         {
-            var i = Initialized.GetValue();
-            Api.Assert(!i, $"Already initialized {i}.");
+            var initialized = Initialized.GetValue();
+            Api.Assert(!initialized, $"Already initialized.");
             ElfTokenAddress.SetValue(elfTokenAddress);
             foreach (var resourceType in ResourceTypes)
             {
@@ -100,9 +123,8 @@ namespace AElf.Contracts.Resource
             var payout = this.BuyResourceFromExchange(resourceType, paidElf);
             var urk = new UserResourceKey()
             {
-                Address = Api.GetTransaction().From,
-                Type = (UserResourceKey.Types.ResourceType) Enum.Parse(typeof(UserResourceKey.Types.ResourceType),
-                    resourceType)
+                Address = Api.GetFromAddress(),
+                Type = ParseResourceType(resourceType)
             };
             UserResources[urk] = UserResources[urk].Add(payout);
             ElfToken.TransferByUser(Api.GetContractAddress(), paidElf);
@@ -110,18 +132,57 @@ namespace AElf.Contracts.Resource
 
         public void SellResource(string resourceType, ulong resToSell)
         {
+            var bal = GetUserBalance(Api.GetFromAddress(), resourceType);
+            Api.Assert(bal >= resToSell, $"Insufficient {resourceType.ToUpper()} balance.");
             AssertCorrectResourceType(resourceType);
             var elfToReceive = this.SellResourceToExchange(resourceType, resToSell);
             var urk = new UserResourceKey()
             {
-                Address = Api.GetTransaction().From,
-                Type = (UserResourceKey.Types.ResourceType) Enum.Parse(typeof(UserResourceKey.Types.ResourceType),
-                    resourceType)
+                Address = Api.GetFromAddress(),
+                Type = ParseResourceType(resourceType)
             };
             UserResources[urk] = UserResources[urk].Sub(resToSell);
-            ElfToken.TransferByContract(Api.GetTransaction().From, elfToReceive);
+            ElfToken.TransferByContract(Api.GetFromAddress(), elfToReceive);
         }
 
+        public void LockResource(Address to, ulong amount, string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            var urkFrom = new UserResourceKey
+            {
+                Address = Api.GetFromAddress(),
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            UserResources[urkFrom] = UserResources[urkFrom].Sub(amount);
+            var lurkTo = new UserResourceKey
+            {
+                Address = to,
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            LockedUserResources[lurkTo] = UserResources[lurkTo].Add(amount);
+        }
+        
+        public void WithdrawResource(Address to, ulong amount, string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            var urkFrom = new UserResourceKey
+            {
+                Address = Api.GetFromAddress(),
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            UserResources[urkFrom] = UserResources[urkFrom].Add(amount);
+            var lurkTo = new UserResourceKey
+            {
+                Address = to,
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            LockedUserResources[lurkTo] = UserResources[lurkTo].Sub(amount);
+        }
+        
         #endregion Actions
     }
 }

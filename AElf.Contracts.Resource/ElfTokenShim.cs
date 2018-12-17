@@ -22,7 +22,7 @@ namespace AElf.Contracts.Resource
 
         public void TransferByContract(Address to, ulong amount)
         {
-            Api.SendInlineFromSelf(Address, "Transfer", to, amount);
+            Api.SendInlineByContract(Address, "Transfer", to, amount);
         }
     }
 }

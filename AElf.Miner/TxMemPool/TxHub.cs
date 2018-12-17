@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
@@ -45,12 +46,12 @@ namespace AElf.Miner.TxMemPool
         private readonly Hash _chainId;
 
         private readonly Address _dPosContractAddress;
-        private readonly Address _sideChainContractAddress;
+        private readonly Address _crossChainContractAddress;
         
         private List<Address> SystemAddresses => new List<Address>
         {
             _dPosContractAddress, 
-            _sideChainContractAddress
+            _crossChainContractAddress
         };
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
@@ -70,7 +71,7 @@ namespace AElf.Miner.TxMemPool
             _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
 
             _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(_chainId);
-            _sideChainContractAddress =   ContractHelpers.GetSideChainContractAddress(_chainId);
+            _crossChainContractAddress =   ContractHelpers.GetCrossChainContractAddress(_chainId);
         }
 
         public void Initialize()
@@ -155,12 +156,17 @@ namespace AElf.Miner.TxMemPool
             return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).ToList());
         }
 
-        public async Task<List<TransactionReceipt>> GetReceiptsForAsync(IEnumerable<Transaction> transactions)
+        public async Task<List<TransactionReceipt>> GetReceiptsForAsync(IEnumerable<Transaction> transactions,CancellationTokenSource cancellationTokenSource)
         {
             var trs = new List<TransactionReceipt>();
             // TODO: Check if parallelization is needed
             foreach (var txn in transactions)
             {
+                if (cancellationTokenSource.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
                 {
                     tr = new TransactionReceipt(txn);
@@ -278,7 +284,7 @@ namespace AElf.Miner.TxMemPool
 
             // cross chain txn should not be  broadcasted
             if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction 
-                && _sideChainContractAddress.Equals(tr.Transaction.To))
+                && _crossChainContractAddress.Equals(tr.Transaction.To))
                 tr.ToBeBroadCasted = false;
         }
 
@@ -395,9 +401,9 @@ namespace AElf.Miner.TxMemPool
                     
                     // cross chain type and dpos type transaction should not be reverted.
                     if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction
-                        && tr.Transaction.To.Equals(_sideChainContractAddress) ||
-                        tr.Transaction.Type == TransactionType.DposTransaction
-                        && tr.Transaction.To.Equals(_dPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
+                        && tr.Transaction.To.Equals(_crossChainContractAddress))
+//                        || tr.Transaction.Type == TransactionType.DposTransaction
+//                        && tr.Transaction.To.Equals(_dPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
                         continue;
                     
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;

@@ -3,11 +3,13 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using NLog.Targets.Wrappers;
 
 namespace AElf.Kernel.Consensus
 {
@@ -23,10 +25,9 @@ namespace AElf.Kernel.Consensus
             _stateStore = stateStore;
         }
 
-        public Hash ChainId => Hash.LoadHex(ChainConfig.Instance.ChainId);
-
-        public Address ContractAddress =>
-            ContractHelpers.GetConsensusContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
+        public Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
+        public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(
+            Hash.LoadBase58(ChainConfig.Instance.ChainId));
         
         private DataProvider DataProvider
         {
@@ -100,40 +101,56 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<BlockProducer> GetBPInfo(string addressToHex = null)
+        public async Task<BlockProducer> GetBPInfo(string publicKey = null)
         {
-            if (addressToHex == null)
+            if (publicKey == null)
             {
-                addressToHex = NodeConfig.Instance.NodeAccount;
+                publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
-            
             var round = await GetCurrentRoundInfo();
-            return round.BlockProducers[addressToHex.RemoveHexPrefix()];
+            return round.BlockProducers[publicKey];
         }
 
-        public async Task<Timestamp> GetTimeSlot(string addressToHex = null)
+        public async Task<Timestamp> GetTimeSlot(string publicKey = null)
         {
-            if (addressToHex == null)
+            if (publicKey == null)
             {
-                addressToHex = NodeConfig.Instance.NodeAccount;
+                publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
 
-            var info = await GetBPInfo(addressToHex);
+            var info = await GetBPInfo(publicKey);
             return info.TimeSlot;
         }
 
-        public async Task<double> GetDistanceToTimeSlot(string addressToHex = null)
+        public async Task<double> GetDistanceToTimeSlot(string publicKey = null)
         {
-            var now = DateTime.UtcNow.ToTimestamp();
-
-            if (addressToHex == null)
+            if (publicKey == null)
             {
-                addressToHex = NodeConfig.Instance.NodeAccount;
+                publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
 
-            var timeSlot = await GetTimeSlot(addressToHex);
-            var distance = timeSlot - now;
+            var timeSlot = await GetTimeSlot(publicKey);
+            var distance = timeSlot - DateTime.UtcNow.ToTimestamp();
             return distance.ToTimeSpan().TotalMilliseconds;
+        }
+
+        public async Task<double> GetDistanceToTimeSlotEnd(string publicKey = null)
+        {
+            var distance = (double) ConsensusConfig.Instance.DPoSMiningInterval;
+            var currentRoundNumber = await GetCurrentRoundNumber();
+            if (currentRoundNumber != 0)
+            {
+                var info = await GetBPInfo(publicKey);
+
+                var now = DateTime.UtcNow.ToTimestamp();
+                distance += (info.TimeSlot - now).ToTimeSpan().TotalMilliseconds;
+                if (info.IsEBP && distance < 0)
+                {
+                    distance += (GlobalConfig.BlockProducerNumber - info.Order + 2) * ConsensusConfig.Instance.DPoSMiningInterval;
+                }
+            }
+            // Todo the time slot of dpos is not exact
+            return (distance < 1000 || distance > (double) ConsensusConfig.Instance.DPoSMiningInterval) ? ConsensusConfig.Instance.DPoSMiningInterval : distance;
         }
     }
 }

@@ -5,7 +5,6 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Types.Proposal;
 
 namespace AElf.SmartContract.Proposal
 {
@@ -15,17 +14,21 @@ namespace AElf.SmartContract.Proposal
         private readonly ContractInfoReader _contractInfoReader;
 
         private Address AuthorizationContractAddress =>
-            ContractHelpers.GetAuthorizationContractAddress(Hash.LoadHex(ChainConfig.Instance.ChainId));
-
+            ContractHelpers.GetAuthorizationContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
+        
         public AuthorizationInfo(IStateStore stateStore)
         {
             var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
             _contractInfoReader = new ContractInfoReader(chainId, stateStore);
         }
-
+        
         // todo review
         public bool CheckAuthority(Transaction transaction)
         {
+            var sigCount = transaction.Sigs.Count;
+            if (sigCount == 0)
+                return false;
+            
             // Get tx hash
             var hash = transaction.GetHash().DumpByteArray();
 
@@ -42,11 +45,11 @@ namespace AElf.SmartContract.Proposal
             return CheckAuthority(transaction.From, publicKey);
         }
 
-        public Kernel.Types.Proposal.Proposal GetProposal(Hash proposalHash)
+        public Kernel.Proposal GetProposal(Hash proposalHash)
         {
             var bytes = _contractInfoReader.GetBytes<Authorization>(AuthorizationContractAddress,
                 Hash.FromMessage(proposalHash), GlobalConfig.AElfProposal);
-            return Kernel.Types.Proposal.Proposal.Parser.ParseFrom(bytes);
+            return Kernel.Proposal.Parser.ParseFrom(bytes);
         }
 
         public Authorization GetAuthorization(Address msig)

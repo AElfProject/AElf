@@ -27,7 +27,7 @@ namespace AElf.Concurrency.Lighthouse
 
         private void MapOptions(CliOptions opts)
         {   
-            ApplicationHelpers.SetConfigPath(opts.ConfigPath);
+            ApplicationHelpers.ConfigPath = opts.ConfigPath;
             // Actor
             if (opts.ActorIsCluster.HasValue)
                 ActorConfig.Instance.IsCluster = opts.ActorIsCluster.Value;

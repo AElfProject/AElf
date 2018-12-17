@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Contracts.SideChain";
+option csharp_namespace = "AElf.Contracts.CrossChain";
 
 import "common.proto";
 

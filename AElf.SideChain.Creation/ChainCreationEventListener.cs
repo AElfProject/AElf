@@ -19,7 +19,7 @@ using Google.Protobuf;
 using AElf.Kernel.Managers;
 using Newtonsoft.Json.Linq;
 using NLog;
-using SideChainInfo = AElf.Contracts.SideChain.SideChainInfo;
+using SideChainInfo = AElf.Contracts.CrossChain.SideChainInfo;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 

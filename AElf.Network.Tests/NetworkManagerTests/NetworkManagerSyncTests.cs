@@ -1,6 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
-using AElf.Configuration.Config.Chain;
+using AElf.Network.Data;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;
 using AElf.Node.AElfChain;
@@ -18,8 +19,17 @@ namespace AElf.Network.Tests.NetworkManagerTests
         private Mock<IPeer> CreateMockPeer(int height = GenesisHeight)
         {
             Mock<IPeer> peer = new Mock<IPeer>();
+            
             peer.Setup(m => m.KnownHeight).Returns(height);
+            peer.Setup(m => m.AnyStashed).Returns(false);
+            
             return peer;
+        }
+        
+        private void SetHasAnnounce(Mock<IPeer> mock)
+        {
+            mock.Setup(m => m.AnyStashed).Returns(true);
+            mock.Setup(m => m.SyncNextAnnouncement()).Returns(true);
         }
 
         #region Add Peer
@@ -70,6 +80,10 @@ namespace AElf.Network.Tests.NetworkManagerTests
             // register peer 
             peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));
             
+            // todo temp fix because the event is run on another thread 
+            // todo probably not a good test, but for now no choice. 
+            await Task.Delay(1000);
+            
             Assert.Equal(firstPeer.Object, nm.CurrentSyncSource);
             Assert.True(syncStateTrueWasFired);
             Assert.True(syncStateValue);
@@ -100,10 +114,57 @@ namespace AElf.Network.Tests.NetworkManagerTests
 
         #endregion
 
-        #region Sync finish
+        #region Disconnect
 
+        /* Tests that when a node fails to provide the block that he announced */
+        /* this peer will be terminated and current sync peer update if needed */
         
+        [Fact]
+        public async Task OnPeerDisconnect_UpdateCurrentSyncSource()
+        {
+            Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
 
+            Mock<IPeer> firstPeer = CreateMockPeer(2);
+            
+            Mock<INodeService> chainService = new Mock<INodeService>();
+            chainService.Setup(cs => cs.GetCurrentBlockHeightAsync()).ReturnsAsync(1);
+            
+            // Start manager
+            NetworkManager nm = new NetworkManager(peerManager.Object, null, chainService.Object, null);
+            await nm.Start();
+            
+            peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));
+            firstPeer.Raise(m => m.PeerDisconnected += null, new PeerDisconnectedArgs { Peer = firstPeer.Object, Reason = DisconnectReason.BlockRequestTimeout});
+            
+            Assert.Null(nm.CurrentSyncSource);
+        }
+        
+        [Fact]
+        public async Task OnPeerDisconnect_SwitchSyncSource()
+        {
+            Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
+
+            Mock<IPeer> firstPeer = CreateMockPeer(2);
+            Mock<IPeer> secondPeer = CreateMockPeer(2);
+
+            SetHasAnnounce(secondPeer);
+            
+            Mock<INodeService> chainService = new Mock<INodeService>();
+            chainService.Setup(cs => cs.GetCurrentBlockHeightAsync()).ReturnsAsync(1);
+            
+            // Start manager
+            NetworkManager nm = new NetworkManager(peerManager.Object, null, chainService.Object, null);
+            await nm.Start();
+            
+            peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));
+            peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(secondPeer.Object, PeerEventType.Added));
+
+            firstPeer.Raise(m => m.PeerDisconnected += null, new PeerDisconnectedArgs { Peer = firstPeer.Object, Reason = DisconnectReason.BlockRequestTimeout});
+            
+            Assert.NotNull(nm.CurrentSyncSource);
+            Assert.Equal(secondPeer.Object, nm.CurrentSyncSource);
+        }
+               
         #endregion
     }
-}
+} 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -11,7 +12,6 @@ namespace AElf.ChainController.Rpc
     {
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITxHub _txHub;
-        private readonly Dictionary<Hash, TransactionResult> _cacheResults = new Dictionary<Hash, TransactionResult>();
 
         public TransactionResultService(ITxHub txHub, ITransactionResultManager transactionResultManager)
         {
@@ -22,18 +22,10 @@ namespace AElf.ChainController.Rpc
         /// <inheritdoc/>
         public async Task<TransactionResult> GetResultAsync(Hash txId)
         {
-            /*// found in cache
-            if (_cacheResults.TryGetValue(txId, out var res))
-            {
-                return res;
-            }*/
-
-            
             // in storage
             var res = await _transactionResultManager.GetTransactionResultAsync(txId);
             if (res != null)
             {
-                _cacheResults[txId] = res;
                 return res;
             }
 
@@ -58,7 +50,6 @@ namespace AElf.ChainController.Rpc
         /// <inheritdoc/>
         public async Task AddResultAsync(TransactionResult res)
         {
-            _cacheResults[res.TransactionId] = res;
             await _transactionResultManager.AddTransactionResultAsync(res);
         }
     }

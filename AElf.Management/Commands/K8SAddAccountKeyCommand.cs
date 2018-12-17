@@ -36,7 +36,7 @@ namespace AElf.Management.Commands
         {
             if (string.IsNullOrWhiteSpace(arg.ChainAccount))
             {
-                var keyStore = new AElfKeyStore(ApplicationHelpers.GetDefaultConfigPath());
+                var keyStore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
                 
                 var chainPrefixBase58 = Base58CheckEncoding.Encode(ByteArrayHelpers.FromHexString(arg.SideChainId));
                 var chainPrefix = chainPrefixBase58.Substring(0, 4);
@@ -47,7 +47,7 @@ namespace AElf.Management.Commands
             }
 
             var fileName = arg.ChainAccount + ".ak";
-            var filePath = Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "keys", fileName);
+            var filePath = Path.Combine(ApplicationHelpers.ConfigPath, "keys", fileName);
             var keyContent = File.ReadAllText(filePath);
 
             return new Dictionary<string, string> {{fileName, keyContent}};

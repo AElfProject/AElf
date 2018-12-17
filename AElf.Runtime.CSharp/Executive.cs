@@ -105,7 +105,6 @@ namespace AElf.Runtime.CSharp
         {
             var scc = ApiType.GetMethod("SetSmartContractContext", BindingFlags.Public | BindingFlags.Static);
             var stc = ApiType.GetMethod("SetTransactionContext", BindingFlags.Public | BindingFlags.Static);
-            var sai = ApiType.GetMethod("SetAuthorizationInfo", BindingFlags.Public | BindingFlags.Static);
             var scch = Delegate.CreateDelegate(typeof(SetSmartContractContextHandler), scc);
             var stch = Delegate.CreateDelegate(typeof(SetTransactionContextHandler), stc);
 
@@ -186,6 +185,11 @@ namespace AElf.Runtime.CSharp
                         _currentTransactionContext.Trace.RetVal = retVal;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
                     }
+                    catch (TargetInvocationException ex)
+                    {
+                        _currentTransactionContext.Trace.StdErr += ex.InnerException.Message;
+                        _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                    }
                     catch (Exception ex)
                     {
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
@@ -207,7 +211,7 @@ namespace AElf.Runtime.CSharp
                         _currentTransactionContext.Trace.RetVal = retVal;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
                     }
-                    catch (TargetInvocationException ex) when (ex.InnerException.GetType().Namespace == "AElf.Sdk.CSharp")
+                    catch (TargetInvocationException ex)
                     {
                         _currentTransactionContext.Trace.StdErr += ex.InnerException.Message;
                         _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;

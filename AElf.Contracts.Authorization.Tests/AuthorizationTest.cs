@@ -3,7 +3,6 @@ using System.IO;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Types.Proposal;
 using AElf.Kernel.Types.Transaction;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -40,7 +39,7 @@ namespace AElf.Contracts.Authorization.Tests
             Init();
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             Address msig = Address.Generate();
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,
@@ -82,7 +81,7 @@ namespace AElf.Contracts.Authorization.Tests
             var kpMsig = new KeyPairGenerator().Generate();
             Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
             
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,
@@ -117,14 +116,10 @@ namespace AElf.Contracts.Authorization.Tests
             
             var expiredProposal = new Proposal
             {
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(-10)),
+                ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(-10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                TxnData = new PendingTxn
-                {
-                    ProposalName = "Propose",
-                    TxnData = CreateDemoTxn(msig).ToByteString()
-                }
+                TxnData = CreateDemoTxn(msig).ToByteString()
             };
             
             var res = _contract.Propose(expiredProposal, kp1).Result;
@@ -133,15 +128,11 @@ namespace AElf.Contracts.Authorization.Tests
             
             var notFoundAuthorizationProposal = new Proposal
             {
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
+                ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = Address.Generate(),
                 Name = "Propose",
                 //ProposerPublicKey = ByteString.CopyFrom(kp1.PublicKey),
-                TxnData = new PendingTxn
-                {
-                    ProposalName = "Propose",
-                    TxnData = CreateDemoTxn(msig).ToByteString()
-                }
+                TxnData = CreateDemoTxn(msig).ToByteString()
             };
             
             res = _contract.Propose(notFoundAuthorizationProposal, kp1).Result;
@@ -149,15 +140,11 @@ namespace AElf.Contracts.Authorization.Tests
             
             var notAuthorizedProposal = new Proposal
             {
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
+                ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
                 //ProposerPublicKey = ByteString.CopyFrom(kp3.PublicKey),
-                TxnData = new PendingTxn
-                {
-                    ProposalName = "Propose",
-                    TxnData = CreateDemoTxn(msig).ToByteString()
-                }
+                TxnData = CreateDemoTxn(msig).ToByteString()
             };
             
             res = _contract.Propose(notAuthorizedProposal, kp3).Result;
@@ -165,14 +152,10 @@ namespace AElf.Contracts.Authorization.Tests
             
             var validProposal = new Proposal
             {
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
+                ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                TxnData = new PendingTxn
-                {
-                    ProposalName = "Propose",
-                    TxnData = CreateDemoTxn(msig).ToByteString()
-                },
+                TxnData = CreateDemoTxn(msig).ToByteString(),
                 Proposer = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey),
                 Status = ProposalStatus.ToBeDecided
             };
@@ -192,7 +175,7 @@ namespace AElf.Contracts.Authorization.Tests
             var kpMsig = new KeyPairGenerator().Generate();
             Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
             
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,
@@ -227,15 +210,11 @@ namespace AElf.Contracts.Authorization.Tests
 
             var validProposal = new Proposal
             {
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
+                ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
                 Proposer = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey),
-                TxnData = new PendingTxn
-                {
-                    ProposalName = "Propose",
-                    TxnData = CreateDemoTxn(msig).ToByteString()
-                }
+                TxnData = CreateDemoTxn(msig).ToByteString()
             };
             
             var res = _contract.Propose(validProposal, kp1).Result;
@@ -254,7 +233,7 @@ namespace AElf.Contracts.Authorization.Tests
             var kpMsig = new KeyPairGenerator().Generate();
             Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
             
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,
@@ -291,15 +270,11 @@ namespace AElf.Contracts.Authorization.Tests
             
             var validProposal = new Proposal
             {
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
+                ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
                 Proposer = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey),
-                TxnData = new PendingTxn
-                {
-                    ProposalName = "Propose",
-                    TxnData = tx.ToByteString()
-                }
+                TxnData = tx.ToByteString()
             };
             
             var res = _contract.Propose(validProposal, kp1).Result;
@@ -316,7 +291,7 @@ namespace AElf.Contracts.Authorization.Tests
                 Signature = ByteString.CopyFrom(signature.SigBytes)
             };
             
-            var sayYesRes = _contract.SayYes(notAuthorizedApproval, Address.FromPublicKey(Mock.ChainId.DumpByteArray(), newKp.PublicKey)).Result;
+            var sayYesRes = _contract.SayYes(notAuthorizedApproval, newKp).Result;
             Assert.False(sayYesRes);
             
             ECSignature signatureKp1 = signer.Sign(kp1, tx.GetHash().DumpByteArray());
@@ -329,11 +304,11 @@ namespace AElf.Contracts.Authorization.Tests
             // todo review print
             //Console.WriteLine(Hash.FromRawBytes(validApproval.Signature.P.ToByteArray()));
             
-            sayYesRes = _contract.SayYes(validApproval, Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey)).Result;
+            sayYesRes = _contract.SayYes(validApproval, kp1).Result;
             Assert.True(sayYesRes);
             
             // say yes again
-            sayYesRes = _contract.SayYes(validApproval, Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey)).Result;
+            sayYesRes = _contract.SayYes(validApproval, kp2).Result;
             Assert.False(sayYesRes);
         }
         
@@ -349,7 +324,7 @@ namespace AElf.Contracts.Authorization.Tests
             var kpMsig = new KeyPairGenerator().Generate();
             Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
             
-            var auth = new Kernel.Types.Proposal.Authorization
+            var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
                 MultiSigAccount = msig,
@@ -386,15 +361,11 @@ namespace AElf.Contracts.Authorization.Tests
             
             var validProposal = new Proposal
             {
-                ExpiredTime = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(10)),
+                ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
                 Proposer = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey),
-                TxnData = new PendingTxn
-                {
-                    ProposalName = "Propose",
-                    TxnData = tx.ToByteString()
-                }
+                TxnData = tx.ToByteString()
             };
             
             var res = _contract.Propose(validProposal, kp1).Result;
@@ -410,7 +381,7 @@ namespace AElf.Contracts.Authorization.Tests
                 Signature = ByteString.CopyFrom(signature.SigBytes)
             };
             
-            var res1 = _contract.SayYes(validApproval1, Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey)).Result;
+            var res1 = _contract.SayYes(validApproval1, kp1).Result;
             Assert.True(res1);
             
             // second approval 
@@ -421,11 +392,11 @@ namespace AElf.Contracts.Authorization.Tests
                 Signature = ByteString.CopyFrom(signatureKp3.SigBytes)
             };
             
-            var res2 = _contract.SayYes(validApproval2, Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp3.PublicKey)).Result;
+            var res2 = _contract.SayYes(validApproval2, kp3).Result;
             Assert.True(res2);
 
             // not enough authorization
-            var txnHash = _contract.Release(Hash.LoadByteArray(res), Address.Generate(Mock.ChainId.DumpByteArray())).Result;
+            var txnHash = _contract.Release(Hash.LoadByteArray(res), new KeyPairGenerator().Generate()).Result;
             Assert.Null(txnHash);
             
             // third approval 
@@ -435,10 +406,10 @@ namespace AElf.Contracts.Authorization.Tests
                 ProposalHash = Hash.LoadByteArray(res),
                 Signature = ByteString.CopyFrom(signatureKp2.SigBytes)
             };
-            var res3 = _contract.SayYes(validApproval3, Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp2.PublicKey)).Result;
+            var res3 = _contract.SayYes(validApproval3, kp2).Result;
             Assert.True(res3);
             
-            txnHash = _contract.Release(Hash.LoadByteArray(res), Address.Generate(Mock.ChainId.DumpByteArray())).Result;
+            txnHash = _contract.Release(Hash.LoadByteArray(res), new KeyPairGenerator().Generate()).Result;
             
             Assert.NotNull(txnHash);
             Assert.Equal(msig, txnHash.From);

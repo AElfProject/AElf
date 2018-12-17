@@ -15,9 +15,7 @@ using NLog;
 
 namespace AElf.Kernel.Consensus
 {
-    // ReSharper disable InconsistentNaming
-    // ReSharper disable MemberCanBeMadeStatic.Local
-    // ReSharper disable UnusedMember.Global
+    // TODO: Cache
     public class AElfDPoSHelper
     {
         private static Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
@@ -28,7 +26,7 @@ namespace AElf.Kernel.Consensus
         private readonly ILogger _logger = LogManager.GetLogger(nameof(AElfDPoSHelper));
         private readonly IStateStore _stateStore;
 
-        public List<Address> Miners => _minersManager.GetMiners().Result.Nodes.ToList();
+        public List<byte[]> Miners => _minersManager.GetMiners().Result.Producers.Select(p => p.ToByteArray()).ToList();
 
         private DataProvider DataProvider
         {
@@ -172,7 +170,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public BlockProducer this[Address accountAddress] => this[accountAddress.GetFormatted()];
+        public BlockProducer this[byte[] pubKey] => this[pubKey.ToHex()];
 
         private Round this[UInt64Value roundNumber]
         {
@@ -195,12 +193,12 @@ namespace AElf.Kernel.Consensus
 
         public AElfDPoSInformation GenerateInfoForFirstTwoRounds()
         {
-            var dict = new Dictionary<Address, int>();
+            var dict = new Dictionary<byte[], int>();
 
             // First round
-            foreach (var node in Miners)
+            foreach (var miner in Miners)
             {
-                dict.Add(node, node.GetFormatted()[0]);
+                dict.Add(miner, miner.ToHex()[0]);
             }
 
             var sortedMiningNodes =
@@ -227,15 +225,15 @@ namespace AElf.Kernel.Consensus
                 bpInfo.TimeSlot =
                     GetTimestampOfUtcNow(i * ConsensusConfig.Instance.DPoSMiningInterval + GlobalConfig.AElfWaitFirstRoundTime);
 
-                infosOfRound1.BlockProducers.Add(enumerable[i].GetFormatted(), bpInfo);
+                infosOfRound1.BlockProducers.Add(enumerable[i].ToHex(), bpInfo);
             }
 
             // Second round
-            dict = new Dictionary<Address, int>();
+            dict = new Dictionary<byte[], int>();
 
-            foreach (var node in Miners)
+            foreach (var miner in Miners)
             {
-                dict.Add(node, node.GetFormatted()[0]);
+                dict.Add(miner, miner.ToHex()[0]);
             }
 
             sortedMiningNodes =
@@ -263,7 +261,7 @@ namespace AElf.Kernel.Consensus
                                                        GlobalConfig.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
-                infosOfRound2.BlockProducers.Add(enumerable[i].GetFormatted(), bpInfo);
+                infosOfRound2.BlockProducers.Add(enumerable[i].ToHex(), bpInfo);
             }
 
             infosOfRound1.RoundNumber = 1;
@@ -319,9 +317,9 @@ namespace AElf.Kernel.Consensus
             try
             {
                 var add = Hash.Default;
-                foreach (var node in Miners)
+                foreach (var miner in Miners)
                 {
-                    var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[node.GetFormatted()].Signature;
+                    var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[miner.ToHex()].Signature;
                     add = Hash.FromTwoHashes(add, lastSignature);
                 }
 
@@ -345,15 +343,15 @@ namespace AElf.Kernel.Consensus
 
                 var blockProducerCount = Miners.Count;
 
-                foreach (var node in Miners)
+                foreach (var miner in Miners)
                 {
-                    var s = this[node].Signature;
+                    var s = this[miner].Signature;
                     if (s == null)
                     {
                         s = Hash.Generate();
                     }
 
-                    signatureDict[s] = node.GetFormatted();
+                    signatureDict[s] = miner.ToHex();
                 }
 
                 foreach (var sig in signatureDict.Keys)
@@ -427,7 +425,7 @@ namespace AElf.Kernel.Consensus
 
                 var nextEBP = Miners[order];
 
-                return new StringValue {Value = nextEBP.GetFormatted().RemoveHexPrefix()};
+                return new StringValue {Value = nextEBP.ToHex().RemoveHexPrefix()};
             }
             catch (Exception e)
             {

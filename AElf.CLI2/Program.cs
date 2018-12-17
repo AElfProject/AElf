@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using AElf.CLI2.Commands;
+using AElf.CLI2.Commands.CrossChain;
+using AElf.CLI2.Commands.Proposal;
 using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
 using Autofac;
@@ -13,92 +17,24 @@ namespace AElf.CLI2
     {
         static int Main(string[] args)
         {
-            return Parser.Default
-                .ParseArguments<CreateOption, InteractiveOption, DeployOption, GetAbiOption, SendTransactionOption,
-                    GetTxResultOption, GetBlockHeightOption, GetBlockInfoOption, GetMerkelPathOption>(args)
-                .MapResult(
-                    (CreateOption opt) =>
-                    {
-                        using (var cmd = new CreateCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (InteractiveOption opt) =>
-                    {
-                        using (var cmd = new InteractiveCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (DeployOption opt) =>
-                    {
-                        using (var cmd = new DeployCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (GetAbiOption opt) =>
-                    {
-                        using (var cmd = new GetAbiCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (SendTransactionOption opt) =>
-                    {
-                        using (var cmd = new SendTransactionCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (GetTxResultOption opt) =>
-                    {
-                        using (var cmd = new GetTxResultCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (GetBlockHeightOption opt) =>
-                    {
-                        using (var cmd = new GetBlockHeightCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (GetBlockInfoOption opt) =>
-                    {
-                        using (var cmd = new GetBlockInfoCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    (GetMerkelPathOption opt) =>
-                    {
-                        using (var cmd = new GetMerkelPathCommand(opt))
-                        {
-                            cmd.Execute();
-                        }
-
-                        return 0;
-                    },
-                    errs => 1);
+            var parsedResult = Parser.Default.ParseArguments(args, CmdModule.Commands.Keys.ToArray());
+            if (!(parsedResult is Parsed<object> parsed))
+                return 1;
+            Type optionType = null;
+            var opt = parsed.Value;
+            Type cmdType = CmdModule.Commands.First(cmd =>
+            {
+                if (opt.GetType() != cmd.Key)
+                    return false;
+                optionType = cmd.Key;
+                return opt.GetType() == cmd.Key;
+            }).Value;
+            if (optionType == null)
+                return 1;
+            var command = cmdType.GetConstructor(new[] {optionType}).Invoke(new[] {opt});
+            cmdType.GetMethod("Execute").Invoke(command, new object[0]);
+            return 0;
         }
+
     }
 }

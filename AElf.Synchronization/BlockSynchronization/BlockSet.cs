@@ -13,6 +13,7 @@ namespace AElf.Synchronization.BlockSynchronization
 {
     public class BlockSet : IBlockSet
     {
+        private const int MaxLenght = 200;
         private const int Timeout = int.MaxValue;
 
         private readonly ILogger _logger;
@@ -294,6 +295,11 @@ namespace AElf.Synchronization.BlockSynchronization
             }
 
             _logger?.Trace(str);
+        }
+
+        public bool IsFull()
+        {
+            return _blocks.Count > MaxLenght;
         }
     }
 }
