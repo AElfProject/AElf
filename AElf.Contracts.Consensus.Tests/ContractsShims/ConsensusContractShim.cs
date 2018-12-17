@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using AElf.Types.CSharp;
 using ByteString = Google.Protobuf.ByteString;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.Tests
 {
@@ -448,7 +450,8 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "Vote",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(candidateKeyPair.PublicKey.ToHex(), amount, lockDays))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(candidateKeyPair.PublicKey.ToHex(), amount, lockDays,
+                    DateTime.UtcNow.ToTimestamp()))
             };
             var signer = new ECSigner();
             var signature = signer.Sign(voterKeyPair, tx.GetHash().DumpByteArray());

@@ -58,7 +58,7 @@ namespace AElf.Kernel
                 Count = votingRecord.Count,
                 From = votingRecord.From,
                 To = votingRecord.To,
-                VoteTimestamp = votingRecord.VoteTimestamp
+                TermNumber = votingRecord.TermNumber
             };
         }
     }

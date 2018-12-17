@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp;
+using Akka.Routing;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -40,7 +41,7 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.CandidatesField.SetValue(candidates);
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockAmount)
+        public void Vote(string candidatePublicKey, ulong amount, int lockAmount, Timestamp timestamp)
         {
             if (lockAmount.InRange(1, 3))
             {
@@ -70,7 +71,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 To = candidatePublicKey,
                 RoundNumber = _collection.CurrentRoundNumberField.GetValue(),
                 TransactionId = Api.GetTxnHash(),
-                VoteTimestamp = DateTime.UtcNow.ToTimestamp(),
+                VoteTimestamp = timestamp,
                 UnlockAge = ageOfBlockchain + (ulong) lockAmount,
                 TermNumber = _collection.CurrentTermNumberField.GetValue()
             };

@@ -106,7 +106,8 @@ namespace AElf.Kernel
                     TermNumber = termNumber,
                     PublicKeys = {PublicKeys}
                 },
-                MiningInterval = miningInterval
+                MiningInterval = miningInterval,
+                Timestamp = DateTime.UtcNow.ToTimestamp()
             };
 
             return term;

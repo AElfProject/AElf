@@ -12,6 +12,7 @@ message Term {
     Round SecondRound = 3;
     int32 MiningInterval = 4;
     uint64 TermNumber = 5;
+    google.protobuf.Timestamp Timestamp = 6;
 }
 
 // Just used as parameter of consensus contract method.

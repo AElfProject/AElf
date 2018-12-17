@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.Tests
             _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
         }
         
-        [Fact]
+        [Fact(Skip = "Time consuming")]
         public void GetDividendsTest()
         {
             InitialMiners();
@@ -82,10 +82,8 @@ namespace AElf.Contracts.Consensus.Tests
                 outValuesList.Push(Hash.FromMessage(inValue));
             }
 
-            var index = 0;
             foreach (var newMiner in victories)
             {
-                index++;
                 _consensusContract.PackageOutValue(GetCandidateKeyPair(newMiner), new ToPackage
                 {
                     OutValue = outValuesList.Pop(),
@@ -100,8 +98,6 @@ namespace AElf.Contracts.Consensus.Tests
                 });
             }
 
-            Console.WriteLine(index);
-            
             // Third item.
             var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3, 3);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);

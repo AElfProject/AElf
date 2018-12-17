@@ -32,6 +32,8 @@ namespace AElf.Contracts.Consensus.Contracts
         public void InitialTerm(Term firstTerm, int logLevel)
         {
             InitialBlockchain();
+            
+            _collection.BlockchainStartTimestamp.SetValue(firstTerm.Timestamp);
 
             _collection.MinersMap.SetValue(firstTerm.TermNumber.ToUInt64Value(), firstTerm.Miners);
 
@@ -99,13 +101,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
 
             // First handle the age of this blockchain
-            if (forwarding.CurrentAge != CurrentAge)
-            {
-                if (forwarding.CurrentAge == (ulong) ((DateTime.UtcNow - StartTimestamp.ToDateTime()).TotalDays + 1))
-                {
-                    _collection.AgeField.SetValue(forwarding.CurrentAge);
-                }
-            }
+            _collection.AgeField.SetValue(forwarding.CurrentAge);
 
             var forwardingCurrentRoundInfo = forwarding.CurrentRoundInfo;
             var currentRoundInfo = GetRoundInfo(forwardingCurrentRoundInfo.RoundNumber);
@@ -198,8 +194,6 @@ namespace AElf.Contracts.Consensus.Contracts
 
             _collection.CurrentRoundNumberField.SetValue(1);
 
-            _collection.BlockchainStartTimestamp.SetValue(DateTime.UtcNow.ToTimestamp());
-
             _collection.AgeField.SetValue(1);
             
             var lookUp = new TermNumberLookUp();
@@ -257,11 +251,6 @@ namespace AElf.Contracts.Consensus.Contracts
 
         #endregion
 
-        private DateTime GetLocalTime()
-        {
-            return DateTime.UtcNow.ToLocalTime();
-        }
-
         private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
@@ -302,14 +291,10 @@ namespace AElf.Contracts.Consensus.Contracts
             var ticketsMap = new Dictionary<string, ulong>();
             foreach (var candidate in candidates.PublicKeys)
             {
-                if (_collection.TicketsMap.TryGet(candidate.ToStringValue(), out var tickets))
-                {
-                    ticketsMap.Add(candidate, tickets.TotalTickets);
-                }
-                else
-                {
-                    ticketsMap.Add(candidate, 0);
-                }
+                ticketsMap.Add(candidate,
+                    _collection.TicketsMap.TryGet(candidate.ToStringValue(), out var tickets)
+                        ? tickets.TotalTickets
+                        : 0);
             }
 
             return ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
@@ -495,7 +480,7 @@ namespace AElf.Contracts.Consensus.Contracts
             if (LogLevel == 6)
                 return;
 
-            Console.WriteLine($"[{GetLocalTime():yyyy-MM-dd HH:mm:ss.fff} - Consensus]{prefix} - {log}.");
+            Console.WriteLine($"[{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} - Consensus]{prefix} - {log}.");
             if (ex != null)
             {
                 Console.WriteLine(ex);
