@@ -215,13 +215,61 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Not finished yet.")]
+        [Fact]
         public void NextRoundTest()
         {
             InitialMiners();
+            
+            InitialTerm(_miners[0]);
+            
+            var firstRound = _consensusContract.GetRoundInfo(1);
 
+            // Generate in values and out values.
+            var inValuesList = new Stack<Hash>();
+            var outValuesList = new Stack<Hash>();
+            for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
+            {
+                var inValue = Hash.Generate();
+                inValuesList.Push(inValue);
+                outValuesList.Push(Hash.FromMessage(inValue));
+            }
+            
+            // Actually their go one round.
+            foreach (var keyPair in _miners)
+            {
+                _consensusContract.PackageOutValue(keyPair, new ToPackage
+                {
+                    OutValue = outValuesList.Pop(),
+                    RoundId = firstRound.RoundId,
+                    Signature = Hash.Default
+                });
+                
+                _consensusContract.BroadcastInValue(keyPair, new ToBroadcast
+                {
+                    InValue = inValuesList.Pop(),
+                    RoundId = firstRound.RoundId
+                });
+            }
+            // Extra block.
+            firstRound = _consensusContract.GetRoundInfo(1);
+            var suppliedFirstRound = firstRound.SupplementForFirstRound();
+            var secondRound = new Miners
+            {
+                TermNumber = 1,
+                PublicKeys = {_miners.Select(m => m.PublicKey.ToHex())}
+            }.GenerateNextRound(suppliedFirstRound);
+            _consensusContract.NextRound(_miners[0], new Forwarding
+            {
+                CurrentAge = 1,
+                CurrentRoundInfo = suppliedFirstRound,
+                NextRoundInfo = secondRound
+            });
+            
+            Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
+
+            Assert.Equal((ulong) 2, _consensusContract.GetCurrentRoundNumber());
         }
-
+        
         private void InitialTerm(ECKeyPair starterKeyPair)
         {
             var initialTerm =

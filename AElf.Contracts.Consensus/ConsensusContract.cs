@@ -45,6 +45,12 @@ namespace AElf.Contracts.Consensus
             Api.Assert(Collection.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out var roundInfo), GlobalConfig.RoundNumberNotFound);
             return roundInfo;
         }
+
+        [View]
+        public ulong GetCurrentRoundNumber()
+        {
+            return Collection.CurrentRoundNumberField.GetValue();
+        }
         
         public void InitialTerm(Term term, int logLevel)
         {
@@ -77,6 +83,12 @@ namespace AElf.Contracts.Consensus
         #endregion
 
         #region Election
+        
+        [View]
+        public ulong GetCurrentTermNumber()
+        {
+            return Collection.CurrentTermNumberField.GetValue();
+        }
 
         [View]
         public bool IsCandidate(string publicKey)

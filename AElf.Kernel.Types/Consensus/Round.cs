@@ -64,7 +64,7 @@ namespace AElf.Kernel
             return this;
         }
 
-        public Round ForceSupplement()
+        public Round SupplementForFirstRound()
         {
             foreach (var minerInRound in RealTimeMinersInfo.Values)
             {

@@ -162,6 +162,48 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Round>();
         }
 
+        public ulong GetCurrentRoundNumber()
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "GetCurrentRoundNumber",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            var result = TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
+            return result ?? 0;
+        }
+        
+        public ulong GetCurrentTermNumber()
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "GetCurrentTermNumber",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            var result = TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
+            return result ?? 0;
+        }
+        
         #endregion View Only Methods
 
         #region Actions
@@ -249,6 +291,25 @@ namespace AElf.Contracts.Consensus.Tests
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "BroadcastInValue",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(toBroadcast))
+            };
+            var signer = new ECSigner();
+            var signature = signer.Sign(minerKeyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+
+            TransactionContext = PrepareTransactionContext(tx);
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+        
+        public void NextRound(ECKeyPair minerKeyPair, Forwarding forwarding)
+        {
+            var tx = new Transaction
+            {
+                From = GetAddress(minerKeyPair),
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "NextRound",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(forwarding))
             };
             var signer = new ECSigner();
             var signature = signer.Sign(minerKeyPair, tx.GetHash().DumpByteArray());

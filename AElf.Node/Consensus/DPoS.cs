@@ -517,12 +517,11 @@ namespace AElf.Kernel.Node
                     }
                     else
                     {
-                        roundInfo = roundInfo.ForceSupplement();
+                        roundInfo = roundInfo.SupplementForFirstRound();
                     }
 
                     var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
 
-                    var ageInDatabase = _helper.BlockchainAge.Value;
                     var calculateAge = _helper.CalculateBlockchainAge();
 
                     if (calculateAge % GlobalConfig.DaysEachTerm == 0)
@@ -536,7 +535,7 @@ namespace AElf.Kernel.Node
                         {
                             CurrentRoundInfo = roundInfo,
                             NextRoundInfo = nextRoundInfo,
-                            CurrentAge = ageInDatabase == calculateAge ? ageInDatabase : calculateAge
+                            CurrentAge = calculateAge
                         }
                     };
 
