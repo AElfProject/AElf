@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.Tests
             _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
         }
         
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void GetDividendsTest()
         {
             InitialMiners();

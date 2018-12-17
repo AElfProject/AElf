@@ -15,21 +15,44 @@ namespace AElf.Contracts.Dividends
         // Term Number -> Dividends Amount
         private readonly Map<UInt64Value, UInt64Value> _dividendsMap =
             new Map<UInt64Value, UInt64Value>(GlobalConfig.DividendsMapString);
-        
+
         // Term Number -> Total weights
         private readonly Map<UInt64Value, UInt64Value> _totalWeightsMap =
             new Map<UInt64Value, UInt64Value>(GlobalConfig.TotalWeightsMapString);
-        
-        private readonly Map<Hash, UInt64Value> _transferMap =
+
+        // Because voter can request dividends of each VotingRecord instance for terms it experienced,
+        // we need to record the term number of last term he request his dividends.
+        // Hash (of VotingRecord) -> Latest request dividends term number
+        private readonly Map<Hash, UInt64Value> _lastRequestDividendsMap =
             new Map<Hash, UInt64Value>(GlobalConfig.TransferMapString);
-        
+
+        [View]
+        public ulong GetTermDividends(ulong termNumber)
+        {
+            return _dividendsMap.TryGet(termNumber.ToUInt64Value(), out var dividends) ? dividends.Value : 0;
+        }
+
+        [View]
+        public ulong GetTermTotalWeights(ulong termNumber)
+        {
+            return _totalWeightsMap.TryGet(termNumber.ToUInt64Value(), out var weights) ? weights.Value : 0;
+        }
+
+        [View]
+        public ulong GetLatestRequestDividendsTermNumber(VotingRecord votingRecord)
+        {
+            return _lastRequestDividendsMap.TryGet(GetHashOfVotingRecord(votingRecord), out var termNumber)
+                ? termNumber.Value
+                : votingRecord.TermNumber;
+        }
+
         public void TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
         {
             var owner = votingRecord.From;
             var ownerAddress =
                 Address.FromPublicKey(Api.ChainId.DumpByteArray(), ByteArrayHelpers.FromHexString(owner));
             var start = votingRecord.TermNumber;
-            if (_transferMap.TryGet(Hash.FromMessage(votingRecord.ToSimpleRecord()), out var history))
+            if (_lastRequestDividendsMap.TryGet(GetHashOfVotingRecord(votingRecord), out var history))
             {
                 start = history.Value + 1;
             }
@@ -39,9 +62,9 @@ namespace AElf.Contracts.Dividends
             {
                 if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
                 {
-                    actualTermNumber = i;
                     if (_dividendsMap.TryGet(i.ToUInt64Value(), out var dividends))
                     {
+                        actualTermNumber = i;
                         var dividendsAmount = dividends.Value * votingRecord.Weight / totalWeights.Value;
                         Console.WriteLine($"Transferred {dividendsAmount} dividends to {owner}");
                         Api.SendInline(Api.TokenContractAddress, "Transfer", ownerAddress, dividendsAmount);
@@ -49,11 +72,12 @@ namespace AElf.Contracts.Dividends
                 }
             }
 
-            _transferMap.SetValue(Hash.FromMessage(votingRecord.ToSimpleRecord()), actualTermNumber.ToUInt64Value());
+            _lastRequestDividendsMap.SetValue(GetHashOfVotingRecord(votingRecord), actualTermNumber.ToUInt64Value());
         }
 
         public void AddDividends(ulong termNumber, ulong dividendsAmount)
         {
+            Console.WriteLine($"Allowed {dividendsAmount} dividends to term {termNumber}");
             _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
         }
 
@@ -68,9 +92,10 @@ namespace AElf.Contracts.Dividends
             {
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), weights.ToUInt64Value());
             }
+
             Console.WriteLine($"Added {weights} weights to {termNumber} term.");
         }
-        
+
         public void SubWeights(ulong weights, ulong termNumber)
         {
             if (_totalWeightsMap.TryGet(termNumber.ToUInt64Value(), out var totalWeights))
@@ -78,6 +103,11 @@ namespace AElf.Contracts.Dividends
                 var newWeights = totalWeights.Value - weights;
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), newWeights.ToUInt64Value());
             }
+        }
+
+        private Hash GetHashOfVotingRecord(VotingRecord votingRecord)
+        {
+            return Hash.FromMessage(votingRecord.ToSimpleRecord());
         }
     }
 }

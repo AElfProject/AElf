@@ -110,6 +110,15 @@ Params:
 
 To get the term number of provided round number.
 
+### GetCurrentElectionInfo
+
+*No params*
+
+Result Type:
+- Dictionary<string, Tickets>
+
+To get the election information during the election.
+
 ## Data Structure
 
 ```Protobuf
@@ -277,7 +286,7 @@ message CandidateInHistory {
 
 *无参数*
 
-获取区块链的年龄。（当前时间为天）。
+获取区块链的年龄。（当前单位为天）。
 
 ### GetCurrentVictories
 
@@ -298,3 +307,12 @@ Params:
 - ulong roundNumber
 
 获取所提供轮数所在的届数。
+
+### GetCurrentElectionInfo
+
+*无参数*
+
+返回类型:
+- Dictionary<string, Tickets>
+
+竞选过程中获取所有候选人的选票详情。

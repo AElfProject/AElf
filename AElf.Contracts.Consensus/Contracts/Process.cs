@@ -322,6 +322,8 @@ namespace AElf.Contracts.Consensus.Contracts
             var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
 
+            Console.WriteLine($"Mined {minedBlocks} blocks in current term.");
+
             Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber, minedBlocks * GlobalConfig.ElfTokenPerBlock);
 
             var candidateInTerms = new List<CandidateInTerm>();

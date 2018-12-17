@@ -98,6 +98,7 @@ namespace AElf.Kernel
 
             var term = new Term
             {
+                TermNumber = termNumber,
                 FirstRound = infosOfRound1,
                 SecondRound = infosOfRound2,
                 Miners = new Miners

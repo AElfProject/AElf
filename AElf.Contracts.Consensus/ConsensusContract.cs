@@ -127,6 +127,21 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
+        public Dictionary<string, Tickets> GetCurrentElectionInfo()
+        {
+            var dict = new Dictionary<string, Tickets>();
+            foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
+            {
+                if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                {
+                    dict.Add(publicKey, tickets);
+                }
+            }
+
+            return dict;
+        }
+        
+        [View]
         public ulong GetBlockchainAge()
         {
             return Collection.AgeField.GetValue();
