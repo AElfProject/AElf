@@ -6,7 +6,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Consensus;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
@@ -63,7 +62,7 @@ namespace AElf.ChainController
             // Get BP address
             // todo temp solution
             var uncompressedPrivateKey = block.Header.P.ToByteArray();
-            var address = Address.FromPublicKey(ChainConfig.Instance.ChainId.DecodeBase58(), uncompressedPrivateKey);
+            var address = Address.FromPublicKey(uncompressedPrivateKey);
 
             // Get the address of consensus contract
             var contractAccountHash = ContractHelpers.GetConsensusContractAddress(context.ChainId);

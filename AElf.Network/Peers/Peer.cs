@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Timers;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Network.Connection;
@@ -386,7 +385,7 @@ namespace AElf.Network.Peers
                 }
                 
                 DistantNodeAddress 
-                    = Address.FromPublicKey(ChainConfig.Instance.ChainId.DecodeBase58(), DistantPublicKey).GetFormatted(); 
+                    = Address.FromPublicKey(DistantPublicKey).GetFormatted(); 
 
                 // verify sig
                 ECVerifier verifier = new ECVerifier();

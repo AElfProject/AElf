@@ -166,7 +166,7 @@ namespace AElf.Cryptography
             string fullPath = null;
             try
             {
-                var address = Address.FromPublicKey(chainId.DecodeBase58(), keyPair.PublicKey);
+                var address = Address.FromPublicKey(keyPair.PublicKey);
                 fullPath = GetKeyFileFullPath(address.GetFormatted());
             }
             catch (Exception e)
