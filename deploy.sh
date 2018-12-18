@@ -6,7 +6,7 @@ DOCKER_USERNAME=$2
 DOCKER_PASSWORD=$3
 
 # AElf node
-dotnet publish -c Release -o ~/aelf/
+dotnet publish /p:Version=$TAG -c Release -o ~/aelf/
 
 docker build -t aelf/node:$TAG ~/aelf/.
 docker tag aelf/node:$TAG aelf/node:latest

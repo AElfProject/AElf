@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -39,6 +40,7 @@ namespace AElf.Contracts.Resource
 
         internal Map<StringValue, Converter> Converters = new Map<StringValue, Converter>("Converters");
         internal MapToUInt64<UserResourceKey> UserBalances = new MapToUInt64<UserResourceKey>("UserBalances");
+        internal MapToUInt64<UserResourceKey> LockedUserResources = new MapToUInt64<UserResourceKey>("LockedUserResources");
         internal BoolField Initialized = new BoolField("Initialized");
         internal PbField<Address> ElfTokenAddress = new PbField<Address>("ElfTokenAddress");
         internal PbField<Address> FeeAddress = new PbField<Address>("FeeAddress");
@@ -138,7 +140,7 @@ namespace AElf.Contracts.Resource
         {
             checked
             {
-                Api.Assert(ResourceControllerAddress.GetValue() == Api.GetTransaction().From,
+                Api.Assert(ResourceControllerAddress.GetValue() == Api.GetFromAddress(),
                     "Only resource controller is allowed to perform this action.");
                 AssertCorrectResourceType(resourceType);
                 var rt = new StringValue() {Value = resourceType};
@@ -156,7 +158,7 @@ namespace AElf.Contracts.Resource
             var payout = this.BuyResourceFromExchange(resourceType, elfForRes);
             var urk = new UserResourceKey()
             {
-                Address = Api.GetTransaction().From,
+                Address = Api.GetFromAddress(),
                 Type = ParseResourceType(resourceType)
             };
             UserBalances[urk] = UserBalances[urk].Add(payout);
@@ -166,21 +168,59 @@ namespace AElf.Contracts.Resource
 
         public void SellResource(string resourceType, ulong resToSell)
         {
-            var bal = GetUserBalance(Api.GetTransaction().From, resourceType);
+            var bal = GetUserBalance(Api.GetFromAddress(), resourceType);
             Api.Assert(bal >= resToSell, $"Insufficient {resourceType.ToUpper()} balance.");
             AssertCorrectResourceType(resourceType);
             var elfToReceive = this.SellResourceToExchange(resourceType, resToSell);
             var fees = (ulong) (elfToReceive * FeeRate);
             var urk = new UserResourceKey()
             {
-                Address = Api.GetTransaction().From,
+                Address = Api.GetFromAddress(),
                 Type = ParseResourceType(resourceType)
             };
             UserBalances[urk] = UserBalances[urk].Sub(resToSell);
-            ElfToken.TransferByContract(Api.GetTransaction().From, elfToReceive - fees);
+            ElfToken.TransferByContract(Api.GetFromAddress(), elfToReceive - fees);
             ElfToken.TransferByContract(FeeAddress.GetValue(), fees);
         }
 
+        public void LockResource(Address to, ulong amount, string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            var urkFrom = new UserResourceKey
+            {
+                Address = Api.GetFromAddress(),
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            UserBalances[urkFrom] = UserBalances[urkFrom].Sub(amount);
+            var lurkTo = new UserResourceKey
+            {
+                Address = to,
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            LockedUserResources[lurkTo] = UserBalances[lurkTo].Add(amount);
+        }
+        
+        public void WithdrawResource(Address to, ulong amount, string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            var urkFrom = new UserResourceKey
+            {
+                Address = Api.GetFromAddress(),
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            UserBalances[urkFrom] = UserBalances[urkFrom].Add(amount);
+            var lurkTo = new UserResourceKey
+            {
+                Address = to,
+                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
+                    resourceType)
+            };
+            LockedUserResources[lurkTo] = UserBalances[lurkTo].Sub(amount);
+        }
+        
         #endregion Actions
     }
 }

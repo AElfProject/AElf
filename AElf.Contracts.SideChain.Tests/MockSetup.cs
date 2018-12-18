@@ -82,12 +82,12 @@ namespace AElf.Contracts.SideChain.Tests
             _dataStore = new DataStore(db);
         }
         
-        public byte[] SideChainCode
+        public byte[] CrossChainCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.SideChain/bin/Debug/netstandard2.0/AElf.Contracts.SideChain.dll")))
+                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll")))
                 {
                     code = file.ReadFully();
                 }
@@ -113,9 +113,9 @@ namespace AElf.Contracts.SideChain.Tests
             var reg1 = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(SideChainCode),
-                ContractHash = Hash.FromRawBytes(SideChainCode),
-                SerialNumber = GlobalConfig.SideChainContract
+                ContractBytes = ByteString.CopyFrom(CrossChainCode),
+                ContractHash = Hash.FromRawBytes(CrossChainCode),
+                SerialNumber = GlobalConfig.CrossChainContract
             };
             var reg0 = new SmartContractRegistration
             {

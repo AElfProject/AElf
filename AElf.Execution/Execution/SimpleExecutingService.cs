@@ -59,6 +59,11 @@ namespace AElf.Execution.Execution
                 }
 
                 traces.Add(trace);
+                
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
             }
 
 //            await _stateDictator.ApplyCachedDataAction(stateCache);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -22,6 +23,7 @@ namespace AElf.Network.Tests
                 NodeInfo = nodeInfo,
                 PublicKey = ByteString.CopyFrom(key.PublicKey),
                 Sig = ByteString.CopyFrom(sig.SigBytes),
+                Version = GlobalConfig.ProtocolVersion,
             };
 
             return (key, handshakeMsg);

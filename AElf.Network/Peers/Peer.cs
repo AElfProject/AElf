@@ -19,7 +19,7 @@ namespace AElf.Network.Peers
     public class PeerDisconnectedArgs : EventArgs
     {
         public DisconnectReason Reason { get; set; }
-        public Peer Peer { get; set; }
+        public IPeer Peer { get; set; }
     }
 
     public class AuthFinishedArgs : EventArgs
@@ -42,6 +42,7 @@ namespace AElf.Network.Peers
     public enum RejectReason
     {
         AuthTimeout,
+        AuthWrongVersion,
         AuthInvalidHandshakeMsg,
         AuthInvalidKey,
         AuthInvalidSig,
@@ -50,7 +51,8 @@ namespace AElf.Network.Peers
 
     public enum DisconnectReason
     {
-        StreamClosed
+        StreamClosed,
+        BlockRequestTimeout
     }
 
     public class PeerMessageReceivedArgs : EventArgs
@@ -278,7 +280,8 @@ namespace AElf.Network.Peers
                     NodeInfo = nodeInfo,
                     PublicKey = ByteString.CopyFrom(_nodeKey.PublicKey),
                     Height = CurrentHeight,
-                    Sig = ByteString.CopyFrom(sig.SigBytes)
+                    Sig = ByteString.CopyFrom(sig.SigBytes),
+                    Version = GlobalConfig.ProtocolVersion,
                 };
 
                 if (_nodeKey.PublicKey == null)
@@ -368,17 +371,19 @@ namespace AElf.Network.Peers
             _lastReceivedHandshake = handshakeMsg;
 
             try
-            {
+            {                
+                if (handshakeMsg.Version != GlobalConfig.ProtocolVersion)
+                {
+                    FireInvalidAuth(RejectReason.AuthWrongVersion);
+                    return RejectReason.AuthWrongVersion;
+                }
+                                    
                 DistantPubKey = handshakeMsg.PublicKey.ToByteArray();
-
                 if (DistantPubKey == null)
                 {
                     FireInvalidAuth(RejectReason.AuthInvalidKey);
                     return RejectReason.AuthInvalidKey;
                 }
-
-                if (ChainConfig.Instance.ChainId == null || ChainConfig.Instance.ChainId.Length != 4)
-                    ;
                 
                 DistantNodeAddress 
                     = Address.FromPublicKey(ChainConfig.Instance.ChainId.DecodeBase58(), DistantPublicKey).GetFormatted(); 

@@ -1,13 +1,26 @@
+using System.IO;
 using AElf.Common;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.Types.Proposal
+namespace AElf.Kernel
 {
     public partial class Proposal
     {
         public Hash GetHash()
         {
-            return Hash.FromTwoHashes(Hash.FromRawBytes(MultiSigAccount.DumpByteArray()), Hash.FromString(Name));
+            using (var mm = new MemoryStream())
+            using (var stream = new CodedOutputStream(mm))
+            {
+                MultiSigAccount.WriteTo(stream);
+                Proposer.WriteTo(stream);
+                stream.WriteBytes(TxnData);
+                new DoubleValue {Value = ExpiredTime}.WriteTo(stream);
+                stream.Flush();
+                mm.Flush();
+                return Hash.FromRawBytes(mm.ToArray());
+            }
+
         }
     }
 }

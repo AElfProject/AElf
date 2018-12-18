@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel";
+
+import "common.proto";
+import "google/protobuf/timestamp.proto";
+
+message TermRounds {
+    repeated uint64 RoundNumbers = 1;
+}
+

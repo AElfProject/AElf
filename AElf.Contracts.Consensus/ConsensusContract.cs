@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Contracts.Consensus.ConsensusContracts;
-using AElf.Contracts.Consensus.ConsensusContracts.FieldMapCollections;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
-using Google.Protobuf;
-using ServiceStack;
+using AElf.Contracts.Consensus.Contracts;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus
@@ -20,158 +15,204 @@ namespace AElf.Contracts.Consensus
     // ReSharper disable UnusedMember.Global
     public class ConsensusContract : CSharpSmartContract
     {
-        private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(Api.GetChainId());
-
-        #region DPoS
-
-        private readonly UInt64Field _currentRoundNumberField =
-            new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber);
-
-        private readonly PbField<OngoingMiners> _ongoingMinersField =
-            new PbField<OngoingMiners>(GlobalConfig.AElfDPoSOngoingMinersString);
-
-        private readonly PbField<Timestamp> _timeForProducingExtraBlockField =
-            new PbField<Timestamp>(GlobalConfig.AElfDPoSExtraBlockTimeSlotString);
-
-        private readonly Int32Field _miningIntervalFiled = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString);
-
-        private readonly PbField<Candidates> _candidatesField =
-            new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString);
-
-        private readonly Map<UInt64Value, Round> _dposInfoMap =
-            new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSInformationString);
-
-        private readonly Map<UInt64Value, StringValue> _eBPMap =
-            new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSExtraBlockProducerString);
-
-        private readonly Map<UInt64Value, StringValue> _firstPlaceMap =
-            new Map<UInt64Value, StringValue>(GlobalConfig.AElfDPoSFirstPlaceOfEachRoundString);
-
-        private readonly Map<Address, Tickets> _balanceMap =
-            new Map<Address, Tickets>(GlobalConfig.AElfDPoSBalanceMapString);
-
-        private readonly Map<UInt64Value, ElectionSnapshot> _snapshotMap =
-            new Map<UInt64Value, ElectionSnapshot>(GlobalConfig.AElfDPoSSnapshotFieldString);
-
-        private DPoS DPoSConsensus => new DPoS(new AElfDPoSFieldMapCollection
+        private DataCollection Collection => new DataCollection
         {
-            CurrentRoundNumberField = _currentRoundNumberField,
-            OngoingMinersField = _ongoingMinersField,
-            TimeForProducingExtraBlockField = _timeForProducingExtraBlockField,
-            MiningIntervalField = _miningIntervalFiled,
-            CandidatesField = _candidatesField,
+            CurrentRoundNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentRoundNumber),
+            MiningIntervalField = new Int32Field(GlobalConfig.AElfDPoSMiningIntervalString),
+            CandidatesField = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
+            TermNumberLookupField = new PbField<TermNumberLookUp>(GlobalConfig.AElfDPoSTermNumberLookupString),
+            AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
+            CurrentTermNumberField= new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
+            BlockchainStartTimestamp= new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
 
-            DPoSInfoMap = _dposInfoMap,
-            EBPMap = _eBPMap,
-            FirstPlaceMap = _firstPlaceMap,
-            BalanceMap = _balanceMap,
-            SnapshotField = _snapshotMap
-        });
+            RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
+            MinersMap = new Map<UInt64Value, Miners>(GlobalConfig.AElfDPoSMinersMapString),
+            TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
+            SnapshotField = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotMapString),
+            AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString),
+            HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString),
+        };
 
-        public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval,
-            byte[] logLevel)
+        private Process Process => new Process(Collection);
+
+        private Election Election => new Election(Collection);
+
+        #region Process
+        
+        [View]
+        public Round GetRoundInfo(ulong roundNumber)
         {
-            await DPoSConsensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo, miningInterval, logLevel});
+            Api.Assert(Collection.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out var roundInfo), GlobalConfig.RoundNumberNotFound);
+            return roundInfo;
         }
 
-        public async Task UpdateAElfDPoS(byte[] currentRoundInfo, byte[] nextRoundInfo, byte[] nextExtraBlockProducer,
-            byte[] roundId)
+        [View]
+        public ulong GetCurrentRoundNumber()
         {
-            await DPoSConsensus.Update(new List<byte[]>
+            return Collection.CurrentRoundNumberField.GetValue();
+        }
+        
+        public void InitialTerm(Term term, int logLevel)
+        {
+            Api.Assert(term.FirstRound.RoundNumber == 1);
+            Api.Assert(term.SecondRound.RoundNumber == 2);
+            
+            Process.InitialTerm(term, logLevel);
+        }
+        
+        public void NextTerm(Term term)
+        {
+            Process.NextTerm(term);
+        }
+
+        public void NextRound(Forwarding forwarding)
+        {
+            Process.NextRound(forwarding);
+        }
+
+        public void PackageOutValue(ToPackage toPackage)
+        {
+            Process.PublishOutValue(toPackage);
+        }
+
+        public void BroadcastInValue(ToBroadcast toBroadcast)
+        {
+            Process.PublishInValue(toBroadcast);
+        }
+        
+        #endregion
+
+        #region Election
+        
+        [View]
+        public ulong GetCurrentTermNumber()
+        {
+            return Collection.CurrentTermNumberField.GetValue();
+        }
+
+        [View]
+        public bool IsCandidate(string publicKey)
+        {
+            return Collection.CandidatesField.GetValue().PublicKeys.Contains(publicKey);
+        }
+        
+        [View]
+        public List<string> GetCandidatesList()
+        {
+            return Collection.CandidatesField.GetValue().PublicKeys.ToList();
+        }
+
+        [View]
+        public CandidateInHistory GetCandidateHistoryInfo(string publicKey)
+        {
+            Api.Assert(Collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var info),
+                GlobalConfig.CandidateNotFound);
+            return info;
+        }
+
+        [View]
+        public List<string> GetCurrentMiners()
+        {
+            var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
+            Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
+                GlobalConfig.TermNumberNotFound);
+            return currentMiners.PublicKeys.ToList();
+        }
+
+        [View]
+        public Tickets GetTicketsInfo(string publicKey)
+        {
+            Api.Assert(Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets), GlobalConfig.TicketsNotFound);
+            return tickets;
+        }
+
+        [View]
+        public Dictionary<string, Tickets> GetCurrentElectionInfo()
+        {
+            var dict = new Dictionary<string, Tickets>();
+            foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
             {
-                currentRoundInfo,
-                nextRoundInfo,
-                nextExtraBlockProducer,
-                roundId
-            });
-        }
+                if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                {
+                    dict.Add(publicKey, tickets);
+                }
+            }
 
-        public async Task<Int32Value> Validation(byte[] accountAddress, byte[] timestamp, byte[] roundId)
+            return dict;
+        }
+        
+        [View]
+        public ulong GetBlockchainAge()
         {
-            return new Int32Value
-            {
-                Value = await DPoSConsensus.Validation(new List<byte[]> {accountAddress, timestamp, roundId})
-            };
+            return Collection.AgeField.GetValue();
         }
 
-        public async Task PublishOutValueAndSignature(byte[] roundNumber, byte[] outValue, byte[] signature,
-            byte[] roundId)
+        [View]
+        public string GetCurrentVictories()
         {
-            await DPoSConsensus.Publish(new List<byte[]>
-            {
-                roundNumber,
-                outValue,
-                signature,
-                roundId
-            });
+            return Process.GetCurrentVictories();
         }
-
-        public async Task PublishInValue(byte[] roundNumber, byte[] inValue, byte[] roundId)
+  
+        [View]
+        public TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            await DPoSConsensus.Publish(new List<byte[]>
-            {
-                roundNumber,
-                inValue,
-                roundId
-            });
+            Api.Assert(Collection.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot), GlobalConfig.TermSnapshotNotFound);
+            return snapshot;
         }
 
-        public async Task QuitElection()
+        [View]
+        public ulong GetTermNumberByRoundNumber(ulong roundNumber)
         {
-            await DPoSConsensus.Election(new List<byte[]>());
+            var map = Collection.TermNumberLookupField.GetValue().Map;
+            Api.Assert(map != null, GlobalConfig.TermNumberLookupNotFound);
+            return map?.OrderBy(p => p.Key).First(p => roundNumber >= p.Value).Key ?? (ulong) 0;
         }
-
-        public async Task Vote(byte[] candidateAddress, byte[] amount)
+        
+        public void AnnounceElection()
         {
-            await DPoSConsensus.Election(new List<byte[]>
-            {
-                candidateAddress,
-                amount,
-                new BoolValue {Value = true}.ToByteArray()
-            });
+            Election.AnnounceElection();
         }
 
-        public async Task Regret(byte[] candidateAddress, byte[] amount)
+        public void QuitElection()
         {
-            await DPoSConsensus.Election(new List<byte[]>
-            {
-                candidateAddress,
-                amount,
-                new BoolValue {Value = false}.ToByteArray()
-            });
+            Election.QuitElection();
         }
 
-        public async Task Replace(byte[] roundNumber)
+        public void Vote(string candidatePublicKey, ulong amount, int lockTime, Timestamp timestamp)
         {
-            await DPoSConsensus.Election(new List<byte[]>
-            {
-                roundNumber
-            });
+            Election.Vote(candidatePublicKey, amount, lockTime, timestamp);
         }
 
-        public Miners GetCurrentMiners()
+        public void GetDividendsByDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
-            return DPoSConsensus.GetCurrentMiners();
+            Election.GetDividends(candidatePublicKey, amount, lockDays);
         }
 
-        public async Task AddTickets(Address addressToGetTickets, ulong amount)
+        public void GetDividendsByTransactionId(Hash transactionId)
         {
-            Api.Assert(Api.GetTransaction().From == TokenContractAddress,
-                "Only token contract can call AddTickets method.");
-
-            await DPoSConsensus.HandleTickets(addressToGetTickets, amount);
+            Election.GetDividends(transactionId);
         }
-
-        public async Task AnnounceElection(Address candidateAddress)
+        
+        public void GetAllDividends()
         {
-            await DPoSConsensus.AnnounceElection(candidateAddress);
+            Election.GetDividends();
         }
-
-        public async Task Withdraw(Address address, ulong amount)
+        
+        public void WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
-            await DPoSConsensus.HandleTickets(address, amount, true);
+            Election.Withdraw(candidatePublicKey, amount, lockDays);
+        }
+        
+        public void WithdrawByTransactionId(Hash transactionId)
+        {
+            Election.Withdraw(transactionId);
         }
 
+        public void WithdrawAll()
+        {
+            Election.Withdraw();
+        }
+        
         #endregion
     }
 }

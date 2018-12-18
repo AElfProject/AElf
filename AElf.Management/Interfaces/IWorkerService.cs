@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
     public interface IWorkerService
     {
-        List<WorkerResult> GetAllWorkers(string chainId);
+        Task<List<WorkerResult>> GetAllWorkers(string chainId);
 
-        void ModifyWorkerCount(string chainId, int workerCount);
+        Task ModifyWorkerCount(string chainId, int workerCount);
     }
 }

@@ -22,7 +22,7 @@ namespace AElf.Cryptography
         private const string KeyFolderName = "keys";
 
         private const string _algo = "AES-256-CFB";
-        private readonly string _dataDirectory;
+        private readonly string _dataDirectory; 
 
         // IsOpen not used.
         public bool IsOpen { get; private set; }

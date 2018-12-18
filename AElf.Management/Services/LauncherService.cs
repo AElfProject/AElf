@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
@@ -9,7 +10,7 @@ namespace AElf.Management.Services
 {
     public class LauncherService:ILauncherService
     {
-        public List<LauncherResult> GetAllLaunchers(string chainId)
+        public async Task<List<LauncherResult>> GetAllLaunchers(string chainId)
         {
             var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LauncherName);
             

@@ -182,7 +182,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void MerklePathTest()
         {
-            int leaveCount = new Random().Next(100);
+            int leaveCount = new Random().Next(100) + 1;
             var hashes = CreateLeaves(leaveCount);
             var bmt = new BinaryMerkleTree();
             bmt.AddNodes(hashes);

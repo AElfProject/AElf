@@ -10,6 +10,7 @@ message Handshake {
     bytes PublicKey = 2;
     int32 Height = 3;
     bytes Sig = 4;
+    int32 Version = 5;
 }
 
 message NodeData {

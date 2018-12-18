@@ -8,6 +8,7 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
       <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+      <ProjectReference Include="..\AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj" />
       <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
       <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
     </ItemGroup>

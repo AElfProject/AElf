@@ -60,11 +60,10 @@ namespace AElf.CLI.Data.Protobuf
                 throw new ArgumentOutOfRangeException(
                     $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
             }
-
-            //string chainId = Base58CheckEncoding.EncodePlain(Value.Take(3).ToArray());
-            string pubKeyHash = Base58CheckEncoding.Encode(Value);
+            //string pubKeyHash = Base58CheckEncoding.Encode(Value.Skip(3).ToArray());
             
-            return GlobalConfig.AElfAddressPrefix  + '_' + pubKeyHash;
+            string pubKeyHash = Base58CheckEncoding.Encode(Value);
+            return GlobalConfig.AElfAddressPrefix + '_' + pubKeyHash;
         }
     }
     

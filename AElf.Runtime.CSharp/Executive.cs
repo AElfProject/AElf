@@ -105,7 +105,6 @@ namespace AElf.Runtime.CSharp
         {
             var scc = ApiType.GetMethod("SetSmartContractContext", BindingFlags.Public | BindingFlags.Static);
             var stc = ApiType.GetMethod("SetTransactionContext", BindingFlags.Public | BindingFlags.Static);
-            var sai = ApiType.GetMethod("SetAuthorizationInfo", BindingFlags.Public | BindingFlags.Static);
             var scch = Delegate.CreateDelegate(typeof(SetSmartContractContextHandler), scc);
             var stch = Delegate.CreateDelegate(typeof(SetTransactionContextHandler), stc);
 

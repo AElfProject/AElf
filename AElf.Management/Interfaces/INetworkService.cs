@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
     public interface INetworkService
     {
-        PoolStateResult GetPoolState(string chainId);
+        Task<PoolStateResult> GetPoolState(string chainId);
 
-        PeerResult GetPeers(string chainId);
+        Task<PeerResult> GetPeers(string chainId);
 
-        void RecordPoolState(string chainId, DateTime time, int requestPoolSize, int receivePoolSize);
+        Task RecordPoolState(string chainId, DateTime time, int requestPoolSize, int receivePoolSize);
 
-        List<PoolStateHistory> GetPoolStateHistory(string chainId);
+        Task<List<PoolStateHistory>> GetPoolStateHistory(string chainId);
     }
 }

@@ -4,12 +4,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="NLog" Version="4.5.6" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.SideChain\AElf.Contracts.SideChain.csproj" />
   </ItemGroup>
   <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
     <Exec Command="protoc --proto_path=./Protobuf --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs side-chain-info.proto" />

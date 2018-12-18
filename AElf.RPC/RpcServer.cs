@@ -43,6 +43,8 @@ namespace AElf.RPC
                         {
                             options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(20);
                             options.Limits.MaxConcurrentConnections = 200;
+                            //options.Limits.MaxConcurrentUpgradedConnections = 100;
+                            //options.Limits.MaxRequestBodySize = 10 * 1024;
                         }
                     )
                     .UseUrls(url)

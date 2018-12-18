@@ -96,7 +96,7 @@ namespace AElf.Miner.TxMemPool
             {
                 return;
             }
-            throw  new RefBlockInvalidException();
+            throw new RefBlockInvalidException();
         }
 
         private static bool CheckPrefix(Hash blockHash, ByteString prefix)

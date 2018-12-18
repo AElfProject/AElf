@@ -9,6 +9,7 @@ namespace AElf.Synchronization.BlockSynchronization
     public interface IBlockSet
     {
         ulong KeepHeight { get; set; }
+        int InvalidBlockCount { get; }
         void AddBlock(IBlock block);
         void AddOrUpdateBlock(IBlock block);
         void Tell(IBlock currentExecutedBlock);
@@ -17,5 +18,6 @@ namespace AElf.Synchronization.BlockSynchronization
         IEnumerable<IBlock> GetBlocksByHeight(ulong height);
         ulong AnyLongerValidChain(ulong rollbackHeight);
         void InformRollback(ulong targetHeight, ulong currentHeight);
+        bool IsFull();
     }
 }

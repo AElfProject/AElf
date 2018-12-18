@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
@@ -8,7 +9,7 @@ namespace AElf.Management.Services
 {
     public class LighthouseService:ILighthouseService
     {
-        public List<LighthouseResult> GetAllLighthouses(string chainId)
+        public async Task<List<LighthouseResult>> GetAllLighthouses(string chainId)
         {
             var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LighthouseName);
 

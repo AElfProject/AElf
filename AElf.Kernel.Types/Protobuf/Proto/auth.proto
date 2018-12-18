@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Kernel.Types.Proposal";
+option csharp_namespace = "AElf.Kernel";
 import "google/protobuf/timestamp.proto";
 import "common.proto";
 import "kernel.proto";
@@ -22,8 +22,8 @@ message Reviewer
 message Proposal {
     Address MultiSigAccount = 1;
     string Name = 2;
-    PendingTxn TxnData = 3;
-    google.protobuf.Timestamp ExpiredTime = 4;
+    bytes TxnData = 3;
+    double ExpiredTime = 4; //in second
     ProposalStatus Status = 5;
     Address Proposer = 6;
 }
@@ -32,11 +32,6 @@ enum ProposalStatus {
     ToBeDecided = 0;
     Decided = 1;
     Released = 2;
-}
-
-message PendingTxn{
-    string ProposalName = 1;
-    bytes TxnData = 2;
 }
 
 message Approved {

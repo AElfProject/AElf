@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
 using NLog;
 
 namespace AElf.Kernel.Managers
@@ -12,7 +13,7 @@ namespace AElf.Kernel.Managers
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(MinersManager));
 
-        private static Hash Key => Hash.FromRawBytes(GlobalConfig.AElfDPoSOngoingMinersString.CalculateHash());
+        private static Hash Key => Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash());
 
         public MinersManager(IDataStore dataStore)
         {
@@ -30,8 +31,7 @@ namespace AElf.Kernel.Managers
 
             foreach (var bp in dict.Values)
             {
-                var address = bp["address"];
-                miners.Nodes.Add(Address.Parse(address));
+                miners.PublicKeys.Add(bp["public_key"]);
             }
 
             return miners;
@@ -45,9 +45,9 @@ namespace AElf.Kernel.Managers
 
         public async Task SetMiners(Miners miners)
         {
-            foreach (var node in miners.Nodes)
+            foreach (var publicKey in miners.PublicKeys)
             {
-                _logger?.Trace($"Set miner {node.GetFormatted()} to data store.");
+                _logger?.Trace($"Set miner {publicKey} to data store.");
             }
 
             await _dataStore.InsertAsync(Key, miners);

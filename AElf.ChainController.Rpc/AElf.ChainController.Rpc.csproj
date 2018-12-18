@@ -11,7 +11,7 @@
     <PackageReference Include="EventAggregator" Version="1.0.0" />
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
     <PackageReference Include="Easy.MessageHub" Version="3.4.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>

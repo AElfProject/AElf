@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Models;
 
 namespace AElf.Management.Interfaces
 {
     public interface INodeService
     {
-        bool IsAlive(string chainId);
+        Task<bool> IsAlive(string chainId);
 
-        bool IsForked(string chainId);
+        Task<bool> IsForked(string chainId);
 
-        void RecordPoolState(string chainId, DateTime time, bool isAlive, bool isForked);
+        Task RecordPoolState(string chainId, DateTime time);
 
-        List<NodeStateHistory> GetHistoryState(string chainId);
+        Task<List<NodeStateHistory>> GetHistoryState(string chainId);
 
-        void RecordBlockInfo(string chainId);
+        Task RecordBlockInfo(string chainId);
+
+        Task RecordInvalidBlockCount(string chainId, DateTime time);
+
+        Task RecordRollBackTimes(string chainId, DateTime time);
     }
 }

@@ -56,6 +56,7 @@ namespace AElf.Miner.Tests
         private ITxRefBlockValidator _refBlockValidator;
         private IChainManagerBasic _chainManagerBasic;
         private IAuthorizationInfo _authorizationInfo;
+        private IStateStore _stateStore;
 
         public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
         {
@@ -96,6 +97,7 @@ namespace AElf.Miner.Tests
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
             _chainContextService = new ChainContextService(_chainService);
             _authorizationInfo = new AuthorizationInfo(StateStore);
+            _stateStore = new StateStore(_database);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -120,16 +122,16 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _chainContextService);
+                MockBlockValidationService().Object, _chainContextService, _chainManagerBasic, _stateStore);
 
             return miner;
         }
 
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
-            var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService, 
+            var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManagerBasic);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManagerBasic, StateStore);
 
             return blockExecutor;
         }

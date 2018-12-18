@@ -13,7 +13,7 @@ namespace AElf.Management.Commands
             // Todo temp solution 
             ApiKeyConfig.Instance.ChainKeys.Add(arg.SideChainId, arg.ApiKey);
             var configJson =  JsonSerializer.Instance.Serialize(ApiKeyConfig.Instance);
-            File.WriteAllText(Path.Combine(ApplicationHelpers.GetDefaultConfigPath(), "config", "api-key.json"), configJson);
+            File.WriteAllText(Path.Combine(ApplicationHelpers.ConfigPath, "config", "api-key.json"), configJson);
         }
     }
 }

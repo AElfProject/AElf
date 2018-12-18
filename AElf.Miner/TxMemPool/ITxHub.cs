@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -10,7 +11,7 @@ namespace AElf.Miner.TxMemPool
         Task AddTransactionAsync(Transaction transaction, bool skipValidation=false);
 
         Task<List<TransactionReceipt>> GetReceiptsOfExecutablesAsync();
-        Task<List<TransactionReceipt>> GetReceiptsForAsync(IEnumerable<Transaction> transactions);
+        Task<List<TransactionReceipt>> GetReceiptsForAsync(IEnumerable<Transaction> transactions, CancellationTokenSource cancellationTokenSource);
         Task<TransactionReceipt> GetReceiptAsync(Hash txId);
 
         bool TryGetTx(Hash txId, out Transaction tx);

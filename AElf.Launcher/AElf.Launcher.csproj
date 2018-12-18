@@ -8,7 +8,9 @@
     <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Consensus\AElf.Contracts.Consensus.csproj" />
+    <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+    <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <None Update="Dockerfile">

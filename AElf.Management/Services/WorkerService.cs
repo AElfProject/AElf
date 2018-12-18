@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Configuration;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
@@ -11,7 +12,7 @@ namespace AElf.Management.Services
 {
     public class WorkerService : IWorkerService
     {
-        public List<WorkerResult> GetAllWorkers(string chainId)
+        public async Task<List<WorkerResult>> GetAllWorkers(string chainId)
         {
             var configs = K8SRequestHelper.GetClient().ReadNamespacedConfigMap(GlobalSetting.CommonConfigName, chainId);
             var configName = GetConfigName<ActorConfig>();
@@ -42,7 +43,7 @@ namespace AElf.Management.Services
             return attrs.Length > 0 ? ((ConfigFileAttribute) attrs[0]).FileName : t.Name;
         }
 
-        public void ModifyWorkerCount(string chainId, int workerCount)
+        public async Task ModifyWorkerCount(string chainId, int workerCount)
         {
             var patch = new JsonPatchDocument<V1Deployment>();
             patch.Replace(e => e.Spec.Replicas, workerCount);

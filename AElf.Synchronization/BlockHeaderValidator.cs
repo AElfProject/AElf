@@ -23,8 +23,6 @@ namespace AElf.Synchronization
                                               _chainService.GetBlockChain(
                                                   Hash.LoadBase58(ChainConfig.Instance.ChainId)));
 
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(BlockHeaderValidator));
-
         public BlockHeaderValidator(IBlockSet blockSet, IChainService chainService)
         {
             _blockSet = blockSet;
@@ -78,7 +76,7 @@ namespace AElf.Synchronization
                 return BlockHeaderValidationResult.Success;
             }
             
-            var localBlock = await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
+            var localBlock = await BlockChain.GetBlockByHeightAsync(blockHeader.Index);
             if (localBlock.BlockHashToHex == blockHeader.GetHash().DumpHex())
             {
                 return BlockHeaderValidationResult.AlreadyExecuted;

@@ -11,11 +11,21 @@ namespace AElf.Kernel.Tests
 
         public static readonly string TestContractZeroName = "AElf.Contracts.Genesis";
 
+        private static readonly string TestSDKPath = "AElf.Sdk.CSharp";
+
         public static string TestContractFolder
         {
             get
             {
                 return $"../../../../{TestContractName}/bin/Debug/netstandard2.0";
+            }
+        }
+        
+        public static string TestSDKPathFolder
+        {
+            get
+            {
+                return $"../../../../{TestSDKPath}/bin/Debug/netstandard2.0";
             }
         }
 

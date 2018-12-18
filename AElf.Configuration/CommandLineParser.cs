@@ -22,7 +22,8 @@ namespace AElf.Configuration
 
         private void MapOptions(CommandLineOptions opts)
         {
-            ApplicationHelpers.SetConfigPath(opts.ConfigPath);
+            ApplicationHelpers.ConfigPath = opts.ConfigPath;
+            ApplicationHelpers.LogPath = opts.LogPath;
             
             //database
             if (!string.IsNullOrWhiteSpace(opts.DBType))

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace AElf.Management.Request
@@ -25,23 +26,23 @@ namespace AElf.Management.Request
             return client;
         }
 
-        private static string DoRequest(HttpClient client, string content, string url = "")
+        private static async Task<string> DoRequest(HttpClient client, string content, string url = "")
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
             var c = new StringContent(content);
             c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             request.Content = c;
 
-            var response = client.SendAsync(request).Result;
-            var result = response.Content.ReadAsStringAsync().Result;
+            var response = await client.SendAsync(request);
+            var result = await response.Content.ReadAsStringAsync();
 
             return result;
         }
 
-        public static T Request<T>(string url, object arg)
+        public static async Task<T> Request<T>(string url, object arg)
         {
             var content = JsonConvert.SerializeObject(arg);
-            var result = DoRequest(GetClient(url), content);
+            var result = await DoRequest(GetClient(url), content);
             return JsonConvert.DeserializeObject<T>(result);
         }
     }

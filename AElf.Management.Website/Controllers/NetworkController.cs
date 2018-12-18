@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Website.Models;
@@ -19,9 +20,9 @@ namespace AElf.Management.Website.Controllers
         
         [HttpGet]
         [Route("peers/{chainId}")]
-        public ApiResult<PeerResult> Peers(string chainId)
+        public async Task<ApiResult<PeerResult>> Peers(string chainId)
         {
-            var result = _networkService.GetPeers(chainId);
+            var result = await _networkService.GetPeers(chainId);
             
             return new ApiResult<PeerResult>(result);
         }

@@ -24,7 +24,7 @@ namespace AElf.Node
             {
                 try
                 {
-                    var ks = new AElfKeyStore(ApplicationHelpers.GetDefaultConfigPath());
+                    var ks = new AElfKeyStore(ApplicationHelpers.ConfigPath);
                     
                     var pass = string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccountPassword)
                         ? AskInvisible(NodeConfig.Instance.NodeAccount)

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Website.Models;
@@ -19,9 +20,9 @@ namespace AElf.Management.Website.Controllers
 
         [HttpGet]
         [Route("list/{chainId}")]
-        public ApiResult<List<WorkerResult>> List(string chainId)
+        public async Task<ApiResult<List<WorkerResult>>> List(string chainId)
         {
-            var result = _workerService.GetAllWorkers(chainId);
+            var result = await _workerService.GetAllWorkers(chainId);
             return new ApiResult<List<WorkerResult>>(result);
         }
     }

@@ -48,7 +48,7 @@ namespace AElf.Common
         
         public static Address FromPublicKey(byte[] chainId, byte[] bytes)
         {
-            var hash = SHA256.Create().ComputeHash(SHA256.Create().ComputeHash(bytes));
+            var hash = TakeByAddressLength(SHA256.Create().ComputeHash(SHA256.Create().ComputeHash(bytes)));
             return new Address(hash);
         }
 
@@ -61,7 +61,7 @@ namespace AElf.Common
         public static Address BuildContractAddress(byte[] chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(Hash.LoadByteArray(chainId), Hash.FromRawBytes(serialNumber.ToBytes()));
-            return new Address(hash.DumpByteArray());
+            return new Address(TakeByAddressLength(hash.DumpByteArray()));
         }
 
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
@@ -77,7 +77,7 @@ namespace AElf.Common
         /// <returns></returns>
         public static Address FromString(string name)
         {
-            return new Address(name.CalculateHash());
+            return new Address(TakeByAddressLength(name.CalculateHash()));
         }
 
         /// <summary>
@@ -86,23 +86,28 @@ namespace AElf.Common
         /// <returns></returns>
         public static Address Generate()
         {
-            return new Address(Guid.NewGuid().ToByteArray().CalculateHash());
+            return new Address(TakeByAddressLength(Guid.NewGuid().ToByteArray().CalculateHash()));
         }
-        
+
         /// <summary>
         /// Only used in tests to generate random addresses.
         /// </summary>
         /// <returns></returns>
         public static Address Generate(byte[] chainId)
         {
-            return new Address(Guid.NewGuid().ToByteArray().CalculateHash());
+            return Generate();
         }
-        
+
+        public static byte[] TakeByAddressLength(byte[] raw)
+        {
+            return raw.Take(GlobalConfig.AddressHashLength).ToArray();
+        }
+
         #region Predefined
 
         public static readonly Address AElf = FromString("AElf");
 
-        public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
+        public static readonly Address Zero = new Address(TakeByAddressLength(new byte[] { }.CalculateHash()));
 
         public static readonly Address Genesis = FromString("Genesis");
         
@@ -196,6 +201,11 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Address FromBytes(byte[] bytes)
         {
+            if (bytes.Length != GlobalConfig.AddressHashLength)
+            {
+                throw new ArgumentOutOfRangeException(
+                    $"Input value does not represent a valid address. The input is {bytes.Length} bytes long.");
+            }
             return new Address
             {
                 Value = ByteString.CopyFrom(bytes)

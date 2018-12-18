@@ -101,7 +101,7 @@ namespace AElf.Synchronization.Tests
         public IBlockExecutor GetBlockExecutor()
         {
             return new BlockExecutor(GetChainService(), _concurrencyExecutingService, 
-                _transactionResultManager, null, null, _txHub, _chainManagerBasic);
+                _transactionResultManager, null, null, _txHub, _chainManagerBasic,_stateStore);
         }
     }
 }
