@@ -234,17 +234,17 @@ namespace AElf.Miner.Tests
             return mock;
         }
         
-        public ParentChainBlockInfoRpcServerImpl MockParentChainBlockInfoRpcServerImpl()
+        public ParentChainBlockInfoRpcServer MockParentChainBlockInfoRpcServerImpl()
         {
-            return new ParentChainBlockInfoRpcServerImpl(MockChainService().Object, _logger, MockBinaryMerkleTreeManager().Object);
+            return new ParentChainBlockInfoRpcServer(MockChainService().Object, _logger, MockBinaryMerkleTreeManager().Object);
         }
 
-        public SideChainBlockInfoRpcServerImpl MockSideChainBlockInfoRpcServerImpl()
+        public SideChainBlockInfoRpcServer MockSideChainBlockInfoRpcServerImpl()
         {
-            return new SideChainBlockInfoRpcServerImpl(MockChainService().Object, _logger);
+            return new SideChainBlockInfoRpcServer(MockChainService().Object, _logger);
         }
         
-        public ServerManager ServerManager(ParentChainBlockInfoRpcServerImpl impl1, SideChainBlockInfoRpcServerImpl impl2)
+        public ServerManager ServerManager(ParentChainBlockInfoRpcServer impl1, SideChainBlockInfoRpcServer impl2)
         {
             return new ServerManager(impl1, impl2, _logger);
         }
@@ -272,9 +272,9 @@ namespace AElf.Miner.Tests
         }
 
         public ulong GetTimes = 0;
-        private Mock<ICrossChainInfo> MockCrossChainInfo()
+        private Mock<ICrossChainInfoHelper> MockCrossChainInfo()
         {
-            var mock = new Mock<ICrossChainInfo>();
+            var mock = new Mock<ICrossChainInfoHelper>();
             mock.Setup(m => m.GetParentChainCurrentHeight()).Returns(() => GetTimes);
             return mock;
         }

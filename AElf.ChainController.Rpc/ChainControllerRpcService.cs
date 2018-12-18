@@ -43,7 +43,7 @@ namespace AElf.ChainController.Rpc
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public INodeService MainchainNodeService { get; set; }
-        public ICrossChainInfo CrossChainInfo { get; set; }
+        public ICrossChainInfoHelper CrossChainInfoHelper { get; set; }
         public IAuthorizationInfo AuthorizationInfo { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSet BlockSet { get; set; }

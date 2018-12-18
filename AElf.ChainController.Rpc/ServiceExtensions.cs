@@ -251,7 +251,7 @@ namespace AElf.ChainController.Rpc
 
         internal static MerklePath GetTxRootMerklePathInParentChain(this Svc s, ulong height)
         {
-            var merklePath = s.CrossChainInfo.GetTxRootMerklePathInParentChain(height);
+            var merklePath = s.CrossChainInfoHelper.GetTxRootMerklePathInParentChain(height);
             if (merklePath != null)
                 return merklePath;
             throw new Exception();
@@ -259,7 +259,7 @@ namespace AElf.ChainController.Rpc
 
         internal static ParentChainBlockInfo GetParentChainBlockInfo(this Svc s, ulong height)
         {
-            var parentChainBlockInfo = s.CrossChainInfo.GetBoundParentChainBlockInfo(height);
+            var parentChainBlockInfo = s.CrossChainInfoHelper.GetBoundParentChainBlockInfo(height);
             if (parentChainBlockInfo != null)
                 return parentChainBlockInfo;
             throw new Exception();
@@ -267,7 +267,7 @@ namespace AElf.ChainController.Rpc
 
         internal static ulong GetBoundParentChainHeight(this Svc s, ulong height)
         {
-            var parentHeight = s.CrossChainInfo.GetBoundParentChainHeight(height);
+            var parentHeight = s.CrossChainInfoHelper.GetBoundParentChainHeight(height);
             if (parentHeight != 0)
                 return parentHeight;
             throw new Exception();
