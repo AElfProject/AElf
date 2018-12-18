@@ -88,11 +88,11 @@ namespace AElf.Common
         #region Dividends
 
         public static ulong ElfTokenPerBlock = 100;
-        public const double DividendsForEveryMiner = 0.4;
-        public const double DividendsForTicketsCount = 0.1;
-        public const double DividendsForReappointment = 0.1;
-        public const double DividendsForBackupNodes = 0.2;
-        public const double DividendsForVoters = 0.2;
+        public const double DividendsForEveryMinerRatio = 0.4;
+        public const double DividendsForTicketsCountRatio = 0.1;
+        public const double DividendsForReappointmentRatio = 0.1;
+        public const double DividendsForBackupNodesRatio = 0.2;
+        public const double DividendsForVotersRatio = 0.2;
         public const string DividendsMapString = "__DividendsMapString__";
         public const string WeightsMapString = "__WeightsMapString__";
         public const string TotalWeightsMapString = "__TotalWeightsMapString__";

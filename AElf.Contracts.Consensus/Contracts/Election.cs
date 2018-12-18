@@ -43,6 +43,7 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.CandidatesField.SetValue(candidates);
         }
 
+        // TODO: The time of voting should be the timestamp of packaging related block.
         public void Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
             if (lockTime.InRange(1, 3))

@@ -169,7 +169,7 @@ namespace AElf.Contracts.Consensus
             Api.Assert(map != null, GlobalConfig.TermNumberLookupNotFound);
             return map?.OrderBy(p => p.Key).First(p => roundNumber >= p.Value).Key ?? (ulong) 0;
         }
-
+        
         [View]
         public ulong GetVotesCount()
         {
@@ -180,6 +180,22 @@ namespace AElf.Contracts.Consensus
         public ulong GetTicketsCount()
         {
             return Collection.TicketsCountField.GetValue();
+        }
+
+        [View]
+        public ulong QueryCurrentDividendsForVoters()
+        {
+            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var roundInfo)
+                ? Config.GetDividendsForVoters(roundInfo.GetMinedBlocks())
+                : 0;
+        }
+
+        [View]
+        public ulong QueryCurrentDividends()
+        {
+            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var roundInfo)
+                ? Config.GetDividendsForAll(roundInfo.GetMinedBlocks())
+                : 0;
         }
         
         public void AnnounceElection()

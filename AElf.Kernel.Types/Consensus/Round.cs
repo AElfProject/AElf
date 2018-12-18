@@ -92,5 +92,11 @@ namespace AElf.Kernel
         {
             return Hash.FromMessage(RealTimeMinersInfo.Keys.ToMiners());
         }
+
+        public ulong GetMinedBlocks()
+        {
+            return RealTimeMinersInfo.Values.Select(mi => mi.ProducedBlocks)
+                .Aggregate<ulong, ulong>(0, (current, @ulong) => current + @ulong);
+        }
     }
 }

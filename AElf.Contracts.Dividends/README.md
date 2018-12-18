@@ -53,7 +53,6 @@ Result type:
 
 To check the final dividends of 10,000 tickets locking 90 days of previous term.
 
-
 ### CheckDividends
 
 Params:
@@ -105,9 +104,9 @@ To check the final dividends of a given voting of previous term.
 返回类型:
 - ulong
 
-获取某一届为分配的最大分红额度。
+获取某一届为分配的最大出块奖励分红额度。
 
-某届的分红额度取决于这一届出块数量。
+某届的出块奖励分红额度取决于这一届出块数量。
 
 ### GetTermTotalWeights
 
@@ -127,7 +126,7 @@ To check the final dividends of a given voting of previous term.
 返回类型:
 - ulong
 
-用于获取所提供VotingRecord实例当前可领取分红。
+用于获取所提供VotingRecord实例当前可领取的出块奖励分红。
 
 ### CheckStandardDividends
 
@@ -137,7 +136,7 @@ To check the final dividends of a given voting of previous term.
 返回类型:
 - ulong
 
-查看10000票、锁仓90天在提供届可领取分红。
+查看10000票、锁仓90天在提供届可领取的出块奖励分红。
 
 ### CheckStandardDividendsOfPreviousTerm
 
@@ -146,7 +145,7 @@ To check the final dividends of a given voting of previous term.
 返回类型:
 - ulong
 
-查看10000票、锁仓90天在上一届可领取分红。
+查看10000票、锁仓90天在上一届可领取的出块奖励分红。
 
 ### CheckDividends
 
@@ -158,7 +157,7 @@ To check the final dividends of a given voting of previous term.
 返回类型:
 - ulong
 
-查看某投票参数在某一届可领取分红。
+查看某投票参数在某一届可领取的出块奖励分红。
 
 ### CheckDividendsOfPreviousTerm
 
@@ -169,7 +168,7 @@ To check the final dividends of a given voting of previous term.
 返回类型:
 - ulong
 
-查看某投票参数在上一届可领取分红。
+查看某投票参数在上一届可领取的出块奖励分红。
 
 ## 如何计算可领取分红
 

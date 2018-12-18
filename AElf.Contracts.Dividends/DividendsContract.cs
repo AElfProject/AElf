@@ -10,6 +10,7 @@ using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Dividends
 {
+    // ReSharper disable UnusedMember.Global
     public class DividendsContract : CSharpSmartContract
     {
         // Term Number -> Dividends Amount
@@ -28,7 +29,6 @@ namespace AElf.Contracts.Dividends
 
         private const ulong StandardTicketsAmount = 10_000;
         private const int StandardLockTime = 90;
-
 
         [View]
         public ulong GetTermDividends(ulong termNumber)

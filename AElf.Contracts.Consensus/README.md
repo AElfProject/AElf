@@ -140,82 +140,23 @@ ulong
 
 To get the total tickets of this system (both valid and invalid).
 
-## Data Structure
+### QueryCurrentDividendsForVoters
 
-```Protobuf
+*No params*
 
-message Miners {
-    uint64 TermNumber = 1;
-    repeated string PublicKeys = 2;
-}
+Result Type:
+ulong
 
-message TermNumberLookUp {
-    map<uint64, uint64> Map = 1;// Term number -> Round number.
-}
+To query dividends of current term for voters.
 
-message Candidates {
-    repeated string PublicKeys = 1;
-}
+### QueryCurrentDividends
 
-message Tickets {
-    repeated VotingRecord VotingRecords = 1;
-    uint64 ExpiredTickets = 2;
-    uint64 TotalTickets = 3;
-}
+*No params*
 
-message VotingRecord {
-    string From = 1;
-    string To = 2;
-    uint64 Count = 3;
-    uint64 RoundNumber = 4;
-    Hash TransactionId = 5;
-    google.protobuf.Timestamp VoteTimestamp = 6;
-    repeated uint32 LockDaysList = 7;// Can be renewed by adding items.
-    uint64 UnlockAge = 8;
-    uint64 TermNumber = 9;
-}
+Result Type:
+ulong
 
-message TermSnapshot {
-    uint64 EndRoundNumber = 1;
-    uint64 TotalBlocks = 2;
-    repeated CandidateInTerm CandidatesSnapshot = 3;
-    uint64 TermNumber = 4;
-}
-
-message Round {
-    uint64 RoundNumber = 1;
-    map<string, MinerInRound> RealTimeMinersInfo = 2;
-    int32 MiningInterval = 3;
-}
-
-message CandidateInTerm {
-    string PublicKey = 1;
-    uint64 Votes = 2;
-}
-
-message MinerInRound {
-    int32 Order = 1;
-    bool IsExtraBlockProducer = 2;
-    Hash InValue = 3;
-    Hash OutValue = 4;
-    Hash Signature = 5;
-    google.protobuf.Timestamp ExpectedMiningTime = 6;
-    uint64 ProducedBlocks = 7;
-    bool IsForked = 8;
-    uint64 MissedTimeSlots = 9;
-    uint64 RoundNumber = 10;
-    string PublicKey = 11;
-    uint64 PackagedTxsCount = 12;
-}
-
-message CandidateInHistory {
-    repeated uint64 Terms = 1;
-    uint64 ProducedBlocks = 2;
-    uint64 MissedTimeSlots = 3;
-    uint64 ContinualAppointmentCount = 4;
-    uint64 ReappointmentCount = 5;
-}
-```
+To query total dividends of current term.
 
 # 投票/选举系统
 
@@ -246,7 +187,7 @@ message CandidateInHistory {
 - ulong amount
 - ink lockTime
 
-为候选人投票，所需参数为投票数目amount，锁仓时间lockamount。
+为候选人投票，所需参数为投票数目amount，锁仓时间lockTime。
 
 该方法会为投票人和被投票的候选人共同增加一个VotingReocrd实例。
 
@@ -337,3 +278,118 @@ message CandidateInHistory {
 - Dictionary<string, Tickets>
 
 竞选过程中获取所有候选人的选票详情。
+
+### GetVotesCount
+
+*无参数*
+
+返回类型:
+ulong
+
+获取当前系统投票的总次数。
+
+### GetTicketsCount
+
+*无参数*
+
+返回类型:
+ulong
+
+获取当前系统投票的总票数。
+
+### QueryCurrentDividendsForVoters
+
+*无参数*
+
+返回类型:
+ulong
+
+获取当前届给投票者的出块奖励分红总数。
+
+### QueryCurrentDividends
+
+*无参数*
+
+返回类型:
+ulong
+
+获取当前届的出块奖励分红总数。
+
+出块奖励分红取决于本届的出块数，会不断增加。
+
+## Data Structure
+
+```Protobuf
+
+message Miners {
+    uint64 TermNumber = 1;
+    repeated string PublicKeys = 2;
+}
+
+message TermNumberLookUp {
+    map<uint64, uint64> Map = 1;// Term number -> Round number.
+}
+
+message Candidates {
+    repeated string PublicKeys = 1;
+}
+
+message Tickets {
+    repeated VotingRecord VotingRecords = 1;
+    uint64 ExpiredTickets = 2;
+    uint64 TotalTickets = 3;
+}
+
+message VotingRecord {
+    string From = 1;
+    string To = 2;
+    uint64 Count = 3;
+    uint64 RoundNumber = 4;
+    Hash TransactionId = 5;
+    google.protobuf.Timestamp VoteTimestamp = 6;
+    repeated uint32 LockDaysList = 7;// Can be renewed by adding items.
+    uint64 UnlockAge = 8;
+    uint64 TermNumber = 9;
+}
+
+message TermSnapshot {
+    uint64 EndRoundNumber = 1;
+    uint64 TotalBlocks = 2;
+    repeated CandidateInTerm CandidatesSnapshot = 3;
+    uint64 TermNumber = 4;
+}
+
+message Round {
+    uint64 RoundNumber = 1;
+    map<string, MinerInRound> RealTimeMinersInfo = 2;
+    int32 MiningInterval = 3;
+}
+
+message CandidateInTerm {
+    string PublicKey = 1;
+    uint64 Votes = 2;
+}
+
+message MinerInRound {
+    int32 Order = 1;
+    bool IsExtraBlockProducer = 2;
+    Hash InValue = 3;
+    Hash OutValue = 4;
+    Hash Signature = 5;
+    google.protobuf.Timestamp ExpectedMiningTime = 6;
+    uint64 ProducedBlocks = 7;
+    bool IsForked = 8;
+    uint64 MissedTimeSlots = 9;
+    uint64 RoundNumber = 10;
+    string PublicKey = 11;
+    uint64 PackagedTxsCount = 12;
+}
+
+message CandidateInHistory {
+    repeated uint64 Terms = 1;
+    uint64 ProducedBlocks = 2;
+    uint64 MissedTimeSlots = 3;
+    uint64 ContinualAppointmentCount = 4;
+    uint64 ReappointmentCount = 5;
+}
+```
