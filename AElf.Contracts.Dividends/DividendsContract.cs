@@ -46,6 +46,30 @@ namespace AElf.Contracts.Dividends
                 : votingRecord.TermNumber;
         }
 
+        [View]
+        public ulong GetAvailableDividends(VotingRecord votingRecord, ulong currentTermNumber)
+        {
+            ulong dividends = 0;
+            var start = votingRecord.TermNumber;
+            if (_lastRequestDividendsMap.TryGet(GetHashOfVotingRecord(votingRecord), out var history))
+            {
+                start = history.Value + 1;
+            }
+            
+            for (var i = start; i <= currentTermNumber; i++)
+            {
+                if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
+                {
+                    if (_dividendsMap.TryGet(i.ToUInt64Value(), out var totalDividends))
+                    {
+                        dividends += totalDividends.Value * votingRecord.Weight / totalWeights.Value;
+                    }
+                }
+            }
+
+            return dividends;
+        }
+
         public void TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
         {
             var owner = votingRecord.From;

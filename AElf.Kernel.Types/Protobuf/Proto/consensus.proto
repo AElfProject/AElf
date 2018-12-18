@@ -60,7 +60,7 @@ message VotingRecord {
     uint64 Count = 3;
     uint64 RoundNumber = 4;
     Hash TransactionId = 5;
-    google.protobuf.Timestamp VoteTimestamp = 6;
+    uint64 VoteAge = 6;
     repeated uint32 LockDaysList = 7;// Can be renewed by adding items.
     uint64 UnlockAge = 8;
     uint64 TermNumber = 9;

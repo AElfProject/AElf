@@ -26,7 +26,6 @@ Params:
 - string publicKeyHexString
 - ulong amount
 - ink lockTime
-- Timestamp timestamp
 
 To vote to a candidate via specifc amount of tickets and lock days.
 
@@ -80,6 +79,9 @@ To get current miners.
 
 Params:
 - string publicKeyHexString
+
+Result type:
+- Tickets
 
 To get the tickets information of provided public key.
 
@@ -225,7 +227,6 @@ message CandidateInHistory {
 - string publicKeyHexString
 - ulong amount
 - ink lockTime
-- Timestamp timestamp
 
 为候选人投票，所需参数为投票数目amount，锁仓时间lockamount。
 
@@ -265,7 +266,7 @@ message CandidateInHistory {
 参数:
 - string publicKeyHexString
 
-获取所提供公钥的候选人的贡献历史。
+获取所提供公钥的候选人的对区块链的贡献历史，如历史出块数量、错过时间槽数量等。
 
 该候选人不必是当前候选人。
 

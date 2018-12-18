@@ -100,7 +100,8 @@ namespace AElf.Contracts.Consensus.Contracts
                     forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.ToMiners());
             }
 
-            // First handle the age of this blockchain
+            // Update the age of this blockchain
+            // TODO: Need to be checked somehow
             _collection.AgeField.SetValue(forwarding.CurrentAge);
 
             var forwardingCurrentRoundInfo = forwarding.CurrentRoundInfo;

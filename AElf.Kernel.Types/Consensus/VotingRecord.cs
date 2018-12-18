@@ -5,43 +5,38 @@ namespace AElf.Kernel
 {
     public partial class VotingRecord
     {
-        private TimeSpan PastTime => DateTime.UtcNow - VoteTimestamp.ToDateTime();
+        public ulong Weight => (LockDaysList[0] / 270 + 2 / 3) * Count;
 
-        public ulong Weight => (GetCurrentLockingDays() / 270 + 2 / 3) * Count;
-
-        public ulong DurationDays
+        public ulong GetDurationDays(ulong currentAge)
         {
-            get
+            var days = currentAge - VoteAge + 1;
+            ulong totalLockDays = 0;
+            foreach (var d in LockDaysList)
             {
-                var days = (ulong) ((DateTime.UtcNow - VoteTimestamp.ToDateTime()).TotalDays + 1);
-                ulong totalLockDays = 0;
-                foreach (var d in LockDaysList)
-                {
-                    totalLockDays += d;
-                }
-
-                return Math.Min(days, totalLockDays);
+                totalLockDays += d;
             }
-        } 
+
+            return Math.Min(days, totalLockDays);
+        }
         
-        public bool IsExpired()
+        public bool IsExpired(ulong currentAge)
         {
-            uint lockDays = 0;
+            ulong lockExpiredAge = VoteAge;
             foreach (var day in LockDaysList)
             {
-                lockDays += day;
+                lockExpiredAge += day;
             }
 
-            return PastTime.TotalDays >= lockDays;
+            return lockExpiredAge >= currentAge;
         }
 
-        public uint GetCurrentLockingDays()
+        public uint GetCurrentLockingDays(ulong currentAge)
         {
             uint lockDays = 0;
             foreach (var day in LockDaysList)
             {
                 lockDays += day;
-                if (lockDays > PastTime.TotalDays)
+                if (lockDays > currentAge - VoteAge)
                 {
                     return day;
                 }
