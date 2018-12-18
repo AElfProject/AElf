@@ -2,22 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
 using Akka.Util.Internal;
-using Easy.MessageHub;
 using NLog;
 
 namespace AElf.Synchronization.BlockSynchronization
 {
-    public class BlockSet : IBlockSet
+    public class BlockSet
     {
         private const int MaxLenght = 200;
         private const int Timeout = int.MaxValue;
 
         private readonly ILogger _logger;
 
+        public BlockState CurrentHead { get; private set; }
         private static List<BlockState> _blocks = new List<BlockState>();
 
         private ReaderWriterLock _rwLock = new ReaderWriterLock();
@@ -29,15 +28,40 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             _logger = LogManager.GetLogger(nameof(BlockSet));
         }
-
-        public void AddBlock(IBlock block)
+        
+        public void Init(Block currentDbBlock)
         {
-            BlockState newState = new BlockState(block, null); // todo null
-            
+            CurrentHead = new BlockState(currentDbBlock, null, true);
+        }
+
+        public void PushBlock(IBlock block)
+        {
             _rwLock.AcquireReaderLock(Timeout);
             
             try
             {
+                var previous = _blocks.FirstOrDefault(pb => pb.BlockHash == block.Header.PreviousBlockHash);
+                
+                if (previous == null)
+                    throw new UnlinkableBlockException();
+    
+                BlockState newState;
+                if (previous == CurrentHead)
+                {
+                    // made current chain longer
+                    newState = new BlockState(block, previous, true);
+                    CurrentHead = newState;
+                }
+                else
+                {
+                    // made another chain longer
+                    newState = new BlockState(block, previous, false);
+                    
+                    // if this other chain becomes higher than the head -> switch
+                    if (newState.Index > CurrentHead.Index)
+                        CurrentHead = newState;
+                }
+            
                 if (_blocks.Any(b => newState == b))
                     return;
 
@@ -46,7 +70,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 try
                 {
                     _blocks.Add(newState);
-                    _blocks = _blocks.OrderBy(b => b.Index).ToList();
+                     //todo update LIB
                 }
                 finally
                 {
@@ -59,64 +83,112 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        public void AddOrUpdateMinedBlock(IBlock block)
+        public List<BlockState> GetBranch(BlockState branchTip, BlockState other)
         {
-            if (block?.Header == null)
-                throw new ArgumentNullException(nameof(block), "Null block or block header.");
-            
-            _rwLock.AcquireWriterLock(Timeout);
-            
-            try
+            List<BlockState> branchList = new List<BlockState>();
+            List<BlockState> otherList = new List<BlockState>();
+
+            BlockState currentBranchList = branchTip;
+            BlockState currentOtherList = other;
+
+            while (currentBranchList.Index > currentOtherList.Index)
             {
-                BlockState blockState = new BlockState(block, null); // todo null confirmations
+                branchList.Add(currentBranchList.GetCopyBlockState());
+                currentBranchList = currentBranchList.PreviousState;
+            }
+
+            while (currentOtherList.Index > currentBranchList.Index)
+            {
+                otherList.Add(currentOtherList.GetCopyBlockState());
+                currentOtherList = currentOtherList.PreviousState;
+            }
+
+            while (currentBranchList.Previous != currentOtherList.Previous)
+            {
+                if (currentBranchList.Previous == null || currentOtherList.Previous == null)
+                    throw new InvalidOperationException("Invalid branch list.");
                 
-                // todo review old behaviour would first remove any with the same hash (??)
-                _blocks.RemoveAll(bs => bs == blockState);
-
-                _blocks.Add(blockState);
-                _blocks = _blocks.OrderBy(b => b.Index).ToList();
-            }
-            finally
-            {
-                _rwLock.ReleaseWriterLock();
+                branchList.Add(currentBranchList.GetCopyBlockState());
+                otherList.Add(currentOtherList.GetCopyBlockState());
+                
+                currentBranchList = currentBranchList.PreviousState;
+                currentOtherList = currentOtherList.PreviousState;
             }
             
-            _logger?.Trace($"Add or update block {block.BlockHashToHex} to block cache.");
+            branchList.Add(currentBranchList.PreviousState.GetCopyBlockState());
+
+            return branchList;
         }
 
-        private void RemoveExecutedBlockFromCache(IBlock block)
+        public void SwitchToCurrentHead()
         {
-            var toRemove = _blocks.FirstOrDefault(b => b.BlockHash == block.GetHash());
-            
-            if (toRemove == null)
-                throw new InvalidOperationException("Block not present in block cache.");
-            
-            _rwLock.AcquireWriterLock(Timeout);
-
-            try
+            if (CurrentHead.IsInCurrentBranch)
             {
-                _blocks.Remove(toRemove);
-            }
-            finally
-            {
-                _rwLock.ReleaseWriterLock();
+                _logger?.Warn("Unexpected situation: current head already canonical.");
+                return;
             }
             
-            _logger?.Trace($"Transfered {toRemove.BlockHash.DumpHex()} from block cache to executed.");
+            
         }
+        
+//        public void AddOrUpdateMinedBlock(IBlock block)
+//        {
+//            if (block?.Header == null)
+//                throw new ArgumentNullException(nameof(block), "Null block or block header.");
+//            
+//            _rwLock.AcquireWriterLock(Timeout);
+//            
+//            try
+//            {
+//                BlockState blockState = new BlockState(block, null); // todo null confirmations
+//                
+//                // todo review old behaviour would first remove any with the same hash (??)
+//                _blocks.RemoveAll(bs => bs == blockState);
+//
+//                _blocks.Add(blockState);
+//                _blocks = _blocks.OrderBy(b => b.Index).ToList();
+//            }
+//            finally
+//            {
+//                _rwLock.ReleaseWriterLock();
+//            }
+//            
+//            _logger?.Trace($"Add or update block {block.BlockHashToHex} to block cache.");
+//        }
+
+//        private void RemoveExecutedBlockFromCache(IBlock block)
+//        {
+//            var toRemove = _blocks.FirstOrDefault(b => b.BlockHash == block.GetHash());
+//            
+//            if (toRemove == null)
+//                throw new InvalidOperationException("Block not present in block cache.");
+//            
+//            _rwLock.AcquireWriterLock(Timeout);
+//
+//            try
+//            {
+//                _blocks.Remove(toRemove);
+//            }
+//            finally
+//            {
+//                _rwLock.ReleaseWriterLock();
+//            }
+//            
+//            _logger?.Trace($"Transfered {toRemove.BlockHash.DumpHex()} from block cache to executed.");
+//        }
 
         /// <summary>
         /// Tell the block collection the height of block just successfully executed or mined.
         /// </summary>
         /// <param name="currentExecutedBlock"></param>
         /// <returns></returns>
-        public void Tell(IBlock currentExecutedBlock)
-        {
-            RemoveExecutedBlockFromCache(currentExecutedBlock);
-
-            if (currentExecutedBlock.Index >= KeepHeight)
-                RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
-        }
+//        public void Tell(IBlock currentExecutedBlock)
+//        {
+//            RemoveExecutedBlockFromCache(currentExecutedBlock);
+//
+//            if (currentExecutedBlock.Index >= KeepHeight)
+//                RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
+//        }
 
         public bool IsBlockReceived(IBlock block)
         {
@@ -153,22 +225,19 @@ namespace AElf.Synchronization.BlockSynchronization
             return blockSate?.BlockBody == null ? null : blockSate.GetClonedBlock();
         }
 
-        // todo refactor this 
-        public IEnumerable<IBlock> GetBlocksByHeight(ulong height)
+        // todo include IsCurrentBranch
+        public IEnumerable<BlockState> GetBlocksByHeight(ulong height)
         {
             _rwLock.AcquireReaderLock(Timeout);
             
-            var blocks = new List<IBlock>();
             try
             {
-                _blocks.Where(b => b.Index == height).ForEach(b => blocks.Add(b.GetClonedBlock()));
+                return _blocks.Where(b => b.Index == height).ToList();
             }
             finally
             {
                 _rwLock.ReleaseReaderLock();
             }
-
-            return blocks;
         }
 
         private void RemoveOldBlocks(ulong targetHeight)
@@ -201,101 +270,53 @@ namespace AElf.Synchronization.BlockSynchronization
                 throw new Exception(e.Message);
             }
         }
-
-        /// <summary>
-        /// Return the fork height if exists longer chain.
-        /// </summary>
-        /// <param name="rollbackHeight"></param>
-        /// <returns></returns>
-        public ulong AnyLongerValidChain(ulong rollbackHeight)
-        {
-            var lockWasTaken = false;
-            try
-            {
-                lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
-                if (!lockWasTaken)
-                    return 0;
-
-                var currentHeight = rollbackHeight + GlobalConfig.ForkDetectionLength;
-
-                PrintInvalidBlockList();
-
-                ulong forkHeight = 0;
-
-                var higherBlocks = _blocks.Where(b => b.Index > rollbackHeight).OrderByDescending(b => b.Index)
-                    .ToList();
-
-                if (higherBlocks.Any())
-                {
-                    _logger?.Trace("Find higher blocks in block set, will check whether there are longer valid chain.");
-
-                    // Get the index of highest block in block set.
-                    var blockToCheck = higherBlocks.First();
-
-                    while (true)
-                    {
-                        _rwLock.AcquireReaderLock(Timeout);
-                        
-                        try
-                        {
-                            // If a linkable block can be found in the invalid block list, update blockToCheck and indexToCheck.
-                            if (_blocks.Any(b => b.Index == blockToCheck.Index - 1 && b.BlockHash == blockToCheck.Previous)) // todo refactor any / FirstOrDefault
-                            {
-                                blockToCheck = _blocks.FirstOrDefault(b => b.Index == blockToCheck.Index - 1 && b.BlockHash == blockToCheck.Previous);
-                                
-                                if (blockToCheck?.BlockHeader == null) // todo ??
-                                    break;
-                                
-                                forkHeight = blockToCheck.Index;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                        finally
-                        {
-                            _rwLock.ReleaseReaderLock();
-                        }
-                    }
-                }
-
-                _logger?.Trace($"Fork height: {forkHeight}");
-                _logger?.Trace($"Current height: {currentHeight}");
-
-                if (forkHeight > currentHeight)
-                {
-                    _logger?.Trace("No proper fork height.");
-                    return 0;
-                }
-
-                if (forkHeight + GlobalConfig.BlockCacheLimit < currentHeight)
-                {
-                    KeepHeight = ulong.MaxValue;
-                    MessageHub.Instance.Publish(new UnlinkableHeader(_blocks.First(b => b.Index == forkHeight).BlockHeader));
-                }
-
-                return forkHeight;
-            }
-            finally
-            {
-                if (lockWasTaken)
-                {
-                    Thread.VolatileWrite(ref _flag, 0);
-                }
-            }
-        }
-
-        private void PrintInvalidBlockList()
-        {
-            var str = "\nInvalid Block List:\n";
-            foreach (var block in _blocks.OrderBy(b => b.Index))
-            {
-                str += $"{block.BlockHash} - {block.Index}\n\tPreBlockHash:{block.Previous}\n";
-            }
-
-            _logger?.Trace(str);
-        }
+        
+//        public BlockState UpdateCurrentHead()
+//        {
+//            // todo bad algo, refactor when refactor the block sync
+//            List<BlockState> orderedBlocks = _blocks.OrderByDescending(b => b.Index).ToList();
+//
+//            if (orderedBlocks.Count <= 0)
+//                return null;
+//            
+//            ulong highestBlockIndex = orderedBlocks.First().Index;
+//            
+//            // find the first N blocks where N.Index == highestBlockIndex;
+//            List<BlockState> highestBlocks = new List<BlockState>();
+//            foreach (var block in orderedBlocks)
+//            {
+//                if (block.Index == highestBlockIndex)
+//                    highestBlocks.Add(block);
+//                else
+//                    break;
+//            }
+//
+//            if (highestBlocks.Count == 1)
+//            {
+//                if (highestBlocks.ElementAt(0) == _currentHead)
+//                    return null; // one block is higher and it's the current head -> no switch needed.
+//                
+//                // this one block is not the head
+//                _currentHead = highestBlocks.ElementAt(0);
+//                return _currentHead;
+//            }
+//            else
+//            {
+//                // more than one we return the current head. Find current head there:
+//                var curr = highestBlocks.Where(b => b == _currentHead);
+//
+//                if (curr != null)
+//                {
+//                    // current block is part of the list of highest blocks (same hight)
+//                    // so no need to switch
+//                    return null;
+//                }
+//                
+//                // Here we have to switch to the head that has _currentHead as ancestor (normaly previous block)
+//                // for all 
+//                
+//            }
+//        }
 
         public bool IsFull()
         {

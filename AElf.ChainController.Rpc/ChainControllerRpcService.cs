@@ -46,7 +46,6 @@ namespace AElf.ChainController.Rpc
         public ICrossChainInfo CrossChainInfo { get; set; }
         public IAuthorizationInfo AuthorizationInfo { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
-        public IBlockSet BlockSet { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
 
         #endregion Properties

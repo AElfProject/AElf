@@ -41,7 +41,6 @@ namespace AElf.Miner.Tests
             builder.RegisterType<BlockValidationService>().As<IBlockValidationService>().SingleInstance();
             builder.RegisterType<ChainContextService>().As<IChainContextService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
-            builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>().SingleInstance();
             builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>().SingleInstance();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();

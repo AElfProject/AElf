@@ -161,6 +161,8 @@ namespace AElf.Node.AElfChain
             #endregion setup
 
             #region start
+            
+            _blockSynchronizer.Init();
 
             _txHub.Start();
 

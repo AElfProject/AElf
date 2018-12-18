@@ -54,6 +54,11 @@ namespace AElf.Synchronization
                     return NodeState.GeneratingConsensusTx;
                 }
 
+                if (_fsm.StateEvent == StateEvent.LongerChainDetected)
+                {
+                    return NodeState.Reverting;
+                }
+
                 return NodeState.Stay;
             }
 

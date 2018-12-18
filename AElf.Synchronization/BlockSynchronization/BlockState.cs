@@ -19,15 +19,20 @@ namespace AElf.Synchronization.BlockSynchronization
         public Hash BlockHash => _block.GetHash();
         public ulong Index => _block.Header.Index;
 
-        public BlockState(IBlock block, BlockState previous)
+        public BlockState PreviousState { get; private set; }
+        
+        public bool IsInCurrentBranch { get; set; }
+
+        public BlockState(IBlock block, BlockState previous, bool isInCurrentBranch)
         {
             _block = block.Clone();
+            IsInCurrentBranch = isInCurrentBranch;
             Init(previous);
         }
 
         private void Init(BlockState previous)
         {
-            
+            PreviousState = previous;
         }
         
         public static bool operator ==(BlockState bs1, BlockState bs2)
@@ -54,6 +59,11 @@ namespace AElf.Synchronization.BlockSynchronization
         public IBlock GetClonedBlock()
         {
             return _block.Clone();
+        }
+
+        public BlockState GetCopyBlockState()
+        {
+            return new BlockState(GetClonedBlock(), PreviousState, IsInCurrentBranch);
         }
     }
 }
