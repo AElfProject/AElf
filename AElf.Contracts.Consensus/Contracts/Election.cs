@@ -103,6 +103,14 @@ namespace AElf.Contracts.Consensus.Contracts
             candidateTickets.TotalTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
 
+            var currentCount = _collection.VotesCountField.GetValue();
+            currentCount += 1;
+            _collection.VotesCountField.SetValue(currentCount);
+            
+            var ticketsCount = _collection.TicketsCountField.GetValue();
+            ticketsCount += votingRecord.Count;
+            _collection.TicketsCountField.SetValue(ticketsCount);
+
             Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight,
                 _collection.CurrentTermNumberField.GetValue());
 
@@ -170,6 +178,10 @@ namespace AElf.Contracts.Consensus.Contracts
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
+                    
+                    var ticketsCount = _collection.TicketsCountField.GetValue();
+                    ticketsCount -= votingRecord.Count;
+                    _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
         }
@@ -185,6 +197,10 @@ namespace AElf.Contracts.Consensus.Contracts
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
+                    
+                    var ticketsCount = _collection.TicketsCountField.GetValue();
+                    ticketsCount -= votingRecord.Count;
+                    _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
         }
@@ -200,6 +216,10 @@ namespace AElf.Contracts.Consensus.Contracts
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
+                    
+                    var ticketsCount = _collection.TicketsCountField.GetValue();
+                    ticketsCount -= votingRecord.Count;
+                    _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
         }

@@ -24,6 +24,8 @@ namespace AElf.Contracts.Consensus
             AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
             CurrentTermNumberField= new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
             BlockchainStartTimestamp= new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
+            VotesCountField = new UInt64Field(GlobalConfig.AElfVotesCountString),
+            TicketsCountField = new UInt64Field(GlobalConfig.AElfTicketsCountString),
 
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
             MinersMap = new Map<UInt64Value, Miners>(GlobalConfig.AElfDPoSMinersMapString),
@@ -166,6 +168,18 @@ namespace AElf.Contracts.Consensus
             var map = Collection.TermNumberLookupField.GetValue().Map;
             Api.Assert(map != null, GlobalConfig.TermNumberLookupNotFound);
             return map?.OrderBy(p => p.Key).First(p => roundNumber >= p.Value).Key ?? (ulong) 0;
+        }
+
+        [View]
+        public ulong GetVotesCount()
+        {
+            return Collection.VotesCountField.GetValue();
+        }
+
+        [View]
+        public ulong GetTicketsCount()
+        {
+            return Collection.TicketsCountField.GetValue();
         }
         
         public void AnnounceElection()

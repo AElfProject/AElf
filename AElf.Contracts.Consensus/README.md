@@ -122,6 +122,24 @@ Result Type:
 
 To get the election information during the election.
 
+### GetVotesCount
+
+*No params*
+
+Result Type:
+ulong
+
+To get the total voting records of this system.
+
+### GetTicketsCount
+
+*No params*
+
+Result Type:
+ulong
+
+To get the total tickets of this system (both valid and invalid).
+
 ## Data Structure
 
 ```Protobuf

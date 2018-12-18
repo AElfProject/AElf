@@ -62,7 +62,8 @@ namespace AElf.Common
         public const string AElfDPoSSnapshotMapString = "__AElfDPoSSnapshotFieldString__";
         public const string AElfDPoSDividendsMapString = "__AElfDPoSDividendsMapString__";
         public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
-        public const string AElfVotingRecordsString = "__AElfVotingRecordsString__";
+        public const string AElfVotesCountString = "__AElfVotesCountString__";
+        public const string AElfTicketsCountString = "__AElfTicketsCountString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
         public const string AElfDPoSBlockchainStartTimestamp = "__AElfDPoSBlockchainStartTimestamp__";

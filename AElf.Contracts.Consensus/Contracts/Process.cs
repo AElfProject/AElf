@@ -144,8 +144,6 @@ namespace AElf.Contracts.Consensus.Contracts
                     forwarding.NextRoundInfo);
                 _collection.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
             }
-
-            WindUp();
         }
 
         public void PublishOutValue(ToPackage toPackage)
@@ -242,12 +240,6 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.RoundsMap.SetValue(roundInfo.RoundNumber.ToUInt64Value(), roundInfo);
 
             return roundInfo;
-        }
-
-        private void WindUp()
-        {
-            // Check in and out value, complain if not match.
-
         }
 
         #endregion

@@ -78,5 +78,15 @@ namespace AElf.Contracts.Consensus.Contracts
         /// candidate public key hex value -> history information
         /// </summary>
         public Map<StringValue, CandidateInHistory> HistoryMap;
+
+        /// <summary>
+        /// Keep tracking of the count of votes.
+        /// </summary>
+        public UInt64Field VotesCountField;
+        
+        /// <summary>
+        /// Keep tracking of the count of tickets.
+        /// </summary>
+        public UInt64Field TicketsCountField;
     }
 }
