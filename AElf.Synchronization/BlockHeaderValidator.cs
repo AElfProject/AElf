@@ -49,7 +49,7 @@ namespace AElf.Synchronization
                 return BlockHeaderValidationResult.Success;
             }
             
-            var localBlock = await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
+            var localBlock = await BlockChain.GetBlockByHeightAsync(blockHeader.Index);
             if (localBlock.BlockHashToHex == blockHeader.GetHash().DumpHex())
             {
                 return BlockHeaderValidationResult.AlreadyExecuted;

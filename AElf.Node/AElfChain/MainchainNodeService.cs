@@ -166,10 +166,7 @@ namespace AElf.Node.AElfChain
 
             _txHub.Start();
 
-            if (NodeConfig.Instance.IsMiner)
-            {
-                _consensus?.Start();
-            }
+            _consensus?.Start(NodeConfig.Instance.IsMiner);
 
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {

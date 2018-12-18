@@ -5,7 +5,7 @@ namespace AElf.Kernel.Node
 {
     public interface IConsensus
     {
-        Task Start();
+        void Start(bool willToMine);
         void DisposeConsensusList();
         Task UpdateConsensusEventList();
         bool IsAlive();

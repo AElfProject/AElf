@@ -6,11 +6,12 @@ namespace AElf.Kernel.Consensus
     public enum ConsensusBehavior
     {
         NoOperationPerformed = 0,
-        InitializeAElfDPoS,
-        UpdateAElfDPoS,
-        PublishOutValueAndSignature,
+        InitialTerm,
+        NextTerm,
+        NextRound,
+        PackageOutValue,
 
-        PublishInValue = 11
+        BroadcastInValue = 11
     }
 
     public static class ConsensusBehaviorExtensions

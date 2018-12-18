@@ -52,7 +52,7 @@ namespace AElf.Miner.Miner
         private Address _producerAddress;
         private ECKeyPair _keyPair;
         private readonly IChainManagerBasic _chainManagerBasic;
-        private readonly DPoSInfoProvider _dpoSInfoProvider;
+        private readonly ConsensusDataProvider _consensusDataProvider;
 
         private IMinerConfig Config { get; }
 
@@ -80,7 +80,7 @@ namespace AElf.Miner.Miner
             
             Config = config;
             
-            _dpoSInfoProvider = new DPoSInfoProvider(stateStore);
+            _consensusDataProvider = new ConsensusDataProvider(stateStore);
 
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
         }
@@ -201,7 +201,7 @@ namespace AElf.Miner.Miner
             {
                 if (!noTimeout)
                 {
-                    var distance = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
+                    var distance = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
                     var distanceRation = distance * (NodeConfig.Instance.RatioSynchronize + NodeConfig.Instance.RatioMine);
                     var timeout = Math.Min(distanceRation, _maxMineTime);
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
