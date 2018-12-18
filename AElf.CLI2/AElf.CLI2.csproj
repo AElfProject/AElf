@@ -4,6 +4,9 @@
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
+    <Target Name="MakeJs" BeforeTargets="BeforeBuild">
+        <Exec Command="bash MakeJs.sh" />
+    </Target>
     <Target Name="DownloadChakraCore" AfterTargets="AfterBuild">
         <Exec Command="bash DownloadChakraCore.sh $(OutDir)" />
     </Target>
