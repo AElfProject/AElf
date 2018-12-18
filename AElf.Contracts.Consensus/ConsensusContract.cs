@@ -99,9 +99,9 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
-        public List<string> GetCandidatesList()
+        public StringList GetCandidatesList()
         {
-            return Collection.CandidatesField.GetValue().PublicKeys.ToList();
+            return Collection.CandidatesField.GetValue().PublicKeys.ToList().ToStringList();
         }
 
         [View]
@@ -113,12 +113,12 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public List<string> GetCurrentMiners()
+        public StringList GetCurrentMiners()
         {
             var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
             Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
                 GlobalConfig.TermNumberNotFound);
-            return currentMiners.PublicKeys.ToList();
+            return currentMiners.PublicKeys.ToList().ToStringList();
         }
 
         [View]
@@ -129,7 +129,7 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public Dictionary<string, Tickets> GetCurrentElectionInfo()
+        public TicketsDictionary GetCurrentElectionInfo()
         {
             var dict = new Dictionary<string, Tickets>();
             foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
@@ -140,7 +140,7 @@ namespace AElf.Contracts.Consensus
                 }
             }
 
-            return dict;
+            return dict.ToTicketsDictionary();
         }
         
         [View]
@@ -150,7 +150,7 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public string GetCurrentVictories()
+        public StringList GetCurrentVictories()
         {
             return Process.GetCurrentVictories();
         }

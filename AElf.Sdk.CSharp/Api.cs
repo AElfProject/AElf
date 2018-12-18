@@ -120,7 +120,7 @@ namespace AElf.Sdk.CSharp
         public static List<string> GetSystemReviewers()
         {
             Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<Miners>().PublicKeys.ToList();
+            return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
         }
 
         public static ulong GetCurrentRoundNumber()

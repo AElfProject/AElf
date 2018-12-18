@@ -106,3 +106,7 @@ message CandidateInHistory {
     uint64 ContinualAppointmentCount = 4;
     uint64 ReappointmentCount = 5;
 }
+
+message TicketsDictionary {
+    map<string, Tickets> Maps = 1;
+}

@@ -39,7 +39,7 @@ In addition, current candidates can't vote to any public key.
 
 *No params*
 
-To get all the dividends for locked tokens of the caller, which should be a voter.
+To get all the dividends for locked tokens of the caller, which should be a voter. The Dividends Contract will directly trasfer tokens to the caller.
 
 ### WithdrawAll
 
@@ -52,11 +52,17 @@ To withdraw all the locked tokens of the caller.
 Params:
 - string publicKeyHexString
 
+Result Type:
+bool
+
 To check whether the provided public key contained by the candidates list.
 
 ### GetCandidatesList
 
 *No params*
+
+Result Type:
+- StringList
 
 To get current candidates list.
 
@@ -65,6 +71,9 @@ To get current candidates list.
 Params:
 - string publicKeyHexString
 
+Result Type:
+CandidateInHistory
+
 To get the history information of provided candidate.
 
 No need to be the current candidate.
@@ -72,6 +81,9 @@ No need to be the current candidate.
 ### GetCurrentMiners
 
 *No params*
+
+Result Type:
+- StringList
 
 To get current miners.
 
@@ -91,11 +103,17 @@ If this public key ever joined election, the voting records will also contain hi
 
 *No params*
 
+Result Type:
+- ulong
+
 To get the age of this blockchain. (Currently the unit is day.)
 
 ### GetCurrentVictories
 
 *No params*
+
+Result Type:
+- StringList
 
 To get the victories of ongoing election.
 
@@ -104,12 +122,18 @@ To get the victories of ongoing election.
 Params:
 - ulong termNumbner
 
+Result Type:
+- TermSnapshot
+
 To get the term snapshot of provided term number.
 
 ### GetTermNumberByRoundNumber
 
 Params:
 - ulong roundNumber
+
+Result Type:
+- ulong
 
 To get the term number of provided round number.
 
@@ -118,7 +142,7 @@ To get the term number of provided round number.
 *No params*
 
 Result Type:
-- Dictionary<string, Tickets>
+- TicketsDictionary
 
 To get the election information during the election.
 
@@ -199,7 +223,7 @@ To query total dividends of current term.
 
 *无参数*
 
-投票者获取自己所有的锁仓分红。
+投票者获取自己所有的锁仓分红，调用后分红合约账户会直接进行转账。
 
 ### WithdrawAll
 
@@ -212,11 +236,17 @@ To query total dividends of current term.
 参数:
 - string publicKeyHexString
 
+返回类型：
+- bool
+
 检查提供的公钥是否是候选人的公钥。
 
 ### GetCandidatesList
 
 *无参数*
+
+返回类型：
+- StringList
 
 获取候选人公钥列表。
 
@@ -224,6 +254,9 @@ To query total dividends of current term.
 
 参数:
 - string publicKeyHexString
+
+返回类型：
+CandidateInHistory
 
 获取所提供公钥的候选人的对区块链的贡献历史，如历史出块数量、错过时间槽数量等。
 
@@ -233,12 +266,18 @@ To query total dividends of current term.
 
 *无参数*
 
+返回类型：
+- StringList
+
 获取当前在任的区块生产者公钥列表，
 
 ### GetTicketsInfo
 
 参数:
 - string publicKeyHexString
+
+返回类型：
+- Tickets
 
 获取所提供公钥的投票详情，
 
@@ -248,11 +287,17 @@ To query total dividends of current term.
 
 *无参数*
 
+返回类型：
+- ulong
+
 获取区块链的年龄。（当前单位为天）。
 
 ### GetCurrentVictories
 
 *无参数*
+
+返回类型：
+- StringList
 
 获取当前竞选的前N名。
 
@@ -261,12 +306,18 @@ To query total dividends of current term.
 参数:
 - ulong termNumbner
 
+返回类型：
+- TermSnapshot
+
 获取所提供届数的快照。
 
 ### GetTermNumberByRoundNumber
 
 参数:
 - ulong roundNumber
+
+返回类型：
+- ulong
 
 获取所提供轮数所在的届数。
 
@@ -275,7 +326,7 @@ To query total dividends of current term.
 *无参数*
 
 返回类型:
-- Dictionary<string, Tickets>
+- TicketsDictionary
 
 竞选过程中获取所有候选人的选票详情。
 
@@ -346,8 +397,8 @@ message VotingRecord {
     uint64 Count = 3;
     uint64 RoundNumber = 4;
     Hash TransactionId = 5;
-    google.protobuf.Timestamp VoteTimestamp = 6;
-    repeated uint32 LockDaysList = 7;// Can be renewed by adding items.
+    uint64 VoteAge = 6;
+    repeated int32 LockDaysList = 7;// Can be renewed by adding items.
     uint64 UnlockAge = 8;
     uint64 TermNumber = 9;
 }
@@ -391,5 +442,13 @@ message CandidateInHistory {
     uint64 MissedTimeSlots = 3;
     uint64 ContinualAppointmentCount = 4;
     uint64 ReappointmentCount = 5;
+}
+
+message TicketsDictionary {
+    map<string, Tickets> Maps = 1;
+}
+
+message StringList {
+    repeated string Values = 1;
 }
 ```

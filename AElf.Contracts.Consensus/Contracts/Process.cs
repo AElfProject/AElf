@@ -294,9 +294,9 @@ namespace AElf.Contracts.Consensus.Contracts
                 .ToList();
         }
 
-        public string GetCurrentVictories()
+        public StringList GetCurrentVictories()
         {
-            return GetVictories().ToAString();
+            return GetVictories().ToStringList();
         }
 
         private void SnapshotAndDividends()
