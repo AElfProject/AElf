@@ -4,13 +4,12 @@ mono: none
 dotnet: 2.1.400
 dist: trusty
 before_install:
-  - chmod a+x ./install_protobuf.sh
+  - chmod a+x ./install_protobuf.sh ./install_nodejs.sh
   - ./install_protobuf.sh
+  - ./install_nodejs.sh
 install:
   - export DOTNET_CLI_TELEMETRY_OPTOUT=1
 before_script:
-  - curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
-  - apt install nodejs
   - curl -SL https://aka.ms/chakracore/install | bash
   - export LD_LIBRARY_PATH=$(pwd)/ChakraCoreFiles/lib/:$LD_LIBRARY_PATH
   - chmod a+x ./build.sh
