@@ -9,18 +9,17 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using NLog.Targets.Wrappers;
 
 namespace AElf.Kernel.Consensus
 {
     // ReSharper disable InconsistentNaming
-    public class DPoSInfoProvider
+    public class ConsensusDataProvider
     {
         private readonly IStateStore _stateStore;
 
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(DPoSInfoProvider));
+        private readonly ILogger _logger = LogManager.GetLogger(nameof(ConsensusDataProvider));
 
-        public DPoSInfoProvider(IStateStore stateStore)
+        public ConsensusDataProvider(IStateStore stateStore)
         {
             _stateStore = stateStore;
         }
@@ -58,7 +57,7 @@ namespace AElf.Kernel.Consensus
             {
                 var miners =
                     Miners.Parser.ParseFrom(
-                        await GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSOngoingMinersString)));
+                        await GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSMinersString)));
                 return miners;
             }
             catch (Exception ex)
@@ -89,7 +88,7 @@ namespace AElf.Kernel.Consensus
             try
             {
                 var bytes = await GetBytes<Round>(Hash.FromMessage(new UInt64Value {Value = currentRoundNumber}),
-                    GlobalConfig.AElfDPoSInformationString);
+                    GlobalConfig.AElfDPoSRoundsMapString);
                 var round = Round.Parser.ParseFrom(bytes);
                 return round;
             }
@@ -101,25 +100,26 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<BlockProducer> GetBPInfo(string publicKey = null)
+        public async Task<MinerInRound> GetMinerInfo(string publicKey = null)
         {
             if (publicKey == null)
             {
                 publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
+            
             var round = await GetCurrentRoundInfo();
-            return round.BlockProducers[publicKey];
+            return round.RealTimeMinersInfo[publicKey];
         }
 
-        public async Task<Timestamp> GetTimeSlot(string publicKey = null)
+        public async Task<Timestamp> GetExpectMiningTime(string publicKey = null)
         {
             if (publicKey == null)
             {
                 publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
 
-            var info = await GetBPInfo(publicKey);
-            return info.TimeSlot;
+            var info = await GetMinerInfo(publicKey);
+            return info.ExpectedMiningTime;
         }
 
         public async Task<double> GetDistanceToTimeSlot(string publicKey = null)
@@ -129,7 +129,7 @@ namespace AElf.Kernel.Consensus
                 publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
 
-            var timeSlot = await GetTimeSlot(publicKey);
+            var timeSlot = await GetExpectMiningTime(publicKey);
             var distance = timeSlot - DateTime.UtcNow.ToTimestamp();
             return distance.ToTimeSpan().TotalMilliseconds;
         }
@@ -140,11 +140,11 @@ namespace AElf.Kernel.Consensus
             var currentRoundNumber = await GetCurrentRoundNumber();
             if (currentRoundNumber != 0)
             {
-                var info = await GetBPInfo(publicKey);
+                var info = await GetMinerInfo(publicKey);
 
                 var now = DateTime.UtcNow.ToTimestamp();
-                distance += (info.TimeSlot - now).ToTimeSpan().TotalMilliseconds;
-                if (info.IsEBP && distance < 0)
+                distance += (info.ExpectedMiningTime - now).ToTimeSpan().TotalMilliseconds;
+                if (info.IsExtraBlockProducer && distance < 0)
                 {
                     distance += (GlobalConfig.BlockProducerNumber - info.Order + 2) * ConsensusConfig.Instance.DPoSMiningInterval;
                 }
