@@ -24,12 +24,13 @@ namespace AElf.Node
             builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
             builder.RegisterGeneric(typeof(EqualityIndex<,>)).As(typeof(IEqualityIndex<>));
             builder.RegisterGeneric(typeof(ComparisionIndex<,>)).As(typeof(IComparisionIndex<>));
+            builder.RegisterType<ConsensusDataReader>();
 
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
                     builder.RegisterType<DPoS>().As<IConsensus>().SingleInstance();
-                    builder.RegisterType<AElfDPoSHelper>();
+                    builder.RegisterType<ConsensusHelper>();
                     break;
                 case ConsensusType.PoW:
                     builder.RegisterType<PoW>().As<IConsensus>().SingleInstance();

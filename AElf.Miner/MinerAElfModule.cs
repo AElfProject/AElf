@@ -22,7 +22,7 @@ namespace AElf.Miner
             {
                 minerConfig = new MinerConfig
                 {
-                    CoinBase =Address.Parse(NodeConfig.Instance.NodeAccount) 
+                    CoinBase = Address.Parse(NodeConfig.Instance.NodeAccount) 
                 };
             }
 

@@ -19,7 +19,7 @@ using ServiceStack;
 namespace AElf.ChainController
 {
     // ReSharper disable InconsistentNaming
-    public class ConsensusBlockValidationFilter : IBlockValidationFilter
+    public class ConsensusBlockValidationFilter
     {
         private readonly ISmartContractService _smartContractService;
         private readonly ILogger _logger;
@@ -71,7 +71,7 @@ namespace AElf.ChainController
 
             long roundId = 1;
             var updateTx =
-                block.Body.TransactionList.Where(t => t.MethodName == ConsensusBehavior.UpdateAElfDPoS.ToString())
+                block.Body.TransactionList.Where(t => t.MethodName == ConsensusBehavior.NextRound.ToString())
                     .ToList();
             if (updateTx.Count > 0)
             {

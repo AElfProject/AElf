@@ -16,6 +16,7 @@ using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.RPC;
 using AElf.SmartContract;
+using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockSynchronization;
 using Community.AspNetCore.JsonRpc;
@@ -48,6 +49,7 @@ namespace AElf.ChainController.Rpc
         public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSet BlockSet { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
+        public IElectionInfo ElectionInfo { get; set; }
 
         #endregion Properties
 
@@ -61,6 +63,7 @@ namespace AElf.ChainController.Rpc
 
             MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
+        
         #region Methods
 
         [JsonRpcMethod("get_commands")]
@@ -662,6 +665,62 @@ namespace AElf.ChainController.Rpc
                 };
             }
         }
+        #endregion
+        
+        #region Consensus
+
+        public async Task<JObject> VotesGeneral()
+        {
+            try
+            {
+                var general = this.GetVotesGeneral();
+                return new JObject
+                {
+                    ["error"] = 0,
+                    ["voters_count"] = general.Item1,
+                    ["tickets_count"] = general.Item2,
+                };
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = 1,
+                    ["errormsg"] = e.Message
+                };
+            }
+        }
+
+        [JsonRpcMethod("get_voting_info", "pubKey")]
+        public async Task<JObject> VotingInfo(string pubKey)
+        {
+            try
+            {
+                var info = this.GetVotingInfo(pubKey);
+                var historyTickets =
+                    info.VotingRecords.Aggregate<VotingRecord, ulong>(0,
+                        (history, votingRecord) => history + votingRecord.Count);
+                var currentTickets = info.VotingRecords.Where(vr => !vr.IsExpired())
+                    .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
+                return new JObject
+                {
+                    ["error"] = 0,
+                    ["history_tickets"] = historyTickets,
+                    ["current_tickets"] = currentTickets,
+                    ["voted_tickets"] = info.TotalTickets,
+                    ["expired_tickets"] = info.TotalTickets - currentTickets,
+                };
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = 1,
+                    ["errormsg"] = e.Message
+                };
+            }
+        }
+
         #endregion
 
         #region Admin

@@ -37,7 +37,12 @@ namespace AElf.Common
 
         public static Address GetResourceContractAddress(Hash chainId)
         {
-            return Address.BuildContractAddress(chainId, GlobalConfig.AuthorizationContract);
+            return Address.BuildContractAddress(chainId, GlobalConfig.ResourceContract);
+        }
+
+        public static Address GetDividendsContractAddress(Hash chainId)
+        {
+            return Address.BuildContractAddress(chainId, GlobalConfig.DividendsContract);
         }
     }
 }
