@@ -4,5 +4,4 @@ DIR="$( cd "$( dirname "$0" )" >/dev/null && pwd )"
 
 cd $DIR/aelf-sdk
 npm install
-npm install -g github:gulpjs/gulp#v4.0.0
-gulp standalone
+node ./node_modules/gulp/bin/gulp.js standalone
