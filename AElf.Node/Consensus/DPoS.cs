@@ -102,7 +102,7 @@ namespace AElf.Kernel.Node
 
             _logger?.Info("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
             _logger?.Info("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
-
+            
             MessageHub.Instance.Subscribe<UpdateConsensus>(async option =>
             {
                 if (option == UpdateConsensus.Update)
@@ -143,10 +143,15 @@ namespace AElf.Kernel.Node
 
         private Miners Miners => _minersManager.GetMiners().Result;
 
-        public async Task Start()
+        public void Start(bool willToMine)
         {
             _nodeKey = NodeConfig.Instance.ECKeyPair;
             _ownPubKey = _nodeKey.PublicKey;
+
+            if (!willToMine)
+            {
+                return;
+            }
             
             // Consensus information already generated.
             if (ConsensusDisposable != null)
@@ -165,7 +170,7 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            if (!await _minersManager.IsMinersInDatabase())
+            if (!_minersManager.IsMinersInDatabase().Result)
             {
                 ConsensusDisposable = ConsensusObserver.Initialization();
                 return;

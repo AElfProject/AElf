@@ -33,10 +33,8 @@ namespace AElf.Node
                     builder.RegisterType<ConsensusHelper>();
                     break;
                 case ConsensusType.PoW:
-                    builder.RegisterType<PoW>().As<IConsensus>().SingleInstance();
                     break;
                 case ConsensusType.SingleNode:
-                    builder.RegisterType<StandaloneNodeConsensusPlaceHolder>().As<IConsensus>().SingleInstance();
                     break;
             }
         }
