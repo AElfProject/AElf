@@ -101,12 +101,16 @@ namespace AElf.SmartContract
             }
 
             var path = GetStatePathFor(key);
+            byte[] bytes;
             if (_stateCache.TryGetValue(path, out var cached))
             {
-                return cached.CurrentValue;
+                bytes = cached.CurrentValue;
+            }
+            else
+            {
+                bytes = await _stateStore.GetAsync(path);
             }
 
-            var bytes = await _stateStore.GetAsync(path);
             _localCache[key] = StateValue.Create(bytes);
             return bytes;
         }
