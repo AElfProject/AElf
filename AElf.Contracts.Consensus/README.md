@@ -295,7 +295,7 @@ message CandidateInHistory {
 
 *无参数*
 
-获取当前竞选的前17名。
+获取当前竞选的前N名。
 
 ### GetTermSnapshot
 

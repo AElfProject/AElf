@@ -28,12 +28,54 @@ To get the total weights of provided term number.
 
 Params:
 - VotingRecord votingRecord
-- ulong currentTermNumber
 
 Result type:
 - ulong
 
 To get current available dividends of the provided VotingRecord instance.
+
+### CheckStandardDividends
+
+Params:
+- ulong termNumber
+
+Result type:
+- ulong
+
+To check the final dividends of 10,000 tickets locking 90 days of provided term.
+
+### CheckStandardDividendsOfPreviousTerm
+
+*No params*
+
+Result type:
+- ulong
+
+To check the final dividends of 10,000 tickets locking 90 days of previous term.
+
+
+### CheckDividends
+
+Params:
+- ulong ticketsAmount
+- int lockTime
+- ulong termNumber
+
+Result type:
+- ulong
+
+To check the final dividends of a given voting of provided term.
+
+### CheckDividendsOfPreviousTerm
+
+Params:
+- ulong ticketsAmount
+- int lockTime
+
+Result type:
+- ulong
+
+To check the final dividends of a given voting of previous term.
 
 ## How to calculate dividends
 
@@ -81,12 +123,53 @@ To get current available dividends of the provided VotingRecord instance.
 
 参数:
 - VotingRecord votingRecord
-- ulong currentTermNumber
 
 返回类型:
 - ulong
 
 用于获取所提供VotingRecord实例当前可领取分红。
+
+### CheckStandardDividends
+
+参数:
+- ulong termNumber
+
+返回类型:
+- ulong
+
+查看10000票、锁仓90天在提供届可领取分红。
+
+### CheckStandardDividendsOfPreviousTerm
+
+*无参数*
+
+返回类型:
+- ulong
+
+查看10000票、锁仓90天在上一届可领取分红。
+
+### CheckDividends
+
+参数:
+- ulong ticketsAmount
+- int lockTime
+- ulong termNumber
+
+返回类型:
+- ulong
+
+查看某投票参数在某一届可领取分红。
+
+### CheckDividendsOfPreviousTerm
+
+参数:
+- ulong ticketsAmount
+- int lockTime
+
+返回类型:
+- ulong
+
+查看某投票参数在上一届可领取分红。
 
 ## 如何计算可领取分红
 

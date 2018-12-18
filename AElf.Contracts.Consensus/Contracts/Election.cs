@@ -75,7 +75,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 UnlockAge = CurrentAge + (ulong) lockTime,
                 TermNumber = _collection.CurrentTermNumberField.GetValue()
             };
-            votingRecord.LockDaysList.Add((uint) lockTime);
+            votingRecord.LockDaysList.Add(lockTime);
 
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {

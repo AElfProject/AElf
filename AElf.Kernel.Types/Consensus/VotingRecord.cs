@@ -5,7 +5,12 @@ namespace AElf.Kernel
 {
     public partial class VotingRecord
     {
-        public ulong Weight => (LockDaysList[0] / 270 + 2 / 3) * Count;
+        public ulong Weight => CalculateWeight(Count, LockDaysList[0]);
+
+        public static ulong CalculateWeight(ulong ticketsAmount, int lockTime)
+        {
+            return (ulong) (lockTime / 270 + 2 / 3) * ticketsAmount;
+        }
 
         public ulong GetDurationDays(ulong currentAge)
         {
@@ -13,7 +18,7 @@ namespace AElf.Kernel
             ulong totalLockDays = 0;
             foreach (var d in LockDaysList)
             {
-                totalLockDays += d;
+                totalLockDays += (ulong) d;
             }
 
             return Math.Min(days, totalLockDays);
@@ -21,28 +26,13 @@ namespace AElf.Kernel
         
         public bool IsExpired(ulong currentAge)
         {
-            ulong lockExpiredAge = VoteAge;
+            var lockExpiredAge = VoteAge;
             foreach (var day in LockDaysList)
             {
-                lockExpiredAge += day;
+                lockExpiredAge += (ulong) day;
             }
 
             return lockExpiredAge >= currentAge;
-        }
-
-        public uint GetCurrentLockingDays(ulong currentAge)
-        {
-            uint lockDays = 0;
-            foreach (var day in LockDaysList)
-            {
-                lockDays += day;
-                if (lockDays > currentAge - VoteAge)
-                {
-                    return day;
-                }
-            }
-
-            return lockDays;
         }
     }
 }

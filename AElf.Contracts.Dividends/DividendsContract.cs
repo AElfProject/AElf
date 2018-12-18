@@ -26,6 +26,10 @@ namespace AElf.Contracts.Dividends
         private readonly Map<Hash, UInt64Value> _lastRequestDividendsMap =
             new Map<Hash, UInt64Value>(GlobalConfig.TransferMapString);
 
+        private const ulong StandardTicketsAmount = 10_000;
+        private const int StandardLockTime = 90;
+
+
         [View]
         public ulong GetTermDividends(ulong termNumber)
         {
@@ -47,7 +51,7 @@ namespace AElf.Contracts.Dividends
         }
 
         [View]
-        public ulong GetAvailableDividends(VotingRecord votingRecord, ulong currentTermNumber)
+        public ulong GetAvailableDividends(VotingRecord votingRecord)
         {
             ulong dividends = 0;
             var start = votingRecord.TermNumber;
@@ -56,7 +60,7 @@ namespace AElf.Contracts.Dividends
                 start = history.Value + 1;
             }
             
-            for (var i = start; i <= currentTermNumber; i++)
+            for (var i = start; i <= Api.GetCurrentTermNumber(); i++)
             {
                 if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
                 {
@@ -68,6 +72,42 @@ namespace AElf.Contracts.Dividends
             }
 
             return dividends;
+        }
+
+        [View]
+        public ulong CheckDividends(ulong ticketsAmount, int lockTime, ulong termNumber)
+        {
+            var currentTermNumber = Api.GetCurrentTermNumber();
+            Api.Assert(termNumber <= currentTermNumber, "Cannot check dividends of future term.");
+            if (_totalWeightsMap.TryGet(termNumber.ToUInt64Value(), out var totalWeights))
+            {
+                if (_dividendsMap.TryGet(termNumber.ToUInt64Value(), out var totalDividends))
+                {
+                    return VotingRecord.CalculateWeight(ticketsAmount, lockTime) * totalDividends.Value /
+                           totalWeights.Value;
+                }
+            }
+
+            return 0;
+        }
+
+        [View]
+        public ulong CheckDividendsOfPreviousTerm(ulong ticketsAmount, int lockTime)
+        {
+            var currentTermNumber = Api.GetCurrentTermNumber();
+            return CheckDividends(ticketsAmount, lockTime, currentTermNumber);
+        }
+
+        [View]
+        public ulong CheckStandardDividends(ulong termNumber)
+        {
+            return CheckDividends(StandardTicketsAmount, StandardLockTime, termNumber);
+        }
+
+        [View]
+        public ulong CheckStandardDividendsOfPreviousTerm()
+        {
+            return CheckDividendsOfPreviousTerm(StandardTicketsAmount, StandardLockTime);
         }
 
         public void TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
