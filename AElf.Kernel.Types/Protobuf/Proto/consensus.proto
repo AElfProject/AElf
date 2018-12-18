@@ -105,6 +105,7 @@ message CandidateInHistory {
     uint64 MissedTimeSlots = 3;
     uint64 ContinualAppointmentCount = 4;
     uint64 ReappointmentCount = 5;
+    repeated string Aliases = 6;
 }
 
 message TicketsDictionary {

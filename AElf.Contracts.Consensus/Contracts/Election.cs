@@ -21,10 +21,11 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection = collection;
         }
 
-        public void AnnounceElection()
+        public void AnnounceElection(string alias = null)
         {
+            var publicKey = Api.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            if (_collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
                 Api.Assert(tickets.VotingRecords.All(t => t.IsExpired(_collection.AgeField.GetValue())), GlobalConfig.VoterCannotAnnounceElection);
             }
@@ -33,6 +34,24 @@ namespace AElf.Contracts.Consensus.Contracts
             var candidates = _collection.CandidatesField.GetValue();
             candidates.PublicKeys.Add(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);
+
+            // TODO: A map to lookup the alias to public key.
+            if (alias == null)
+            {
+                alias = publicKey.Substring(0, 5);
+            }
+            _collection.AliasesMap.SetValue(publicKey.ToStringValue(), alias.ToStringValue());
+
+            // Add this alias to history information of this candidate.
+            if (_collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var candidateHistoryInformation))
+            {
+                if (!candidateHistoryInformation.Aliases.Contains(alias))
+                {
+                    candidateHistoryInformation.Aliases.Add(alias);
+                }
+
+                _collection.HistoryMap.SetValue(publicKey.ToStringValue(), candidateHistoryInformation);
+            }
         }
 
         public void QuitElection()

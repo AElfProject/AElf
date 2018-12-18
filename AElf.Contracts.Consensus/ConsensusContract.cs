@@ -202,6 +202,11 @@ namespace AElf.Contracts.Consensus
         {
             Election.AnnounceElection();
         }
+        
+        public void AnnounceElectionWithAlias()
+        {
+            Election.AnnounceElection();
+        }
 
         public void QuitElection()
         {
