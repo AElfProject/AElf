@@ -300,6 +300,20 @@ namespace AElf.ChainController.Rpc
             return s.BlockSet.InvalidBlockCount;
         }
         
+        #region Consensus
+
+        internal static Tuple<ulong, ulong> GetVotesGeneral(this Svc s)
+        {
+            return s.ElectionInfo.GetVotesGeneral();
+        }
+        
+        internal static Tickets GetVotingInfo(this Svc s, string pubKey)
+        {
+            return s.ElectionInfo.GetVotingInfo(pubKey);
+        }
+        
+        #endregion
+        
         internal static IMessage GetInstance(this Svc s,string type)
         {
             switch (type)

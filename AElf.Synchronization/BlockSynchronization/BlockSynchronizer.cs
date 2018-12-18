@@ -7,6 +7,7 @@ using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
@@ -143,7 +144,6 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
             {
                 // Update DPoS process.
-                //MessageHub.Instance.Publish(UpdateConsensus.Update);
                 AddMinedBlock(inBlock.Block);
             });
             
@@ -307,6 +307,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
             // BlockAppending -> Catching / Caught
             MessageHub.Instance.Publish(StateEvent.BlockAppended);
+            
+            MessageHub.Instance.Publish(new BlockExecuted(block));
 
             return BlockExecutionResult.Success;
         }
@@ -441,6 +443,8 @@ namespace AElf.Synchronization.BlockSynchronization
                     if (res.IsSuccess())
                     {
                         MessageHub.Instance.Publish(StateEvent.BlockAppended);
+                        
+                        MessageHub.Instance.Publish(new BlockExecuted(block));
                     }
 
                     if (new Random().Next(10000) % 1000 == 0)

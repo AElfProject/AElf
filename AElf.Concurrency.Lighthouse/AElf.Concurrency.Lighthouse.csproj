@@ -21,7 +21,7 @@
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="LighthouseDockerfile">
+    <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

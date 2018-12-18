@@ -22,12 +22,13 @@
         <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="Scripts\aelf.js" />
+        <EmbeddedResource Include="Scripts\aelf.min.js" />
         <EmbeddedResource Include="Scripts\helpers.js" />
         <EmbeddedResource Include="Scripts\crypto.js" />
         <EmbeddedResource Include="Scripts\requestor.js" />
         <EmbeddedResource Include="Scripts\init-chain.js" />
         <EmbeddedResource Include="Scripts\deploy-command.js" />
         <EmbeddedResource Include="Scripts\proposal.js" />
+        <EmbeddedResource Include="Scripts\cross-chain.js" />
     </ItemGroup>
 </Project>

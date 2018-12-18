@@ -16,6 +16,7 @@ using AElf.Network.Eventing;
 using AElf.Network.Peers;
 using AElf.Node.AElfChain;
 using AElf.Node.EventMessages;
+using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
@@ -36,6 +37,7 @@ namespace AElf.Node.Protocol
         public const int DefaultHeaderRequestCount = 3;
         public const int DefaultMaxBlockHistory = 15;
         public const int DefaultMaxTransactionHistory = 20;
+        public const int DefaultBlockRequestCount = 10;
 
         public const int DefaultRequestTimeout = 2000;
         public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
@@ -65,6 +67,8 @@ namespace AElf.Node.Protocol
         internal int LocalHeight;
 
         internal int UnlinkableHeaderIndex;
+
+        private int _blockRequestedCount;
         
         private readonly object _syncLock = new object();
 
@@ -134,10 +138,7 @@ namespace AElf.Node.Protocol
 
                 IBlock acceptedBlock = inBlock.Block;
                 
-                LocalHeight++;
-
                 var blockHash = acceptedBlock.GetHash().DumpByteArray();
-                var blockHeight = acceptedBlock.Header.Index;
 
                 // todo TEMP 
                 if (_temp.Contains(blockHash))
@@ -157,7 +158,33 @@ namespace AElf.Node.Protocol
                     {
                         AnnounceBlock(acceptedBlock);
                     }
-                    
+                }
+            });
+            
+            MessageHub.Instance.Subscribe<BlockExecuted>(inBlock =>
+            {
+                if (inBlock?.Block == null)
+                {
+                    _logger?.Warn("[event] Block null.");
+                    return;
+                }
+
+                // Note - This should not happen during header this
+                if (UnlinkableHeaderIndex != 0)
+                    return;
+
+                IBlock acceptedBlock = inBlock.Block;
+                
+                var blockHash = acceptedBlock.GetHash().DumpByteArray();
+                var blockHeight = acceptedBlock.Header.Index;
+                
+                lock (_syncLock)
+                {
+                    if (_blockRequestedCount > 0)
+                    {
+                        _blockRequestedCount--;
+                    }
+
                     if (CurrentSyncSource == null)
                     {
                         _logger?.Warn("Unexpected situation, executed a block but no peer is currently syncing.");
@@ -168,14 +195,19 @@ namespace AElf.Node.Protocol
                     }
                     else if (CurrentSyncSource.IsSyncingHistory)
                     {
-                        if ((int)blockHeight != CurrentSyncSource.CurrentlyRequestedHeight)
-                            _logger?.Warn($"{CurrentSyncSource} unexpected situation, the block executed was not the exepected height.");
-                    
-                        bool hasReqNext = CurrentSyncSource.SyncNextHistory();
+                        bool hasReqNext =false;
+
+                        for (; _blockRequestedCount < DefaultBlockRequestCount; _blockRequestedCount++)
+                        {
+                            hasReqNext = CurrentSyncSource.SyncNextHistory();
+                        }
 
                         if (hasReqNext)
+                        {
+                            _logger?.Trace($"Request Block paused, blockRequestedCount {_blockRequestedCount} ");
                             return;
-                    
+                        }
+
                         _logger?.Trace($"{CurrentSyncSource} history blocks synced, local height {LocalHeight}.");
                     
                         // If this peer still has announcements and the next one is the next block we need.

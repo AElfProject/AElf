@@ -47,6 +47,26 @@ namespace AElf.CLI2.Commands
             }
         }
 
+
+        [JsonProperty("contractsdir")]
+        public string ContractDir
+        {
+            get
+            {
+                var dir = Path.GetFullPath(Path.Combine(DataDir, "contracts"));
+                try
+                {
+                    Directory.CreateDirectory(dir);
+                }
+                catch (Exception)
+                {
+                    // Ignore
+                }
+
+                return dir;
+            }
+        }
+
         public string GetPathForAccount(string address)
         {
             return Path.GetFullPath(Path.Combine(AccountsDir, address + ".ak"));

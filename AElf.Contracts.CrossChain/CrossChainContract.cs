@@ -120,18 +120,20 @@ namespace AElf.Contracts.CrossChain
             return _sideChainSerialNumber.Value;
         }
 
-        public ulong LockedToken(Hash chainId)
+        public ulong LockedToken(string chainId)
         {
-            Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
-            var info = _sideChainInfos[chainId];
+            var chainIdHash = Hash.LoadBase58(chainId);
+            Api.Assert(!_sideChainInfos[chainIdHash].Equals(new SideChainInfo()), "Not existed side chain.");
+            var info = _sideChainInfos[chainIdHash];
             Api.Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.LockedTokenAmount;
         }
         
-        public byte[] LockedAddress(Hash chainId)
+        public byte[] LockedAddress(string chainId)
         {
-            Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
-            var info = _sideChainInfos[chainId];
+            var chainIdHash = Hash.LoadBase58(chainId);
+            Api.Assert(!_sideChainInfos[chainIdHash].Equals(new SideChainInfo()), "Not existed side chain.");
+            var info = _sideChainInfos[chainIdHash];
             Api.Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.Proposer.DumpByteArray();
         }
@@ -140,12 +142,15 @@ namespace AElf.Contracts.CrossChain
 
         public byte[] ReuqestChainCreation(SideChainInfo request)
         {
+            // no need to check authority since invoked in transaction from normal address
             Api.Assert(
                 request.SideChainStatus == SideChainStatus.Apply && request.Proposer != null &&
                 Api.GetFromAddress().Equals(request.Proposer), "Invalid chain creation request.");
             
             var serialNumber = _sideChainSerialNumber.Increment().Value;
-            Hash chainId = ChainHelpers.GetChainId(serialNumber);
+            var raw = ChainHelpers.GetChainId(serialNumber);
+            var chainId = Hash.LoadByteArray(raw);
+            
             Api.Assert(_sideChainInfos[chainId].Equals(new SideChainInfo()),
                 "Chain creation request already exists.");
             
@@ -156,15 +161,17 @@ namespace AElf.Contracts.CrossChain
 
             // side chain creation proposal
             Hash hash = Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.GetContractAddress(),
-                CreateSideChainMethodName, chainId);
+                CreateSideChainMethodName, raw.ToPlainBase58());
             request.SideChainStatus = SideChainStatus.Review;
             _sideChainInfos.SetValue(chainId, request);
             return hash.DumpByteArray();
         }
 
-        public void WithdrawRequest(Hash chainId)
+        public void WithdrawRequest(string chainId)
         {
-            var sideChainInfo = _sideChainInfos[chainId];
+            // no need to check authority since invoked in transaction from normal address
+            var chainIdHash = Hash.LoadBase58(chainId);
+            var sideChainInfo = _sideChainInfos[chainIdHash];
             
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
             Api.Assert(!sideChainInfo.Equals(new SideChainInfo()) && sideChainInfo.SideChainStatus == SideChainStatus.Review,
@@ -172,29 +179,30 @@ namespace AElf.Contracts.CrossChain
             Api.Assert(Api.GetFromAddress().Equals(sideChainInfo.Proposer), "Not authorized to withdraw request.");
             WithdrawTokenAndResource(sideChainInfo);
             sideChainInfo.SideChainStatus = SideChainStatus.Terminated;
-            _sideChainInfos[chainId] = sideChainInfo;
+            _sideChainInfos[chainIdHash] = sideChainInfo;
         }
 
-        public byte[] CreateSideChain(Hash chainId)
+        public string CreateSideChain(string chainId)
         {
             // side chain creation should be triggered by multi sig txn from system address.
+            var chainIdHash = Hash.LoadBase58(chainId);
             Api.CheckAuthority(Api.Genesis);
-            var request = _sideChainInfos[chainId];
+            var request = _sideChainInfos[chainIdHash];
             
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
             Api.Assert(!request.Equals(new SideChainInfo()) && request.SideChainStatus == SideChainStatus.Review,
                 "Side chain creation request not found.");
 
             request.SideChainStatus = SideChainStatus.Active;          
-            _sideChainInfos[chainId] = request;
+            _sideChainInfos[chainIdHash] = request;
             
             // fire event
             new SideChainCreationRequested
             {
-                ChainId = chainId,
+                ChainId = chainIdHash,
                 Creator = Api.GetFromAddress()
             }.Fire();
-            return chainId.DumpByteArray();
+            return chainId;
         }
 
         
@@ -203,41 +211,46 @@ namespace AElf.Contracts.CrossChain
             // Todo : more changes needed for indexing fee.    
         }
 
-        public byte[] RequestChainDisposal(Hash chainId)
+        public byte[] RequestChainDisposal(string chainId)
         {
-            var request = _sideChainInfos[chainId];
+            // no need to check authority since invoked in transaction from normal address
+            var chainIdHash = Hash.LoadBase58(chainId);
+            var request = _sideChainInfos[chainIdHash];
             Api.Assert(!request.Equals(new SideChainInfo()) && request.SideChainStatus == SideChainStatus.Active,
                 "Side chain not found");
             Api.Assert(Api.GetFromAddress().Equals(request.Proposer), "Not authorized to dispose.");
                         
             // side chain disposal
-            Hash hash = Api.Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Api.GetContractAddress(),
+            Hash proposalHash = Api.Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Api.GetContractAddress(),
                 DisposeSideChainMethodName, chainId);
-            return hash.DumpByteArray();
+            return proposalHash.DumpByteArray();
         }
 
-        public void DisposeSideChain(Hash chainId)
-        {            
+        public void DisposeSideChain(string chainId)
+        {
             // side chain disposal should be triggered by multi sig txn from system address.
+            var chainIdHash = Hash.LoadBase58(chainId);
             Api.CheckAuthority(Api.Genesis);
-            Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
+            Api.Assert(!_sideChainInfos[chainIdHash].Equals(new SideChainInfo()), "Not existed side chain.");
             // TODO: Only privileged account can trigger this method
-            var info = _sideChainInfos[chainId];
+            var info = _sideChainInfos[chainIdHash];
             Api.Assert(info.SideChainStatus == SideChainStatus.Active, "Unable to dispose this side chain.");
             
             WithdrawTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
-            _sideChainInfos[chainId] = info;
+            _sideChainInfos[chainIdHash] = info;
             new SideChainDisposal    
             {
-                chainId = chainId
+                chainId = chainIdHash
             }.Fire();
         }
         
-        public int GetChainStatus(Hash chainId)
+        [View]
+        public int GetChainStatus(string chainId)
         {
-            Api.Assert(!_sideChainInfos[chainId].Equals(new SideChainInfo()), "Not existed side chain.");
-            var info = _sideChainInfos[chainId];
+            var chainIdHash = Hash.LoadBase58(chainId);
+            Api.Assert(!_sideChainInfos[chainIdHash].Equals(new SideChainInfo()), "Not existed side chain.");
+            var info = _sideChainInfos[chainIdHash];
             return (int) info.SideChainStatus;
         }
         

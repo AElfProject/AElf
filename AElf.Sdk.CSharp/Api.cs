@@ -72,17 +72,19 @@ namespace AElf.Sdk.CSharp
 
         public static Hash ChainId => _smartContractContext.ChainId.ToReadOnly();
 
-        private static Address ContractZeroAddress => ContractHelpers.GetGenesisBasicContractAddress(ChainId);
+        public static Address ContractZeroAddress => ContractHelpers.GetGenesisBasicContractAddress(ChainId);
 
-        private static Address CrossChainContractAddress => ContractHelpers.GetCrossChainContractAddress(ChainId);
+        public static Address CrossChainContractAddress => ContractHelpers.GetCrossChainContractAddress(ChainId);
 
-        private static Address AuthorizationContractAddress => ContractHelpers.GetAuthorizationContractAddress(ChainId);
+        public static Address AuthorizationContractAddress => ContractHelpers.GetAuthorizationContractAddress(ChainId);
         
-        private static Address ResourceContractAddress => ContractHelpers.GetResourceContractAddress(ChainId);
+        public static Address ResourceContractAddress => ContractHelpers.GetResourceContractAddress(ChainId);
 
-        private static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
+        public static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
 
-        private static Address ConsensusContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
+        public static Address ConsensusContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
+
+        public static Address DividendsContractAddress => ContractHelpers.GetDividendsContractAddress(ChainId);
 
         public static Address Genesis => Address.Genesis;
 
@@ -115,10 +117,16 @@ namespace AElf.Sdk.CSharp
             return RecoverPublicKey(GetTransaction().Sigs.First().ToByteArray(), GetTxnHash().DumpByteArray());
         }
         
-        public static List<byte[]> GetSystemReviewers()
+        public static List<string> GetSystemReviewers()
         {
             Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<Miners>().Producers.Select(p => p.ToByteArray()).ToList();
+            return GetCallResult().DeserializeToPbMessage<Miners>().PublicKeys.ToList();
+        }
+
+        public static TermSnapshot GetTermSnapshot(ulong termNumber)
+        {
+            Call(ConsensusContractAddress, "GetTermSnapshot", ParamsPacker.Pack(termNumber));
+            return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
         }
         
         public static Address GetContractOwner()
@@ -146,7 +154,7 @@ namespace AElf.Sdk.CSharp
         {
             return _transactionContext.Transaction.ToReadOnly();
         }
-        
+
         public static Hash GetTxnHash()
         {
             return GetTransaction().GetHash();
@@ -155,6 +163,11 @@ namespace AElf.Sdk.CSharp
         public static Address GetFromAddress()
         {
             return GetTransaction().From.Clone();
+        }
+        
+        public static Address GetToAddress()
+        {
+            return GetTransaction().To.Clone();
         }
 
         /// <summary>
@@ -193,6 +206,17 @@ namespace AElf.Sdk.CSharp
                 From = _transactionContext.Transaction.From,
                 To = contractAddress,
                 MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+            });
+        }
+
+        public static void SendDividends(params object[] args)
+        {
+            _transactionContext.Trace.InlineTransactions.Add(new Transaction()
+            {
+                From = DividendsContractAddress,
+                To = TokenContractAddress,
+                MethodName = "Transfer",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
             });
         }
@@ -290,7 +314,7 @@ namespace AElf.Sdk.CSharp
         {
             SendInlineByContract(TokenContractAddress, "Transfer", address, amount);
         }
-
+        
         public static void LockResource(ulong amount, ResourceType resourceType)
         {
             SendInline(ResourceContractAddress, "LockResource", GetContractAddress(), amount, resourceType);
@@ -394,7 +418,7 @@ namespace AElf.Sdk.CSharp
                 Type = TransactionType.MsigTransaction
             }.ToByteArray();
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = DateTime.UtcNow.ToUniversalTime() - origin;
+            TimeSpan diff = DateTime.UtcNow.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
             
             Proposal proposal = new Proposal
             {

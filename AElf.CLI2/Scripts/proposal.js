@@ -59,7 +59,6 @@
     
     approve = function (proposalHash) {
         var res = aelf.chain.checkProposal(proposalHash);
-        var resStr = JSON.stringify(res, null, 2);
         if(!res['result'])
         {
             console.log('Proposal not found.');

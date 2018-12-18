@@ -4,7 +4,7 @@ using CommandLine;
 
 namespace AElf.CLI2.Commands.Proposal
 {
-    [Verb("release", HelpText = "Release proposal to execute.")]
+    [Verb("release-proposal", HelpText = "Release proposal to execute.")]
     public class ReleaseProposalOption : BaseOption
     {
         [Value(0, HelpText = "Hash of proposal you want to release. ", Required = true)]

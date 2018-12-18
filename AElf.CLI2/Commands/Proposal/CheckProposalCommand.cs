@@ -37,13 +37,10 @@ namespace AElf.CLI2.Commands.Proposal
 
             try
             {
-                Console.WriteLine("checking ..");
-
                 // Get res
                 _engine.RunScript($@"
                     var res = aelf.chain.checkProposal(""{_option.ProposalHash}"");
                 ");
-                Console.WriteLine("got it!");
                 // Format res
                 _engine.RunScript($@"
                     var resStr = JSON.stringify(res, null, 2);
