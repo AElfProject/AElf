@@ -43,8 +43,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Tests.TestContract", "AElf.Kernel.Tests.TestContract\AElf.Kernel.Tests.TestContract.csproj", "{6F17E8F3-68F9-46A4-8766-5E003688C742}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI", "AElf.CLI\AElf.CLI.csproj", "{3D3CEB2A-7143-4F40-8C9D-776D34C9BC3E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cryptography", "AElf.Cryptography\AElf.Cryptography.csproj", "{D86E3450-B65D-4999-8C1D-4B1D4403DB51}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cryptography.Tests", "AElf.Cryptography.Tests\AElf.Cryptography.Tests.csproj", "{F493AA95-89E6-4F90-BA8F-129A6FE64A6D}"

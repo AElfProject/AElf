@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
-using Base58Check;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using ProtoBuf;

@@ -64,7 +64,7 @@ namespace AElf.Kernel.Managers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Error while getting block {blockHash.DumpHex()}.");
+                _logger?.Error(e, $"Error while getting block {blockHash.ToHex()}.");
                 return null;
             }
         }

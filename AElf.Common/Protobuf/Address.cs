@@ -2,9 +2,7 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using Base58Check;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]

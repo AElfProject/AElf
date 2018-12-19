@@ -16,7 +16,6 @@ using AElf.Miner.Rpc.Exceptions;
 using Google.Protobuf;
 using Grpc.Core;
 using NLog;
-using NServiceKit.Common.Extensions;
 using ClientBase = AElf.Miner.Rpc.Client.ClientBase;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
@@ -90,7 +89,7 @@ namespace AElf.Miner.Rpc.Client
         public void UpdateRequestInterval()
         {
             _clientToParentChain?.UpdateRequestInterval(ConsensusConfig.Instance.DPoSMiningInterval);
-            _clientsToSideChains.AsParallel().ForEach(kv =>
+            _clientsToSideChains.AsParallel().ToList().ForEach(kv =>
             {
                 kv.Value.UpdateRequestInterval(ConsensusConfig.Instance.DPoSMiningInterval);
             });

@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Linq;
 using AElf.Common;
-using Base58Check;
 using ProtoBuf;
+using Base58CheckEncoding = AElf.Common.Base58CheckEncoding;
 
 namespace AElf.CLI.Data.Protobuf
 {
