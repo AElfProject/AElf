@@ -200,6 +200,8 @@ namespace AElf.Node.Protocol
                         for (; _blockRequestedCount < DefaultBlockRequestCount; _blockRequestedCount++)
                         {
                             hasReqNext = CurrentSyncSource.SyncNextHistory();
+                            if(!hasReqNext)
+                                break;
                         }
 
                         if (hasReqNext)
@@ -580,6 +582,7 @@ namespace AElf.Node.Protocol
                     HandleAnnouncement(args.Message, args.Peer);
                     break;
                 case AElfProtocolMsgType.Block:
+                    _logger?.Trace($"Dequed a block job index {args.Block.Header.Index}");
                     MessageHub.Instance.Publish(new BlockReceived(args.Block));
                     break;
                 case AElfProtocolMsgType.NewTransaction:

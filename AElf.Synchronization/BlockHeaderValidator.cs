@@ -50,7 +50,7 @@ namespace AElf.Synchronization
             }
             
             var localBlock = await BlockChain.GetBlockByHeightAsync(blockHeader.Index);
-            if (localBlock.BlockHashToHex == blockHeader.GetHash().DumpHex())
+            if (localBlock != null && localBlock.BlockHashToHex == blockHeader.GetHash().DumpHex())
             {
                 return BlockHeaderValidationResult.AlreadyExecuted;
             }

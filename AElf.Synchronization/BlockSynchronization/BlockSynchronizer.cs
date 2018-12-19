@@ -9,6 +9,7 @@ using AElf.Common.FSM;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
@@ -23,6 +24,7 @@ namespace AElf.Synchronization.BlockSynchronization
         private readonly IChainService _chainService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockHeaderValidator _blockHeaderValidator;
+        private readonly IMinersManager _minersManager;
         private readonly IBlockExecutor _blockExecutor;
 
         private IBlockChain _blockChain;
@@ -47,15 +49,21 @@ namespace AElf.Synchronization.BlockSynchronization
         private BlockState _currentLib;
         
         private readonly BlockSet _blockSet;
+        
+        private object _blockCacheLock = new object();
+        private List<IBlock> _blockCache = new List<IBlock>();
+
+        private List<string> _currentMiners;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
-            IBlockExecutor blockExecutor, IBlockHeaderValidator blockHeaderValidator)
+            IBlockExecutor blockExecutor, IBlockHeaderValidator blockHeaderValidator, IMinersManager minersManager)
         {
             _chainService = chainService;
             _blockValidationService = blockValidationService;
             _blockExecutor = blockExecutor;
             _blockHeaderValidator = blockHeaderValidator;
-            
+            _minersManager = minersManager;
+
             _blockSet = new BlockSet();
 
             _stateFSM = new NodeStateFSM().Create();
@@ -141,10 +149,10 @@ namespace AElf.Synchronization.BlockSynchronization
                 MessageHub.Instance.Publish(inState.IsMining ? StateEvent.MiningStart : StateEvent.MiningEnd);
             });
 
-            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
+            MessageHub.Instance.Subscribe<BlockMined>(async inBlock =>
             {
                 // Update DPoS process.
-                AddMinedBlock(inBlock.Block);
+                await AddMinedBlock(inBlock.Block);
             });
             
             MessageHub.Instance.Subscribe<BlockMinedAndStored>(inBlock =>
@@ -162,13 +170,22 @@ namespace AElf.Synchronization.BlockSynchronization
                     MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockSynchronizer));
                 }
             });
+            
+            MessageHub.Instance.Subscribe<NewLibFound>(sig => { ; });
         }
 
         public void Init()
         {
+            Miners miners = _minersManager.GetMiners().Result;
+            _currentMiners = new List<string>();
+            foreach (var miner in miners.PublicKeys)
+            {
+                _currentMiners.Add(miner);
+            }
+            
             var height = BlockChain.GetCurrentBlockHeightAsync().Result;
             var currentBlock = BlockChain.GetBlockByHeightAsync(height).Result as Block;
-            _currentBlock = _blockSet.Init(currentBlock);
+            _currentBlock = _blockSet.Init(_currentMiners, currentBlock);
         }
 
         /// <summary>
@@ -217,78 +234,119 @@ namespace AElf.Synchronization.BlockSynchronization
         /// When coming from <see cref="HandleNextValidBlock"/> the block is *already* in the block set. 
         /// </summary>
         /// <param name="block"></param>
-        public async Task ReceiveBlock(IBlock block)
+        public async Task ReceiveBlock(IBlock block, bool fromNet = true)
         {
-            if (_terminated)
-                return;
-            
-            if (block.Index > _currentBlock.Index + 1)
+            try
             {
-                _logger?.Warn($"Future block {block}, current height {_currentBlock.Index} ");
-                return;
-            }
+                if (_terminated)
+                    return;
 
-            // AlreadyExecuted - should ont happen (maybe related to previous blocks) -> ??.
-            // Branched - normal situation, just receive a block from a fork.
-            var validationResult = await _blockHeaderValidator.ValidateBlockHeaderAsync(block.Header);
-
-            _logger?.Trace($"Header validated ({validationResult.ToString()}) {block}");
-            
-            // Concerning the block set these two validation results are not a problem.
-            if (validationResult == BlockHeaderValidationResult.Success || validationResult == BlockHeaderValidationResult.Branched)
-            {
-                // Add to a one of the branches if not already in the blocks
-                // can already be here if we come from "HandleNextValidBlock"
-                if (!_blockSet.IsBlockReceived(block))
+                if (fromNet)
                 {
-                    try
+                    lock (_blockCacheLock)
                     {
-                        _blockSet.PushBlock(block);
+                        // if state is catching/caught and blockcache contains no blocks -> exec 
+                        if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
+                        {
+                            // If from net but not in catching/caught -> stash + return
+                            _logger?.Trace($"Added to cache: {CurrentState} (head: {_currentBlock})");
+                            _blockCache.Add(block);
+                            return;
+                        }
                         
-                        // if the current chain has just been extended update
-                        if (_currentBlock == _blockSet.CurrentHead.PreviousState)
-                            _currentBlock = _blockSet.CurrentHead;
-                        
-                        _logger?.Trace($"Pushed {block}, current state {CurrentState}");
+                        if (_blockCache.Any())
+                        {
+                            // in catching or caught
+                            ; // how to trigger sync again
+                        }
                     }
-                    catch (UnlinkableBlockException e)
-                    {
-                        _logger?.Warn($"Block unlinkable {block}");
-                        return;
-                    }
-                    
-                    MessageHub.Instance.Publish(new BlockAccepted(block));
                 }
-            }
-
-            // This guard is to handle the cases where the node is Executing, Appending, Validating...
-            if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
-            {
-                _logger?.Trace($"In other state: {CurrentState}");
-                return;
-            }
-
-            // At this point we're ready to execute another block
-            
-            // Here if we detect that we're out of sync witht the current blockset head -> switch forks
-            if (_currentBlock != _blockSet.CurrentHead) 
-            {
-                // The SwitchFork method should handle the FSMs state, rollback current branch and execute the other branch.
-                // and the updates the current branch in the blockset
-                // it switches the FSM back to Catching/Caught so the state should be ok.
-                _logger?.Trace("About to switch fork");
-                await SwitchFork();
-            }
-            else
-            {
-                if (validationResult == BlockHeaderValidationResult.Success)
+                else
                 {
-                    _logger?.Trace($"Handling {block}");
-                    
-                    // Catching/Caught -> BlockValidating
+                    lock (_blockCacheLock)
+                    {
+                        // if state is catching/caught and blockcache contains no blocks -> exec 
+                        if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
+                        {
+                            _logger?.Warn($"Trying to receive a block in wrong state {CurrentState} (head: {_currentBlock})");
+                        }
+                        else
+                        {
+                            bool s = _blockCache.Remove(block);
+                            _logger?.Debug($"Removed from cache : {s} - {block}");
+                            
+                        }
+                    }
+                }
+            
+                if (block.Index > _currentBlock.Index + 1)
+                {
+                    _logger?.Warn($"Future block {block}, current height {_currentBlock.Index} ");
+                    return;
+                }
+
+                // AlreadyExecuted - should ont happen (maybe related to previous blocks) -> ??.
+                // Branched - normal situation, just receive a block from a fork.
+                var validationResult = await _blockHeaderValidator.ValidateBlockHeaderAsync(block.Header);
+
+                _logger?.Trace($"Header validated ({validationResult.ToString()}) {block}");
+            
+                // Concerning the block set these two validation results are not a problem.
+                if (validationResult == BlockHeaderValidationResult.Success || validationResult == BlockHeaderValidationResult.Branched)
+                {
                     MessageHub.Instance.Publish(StateEvent.ValidBlockHeader);
-                    await HandleBlock(block);
+                    
+                    // Add to a one of the branches if not already in the blocks
+                    // can already be here if we come from "HandleNextValidBlock"
+                    if (!_blockSet.IsBlockReceived(block))
+                    {
+                        try
+                        {
+                            _blockSet.PushBlock(block);
+                        
+                            // if the current chain has just been extended update
+                            if (_currentBlock == _blockSet.CurrentHead.PreviousState)
+                                _currentBlock = _blockSet.CurrentHead;
+                        
+                            _logger?.Trace($"Pushed {block}, current state {CurrentState}");
+                            _logger?.Trace($"Current head {_currentBlock}");
+                        }
+                        catch (UnlinkableBlockException e)
+                        {
+                            _logger?.Warn($"Block unlinkable {block}");
+                            MessageHub.Instance.Publish(StateEvent.InvalidBlock);
+                            return;
+                        }
+                    
+                        MessageHub.Instance.Publish(new BlockAccepted(block));
+                    }
                 }
+
+                // At this point we're ready to execute another block
+            
+                // Here if we detect that we're out of sync witht the current blockset head -> switch forks
+                if (_currentBlock != _blockSet.CurrentHead) 
+                {
+                    // The SwitchFork method should handle the FSMs state, rollback current branch and execute the other branch.
+                    // and the updates the current branch in the blockset
+                    // it switches the FSM back to Catching/Caught so the state should be ok.
+                    _logger?.Trace("About to switch fork");
+                    await SwitchFork();
+                }
+                else
+                {
+                    if (validationResult == BlockHeaderValidationResult.Success)
+                    {
+                        _logger?.Trace($"Handling {block}");
+                    
+                        // Catching/Caught -> BlockValidating
+                        await HandleBlock(block);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
         }
 
@@ -311,17 +369,26 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
-            // todo only get one block from here (the one with IsCurrentFork).
-            var currentBlockHeight = await BlockChain.GetCurrentBlockHeightAsync(); // todo get from this._currentBlock
-            var nextBlock = _blockSet.GetBlocksByHeight(currentBlockHeight + 1).FirstOrDefault(b => b.IsInCurrentBranch);
+//            // todo only get one block from here (the one with IsCurrentFork).
+//            var currentBlockHeight = await BlockChain.GetCurrentBlockHeightAsync(); // todo get from this._currentBlock
+//            var nextBlock = _blockSet.GetBlocksByHeight(currentBlockHeight + 1).FirstOrDefault(b => b.IsInCurrentBranch);
+//
+//            if (nextBlock == null)
+//            {
+//                _logger?.Trace("No more blocks to receive.");
+//                return;
+//            }
+//            
+//            _logger?.Trace($"Going to receive height {nextBlock}");
+//            
+//            await ReceiveBlock(nextBlock.GetClonedBlock());
 
-            if (nextBlock == null)
-            {
-                _logger?.Trace("No more blocks to receive.");
+            var next = _blockCache.FirstOrDefault();
+
+            if (next != null)
+                await ReceiveBlock(next, false);
+            else
                 return;
-            }
-            
-            await ReceiveBlock(nextBlock.GetClonedBlock());
             
             if (_stateFSM.CurrentState == NodeState.Catching || _stateFSM.CurrentState == NodeState.Caught)
                 _logger?.Warn("Executed a block, but state still Cathcing or Reverting");
@@ -369,6 +436,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (executionResult.CanExecuteAgain())
             {
                 // BlockExecuting -> ExecutingLoop
+                _logger?.Warn("Execution loop");
                 MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 //await KeepExecutingBlocksOfHeight(block.Index); todo 
                 return BlockExecutionResult.InvalidSideChainInfo;
@@ -381,13 +449,9 @@ namespace AElf.Synchronization.BlockSynchronization
 
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
-            
-            //_logger.Trace(111111111111);
 
             // BlockAppending -> Catching / Caught
             MessageHub.Instance.Publish(StateEvent.BlockAppended);
-            
-            //_logger.Trace(222222221111);
             
             MessageHub.Instance.Publish(new BlockExecuted(block));
 
@@ -410,9 +474,29 @@ namespace AElf.Synchronization.BlockSynchronization
             return Task.CompletedTask;
         }
 
-        private void AddMinedBlock(IBlock block)
+        private async Task AddMinedBlock(IBlock block)
         {
-            _blockSet.PushBlock(block); // todo review
+            try
+            {
+                _blockSet.PushBlock(block);
+                        
+                // if the current chain has just been extended update
+                if (_currentBlock == _blockSet.CurrentHead.PreviousState)
+                {
+                    _currentBlock = _blockSet.CurrentHead;
+                    _logger?.Trace($"Pushed {block}, current head {_currentBlock}, current state {CurrentState}");
+                }
+                else
+                {
+                    _logger?.Warn($"Mined block did not extend current chain ! Pushed {block}, current head {_currentBlock}, current state {CurrentState}");
+                }
+            }
+            catch (UnlinkableBlockException e)
+            {
+                _logger?.Warn($"Block unlinkable {block}");
+                return;
+            }
+            
             SetKeepHeight();
         }
         
@@ -431,19 +515,19 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        private async Task RollbackToHeight(ulong targetHeight, ulong currentHeight)
-        {
-            // Stop all the mining processes.
-            MessageHub.Instance.Publish(UpdateConsensus.Dispose);
-
-            await BlockChain.RollbackToHeight(targetHeight - 1);
-
-            // Revert block set.
-            //_blockSet.InformRollback(targetHeight, currentHeight);
-
-            // Reverting -> Catching
-            MessageHub.Instance.Publish(StateEvent.RollbackFinished);
-        }
+//        private async Task RollbackToHeight(ulong targetHeight, ulong currentHeight)
+//        {
+//            // Stop all the mining processes.
+//            MessageHub.Instance.Publish(UpdateConsensus.Dispose);
+//
+//            await BlockChain.RollbackToHeight(targetHeight - 1);
+//
+//            // Revert block set.
+//            //_blockSet.InformRollback(targetHeight, currentHeight);
+//
+//            // Reverting -> Catching
+//            MessageHub.Instance.Publish(StateEvent.RollbackFinished);
+//        }
 
         private async Task<IChainContext> GetChainContextAsync()
         {

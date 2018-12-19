@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 
@@ -8,8 +9,6 @@ namespace AElf.Synchronization.BlockSynchronization
     public class BlockState
     {
         private readonly IBlock _block;
-        
-        private Dictionary<byte[], int> _minersToConfirmations;
 
         public BlockBody BlockBody => _block?.Body; // todo refactor out
         public BlockHeader BlockHeader => _block?.Header; // todo refactor out
@@ -20,13 +19,19 @@ namespace AElf.Synchronization.BlockSynchronization
         public ulong Index => _block.Header.Index;
 
         public BlockState PreviousState { get; private set; }
+
+        public string Producer => _block?.Header?.P.ToByteArray().ToHex();
+
+        public List<string> _miners;
+        public List<string> _confirmations = new List<string>();
         
         public bool IsInCurrentBranch { get; set; }
 
-        public BlockState(IBlock block, BlockState previous, bool isInCurrentBranch)
+        public BlockState(IBlock block, BlockState previous, bool isInCurrentBranch, List<string> miners)
         {
             _block = block.Clone();
             IsInCurrentBranch = isInCurrentBranch;
+            _miners = miners;
             Init(previous);
         }
 
@@ -56,6 +61,18 @@ namespace AElf.Synchronization.BlockSynchronization
             return BlockHash == other.BlockHash;
         }
 
+        public bool AddConfirmation(string pubKey)
+        {
+            if (!_confirmations.Any(c => c.Equals(pubKey)))
+            {
+                _confirmations.Add(pubKey);
+                if (_confirmations.Count >= Math.Ceiling(2d / 3d) * _miners.Count)
+                    return true;
+            }
+
+            return false;
+        }
+
         public IBlock GetClonedBlock()
         {
             return _block.Clone();
@@ -63,7 +80,12 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public BlockState GetCopyBlockState()
         {
-            return new BlockState(GetClonedBlock(), PreviousState, IsInCurrentBranch);
+            return new BlockState(GetClonedBlock(), PreviousState, IsInCurrentBranch, _miners);
+        }
+
+        public override string ToString()
+        {
+            return _block?.ToString() ?? "null block";
         }
     }
 }

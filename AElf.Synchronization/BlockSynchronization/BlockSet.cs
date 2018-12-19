@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using AElf.Common;
 using AElf.Kernel;
-using Akka.Util.Internal;
+using Easy.MessageHub;
 using NLog;
 
 namespace AElf.Synchronization.BlockSynchronization
@@ -17,22 +17,29 @@ namespace AElf.Synchronization.BlockSynchronization
         private readonly ILogger _logger;
 
         public BlockState CurrentHead { get; private set; }
+        public BlockState CurrentLib { get; private set; }
+        
         private static List<BlockState> _blocks = new List<BlockState>();
 
         private ReaderWriterLock _rwLock = new ReaderWriterLock();
         private static int _flag;
 
         public ulong KeepHeight { get; set; } = ulong.MaxValue;
+        
+        private List<string> _miners;
 
         public BlockSet()
         {
             _logger = LogManager.GetLogger(nameof(BlockSet));
         }
         
-        public BlockState Init(Block currentDbBlock)
+        public BlockState Init(List<string> miners, Block currentDbBlock)
         {
-            CurrentHead = new BlockState(currentDbBlock, null, true);
+            _miners = miners.ToList();
+            
+            CurrentHead = new BlockState(currentDbBlock, null, true, _miners);
             _blocks.Add(CurrentHead);
+            
             return CurrentHead;
         }
 
@@ -47,17 +54,18 @@ namespace AElf.Synchronization.BlockSynchronization
                 if (previous == null)
                     throw new UnlinkableBlockException();
     
+                // change the head
                 BlockState newState;
                 if (previous == CurrentHead)
                 {
                     // made current chain longer
-                    newState = new BlockState(block, previous, true);
+                    newState = new BlockState(block, previous, true, _miners);
                     CurrentHead = newState;
                 }
                 else
                 {
                     // made another chain longer
-                    newState = new BlockState(block, previous, false);
+                    newState = new BlockState(block, previous, false, _miners);
                     
                     // if this other chain becomes higher than the head -> switch
                     if (newState.Index > CurrentHead.Index)
@@ -72,7 +80,33 @@ namespace AElf.Synchronization.BlockSynchronization
                 try
                 {
                     _blocks.Add(newState);
-                     //todo update LIB
+                    
+                    // update LIB
+//                    if (CurrentLib == null)
+//                    {
+                        // no lib has been found yet
+                        // just update all block prior to this one
+
+                    BlockState newLib = null;
+                    var previousBlocks = _blocks.Where(b => b.Index < CurrentHead.Index).OrderByDescending(b => b.Index);
+                    foreach (var blk in previousBlocks)
+                    {
+                        var hasAll = blk.AddConfirmation(newState.Producer);
+                        if (hasAll)
+                        {
+                            newLib = blk;
+                            break;
+                        }
+                    }
+
+                    if (newLib != null)
+                    {
+                        // clear previous
+                        _blocks.RemoveAll(b => b.Index < newLib.Index);
+                        // todo clear branches
+                        
+                        MessageHub.Instance.Publish(new NewLibFound { State = newLib });
+                    }
                 }
                 finally
                 {
