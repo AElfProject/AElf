@@ -6,7 +6,6 @@ dist: trusty
 before_install:
   - chmod a+x ./install_protobuf.sh ./install_nodejs.sh
   - ./install_protobuf.sh
-  - ./install_nodejs.sh
 install:
   - export DOTNET_CLI_TELEMETRY_OPTOUT=1
 before_script:
