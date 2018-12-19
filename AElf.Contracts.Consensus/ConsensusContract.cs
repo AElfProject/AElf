@@ -50,7 +50,7 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public ulong GetCurrentRoundNumber()
+        public ulong GetCurrentRoundNumber(string empty)
         {
             return Collection.CurrentRoundNumberField.GetValue();
         }
@@ -100,7 +100,7 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
-        public StringList GetCandidatesList()
+        public StringList GetCandidatesList(string empty)
         {
             return Collection.CandidatesField.GetValue().PublicKeys.ToList().ToStringList();
         }
@@ -114,7 +114,7 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public StringList GetCurrentMiners()
+        public StringList GetCurrentMiners(string empty)
         {
             var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
             Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
@@ -130,7 +130,7 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public TicketsDictionary GetCurrentElectionInfo()
+        public TicketsDictionary GetCurrentElectionInfo(string empty)
         {
             var dict = new Dictionary<string, Tickets>();
             foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
@@ -145,13 +145,13 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
-        public ulong GetBlockchainAge()
+        public ulong GetBlockchainAge(string empty)
         {
             return Collection.AgeField.GetValue();
         }
 
         [View]
-        public StringList GetCurrentVictories()
+        public StringList GetCurrentVictories(string empty)
         {
             return Process.GetCurrentVictories();
         }
@@ -172,35 +172,35 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
-        public ulong GetVotesCount()
+        public ulong GetVotesCount(string empty)
         {
             return Collection.VotesCountField.GetValue();
         }
 
         [View]
-        public ulong GetTicketsCount()
+        public ulong GetTicketsCount(string empty)
         {
             return Collection.TicketsCountField.GetValue();
         }
 
         [View]
-        public ulong QueryCurrentDividendsForVoters()
+        public ulong QueryCurrentDividendsForVoters(string empty)
         {
-            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var roundInfo)
+            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber(empty).ToUInt64Value(), out var roundInfo)
                 ? Config.GetDividendsForVoters(roundInfo.GetMinedBlocks())
                 : 0;
         }
 
         [View]
-        public ulong QueryCurrentDividends()
+        public ulong QueryCurrentDividends(string empty)
         {
-            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var roundInfo)
+            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber(empty).ToUInt64Value(), out var roundInfo)
                 ? Config.GetDividendsForAll(roundInfo.GetMinedBlocks())
                 : 0;
         }
 
         [View]
-        public StringList QueryAliasesInUse()
+        public StringList QueryAliasesInUse(string empty)
         {
             var candidates = Collection.CandidatesField.GetValue();
             var result = new StringList();
@@ -240,7 +240,7 @@ namespace AElf.Contracts.Consensus
             Election.GetDividends(transactionId);
         }
         
-        public void GetAllDividends()
+        public void GetAllDividends(string empty)
         {
             Election.GetDividends();
         }
@@ -255,7 +255,7 @@ namespace AElf.Contracts.Consensus
             Election.Withdraw(transactionId);
         }
 
-        public void WithdrawAll()
+        public void WithdrawAll(string empty)
         {
             Election.Withdraw();
         }

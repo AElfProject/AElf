@@ -105,7 +105,7 @@ namespace AElf.Contracts.Dividends
         }
 
         [View]
-        public ulong CheckStandardDividendsOfPreviousTerm()
+        public ulong CheckStandardDividendsOfPreviousTerm(string empty)
         {
             return CheckDividendsOfPreviousTerm(StandardTicketsAmount, StandardLockTime);
         }
