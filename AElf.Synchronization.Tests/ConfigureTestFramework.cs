@@ -12,32 +12,32 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Frameworks.Autofac;
 
-[assembly: TestFramework("AElf.Synchronization.Tests.ConfigureTestFramework", "AElf.Synchronization.Tests")]
+//[assembly: TestFramework("AElf.Synchronization.Tests.ConfigureTestFramework", "AElf.Synchronization.Tests")]
 
-namespace AElf.Synchronization.Tests
-{
-    public class ConfigureTestFramework : AutofacTestFramework
-    {
-        public ConfigureTestFramework(IMessageSink diagnosticMessageSink)
-            : base(diagnosticMessageSink)
-        {
-        }
-
-        protected override void ConfigureContainer(ContainerBuilder builder)
-        {
-            builder.RegisterModule(new LoggerAutofacModule());
-            builder.RegisterModule(new DatabaseAutofacModule());
-            builder.RegisterType<DataStore>().As<IDataStore>();
-            builder.RegisterType<BlockValidationService>().As<IBlockValidationService>().SingleInstance();
-            builder.RegisterType<ChainContextService>().As<IChainContextService>().SingleInstance();
-            builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
-            builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>().SingleInstance();
-            builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>().SingleInstance();
-            builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
-            builder.RegisterType<StateStore>().As<IStateStore>();
-            builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
-            builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
-            builder.RegisterType<TxHub>().As<ITxHub>();
-        }
-    }
-}
+//namespace AElf.Synchronization.Tests
+//{
+//    public class ConfigureTestFramework : AutofacTestFramework
+//    {
+//        public ConfigureTestFramework(IMessageSink diagnosticMessageSink)
+//            : base(diagnosticMessageSink)
+//        {
+//        }
+//
+//        protected override void ConfigureContainer(ContainerBuilder builder)
+//        {
+//            builder.RegisterModule(new LoggerAutofacModule());
+//            builder.RegisterModule(new DatabaseAutofacModule());
+//            builder.RegisterType<DataStore>().As<IDataStore>();
+//            builder.RegisterType<BlockValidationService>().As<IBlockValidationService>().SingleInstance();
+//            builder.RegisterType<ChainContextService>().As<IChainContextService>().SingleInstance();
+//            builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
+//            builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>().SingleInstance();
+//            builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>().SingleInstance();
+//            builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
+//            builder.RegisterType<StateStore>().As<IStateStore>();
+//            builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
+//            builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
+//            builder.RegisterType<TxHub>().As<ITxHub>();
+//        }
+//    }
+//}

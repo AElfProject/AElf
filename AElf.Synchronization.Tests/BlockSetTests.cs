@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Synchronization.BlockSynchronization;
@@ -9,88 +9,76 @@ namespace AElf.Synchronization.Tests
 {
     public class BlockSetTests
     {
-        [Fact]
-        public void NormalTest()
+        /// <summary>
+        /// Builds the genesis block with AElfs builder.
+        /// </summary>
+        /// <returns></returns>
+        private IBlock GetGenesisBlock()
         {
-            var blockSet = new BlockSet();
-
-            var blocks = MockSeveralBlocks(5);
-
-            foreach (var block in blocks)
-            {
-                blockSet.PushBlock(block);
-            }
-
-//            Assert.True(blockSet.InvalidBlockCount == 5);
-//
-//            blockSet.RemoveExecutedBlockFromCache(blocks[0].BlockHashToHex);
-//
-//            Assert.True(blockSet.ExecutedBlockCount == 1);
-//            Assert.True(blockSet.InvalidBlockCount == 4);
-//
-//            blockSet.RemoveExecutedBlockFromCache(blocks[0].BlockHashToHex);
-//
-//            Assert.True(blockSet.ExecutedBlockCount == 1);
-//            Assert.True(blockSet.InvalidBlockCount == 4);
-//
-//            blockSet.RemoveExecutedBlockFromCache(blocks[1].BlockHashToHex);
-//
-//            Assert.True(blockSet.ExecutedBlockCount == 2);
-//            Assert.True(blockSet.InvalidBlockCount == 3);
-//
-//            Assert.True(blockSet.IsBlockReceived(Hash.LoadHex(blocks[2].BlockHashToHex), blocks[2].Index));
-//            Assert.False(blockSet.IsBlockReceived(Hash.Generate(), blocks[2].Index));
+            var builder = new GenesisBlockBuilder().Build(Hash.Generate());
+            return builder.Block;
         }
-
-        [Fact]
-        public void FindFortHeightTest()
+        
+        /// <summary>
+        /// Given a block, will generate the next, only the height and
+        /// the previous will not be random.
+        /// </summary>
+        /// <param name="previous">The block to build upon on.</param>
+        /// <returns>The new block</returns>
+        private IBlock BuildNext(IBlock previous)
         {
-//            var blockSet = new BlockSet();
-//
-//            // Generate block from 11 to 15
-//            var blocks = MockSeveralBlocks(5, 11);
-//
-//            foreach (var block in blocks)
-//            {
-//                blockSet.PushBlock(block);
-//            }
-//
-//            var forkHeight = blockSet.AnyLongerValidChain(14);
-//
-//            Assert.True(forkHeight == 11);
-        }
-
-        private List<IBlock> MockSeveralBlocks(int number, int firstIndex = 0)
-        {
-            var list = new List<IBlock>();
-            var temp = Hash.Generate();
-            for (var i = firstIndex; i < number + firstIndex; i++)
-            {
-                var block = MockBlock((ulong) i, Hash.Generate().DumpHex(), temp == null ? Hash.Generate() : temp);
-                list.Add(block);
-                temp = block.GetHash();
-            }
-
-            return list;
-        }
-
-        private IBlock MockBlock(ulong index, string hashToHex, Hash preBlockHash)
-        {
+            Assert.NotNull(previous);
+            
             return new Block
             {
-                BlockHashToHex = hashToHex,
                 Header = new BlockHeader
                 {
+                    Index = previous.Header.Index + 1,
                     MerkleTreeRootOfTransactions = Hash.Generate(),
                     SideChainTransactionsRoot = Hash.Generate(),
                     SideChainBlockHeadersRoot = Hash.Generate(),
-                    ChainId = Hash.Generate(),
-                    PreviousBlockHash = preBlockHash,
-                    MerkleTreeRootOfWorldState = Hash.Generate(),
-                    Index = index
-                },
-                Index = index
+                    ChainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03}),
+                    PreviousBlockHash = previous.GetHash(),
+                    MerkleTreeRootOfWorldState = Hash.Generate()
+                }
             };
+        }
+
+
+        /// <summary>
+        /// Will create a chain from start with <see cref="count"/> extra blocks.
+        /// Total block count will be <see cref="count"/>+1. 
+        /// </summary>
+        /// <param name="start">The start block, if null will create a genesis block.</param>
+        /// <param name="count">The amount of extra blocks to create</param>
+        /// <returns>return the generated chain</returns>
+        public List<IBlock> GenerateChain(int count, Block start = null)
+        {
+            Assert.True(count > 0);
+            
+            List<IBlock> blocks = new List<IBlock>();
+            
+            IBlock current = start ?? GetGenesisBlock();
+            blocks.Add(current);
+            
+            for (int i = 0; i < count; i++)
+            {
+                current = BuildNext(current);
+                blocks.Add(current);
+            }
+
+            return blocks;
+        }
+
+        [Fact]
+        public void PushBlock()
+        {
+            BlockSet blockSet = new BlockSet();
+            List<IBlock> chain = GenerateChain(1);
+            
+            blockSet.PushBlock(chain.ElementAt(0)); // push genesis
+
+            // push unlinkable
         }
     }
 }

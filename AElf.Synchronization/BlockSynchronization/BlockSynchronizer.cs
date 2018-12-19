@@ -171,7 +171,10 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
             });
             
-            MessageHub.Instance.Subscribe<NewLibFound>(sig => { ; });
+            MessageHub.Instance.Subscribe<NewLibFound>(sig =>
+            {
+                _logger?.Trace($"new LIB : {sig.State}");
+            });
         }
 
         public void Init()
@@ -249,8 +252,12 @@ namespace AElf.Synchronization.BlockSynchronization
                         if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
                         {
                             // If from net but not in catching/caught -> stash + return
-                            _logger?.Trace($"Added to cache: {CurrentState} (head: {_currentBlock})");
-                            _blockCache.Add(block);
+                            if (_blockCache.All(b => b.GetHash() != block.GetHash()))
+                            {
+                                _blockCache.Add(block);
+                                _logger?.Trace($"Added to cache: {CurrentState} (head: {_currentBlock})");
+                            }
+
                             return;
                         }
                         
@@ -285,8 +292,8 @@ namespace AElf.Synchronization.BlockSynchronization
                     return;
                 }
 
-                // AlreadyExecuted - should ont happen (maybe related to previous blocks) -> ??.
-                // Branched - normal situation, just receive a block from a fork.
+                // AlreadyExecuted - should not happen (maybe related to previous blocks) -> ??.
+                // Branched - normal situation, just receive a block from a fork. - todo consider removing branched
                 var validationResult = await _blockHeaderValidator.ValidateBlockHeaderAsync(block.Header);
 
                 _logger?.Trace($"Header validated ({validationResult.ToString()}) {block}");
@@ -315,15 +322,19 @@ namespace AElf.Synchronization.BlockSynchronization
                         {
                             _logger?.Warn($"Block unlinkable {block}");
                             MessageHub.Instance.Publish(StateEvent.InvalidBlock);
+                            // todo event on unlinkable
                             return;
                         }
                     
                         MessageHub.Instance.Publish(new BlockAccepted(block));
                     }
                 }
+                else
+                {
+                    // todo consider a return here
+                }
 
                 // At this point we're ready to execute another block
-            
                 // Here if we detect that we're out of sync witht the current blockset head -> switch forks
                 if (_currentBlock != _blockSet.CurrentHead) 
                 {
@@ -383,12 +394,12 @@ namespace AElf.Synchronization.BlockSynchronization
 //            
 //            await ReceiveBlock(nextBlock.GetClonedBlock());
 
-            var next = _blockCache.FirstOrDefault();
-
-            if (next != null)
-                await ReceiveBlock(next, false);
-            else
+            if (!_blockCache.Any())
                 return;
+
+            // execute lowest index
+            var next = _blockCache.OrderBy(b => b.Index).FirstOrDefault();
+            await ReceiveBlock(next, false);
             
             if (_stateFSM.CurrentState == NodeState.Catching || _stateFSM.CurrentState == NodeState.Caught)
                 _logger?.Warn("Executed a block, but state still Cathcing or Reverting");
