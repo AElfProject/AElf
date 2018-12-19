@@ -84,8 +84,6 @@ namespace AElf.SmartContract
             {
                 child.ClearCache();
             }
-
-//            StateCache = new Dictionary<DataPath, StateCache>();
         }
 
         public async Task<byte[]> GetAsync(string key)
@@ -109,7 +107,6 @@ namespace AElf.SmartContract
             else
             {
                 bytes = await _stateStore.GetAsync(path);
-                _stateCache[path] = new StateCache(bytes);
             }
 
             _localCache[key] = StateValue.Create(bytes);
@@ -139,7 +136,6 @@ namespace AElf.SmartContract
             }
 
             c.Set(value);
-            StateCache[GetStatePathFor(key)] = new StateCache(value);
             await Task.CompletedTask;
         }
 

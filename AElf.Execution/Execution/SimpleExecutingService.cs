@@ -59,7 +59,7 @@ namespace AElf.Execution.Execution
                 }
 
                 traces.Add(trace);
-                
+
                 if (cancellationToken.IsCancellationRequested)
                 {
                     break;
@@ -76,7 +76,6 @@ namespace AElf.Execution.Execution
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                Console.WriteLine("IsCancellationRequested");
                 return new TransactionTrace()
                 {
                     TransactionId = transaction.GetHash(),
@@ -104,9 +103,15 @@ namespace AElf.Execution.Execution
             {
                 executive.SetDataCache(stateCache);
                 await executive.SetTransactionContext(txCtxt).Apply();
+
+                foreach (var kv in txCtxt.Trace.StateChanges)
+                {
+                    // TODO: Better encapsulation/abstraction for committing to state cache
+                    stateCache[kv.StatePath] = new StateCache(kv.StateValue.CurrentValue.ToByteArray());
+                }
+
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
-                    Console.WriteLine($"Executing inline {inlineTx.MethodName}");
                     var inlineTrace = await ExecuteOneAsync(depth + 1, inlineTx, chainId, chainContext, stateCache,
                         cancellationToken);
                     trace.InlineTraces.Add(inlineTrace);
