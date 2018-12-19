@@ -2,9 +2,12 @@
 
 namespace AElf.Common.Module
 {
-    public interface IAElfModule
+    //TODO: Remove
+    
+    /*public interface IAElfModule
     {
         void Init(ContainerBuilder builder);
         void Run(ILifetimeScope scope);
-    }
+    }*/
+    
 }

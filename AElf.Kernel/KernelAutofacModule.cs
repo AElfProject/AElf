@@ -4,6 +4,7 @@ using Autofac;
 
 namespace AElf.Kernel
 {
+    /*
     public class KernelAutofacModule : Module
     {
         protected override void Load(ContainerBuilder builder)
@@ -26,5 +27,5 @@ namespace AElf.Kernel
             builder.RegisterType<DataStore>().As<IDataStore>();
             builder.RegisterType<MinersManager>().As<IMinersManager>();
         }
-    }
+    }*/
 }

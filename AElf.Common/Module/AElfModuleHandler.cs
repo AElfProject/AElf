@@ -6,7 +6,10 @@ using Autofac;
 
 namespace AElf.Common.Module
 {
-    public class AElfModuleHandler
+    
+    //TODO: Remove
+
+    /*public class AElfModuleHandler
     {
         private readonly ContainerBuilder _builder;
         private IContainer _container;
@@ -39,5 +42,5 @@ namespace AElf.Common.Module
                 _modules.ForEach(m => m.Run(scope));
             }
         }
-    }
+    }*/
 }
