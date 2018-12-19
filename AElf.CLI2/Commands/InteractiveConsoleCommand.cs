@@ -12,17 +12,17 @@ using Console = System.Console;
 
 namespace AElf.CLI2.Commands
 {
-    [Verb("interactive", HelpText = "Open the interactive console.")]
-    public class InteractiveOption : BaseOption
+    [Verb("console", HelpText = "Open the interactive console.")]
+    public class InteractiveConsoleOption : BaseOption
     {
     }
 
 
-    public class InteractiveCommand : Command
+    public class InteractiveConsoleCommand : Command
     {
-        private readonly InteractiveOption _option;
+        private readonly InteractiveConsoleOption _option;
 
-        public InteractiveCommand(InteractiveOption option) : base(option)
+        public InteractiveConsoleCommand(InteractiveConsoleOption option) : base(option)
         {
             _option = option;
             // TODO: Test endpoint ok
@@ -268,6 +268,6 @@ namespace AElf.CLI2.Commands
             return results.ToArray();
         }
 
-        public char[] Separators { get; set; } = {' ', '=', '{'};
+        public char[] Separators { get; set; } = {' ', '=', '{', '(', ';'};
     }
 }
