@@ -12,6 +12,8 @@ namespace AElf.Contracts.Consensus.Contracts
 {
     public class Election
     {
+        private ulong CurrentAge => _collection.AgeField.GetValue();
+
         private readonly DataCollection _collection;
 
         public Election(DataCollection collection)
@@ -19,18 +21,42 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection = collection;
         }
 
-        public void AnnounceElection()
+        public void AnnounceElection(string alias = "")
         {
+            var publicKey = Api.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            if (_collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
-                Api.Assert(tickets.VotingRecords.All(t => t.IsExpired()), GlobalConfig.VoterCannotAnnounceElection);
+                Api.Assert(tickets.VotingRecords.All(t => t.IsExpired(_collection.AgeField.GetValue())), GlobalConfig.VoterCannotAnnounceElection);
             }
             
             Api.LockToken(GlobalConfig.LockTokenForElection);
             var candidates = _collection.CandidatesField.GetValue();
             candidates.PublicKeys.Add(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);
+
+            if (alias == "")
+            {
+                alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
+            }
+            
+            if (_collection.AliasesLookupMap.TryGet(alias.ToStringValue(), out _))
+            {
+                return;
+            }
+            
+            _collection.AliasesMap.SetValue(publicKey.ToStringValue(), alias.ToStringValue());
+
+            // Add this alias to history information of this candidate.
+            if (_collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var candidateHistoryInformation))
+            {
+                if (!candidateHistoryInformation.Aliases.Contains(alias))
+                {
+                    candidateHistoryInformation.Aliases.Add(alias);
+                }
+
+                _collection.HistoryMap.SetValue(publicKey.ToStringValue(), candidateHistoryInformation);
+            }
         }
 
         public void QuitElection()
@@ -41,7 +67,8 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.CandidatesField.SetValue(candidates);
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockTime, Timestamp timestamp)
+        // TODO: The time of voting should be the timestamp of packaging related block.
+        public void Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
             if (lockTime.InRange(1, 3))
             {
@@ -62,8 +89,6 @@ namespace AElf.Contracts.Consensus.Contracts
 
             Api.LockToken(amount);
 
-            var ageOfBlockchain = _collection.AgeField.GetValue();
-
             var votingRecord = new VotingRecord
             {
                 Count = amount,
@@ -71,11 +96,11 @@ namespace AElf.Contracts.Consensus.Contracts
                 To = candidatePublicKey,
                 RoundNumber = _collection.CurrentRoundNumberField.GetValue(),
                 TransactionId = Api.GetTxnHash(),
-                VoteTimestamp = timestamp,
-                UnlockAge = ageOfBlockchain + (ulong) lockTime,
+                VoteAge = CurrentAge,
+                UnlockAge = CurrentAge + (ulong) lockTime,
                 TermNumber = _collection.CurrentTermNumberField.GetValue()
             };
-            votingRecord.LockDaysList.Add((uint) lockTime);
+            votingRecord.LockDaysList.Add(lockTime);
 
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
@@ -103,6 +128,14 @@ namespace AElf.Contracts.Consensus.Contracts
             candidateTickets.TotalTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
 
+            var currentCount = _collection.VotesCountField.GetValue();
+            currentCount += 1;
+            _collection.VotesCountField.SetValue(currentCount);
+            
+            var ticketsCount = _collection.TicketsCountField.GetValue();
+            ticketsCount += votingRecord.Count;
+            _collection.TicketsCountField.SetValue(ticketsCount);
+
             Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight,
                 _collection.CurrentTermNumberField.GetValue());
 
@@ -119,7 +152,9 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 if (votingRecord != null)
                 {
-                    var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
+                    var maxTermNumber = votingRecord.TermNumber +
+                                        votingRecord.GetDurationDays(CurrentAge) /
+                                        GlobalConfig.DaysEachTerm;
                     Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
                 }
             }
@@ -133,7 +168,9 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 if (votingRecord != null)
                 {
-                    var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
+                    var maxTermNumber = votingRecord.TermNumber +
+                                        votingRecord.GetDurationDays(CurrentAge) /
+                                        GlobalConfig.DaysEachTerm;
                     Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
                 }
             }
@@ -145,7 +182,9 @@ namespace AElf.Contracts.Consensus.Contracts
             {
                 foreach (var votingRecord in tickets.VotingRecords)
                 {
-                    var maxTermNumber = votingRecord.TermNumber + votingRecord.DurationDays / GlobalConfig.DaysEachTerm;
+                    var maxTermNumber = votingRecord.TermNumber +
+                                        votingRecord.GetDurationDays(CurrentAge) /
+                                        GlobalConfig.DaysEachTerm;
                     Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
                 }
             }
@@ -159,11 +198,15 @@ namespace AElf.Contracts.Consensus.Contracts
                     tickets.VotingRecords.FirstOrDefault(vr =>
                         vr.To == candidatePublicKey && vr.Count == amount && vr.LockDaysList.Last() == lockDays);
 
-                if (votingRecord != null && votingRecord.UnlockAge >= _collection.AgeField.GetValue())
+                if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
                 {
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
+                    
+                    var ticketsCount = _collection.TicketsCountField.GetValue();
+                    ticketsCount -= votingRecord.Count;
+                    _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
         }
@@ -174,11 +217,15 @@ namespace AElf.Contracts.Consensus.Contracts
             {
                 var votingRecord = tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
 
-                if (votingRecord != null && votingRecord.UnlockAge >= _collection.AgeField.GetValue())
+                if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
                 {
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
+                    
+                    var ticketsCount = _collection.TicketsCountField.GetValue();
+                    ticketsCount -= votingRecord.Count;
+                    _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
         }
@@ -187,13 +234,17 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
-                var votingRecords = tickets.VotingRecords.Where(vr => vr.UnlockAge >= _collection.AgeField.GetValue());
+                var votingRecords = tickets.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge);
 
                 foreach (var votingRecord in votingRecords)
                 {
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
+                    
+                    var ticketsCount = _collection.TicketsCountField.GetValue();
+                    ticketsCount -= votingRecord.Count;
+                    _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
         }
