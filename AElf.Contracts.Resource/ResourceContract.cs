@@ -184,16 +184,13 @@ namespace AElf.Contracts.Resource
         /// <param name="delta">The new amount to issue.</param>
         public void IssueResource(string resourceType, ulong delta)
         {
-            checked
-            {
-                Api.Assert(ResourceControllerAddress.GetValue() == Api.GetFromAddress(),
-                    "Only resource controller is allowed to perform this action.");
-                AssertCorrectResourceType(resourceType);
-                var rt = new StringValue() {Value = resourceType};
-                var cvt = Converters[rt];
-                cvt.ResBalance += delta;
-                Converters[rt] = cvt;
-            }
+            Api.Assert(ResourceControllerAddress.GetValue() == Api.GetFromAddress(),
+                "Only resource controller is allowed to perform this action.");
+            AssertCorrectResourceType(resourceType);
+            var rt = new StringValue() {Value = resourceType};
+            var cvt = Converters[rt];
+            cvt.ResBalance = cvt.ResBalance.Add(delta);
+            Converters[rt] = cvt;
         }
 
         /// <summary>
@@ -206,7 +203,7 @@ namespace AElf.Contracts.Resource
         {
             AssertCorrectResourceType(resourceType);
             var fees = (ulong) (paidElf * FeeRate);
-            var elfForRes = paidElf - fees;
+            var elfForRes = paidElf.Sub(fees);
             var payout = this.BuyResourceFromExchange(resourceType, elfForRes);
             var urk = new UserResourceKey(Api.GetFromAddress(), ParseResourceType(resourceType));
             UserBalances[urk] = UserBalances[urk].Add(payout);
@@ -229,7 +226,7 @@ namespace AElf.Contracts.Resource
             var fees = (ulong) (elfToReceive * FeeRate);
             var urk = new UserResourceKey(Api.GetFromAddress(), ParseResourceType(resourceType));
             UserBalances[urk] = UserBalances[urk].Sub(resToSell);
-            ElfToken.TransferByContract(Api.GetFromAddress(), elfToReceive - fees);
+            ElfToken.TransferByContract(Api.GetFromAddress(), elfToReceive.Sub(fees));
             ElfToken.TransferByContract(FeeAddress.GetValue(), fees);
         }
 
