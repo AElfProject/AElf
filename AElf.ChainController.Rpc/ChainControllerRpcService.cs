@@ -691,36 +691,6 @@ namespace AElf.ChainController.Rpc
             }
         }
 
-        [JsonRpcMethod("get_voting_info", "pubKey")]
-        public async Task<JObject> VotingInfo(string pubKey)
-        {
-            try
-            {
-                var info = this.GetVotingInfo(pubKey);
-                var historyTickets =
-                    info.VotingRecords.Aggregate<VotingRecord, ulong>(0,
-                        (history, votingRecord) => history + votingRecord.Count);
-                var currentTickets = info.VotingRecords.Where(vr => !vr.IsExpired())
-                    .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
-                return new JObject
-                {
-                    ["error"] = 0,
-                    ["history_tickets"] = historyTickets,
-                    ["current_tickets"] = currentTickets,
-                    ["voted_tickets"] = info.TotalTickets,
-                    ["expired_tickets"] = info.TotalTickets - currentTickets,
-                };
-            }
-            catch (Exception e)
-            {
-                return new JObject
-                {
-                    ["error"] = 1,
-                    ["errormsg"] = e.Message
-                };
-            }
-        }
-
         #endregion
 
         #region Admin
