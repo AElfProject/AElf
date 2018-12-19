@@ -47,6 +47,7 @@ namespace AElf.Common
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 4000;
+        public const int AliasLimit = 20;
         public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
         public const int ProducerRepetitions = 8;
         public const int AElfWaitFirstRoundTime = 8000;
@@ -62,6 +63,7 @@ namespace AElf.Common
         public const string AElfDPoSSnapshotMapString = "__AElfDPoSSnapshotFieldString__";
         public const string AElfDPoSDividendsMapString = "__AElfDPoSDividendsMapString__";
         public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
+        public const string AElfDPoSAliasesLookupMapString = "__AElfDPoSAliasesLookupMapString__";
         public const string AElfVotesCountString = "__AElfVotesCountString__";
         public const string AElfTicketsCountString = "__AElfTicketsCountString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";

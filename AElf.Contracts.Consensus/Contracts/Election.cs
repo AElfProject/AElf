@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection = collection;
         }
 
-        public void AnnounceElection(string alias = null)
+        public void AnnounceElection(string alias = "")
         {
             var publicKey = Api.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
@@ -35,11 +35,16 @@ namespace AElf.Contracts.Consensus.Contracts
             candidates.PublicKeys.Add(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);
 
-            // TODO: A map to lookup the alias to public key.
-            if (alias == null)
+            if (alias == "")
             {
-                alias = publicKey.Substring(0, 5);
+                alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
             }
+            
+            if (_collection.AliasesLookupMap.TryGet(alias.ToStringValue(), out _))
+            {
+                return;
+            }
+            
             _collection.AliasesMap.SetValue(publicKey.ToStringValue(), alias.ToStringValue());
 
             // Add this alias to history information of this candidate.

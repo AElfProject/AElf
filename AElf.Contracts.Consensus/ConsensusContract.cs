@@ -32,6 +32,7 @@ namespace AElf.Contracts.Consensus
             TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
             SnapshotField = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotMapString),
             AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString),
+            AliasesLookupMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesLookupMapString),
             HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString),
         };
 
@@ -197,18 +198,29 @@ namespace AElf.Contracts.Consensus
                 ? Config.GetDividendsForAll(roundInfo.GetMinedBlocks())
                 : 0;
         }
-        
-        public void AnnounceElection()
+
+        [View]
+        public StringList QueryAliasesInUse()
         {
-            Election.AnnounceElection();
+            var candidates = Collection.CandidatesField.GetValue();
+            var result = new StringList();
+            foreach (var publicKey in candidates.PublicKeys)
+            {
+                if (Collection.AliasesMap.TryGet(publicKey.ToStringValue(), out var alias))
+                {
+                    result.Values.Add(alias.Value);
+                }
+            }
+
+            return result;
         }
         
-        public void AnnounceElectionWithAlias()
+        public void AnnounceElection(string alias)
         {
-            Election.AnnounceElection();
+            Election.AnnounceElection(alias);
         }
 
-        public void QuitElection()
+        public void QuitElection(string empty)
         {
             Election.QuitElection();
         }

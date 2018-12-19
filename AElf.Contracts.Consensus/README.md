@@ -4,7 +4,8 @@
 
 ### AnnounceElection
 
-*No params*
+Params:
+- string alias
 
 To announce election.
 
@@ -182,13 +183,23 @@ ulong
 
 To query total dividends of current term.
 
+### QueryAliasesInUse
+
+*No params*
+
+Result Type:
+StringList
+
+To query all the alias in use.
+
 # 投票/选举系统
 
 ## 可用方法
 
 ### AnnounceElection
 
-*无参数*
+参数:
+- string alias
 
 用于参加下一届选举。
 
@@ -367,6 +378,15 @@ ulong
 获取当前届的出块奖励分红总数。
 
 出块奖励分红取决于本届的出块数，会不断增加。
+
+### QueryAliasesInUse
+
+*无参数*
+
+返回类型：
+StringList
+
+查询已经被使用的别名。
 
 ## Data Structure
 

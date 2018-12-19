@@ -253,7 +253,7 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             return _collection.AliasesMap.TryGet(new StringValue {Value = publicKey}, out var alias)
                 ? alias.Value
-                : publicKey.Substring(5);
+                : publicKey.Substring(0, GlobalConfig.AliasLimit);
         }
 
         private Round GetCurrentRoundInfo()

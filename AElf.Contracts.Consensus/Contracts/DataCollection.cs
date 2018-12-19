@@ -74,6 +74,12 @@ namespace AElf.Contracts.Consensus.Contracts
         public Map<StringValue, StringValue> AliasesMap;
 
         /// <summary>
+        /// Aliases of candidates.
+        /// alias -> candidate public key hex value
+        /// </summary>
+        public Map<StringValue, StringValue> AliasesLookupMap;
+        
+        /// <summary>
         /// Histories of all candidates
         /// candidate public key hex value -> history information
         /// </summary>
