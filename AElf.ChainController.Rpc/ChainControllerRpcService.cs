@@ -26,7 +26,6 @@ using Newtonsoft.Json;
 using Google.Protobuf;
 using Newtonsoft.Json.Serialization;
 using NLog;
-using NServiceKit.Text;
 using ServiceStack.Templates;
 
 namespace AElf.ChainController.Rpc
@@ -147,7 +146,7 @@ namespace AElf.ChainController.Rpc
                     ["error"] = ""
                 };
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new JObject
                 {
@@ -166,7 +165,7 @@ namespace AElf.ChainController.Rpc
             {
                 addr = Address.Parse(address);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return JObject.FromObject(new JObject
                 {
@@ -218,7 +217,7 @@ namespace AElf.ChainController.Rpc
             var hexString = ByteArrayHelpers.FromHexString(raw64);
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
-            var res = new JObject {["hash"] = transaction.GetHash().DumpHex()};
+            var res = new JObject {["hash"] = transaction.GetHash().ToHex()};
 
             if (!_canBroadcastTxs)
             {
@@ -305,7 +304,7 @@ namespace AElf.ChainController.Rpc
                 }
                 catch (Exception e)
                 {
-                    throw new Exception("Unable to get merkle path from parent chain");
+                    throw new Exception($"Unable to get merkle path from parent chain {e}");
                 }
                 /*if(merklePathInParentChain == null)
                     throw new Exception("Not found merkle path in parent chain");*/
@@ -348,7 +347,7 @@ namespace AElf.ChainController.Rpc
                 return new JObject
                 {
                     ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
-                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.DumpHex(),
+                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
                     ["parent_height"] = merklePathInParentChain.Height
                 };
             }
@@ -496,7 +495,7 @@ namespace AElf.ChainController.Rpc
             if (txResult.Status == Status.Mined)
             {
                 response["block_number"] = txResult.BlockNumber;
-                response["block_hash"] = txResult.BlockHash.DumpHex();
+                response["block_hash"] = txResult.BlockHash.ToHex();
 #if DEBUG
                 response["return_type"] = txtrc.RetVal.Type.ToString();
 #endif
@@ -552,13 +551,13 @@ namespace AElf.ChainController.Rpc
             {
                 ["result"] = new JObject
                 {
-                    ["Blockhash"] = blockinfo.GetHash().DumpHex(),
+                    ["Blockhash"] = blockinfo.GetHash().ToHex(),
                     ["Header"] = new JObject
                     {
-                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.DumpHex(),
-                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.DumpHex(),
-                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.DumpHex(),
-                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.DumpHex(),
+                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.ToHex(),
+                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.ToHex(),
+                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.ToHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),
@@ -578,7 +577,7 @@ namespace AElf.ChainController.Rpc
                 var txs = new List<string>();
                 foreach (var txHash in transactions)
                 {
-                    txs.Add(txHash.DumpHex());
+                    txs.Add(txHash.ToHex());
                 }
 
                 response["result"]["Body"]["Transactions"] = JArray.FromObject(txs);
@@ -678,36 +677,6 @@ namespace AElf.ChainController.Rpc
                     ["error"] = 0,
                     ["voters_count"] = general.Item1,
                     ["tickets_count"] = general.Item2,
-                };
-            }
-            catch (Exception e)
-            {
-                return new JObject
-                {
-                    ["error"] = 1,
-                    ["errormsg"] = e.Message
-                };
-            }
-        }
-
-        [JsonRpcMethod("get_voting_info", "pubKey")]
-        public async Task<JObject> VotingInfo(string pubKey)
-        {
-            try
-            {
-                var info = this.GetVotingInfo(pubKey);
-                var historyTickets =
-                    info.VotingRecords.Aggregate<VotingRecord, ulong>(0,
-                        (history, votingRecord) => history + votingRecord.Count);
-                var currentTickets = info.VotingRecords.Where(vr => !vr.IsExpired())
-                    .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
-                return new JObject
-                {
-                    ["error"] = 0,
-                    ["history_tickets"] = historyTickets,
-                    ["current_tickets"] = currentTickets,
-                    ["voted_tickets"] = info.TotalTickets,
-                    ["expired_tickets"] = info.TotalTickets - currentTickets,
                 };
             }
             catch (Exception e)

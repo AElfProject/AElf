@@ -9,7 +9,6 @@ using Easy.MessageHub;
 using NLog;
 using AElf.Common;
 using AElf.Kernel.Types.Common;
-using NServiceKit.Common.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel

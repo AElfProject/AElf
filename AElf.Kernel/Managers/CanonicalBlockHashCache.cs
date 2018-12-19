@@ -89,7 +89,7 @@ namespace AElf.Kernel.Managers
 
         private void AddToBlocks(ulong height, Hash blockHash)
         {
-            _logger?.Trace($"Adding Canonical Hash {blockHash.DumpHex()} of height {height}");
+            _logger?.Trace($"Adding Canonical Hash {blockHash.ToHex()} of height {height}");
             if (!_blocks.ContainsKey(height))
             {
                 _blocks.TryAdd(height, blockHash);

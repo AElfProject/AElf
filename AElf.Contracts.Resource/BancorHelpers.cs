@@ -7,18 +7,22 @@ namespace AElf.Contracts.Resource
 {
     public static class BancorHelpers
     {
+        private static readonly decimal MaxWeight = 1000000m;
+
         public static ulong BuyResourceFromExchange(this ResourceContract c, string resourceType, ulong paidElf)
         {
             checked
             {
                 ResourceContract.AssertCorrectResourceType(resourceType);
                 var rt = new StringValue() {Value = resourceType};
-                var connector = c.ConnectorPairs[rt];
-                var tokensIssued = ToSmartToken(paidElf, connector.ElfBalance);
-                var resourcePayout = (ulong) FromSmartToken(tokensIssued, connector.ResBalance);
-                connector.ElfBalance += paidElf;
-                connector.ResBalance -= resourcePayout;
-                c.ConnectorPairs[rt] = connector;
+                var cvt = c.Converters[rt];
+                var resourcePayout = CalculateCrossConnectorReturn(
+                    cvt.ElfBalance, cvt.ElfWeight,
+                    cvt.ResBalance, cvt.ResWeight,
+                    paidElf);
+                cvt.ElfBalance += paidElf;
+                cvt.ResBalance -= resourcePayout;
+                c.Converters[rt] = cvt;
                 return resourcePayout;
             }
         }
@@ -29,38 +33,35 @@ namespace AElf.Contracts.Resource
             {
                 ResourceContract.AssertCorrectResourceType(resourceType);
                 var rt = new StringValue() {Value = resourceType};
-                var connector = c.ConnectorPairs[rt];
-                var tokensIssued = ToSmartToken(paidRes, connector.ResBalance);
-                var elfPayout = (ulong) FromSmartToken(tokensIssued, connector.ElfBalance);
-                connector.ElfBalance -= elfPayout;
-                connector.ResBalance += paidRes;
-                c.ConnectorPairs[rt] = connector;
+                var cvt = c.Converters[rt];
+                var elfPayout = CalculateCrossConnectorReturn(
+                    cvt.ResBalance, cvt.ResWeight,
+                    cvt.ElfBalance, cvt.ElfWeight,
+                    paidRes);
+                cvt.ElfBalance -= elfPayout;
+                cvt.ResBalance += paidRes;
+                c.Converters[rt] = cvt;
                 return elfPayout;
             }
         }
 
-        private static decimal ToSmartToken(decimal connected, decimal balance)
+        private static ulong CalculateCrossConnectorReturn(ulong fromConnectorBalance, ulong fromConnectorWeight,
+            ulong toConnectorBalance, ulong toConnectorWeight, ulong paidAmount)
         {
-            decimal s = 10000000000;
-            decimal c = connected;
-            decimal b = balance;
-            decimal w = new decimal(5, 0, 0, false, 1);
-            decimal x = One + c / b;
-            var tokensIssued = s * (Exp(w * Ln(x)) - One);
-            return tokensIssued;
-        }
+            decimal bf = fromConnectorBalance;
+            decimal wf = fromConnectorWeight / MaxWeight;
+            decimal bt = toConnectorBalance;
+            decimal wt = toConnectorWeight / MaxWeight;
+            decimal a = paidAmount;
+            if (wf == wt)
+            {
+                // if both weights are the same, the formula can be reduced
+                return (ulong) (bt * a / (bf + a));
+            }
 
-        private static decimal FromSmartToken(decimal destroyed, decimal balance)
-        {
-            decimal s = 10000000000;
-            decimal d = destroyed;
-            decimal b = balance;
-            decimal w = new decimal(5, 0, 0, false, 1);
-            // x^y = exp(ln(x^y)) = exp(y*ln(x))
-            decimal x = One + d / s;
-            decimal y = One / w;
-            var payout = b * (Exp(y * Ln(x)) - One);
-            return payout;
+            decimal x = bf / (bf + a);
+            decimal y = wf / wt;
+            return (ulong) (bt * (One - Exp(y * Ln(x))));
         }
 
         #region Exponential Helpers

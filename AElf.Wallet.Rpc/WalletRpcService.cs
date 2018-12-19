@@ -9,7 +9,6 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.RPC;
-using Base58Check;
 using Community.AspNetCore.JsonRpc;
 using Newtonsoft.Json.Linq;
 
@@ -51,10 +50,7 @@ namespace AElf.Wallet.Rpc
                 if (keypair != null)
                 {
                     // todo warning return null for now
-                    return new JObject
-                    {
-                        //["address"] = keypair.FormattedAddress()
-                    };
+                    return new JObject();
                 }
 
                 return new JObject

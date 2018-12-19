@@ -132,7 +132,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                     // If the hash of this previous block corresponds to "previous block hash" of the current header
                     // the link has been found
-                    if (correspondingBlockHeader.BlockHashToHex == blockHeader.PreviousBlockHash.DumpHex())
+                    if (correspondingBlockHeader.BlockHashToHex == blockHeader.PreviousBlockHash.ToHex())
                     {
                         // Launch header accepted event and return
                         MessageHub.Instance.Publish(new HeaderAccepted(blockHeader));

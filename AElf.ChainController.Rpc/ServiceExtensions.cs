@@ -191,7 +191,14 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
         {
-            return await s.SmartContractService.GetInvokingParams(tx);
+            try
+            {
+                return await s.SmartContractService.GetInvokingParams(tx);
+            }
+            catch (Exception e)
+            {
+                return new List<string>();
+            }
         }
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)

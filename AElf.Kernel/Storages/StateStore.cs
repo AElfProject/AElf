@@ -23,7 +23,7 @@ namespace AElf.Kernel.Storages
 
         private static string GetKey(StatePath path)
         {
-            return $"{GlobalConfig.StatePrefix}{path.GetHash().DumpHex()}";
+            return $"{GlobalConfig.StatePrefix}{path.GetHash().ToHex()}";
         }
 
         public async Task SetAsync(StatePath path, byte[] value)

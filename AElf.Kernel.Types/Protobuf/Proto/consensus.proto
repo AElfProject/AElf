@@ -60,8 +60,8 @@ message VotingRecord {
     uint64 Count = 3;
     uint64 RoundNumber = 4;
     Hash TransactionId = 5;
-    google.protobuf.Timestamp VoteTimestamp = 6;
-    repeated uint32 LockDaysList = 7;// Can be renewed by adding items.
+    uint64 VoteAge = 6;
+    repeated int32 LockDaysList = 7;// Can be renewed by adding items.
     uint64 UnlockAge = 8;
     uint64 TermNumber = 9;
 }
@@ -105,4 +105,9 @@ message CandidateInHistory {
     uint64 MissedTimeSlots = 3;
     uint64 ContinualAppointmentCount = 4;
     uint64 ReappointmentCount = 5;
+    repeated string Aliases = 6;
+}
+
+message TicketsDictionary {
+    map<string, Tickets> Maps = 1;
 }

@@ -280,7 +280,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Transaction = txn
             };
-            Executive2.SetDataCache(new Dictionary<DataPath, StateCache>());
+            Executive2.SetDataCache(new Dictionary<StatePath, StateCache>());
             Executive2.SetTransactionContext(txnCtxt).Apply().Wait();
 
             return txnCtxt.Trace.RetVal.Data.DeserializeToUInt64();
@@ -315,7 +315,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Transaction = txn
             };
-            Executive1.SetDataCache(new Dictionary<DataPath, StateCache>());
+            Executive1.SetDataCache(new Dictionary<StatePath, StateCache>());
             Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
 
             var dtStr = txnCtxt.Trace.RetVal.Data.DeserializeToString();
@@ -330,7 +330,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Transaction = txn
             };
-            Executive1.SetDataCache(new Dictionary<DataPath, StateCache>());
+            Executive1.SetDataCache(new Dictionary<StatePath, StateCache>());
             Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
 
             var dtStr = txnCtxt.Trace.RetVal.Data.DeserializeToString();
