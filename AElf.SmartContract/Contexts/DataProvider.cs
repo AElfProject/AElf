@@ -109,6 +109,7 @@ namespace AElf.SmartContract
             else
             {
                 bytes = await _stateStore.GetAsync(path);
+                _stateCache[path] = new StateCache(bytes);
             }
 
             _localCache[key] = StateValue.Create(bytes);
