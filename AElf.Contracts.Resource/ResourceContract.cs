@@ -80,7 +80,7 @@ namespace AElf.Contracts.Resource
 
         /// <summary>
         /// Query the converter details, i.e. the resource balance, the elf balance, the weights,
-        /// which are the parameters that determines the current price of the resource using Bancor Formula.
+        /// which are the parameters that determine the current price of the resource using Bancor Formula.
         /// </summary>
         /// <param name="resourceType">The type of the resource.</param>
         /// <returns>The json representation of the converter.</returns>
@@ -95,7 +95,7 @@ namespace AElf.Contracts.Resource
         /// Query the resource balance of a particular user.
         /// </summary>
         /// <param name="address">The address of the user to query balance for.</param>
-        /// <param name="resourceType">The type of the locked resource to query for.</param>
+        /// <param name="resourceType">The type of the resource to query for.</param>
         /// <returns></returns>
         [View]
         public ulong GetUserBalance(Address address, string resourceType)
