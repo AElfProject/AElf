@@ -280,7 +280,7 @@ namespace AElf.Synchronization.BlockExecution
                     res.StateHash = trace.GetSummarizedStateHash();
                     if (!cancellationTokenSource.IsCancellationRequested)
                     {
-                        _logger?.Error($"Transaction execute failed. TransactionId: {res.TransactionId.DumpHex()}, " +
+                        _logger?.Error($"Transaction execute failed. TransactionId: {res.TransactionId.ToHex()}, " +
                                        $"StateHash: {res.StateHash} Transaction deatils: {readyTxs.Find(x => x.GetHash() == trace.TransactionId)}" +
                                        $"\n {trace.StdErr}");
                     }
@@ -437,13 +437,13 @@ namespace AElf.Synchronization.BlockExecution
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
-                _logger?.Trace($"{root.DumpHex()} != {block.Header.MerkleTreeRootOfWorldState.DumpHex()}");
+                _logger?.Trace($"{root.ToHex()} != {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
                 _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
                 _logger?.Trace("Transaction Results:");
                 foreach (var r in results)
                 {
-                    _logger?.Trace($"TransactionId: {r.TransactionId.DumpHex()}, " +
-                                   $"StateHash: {r.StateHash.DumpHex()}，" +
+                    _logger?.Trace($"TransactionId: {r.TransactionId.ToHex()}, " +
+                                   $"StateHash: {r.StateHash.ToHex()}，" +
                                    $"Status: {r.Status}, " +
                                    $"{r.RetVal}");
                 }

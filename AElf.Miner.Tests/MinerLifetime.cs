@@ -240,7 +240,7 @@ namespace AElf.Kernel.Tests.Miner
             var curHash = await blockchain.GetCurrentBlockHashAsync();
             var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
             Assert.Equal(GlobalConfig.GenesisBlockHeight, index);
-            Assert.Equal(chain.GenesisBlockHash.DumpHex(), curHash.DumpHex());
+            Assert.Equal(chain.GenesisBlockHash.ToHex(), curHash.ToHex());
         }
 
         #region GRPC

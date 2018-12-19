@@ -2,10 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Text;
-using AElf.Common.Extensions;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -21,7 +18,7 @@ namespace AElf.Common
         /// <returns></returns>
         public string ToDiagnosticString()
         {
-            return $@"""{DumpHex()}""";
+            return $@"""{ToHex()}""";
         }
 
         // Make private to avoid confusion
@@ -34,6 +31,13 @@ namespace AElf.Common
             }
 
             Value = ByteString.CopyFrom(bytes.ToArray());
+        }
+
+        public Hash OfType(HashType hashType)
+        {
+            var hash = Clone();
+            hash.HashType = hashType;
+            return hash;
         }
 
         #region Hashes from various types
@@ -94,7 +98,7 @@ namespace AElf.Common
                 return FromRawBytes(mm.ToArray());
             }
         }
-        
+
 
         public static Hash Generate()
         {
@@ -105,22 +109,15 @@ namespace AElf.Common
 
         #region Predefined
 
-        public static readonly Hash Zero = Hash.FromString("AElf");
+        public static readonly Hash Zero = FromString("AElf");
 
-        public static readonly Hash Ones = Hash.LoadByteArray(Enumerable.Range(0, 32).Select(x=>byte.MaxValue).ToArray());
+        public static readonly Hash Ones = LoadByteArray(Enumerable.Range(0, 32).Select(x => byte.MaxValue).ToArray());
 
-        public static readonly Hash Default = Hash.FromRawBytes(new byte[0]);
+        public static readonly Hash Default = FromRawBytes(new byte[0]);
 
-        public static readonly Hash Genesis = Hash.LoadByteArray(Enumerable.Range(0, 32).Select(x=>byte.MinValue).ToArray());
+        public static readonly Hash Genesis = LoadByteArray(Enumerable.Range(0, 32).Select(x => byte.MinValue).ToArray());
 
         #endregion
-
-        public Hash OfType(HashType hashType)
-        {
-            var hash = Clone();
-            hash.HashType = hashType;
-            return hash;
-        }
 
         #region Comparing
 
@@ -167,7 +164,6 @@ namespace AElf.Common
             }
 
             return ByteStringHelpers.Compare(x.Value, y.Value);
-
         }
 
         public int CompareTo(Hash that)
@@ -216,7 +212,7 @@ namespace AElf.Common
         /// Dumps the content value to hex string.
         /// </summary>
         /// <returns></returns>
-        public string DumpHex()
+        public string ToHex()
         {
             return Value.ToByteArray().ToHex();
         }

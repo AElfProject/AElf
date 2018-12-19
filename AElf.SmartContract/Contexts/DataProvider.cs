@@ -171,12 +171,12 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-            return await GetAsync(keyHash.DumpHex());
+            return await GetAsync(keyHash.ToHex());
         }
 
         public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
         {
-            await SetAsync(keyHash.DumpHex(), obj);
+            await SetAsync(keyHash.ToHex(), obj);
         }
 
         public IDataProvider GetDataProvider(string dataProviderKey)

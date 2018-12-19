@@ -7,7 +7,6 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Management.Helper;
 using AElf.Management.Models;
-using Base58Check;
 using k8s;
 using k8s.Models;
 

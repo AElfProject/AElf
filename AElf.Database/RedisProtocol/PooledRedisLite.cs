@@ -29,76 +29,136 @@ namespace AElf.Database.RedisProtocol
             _redisLites = new RedisLite[PoolSize];
         }
 
+        public bool Ping()
+        {
+            var client = GetSimpleRedisLite();
+            try
+            {
+                return client.Ping();
+            }
+            catch (Exception ex)
+            {
+                throw new RedisException("Got exception while ping.", ex);
+            }
+            finally
+            {
+                client.Active = false;
+            }
+        }
+
         public void Set(string key, string value)
         {
             var client = GetSimpleRedisLite();
-            client.Set(key, Encoding.UTF8.GetBytes(value));
-            client.Active = false;
+            try
+            {
+                client.Set(key, Encoding.UTF8.GetBytes(value));
+            }
+            catch (Exception ex)
+            {
+                throw new RedisException("Got exception while set value.", ex);
+            }
+            finally
+            {
+                client.Active = false;
+            }
         }
 
         public bool Set(string key, byte[] value)
         {
             var client = GetSimpleRedisLite();
-            client.Set(key, value);
-            client.Active = false;
-            return true;
+            try
+            {
+                client.Set(key, value);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new RedisException("Got exception while set value.", ex);
+            }
+            finally
+            {
+                client.Active = false;
+            }
         }
 
         public void SetAll(IDictionary<string, byte[]> dict)
         {
             var client = GetSimpleRedisLite();
-            client.MSet(dict.Keys.ToArray().ToMultiByteArray(), dict.Values.ToArray());
-            client.Active = false;
-        }
-
-        public bool Ping()
-        {
-            return GetSimpleRedisLite().Ping();
+            try
+            {
+                client.MSet(dict.Keys.ToArray().ToMultiByteArray(), dict.Values.ToArray());
+            }
+            catch (Exception ex)
+            {
+                throw new RedisException("Got exception while set all.", ex);
+            }
+            finally
+            {
+                client.Active = false;
+            }
         }
 
         public bool Remove(string key)
         {
             var client = GetSimpleRedisLite();
-            var succeed = client.Del(key);
-            client.Active = false;
-            return true;
+            try
+            {
+                var success = client.Del(key);
+                return success == RedisLite.Success;
+            }
+            catch (Exception ex)
+            {
+                throw new RedisException("Got exception while remove.", ex);
+            }
+            finally
+            {
+                client.Active = false;
+            }
         }
 
         public byte[] Get(string key)
         {
             var client = GetSimpleRedisLite();
-            var value = client.Get(key);
-            client.Active = false;
-            return value;
-        }
-
-        public string GetString(string key)
-        {
-            var client = GetSimpleRedisLite();
-            var value = Encoding.UTF8.GetString(Get(key));
-            client.Active = false;
-            return value;
+            try
+            {
+                return client.Get(key);
+            }
+            catch (Exception ex)
+            {
+                throw new RedisException("Got exception while get value.", ex);
+            }
+            finally
+            {
+                client.Active = false;
+            }
         }
 
         private RedisLite GetSimpleRedisLite()
         {
-            lock (_redisLites)
+            try
             {
-                RedisLite inActiveClient;
-                while ((inActiveClient = GetInActiveSimpleRedisLite()) == null)
+                lock (_redisLites)
                 {
-                    if (PoolTimeout.HasValue)
+                    RedisLite inActiveClient;
+                    while ((inActiveClient = GetInActiveSimpleRedisLite()) == null)
                     {
-                        // wait for a connection, cry out if made to wait too long
-                        if (!Monitor.Wait(_redisLites, PoolTimeout.Value))
-                            throw new TimeoutException("Pool timeout error.");
+                        if (PoolTimeout.HasValue)
+                        {
+                            // wait for a connection, cry out if made to wait too long
+                            if (!Monitor.Wait(_redisLites, PoolTimeout.Value))
+                                throw new TimeoutException("Pool timeout error.");
+                        }
+                        else
+                            Monitor.Wait(_redisLites, RecheckPoolAfterMs);
                     }
-                    else
-                        Monitor.Wait(_redisLites, RecheckPoolAfterMs);
-                }
 
-                inActiveClient.Active = true;
-                return inActiveClient;
+                    inActiveClient.Active = true;
+                    return inActiveClient;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new RedisException("Got exception while get redis client.", ex);
             }
         }
 

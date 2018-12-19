@@ -71,7 +71,7 @@ namespace AElf.Kernel
 
         public string BlockHashToHex
         {
-            get => Header?.GetHash().DumpHex() ?? Hash.Default.DumpHex();
+            get => Header?.GetHash().ToHex() ?? Hash.Default.ToHex();
             set { }
         }
 

@@ -59,7 +59,7 @@ namespace AElf.ABI.CSharp
                     typeof(byte[]),
                     obj => ((byte[]) obj).ToHex()
                 },
-                {typeof(Hash), obj=> ((Hash)obj).DumpHex()},
+                {typeof(Hash), obj=> ((Hash)obj).ToHex()},
                 {typeof(Address), obj=> ((Address)obj).GetFormatted()},
                 {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()},
                 {typeof(ParentChainBlockInfo), obj => ((ParentChainBlockInfo) obj).ToByteArray().ToHex()},
@@ -131,7 +131,7 @@ namespace AElf.ABI.CSharp
 
             if (typeName == Globals.HASH_TYPE_FULL_NAME)
             {
-                return obj => ((Hash) obj).DumpHex();
+                return obj => ((Hash) obj).ToHex();
             }
 
             throw new Exception($"Not Found parser for type {typeName}");

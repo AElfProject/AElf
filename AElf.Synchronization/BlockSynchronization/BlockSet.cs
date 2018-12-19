@@ -160,7 +160,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _rwLock.AcquireReaderLock(Timeout);
             try
             {
-                res = _blockCache.Any(b => b.Index == height && b.BlockHashToHex == blockHash.DumpHex());
+                res = _blockCache.Any(b => b.Index == height && b.BlockHashToHex == blockHash.ToHex());
             }
             finally
             {
@@ -176,7 +176,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _rwLock.AcquireReaderLock(Timeout);
             try
             {
-                block = _blockCache.FirstOrDefault(b => b.BlockHashToHex == blockHash.DumpHex());
+                block = _blockCache.FirstOrDefault(b => b.BlockHashToHex == blockHash.ToHex());
             }
             finally
             {
@@ -283,11 +283,11 @@ namespace AElf.Synchronization.BlockSynchronization
                             // If a linkable block can be found in the invalid block list,
                             // update blockToCheck and indexToCheck.
                             if (_blockCache.Any(b => b.Index == blockToCheck.Index - 1 &&
-                                                     b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex()))
+                                                     b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.ToHex()))
                             {
                                 blockToCheck = _blockCache.FirstOrDefault(b =>
                                     b.Index == blockToCheck.Index - 1 &&
-                                    b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.DumpHex());
+                                    b.BlockHashToHex == blockToCheck.Header.PreviousBlockHash.ToHex());
                                 if (blockToCheck?.Header == null)
                                 {
                                     break;
@@ -373,7 +373,7 @@ namespace AElf.Synchronization.BlockSynchronization
             var str = "\nInvalid Block List:\n";
             foreach (var block in _blockCache.OrderBy(b => b.Index))
             {
-                str += $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.DumpHex()}\n";
+                str += $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.ToHex()}\n";
             }
 
             _logger?.Trace(str);

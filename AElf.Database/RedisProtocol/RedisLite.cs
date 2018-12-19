@@ -32,8 +32,6 @@ namespace AElf.Database.RedisProtocol
         protected Socket socket;
         protected BufferedStream Bstream;
 
-        private Dictionary<string, string> info;
-
         /// <summary>
         /// Used to manage connection pooling
         /// </summary>

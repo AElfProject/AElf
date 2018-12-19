@@ -1,5 +1,3 @@
-using Base58Check;
-using Google.Protobuf;
 
 namespace AElf.Common
 {

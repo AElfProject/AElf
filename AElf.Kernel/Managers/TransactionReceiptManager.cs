@@ -22,7 +22,7 @@ namespace AElf.Kernel.Managers
 
         private static string GetKey(Hash txId)
         {
-            return $"{GlobalConfig.TransactionReceiptPrefix}{txId.DumpHex()}";
+            return $"{GlobalConfig.TransactionReceiptPrefix}{txId.ToHex()}";
         }
 
         public async Task AddOrUpdateReceiptAsync(TransactionReceipt receipt)
