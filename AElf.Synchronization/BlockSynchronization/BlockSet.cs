@@ -29,9 +29,11 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger = LogManager.GetLogger(nameof(BlockSet));
         }
         
-        public void Init(Block currentDbBlock)
+        public BlockState Init(Block currentDbBlock)
         {
             CurrentHead = new BlockState(currentDbBlock, null, true);
+            _blocks.Add(CurrentHead);
+            return CurrentHead;
         }
 
         public void PushBlock(IBlock block)

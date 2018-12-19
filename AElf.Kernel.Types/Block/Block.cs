@@ -6,7 +6,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public partial class Block : IBlock
+    public partial class Block : ICustomDiagnosticMessage, IBlock
     {
         /// <summary>
         /// Used to override IMessage's default string representation.

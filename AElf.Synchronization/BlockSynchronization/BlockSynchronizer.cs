@@ -168,7 +168,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             var height = BlockChain.GetCurrentBlockHeightAsync().Result;
             var currentBlock = BlockChain.GetBlockByHeightAsync(height).Result as Block;
-            _blockSet.Init(currentBlock);
+            _currentBlock = _blockSet.Init(currentBlock);
         }
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger?.Trace($"Header validated ({validationResult.ToString()}) {block}");
             
             // Concerning the block set these two validation results are not a problem.
-            if (validationResult == BlockHeaderValidationResult.Success && validationResult == BlockHeaderValidationResult.Branched)
+            if (validationResult == BlockHeaderValidationResult.Success || validationResult == BlockHeaderValidationResult.Branched)
             {
                 // Add to a one of the branches if not already in the blocks
                 // can already be here if we come from "HandleNextValidBlock"
@@ -244,6 +244,11 @@ namespace AElf.Synchronization.BlockSynchronization
                     try
                     {
                         _blockSet.PushBlock(block);
+                        
+                        // if the current chain has just been extended update
+                        if (_currentBlock == _blockSet.CurrentHead.PreviousState)
+                            _currentBlock = _blockSet.CurrentHead;
+                        
                         _logger?.Trace($"Pushed {block}, current state {CurrentState}");
                     }
                     catch (UnlinkableBlockException e)
@@ -258,8 +263,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
             // This guard is to handle the cases where the node is Executing, Appending, Validating...
             if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
+            {
+                _logger?.Trace($"In other state: {CurrentState}");
                 return;
-            
+            }
+
             // At this point we're ready to execute another block
             
             // Here if we detect that we're out of sync witht the current blockset head -> switch forks
@@ -268,12 +276,15 @@ namespace AElf.Synchronization.BlockSynchronization
                 // The SwitchFork method should handle the FSMs state, rollback current branch and execute the other branch.
                 // and the updates the current branch in the blockset
                 // it switches the FSM back to Catching/Caught so the state should be ok.
+                _logger?.Trace("About to switch fork");
                 await SwitchFork();
             }
             else
             {
                 if (validationResult == BlockHeaderValidationResult.Success)
                 {
+                    _logger?.Trace($"Handling {block}");
+                    
                     // Catching/Caught -> BlockValidating
                     MessageHub.Instance.Publish(StateEvent.ValidBlockHeader);
                     await HandleBlock(block);
@@ -370,9 +381,13 @@ namespace AElf.Synchronization.BlockSynchronization
 
             // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
+            
+            //_logger.Trace(111111111111);
 
             // BlockAppending -> Catching / Caught
             MessageHub.Instance.Publish(StateEvent.BlockAppended);
+            
+            //_logger.Trace(222222221111);
             
             MessageHub.Instance.Publish(new BlockExecuted(block));
 
