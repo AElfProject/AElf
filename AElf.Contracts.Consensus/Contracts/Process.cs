@@ -41,6 +41,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
             firstTerm.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
 
+            firstTerm.FirstRound.BlockchainAge = 1;
+            firstTerm.SecondRound.BlockchainAge = 1;
             _collection.RoundsMap.SetValue(((ulong) 1).ToUInt64Value(), firstTerm.FirstRound);
             _collection.RoundsMap.SetValue(((ulong) 2).ToUInt64Value(), firstTerm.SecondRound);
 
@@ -88,6 +90,9 @@ namespace AElf.Contracts.Consensus.Contracts
             lookUp.Map.Add(term.TermNumber, term.FirstRound.RoundNumber);
             _collection.TermNumberLookupField.SetValue(lookUp);
 
+            term.FirstRound.BlockchainAge = CurrentAge;
+            term.SecondRound.BlockchainAge = CurrentAge;
+
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
         }
@@ -110,6 +115,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
             var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
 
+            // TODO: I forget why its possible.
             if (forwarding.NextRoundInfo.RoundNumber == 0)
             {
                 if (_collection.RoundsMap.TryGet((currentRoundInfo.RoundNumber + 1).ToUInt64Value(),
@@ -123,6 +129,7 @@ namespace AElf.Contracts.Consensus.Contracts
                             minerInRound.Value.ProducedBlocks;
                     }
 
+                    nextRoundInfo.BlockchainAge = CurrentAge;
                     nextRoundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
                     _collection.RoundsMap.SetValue(nextRoundInfo.RoundNumber.ToUInt64Value(), nextRoundInfo);
                     _collection.CurrentRoundNumberField.SetValue(nextRoundInfo.RoundNumber);
@@ -139,6 +146,7 @@ namespace AElf.Contracts.Consensus.Contracts
                         minerInRound.Value.ProducedBlocks;
                 }
 
+                forwarding.NextRoundInfo.BlockchainAge = CurrentAge;
                 forwarding.NextRoundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
                 _collection.RoundsMap.SetValue(forwarding.NextRoundInfo.RoundNumber.ToUInt64Value(),
                     forwarding.NextRoundInfo);

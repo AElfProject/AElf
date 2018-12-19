@@ -84,6 +84,11 @@ namespace AElf.Contracts.Consensus.Contracts
         /// candidate public key hex value -> history information
         /// </summary>
         public Map<StringValue, CandidateInHistory> HistoryMap;
+        
+        /// <summary>
+        /// blockchain age -> first round number.
+        /// </summary>
+        public Map<UInt64Value, UInt64Value> AgeToRoundNumberMap;
 
         /// <summary>
         /// Keep tracking of the count of votes.

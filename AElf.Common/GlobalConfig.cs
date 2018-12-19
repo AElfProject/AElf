@@ -48,8 +48,6 @@ namespace AElf.Common
         public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 4000;
         public const int AliasLimit = 20;
-        public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
-        public const int ProducerRepetitions = 8;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
         public const string AElfDPoSMinersString = "__AElfBlockProducer__";
@@ -61,12 +59,12 @@ namespace AElf.Common
         public const string AElfDPoSCandidatesString = "__AElfDPoSCandidatesString__";
         public const string AElfDPoSTermNumberLookupString = "__AElfDPoSTermNumberLookUpString__";
         public const string AElfDPoSSnapshotMapString = "__AElfDPoSSnapshotFieldString__";
-        public const string AElfDPoSDividendsMapString = "__AElfDPoSDividendsMapString__";
         public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
         public const string AElfDPoSAliasesLookupMapString = "__AElfDPoSAliasesLookupMapString__";
         public const string AElfVotesCountString = "__AElfVotesCountString__";
         public const string AElfTicketsCountString = "__AElfTicketsCountString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
+        public const string AElfDPoSAgeToRoundNumberMapString = "__AElfDPoSAgeToRoundNumberMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
         public const string AElfDPoSBlockchainStartTimestamp = "__AElfDPoSBlockchainStartTimestamp__";
 
@@ -96,7 +94,6 @@ namespace AElf.Common
         public const double DividendsForBackupNodesRatio = 0.2;
         public const double DividendsForVotersRatio = 0.2;
         public const string DividendsMapString = "__DividendsMapString__";
-        public const string WeightsMapString = "__WeightsMapString__";
         public const string TotalWeightsMapString = "__TotalWeightsMapString__";
         public const string TransferMapString = "__TransferMapString__";
 
