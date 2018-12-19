@@ -95,17 +95,26 @@ namespace AElf.Contracts.Resource
         /// Query the resource balance of a particular user.
         /// </summary>
         /// <param name="address">The address of the user to query balance for.</param>
-        /// <param name="resourceType">The resource type for query for.</param>
+        /// <param name="resourceType">The type of the locked resource to query for.</param>
         /// <returns></returns>
         [View]
         public ulong GetUserBalance(Address address, string resourceType)
         {
-            var urk = new UserResourceKey()
-            {
-                Address = address,
-                Type = ParseResourceType(resourceType)
-            };
+            var urk = new UserResourceKey(address, ParseResourceType(resourceType));
             return UserBalances[urk];
+        }
+
+        /// <summary>
+        /// Query the locked balance of a user.
+        /// </summary>
+        /// <param name="address">The address of the user.</param>
+        /// <param name="resourceType">The type of the locked resource to query for.</param>
+        /// <returns></returns>
+        [View]
+        public ulong GetUserLockedBalance(Address address, string resourceType)
+        {
+            var urk = new UserResourceKey(address, ParseResourceType(resourceType));
+            return LockedUserResources[urk];
         }
 
         /// <summary>
@@ -199,11 +208,7 @@ namespace AElf.Contracts.Resource
             var fees = (ulong) (paidElf * FeeRate);
             var elfForRes = paidElf - fees;
             var payout = this.BuyResourceFromExchange(resourceType, elfForRes);
-            var urk = new UserResourceKey()
-            {
-                Address = Api.GetFromAddress(),
-                Type = ParseResourceType(resourceType)
-            };
+            var urk = new UserResourceKey(Api.GetFromAddress(), ParseResourceType(resourceType));
             UserBalances[urk] = UserBalances[urk].Add(payout);
             ElfToken.TransferByUser(Api.GetContractAddress(), elfForRes);
             ElfToken.TransferByUser(FeeAddress.GetValue(), fees);
@@ -222,11 +227,7 @@ namespace AElf.Contracts.Resource
             AssertCorrectResourceType(resourceType);
             var elfToReceive = this.SellResourceToExchange(resourceType, resToSell);
             var fees = (ulong) (elfToReceive * FeeRate);
-            var urk = new UserResourceKey()
-            {
-                Address = Api.GetFromAddress(),
-                Type = ParseResourceType(resourceType)
-            };
+            var urk = new UserResourceKey(Api.GetFromAddress(), ParseResourceType(resourceType));
             UserBalances[urk] = UserBalances[urk].Sub(resToSell);
             ElfToken.TransferByContract(Api.GetFromAddress(), elfToReceive - fees);
             ElfToken.TransferByContract(FeeAddress.GetValue(), fees);
