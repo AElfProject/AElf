@@ -267,3 +267,7 @@ message BinaryMerkleTree{
     Hash Root = 2;
     int32 LeafCount = 3;
 }
+
+message StringList {
+    repeated string Values = 1;
+}

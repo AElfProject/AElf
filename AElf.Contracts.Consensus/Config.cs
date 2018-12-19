@@ -15,30 +15,35 @@ namespace AElf.Contracts.Consensus
 
         public static ulong GetDividendsForEveryMiner(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForEveryMiner /
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForEveryMinerRatio /
                             GlobalConfig.BlockProducerNumber);
         }
 
         public static ulong GetDividendsForTicketsCount(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForTicketsCount /
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForTicketsCountRatio /
                             GlobalConfig.BlockProducerNumber);
         }
         
         public static ulong GetDividendsForReappointment(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForReappointment /
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForReappointmentRatio /
                             GlobalConfig.BlockProducerNumber);
         }
         
         public static ulong GetDividendsForBackupNodes(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForBackupNodes);
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForBackupNodesRatio);
         }
 
         public static ulong GetDividendsForVoters(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForVoters);
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForVotersRatio);
+        }
+        
+        public static ulong GetDividendsForAll(ulong minedBlocks)
+        {
+            return minedBlocks * GlobalConfig.ElfTokenPerBlock;
         }
     }
 }
