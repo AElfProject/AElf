@@ -92,7 +92,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
 
             // Get victories of first term of election, they are miners then.
-            var victories = _consensusContract.GetCurrentVictories().Split(';');
+            var victories = _consensusContract.GetCurrentVictories().Values;
             
             // Next term.
             var nextTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 2);

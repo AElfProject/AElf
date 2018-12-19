@@ -32,7 +32,7 @@ namespace AElf.Kernel
                 lockExpiredAge += (ulong) day;
             }
 
-            return lockExpiredAge >= currentAge;
+            return lockExpiredAge <= currentAge;
         }
     }
 }
