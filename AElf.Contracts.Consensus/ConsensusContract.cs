@@ -24,12 +24,15 @@ namespace AElf.Contracts.Consensus
             AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
             CurrentTermNumberField= new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
             BlockchainStartTimestamp= new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
+            VotesCountField = new UInt64Field(GlobalConfig.AElfVotesCountString),
+            TicketsCountField = new UInt64Field(GlobalConfig.AElfTicketsCountString),
 
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
             MinersMap = new Map<UInt64Value, Miners>(GlobalConfig.AElfDPoSMinersMapString),
             TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
             SnapshotField = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotMapString),
             AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString),
+            AliasesLookupMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesLookupMapString),
             HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString),
         };
 
@@ -97,9 +100,9 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
-        public List<string> GetCandidatesList()
+        public StringList GetCandidatesList()
         {
-            return Collection.CandidatesField.GetValue().PublicKeys.ToList();
+            return Collection.CandidatesField.GetValue().PublicKeys.ToList().ToStringList();
         }
 
         [View]
@@ -111,12 +114,12 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public List<string> GetCurrentMiners()
+        public StringList GetCurrentMiners()
         {
             var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
             Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
                 GlobalConfig.TermNumberNotFound);
-            return currentMiners.PublicKeys.ToList();
+            return currentMiners.PublicKeys.ToList().ToStringList();
         }
 
         [View]
@@ -127,7 +130,7 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public Dictionary<string, Tickets> GetCurrentElectionInfo()
+        public TicketsDictionary GetCurrentElectionInfo()
         {
             var dict = new Dictionary<string, Tickets>();
             foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
@@ -138,7 +141,7 @@ namespace AElf.Contracts.Consensus
                 }
             }
 
-            return dict;
+            return dict.ToTicketsDictionary();
         }
         
         [View]
@@ -148,7 +151,7 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public string GetCurrentVictories()
+        public StringList GetCurrentVictories()
         {
             return Process.GetCurrentVictories();
         }
@@ -168,19 +171,63 @@ namespace AElf.Contracts.Consensus
             return map?.OrderBy(p => p.Key).First(p => roundNumber >= p.Value).Key ?? (ulong) 0;
         }
         
-        public void AnnounceElection()
+        [View]
+        public ulong GetVotesCount()
         {
-            Election.AnnounceElection();
+            return Collection.VotesCountField.GetValue();
         }
 
-        public void QuitElection()
+        [View]
+        public ulong GetTicketsCount()
+        {
+            return Collection.TicketsCountField.GetValue();
+        }
+
+        [View]
+        public ulong QueryCurrentDividendsForVoters()
+        {
+            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var roundInfo)
+                ? Config.GetDividendsForVoters(roundInfo.GetMinedBlocks())
+                : 0;
+        }
+
+        [View]
+        public ulong QueryCurrentDividends()
+        {
+            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var roundInfo)
+                ? Config.GetDividendsForAll(roundInfo.GetMinedBlocks())
+                : 0;
+        }
+
+        [View]
+        public StringList QueryAliasesInUse()
+        {
+            var candidates = Collection.CandidatesField.GetValue();
+            var result = new StringList();
+            foreach (var publicKey in candidates.PublicKeys)
+            {
+                if (Collection.AliasesMap.TryGet(publicKey.ToStringValue(), out var alias))
+                {
+                    result.Values.Add(alias.Value);
+                }
+            }
+
+            return result;
+        }
+        
+        public void AnnounceElection(string alias)
+        {
+            Election.AnnounceElection(alias);
+        }
+
+        public void QuitElection(string empty)
         {
             Election.QuitElection();
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockTime, Timestamp timestamp)
+        public void Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
-            Election.Vote(candidatePublicKey, amount, lockTime, timestamp);
+            Election.Vote(candidatePublicKey, amount, lockTime);
         }
 
         public void GetDividendsByDetail(string candidatePublicKey, ulong amount, int lockDays)

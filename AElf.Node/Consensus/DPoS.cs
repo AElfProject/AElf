@@ -108,13 +108,13 @@ namespace AElf.Kernel.Node
                 if (option == UpdateConsensus.Update)
                 {
                     _logger?.Trace("UpdateConsensus - Update");
-                    await UpdateConsensusEventList();
+                    await UpdateConsensusInformation();
                 }
 
                 if (option == UpdateConsensus.Dispose)
                 {
                     _logger?.Trace("UpdateConsensus - Dispose");
-                    DisposeConsensusList();
+                    DisposeConsensusEventList();
                 }
             });
 
@@ -184,7 +184,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public void DisposeConsensusList()
+        public void DisposeConsensusEventList()
         {
             ConsensusDisposable?.Dispose();
             ConsensusDisposable = null;
@@ -656,7 +656,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public async Task UpdateConsensusEventList()
+        public async Task UpdateConsensusInformation()
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
@@ -678,6 +678,11 @@ namespace AElf.Kernel.Node
                 {
                     await _minersManager.SetMiners(_helper.GetCurrentMiners());
                 }
+            }
+            
+            if (!NodeConfig.Instance.IsMiner)
+            {
+                return;
             }
             
             // Dispose previous observer.
