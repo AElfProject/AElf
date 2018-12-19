@@ -13,8 +13,8 @@ namespace AElf.CLI2.Commands
         [Value(1, HelpText = "The particular method of the contract.", Required = true)]
         public string Method { get; set; } = "";
 
-        [Value(2, HelpText = "The parameters for the method in json array format.", Required = true)]
-        public string Params { get; set; } = "";
+        [Value(2, HelpText = "The parameters for the method in json array format.", Default = "[]")]
+        public string Params { get; set; } = "[]";
     }
 
     public class SendTransactionCommand : Command
