@@ -40,7 +40,10 @@ namespace AElf.Contracts.Resource
 
         internal Map<StringValue, Converter> Converters = new Map<StringValue, Converter>("Converters");
         internal MapToUInt64<UserResourceKey> UserBalances = new MapToUInt64<UserResourceKey>("UserBalances");
-        internal MapToUInt64<UserResourceKey> LockedUserResources = new MapToUInt64<UserResourceKey>("LockedUserResources");
+
+        internal MapToUInt64<UserResourceKey> LockedUserResources =
+            new MapToUInt64<UserResourceKey>("LockedUserResources");
+
         internal BoolField Initialized = new BoolField("Initialized");
         internal PbField<Address> ElfTokenAddress = new PbField<Address>("ElfTokenAddress");
         internal PbField<Address> FeeAddress = new PbField<Address>("FeeAddress");
@@ -75,13 +78,25 @@ namespace AElf.Contracts.Resource
             return ResourceControllerAddress.GetValue().GetFormatted();
         }
 
+        /// <summary>
+        /// Query the converter details, i.e. the resource balance, the elf balance, the weights,
+        /// which are the parameters that determines the current price of the resource using Bancor Formula.
+        /// </summary>
+        /// <param name="resourceType">The type of the resource.</param>
+        /// <returns>The json representation of the converter.</returns>
         [View]
         public string GetConverter(string resourceType)
         {
             AssertCorrectResourceType(resourceType);
-            return Converters[new StringValue(){Value = resourceType}].ToString();
+            return Converters[new StringValue() {Value = resourceType}].ToString();
         }
 
+        /// <summary>
+        /// Query the resource balance of a particular user.
+        /// </summary>
+        /// <param name="address">The address of the user to query balance for.</param>
+        /// <param name="resourceType">The resource type for query for.</param>
+        /// <returns></returns>
         [View]
         public ulong GetUserBalance(Address address, string resourceType)
         {
@@ -93,6 +108,11 @@ namespace AElf.Contracts.Resource
             return UserBalances[urk];
         }
 
+        /// <summary>
+        /// Query the balance of a resource held by the exchange.
+        /// </summary>
+        /// <param name="resourceType">The type of the resource.</param>
+        /// <returns>The balance held by the exchange.</returns>
         [View]
         public ulong GetExchangeBalance(string resourceType)
         {
@@ -101,6 +121,11 @@ namespace AElf.Contracts.Resource
             return Converters[rt].ResBalance;
         }
 
+        /// <summary>
+        /// Query the native ELF token balance registered in the converter for a particular resource type..
+        /// </summary>
+        /// <param name="resourceType">The type of the resource</param>
+        /// <returns>The balance of ELF held in the converter.</returns>
         [View]
         public ulong GetElfBalance(string resourceType)
         {
@@ -113,6 +138,13 @@ namespace AElf.Contracts.Resource
 
         #region Actions
 
+        /// <summary>
+        /// Initialize the contract information.
+        /// </summary>
+        /// <param name="elfTokenAddress">The address of the native ELF token used to trade resource.</param>
+        /// <param name="feeAddress">The address that receives the exchange fee.</param>
+        /// <param name="resourceControllerAddress">The address of the resource controller who is in charge of issuing
+        /// new resources.</param>
         public void Initialize(Address elfTokenAddress, Address feeAddress, Address resourceControllerAddress)
         {
             var initialized = Initialized.GetValue();
@@ -136,6 +168,11 @@ namespace AElf.Contracts.Resource
             Initialized.SetValue(true);
         }
 
+        /// <summary>
+        /// Issue new resource by resource controller.
+        /// </summary>
+        /// <param name="resourceType">The type of resource to issue.</param>
+        /// <param name="delta">The new amount to issue.</param>
         public void IssueResource(string resourceType, ulong delta)
         {
             checked
@@ -150,6 +187,12 @@ namespace AElf.Contracts.Resource
             }
         }
 
+        /// <summary>
+        /// Buy resource from the Bancor Converter.
+        /// </summary>
+        /// <param name="resourceType">The type of the resource to buy.</param>
+        /// <param name="paidElf">The amount of ELF token to pay for the resource. The returned resource amount
+        /// will be determined by the Bancor Formula and the converter parameters at the time of execution.</param>
         public void BuyResource(string resourceType, ulong paidElf)
         {
             AssertCorrectResourceType(resourceType);
@@ -166,6 +209,12 @@ namespace AElf.Contracts.Resource
             ElfToken.TransferByUser(FeeAddress.GetValue(), fees);
         }
 
+        /// <summary>
+        /// Sell resource to the Bancor Converter.
+        /// </summary>
+        /// <param name="resourceType">The type of the resource to sell.</param>
+        /// <param name="resToSell">The amount of the resource to sell. The returned ELF token amount
+        /// will be determined by the Bancor Formula and the converter parameters at the time of execution.</param>
         public void SellResource(string resourceType, ulong resToSell)
         {
             var bal = GetUserBalance(Api.GetFromAddress(), resourceType);
@@ -183,44 +232,58 @@ namespace AElf.Contracts.Resource
             ElfToken.TransferByContract(FeeAddress.GetValue(), fees);
         }
 
-        public void LockResource(Address to, ulong amount, string resourceType)
+        /// <summary>
+        /// Lock resource for chain creation.
+        /// </summary>
+        /// <param name="amount">The amount of resource to lock.</param>
+        /// <param name="resourceType">The type of the resource to lock.</param>
+        public void LockResource(ulong amount, string resourceType)
         {
-            AssertCorrectResourceType(resourceType);
-            var urkFrom = new UserResourceKey
-            {
-                Address = Api.GetFromAddress(),
-                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
-                    resourceType)
-            };
-            UserBalances[urkFrom] = UserBalances[urkFrom].Sub(amount);
-            var lurkTo = new UserResourceKey
-            {
-                Address = to,
-                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
-                    resourceType)
-            };
-            LockedUserResources[lurkTo] = UserBalances[lurkTo].Add(amount);
+            // Transfer from user to resource controller
+            var rt = ParseResourceType(resourceType);
+            Transfer(Api.GetFromAddress(), ResourceControllerAddress.GetValue(), amount, rt);
+
+            // Increase locked amount
+            var key = new UserResourceKey(Api.GetFromAddress(), rt);
+            LockedUserResources[key] = LockedUserResources[key].Add(amount);
         }
-        
-        public void WithdrawResource(Address to, ulong amount, string resourceType)
+
+        /// <summary>
+        /// Unlock resource for a user. This action is restricted to resource controller only.
+        /// </summary>
+        /// <param name="userAddress">The address of the user to unlock the resource for.</param>
+        /// <param name="amount">The amount of resource to unlock.</param>
+        /// <param name="resourceType">The type of the resource to unlock.</param>
+        public void UnlockResource(Address userAddress, ulong amount, string resourceType)
         {
-            AssertCorrectResourceType(resourceType);
-            var urkFrom = new UserResourceKey
-            {
-                Address = Api.GetFromAddress(),
-                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
-                    resourceType)
-            };
-            UserBalances[urkFrom] = UserBalances[urkFrom].Add(amount);
-            var lurkTo = new UserResourceKey
-            {
-                Address = to,
-                Type = (ResourceType) Enum.Parse(typeof(ResourceType),
-                    resourceType)
-            };
-            LockedUserResources[lurkTo] = UserBalances[lurkTo].Sub(amount);
+            var rca = ResourceControllerAddress.GetValue();
+            Api.Assert(Api.GetFromAddress() == rca, "Only the resource controller can perform this action.");
+
+            // Transfer from resource controller to user
+            var rt = ParseResourceType(resourceType);
+            Transfer(rca, userAddress, amount, rt);
+
+            // Reduce locked amount
+            var key = new UserResourceKey(Api.GetFromAddress(), rt);
+            LockedUserResources[key] = LockedUserResources[key].Sub(amount);
         }
-        
+
         #endregion Actions
+
+        #region Helpers
+
+        private void Transfer(Address from, Address to, ulong amount, ResourceType rt)
+        {
+            var fromKey = new UserResourceKey(from, rt);
+            var toKey = new UserResourceKey(to, rt);
+            var fromBal = UserBalances[fromKey];
+            var toBal = UserBalances[toKey];
+            fromBal = fromBal.Sub(amount);
+            toBal = toBal.Add(amount);
+            UserBalances[fromKey] = fromBal;
+            UserBalances[toKey] = toBal;
+        }
+
+        #endregion
     }
 }
