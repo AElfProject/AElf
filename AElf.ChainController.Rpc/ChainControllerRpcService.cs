@@ -26,7 +26,6 @@ using Newtonsoft.Json;
 using Google.Protobuf;
 using Newtonsoft.Json.Serialization;
 using NLog;
-using NServiceKit.Text;
 using ServiceStack.Templates;
 
 namespace AElf.ChainController.Rpc

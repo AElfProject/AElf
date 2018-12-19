@@ -26,7 +26,6 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using NServiceKit.Common.Extensions;
 
 namespace AElf.Miner.Miner
 {
@@ -389,7 +388,7 @@ namespace AElf.Miner.Miner
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-            txResults.AsParallel().ForEach(async r =>
+            txResults.AsParallel().ToList().ForEach(async r =>
             {
                 r.BlockNumber = bn;
                 r.BlockHash = bh;
