@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
@@ -76,6 +77,19 @@ namespace AElf.Kernel
             }
 
             return ticketsDictionary;
+        }
+
+        public static BlockAbstract GetAbstract(this IBlock block)
+        {
+            return new BlockAbstract
+            {
+                MinerPublicKey = block.Header.P.ToByteArray().ToHex()
+            };
+        }
+        
+        public static bool IsSuccess(this BlockValidationResult result)
+        {
+            return (int) result < 11;
         }
     }
 }

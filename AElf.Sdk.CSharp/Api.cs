@@ -117,28 +117,44 @@ namespace AElf.Sdk.CSharp
             return RecoverPublicKey(GetTransaction().Sigs.First().ToByteArray(), GetTxnHash().DumpByteArray());
         }
         
-        public static List<string> GetSystemReviewers()
+        public static List<string> GetCurrentMiners()
         {
-            Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
+            if (Call(ConsensusContractAddress, "GetCurrentMiners", ParamsPacker.Pack("")))
+            {
+                return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
+            }
+            
+            throw new InternalError("Failed to get current miners.\n" + _lastCallContext.Trace.StdErr);
         }
 
         public static ulong GetCurrentRoundNumber()
         {
-            Call(ConsensusContractAddress, "GetCurrentRoundNumber");
-            return GetCallResult().ToUInt64();
+            if (Call(ConsensusContractAddress, "GetCurrentRoundNumber", ParamsPacker.Pack("")))
+            {
+                return GetCallResult().ToUInt64();
+            }
+            
+            throw new InternalError("Failed to get current round number.\n" + _lastCallContext.Trace.StdErr);
         }
         
         public static ulong GetCurrentTermNumber()
         {
-            Call(ConsensusContractAddress, "GetCurrentTermNumber");
-            return GetCallResult().ToUInt64();
+            if (Call(ConsensusContractAddress, "GetCurrentTermNumber", ParamsPacker.Pack("")))
+            {
+                return GetCallResult().ToUInt64();
+            }
+            
+            throw new InternalError("Failed to get current term number.\n" + _lastCallContext.Trace.StdErr);
         }
 
         public static TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            Call(ConsensusContractAddress, "GetTermSnapshot", ParamsPacker.Pack(termNumber));
-            return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
+            if (Call(ConsensusContractAddress, "GetTermSnapshot", ParamsPacker.Pack(termNumber)))
+            {
+                return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
+            }
+            
+            throw new InternalError($"Failed to get term snapshot of term {termNumber}.\n" + _lastCallContext.Trace.StdErr);
         }
         
         public static Address GetContractOwner()

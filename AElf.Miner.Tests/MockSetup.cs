@@ -339,7 +339,7 @@ namespace AElf.Miner.Tests
         private Mock<IBlockValidationService> MockBlockValidationService()
         {
             var mock = new Mock<IBlockValidationService>();
-            mock.Setup(bvs => bvs.ValidateBlockAsync(It.IsAny<IBlock>(), It.IsAny<IChainContext>()))
+            mock.Setup(bvs => bvs.ValidateBlockAsync(It.IsAny<IBlock>()))
                 .Returns(() => Task.FromResult(BlockValidationResult.Success));
             return mock;
         }

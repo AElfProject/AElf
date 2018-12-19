@@ -210,7 +210,7 @@ namespace AElf.Contracts.Authorization
             if (!address.Equals(Genesis))
                 return _multiSig.GetValue(address);
             // case 2: get authorization of system account  
-            var reviewers = Api.GetSystemReviewers();
+            var reviewers = Api.GetCurrentMiners();
             var auth = new Kernel.Authorization
             {
                 MultiSigAccount = Genesis,

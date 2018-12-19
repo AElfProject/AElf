@@ -677,6 +677,8 @@ namespace AElf.Kernel.Node
                 if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
                 {
                     await _minersManager.SetMiners(_helper.GetCurrentMiners());
+                    
+                    
                 }
             }
             

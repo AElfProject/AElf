@@ -161,8 +161,7 @@ namespace AElf.Miner.Miner
                 _logger?.Info($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
-                var chainContext = await _chainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
+                var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block);
                 if (blockValidationResult != BlockValidationResult.Success)
                 {
                     _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");

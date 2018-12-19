@@ -93,7 +93,7 @@ namespace AElf.Synchronization.Tests
         public IBlockValidationService GetBlockValidationService()
         {
             var mock = new Mock<IBlockValidationService>();
-            mock.Setup(bvs => bvs.ValidateBlockAsync(It.IsAny<IBlock>(), It.IsAny<IChainContext>()))
+            mock.Setup(bvs => bvs.ValidateBlockAsync(It.IsAny<IBlock>()))
                 .Returns(() => Task.FromResult(BlockValidationResult.Success));
             return mock.Object;
         }

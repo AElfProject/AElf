@@ -39,6 +39,8 @@ namespace AElf.Contracts.Consensus
         private Process Process => new Process(Collection);
 
         private Election Election => new Election(Collection);
+        
+        private Validation Validation => new Validation(Collection);
 
         #region Process
         
@@ -83,7 +85,7 @@ namespace AElf.Contracts.Consensus
             Process.PublishInValue(toBroadcast);
         }
         
-        #endregion
+        #endregion Process
 
         #region Election
         
@@ -260,6 +262,15 @@ namespace AElf.Contracts.Consensus
             Election.Withdraw();
         }
         
-        #endregion
+        #endregion Election
+        
+        #region Validation
+
+        public BlockValidationResult ValidateBlock(BlockAbstract blockAbstract)
+        {
+            return Validation.ValidateBlock(blockAbstract);
+        }
+        
+        #endregion Validation
     }
 }
