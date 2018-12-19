@@ -375,7 +375,7 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Tickets>();
         }
 
-        public string GetCurrentVictories()
+        public StringList GetCurrentVictories()
         {
             var tx = new Transaction
             {
@@ -392,7 +392,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<StringList>();
         }
         
         public TermSnapshot GetTermSnapshot(ulong termNumber)
@@ -427,7 +427,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "AnnounceElection",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
             };
             var signer = new ECSigner();
             var signature = signer.Sign(candidateKeyPair, tx.GetHash().DumpByteArray());
@@ -449,7 +449,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "QuitElection",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
             };
             var signer = new ECSigner();
             var signature = signer.Sign(candidateKeyPair, tx.GetHash().DumpByteArray());

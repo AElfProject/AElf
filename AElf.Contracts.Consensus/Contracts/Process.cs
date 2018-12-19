@@ -100,7 +100,8 @@ namespace AElf.Contracts.Consensus.Contracts
                     forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.ToMiners());
             }
 
-            // First handle the age of this blockchain
+            // Update the age of this blockchain
+            // TODO: Need to be checked somehow
             _collection.AgeField.SetValue(forwarding.CurrentAge);
 
             var forwardingCurrentRoundInfo = forwarding.CurrentRoundInfo;
@@ -143,8 +144,6 @@ namespace AElf.Contracts.Consensus.Contracts
                     forwarding.NextRoundInfo);
                 _collection.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
             }
-
-            WindUp();
         }
 
         public void PublishOutValue(ToPackage toPackage)
@@ -243,12 +242,6 @@ namespace AElf.Contracts.Consensus.Contracts
             return roundInfo;
         }
 
-        private void WindUp()
-        {
-            // Check in and out value, complain if not match.
-
-        }
-
         #endregion
 
         private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
@@ -260,7 +253,7 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             return _collection.AliasesMap.TryGet(new StringValue {Value = publicKey}, out var alias)
                 ? alias.Value
-                : publicKey.Substring(5);
+                : publicKey.Substring(0, GlobalConfig.AliasLimit);
         }
 
         private Round GetCurrentRoundInfo()
@@ -301,9 +294,9 @@ namespace AElf.Contracts.Consensus.Contracts
                 .ToList();
         }
 
-        public string GetCurrentVictories()
+        public StringList GetCurrentVictories()
         {
-            return GetVictories().ToAString();
+            return GetVictories().ToStringList();
         }
 
         private void SnapshotAndDividends()
