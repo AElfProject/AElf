@@ -6,7 +6,6 @@ using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using AElf.Contracts.Consensus.Contracts;
-using Newtonsoft.Json.Linq;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus
@@ -112,7 +111,7 @@ namespace AElf.Contracts.Consensus
         [View]
         public string GetCandidatesListToFriendlyString(string empty)
         {
-            return Collection.CandidatesField.GetValue().PublicKeys.ToList().ToAString();
+            return GetCandidatesList(empty).ToString();
         }
 
         [View]
@@ -126,7 +125,7 @@ namespace AElf.Contracts.Consensus
         [View]
         public string GetCandidateHistoryInfoToFriendlyString(string publicKey)
         {
-            return GetCandidateHistoryInfo(publicKey).ToFriendlyString();
+            return GetCandidateHistoryInfo(publicKey).ToString();
         }
 
         [View]
@@ -141,11 +140,7 @@ namespace AElf.Contracts.Consensus
         [View]
         public string GetCurrentMinersToFriendlyString(string empty)
         {
-            var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
-            Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
-                GlobalConfig.TermNumberNotFound);
-            return currentMiners.PublicKeys.ToList().ToAString();
-
+            return GetCurrentMiners(empty).ToString();
         }
 
         [View]
@@ -158,7 +153,7 @@ namespace AElf.Contracts.Consensus
         [View]
         public string GetTicketsInfoToFriendlyString(string publicKey)
         {
-            return GetTicketsInfo(publicKey).ToFriendlyString();
+            return GetTicketsInfo(publicKey).ToString();
         }
 
         /// <summary>
@@ -197,26 +192,7 @@ namespace AElf.Contracts.Consensus
         [View]
         public string GetCurrentElectionInfoToFriendlyString(int startIndex = 0, int length = 0, int orderBy = 0)
         {
-            if (orderBy == 0)
-            {
-                var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
-                if (length == 0)
-                {
-                    length = publicKeys.Count;
-                }
-                var jObject = new JObject();
-                foreach (var publicKey in publicKeys.Skip(startIndex).Take(length - startIndex))
-                {
-                    if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
-                    {
-                        jObject.Add(publicKey, tickets.ToFriendlyString());
-                    }
-                }
-
-                return jObject.ToString();
-            }
-
-            return "";
+            return GetCurrentElectionInfo(startIndex, length, orderBy).ToString();
         }
         
         [View]
@@ -234,7 +210,7 @@ namespace AElf.Contracts.Consensus
         [View]
         public string GetCurrentVictoriesToFriendlyString(string empty)
         {
-            return Process.GetVictories().ToAString();
+            return GetCurrentVictories(empty).ToString();
         }
   
         [View]
@@ -305,17 +281,7 @@ namespace AElf.Contracts.Consensus
         [View]
         public string QueryAliasesInUseToFriendlyString(string empty)
         {
-            var candidates = Collection.CandidatesField.GetValue();
-            var result = new List<string>();
-            foreach (var publicKey in candidates.PublicKeys)
-            {
-                if (Collection.AliasesMap.TryGet(publicKey.ToStringValue(), out var alias))
-                {
-                    result.Add(alias.Value);
-                }
-            }
-
-            return result.ToAString();
+            return QueryAliasesInUse(empty).ToString();
         }
         
         public void AnnounceElection(string alias)

@@ -350,6 +350,26 @@ namespace AElf.Contracts.Consensus.Tests
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBool();
         }
+        
+        public string GetCandidatesListToFriendlyString()
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "GetCandidatesListToFriendlyString",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
+            };
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
 
         public Tickets GetTicketsInfo(ECKeyPair keyPair)
         {
@@ -407,7 +427,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetCurrentVictories",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
             };
 
             TransactionContext = new TransactionContext
@@ -531,7 +551,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetAllDividends",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
             };
             var signer = new ECSigner();
             var signature = signer.Sign(ownerKeyPair, tx.GetHash().DumpByteArray());
