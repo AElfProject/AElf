@@ -64,24 +64,31 @@ namespace AElf.Types.CSharp
         public static object ReadFromStream(this Type type, CodedInputStream input)
         {
             uint length = 1;
-            if (type.IsArray && type != typeof(byte[]))
-            {
-                length = input.ReadUInt32();
-            }
+            bool isArray = false;
             if (_readHandlers.TryGetValue(type, out var h))
             {
                 return h(input);
             }
-
-            if (type.IsPbMessageType() || length > 1 && type.GetElementType().IsPbMessageType())
+            
+            if (type.IsArray && type != typeof(byte[]))
             {
-                if (length == 1)
-                {
-                    var obj = (IMessage) Activator.CreateInstance(type);
-                    input.ReadMessage(obj);
-                    return obj;
-                }
+                length = input.ReadUInt32();
+                isArray = true;
+            }
 
+            // PbMessage type
+            if (type.IsPbMessageType())
+            {
+                var obj = (IMessage) Activator.CreateInstance(type);
+                input.ReadMessage(obj);
+                return obj;
+            }
+            
+            // PbMessage array
+            if( isArray && type.GetElementType().IsPbMessageType())
+            {
+                if (length == 0)
+                    return null;
                 object[] array = new Object[length];
                 //var array = Activator.CreateInstance(type.GetElementType(), length);
                 for (int i = 0; i < length; i++)
@@ -96,16 +103,21 @@ namespace AElf.Types.CSharp
                 return destinationArray;
             }
 
-            if (type.IsUserType() || length > 1 && type.GetElementType().IsUserType())
+            // User type
+            if (type.IsUserType())
             {
-                if (length == 1)
-                {
-                    var obj = (UserType)Activator.CreateInstance(type);
-                    var holder = new UserTypeHolder();
-                    input.ReadMessage(holder);
-                    obj.Unpack(holder);
-                    return obj;
-                }
+                var obj = (UserType)Activator.CreateInstance(type);
+                var holder = new UserTypeHolder();
+                input.ReadMessage(holder);
+                obj.Unpack(holder);
+                return obj;
+            }
+            
+            // User type
+            if(isArray && type.GetElementType().IsUserType())
+            {
+                if (length == 0)
+                    return null;
                 var array = new object[length];
                 for (int i = 0; i < length; i++)
                 {

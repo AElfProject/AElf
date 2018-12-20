@@ -290,7 +290,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 // BlockExecuting -> ExecutingLoop
                 MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 await KeepExecutingBlocksOfHeight(block.Index);
-                return BlockExecutionResult.InvalidSideChainInfo;
+                return BlockExecutionResult.InvalidSideChaiTransactionMerkleTree;
             }
 
             if (executionResult.CannotExecute())
