@@ -32,7 +32,7 @@ namespace AElf.Contracts.SideChain.Tests
             Mock = new MockSetup(_logger);
         }
 
-        [Fact(Skip = "TBD")]
+        [Fact(Skip = "TBD, side chain lifetime")]
         public async Task SideChainLifetime()
         {
             Init();
@@ -95,7 +95,7 @@ namespace AElf.Contracts.SideChain.Tests
             {
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
-            await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
+            await _contract.WriteParentChainBLockInfo(new []{parentChainBlockInfo});
             
             ChainConfig.Instance.ChainId = chainId.DumpBase58();
             var crossChainInfo = new CrossChainInfoReader(Mock.StateStore);
@@ -135,7 +135,7 @@ namespace AElf.Contracts.SideChain.Tests
             {
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
-            await _contract.WriteParentChainBLockInfo(pcb1);
+            await _contract.WriteParentChainBLockInfo(new []{pcb1});
             var crossChainInfo = new CrossChainInfoReader(Mock.StateStore);
             var parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);
@@ -195,6 +195,10 @@ namespace AElf.Contracts.SideChain.Tests
                 Header = new BlockHeader(),
                 Body = new BlockBody()
             };
+            
+            var binaryMerkleTree = new BinaryMerkleTree();
+            binaryMerkleTree.AddNodes(new[] {sc1BlockInfo.TransactionMKRoot, sc2BlockInfo.TransactionMKRoot});
+            block.Header.SideChainTransactionsRoot = binaryMerkleTree.ComputeRootHash();
             block.Body.IndexedInfo.Add(new List<SideChainBlockInfo>{sc1BlockInfo, sc2BlockInfo});
             block.Body.CalculateMerkleTreeRoots();
             
@@ -203,26 +207,25 @@ namespace AElf.Contracts.SideChain.Tests
             {
                 ChainId = chainId,
                 Height = pHeight,
-                SideChainTransactionsRoot = block.Body.SideChainTransactionsRoot,
-                SideChainBlockHeadersRoot = Hash.FromString("SideChainBlockHeadersRoot")
+                SideChainTransactionsRoot = block.Header.SideChainTransactionsRoot,
             };
             
             ParentChainBlockInfo parentChainBlockInfo = new ParentChainBlockInfo
             {
                 Root = parentChainBlockRootInfo
             };
-            var tree = block.Body.BinaryMerkleTreeForSideChainTransactionRoots;
+            
             var pathForTx1 = bmt1.GenerateMerklePath(0);
             Assert.Equal(root1, pathForTx1.ComputeRootWith(t1.GetHash()));
-            var pathForSc1Block = tree.GenerateMerklePath(0);
+            var pathForSc1Block = binaryMerkleTree.GenerateMerklePath(0);
             pathForTx1.Path.AddRange(pathForSc1Block.Path);
             
             var pathForTx2 = bmt2.GenerateMerklePath(0);
-            var pathForSc2Block = tree.GenerateMerklePath(1);
+            var pathForSc2Block = binaryMerkleTree.GenerateMerklePath(1);
             pathForTx2.Path.AddRange(pathForSc2Block.Path);
             
             //parentChainBlockInfo.IndexedBlockInfo.Add(1, tree.GenerateMerklePath(0));
-            await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
+            await _contract.WriteParentChainBLockInfo(new []{parentChainBlockInfo});
             //crossChainInfoReader = new CrossChainInfoReader(Mock.StateStore);
             parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);

@@ -117,10 +117,10 @@ namespace AElf.Sdk.CSharp
             return RecoverPublicKey(GetTransaction().Sigs.First().ToByteArray(), GetTxnHash().DumpByteArray());
         }
         
-        public static List<byte[]> GetMiners()
+        public static Miners GetMiners()
         {
             Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
+            return GetCallResult().DeserializeToPbMessage<Miners>();
         }
 
         public static ulong GetCurrentRoundNumber()
@@ -421,7 +421,7 @@ namespace AElf.Sdk.CSharp
 
         public static void IsMiner(string err)
         {
-            Assert(GetMiners().Any(m => m.BytesEqual(RecoverPublicKey())), err);
+            Assert(GetMiners().PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(RecoverPublicKey())), err);
         }
         
         /// <summary>

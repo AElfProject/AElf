@@ -330,18 +330,18 @@ namespace AElf.Contracts.CrossChain
             //Api.IsMiner("Not authorized to do this.");
             Api.Assert(sideChainBlockInfo.Length > 0, "Empty side chain block information.");
             var binaryMerkleTree = new BinaryMerkleTree();
-            Console.WriteLine("Index side chain block..");
+            //Console.WriteLine("Index side chain block..");
             foreach (var blockInfo in sideChainBlockInfo)
             {
-                Console.WriteLine("Side chain height: {0}", blockInfo.Height);
+                //Console.WriteLine("Side chain height: {0}", blockInfo.Height);
                 ulong sideChainHeight = blockInfo.Height;
                 Hash chainId = Hash.LoadByteArray(blockInfo.ChainId.DumpByteArray());
-                //Api.NotEqual(new SideChainInfo(), _sideChainInfos[chainId], "Not registered side chain");
-                //Api.Equal(SideChainStatus.Active, _sideChainInfos[chainId].SideChainStatus, "Side chain is not active.");
+                Api.NotEqual(new SideChainInfo(), _sideChainInfos[chainId], "Not registered side chain");
+                Api.Equal(SideChainStatus.Active, _sideChainInfos[chainId].SideChainStatus, "Side chain is not active.");
                 var currentHeight = _sideChainHeight.GetValue(chainId);
                 var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight;
                 var chainIdBase58 = blockInfo.ChainId.DumpByteArray().ToPlainBase58();
-                Console.WriteLine("Side chain Id: {0}", chainIdBase58);
+                //Console.WriteLine("Side chain Id: {0}", chainIdBase58);
                 Api.Equal(target, sideChainHeight,
                     $"Side chain block info at height {target} is needed from {chainIdBase58}, not {sideChainHeight}");
             
@@ -356,14 +356,14 @@ namespace AElf.Contracts.CrossChain
             }
 
             var height = Api.GetCurrentHeight() + 1;
-            var wrappedHeihght = new UInt64Value {Value = height};
-            Api.Equal(new BinaryMerkleTree(), _sideChainTxnRootMerklePath[wrappedHeihght],
+            var wrappedHeight = new UInt64Value {Value = height};
+            Api.Equal(new BinaryMerkleTree(), _sideChainTxnRootMerklePath[wrappedHeight],
                 $"Already recorded BinaryMerkleTree at height {height}"); // this should not fail.
             
             // calculate merkle tree for side chain txn roots
             
             binaryMerkleTree.ComputeRootHash();
-            _sideChainTxnRootMerklePath[wrappedHeihght] = binaryMerkleTree;
+            _sideChainTxnRootMerklePath[wrappedHeight] = binaryMerkleTree;
             return binaryMerkleTree.Root.DumpByteArray();
         }
 

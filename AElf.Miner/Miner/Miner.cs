@@ -44,10 +44,7 @@ namespace AElf.Miner.Miner
         private IBlockChain _blockChain;
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private ECKeyPair _keyPair;
-        private readonly DPoSInfoProvider _dpoSInfoProvider;
-        private readonly IChainManager _chainManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
-
         private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;
         private readonly double _maxMineTime;
@@ -56,7 +53,7 @@ namespace AElf.Miner.Miner
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,IBlockValidationService blockValidationService, IChainContextService chainContextService
-            , IChainManager chainManager,IStateStore stateStore)
+            ,IStateStore stateStore)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -67,7 +64,6 @@ namespace AElf.Miner.Miner
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
             Config = config;
-            _dpoSInfoProvider = new DPoSInfoProvider(stateStore);
             
             _consensusDataProvider = new ConsensusDataProvider(stateStore);
 
@@ -79,7 +75,7 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// Initializes the mining with the producers key pair.
         /// </summary>
-        public void Init(ECKeyPair nodeKeyPair)
+        public void Init()
         {
             _txFilter = new TransactionFilter();
             _keyPair = NodeConfig.Instance.ECKeyPair;
@@ -231,7 +227,7 @@ namespace AElf.Miner.Miner
 
         private async Task SignAndInsertToPool(Transaction notSignerTransaction)
         {
-            if (!notSignerTransaction.Sigs.IsEmpty())
+            if (notSignerTransaction.Sigs.Count > 0)
                 return;
             // sign tx
             var signature = new ECSigner().Sign(_keyPair, notSignerTransaction.GetHash().DumpByteArray());

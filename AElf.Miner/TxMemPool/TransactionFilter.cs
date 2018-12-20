@@ -187,6 +187,7 @@ namespace AElf.Miner.TxMemPool
 
                 _txFilter += _firstCrossChainTxnGeneratedByMe;
             });
+            _txFilter += _firstCrossChainTxnGeneratedByMe;
 
             _logger = LogManager.GetLogger(nameof(TransactionFilter));
         }

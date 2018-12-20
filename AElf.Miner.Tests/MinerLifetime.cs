@@ -199,7 +199,7 @@ namespace AElf.Kernel.Tests.Miner
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
             
-            miner.Init(minerKeypair);
+            miner.Init();
             
             var block = await miner.Mine();
             
@@ -248,7 +248,7 @@ namespace AElf.Kernel.Tests.Miner
         [Fact]
         public async Task SideChainServerClientsTest()
         {
-            string dir = @"/tmp/ServerClientsTest";
+            string dir = @"/tmp/ServerClientsTestA";
             _mock.ClearDirectory(dir);
             try
             {
@@ -256,9 +256,9 @@ namespace AElf.Kernel.Tests.Miner
                 var port = 50052;
                 var address = "127.0.0.1";
                 var sideChainId = _mock.MockSideChainServer(port, address, dir);
-                var parimpl = _mock.MockParentChainBlockInfoRpcServerImpl();
+                var parimpl = _mock.MockParentChainBlockInfoRpcServer();
                 parimpl.Init(Hash.Generate());
-                var sideimpl = _mock.MockSideChainBlockInfoRpcServerImpl();
+                var sideimpl = _mock.MockSideChainBlockInfoRpcServer();
                 sideimpl.Init(sideChainId);
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
                 serverManager.Init(dir);
@@ -283,12 +283,14 @@ namespace AElf.Kernel.Tests.Miner
                 int count = result.Count;
                 Assert.Equal(1, count);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight, result[0].Height);
+                _mock.GetTimes++;
                 
                 Thread.Sleep(t);
                 result = manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(1, count);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result[0].Height);
+                _mock.GetTimes++;
                 
                 Thread.Sleep(t);
                 result = manager.CollectSideChainBlockInfo();
@@ -296,7 +298,8 @@ namespace AElf.Kernel.Tests.Miner
                 Assert.Equal(1, count);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result[0].Height);
                 manager.CloseClientsToSideChain();
-
+                _mock.GetTimes++;
+                
                 Thread.Sleep(t);
                 result = manager.CollectSideChainBlockInfo();
                 count = result.Count;
@@ -311,7 +314,7 @@ namespace AElf.Kernel.Tests.Miner
         [Fact]
         public async Task ParentChainServerClientTest()
         {
-            string dir = @"/tmp/ServerClientsTest";
+            string dir = @"/tmp/ServerClientsTestB";
             _mock.ClearDirectory(dir);
             try
             {
@@ -320,9 +323,9 @@ namespace AElf.Kernel.Tests.Miner
                 var address = "127.0.0.1";
                 
                 var parentChainId = _mock.MockParentChainServer(port, address, dir);
-                var parimpl = _mock.MockParentChainBlockInfoRpcServerImpl();
+                var parimpl = _mock.MockParentChainBlockInfoRpcServer();
                 parimpl.Init(parentChainId);
-                var sideimpl = _mock.MockSideChainBlockInfoRpcServerImpl();
+                var sideimpl = _mock.MockSideChainBlockInfoRpcServer();
                 sideimpl.Init(Hash.Generate());
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
                 serverManager.Init(dir);
@@ -341,6 +344,7 @@ namespace AElf.Kernel.Tests.Miner
                     }
                 };
                 GrpcLocalConfig.Instance.ClientToParentChain = true;
+                GrpcLocalConfig.Instance.ClientToSideChain = false;
                 manager.Init(dir, t);
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
@@ -348,30 +352,33 @@ namespace AElf.Kernel.Tests.Miner
                 Thread.Sleep(t/2);
                 var result = manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
-                Assert.Equal(GlobalConfig.GenesisBlockHeight, result.Height);
-                Assert.True(1 == result.IndexedBlockInfo.Count);
-                Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight));
+                Assert.True(result.Count == 1);
+                Assert.True(GlobalConfig.GenesisBlockHeight == result[0].Height);
+                Assert.True(1 == result[0].IndexedBlockInfo.Count);
+                Assert.True(result[0].IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight));
                 //Assert.True(await manager.UpdateParentChainBlockInfo(result));
                 var chainManager = _mock.MockChainManager().Object;
-                await chainManager.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
+                await chainManager.UpdateCurrentBlockHeightAsync(result[0].ChainId, result[0].Height);
                 _mock.GetTimes++;
                 
                 Thread.Sleep(t);
                 result = manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
-                Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result.Height);
-                Assert.True(1 == result.IndexedBlockInfo.Count);
-                Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 1));
+                Assert.True(result.Count == 1);
+                Assert.True(GlobalConfig.GenesisBlockHeight + 1 == result[0].Height);
+                Assert.True(1 == result[0].IndexedBlockInfo.Count);
+                Assert.True(result[0].IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 1));
                 //Assert.True(await manager.UpdateParentChainBlockInfo(result));
-                await chainManager.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
+                await chainManager.UpdateCurrentBlockHeightAsync(result[0].ChainId, result[0].Height);
                 _mock.GetTimes++;
 
                 Thread.Sleep(t);
-                result =  manager.TryGetParentChainBlockInfo();
+                result = manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
-                Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result.Height);
-                Assert.True(1 == result.IndexedBlockInfo.Count);
-                Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 2));
+                Assert.True(result.Count == 1);
+                Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result[0].Height);
+                Assert.True(1 == result[0].IndexedBlockInfo.Count);
+                Assert.True(result[0].IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 2));
                 manager.CloseClientToParentChain();
             }
             finally
@@ -380,7 +387,7 @@ namespace AElf.Kernel.Tests.Miner
             }
         }
         
-        [Fact]
+        [Fact(Skip = "TBD, side chain life time needed.")]
         public async Task MineWithIndexingSideChain()
         {
             // create the miners keypair, this is the miners identity
@@ -409,9 +416,9 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcRemoteConfig.Instance.ParentChain = null;
                 var sideChainId = _mock.MockSideChainServer(sidePort, address, dir);
                 //var parentChainId = _mock.MockParentChainServer(parentPort, address, dir);
-                var parimpl = _mock.MockParentChainBlockInfoRpcServerImpl();
+                var parimpl = _mock.MockParentChainBlockInfoRpcServer();
                 //parimpl.Init(parentChainId);
-                var sideimpl = _mock.MockSideChainBlockInfoRpcServerImpl();
+                var sideimpl = _mock.MockSideChainBlockInfoRpcServer();
                 sideimpl.Init(sideChainId);
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
                 serverManager.Init(dir);
@@ -431,9 +438,10 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcLocalConfig.Instance.ClientToSideChain = true;
                 GrpcLocalConfig.Instance.ClientToParentChain = false;
                 manager.Init(dir, t);
-                
+                Thread.Sleep(t);
+
                 var miner = _mock.GetMiner(minerConfig, pool, manager);
-                miner.Init(minerKeypair);
+                miner.Init();
                 
                 ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
                 
