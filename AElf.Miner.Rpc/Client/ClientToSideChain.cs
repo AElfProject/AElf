@@ -11,8 +11,8 @@ namespace AElf.Miner.Rpc.Client
     {
         private readonly SideChainBlockInfoRpc.SideChainBlockInfoRpcClient _client;
 
-        public ClientToSideChain(Channel channel, ILogger logger, Hash targetChainId, int interval, int cachedBoundedCapacity) 
-            : base(channel, logger, targetChainId, interval, cachedBoundedCapacity)
+        public ClientToSideChain(Channel channel, ILogger logger, Hash targetChainId, int interval, int irreversible, int maximalIndexingCount) 
+            : base(channel, logger, targetChainId, interval, irreversible, maximalIndexingCount)
         {
             _client = new SideChainBlockInfoRpc.SideChainBlockInfoRpcClient(channel);
         }
