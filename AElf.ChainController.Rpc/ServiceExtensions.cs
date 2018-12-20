@@ -5,7 +5,6 @@ using System.Data.JsonRpc;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
@@ -191,7 +190,14 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
         {
-            return await s.SmartContractService.GetInvokingParams(tx);
+            try
+            {
+                return await s.SmartContractService.GetInvokingParams(tx);
+            }
+            catch (Exception)
+            {
+                return new List<string>();
+            }
         }
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)

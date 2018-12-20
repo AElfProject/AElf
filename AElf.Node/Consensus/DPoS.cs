@@ -734,14 +734,14 @@ namespace AElf.Kernel.Node
 
             if (tx.Type == TransactionType.DposTransaction)
             {
-                MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().DumpHex()));
+                MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().ToHex()));
                 _logger?.Trace(
-                    $"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.GetFormatted()}.");
+                    $"A DPoS tx has been generated: {tx.GetHash().ToHex()} - {tx.MethodName} from {tx.From.GetFormatted()}.");
             }
 
             if (tx.From.Equals(_ownPubKey))
                 _logger?.Trace(
-                    $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
+                    $"Try to insert DPoS transaction to pool: {tx.GetHash().ToHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
             
             await _txHub.AddTransactionAsync(tx, true);

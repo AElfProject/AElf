@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Types;
-using Akka.Util.Internal;
 using NLog;
 using Org.BouncyCastle.Security;
 using SharpRepository.Repository.Caching.Hash;

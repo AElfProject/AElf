@@ -3,14 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Configuration;
-using NServiceKit.CacheAccess;
-using NServiceKit.Redis;
+using AElf.Database.RedisProtocol;
 
 namespace AElf.Database
 {
     public class SsdbDatabase : IKeyValueDatabase
     {
-        private readonly ConcurrentDictionary<string, PooledRedisClientManager> _clientManagers = new ConcurrentDictionary<string, PooledRedisClientManager>();
+        private readonly ConcurrentDictionary<string, PooledRedisLite> _clientManagers = new ConcurrentDictionary<string, PooledRedisLite>();
 
         public async Task<byte[]> GetAsync(string database, string key)
         {
@@ -19,7 +18,7 @@ namespace AElf.Database
                 throw new ArgumentException("key is empty");
             }
             
-            return await Task.FromResult(GetClient(database).Get<byte[]>(key));
+            return await Task.FromResult(GetClient(database).Get(key));
         }
 
         public async Task SetAsync(string database, string key, byte[] bytes)
@@ -57,29 +56,28 @@ namespace AElf.Database
 
         public bool IsConnected(string database = "")
         {
-            try
+            if (string.IsNullOrWhiteSpace(database))
             {
-                if (string.IsNullOrWhiteSpace(database))
+                foreach (var db in DatabaseConfig.Instance.Hosts)
                 {
-                    foreach (var db in DatabaseConfig.Instance.Hosts)
+                    if (!GetClient(db.Key).Ping())
                     {
-                        GetClient(db.Key).Set<byte[]>("ping", null);
+                        return false;
                     }
                 }
-                else
-                {
-                    GetClient(database).Set<byte[]>("ping", null);
-                }
-
-                return true;
             }
-            catch (Exception ex)
+            else
             {
-                throw ex;
+                if (!GetClient(database).Ping())
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
 
-        private ICacheClient GetClient(string database)
+        private PooledRedisLite GetClient(string database)
         {
             if (string.IsNullOrWhiteSpace(database))
             {
@@ -89,11 +87,11 @@ namespace AElf.Database
             if (!_clientManagers.TryGetValue(database, out var client))
             {
                 var databaseHost = DatabaseConfig.Instance.GetHost(database);
-                client = new PooledRedisClientManager($"{databaseHost.Host}:{databaseHost.Port}");
+                client = new PooledRedisLite(databaseHost.Host, databaseHost.Port);
                 _clientManagers.TryAdd(database, client);
             }
 
-            return client.GetCacheClient();
+            return client;
         }
     }
 }

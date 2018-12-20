@@ -1,0 +1,1 @@
+../aelf-sdk/dist/aelf.js

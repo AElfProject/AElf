@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using AElf.Common.Extensions;
-using AElf.Cryptography.ECDSA;
 using AElf.Management.Commands;
 using AElf.Management.Handlers;
 using AElf.Management.Interfaces;

@@ -613,7 +613,7 @@ namespace AElf.Node.Protocol
                 args.Peer.EnqueueOutgoing(req);
 
                 _logger?.Debug($"Send {blockHeaderList.Headers.Count} block headers start " +
-                               $"from {blockHeaderList.Headers.FirstOrDefault()?.GetHash().DumpHex()}, to node {args.Peer}.");
+                               $"from {blockHeaderList.Headers.FirstOrDefault()?.GetHash().ToHex()}, to node {args.Peer}.");
             }
             catch (Exception e)
             {

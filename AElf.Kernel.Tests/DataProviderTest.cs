@@ -35,7 +35,7 @@ namespace AElf.Kernel.Tests
 
             // Value correctly set
             var retrievedChanges = root.GetChanges();
-            Assert.Equal(1, retrievedChanges.Count);
+            Assert.True(retrievedChanges.Count == 1);
 
             var bytes = retrievedChanges[statePath].CurrentValue.ToByteArray();
             Assert.Equal(s, Encoding.UTF8.GetString(bytes));
@@ -49,7 +49,7 @@ namespace AElf.Kernel.Tests
             root2.StateStore = new StateStore(db);
             await root2.SetAsync(s, sb);
             var changes2 = root2.GetChanges();
-            Assert.Equal(0, changes2.Count);
+            Assert.True(0 == changes2.Count);
 
             // Test path
             var sub = root.GetChild("sub");

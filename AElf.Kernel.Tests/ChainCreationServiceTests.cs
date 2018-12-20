@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Common.Extensions;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;

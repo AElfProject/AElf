@@ -127,9 +127,10 @@ namespace AElf.Network.Tests
                 authFinishedArgs = args as AuthFinishedArgs;
             };
 
-            if (handshake.PublicKey == null || handshake.PublicKey.Length < 0)
-                ;
-            
+            // if (handshake.PublicKey == null || handshake.PublicKey.Length < 0)
+            Assert.True(handshake.PublicKey != null);
+            Assert.True(handshake.PublicKey.Length >= 0);
+
             p.Start();
             p.AuthentifyWith(handshake);
             
