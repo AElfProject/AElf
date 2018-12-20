@@ -1,16 +1,17 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Types;
+using AElf.Common;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel
 {
     public interface IBlockManager
     {
+        Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header);
         Task<IBlock> AddBlockAsync(IBlock block);
+        Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody);
         Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash);
         Task<BlockBody> GetBlockBodyAsync(Hash bodyHash);
-        Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header);
         Task<Block> GetBlockAsync(Hash blockHash);
-        Task<Block> GetNextBlockOf(Hash chianId, Hash blockHash);
-        Task<Block> GetBlockByHeight(Hash chianId, ulong height);
+        Task BindParentChainHeight(Hash chainId, ulong childHeight, ulong parentHeight);
+        Task<ulong> GetBoundParentChainHeight(Hash chainId, ulong childHeight);
     }
 }
