@@ -48,10 +48,14 @@ namespace AElf.Contracts.SideChain.Tests
         
         private ITransactionStore _transactionStore;
 
-        public MockSetup(ILogger logger,ITransactionStore transactionStore)
+        private IBlockManager _blockManager;
+        
+
+        public MockSetup(ILogger logger,ITransactionStore transactionStore,IBlockManager blockManager)
         {
             _logger = logger;
             _transactionStore = transactionStore;
+            _blockManager = blockManager;
             Initialize();
         }
 
@@ -62,7 +66,7 @@ namespace AElf.Contracts.SideChain.Tests
             var transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             var chainManagerBasic = new ChainManagerBasic(_dataStore);
-            ChainService = new ChainService(chainManagerBasic, new BlockManagerBasic(_dataStore),
+            ChainService = new ChainService(chainManagerBasic, _blockManager,
                 transactionManager, transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
@@ -76,7 +80,7 @@ namespace AElf.Contracts.SideChain.Tests
                 await Init();
             }).Unwrap().Wait();
             SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
-            ChainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore), new TransactionManager(_transactionStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
+            ChainService = new ChainService(new ChainManagerBasic(_dataStore), _blockManager, new TransactionManager(_transactionStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
         }
 
         private void NewStorage()

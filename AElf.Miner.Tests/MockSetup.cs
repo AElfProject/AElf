@@ -59,9 +59,13 @@ namespace AElf.Miner.Tests
         private IStateManager _stateManager;
         private ITransactionStore _transactionStore;
         private IMerkleTreeStore _merkleTreeStore;
+        private IBlockHeaderStore _blockHeaderStore;
+        private IBlockBodyStore _blockBodyStore;
 
-        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateManager stateManager, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator
-            ,ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore)
+        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateManager stateManager
+            , ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator
+            ,ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore
+            ,IBlockHeaderStore blockHeaderStore,IBlockBodyStore blockBodyStore)
         {
             _logger = logger;
             _database = database;
@@ -71,6 +75,8 @@ namespace AElf.Miner.Tests
             _refBlockValidator = refBlockValidator;
             _transactionStore = transactionStore;
             _merkleTreeStore = merkleTreeStore;
+            _blockHeaderStore = blockHeaderStore;
+            _blockBodyStore = blockBodyStore;
             Initialize();
         }
 
@@ -84,7 +90,7 @@ namespace AElf.Miner.Tests
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainManagerBasic = new ChainManagerBasic(_dataStore);
             _stateManager = new StateManager(new StateStore(_database, new ProtobufSerializer()));
-            _chainService = new ChainService(_chainManagerBasic, new BlockManagerBasic(_dataStore),
+            _chainService = new ChainService(_chainManagerBasic, new BlockManager(_blockHeaderStore, _blockBodyStore),
                 _transactionManager, _transactionTraceManager, _dataStore, _stateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
@@ -95,7 +101,7 @@ namespace AElf.Miner.Tests
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateManager,
                     _functionMetadataService), _transactionTraceManager, _stateManager,
                 new ChainContextService(_chainService));
-            
+
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
                     _stateManager, _functionMetadataService), _logger);

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
-using Akka.Dispatch;
-using Akka.Util;
 using Easy.MessageHub;
 using NLog;
 
@@ -17,14 +14,14 @@ namespace AElf.Kernel
     {
         protected readonly Hash _chainId;
         protected readonly IChainManagerBasic _chainManager;
-        protected readonly IBlockManagerBasic _blockManager;
+        protected readonly IBlockManager _blockManager;
         protected readonly IDataStore _dataStore;
 
         private readonly ILogger _logger;
         
         public LightChain(Hash chainId,
             IChainManagerBasic chainManager,
-            IBlockManagerBasic blockManager, IDataStore dataStore, ILogger logger = null)
+            IBlockManager blockManager, IDataStore dataStore, ILogger logger = null)
         {
             _chainId = chainId.Clone();
             _chainManager = chainManager;

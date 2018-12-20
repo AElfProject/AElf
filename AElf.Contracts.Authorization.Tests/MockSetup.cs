@@ -23,30 +23,34 @@ namespace AElf.Contracts.Authorization.Tests
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
         private static int _incrementId = 0;
+
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
-            return (ulong)n;
+            return (ulong) n;
         }
 
         public Hash ChainId { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
-        
+
         public IStateManager StateManager { get; private set; }
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
         public IChainService ChainService;
-        
+
         private IFunctionMetadataService _functionMetadataService;
         private IChainCreationService _chainCreationService;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ILogger _logger;
         private IDataStore _dataStore;
-        
+
         private ITransactionStore _transactionStore;
 
-        public MockSetup(ILogger logger)
+        private IBlockManager _blockManager;
+
+        public MockSetup(ILogger logger, IBlockManager blockManager)
         {
             _logger = logger;
+            _blockManager = blockManager;
             Initialize();
         }
 
@@ -57,7 +61,7 @@ namespace AElf.Contracts.Authorization.Tests
             var transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             var chainManagerBasic = new ChainManagerBasic(_dataStore);
-            ChainService = new ChainService(chainManagerBasic, new BlockManagerBasic(_dataStore),
+            ChainService = new ChainService(chainManagerBasic, _blockManager,
                 transactionManager, transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
@@ -66,22 +70,19 @@ namespace AElf.Contracts.Authorization.Tests
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
                     StateManager, _functionMetadataService), _logger);
             SmartContractManager = new SmartContractManager(_dataStore);
-            Task.Factory.StartNew(async () =>
-            {
-                await Init();
-            }).Unwrap().Wait();
+            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
-            ChainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore), new TransactionManager(_transactionStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
+            ChainService = new ChainService(new ChainManagerBasic(_dataStore), _blockManager, new TransactionManager(_transactionStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
         }
 
         private void NewStorage()
         {
             var db = new InMemoryDatabase();
-            StateManager = new StateManager(new StateStore(db,new ProtobufSerializer()));
+            StateManager = new StateManager(new StateStore(db, new ProtobufSerializer()));
             _transactionStore = new TransactionStore(db, new ProtobufSerializer());
             _dataStore = new DataStore(db);
         }
-        
+
         public byte[] AuthorizationCode
         {
             get
@@ -91,10 +92,11 @@ namespace AElf.Contracts.Authorization.Tests
                 {
                     code = file.ReadFully();
                 }
+
                 return code;
             }
         }
-        
+
         public byte[] SCZeroContractCode
         {
             get
@@ -104,10 +106,11 @@ namespace AElf.Contracts.Authorization.Tests
                 {
                     code = file.ReadFully();
                 }
+
                 return code;
             }
         }
-        
+
         private async Task Init()
         {
             var reg1 = new SmartContractRegistration
@@ -129,7 +132,7 @@ namespace AElf.Contracts.Authorization.Tests
                 await _chainCreationService.CreateNewChainAsync(ChainId,
                     new List<SmartContractRegistration> {reg0, reg1});
         }
-        
+
         public async Task<IExecutive> GetExecutiveAsync(Address address)
         {
             var executive = await SmartContractService.GetExecutiveAsync(address, ChainId);

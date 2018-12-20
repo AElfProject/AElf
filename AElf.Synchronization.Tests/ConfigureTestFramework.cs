@@ -33,7 +33,7 @@ namespace AElf.Synchronization.Tests
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
             builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>().SingleInstance();
-            builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>().SingleInstance();
+            builder.RegisterType<BlockManager>().As<IBlockManager>().SingleInstance();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
             builder.RegisterType<StateStore>().As<IStateStore>();
             builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();

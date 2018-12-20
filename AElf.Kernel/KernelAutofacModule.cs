@@ -18,16 +18,19 @@ namespace AElf.Kernel
             builder.RegisterType<StateStore>().As<IStateStore>().SingleInstance();
             builder.RegisterType<TransactionStore>().As<ITransactionStore>().SingleInstance();
             builder.RegisterType<MerkleTreeStore>().As<IMerkleTreeStore>().SingleInstance();
+            builder.RegisterType<BlockHeaderStore>().As<IBlockHeaderStore>();
+            builder.RegisterType<BlockBodyStore>().As<IBlockBodyStore>();
+
 
             
             builder.RegisterType<StateManager>().As<IStateManager>();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
             builder.RegisterType<BinaryMerkleTreeManager>().As<IBinaryMerkleTreeManager>();
+            builder.RegisterType<BlockManager>().As<IBlockManager>();
 
             
             
             
-            builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>();
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
             builder.RegisterType<MinersManager>().As<IMinersManager>();
             builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
