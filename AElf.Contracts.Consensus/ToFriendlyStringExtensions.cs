@@ -29,7 +29,7 @@ namespace AElf.Contracts.Consensus
                 ["To"] = origin.To,
                 ["Count"] = origin.Count,
                 ["RoundNumber"] = origin.RoundNumber,
-                ["TransactionId"] = origin.TransactionId.DumpHex(),
+                ["TransactionId"] = origin.TransactionId.ToHex(),
                 ["VoteAge"] = origin.VoteAge,
                 ["LockDaysList"] = origin.LockDaysList.ToAString(),
                 ["UnlockAge"] = origin.UnlockAge,
