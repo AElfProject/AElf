@@ -54,6 +54,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private List<string> _currentMiners;
 
+        public BlockState Head => _currentBlock;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IMinersManager minersManager, ILogger logger)
         {
@@ -61,6 +63,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _blockValidationService = blockValidationService;
             _blockExecutor = blockExecutor;
             _minersManager = minersManager;
+            _logger = logger;
 
             _blockSet = new BlockSet();
             _stateFsm = new NodeStateFSM().Create();
@@ -91,10 +94,6 @@ namespace AElf.Synchronization.BlockSynchronization
                         break;
 
                     case NodeState.ExecutingLoop:
-                        // This node is free to mine a block during executing maybe-incorrect block again and again.
-                        MessageHub.Instance.Publish(new LockMining(false));
-                        break;
-                    
                     case NodeState.GeneratingConsensusTx:
                         MessageHub.Instance.Publish(new LockMining(false));
                         break;
@@ -289,8 +288,6 @@ namespace AElf.Synchronization.BlockSynchronization
             
             try
             {
-
-                
                 // Catching/Caught -> BlockValidating
                 MessageHub.Instance.Publish(StateEvent.ValidBlockHeader);
             
