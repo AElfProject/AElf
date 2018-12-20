@@ -8,9 +8,10 @@ namespace AElf.Synchronization.BlockSynchronization
     public interface IBlockSynchronizer
     {
         int RollBackTimes { get; }
-        Task ReceiveBlock(IBlock block, bool fromNet = true);
+        
+        void Init();
+        
         IBlock GetBlockByHash(Hash blockHash);
         Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count);
-        void Init();
     }
 }

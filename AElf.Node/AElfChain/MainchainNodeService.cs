@@ -167,11 +167,6 @@ namespace AElf.Node.AElfChain
 
             _consensus?.Start(NodeConfig.Instance.IsMiner);
 
-            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
-            {
-                await _blockSynchronizer.ReceiveBlock(inBlock.Block);
-            });
-
             MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });
 
