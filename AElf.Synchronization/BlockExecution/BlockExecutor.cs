@@ -36,7 +36,7 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
-        private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly IChainManager _chainManager;
         private readonly IStateStore _stateStore;
         private readonly ConsensusDataProvider _consensusDataProvider;
 
@@ -48,7 +48,7 @@ namespace AElf.Synchronization.BlockExecution
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic, IStateStore stateStore)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManager chainManager, IStateStore stateStore)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -56,7 +56,7 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
-            _chainManagerBasic = chainManagerBasic;
+            _chainManager = chainManager;
             _stateStore = stateStore;
             _consensusDataProvider = new ConsensusDataProvider(_stateStore);
 
@@ -504,7 +504,7 @@ namespace AElf.Synchronization.BlockExecution
                     // Todo: _clientManager would be chaos if this happened.
                     throw new InvalidCrossChainInfoException(
                         "Inconsistent side chain info. Something about side chain would be chaos if you see this. ", BlockExecutionResult.InvalidSideChainInfo);*/
-                await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height);
+                await _chainManager.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height);
             }
 
             // update parent chain info

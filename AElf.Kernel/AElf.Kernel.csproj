@@ -21,8 +21,6 @@
     <Compile Remove="Concurrency\Execution\BatchExecutor.cs" />
     <Compile Remove="Concurrency\Scheduling\Batcher.cs" />
     <Compile Remove="Concurrency\Scheduling\IBatcher.cs" />
-    <Compile Remove="Managers\IBlockManager.cs" />
-    <Compile Remove="Managers\IChainManager.cs" />
     <Compile Remove="Storages\ICanonicalHashStore.cs" />
     <Compile Remove="Storages\ICurrentHashStore.cs" />
     <Compile Remove="Storages\IGenesisHashStore.cs" />
