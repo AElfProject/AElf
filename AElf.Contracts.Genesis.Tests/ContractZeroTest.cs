@@ -14,7 +14,6 @@ namespace AElf.Contracts.Genesis.Tests
     public class ContractZeroTest
     {
         private TestContractShim _contractShim;
-        private MockSetup _mock;
 
         private IExecutive Executive { get; set; }
 

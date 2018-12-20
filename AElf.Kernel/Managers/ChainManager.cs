@@ -7,13 +7,13 @@ using AElf.Common;
 
 namespace AElf.Kernel.Managers
 {
-    public class ChainManagerBasic : IChainManagerBasic
+    public class ChainManager : IChainManager
     {
         private readonly IDataStore _dataStore;
         private readonly ILogger _logger;
         private readonly Hash _sideChainIdListKey = Hash.FromString("SideChainIdList");
 
-        public ChainManagerBasic(IDataStore dataStore, ILogger logger = null)
+        public ChainManager(IDataStore dataStore, ILogger logger = null)
         {
             _dataStore = dataStore;
             _logger = logger;

@@ -68,7 +68,7 @@ namespace AElf.Miner.TxMemPool
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.InitialTerm.ToString());
             if (count > 1)
             {
-                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
+                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().ToHex())));
             }
 
             _latestTxs.Clear();
@@ -90,7 +90,7 @@ namespace AElf.Miner.TxMemPool
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PackageOutValue.ToString());
             if (count > 1)
             {
-                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
+                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().ToHex())));
             }
 
             _latestTxs.Clear();
@@ -120,7 +120,7 @@ namespace AElf.Miner.TxMemPool
                 return toRemove;
             }
             
-            toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
+            toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().ToHex())));
 
             _latestTxs.Clear();
             Console.WriteLine("Cleared latest txs.");
@@ -206,7 +206,7 @@ namespace AElf.Miner.TxMemPool
             _logger?.Trace("Txs list:");
             foreach (var transaction in txs)
             {
-                _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName}");
+                _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName}");
             }
         }
     }

@@ -18,12 +18,12 @@ namespace AElf.Network.Tests
             var partials = writer.PayloadToPartials(0, bytes, writer.MaxOutboundPacketSize);
             
             Assert.NotNull(partials);
-            Assert.Equal(partials.Count, 1);
+            Assert.True(partials.Count == 1);
             
-            Assert.Equal(partials[0].IsEnd, true);
-            Assert.Equal(partials[0].Data.Length, 10);
+            Assert.True(partials[0].IsEnd);
+            Assert.True(partials[0].Data.Length == 10);
             
-            Assert.Equal(partials[0].Position, 0);
+            Assert.True(partials[0].Position == 0);
         }
         
         [Fact]
@@ -37,19 +37,19 @@ namespace AElf.Network.Tests
             var partials = writer.PayloadToPartials(0, bytes, writer.MaxOutboundPacketSize);
             
             Assert.NotNull(partials);
-            Assert.Equal(partials.Count, 2);
+            Assert.True(partials.Count == 2);
             
             // First should not be end, second should be
-            Assert.Equal(partials[0].IsEnd, false);
-            Assert.Equal(partials[1].IsEnd, true);
+            Assert.True(!partials[0].IsEnd);
+            Assert.True(partials[1].IsEnd);
             
             // Validate lengths
-            Assert.Equal(partials[0].Data.Length, 10);
-            Assert.Equal(partials[1].Data.Length, 1);
+            Assert.True(partials[0].Data.Length == 10);
+            Assert.True(partials[1].Data.Length == 1);
             
             // validate positions
-            Assert.Equal(partials[0].Position, 0);
-            Assert.Equal(partials[1].Position, 1);
+            Assert.True(partials[0].Position == 0);
+            Assert.True(partials[1].Position == 1);
         }
         
         [Fact]
@@ -63,19 +63,19 @@ namespace AElf.Network.Tests
             var partials = writer.PayloadToPartials(0, bytes, writer.MaxOutboundPacketSize);
             
             Assert.NotNull(partials);
-            Assert.Equal(partials.Count, 2);
+            Assert.True(partials.Count == 2);
             
             // First should not be end, second should be
-            Assert.Equal(partials[0].IsEnd, false);
-            Assert.Equal(partials[1].IsEnd, true);
+            Assert.True(!partials[0].IsEnd);
+            Assert.True(partials[1].IsEnd);
             
             // Validate lengths
-            Assert.Equal(partials[0].Data.Length, 10);
-            Assert.Equal(partials[1].Data.Length, 10);
+            Assert.True(partials[0].Data.Length == 10);
+            Assert.True(partials[1].Data.Length == 10);
             
             // validate positions
-            Assert.Equal(partials[0].Position, 0);
-            Assert.Equal(partials[1].Position, 1);
+            Assert.True(partials[0].Position == 0);
+            Assert.True(partials[1].Position == 1);
         }
     }
 }

@@ -49,12 +49,12 @@ namespace AElf.Network.Tests.NetworkManagerTests
 
             incomingJobs.TryTake(out var out01);
             
-            Assert.NotNull(out01);
+            Assert.True(out01.Value != null);
             Assert.Equal(out01.Value, kvp_p_1.Value);
 
             incomingJobs.TryTake(out var out02);
             
-            Assert.NotNull(out02);
+            Assert.True(out02.Value != null);
             Assert.Equal(out02.Value, kvp_p_2.Value);
         }
     }

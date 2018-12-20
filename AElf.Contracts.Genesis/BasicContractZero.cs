@@ -154,7 +154,7 @@ namespace AElf.Contracts.Genesis
                 CodeHash = SHA256.Create().ComputeHash(code)
             }.Fire();
             */
-            Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.DumpHex());
+            Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.ToHex());
             Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }

@@ -26,7 +26,6 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using NServiceKit.Common.Extensions;
 
 namespace AElf.Miner.Miner
 {
@@ -51,7 +50,7 @@ namespace AElf.Miner.Miner
 
         private Address _producerAddress;
         private ECKeyPair _keyPair;
-        private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly IChainManager _chainManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
 
         private IMinerConfig Config { get; }
@@ -65,7 +64,7 @@ namespace AElf.Miner.Miner
             ILogger logger, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IChainContextService chainContextService
-            , IChainManagerBasic chainManagerBasic,IStateStore stateStore)
+            , IChainManager chainManager,IStateStore stateStore)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -389,7 +388,7 @@ namespace AElf.Miner.Miner
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-            txResults.AsParallel().ForEach(async r =>
+            txResults.AsParallel().ToList().ForEach(async r =>
             {
                 r.BlockNumber = bn;
                 r.BlockHash = bh;

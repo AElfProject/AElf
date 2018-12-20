@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using AElf.Common.MultiIndexDictionary;
 
-namespace AElf.Common.Extensions
+namespace AElf.Common
 {
 /// <summary>
     /// Extension methods for <see cref="IEnumerable{T}"/>.
     /// </summary>
-    public static class EnumerableExtensions
+    public static partial class Extensions
     {
         /// <summary>
         /// Make <see cref="IndexedDictionary{T}"/> from <paramref name="enumerable"/>. It provides

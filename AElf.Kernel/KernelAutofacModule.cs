@@ -21,8 +21,8 @@ namespace AElf.Kernel
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
             builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
             builder.RegisterType<HashManager>().As<IHashManager>();
-            builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>();
-            builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
+            builder.RegisterType<BlockManager>().As<IBlockManager>();
+            builder.RegisterType<ChainManager>().As<IChainManager>();
             builder.RegisterType<BinaryMerkleTreeManager>().As<IBinaryMerkleTreeManager>();
             builder.RegisterType<DataStore>().As<IDataStore>();
             builder.RegisterType<MinersManager>().As<IMinersManager>();

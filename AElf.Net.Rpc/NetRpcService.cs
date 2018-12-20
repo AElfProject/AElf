@@ -1,10 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Network.Data;
-using System.Threading.Tasks;
 using AElf.Network;
 using AElf.Network.Peers;
-using AElf.Node.Protocol;
 using AElf.RPC;
 using Community.AspNetCore.JsonRpc;
 using Newtonsoft.Json.Linq;
