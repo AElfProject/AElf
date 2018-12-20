@@ -95,8 +95,6 @@ namespace AElf.Synchronization.BlockExecution
             });
         }
 
-        private string _current;
-
         private static bool _isMining;
 
         /// <inheritdoc/>
@@ -109,12 +107,9 @@ namespace AElf.Synchronization.BlockExecution
                 return BlockExecutionResult.Mining;
             }
 
-            _current = block.BlockHashToHex;
-
             var result = Prepare(block);
             if (result.IsFailed())
             {
-                _current = null;
                 return result;
             }
 
@@ -141,8 +136,7 @@ namespace AElf.Synchronization.BlockExecution
                 }
                 
                 // 1. Collection result.
-                // 2. Transaction receipts.
-                // 3. Transaction for indexing side chain block, if exists. 
+                // 2. Transaction for indexing side chain block, if exists. 
                 Hash crossChainIndexingSideChainTransactionId;
                 (res, crossChainIndexingSideChainTransactionId) = await TryCollectTransactions(block, cts);
                 if (result.IsFailed())
@@ -184,8 +178,7 @@ namespace AElf.Synchronization.BlockExecution
                     return res;
                 }
 
-                result = UpdateWorldState(block, txnRes);
-                if (result.IsFailed())
+                if ((result = UpdateWorldState(block, txnRes)).IsFailed())
                 {
                     res = result;
                     throw new InvalidBlockException(result.ToString());
@@ -212,7 +205,6 @@ namespace AElf.Synchronization.BlockExecution
             }
             finally
             {
-                _current = null;
                 _executing = false;
                 cts.Dispose();
                 if (_prepareTerminated)
@@ -457,14 +449,15 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns></returns>
         private BlockExecutionResult UpdateWorldState(IBlock block, IEnumerable<TransactionResult> results)
         {
-            var root = new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
+            var transactionResults = results.ToList();
+            var root = new BinaryMerkleTree().AddNodes(transactionResults.Select(x => x.StateHash)).ComputeRootHash();
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
                 _logger?.Trace($"{root.ToHex()} != {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
                 _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
                 _logger?.Trace("Transaction Results:");
-                foreach (var r in results)
+                foreach (var r in transactionResults)
                 {
                     _logger?.Trace($"TransactionId: {r.TransactionId.ToHex()}, " +
                                    $"StateHash: {r.StateHash.ToHex()}，" +
