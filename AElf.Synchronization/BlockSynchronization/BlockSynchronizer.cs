@@ -51,8 +51,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private List<string> _currentMiners;
 
-        
-
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IMinersManager minersManager, ILogger logger)
         {
@@ -412,16 +410,16 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private Task HandleInvalidBlock(IBlock block, BlockValidationResult blockValidationResult)
         {
-            _logger?.Warn(
-                $"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}. Height: *{block.Index}*");
+            _logger?.Warn( $"Invalid block ({blockValidationResult}) {block}");
 
             MessageHub.Instance.Publish(new LockMining(false));
 
             // Handle the invalid blocks according to their validation results.
-//            if ((int) blockValidationResult < 100)
-//            {
-//                _blockSet.PushBlock(block);
-//            }
+            if ((int) blockValidationResult < 100)
+            {
+                // todo probably wrong algo but the best is to add to cache
+                CacheBlock(block);
+            }
 
             return Task.CompletedTask;
         }
@@ -432,7 +430,7 @@ namespace AElf.Synchronization.BlockSynchronization
         private async Task SwitchFork()
         {
             // We should come from either Catching or Caught
-            if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
+            if (CurrentState != NodeState.BlockValidating)
                 _logger?.Warn("Unexpected state...");
 
             if (HeadBlock == _blockSet.CurrentHead)
@@ -461,6 +459,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 var executionResult = await _blockExecutor.ExecuteBlock(block.GetClonedBlock());
                 _logger?.Trace($"Execution of {block} : {executionResult}");
             }
+
+            HeadBlock = _blockSet.CurrentHead;
 
             // Reverting -> Catching
             MessageHub.Instance.Publish(StateEvent.RollbackFinished);

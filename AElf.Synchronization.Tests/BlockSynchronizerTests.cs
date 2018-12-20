@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
@@ -78,6 +80,14 @@ namespace AElf.Synchronization.Tests
             MockChainService.Setup(cs => cs.GetBlockChain(It.IsAny<Hash>())).Returns(MockChain.Object);
         }
 
+        protected List<ulong> RollbackToheightCalls = new List<ulong>();
+        public void MonitorRollbackToHeightCalls()
+        {
+            MockChain.Setup(bc => bc.RollbackToHeight(It.IsAny<ulong>()))
+                .ReturnsAsync(new List<Transaction>())
+                .Callback<ulong>(m => RollbackToheightCalls.Add(m));
+        }
+
         public void Dispose()
         {
         }
@@ -104,6 +114,39 @@ namespace AElf.Synchronization.Tests
             await Synchronizer.TryPushBlock(block);
             
             Assert.Equal(Synchronizer.HeadBlock.BlockHash, block.GetHash());
+        }
+
+        [Fact]
+        public async Task HandleNewBlock_OnExtendForkHigherThanHead_ShouldSwitch()
+        {
+            GenesisChainSetup();
+            
+            Synchronizer.Init();
+
+            IBlock forkRoot = SyncTestHelpers.BuildNext(Genesis); // Height 2
+            
+            IBlock blockForkA = SyncTestHelpers.BuildNext(forkRoot); // Height 3
+            IBlock blockForkB = SyncTestHelpers.BuildNext(forkRoot); // Height 3
+            
+            IBlock blockForkB1 = SyncTestHelpers.BuildNext(blockForkB); // Height 4
+            
+            await Synchronizer.TryPushBlock(forkRoot);
+            await Synchronizer.TryPushBlock(blockForkA);
+            await Synchronizer.TryPushBlock(blockForkB);
+            
+            // A is still current chain
+            Assert.Equal(Synchronizer.HeadBlock.BlockHash, blockForkA.GetHash());
+
+            MonitorRollbackToHeightCalls();
+                
+            // B should get longer
+            await Synchronizer.TryPushBlock(blockForkB1);
+            
+            // B1 should be new head 
+            Assert.Equal(Synchronizer.HeadBlock.BlockHash, blockForkB1.GetHash());
+            Assert.Single(RollbackToheightCalls);
+            Assert.Equal(2UL, RollbackToheightCalls.ElementAt(0));
+            ;
         }
     }
 }
