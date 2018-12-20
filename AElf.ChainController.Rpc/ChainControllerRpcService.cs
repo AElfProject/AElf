@@ -4,14 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
-using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
-using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.RPC;
@@ -24,9 +22,7 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
-using Newtonsoft.Json.Serialization;
 using NLog;
-using ServiceStack.Templates;
 
 namespace AElf.ChainController.Rpc
 {
@@ -504,7 +500,7 @@ namespace AElf.ChainController.Rpc
                     response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
 
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // not an error
                     response["return"] = txResult.RetVal.ToByteArray().ToHex();

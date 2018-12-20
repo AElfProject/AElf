@@ -24,7 +24,7 @@ namespace AElf.Kernel
         private static bool _prepareTerminated;
         private static bool _terminated;
 
-        public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
+        public BlockChain(Hash chainId, IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
             IStateStore stateStore, IDataStore dataStore) : base(
             chainId, chainManager, blockManager, dataStore)

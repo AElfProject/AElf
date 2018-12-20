@@ -5,7 +5,6 @@ using System.Data.JsonRpc;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
@@ -195,7 +194,7 @@ namespace AElf.ChainController.Rpc
             {
                 return await s.SmartContractService.GetInvokingParams(tx);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new List<string>();
             }
