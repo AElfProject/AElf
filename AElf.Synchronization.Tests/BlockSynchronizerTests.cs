@@ -15,6 +15,7 @@ namespace AElf.Synchronization.Tests
 {
     public abstract class BlockSyncTestBase : IDisposable
     {
+        // todo move to helpers and really make random
         public static Miners GetRandomMiners()
         {
             Miners m = new Miners();
@@ -23,6 +24,8 @@ namespace AElf.Synchronization.Tests
             m.PublicKeys.Add("04fd797631e1c07bb0f519b24775d414920fddcdfc433f058aef797564c558a08a672efd4ccb037a4b85fb2fa73808d5cde6a31e35cdaee5f8180d1f5d48fb9b93");
             return m;
         }
+
+        protected Miners Miners;
         
         // chain service and block chain
         protected Mock<IBlockChain> MockChain;
@@ -60,10 +63,11 @@ namespace AElf.Synchronization.Tests
             Synchronizer = new BlockSynchronizer(MockChainService.Object, ValidationService.Object, BlockExecutor.Object, MockMinersManager.Object, null);
         }
 
-        private void SetupMiners()
+        protected void SetupMiners()
         {
+            Miners = GetRandomMiners();
             MockMinersManager = new Mock<IMinersManager>();
-            MockMinersManager.Setup(m => m.GetMiners()).ReturnsAsync(GetRandomMiners());
+            MockMinersManager.Setup(m => m.GetMiners()).ReturnsAsync(Miners);
         }
 
         private void SetupGenesisChain()
@@ -102,6 +106,7 @@ namespace AElf.Synchronization.Tests
             Synchronizer.Init();
             
             Assert.Equal(Synchronizer.HeadBlock.BlockHash, Genesis.GetHash());
+            Assert.Equal(Synchronizer.CurrentLib.BlockHash, Genesis.GetHash());
         }
         
         [Fact]
@@ -117,7 +122,7 @@ namespace AElf.Synchronization.Tests
         }
 
         [Fact]
-        public async Task HandleNewBlock_OnExtendForkHigherThanHead_ShouldSwitch()
+        public async Task HeadBlock_OnExtendForkHigherThanHead_ShouldSwitch()
         {
             GenesisChainSetup();
             
@@ -146,7 +151,48 @@ namespace AElf.Synchronization.Tests
             Assert.Equal(Synchronizer.HeadBlock.BlockHash, blockForkB1.GetHash());
             Assert.Single(RollbackToheightCalls);
             Assert.Equal(2UL, RollbackToheightCalls.ElementAt(0));
+        }
+
+        [Fact]
+        public async Task HeadBlock_OnProducersAllAddedABlock_ShouldMakeNewLib()
+        {
+            GenesisChainSetup();
+            
+            Synchronizer.Init();
+
+            string miner1 = Miners.PublicKeys.ElementAt(0);
+            string miner2 = Miners.PublicKeys.ElementAt(1);
+            string miner3 = Miners.PublicKeys.ElementAt(2);
+
+            IBlock block1 = SyncTestHelpers.BuildNext(Genesis, miner1); // miner 01
+            IBlock block2 = SyncTestHelpers.BuildNext(block1, miner2); // miner 02
+            IBlock block3 = SyncTestHelpers.BuildNext(block2, miner3); // miner 03
+            
+            // 2 and 3 should confirm the block
+            
+            await Synchronizer.TryPushBlock(block1);
+            await Synchronizer.TryPushBlock(block2);
+            
+            // check that the current lib is genesis
+            Assert.Equal(Genesis.GetHash(), Synchronizer.CurrentLib.BlockHash);
+            
+            await Synchronizer.TryPushBlock(block3);
+            
+            Assert.Equal(block1.GetHash(), Synchronizer.CurrentLib.BlockHash);
             ;
+        }
+
+        [Fact]
+        public async Task BlockStateCheck()
+        {
+            GenesisChainSetup();
+                
+            string miner1 = Miners.PublicKeys.ElementAt(0);
+            IBlock block1 = SyncTestHelpers.BuildNext(Genesis, miner1); // miner 01
+            
+            BlockState state = new BlockState(block1, null, false, null);
+            
+            Assert.Equal(state.BlockHash, block1.GetHash());
         }
     }
 }

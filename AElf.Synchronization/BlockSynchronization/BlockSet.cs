@@ -40,6 +40,9 @@ namespace AElf.Synchronization.BlockSynchronization
             CurrentHead = new BlockState(currentDbBlock, null, true, _miners);
             _blocks.Add(CurrentHead);
             
+            if (currentDbBlock.Index == GlobalConfig.GenesisBlockHeight)
+                CurrentLib = CurrentHead;
+            
             return CurrentHead;
         }
 
@@ -88,8 +91,11 @@ namespace AElf.Synchronization.BlockSynchronization
                         // just update all block prior to this one
 
                     BlockState newLib = null;
-                    var previousBlocks = _blocks.Where(b => b.Index < CurrentHead.Index).OrderByDescending(b => b.Index);
-                    foreach (var blk in previousBlocks)
+                    
+                    ulong libIndex = CurrentLib == null ? 0UL : CurrentLib.Index;
+                    var blocksToConfirm = _blocks.Where(b => libIndex < b.Index && b.Index < CurrentHead.Index).OrderByDescending(b => b.Index).ToList();
+                    
+                    foreach (var blk in blocksToConfirm)
                     {
                         var hasAll = blk.AddConfirmation(newState.Producer);
                         if (hasAll)
@@ -101,6 +107,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                     if (newLib != null)
                     {
+                        CurrentLib = newLib;
                         // clear previous
                         _blocks.RemoveAll(b => b.Index < newLib.Index);
                         // todo clear branches

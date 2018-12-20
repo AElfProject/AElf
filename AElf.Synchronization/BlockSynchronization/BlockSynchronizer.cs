@@ -160,6 +160,7 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Subscribe<NewLibFound>(sig =>
             {
                 _logger?.Trace($"new LIB : {sig.State}");
+                CurrentLib = sig.State;
             });
             
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
@@ -171,7 +172,6 @@ namespace AElf.Synchronization.BlockSynchronization
         public void Init()
         {
             _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-
             
             Miners miners = _minersManager.GetMiners().Result;
             
@@ -184,6 +184,9 @@ namespace AElf.Synchronization.BlockSynchronization
             var currentBlock = _blockChain.GetBlockByHeightAsync(height).Result as Block;
             
             HeadBlock = _blockSet.Init(_currentMiners, currentBlock);
+
+            if (HeadBlock.Index == GlobalConfig.GenesisBlockHeight)
+                CurrentLib = HeadBlock;
         }
         
         /// <summary>

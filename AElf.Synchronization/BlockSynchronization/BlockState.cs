@@ -66,7 +66,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (!_confirmations.Any(c => c.Equals(pubKey)))
             {
                 _confirmations.Add(pubKey);
-                if (_confirmations.Count >= Math.Ceiling(2d / 3d) * _miners.Count)
+                if (_confirmations.Count >= Math.Ceiling(2d / 3d * _miners.Count))
                     return true;
             }
 

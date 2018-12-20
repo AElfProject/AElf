@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
+using Google.Protobuf;
 using Xunit;
 
 namespace AElf.Synchronization.Tests
@@ -23,7 +24,7 @@ namespace AElf.Synchronization.Tests
         /// </summary>
         /// <param name="previous">The block to build upon on.</param>
         /// <returns>The new block</returns>
-        public static IBlock BuildNext(IBlock previous)
+        public static IBlock BuildNext(IBlock previous, string producer = null)
         {
             Assert.NotNull(previous);
             
@@ -37,7 +38,8 @@ namespace AElf.Synchronization.Tests
                     SideChainBlockHeadersRoot = Hash.Generate(),
                     ChainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03}),
                     PreviousBlockHash = previous.GetHash(),
-                    MerkleTreeRootOfWorldState = Hash.Generate()
+                    MerkleTreeRootOfWorldState = Hash.Generate(),
+                    P = producer == null ? ByteString.Empty : ByteString.CopyFromUtf8(producer)
                 }
             };
         }
