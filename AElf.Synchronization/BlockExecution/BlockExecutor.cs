@@ -38,7 +38,7 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
         private readonly IChainManagerBasic _chainManagerBasic;
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
 
         private static bool _executing;
@@ -49,7 +49,7 @@ namespace AElf.Synchronization.BlockExecution
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic, IStateStore stateStore)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic, IStateManager stateManager)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -58,8 +58,8 @@ namespace AElf.Synchronization.BlockExecution
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
             _chainManagerBasic = chainManagerBasic;
-            _stateStore = stateStore;
-            _consensusDataProvider = new ConsensusDataProvider(_stateStore);
+            _stateManager = stateManager;
+            _consensusDataProvider = new ConsensusDataProvider(_stateManager);
 
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
 

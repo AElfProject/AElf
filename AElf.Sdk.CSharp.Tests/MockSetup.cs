@@ -32,7 +32,7 @@ namespace AElf.Sdk.CSharp.Tests
 
         public IChainContextService ChainContextService;
 
-        public IStateStore StateStore;
+        public IStateManager StateManager;
         public DataProvider DataProvider1;
 
         public ServicePack ServicePack;
@@ -41,9 +41,9 @@ namespace AElf.Sdk.CSharp.Tests
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IStateStore stateStore, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            StateStore = stateStore;
+            StateManager = stateManager;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
@@ -53,14 +53,14 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                StateStore = StateStore
+                StateManager = StateManager
             };
         }
 
@@ -86,7 +86,7 @@ namespace AElf.Sdk.CSharp.Tests
                 chain1.Id,
                 Address.Generate() // todo warning adr contract adress
             );
-            DataProvider1.StateStore = StateStore;
+            DataProvider1.StateManager = StateManager;
         }
 
         public async Task DeployContractAsync(byte[] code, Address address)

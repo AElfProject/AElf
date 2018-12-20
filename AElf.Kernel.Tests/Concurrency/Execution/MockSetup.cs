@@ -62,7 +62,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IFunctionMetadataService _functionMetadataService;
         private ILogger _logger;
 
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
         public IActorEnvironment ActorEnvironment { get; private set; }
 
         private readonly HashManager _hashManager;
@@ -74,10 +74,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ILogger logger,
-            IStateStore stateStore, HashManager hashManager, TransactionManager transactionManager)
+            IStateManager stateManager, HashManager hashManager, TransactionManager transactionManager)
         {
             _logger = logger;
-            _stateStore = stateStore;
+            _stateManager = stateManager;
             ActorEnvironment = actorEnvironment;
             if (!ActorEnvironment.Initialized)
             {
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore,
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _stateManager,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
@@ -101,7 +101,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                StateStore = _stateStore
+                StateManager = _stateManager
             };
 
             // These are only required for workertest
@@ -149,7 +149,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_stateStore);
+            await trace.CommitChangesAsync(_stateManager);
 //            await StateDictator.ApplyCachedDataAction(changesDict);
         }
 

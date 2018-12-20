@@ -51,7 +51,7 @@ namespace AElf.Kernel.Tests
         private IFunctionMetadataService _functionMetadataService;
         private ILogger _logger;
 
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
         public IActorEnvironment ActorEnvironment { get; private set; }
 
         private readonly HashManager _hashManager;
@@ -63,10 +63,10 @@ namespace AElf.Kernel.Tests
             IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ILogger logger,
-            IStateStore stateStore, HashManager hashManager, TransactionManager transactionManager)
+            IStateManager stateManager, HashManager hashManager, TransactionManager transactionManager)
         {
             _logger = logger;
-            _stateStore = stateStore;
+            _stateManager = stateManager;
             _hashManager = hashManager;
             _transactionManager = transactionManager;
             _chainCreationService = chainCreationService;
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Tests
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore,
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _stateManager,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
@@ -113,7 +113,7 @@ namespace AElf.Kernel.Tests
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_stateStore);
+            await trace.CommitChangesAsync(_stateManager);
         }
 
         public void Initialize1(Address account, ulong qty)

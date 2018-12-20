@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -69,7 +70,7 @@ namespace AElf.Runtime.CSharp
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
         private int _maxCallDepth = 4;
 
         public Executive(Module abiModule)
@@ -88,9 +89,9 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public IExecutive SetStateStore(IStateStore stateStore)
+        public IExecutive SetStateStore(IStateManager stateManager)
         {
-            _stateStore = stateStore;
+            _stateManager = stateManager;
             return this;
         }
 

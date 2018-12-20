@@ -29,7 +29,7 @@ namespace AElf.Benchmark
         private readonly ILogger _logger;
         private readonly BenchmarkOptions _options;
         private readonly IExecutingService _executingService;
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
 
         private readonly ServicePack _servicePack;
 
@@ -52,12 +52,12 @@ namespace AElf.Benchmark
             }
         }
 
-        public Benchmarks(IStateStore stateStore, IChainCreationService chainCreationService,
+        public Benchmarks(IStateManager stateManager, IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
             ILogger logger, IFunctionMetadataService functionMetadataService,BenchmarkOptions options, IExecutingService executingService)
         {
             ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
-            _stateStore = stateStore;
+            _stateManager = stateManager;
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;
             _logger = logger;
@@ -70,7 +70,7 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                StateStore = _stateStore
+                StateManager = _stateManager
             };
 
             _dataGenerater = new TransactionDataGenerator(options);
@@ -268,7 +268,7 @@ namespace AElf.Benchmark
             try
             {
                 await executive.SetTransactionContext(txnCtxt).Apply();
-                await txnCtxt.Trace.CommitChangesAsync(_stateStore);
+                await txnCtxt.Trace.CommitChangesAsync(_stateManager);
             }
             finally
             {
@@ -305,7 +305,7 @@ namespace AElf.Benchmark
             try
             {
                 await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-                await txnInitCtxt.Trace.CommitChangesAsync(_stateStore);
+                await txnInitCtxt.Trace.CommitChangesAsync(_stateManager);
             }
             finally
             {

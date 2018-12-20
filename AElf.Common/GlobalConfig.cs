@@ -103,8 +103,10 @@ namespace AElf.Common
 
         #region data key prefixes
 
-        public const string StatePrefix = "st";
-        public const string TransactionReceiptPrefix = "rc";
+        public const string StatePrefix = "s";
+        public const string TransactionReceiptPrefix = "r";
+        public const string TransactionPrefix = "t";
+        
 
         #endregion data key prefixes
         public static ulong BlockCacheLimit = 64; 

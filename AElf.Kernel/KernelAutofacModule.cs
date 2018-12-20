@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Managers;
+﻿using AElf.Common.Serializers;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Autofac;
 
@@ -8,23 +9,29 @@ namespace AElf.Kernel
     {
         protected override void Load(ContainerBuilder builder)
         {
-            var assembly1 = typeof(ISerializer<>).Assembly;
-            builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
-            
             var assembly2 = typeof(BlockHeader).Assembly;
             builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
-
-            builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
             
-            builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
-            builder.RegisterType<TransactionManager>().As<ITransactionManager>();
-            builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
-            builder.RegisterType<HashManager>().As<IHashManager>();
+            builder.RegisterType<ProtobufSerializer>().As<IByteSerializer>().SingleInstance();
+            
+            builder.RegisterType<StateManager>().As<IStateManager>();
+            
+            builder.RegisterType<StateStore>().As<IStateStore>().SingleInstance();
+            
+            
+            
+            builder.RegisterType<BinaryMerkleTreeManager>().As<IBinaryMerkleTreeManager>();
             builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>();
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
-            builder.RegisterType<BinaryMerkleTreeManager>().As<IBinaryMerkleTreeManager>();
-            builder.RegisterType<DataStore>().As<IDataStore>();
+            builder.RegisterType<HashManager>().As<IHashManager>();
             builder.RegisterType<MinersManager>().As<IMinersManager>();
+            builder.RegisterType<PointerManager>().As<IPointerManager>();
+            builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
+            builder.RegisterType<TransactionManager>().As<ITransactionManager>();
+            builder.RegisterType<TransactionReceiptManager>().As<ITransactionReceiptManager>();
+            builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>();
+            builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
+            builder.RegisterType<DataStore>().As<IDataStore>();
         }
     }
 }

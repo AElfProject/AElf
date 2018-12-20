@@ -17,16 +17,16 @@ namespace AElf.Execution.Execution
         private ISmartContractService _smartContractService;
         private ITransactionTraceManager _transactionTraceManager;
         private IChainContextService _chainContextService;
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
 
         public SimpleExecutingService(ISmartContractService smartContractService,
-            ITransactionTraceManager transactionTraceManager, IStateStore stateStore,
+            ITransactionTraceManager transactionTraceManager, IStateManager stateManager,
             IChainContextService chainContextService)
         {
             _smartContractService = smartContractService;
             _transactionTraceManager = transactionTraceManager;
             _chainContextService = chainContextService;
-            _stateStore = stateStore;
+            _stateManager = stateManager;
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
@@ -44,7 +44,7 @@ namespace AElf.Execution.Execution
                 {
                     if (trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                     {
-                        await trace.CommitChangesAsync(_stateStore);
+                        await trace.CommitChangesAsync(_stateManager);
                     }
                 }
                 else

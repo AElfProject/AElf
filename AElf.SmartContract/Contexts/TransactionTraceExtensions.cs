@@ -13,7 +13,7 @@ namespace AElf.SmartContract
 {
     public static class TransactionTraceExtensions
     {
-        public static async Task CommitChangesAsync(this TransactionTrace trace, IStateStore stateStore)
+        public static async Task CommitChangesAsync(this TransactionTrace trace, IStateManager stateManager)
         {
             if (trace.ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
@@ -23,14 +23,14 @@ namespace AElf.SmartContract
 
             if (trace.StateChanges.Count > 0)
             {
-                await stateStore.PipelineSetDataAsync(trace.StateChanges.ToDictionary(x => x.StatePath, x => x.StateValue.CurrentValue.ToByteArray()));
+                await stateManager.PipelineSetAsync(trace.StateChanges.ToDictionary(x => x.StatePath, x => x.StateValue.CurrentValue.ToByteArray()));
             }
 
             trace.StateHash = Hash.FromRawBytes(ByteArrayHelpers.Combine(trace.StateChanges.Select(x=>x.StatePath.GetHash()).OrderBy(x=>x).Select(x=>x.Value.ToByteArray()).ToArray()));
             trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
             foreach (var trc in trace.InlineTraces)
             {
-                await trc.CommitChangesAsync(stateStore);
+                await trc.CommitChangesAsync(stateManager);
             }
         }
     }

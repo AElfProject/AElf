@@ -21,7 +21,7 @@ namespace AElf.Synchronization.Tests
         private List<IBlock> _blocks = new List<IBlock>();
         
         private readonly IDataStore _dataStore;
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
         private readonly ISmartContractManager _smartContractManager;
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
@@ -34,10 +34,10 @@ namespace AElf.Synchronization.Tests
 
         private IBlockSynchronizer _blockSynchronizer;
 
-        public MockSetup(IDataStore dataStore, IStateStore stateStore, ITxHub txHub)
+        public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub)
         {
             _dataStore = dataStore;
-            _stateStore = stateStore;
+            _stateManager = stateManager;
             
             _smartContractManager = new SmartContractManager(_dataStore);
             _transactionManager = new TransactionManager(_dataStore);
@@ -45,8 +45,8 @@ namespace AElf.Synchronization.Tests
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateStore,
-                    _functionMetadataService), _transactionTraceManager, _stateStore,
+                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateManager,
+                    _functionMetadataService), _transactionTraceManager, _stateManager,
                 new ChainContextService(GetChainService()));
             _txHub = txHub;
             _chainManagerBasic = new ChainManagerBasic(dataStore);
@@ -101,7 +101,7 @@ namespace AElf.Synchronization.Tests
         public IBlockExecutor GetBlockExecutor()
         {
             return new BlockExecutor(GetChainService(), _concurrencyExecutingService, 
-                _transactionResultManager, null, null, _txHub, _chainManagerBasic,_stateStore);
+                _transactionResultManager, null, null, _txHub, _chainManagerBasic,_stateManager);
         }
     }
 }

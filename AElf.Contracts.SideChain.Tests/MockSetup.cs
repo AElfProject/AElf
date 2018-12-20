@@ -12,6 +12,7 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
+using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Miner.TxMemPool;
@@ -33,7 +34,7 @@ namespace AElf.Contracts.SideChain.Tests
         }
 
         public Hash ChainId1 { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
-        public IStateStore StateStore { get; private set; }
+        public IStateManager StateManager { get; private set; }
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
         public IChainService ChainService;
@@ -59,26 +60,26 @@ namespace AElf.Contracts.SideChain.Tests
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             var chainManagerBasic = new ChainManagerBasic(_dataStore);
             ChainService = new ChainService(chainManagerBasic, new BlockManagerBasic(_dataStore),
-                transactionManager, transactionTraceManager, _dataStore, StateStore);
+                transactionManager, transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
-                    StateStore, _functionMetadataService), _logger);
+                    StateManager, _functionMetadataService), _logger);
             SmartContractManager = new SmartContractManager(_dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateStore, _functionMetadataService);
-            ChainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore), new TransactionManager(_dataStore), new TransactionTraceManager(_dataStore), _dataStore, StateStore);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
+            ChainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore), new TransactionManager(_dataStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
         }
 
         private void NewStorage()
         {
             var db = new InMemoryDatabase();
-            StateStore = new StateStore(db);
+            StateManager = new StateManager(new StateStore(db, new ProtobufSerializer()));
             _dataStore = new DataStore(db);
         }
         

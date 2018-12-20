@@ -19,20 +19,20 @@ namespace AElf.ChainController
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IDataStore _dataStore;
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
 
         private readonly ConcurrentDictionary<Hash, BlockChain> _blockchains = new ConcurrentDictionary<Hash, BlockChain>();
 
         public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager, 
-            IDataStore dataStore, IStateStore stateStore)
+            IDataStore dataStore, IStateManager stateManager)
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
             _transactionManager = transactionManager;
             _transactionTraceManager = transactionTraceManager;
             _dataStore = dataStore;
-            _stateStore = stateStore;
+            _stateManager = stateManager;
         }
 
         public IBlockChain GetBlockChain(Hash chainId)
@@ -49,7 +49,7 @@ namespace AElf.ChainController
             }
 
             blockChain = new BlockChain(chainId, _chainManager, _blockManager, _transactionManager,
-                _transactionTraceManager, _stateStore, _dataStore);
+                _transactionTraceManager, _stateManager, _dataStore);
             _blockchains.TryAdd(chainId, blockChain);
             return blockChain;
         }

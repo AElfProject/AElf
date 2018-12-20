@@ -18,7 +18,7 @@ namespace AElf.Kernel
     {    
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
 
         private readonly ILogger _logger;
         private static bool _doingRollback;
@@ -27,12 +27,12 @@ namespace AElf.Kernel
 
         public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
-            IStateStore stateStore, IDataStore dataStore) : base(
+            IStateManager stateManager, IDataStore dataStore) : base(
             chainId, chainManager, blockManager, dataStore)
         {
             _transactionManager = transactionManager;
             _transactionTraceManager = transactionTraceManager;
-            _stateStore = stateStore;
+            _stateManager = stateManager;
 
             _doingRollback = false;
             _prepareTerminated = false;
@@ -199,7 +199,7 @@ namespace AElf.Kernel
                 }
             }
 
-            await _stateStore.PipelineSetDataAsync(origValues);
+            await _stateManager.PipelineSetAsync(origValues);
         }
     }
 }

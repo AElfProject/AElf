@@ -8,6 +8,7 @@ using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 
 // ReSharper disable once CheckNamespace
@@ -15,17 +16,17 @@ namespace AElf.SmartContract
 {
     public class DataProvider : IDataProvider
     {
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
 
-        public IStateStore StateStore
+        public IStateManager StateManager
         {
-            get { return _stateStore; }
+            get { return _stateManager; }
             set
             {
-                _stateStore = value;
+                _stateManager = value;
                 foreach (var child in _children)
                 {
-                    child.StateStore = value;
+                    child.StateManager = value;
                 }
             }
         }
@@ -67,7 +68,7 @@ namespace AElf.SmartContract
             }
 
             var path = new List<ByteString>(Path) {ByteString.Empty, ByteString.CopyFromUtf8(name)};
-            var child = new DataProvider(ChainId, ContractAddress, path) {StateStore = _stateStore};
+            var child = new DataProvider(ChainId, ContractAddress, path) {StateManager = _stateManager};
             _children.Add(child);
             return child;
         }
@@ -94,7 +95,7 @@ namespace AElf.SmartContract
                 return value.Get();
             }
 
-            var bytes = await _stateStore.GetAsync(GetStatePathFor(key));
+            var bytes = await _stateManager.GetAsync(GetStatePathFor(key));
             _cache[key] = StateValue.Create(bytes);
             return bytes;
         }

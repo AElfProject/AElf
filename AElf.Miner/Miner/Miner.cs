@@ -65,7 +65,7 @@ namespace AElf.Miner.Miner
             ILogger logger, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IChainContextService chainContextService
-            , IChainManagerBasic chainManagerBasic,IStateStore stateStore)
+            , IChainManagerBasic chainManagerBasic,IStateManager stateManager)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -80,7 +80,7 @@ namespace AElf.Miner.Miner
             
             Config = config;
             
-            _consensusDataProvider = new ConsensusDataProvider(stateStore);
+            _consensusDataProvider = new ConsensusDataProvider(stateManager);
 
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
         }

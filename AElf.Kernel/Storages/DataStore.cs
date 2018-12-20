@@ -35,7 +35,7 @@ namespace AElf.Kernel.Storages
                 }
 
                 var typeName = typeof(T).Name;
-                var key = pointerHash.GetKeyString(typeName);
+                var key = GetKeyString(pointerHash,typeName);
                 await _keyValueDatabase.SetAsync(typeName,key, obj.ToByteArray());
             }
             catch (Exception e)
@@ -55,7 +55,7 @@ namespace AElf.Kernel.Storages
                 }
                 
                 var typeName = typeof(T).Name;
-                var key = pointerHash.GetKeyString(typeof(T).Name);
+                var key = GetKeyString(pointerHash,typeName);
                 var res = await _keyValueDatabase.GetAsync(typeName,key);
                 return  res == null ? default(T): res.Deserialize<T>();
             }
@@ -76,7 +76,7 @@ namespace AElf.Kernel.Storages
                 }
 
                 var typeName = typeof(T).Name;
-                var key = pointerHash.GetKeyString(typeName);
+                var key = GetKeyString(pointerHash,typeName);
                 await _keyValueDatabase.RemoveAsync(typeName,key);
             }
             catch (Exception e)
@@ -84,6 +84,16 @@ namespace AElf.Kernel.Storages
                 Console.WriteLine(e);
                 throw;
             }
+        }
+        
+        private string GetKeyString(Hash hash, string type)
+        {
+            return new Key
+            {
+                Type = type,
+                Value = ByteString.CopyFrom(hash.DumpByteArray()),
+                HashType = (uint) hash.HashType
+            }.ToByteArray().ToHex();
         }
     }
 }

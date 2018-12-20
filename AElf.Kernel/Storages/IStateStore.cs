@@ -5,10 +5,10 @@ namespace AElf.Kernel.Storages
 {
     public interface IStateStore
     {
-        Task SetAsync(StatePath path, byte[] value);
+        Task SetAsync(string key, object value);
 
-        Task<byte[]> GetAsync(StatePath path);
+        Task<bool> PipelineSetAsync(Dictionary<string, object> pipelineSet);
 
-        Task<bool> PipelineSetDataAsync(Dictionary<StatePath, byte[]> pipelineSet);
+        Task<T> GetAsync<T>(string key);
     }
 }

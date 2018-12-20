@@ -35,7 +35,7 @@ namespace AElf.Runtime.CSharp.Tests
         public Hash ChainId2 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x04 });
         public ISmartContractService SmartContractService;
 
-        public IStateStore StateStore;
+        public IStateManager StateManager;
         public DataProvider DataProvider1;
         public DataProvider DataProvider2;
 
@@ -48,9 +48,9 @@ namespace AElf.Runtime.CSharp.Tests
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IStateStore stateStore, IChainCreationService chainCreationService, IDataStore dataStore, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService, IDataStore dataStore, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            StateStore = stateStore;
+            StateManager = stateManager;
             _chainCreationService = chainCreationService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
@@ -59,7 +59,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
             Task.Factory.StartNew(async () =>
             {
                 await DeploySampleContracts();
@@ -89,14 +89,14 @@ namespace AElf.Runtime.CSharp.Tests
                 chain1.Id,
                 Address.Generate()
             );
-            DataProvider1.StateStore = StateStore;
+            DataProvider1.StateManager = StateManager;
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             DataProvider2 = DataProvider.GetRootDataProvider(
                 chain2.Id,
                 Address.Generate()
             );
-            DataProvider2.StateStore = StateStore;
+            DataProvider2.StateManager = StateManager;
         }
 
         private async Task DeploySampleContracts()
