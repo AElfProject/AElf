@@ -1,8 +1,6 @@
 ﻿using System;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
-using Base58Check;
-using Google.Protobuf;
 using Xunit;
 
 namespace AElf.Kernel.Tests

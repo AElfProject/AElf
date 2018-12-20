@@ -17,13 +17,10 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
-using AElf.Kernel.Storages;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
-using AElf.Synchronization.EventMessages;
-using Base58Check;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
@@ -164,10 +161,7 @@ namespace AElf.Node.AElfChain
 
             _txHub.Start();
 
-            if (NodeConfig.Instance.IsMiner)
-            {
-                _consensus?.Start();
-            }
+            _consensus?.Start(NodeConfig.Instance.IsMiner);
 
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
@@ -278,7 +272,7 @@ namespace AElf.Node.AElfChain
             var res = _chainCreationService.CreateNewChainAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration>
                     {basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg}).Result;
-            _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");
+            _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");
         }
 
         #endregion private methods

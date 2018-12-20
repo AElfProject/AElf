@@ -35,7 +35,7 @@ namespace AElf.Network.Sim.Node
             }
             catch (Exception e)
             {
-                ;
+                Console.WriteLine($"container build failed: {e}");
             }
             
             if (container == null)

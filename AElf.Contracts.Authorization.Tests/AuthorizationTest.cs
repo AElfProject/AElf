@@ -8,7 +8,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using NServiceKit.Text;
+using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 

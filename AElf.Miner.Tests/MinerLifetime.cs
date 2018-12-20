@@ -21,7 +21,6 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
-using NServiceKit.Text;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Kernel.Tests.Miner
@@ -241,7 +240,7 @@ namespace AElf.Kernel.Tests.Miner
             var curHash = await blockchain.GetCurrentBlockHashAsync();
             var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
             Assert.Equal(GlobalConfig.GenesisBlockHeight, index);
-            Assert.Equal(chain.GenesisBlockHash.DumpHex(), curHash.DumpHex());
+            Assert.Equal(chain.GenesisBlockHash.ToHex(), curHash.ToHex());
         }
 
         #region GRPC
@@ -350,28 +349,28 @@ namespace AElf.Kernel.Tests.Miner
                 var result = manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight, result.Height);
-                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(1 == result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight));
                 //Assert.True(await manager.UpdateParentChainBlockInfo(result));
-                var chainManagerBasic = _mock.MockChainManager().Object;
-                await chainManagerBasic.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
+                var chainManager = _mock.MockChainManager().Object;
+                await chainManager.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
                 _mock.GetTimes++;
                 
                 Thread.Sleep(t);
                 result = manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result.Height);
-                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(1 == result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 1));
                 //Assert.True(await manager.UpdateParentChainBlockInfo(result));
-                await chainManagerBasic.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
+                await chainManager.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
                 _mock.GetTimes++;
 
                 Thread.Sleep(t);
                 result =  manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result.Height);
-                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(1 == result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 2));
                 manager.CloseClientToParentChain();
             }
@@ -405,7 +404,6 @@ namespace AElf.Kernel.Tests.Miner
             try
             {
                 int sidePort = 50054;
-                int parentPort = 50055;
                 string address = "127.0.0.1";
                 _mock.ClearDirectory(dir);
                 GrpcRemoteConfig.Instance.ParentChain = null;

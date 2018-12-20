@@ -5,7 +5,6 @@ using System.Data.JsonRpc;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
@@ -191,7 +190,14 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
         {
-            return await s.SmartContractService.GetInvokingParams(tx);
+            try
+            {
+                return await s.SmartContractService.GetInvokingParams(tx);
+            }
+            catch (Exception)
+            {
+                return new List<string>();
+            }
         }
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)
@@ -304,6 +310,20 @@ namespace AElf.ChainController.Rpc
         {
             return s.BlockSet.InvalidBlockCount;
         }
+        
+        #region Consensus
+
+        internal static Tuple<ulong, ulong> GetVotesGeneral(this Svc s)
+        {
+            return s.ElectionInfo.GetVotesGeneral();
+        }
+        
+        internal static Tickets GetVotingInfo(this Svc s, string pubKey)
+        {
+            return s.ElectionInfo.GetVotingInfo(pubKey);
+        }
+        
+        #endregion
         
         internal static IMessage GetInstance(this Svc s,string type)
         {

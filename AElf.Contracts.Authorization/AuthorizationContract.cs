@@ -218,7 +218,7 @@ namespace AElf.Contracts.Authorization
             };
             auth.Reviewers.AddRange(reviewers.Select(r => new Reviewer
             {
-                PubKey = ByteString.CopyFrom(r),
+                PubKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(r)),
                 Weight = 1 // BP weight
             }));
             

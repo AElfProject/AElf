@@ -27,7 +27,6 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using NServiceKit.Common.Extensions;
 
 namespace AElf.Miner.Miner
 {
@@ -46,6 +45,9 @@ namespace AElf.Miner.Miner
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private ECKeyPair _keyPair;
         private readonly DPoSInfoProvider _dpoSInfoProvider;
+        private readonly IChainManager _chainManager;
+        private readonly ConsensusDataProvider _consensusDataProvider;
+
         private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;
         private readonly double _maxMineTime;
@@ -53,9 +55,8 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
-            IBlockValidationService blockValidationService, IChainContextService chainContextService, 
-            IStateStore stateStore)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,IBlockValidationService blockValidationService, IChainContextService chainContextService
+            , IChainManager chainManager,IStateStore stateStore)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -67,6 +68,9 @@ namespace AElf.Miner.Miner
             _chainContextService = chainContextService;
             Config = config;
             _dpoSInfoProvider = new DPoSInfoProvider(stateStore);
+            
+            _consensusDataProvider = new ConsensusDataProvider(stateStore);
+
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
             _crossChainIndexingTransactionGenerator = new CrossChainIndexingTransactionGenerator(clientManager,
                 serverManager);
@@ -80,7 +84,6 @@ namespace AElf.Miner.Miner
             _txFilter = new TransactionFilter();
             _keyPair = NodeConfig.Instance.ECKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
-            
         }
 
         /// <inheritdoc />
@@ -243,7 +246,7 @@ namespace AElf.Miner.Miner
             {
                 if (!noTimeout)
                 {
-                    var distance = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
+                    var distance = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
                     var distanceRation = distance * (NodeConfig.Instance.RatioSynchronize + NodeConfig.Instance.RatioMine);
                     var timeout = Math.Min(distanceRation, _maxMineTime);
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
@@ -369,7 +372,7 @@ namespace AElf.Miner.Miner
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
-            txResults.AsParallel().ForEach(async r =>
+            txResults.AsParallel().ToList().ForEach(async r =>
             {
                 r.BlockNumber = bn;
                 r.BlockHash = bh;

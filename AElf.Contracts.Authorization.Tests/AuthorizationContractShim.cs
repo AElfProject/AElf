@@ -20,7 +20,7 @@ namespace AElf.Contracts.Authorization.Tests
         public IExecutive Executive {
             get
             {
-                _executive?.SetDataCache(new Dictionary<DataPath, StateCache>());
+                _executive?.SetDataCache(new Dictionary<StatePath, StateCache>());
                 return _executive;
             }
       

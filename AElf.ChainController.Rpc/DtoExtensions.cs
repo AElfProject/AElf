@@ -12,7 +12,7 @@ namespace AElf.ChainController.Rpc
             {
                 ["tx"] = new JObject
                 {
-                    {"TxId", tx.GetHash().DumpHex()},
+                    {"TxId", tx.GetHash().ToHex()},
                     {"From", tx.From.GetFormatted()},
                     {"To", tx.To.GetFormatted()},
                     {"RefBlockNumber", tx.RefBlockNumber},
@@ -30,8 +30,8 @@ namespace AElf.ChainController.Rpc
                 res.Add(sideChainIndexedInfo.ChainId.DumpBase58(), new JObject
                 {
                     {"Height", sideChainIndexedInfo.Height},
-                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.DumpHex()},
-                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.DumpHex()}
+                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.ToHex()},
+                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.ToHex()}
                 });
             }
 

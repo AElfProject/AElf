@@ -7,7 +7,6 @@ using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using Google.Protobuf;
-using NServiceKit.Common.Extensions;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 

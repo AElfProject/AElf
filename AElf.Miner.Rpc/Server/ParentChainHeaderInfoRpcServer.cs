@@ -9,7 +9,6 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Grpc.Core;
 using NLog;
-using NServiceKit.Common.Extensions;
 using AElf.Common;
 using NLog.Fluent;
 
@@ -157,7 +156,7 @@ namespace AElf.Miner.Rpc.Server
                         body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
                             .Select((info, index) =>
                                 new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
-                            .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
+                            .ToList().ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
                     }
                 
                     //_logger?.Log(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");

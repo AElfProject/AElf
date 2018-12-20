@@ -4,18 +4,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
-using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
-using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.RPC;
 using AElf.SmartContract;
+using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockSynchronization;
 using Community.AspNetCore.JsonRpc;
@@ -23,10 +22,7 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
-using Newtonsoft.Json.Serialization;
 using NLog;
-using NServiceKit.Text;
-using ServiceStack.Templates;
 
 namespace AElf.ChainController.Rpc
 {
@@ -49,6 +45,7 @@ namespace AElf.ChainController.Rpc
         public IBlockSet BlockSet { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
+        public IElectionInfo ElectionInfo { get; set; }
 
         #endregion Properties
 
@@ -62,6 +59,7 @@ namespace AElf.ChainController.Rpc
 
             MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
+        
         #region Methods
 
         [JsonRpcMethod("get_commands")]
@@ -146,7 +144,7 @@ namespace AElf.ChainController.Rpc
                     ["error"] = ""
                 };
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new JObject
                 {
@@ -165,7 +163,7 @@ namespace AElf.ChainController.Rpc
             {
                 addr = Address.Parse(address);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return JObject.FromObject(new JObject
                 {
@@ -217,7 +215,7 @@ namespace AElf.ChainController.Rpc
             var hexString = ByteArrayHelpers.FromHexString(raw64);
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
-            var res = new JObject {["hash"] = transaction.GetHash().DumpHex()};
+            var res = new JObject {["hash"] = transaction.GetHash().ToHex()};
 
             if (!_canBroadcastTxs)
             {
@@ -304,7 +302,7 @@ namespace AElf.ChainController.Rpc
                 }
                 catch (Exception e)
                 {
-                    throw new Exception("Unable to get merkle path from parent chain");
+                    throw new Exception($"Unable to get merkle path from parent chain {e}");
                 }
                 /*if(merklePathInParentChain == null)
                     throw new Exception("Not found merkle path in parent chain");*/
@@ -347,7 +345,7 @@ namespace AElf.ChainController.Rpc
                 return new JObject
                 {
                     ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
-                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.DumpHex(),
+                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
                     ["parent_height"] = merklePathInParentChain.Height
                 };
             }
@@ -495,14 +493,16 @@ namespace AElf.ChainController.Rpc
             if (txResult.Status == Status.Mined)
             {
                 response["block_number"] = txResult.BlockNumber;
-                response["block_hash"] = txResult.BlockHash.DumpHex();
+                response["block_hash"] = txResult.BlockHash.ToHex();
+#if DEBUG
                 response["return_type"] = txtrc.RetVal.Type.ToString();
+#endif
                 try
                 {
                     response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
 
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // not an error
                     response["return"] = txResult.RetVal.ToByteArray().ToHex();
@@ -549,13 +549,13 @@ namespace AElf.ChainController.Rpc
             {
                 ["result"] = new JObject
                 {
-                    ["Blockhash"] = blockinfo.GetHash().DumpHex(),
+                    ["Blockhash"] = blockinfo.GetHash().ToHex(),
                     ["Header"] = new JObject
                     {
-                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.DumpHex(),
-                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.DumpHex(),
-                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.DumpHex(),
-                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot?.DumpHex(),
+                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.ToHex(),
+                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.ToHex(),
+                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot?.ToHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),
@@ -575,7 +575,7 @@ namespace AElf.ChainController.Rpc
                 var txs = new List<string>();
                 foreach (var txHash in transactions)
                 {
-                    txs.Add(txHash.DumpHex());
+                    txs.Add(txHash.ToHex());
                 }
 
                 response["result"]["Body"]["Transactions"] = JArray.FromObject(txs);
@@ -661,6 +661,32 @@ namespace AElf.ChainController.Rpc
                 };
             }
         }
+        #endregion
+        
+        #region Consensus
+
+        public async Task<JObject> VotesGeneral()
+        {
+            try
+            {
+                var general = this.GetVotesGeneral();
+                return new JObject
+                {
+                    ["error"] = 0,
+                    ["voters_count"] = general.Item1,
+                    ["tickets_count"] = general.Item2,
+                };
+            }
+            catch (Exception e)
+            {
+                return new JObject
+                {
+                    ["error"] = 1,
+                    ["errormsg"] = e.Message
+                };
+            }
+        }
+
         #endregion
 
         #region Admin

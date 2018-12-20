@@ -25,7 +25,6 @@ using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
-using NServiceKit.Common.Extensions;
 
 namespace AElf.Synchronization.BlockExecution
 {
@@ -38,9 +37,9 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
-        private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly IChainManager _chainManager;
         private readonly IStateStore _stateStore;
-        private readonly DPoSInfoProvider _dpoSInfoProvider;
+        private readonly ConsensusDataProvider _consensusDataProvider;
 
         private static bool _executing;
         private static bool _prepareTerminated;
@@ -50,7 +49,7 @@ namespace AElf.Synchronization.BlockExecution
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManagerBasic chainManagerBasic, IStateStore stateStore)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManager chainManager, IStateStore stateStore)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -58,9 +57,9 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
-            _chainManagerBasic = chainManagerBasic;
+            _chainManager = chainManager;
             _stateStore = stateStore;
-            _dpoSInfoProvider = new DPoSInfoProvider(_stateStore);
+            _consensusDataProvider = new ConsensusDataProvider(_stateStore);
 
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
 
@@ -98,7 +97,7 @@ namespace AElf.Synchronization.BlockExecution
                     _isLimitExecutionTime = true;
                 }
 
-                _logger?.Trace($"Current Event: {inState.ToString()} ,IsLimitExecutionTime: {_isLimitExecutionTime}");
+                _logger?.Trace($"Current Event: {inState.ToString()}, IsLimitExecutionTime: {_isLimitExecutionTime}.");
             });
         }
 
@@ -156,7 +155,7 @@ namespace AElf.Synchronization.BlockExecution
                 double distanceToTimeSlot = 0;
                 if (_isLimitExecutionTime)
                 {
-                    distanceToTimeSlot = await _dpoSInfoProvider.GetDistanceToTimeSlotEnd();
+                    distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
                     cts.CancelAfter(TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
                 }
 
@@ -298,6 +297,12 @@ namespace AElf.Synchronization.BlockExecution
                     res.Status = Status.Failed;
                     res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     res.StateHash = trace.GetSummarizedStateHash();
+                    if (!cancellationTokenSource.IsCancellationRequested)
+                    {
+                        _logger?.Error($"Transaction execute failed. TransactionId: {res.TransactionId.ToHex()}, " +
+                                       $"StateHash: {res.StateHash} Transaction deatils: {readyTxs.Find(x => x.GetHash() == trace.TransactionId)}" +
+                                       $"\n {trace.StdErr}");
+                    }
                 }
 
                 if (trace.DeferredTransaction.Length != 0)
@@ -455,13 +460,13 @@ namespace AElf.Synchronization.BlockExecution
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
-                _logger?.Trace($"{root.DumpHex()} != {block.Header.MerkleTreeRootOfWorldState.DumpHex()}");
+                _logger?.Trace($"{root.ToHex()} != {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
                 _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
                 _logger?.Trace("Transaction Results:");
                 foreach (var r in results)
                 {
-                    _logger?.Trace($"TransactionId: {r.TransactionId.DumpHex()}, " +
-                                   $"StateHash: {r.StateHash.DumpHex()}，" +
+                    _logger?.Trace($"TransactionId: {r.TransactionId.ToHex()}, " +
+                                   $"StateHash: {r.StateHash.ToHex()}，" +
                                    $"Status: {r.Status}, " +
                                    $"{r.RetVal}");
                 }
@@ -494,7 +499,7 @@ namespace AElf.Synchronization.BlockExecution
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
 
-            txResults.AsParallel().ForEach(async r =>
+            txResults.AsParallel().ToList().ForEach(async r =>
             {
                 r.BlockNumber = bn;
                 r.BlockHash = bh;
@@ -520,7 +525,7 @@ namespace AElf.Synchronization.BlockExecution
                     // Todo: _clientManager would be chaos if this happened.
                     throw new InvalidCrossChainInfoException(
                         "Inconsistent side chain info. Something about side chain would be chaos if you see this. ", BlockExecutionResult.InvalidSideChainInfo);*/
-                await _chainManagerBasic.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height);
+                await _chainManager.UpdateCurrentBlockHeightAsync(blockInfo.ChainId, blockInfo.Height);
             }
 
             // update parent chain info

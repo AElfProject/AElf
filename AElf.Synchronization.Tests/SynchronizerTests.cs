@@ -54,7 +54,7 @@ namespace AElf.Synchronization.Tests
             for (var i = firstIndex; i < number + firstIndex; i++)
             {
                 var hash = Hash.Generate();
-                list.Add(MockBlock((ulong) i, hash.DumpHex(), temp == null ? Hash.Generate() : temp));
+                list.Add(MockBlock((ulong) i, hash.ToHex(), temp == null ? Hash.Generate() : temp));
                 temp = hash;
             }
 

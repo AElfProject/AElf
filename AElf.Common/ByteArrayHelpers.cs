@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Base58Check;
-using Google.Protobuf;
 
 namespace AElf.Common
 {
@@ -10,42 +8,6 @@ namespace AElf.Common
         private static bool IsWithPrefix(string value)
         {
             return value.Length >= 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X');
-        }
-
-        public static string ToPlainBase58(this byte[] value)
-        {
-            return Base58CheckEncoding.EncodePlain(value);
-        }
-
-        public static byte[] DecodeBase58(this string value)
-        {
-            return Base58CheckEncoding.DecodePlain(value);
-        }
-
-        public static string ToHex(this byte[] bytes, bool withPrefix=false)
-        {
-            int offset = withPrefix ? 2 : 0;
-            int length = bytes.Length * 2 + offset;
-            char[] c = new char[length];
-
-            byte b;
-
-            if (withPrefix)
-            {
-                c[0] = '0';
-                c[1] = 'x';                
-            }
-
-            for (int bx = 0, cx = offset; bx < bytes.Length; ++bx, ++cx)
-            {
-                b = ((byte) (bytes[bx] >> 4));
-                c[cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
-
-                b = ((byte) (bytes[bx] & 0x0F));
-                c[++cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
-            }
-
-            return new string(c);
         }
 
         public static byte[] FromHexString(string hex)
@@ -99,6 +61,42 @@ namespace AElf.Common
                 offset += array.Length;
             }
             return rv;
+        }
+        
+        public static byte[] ConcatArrays(params byte[][] arrays)
+        {
+            var result = new byte[arrays.Sum(arr => arr.Length)];
+            var offset = 0;
+
+            foreach (var arr in arrays)
+            {
+                Buffer.BlockCopy(arr, 0, result, offset, arr.Length);
+                offset += arr.Length;
+            }
+
+            return result;
+        }
+
+        public static byte[] ConcatArrays(byte[] arr1, byte[] arr2)
+        {
+            var result = new byte[arr1.Length + arr2.Length];
+            Buffer.BlockCopy(arr1, 0, result, 0, arr1.Length);
+            Buffer.BlockCopy(arr2, 0, result, arr1.Length, arr2.Length);
+
+            return result;
+        }
+
+        public static byte[] SubArray(byte[] arr, int start, int length)
+        {
+            var result = new byte[length];
+            Buffer.BlockCopy(arr, start, result, 0, length);
+
+            return result;
+        }
+
+        public static byte[] SubArray(byte[] arr, int start)
+        {
+            return SubArray(arr, start, arr.Length - start);
         }
     }
 }

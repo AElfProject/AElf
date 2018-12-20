@@ -146,10 +146,10 @@ namespace AElf.Contracts.Token
         public void TransferFrom(Address from, Address to, ulong amount)
         {
             var allowance = Allowances.GetAllowance(from, Api.GetFromAddress());
-            Api.Assert(allowance > amount, "Insufficient allowance.");
+            Api.Assert(allowance >= amount, "Insufficient allowance.");
 
             DoTransfer(from, to, amount);
-            Allowances.Reduce(from, amount);
+            Allowances.Reduce(from, Api.GetFromAddress(), amount);
         }
 
         [SmartContractFunction("${this}.Approve", new string[] { }, new string[] {"${this}._allowancePlaceHolder"})]
@@ -167,16 +167,15 @@ namespace AElf.Contracts.Token
         [SmartContractFunction("${this}.UnApprove", new string[] { }, new string[] {"${this}._allowancePlaceHolder"})]
         public void UnApprove(Address spender, ulong amount)
         {
-            Allowances.Reduce(spender, amount);
+            var amountOrAll = Math.Min(amount, Allowances.GetAllowance(Api.GetFromAddress(), spender));
+            Allowances.Reduce(Api.GetFromAddress(), spender, amountOrAll);
             new UnApproved()
             {
                 Owner = Api.GetFromAddress(),
                 Spender = spender,
-                Amount = amount
+                Amount = amountOrAll
             }.Fire();
         }
-
-        
 
         #endregion Actions
 
@@ -188,7 +187,7 @@ namespace AElf.Contracts.Token
         private void DoTransfer(Address from, Address to, ulong amount)
         {
             var balSender = _balances[from];
-            Api.Assert(balSender >= amount, "Insufficient balance.");
+            Api.Assert(balSender >= amount, $"Insufficient balance. Current balance: {balSender}");
             var balReceiver = _balances[to];
             balSender = balSender.Sub(amount);
             balReceiver = balReceiver.Add(amount);
@@ -222,9 +221,9 @@ namespace AElf.Contracts.Token
             _allowances[pair] = _allowances[pair].Add(amount);
         }
 
-        public static void Reduce(Address owner, ulong amount)
+        public static void Reduce(Address owner, Address spender, ulong amount)
         {
-            var pair = new AddressPair() {First = owner, Second = Api.GetFromAddress()};
+            var pair = new AddressPair() {First = owner, Second = spender};
             _allowances[pair] = _allowances[pair].Sub(amount);
         }
     }

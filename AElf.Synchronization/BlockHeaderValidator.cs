@@ -23,8 +23,6 @@ namespace AElf.Synchronization
                                               _chainService.GetBlockChain(
                                                   Hash.LoadBase58(ChainConfig.Instance.ChainId)));
 
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(BlockHeaderValidator));
-
         public BlockHeaderValidator(IBlockSet blockSet, IChainService chainService)
         {
             _blockSet = blockSet;
@@ -37,7 +35,7 @@ namespace AElf.Synchronization
             previousBlocks.AddRange(_blockSet.GetBlocksByHeight(blockHeader.Index - 1));
             foreach (var previousBlock in previousBlocks)
             {
-                if (previousBlock.BlockHashToHex == blockHeader.PreviousBlockHash.DumpHex())
+                if (previousBlock.BlockHashToHex == blockHeader.PreviousBlockHash.ToHex())
                 {
                     return true;
                 }
@@ -69,7 +67,7 @@ namespace AElf.Synchronization
                 }
                 
                 var localCurrentBlock = await BlockChain.GetBlockByHeightAsync(currentHeight);
-                if (localCurrentBlock.BlockHashToHex != blockHeader.PreviousBlockHash.DumpHex())
+                if (localCurrentBlock.BlockHashToHex != blockHeader.PreviousBlockHash.ToHex())
                 {
                     MessageHub.Instance.Publish(new BranchedBlockReceived());
                     return BlockHeaderValidationResult.Branched;
@@ -78,8 +76,8 @@ namespace AElf.Synchronization
                 return BlockHeaderValidationResult.Success;
             }
             
-            var localBlock = await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
-            if (localBlock.BlockHashToHex == blockHeader.GetHash().DumpHex())
+            var localBlock = await BlockChain.GetBlockByHeightAsync(blockHeader.Index);
+            if (localBlock.BlockHashToHex == blockHeader.GetHash().ToHex())
             {
                 return BlockHeaderValidationResult.AlreadyExecuted;
             }

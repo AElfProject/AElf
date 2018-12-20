@@ -54,7 +54,7 @@ namespace AElf.Miner.Tests
         private IChainContextService _chainContextService;
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
-        private IChainManagerBasic _chainManagerBasic;
+        private IChainManager _chainManager;
         private IAuthorizationInfo _authorizationInfo;
         private IStateStore _stateStore;
 
@@ -77,8 +77,8 @@ namespace AElf.Miner.Tests
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            _chainManagerBasic = new ChainManagerBasic(_dataStore);
-            _chainService = new ChainService(_chainManagerBasic, new BlockManagerBasic(_dataStore),
+            _chainManager = new ChainManager(_dataStore);
+            _chainService = new ChainService(_chainManager, new BlockManager(_dataStore),
                 _transactionManager, _transactionTraceManager, _dataStore, StateStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
@@ -122,7 +122,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _chainContextService, _chainManagerBasic, _stateStore);
+                MockBlockValidationService().Object, _chainContextService, _chainManager, _stateStore);
 
             return miner;
         }
@@ -131,7 +131,7 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManagerBasic, StateStore);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManager, StateStore);
 
             return blockExecutor;
         }
@@ -249,9 +249,9 @@ namespace AElf.Miner.Tests
             return new ServerManager(impl1, impl2, _logger);
         }
         
-        public Mock<IChainManagerBasic> MockChainManager()
+        public Mock<IChainManager> MockChainManager()
         {
-            var mock = new Mock<IChainManagerBasic>();
+            var mock = new Mock<IChainManager>();
             mock.Setup(cm => cm.GetCurrentBlockHeightAsync(It.IsAny<Hash>())).Returns(() =>
             {
                 var k = _i;
