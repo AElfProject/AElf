@@ -39,6 +39,12 @@ namespace AElf.Contracts.Token
         [Indexed] public ulong Amount { get; set; }
     }
 
+    public class Burned : Event
+    {
+        public Address Burner { get; set; }
+        public ulong Amount { get; set; }
+    }
+
     #endregion Events
 
     public class TokenContract : CSharpSmartContract
@@ -174,6 +180,20 @@ namespace AElf.Contracts.Token
                 Owner = Api.GetFromAddress(),
                 Spender = spender,
                 Amount = amountOrAll
+            }.Fire();
+        }
+
+        [SmartContractFunction("${this}.Burn", new string[] { }, new string[] {"${this}._balances"})]
+        public void Burn(ulong amount)
+        {
+            var bal = _balances[Api.GetFromAddress()];
+            Api.Assert(bal >= amount, "Burner doesn't own enough balance.");
+            _balances[Api.GetFromAddress()] = bal.Sub(amount);
+            _totalSupply.SetValue(_totalSupply.GetValue().Sub(amount));
+            new Burned()
+            {
+                Burner = Api.GetFromAddress(),
+                Amount = amount
             }.Fire();
         }
 
