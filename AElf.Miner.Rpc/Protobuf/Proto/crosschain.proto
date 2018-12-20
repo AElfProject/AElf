@@ -32,3 +32,11 @@ message ParentChainBlockRootInfo
 message MerklePath{
     repeated Hash Path = 1;
 }
+
+enum SideChainStatus
+{
+    Apply = 0;
+    Review = 1;
+    Active = 2;
+    Terminated = 3;
+}

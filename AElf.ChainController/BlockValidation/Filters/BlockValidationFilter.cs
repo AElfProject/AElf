@@ -26,13 +26,6 @@ namespace AElf.ChainController
             {
                 return Task.FromResult(BlockValidationResult.IncorrectTxMerkleTreeRoot);
             }
-
-            if (block.Body.SideChainTransactionsRoot != block.Header.SideChainTransactionsRoot
-                || block.Body.SideChainBlockHeadersRoot != block.Header.SideChainBlockHeadersRoot)
-            {
-                return Task.FromResult(BlockValidationResult.IncorrectSideChainInfo);
-            }
-
             return Task.FromResult(BlockValidationResult.Success);
         }
     }

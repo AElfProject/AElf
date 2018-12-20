@@ -44,7 +44,7 @@ namespace AElf.Common
 //            return new Address(bytes);
 //        }
         
-        public static Address FromPublicKey(byte[] chainId, byte[] bytes)
+        public static Address FromPublicKey(byte[] bytes)
         {
             var hash = TakeByAddressLength(SHA256.Create().ComputeHash(SHA256.Create().ComputeHash(bytes)));
             return new Address(hash);

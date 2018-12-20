@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Cryptography.ECDSA;
 using AElf.Common;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
 {
@@ -70,8 +72,6 @@ namespace AElf.Kernel
             Header.P = ByteString.CopyFrom(keyPair.PublicKey);
         }
 
-        public ParentChainBlockInfo ParentChainBlockInfo { get; set; }
-
         public ulong Index
         {
             get => Header?.Index ?? 0;
@@ -99,13 +99,21 @@ namespace AElf.Kernel
             return Header.GetHashBytes();
         }
 
-        public Block Complete()
+        public void Complete(SideChainBlockInfo[] indexedSideChainBlockInfo = null, HashSet<TransactionResult> results = null)
         {
+            if (results != null)
+            {
+                // add tx hash
+                AddTransactions(results.Select(x => x.TransactionId));
+                // set ws merkle tree root
+                Header.MerkleTreeRootOfWorldState =
+                    new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
+            }
+            
             Header.MerkleTreeRootOfTransactions = Body.CalculateMerkleTreeRoots();
-            Header.SideChainBlockHeadersRoot = Body.SideChainBlockHeadersRoot;
-            Header.SideChainTransactionsRoot = Body.SideChainTransactionsRoot;
-            Body.Complete(Header.GetHash());
-            return this;
+            // Todo: improvement needed?
+            Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            Body.Complete(Header.GetHash(), indexedSideChainBlockInfo);
         }
 
         public byte[] Serialize()

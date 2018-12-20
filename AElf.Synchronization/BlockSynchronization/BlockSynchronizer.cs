@@ -389,10 +389,9 @@ namespace AElf.Synchronization.BlockSynchronization
             if (executionResult.CanExecuteAgain())
             {
                 // BlockExecuting -> ExecutingLoop
-                _logger?.Warn("Execution loop");
                 MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
-                //await KeepExecutingBlocksOfHeight(block.Index); todo 
-                return BlockExecutionResult.InvalidSideChainInfo;
+                //await KeepExecutingBlocksOfHeight(block.Index);
+                return BlockExecutionResult.InvalidSideChaiTransactionMerkleTree;
             }
 
             if (executionResult.CannotExecute())

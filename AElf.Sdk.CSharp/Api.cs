@@ -117,10 +117,10 @@ namespace AElf.Sdk.CSharp
             return RecoverPublicKey(GetTransaction().Sigs.First().ToByteArray(), GetTxnHash().DumpByteArray());
         }
         
-        public static List<string> GetSystemReviewers()
+        public static Miners GetMiners()
         {
             Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
+            return GetCallResult().DeserializeToPbMessage<Miners>();
         }
 
         public static ulong GetCurrentRoundNumber()
@@ -322,7 +322,7 @@ namespace AElf.Sdk.CSharp
             SendInline(TokenContractAddress, "Transfer", GetContractAddress(), amount);
         }
         
-        public static void WithdrawToken(Address address, ulong amount)
+        public static void UnlockToken(Address address, ulong amount)
         {
             SendInlineByContract(TokenContractAddress, "Transfer", address, amount);
         }
@@ -347,6 +347,16 @@ namespace AElf.Sdk.CSharp
             {
                 throw new AssertionError(message);
             }
+        }
+
+        public static void Equal<T>(T expected, T actual, string message = "Assertion failed!")
+        {
+            Assert(expected.Equals(actual), message);
+        }
+        
+        public static void NotEqual<T>(T expected, T actual, string message = "Assertion failed!")
+        {
+            Assert(!expected.Equals(actual), message);
         }
 
         internal static void FireEvent(LogEvent logEvent)
@@ -409,7 +419,11 @@ namespace AElf.Sdk.CSharp
 
         }
 
-
+        public static void IsMiner(string err)
+        {
+            Assert(GetMiners().PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(RecoverPublicKey())), err);
+        }
+        
         /// <summary>
         /// Create and propose a proposal. Proposer is current transaction from account.
         /// </summary>

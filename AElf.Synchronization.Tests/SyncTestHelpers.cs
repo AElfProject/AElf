@@ -35,7 +35,6 @@ namespace AElf.Synchronization.Tests
                     Index = previous.Header.Index + 1,
                     MerkleTreeRootOfTransactions = Hash.Generate(),
                     SideChainTransactionsRoot = Hash.Generate(),
-                    SideChainBlockHeadersRoot = Hash.Generate(),
                     ChainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03}),
                     PreviousBlockHash = previous.GetHash(),
                     MerkleTreeRootOfWorldState = Hash.Generate(),
