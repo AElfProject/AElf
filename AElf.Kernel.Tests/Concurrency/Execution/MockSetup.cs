@@ -65,7 +65,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IStateManager _stateManager;
         public IActorEnvironment ActorEnvironment { get; private set; }
 
-        private readonly HashManager _hashManager;
         private readonly TransactionManager _transactionManager;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
@@ -74,7 +73,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ILogger logger,
-            IStateManager stateManager, HashManager hashManager, TransactionManager transactionManager)
+            IStateManager stateManager, TransactionManager transactionManager)
         {
             _logger = logger;
             _stateManager = stateManager;
@@ -83,7 +82,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 ActorEnvironment.InitActorSystem();
             }
-            _hashManager = hashManager;
             _transactionManager = transactionManager;
             _chainCreationService = chainCreationService;
             _chainService = chainService;

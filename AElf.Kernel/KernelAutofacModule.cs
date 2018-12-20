@@ -27,7 +27,6 @@ namespace AElf.Kernel
             builder.RegisterType<BinaryMerkleTreeManager>().As<IBinaryMerkleTreeManager>();
             builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>();
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
-            builder.RegisterType<HashManager>().As<IHashManager>();
             builder.RegisterType<MinersManager>().As<IMinersManager>();
             builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
             builder.RegisterType<TransactionReceiptManager>().As<ITransactionReceiptManager>();
