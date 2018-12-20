@@ -137,14 +137,13 @@ namespace AElf.Sdk.CSharp
 
         public static TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            Call(ConsensusContractAddress, "GetTermSnapshot", ParamsPacker.Pack(termNumber));
+            Call(ConsensusContractAddress, "GetTermSnapshot", termNumber);
             return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
         }
         
         public static Address GetContractOwner()
         {
-            if (Call(ContractZeroAddress, "GetContractOwner",
-                ParamsPacker.Pack(_smartContractContext.ContractAddress)))
+            if (Call(ContractZeroAddress, "GetContractOwner", _smartContractContext.ContractAddress))
             {
                 return GetCallResult().DeserializeToPbMessage<Address>();
             }
@@ -191,7 +190,7 @@ namespace AElf.Sdk.CSharp
         public static ulong GetResourceBalance(Address address, ResourceType resourceType)
         {
             Assert(GetFromAddress().Equals(address), "Not authorized to check resource");
-            Call(ResourceContractAddress, "GetResourceBalance", ParamsPacker.Pack(address, resourceType.ToString()));
+            Call(ResourceContractAddress, "GetResourceBalance", address, resourceType.ToString());
             return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
         }
         
@@ -203,7 +202,7 @@ namespace AElf.Sdk.CSharp
         public static ulong GetTokenBalance(Address address)
         {
             Assert(GetFromAddress().Equals(address), "Not authorized to check resource");
-            Call(TokenContractAddress, "BalanceOf", ParamsPacker.Pack(address));
+            Call(TokenContractAddress, "BalanceOf", address);
             return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
         }
         
@@ -250,7 +249,7 @@ namespace AElf.Sdk.CSharp
             });
         }
 
-        public static bool Call(Address contractAddress, string methodName, byte[] args = null)
+        public static bool Call(Address contractAddress, string methodName, params object[] args)
         {
             _lastCallContext = new TransactionContext()
             {
@@ -259,7 +258,7 @@ namespace AElf.Sdk.CSharp
                     From = _smartContractContext.ContractAddress,
                     To = contractAddress,
                     MethodName = methodName,
-                    Params = ByteString.CopyFrom(args ?? new byte[0])
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
                 }
             };
 
@@ -269,6 +268,7 @@ namespace AElf.Sdk.CSharp
             Task.Factory.StartNew(async () =>
             {
                 var executive = await svc.GetExecutiveAsync(contractAddress, chainId);
+                executive.SetDataCache(_dataProviders[""].StateCache);
                 try
                 {
                     // view only, write actions need to be sent via SendInline
@@ -285,7 +285,7 @@ namespace AElf.Sdk.CSharp
             return _lastCallContext.Trace.IsSuccessful();
         }
 
-        private static byte[] GetCallResult()
+        public static byte[] GetCallResult()
         {
             if (_lastCallContext != null)
             {
@@ -309,7 +309,7 @@ namespace AElf.Sdk.CSharp
                 throw new InternalError("No side chain contract was found.\n" + _lastCallContext.Trace.StdErr);
             }
 
-            if (Call(scAddress, "VerifyTransaction", ParamsPacker.Pack(txId, merklePath, parentChainHeight)))
+            if (Call(scAddress, "VerifyTransaction", txId, merklePath, parentChainHeight))
             {
                 return GetCallResult().DeserializeToPbMessage<BoolValue>().Value;
             }
@@ -395,7 +395,7 @@ namespace AElf.Sdk.CSharp
                 // No need to verify signature again if it is not multi sig account.
                 return;
             
-            Call(AuthorizationContractAddress, "GetAuth", ParamsPacker.Pack(_transactionContext.Transaction.From));
+            Call(AuthorizationContractAddress, "GetAuth", _transactionContext.Transaction.From);
 
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
             
