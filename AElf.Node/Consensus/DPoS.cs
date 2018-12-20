@@ -241,7 +241,7 @@ namespace AElf.Kernel.Node
                 
                 var tx = new Transaction
                 {
-                    From = Address.FromPublicKey(_chainId.DumpByteArray(), _ownPubKey),
+                    From = Address.FromPublicKey(_ownPubKey),
                     To = ContractAddress,
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),

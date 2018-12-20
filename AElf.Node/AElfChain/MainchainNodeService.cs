@@ -120,7 +120,7 @@ namespace AElf.Node.AElfChain
             });
 
             _txHub.Initialize();
-            _miner.Init(_nodeKeyPair);
+            _miner.Init();
         }
 
         public bool Start()

@@ -283,8 +283,7 @@ namespace AElf.Miner.TxMemPool
             }
 
             // cross chain txn should not be  broadcasted
-            if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction 
-                && _crossChainContractAddress.Equals(tr.Transaction.To))
+            if (tr.Transaction.IsCrossChainIndexingTransaction())
                 tr.ToBeBroadCasted = false;
         }
 
@@ -400,7 +399,7 @@ namespace AElf.Miner.TxMemPool
                     }
                     
                     // cross chain type and dpos type transaction should not be reverted.
-                    if (tr.Transaction.Type == TransactionType.CrossChainBlockInfoTransaction
+                    if (tr.Transaction.IsCrossChainIndexingTransaction()
                         && tr.Transaction.To.Equals(_crossChainContractAddress))
 //                        || tr.Transaction.Type == TransactionType.DposTransaction
 //                        && tr.Transaction.To.Equals(_dPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
