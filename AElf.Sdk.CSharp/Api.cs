@@ -269,6 +269,7 @@ namespace AElf.Sdk.CSharp
             Task.Factory.StartNew(async () =>
             {
                 var executive = await svc.GetExecutiveAsync(contractAddress, chainId);
+                executive.SetDataCache(_dataProviders[""].StateCache);
                 try
                 {
                     // view only, write actions need to be sent via SendInline
