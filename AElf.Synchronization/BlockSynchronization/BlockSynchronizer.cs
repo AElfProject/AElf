@@ -32,29 +32,26 @@ namespace AElf.Synchronization.BlockSynchronization
         private readonly IBlockValidationService _blockValidationService;
         private readonly IMinersManager _minersManager;
         private readonly IBlockExecutor _blockExecutor;
-
-        private IBlockChain _blockChain;
-        private IBlockChain BlockChain => _blockChain ?? (_blockChain =
-                                              _chainService.GetBlockChain(
-                                                  Hash.LoadBase58(ChainConfig.Instance.ChainId)));
-
-        private NodeState CurrentState => _stateFsm.CurrentState;
-
+        
         private readonly FSM<NodeState> _stateFsm;
         private readonly BlockSet _blockSet;
         private readonly object _blockCacheLock = new object();
         private readonly List<IBlock> _blockCache = new List<IBlock>();
         
+        private IBlockChain _blockChain;
+
+        private NodeState CurrentState => _stateFsm.CurrentState;
+        
         private bool _executeNextBlock;
 
         public int RollBackTimes { get; private set; }
 
-        private BlockState _currentBlock;
-        private BlockState _currentLib;
+        public BlockState HeadBlock { get; private set; }
+        public BlockState CurrentLib { get; private set; }
 
         private List<string> _currentMiners;
 
-        public BlockState Head => _currentBlock;
+        
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IMinersManager minersManager, ILogger logger)
@@ -119,7 +116,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 foreach (var blockHeader in headers)
                 {
                     // Get previous block from the chain
-                    var correspondingBlockHeader = await BlockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
+                    var correspondingBlockHeader = await _blockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
 
                     // If the hash of this previous block corresponds to "previous block hash" of the current header
                     // the link has been found
@@ -175,18 +172,20 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public void Init()
         {
+            _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+
+            
             Miners miners = _minersManager.GetMiners().Result;
             
             _currentMiners = new List<string>();
+            
             foreach (var miner in miners.PublicKeys)
-            {
                 _currentMiners.Add(miner);
-            }
             
-            var height = BlockChain.GetCurrentBlockHeightAsync().Result;
-            var currentBlock = BlockChain.GetBlockByHeightAsync(height).Result as Block;
+            var height = _blockChain.GetCurrentBlockHeightAsync().Result;
+            var currentBlock = _blockChain.GetBlockByHeightAsync(height).Result as Block;
             
-            _currentBlock = _blockSet.Init(_currentMiners, currentBlock);
+            HeadBlock = _blockSet.Init(_currentMiners, currentBlock);
         }
         
         /// <summary>
@@ -291,9 +290,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 // Catching/Caught -> BlockValidating
                 MessageHub.Instance.Publish(StateEvent.ValidBlockHeader);
             
-                if (block.Index > _currentBlock.Index + 1)
+                if (block.Index > HeadBlock.Index + 1)
                 {
-                    _logger?.Warn($"Future block {block}, current height {_currentBlock.Index} ");
+                    _logger?.Warn($"Future block {block}, current height {HeadBlock.Index} ");
                     return;
                 }
                 
@@ -308,11 +307,11 @@ namespace AElf.Synchronization.BlockSynchronization
                         _blockSet.PushBlock(block);
                     
                         // if the current chain has just been extended update
-                        if (_currentBlock == _blockSet.CurrentHead.PreviousState)
-                            _currentBlock = _blockSet.CurrentHead;
+                        if (HeadBlock == _blockSet.CurrentHead.PreviousState)
+                            HeadBlock = _blockSet.CurrentHead;
                     
                         _logger?.Trace($"Pushed {block}, current state {CurrentState}");
-                        _logger?.Trace($"Current head {_currentBlock}");
+                        _logger?.Trace($"Current head {HeadBlock}");
                     }
                     catch (UnlinkableBlockException e)
                     {
@@ -327,7 +326,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 // At this point we're ready to execute another block
                 // Here if we detect that we're out of sync with the current blockset head -> switch forks
-                if (_currentBlock != _blockSet.CurrentHead) 
+                if (HeadBlock != _blockSet.CurrentHead) 
                 {
                     // The SwitchFork method should handle the FSMs state, rollback current branch and execute the other branch.
                     // and the updates the current branch in the blockset
@@ -419,10 +418,10 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Publish(new LockMining(false));
 
             // Handle the invalid blocks according to their validation results.
-            if ((int) blockValidationResult < 100)
-            {
-                _blockSet.PushBlock(block);
-            }
+//            if ((int) blockValidationResult < 100)
+//            {
+//                _blockSet.PushBlock(block);
+//            }
 
             return Task.CompletedTask;
         }
@@ -436,7 +435,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
                 _logger?.Warn("Unexpected state...");
 
-            if (_currentBlock == _blockSet.CurrentHead)
+            if (HeadBlock == _blockSet.CurrentHead)
             {
                 _logger?.Warn("Current head already the same as block set.");
                 return;
@@ -449,12 +448,12 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Publish(UpdateConsensus.Dispose);
 
             // CurrentHead to BlockSet.CurrentHead
-            List<BlockState> toexec = _blockSet.GetBranch(_currentBlock, _blockSet.CurrentHead);
+            List<BlockState> toexec = _blockSet.GetBranch(HeadBlock, _blockSet.CurrentHead);
             toexec = toexec.OrderBy(b => b.Index).ToList();
                 
             // todo switch the block set (update it's state to its longest branch)
             
-            await BlockChain.RollbackToHeight(toexec.First().Index);
+            await _blockChain.RollbackToHeight(toexec.First().Index);
 
             // exec blocks one by one
             foreach (var block in toexec)
@@ -479,14 +478,14 @@ namespace AElf.Synchronization.BlockSynchronization
                 _blockSet.PushBlock(block);
                         
                 // if the current chain has just been extended update
-                if (_currentBlock == _blockSet.CurrentHead.PreviousState)
+                if (HeadBlock == _blockSet.CurrentHead.PreviousState)
                 {
-                    _currentBlock = _blockSet.CurrentHead;
-                    _logger?.Trace($"Pushed {block}, current head {_currentBlock}, current state {CurrentState}");
+                    HeadBlock = _blockSet.CurrentHead;
+                    _logger?.Trace($"Pushed {block}, current head {HeadBlock}, current state {CurrentState}");
                 }
                 else
                 {
-                    _logger?.Warn($"Mined block did not extend current chain ! Pushed {block}, current head {_currentBlock}, current state {CurrentState}");
+                    _logger?.Warn($"Mined block did not extend current chain ! Pushed {block}, current head {HeadBlock}, current state {CurrentState}");
                 }
             }
             catch (UnlinkableBlockException e)
@@ -534,7 +533,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public IBlock GetBlockByHash(Hash blockHash)
         {
-            return _blockSet.GetBlockByHash(blockHash) ?? BlockChain.GetBlockByHashAsync(blockHash).Result;
+            return _blockSet.GetBlockByHash(blockHash) ?? _blockChain.GetBlockByHashAsync(blockHash).Result;
         }
 
         public async Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count)
@@ -542,7 +541,7 @@ namespace AElf.Synchronization.BlockSynchronization
             var blockHeaderList = new BlockHeaderList();
             for (var i = index; i > index - (ulong) count; i--)
             {
-                var block = await BlockChain.GetBlockByHeightAsync(i);
+                var block = await _blockChain.GetBlockByHeightAsync(i);
                 blockHeaderList.Headers.Add(block.Header);
             }
 

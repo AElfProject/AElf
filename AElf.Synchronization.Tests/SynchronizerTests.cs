@@ -17,7 +17,6 @@ namespace AElf.Synchronization.Tests
     /// <summary>
     /// We assume the block validation will always return success.
     /// </summary>
-    [UseAutofacTestFramework]
     public class SynchronizerTests
     {
         public static readonly string TestContractName = "AElf.Kernel.Tests.TestContract";
