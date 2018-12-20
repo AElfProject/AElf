@@ -76,7 +76,7 @@ namespace AElf.Miner.Miner
             _serverManager = serverManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
-            
+            _chainManager = chainManager;
             Config = config;
             
             _consensusDataProvider = new ConsensusDataProvider(stateStore);

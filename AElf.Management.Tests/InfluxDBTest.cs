@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using AElf.Management.Helper;
-using AElf.Management.Models;
-using AElf.Management.Services;
 using Xunit;
 
 namespace AElf.Management.Tests
@@ -11,7 +9,7 @@ namespace AElf.Management.Tests
     public class InfluxDBTest
     {
         [Fact(Skip = "require InfluxDB")]
-        //[Fact]
+        // [Fact]
         public void TestSetAndGet()
         {
             var database = "unittest";
@@ -29,7 +27,7 @@ namespace AElf.Management.Tests
         }
 
         [Fact(Skip = "require InfluxDB")]
-        //[Fact]
+        // [Fact]
         public void TestVerison()
         {
             var version = InfluxDBHelper.Version();

@@ -139,24 +139,6 @@ namespace AElf.ChainController.Rpc
             return await s.SmartContractService.GetAbiAsync(address);
         }
 
-        internal static async Task<ulong> GetIncrementId(this Svc s, Address addr)
-        {
-            try
-            {
-                // ReSharper disable once InconsistentNaming
-//                var idInDB = (await s.AccountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
-//                    .IncrementId;
-//                var idInPool = s.TxPool.GetIncrementId(addr);
-//
-//                return Math.Max(idInDB, idInPool);
-                return ulong.MaxValue;
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
-        }
-
         internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
         {
             var r = await s.TxHub.GetReceiptAsync(txId);
@@ -319,7 +301,7 @@ namespace AElf.ChainController.Rpc
         }
         
         #endregion
-        
+
         internal static IMessage GetInstance(this Svc s,string type)
         {
             switch (type)
@@ -347,7 +329,7 @@ namespace AElf.ChainController.Rpc
             }
         }
         
-        internal static async Task<int> GetRollBackTimes(this Svc s)
+        internal static int GetRollBackTimes(this Svc s)
         {
             return s.BlockSynchronizer.RollBackTimes;
         }

@@ -480,7 +480,7 @@ namespace AElf.Network.Peers
         {
             var hash = 1;
             if (IpAddress.Length != 0) hash ^= IpAddress.GetHashCode();
-            hash ^= Port.GetHashCode();
+            if (Port != 0) hash ^= Port.GetHashCode();
             return hash;
         }
 
