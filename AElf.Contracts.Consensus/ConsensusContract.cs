@@ -161,34 +161,62 @@ namespace AElf.Contracts.Consensus
             return GetTicketsInfo(publicKey).ToFriendlyString();
         }
 
+        /// <summary>
+        /// Order by:
+        /// 0 - Announcement order. (Default)
+        /// </summary>
+        /// <param name="startIndex"></param>
+        /// <param name="length"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
         [View]
-        public TicketsDictionary GetCurrentElectionInfo(string empty)
+        public TicketsDictionary GetCurrentElectionInfo(int startIndex = 0, int length = 0, int orderBy = 0)
         {
-            var dict = new Dictionary<string, Tickets>();
-            foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
+            if (orderBy == 0)
             {
-                if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
+                if (length == 0)
                 {
-                    dict.Add(publicKey, tickets);
+                    length = publicKeys.Count;
                 }
+                var dict = new Dictionary<string, Tickets>();
+                foreach (var publicKey in publicKeys.Skip(startIndex).Take(length - startIndex))
+                {
+                    if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                    {
+                        dict.Add(publicKey, tickets);
+                    }
+                }
+
+                return dict.ToTicketsDictionary();
             }
 
-            return dict.ToTicketsDictionary();
+            return new Dictionary<string, Tickets>().ToTicketsDictionary();
         }
         
         [View]
-        public string GetCurrentElectionInfoToFriendlyString(string empty)
+        public string GetCurrentElectionInfoToFriendlyString(int startIndex = 0, int length = 0, int orderBy = 0)
         {
-            var jObject = new JObject();
-            foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
+            if (orderBy == 0)
             {
-                if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
+                if (length == 0)
                 {
-                    jObject.Add(publicKey, tickets.ToFriendlyString());
+                    length = publicKeys.Count;
                 }
+                var jObject = new JObject();
+                foreach (var publicKey in publicKeys.Skip(startIndex).Take(length - startIndex))
+                {
+                    if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                    {
+                        jObject.Add(publicKey, tickets.ToFriendlyString());
+                    }
+                }
+
+                return jObject.ToString();
             }
 
-            return jObject.ToString();
+            return "";
         }
         
         [View]

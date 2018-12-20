@@ -140,7 +140,10 @@ To get the term number of provided round number.
 
 ### GetCurrentElectionInfo / GetCurrentElectionInfoToFriendlyString
 
-*No params*
+Params:
+- int startIndex
+- int length // If the length is 0, will return all results from startIndex.
+- int orderBy // Default 0, which stands for order by announcement order.
 
 Result Type:
 - TicketsDictionary / string
@@ -334,7 +337,10 @@ CandidateInHistory / string
 
 ### GetCurrentElectionInfo / GetCurrentElectionInfoToFriendlyString
 
-*无参数*
+参数:
+- int startIndex
+- int length // 如果length为0，会返回startIndex之后所有结果
+- int orderBy // 默认为0，按参加选举顺序排序
 
 返回类型:
 - TicketsDictionary / string
