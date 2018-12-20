@@ -18,15 +18,15 @@ namespace AElf.Miner.Rpc.Server
         private Grpc.Core.Server _parentChainServer;
         private CertificateStore _certificateStore;
         private SslServerCredentials _sslServerCredentials;
-        private readonly ParentChainBlockInfoRpcServerImpl _parentChainBlockInfoRpcServerImpl;
-        private readonly SideChainBlockInfoRpcServerImpl _sideChainBlockInfoRpcServerImpl;
+        private readonly ParentChainBlockInfoRpcServer _parentChainBlockInfoRpcServer;
+        private readonly SideChainBlockInfoRpcServer _sideChainBlockInfoRpcServer;
         private readonly ILogger _logger;
 
-        public ServerManager(ParentChainBlockInfoRpcServerImpl parentChainBlockInfoRpcServerImpl, 
-            SideChainBlockInfoRpcServerImpl sideChainBlockInfoRpcServerImpl, ILogger logger)
+        public ServerManager(ParentChainBlockInfoRpcServer parentChainBlockInfoRpcServer, 
+            SideChainBlockInfoRpcServer sideChainBlockInfoRpcServer, ILogger logger)
         {
-            _parentChainBlockInfoRpcServerImpl = parentChainBlockInfoRpcServerImpl;
-            _sideChainBlockInfoRpcServerImpl = sideChainBlockInfoRpcServerImpl;
+            _parentChainBlockInfoRpcServer = parentChainBlockInfoRpcServer;
+            _sideChainBlockInfoRpcServer = sideChainBlockInfoRpcServer;
             _logger = logger;
             GrpcLocalConfig.ConfigChanged += GrpcLocalConfigOnConfigChanged;
         }
@@ -62,7 +62,7 @@ namespace AElf.Miner.Rpc.Server
         {
             var server = new Grpc.Core.Server
             {
-                Services = {SideChainBlockInfoRpc.BindService(_sideChainBlockInfoRpcServerImpl)},
+                Services = {SideChainBlockInfoRpc.BindService(_sideChainBlockInfoRpcServer)},
                 Ports =
                 {
                     new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 
@@ -81,7 +81,7 @@ namespace AElf.Miner.Rpc.Server
         {
             var server = new Grpc.Core.Server
             {
-                Services = {ParentChainBlockInfoRpc.BindService(_parentChainBlockInfoRpcServerImpl)},
+                Services = {ParentChainBlockInfoRpc.BindService(_parentChainBlockInfoRpcServer)},
                 Ports =
                 {
                     new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 

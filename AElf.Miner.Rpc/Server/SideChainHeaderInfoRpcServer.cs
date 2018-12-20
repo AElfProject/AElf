@@ -11,13 +11,13 @@ using AElf.Common;
 namespace AElf.Miner.Rpc.Server
 {
     [LoggerName("SideChainRpcServer")]
-    public class SideChainBlockInfoRpcServerImpl : SideChainBlockInfoRpc.SideChainBlockInfoRpcBase
+    public class SideChainBlockInfoRpcServer : SideChainBlockInfoRpc.SideChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private ILightChain LightChain { get; set; }
 
-        public SideChainBlockInfoRpcServerImpl(IChainService chainService, ILogger logger)
+        public SideChainBlockInfoRpcServer(IChainService chainService, ILogger logger)
         {
             _chainService = chainService;
             _logger = logger;

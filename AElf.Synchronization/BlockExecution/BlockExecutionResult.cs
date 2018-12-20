@@ -11,13 +11,13 @@ namespace AElf.Synchronization.BlockExecution
 
         // Add to cache
         //     Haven't appended yet, can execute again
-        InvalidSideChainInfo = 11,
+        InvalidSideChaiTransactionMerkleTree = 11,
         InvalidParentChainBlockInfo,
 
         //     Simply cache
         BlockIsNull = 21,
         NoTransaction,
-        TooManyTxsForParentChainBlock,
+        TooManyTxsForCrossChainIndexing,
         AlreadyAppended,
         Terminated,
         Mining,

@@ -75,10 +75,14 @@ namespace AElf.Common
         #region AElf Cross Chain
         public const string AElfTxRootMerklePathInParentChain = "__TxRootMerklePathInParentChain__";
         public const string AElfParentChainBlockInfo = "__ParentChainBlockInfo__";
+        public const string AElfSideChainBlockInfo = "__SideChainBlockInfo__";
         public const string AElfBoundParentChainHeight = "__BoundParentChainHeight__";
-        public static readonly int AElfInitCrossChainRequestInterval = 4;
+        public const int AElfInitCrossChainRequestInterval = 4;
         public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
-
+        public const string AElfCurrentSideChainHeight = "__SideChainHeight__";
+        public const string AElfBinaryMerkleTreeForSideChainTxnRoot = "__BinaryMerkleTreeForSideChainTxnRoot__";
+        public const int MaximalCountForIndexingParentChainBlock = 256;
+        public const int MaximalCountForIndexingSideChainBlock = 1;
         #endregion
 
         #region Authorization
