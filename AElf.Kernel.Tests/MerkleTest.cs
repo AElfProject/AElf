@@ -86,7 +86,7 @@ namespace AElf.Kernel.Tests
             // test 1st "a"
             path = tree.GenerateMerklePath(0);
             Assert.NotNull(path);
-            Assert.Equal(1, path.Path.Count);
+            Assert.True(1 == path.Path.Count);
             var realPath = new List<Hash>{tree.Nodes[1]};
             Assert.Equal(realPath, path.Path.ToList());
         }
@@ -107,14 +107,14 @@ namespace AElf.Kernel.Tests
             // test "a"
             path = tree.GenerateMerklePath(0);
             Assert.NotNull(path);
-            Assert.Equal(1, path.Path.Count);
+            Assert.True(1 == path.Path.Count);
             var realPath = new List<Hash>{tree.Nodes[1]};
             Assert.Equal(realPath, path.Path.ToList());
             
             // test "e"
             path = tree.GenerateMerklePath(1);
             Assert.NotNull(path);
-            Assert.Equal(1, path.Path.Count);
+            Assert.True(1 == path.Path.Count);
             realPath = new List<Hash>{tree.Nodes[0]};
             Assert.Equal(realPath, path.Path.ToList());
         }

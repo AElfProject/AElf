@@ -349,7 +349,7 @@ namespace AElf.Kernel.Tests.Miner
                 var result = manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight, result.Height);
-                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(1 == result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight));
                 //Assert.True(await manager.UpdateParentChainBlockInfo(result));
                 var chainManager = _mock.MockChainManager().Object;
@@ -360,7 +360,7 @@ namespace AElf.Kernel.Tests.Miner
                 result = manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result.Height);
-                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(1 == result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 1));
                 //Assert.True(await manager.UpdateParentChainBlockInfo(result));
                 await chainManager.UpdateCurrentBlockHeightAsync(result.ChainId, result.Height);
@@ -370,7 +370,7 @@ namespace AElf.Kernel.Tests.Miner
                 result =  manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result.Height);
-                Assert.Equal(1, result.IndexedBlockInfo.Count);
+                Assert.True(1 == result.IndexedBlockInfo.Count);
                 Assert.True(result.IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 2));
                 manager.CloseClientToParentChain();
             }
@@ -404,7 +404,6 @@ namespace AElf.Kernel.Tests.Miner
             try
             {
                 int sidePort = 50054;
-                int parentPort = 50055;
                 string address = "127.0.0.1";
                 _mock.ClearDirectory(dir);
                 GrpcRemoteConfig.Instance.ParentChain = null;

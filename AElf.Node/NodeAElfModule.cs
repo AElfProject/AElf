@@ -43,7 +43,7 @@ namespace AElf.Node
                 }
                 catch (Exception e)
                 {
-                    throw new Exception("Load keystore failed");
+                    throw new Exception("Load keystore failed", e);
                 }
             }
 

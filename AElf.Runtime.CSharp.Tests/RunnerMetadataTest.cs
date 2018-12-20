@@ -187,32 +187,31 @@ namespace AElf.Runtime.CSharp.Tests
             var exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractD))));
 
-            Assert.True(exception.Message.Contains("Duplicate name of field attributes in contract"));
+            Assert.Contains("Duplicate name of field attributes in contract", exception.Message);
 
             exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractE))));
-            Assert.True(
-                exception.Message.Contains("Duplicate name of smart contract reference attributes in contract "));
+            Assert.Contains("Duplicate name of smart contract reference attributes in contract ", exception.Message);
 
             exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractF))));
-            Assert.True(exception.Message.Contains("Unknown reference local field ${this}.resource1"));
+            Assert.Contains("Unknown reference local field ${this}.resource1", exception.Message);
 
             exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractG))));
-            Assert.True(exception.Message.Contains("Duplicate name of function attribute"));
+            Assert.Contains("Duplicate name of function attribute", exception.Message);
 
             exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractH))));
-            Assert.True(exception.Message.Contains("contains unknown reference to it's own function"));
+            Assert.Contains("contains unknown reference to it's own function", exception.Message);
 
             exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractI))));
-            Assert.True(exception.Message.Contains("contains unknown local member reference to other contract"));
+            Assert.Contains("contains unknown local member reference to other contract", exception.Message);
 
             exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractJ))));
-            Assert.True(exception.Message.Contains("is Non-DAG thus nothing take effect"));
+            Assert.Contains("is Non-DAG thus nothing take effect", exception.Message);
         }
     }
 
