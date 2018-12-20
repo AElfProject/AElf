@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp;
@@ -13,7 +12,6 @@ namespace AElf.Contracts.Token.Tests
     [UseAutofacTestFramework]
     public class TokenContractTest
     {
-        private ContractZeroShim _contractZero;
         private TokenContractShim _contract;
         private MockSetup _mock;
 
@@ -56,6 +54,7 @@ namespace AElf.Contracts.Token.Tests
             }
             catch (Exception e)
             {
+                Console.WriteLine($"Got exception while TokenContractTest {e}");
                 Assert.Equal(ExecutionStatus.ContractError, _contract.TransactionContext.Trace.ExecutionStatus);
             }
         }
