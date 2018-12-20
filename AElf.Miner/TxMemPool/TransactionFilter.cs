@@ -7,6 +7,7 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Types.Transaction;
 using Easy.MessageHub;
 using NLog;
 using NLog.Fluent;
@@ -39,22 +40,33 @@ namespace AElf.Miner.TxMemPool
             // remove cross chain transaction from others
             // actually this should be empty, because this transaction type won't be broadcast  
             var crossChainTxnsFromOthers = list.FindAll(tx =>
-                tx.Type == TransactionType.CrossChainBlockInfoTransaction &&
-                tx.From != Address.Parse(NodeConfig.Instance.NodeAccount)).ToList();
+                    tx.IsCrossChainIndexingTransaction() && !tx.From.Equals(Address.Parse(NodeConfig.Instance.NodeAccount)))
+                .ToList();
             toRemove.AddRange(crossChainTxnsFromOthers);
-            
-            var crossChainTxnsFromMe = list.FindAll(tx =>
-                tx.Type == TransactionType.CrossChainBlockInfoTransaction &&
-                tx.From == Address.Parse(NodeConfig.Instance.NodeAccount)).ToList();
+
+            var crossChainTxnsFromMe = list.Where(tx => tx.IsCrossChainIndexingTransaction() &&
+                tx.From.Equals(Address.Parse(NodeConfig.Instance.NodeAccount))).ToList();
             if (crossChainTxnsFromMe.Count <= 1)
                 return toRemove;
+            
+            // transaction indexing side chain
             // sort txns with timestamp
-            crossChainTxnsFromMe.Sort((t1, t2) => IsFirst(t1, t2));
-            var firstTxn = crossChainTxnsFromMe.FirstOrDefault();
+            var indexingSideChainTxns =
+                crossChainTxnsFromMe.Where(t => t.IsIndexingSideChainTransaction()).ToList();
+            indexingSideChainTxns.Sort((t1, t2) => IsFirst(t1, t2));
+            var firstIndexingSideChainTxn= indexingSideChainTxns.FirstOrDefault();
             // only reserve first txn
-            if (firstTxn != null)
-                toRemove.AddRange(list.FindAll(t =>
-                    t.Type == TransactionType.CrossChainBlockInfoTransaction && !t.Equals(firstTxn)));
+            if (firstIndexingSideChainTxn != null)
+                toRemove.AddRange(indexingSideChainTxns.FindAll(t => !t.Equals(firstIndexingSideChainTxn)));
+            
+            // transaction indexing parent chain
+            var indexingParentChainTxns =
+                crossChainTxnsFromMe.Where(t => t.IsIndexingParentChainTransaction()).ToList();
+            indexingParentChainTxns.Sort((t1, t2) => IsFirst(t1, t2));
+            var firstIndexingParentChainTxn = indexingParentChainTxns.FirstOrDefault();
+            // only reserve first txn
+            if (firstIndexingParentChainTxn != null)
+                toRemove.AddRange(indexingParentChainTxns.FindAll(t => !t.Equals(firstIndexingParentChainTxn)));
             return toRemove;
         };
         
