@@ -14,7 +14,6 @@ namespace AElf.Kernel
         ECSignature GetSignature();
         Hash ChainId { get; set; }
         Hash SideChainTransactionsRoot { get; set; }
-        Hash SideChainBlockHeadersRoot { get; set; }
         ulong Index { get; set; }
     }
 }
