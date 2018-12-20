@@ -98,7 +98,7 @@ namespace AElf.Contracts.SideChain.Tests
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
             
             ChainConfig.Instance.ChainId = chainId.DumpBase58();
-            var crossChainInfo = new CrossChainInfoHelper(Mock.StateStore);
+            var crossChainInfo = new CrossChainInfoReader(Mock.StateStore);
             var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(pHeight);
             Assert.NotNull(merklepath);
             Assert.Equal(parentChainBlockInfo.IndexedBlockInfo[pHeight], merklepath);
@@ -136,7 +136,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
             await _contract.WriteParentChainBLockInfo(pcb1);
-            var crossChainInfo = new CrossChainInfoHelper(Mock.StateStore);
+            var crossChainInfo = new CrossChainInfoReader(Mock.StateStore);
             var parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);
             Transaction t1 = new Transaction
@@ -223,7 +223,7 @@ namespace AElf.Contracts.SideChain.Tests
             
             //parentChainBlockInfo.IndexedBlockInfo.Add(1, tree.GenerateMerklePath(0));
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
-            //crossChainInfoHelper = new CrossChainInfoHelper(Mock.StateStore);
+            //crossChainInfoReader = new CrossChainInfoReader(Mock.StateStore);
             parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);
             

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Base58Check;
+using Google.Protobuf;
 
 namespace AElf.Common
 {

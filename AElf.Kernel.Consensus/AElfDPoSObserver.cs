@@ -69,7 +69,7 @@ namespace AElf.Kernel.Consensus
 
         public IDisposable Initialization()
         {
-            var timeWaitingOtherNodes = TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval * 2.5);
+            var timeWaitingOtherNodes = TimeSpan.FromMilliseconds(ConsensusConfig.Instance.DPoSMiningInterval * 0.5);
             var delayInitialize = Observable
                 .Timer(timeWaitingOtherNodes)
                 .Select(_ => ConsensusBehavior.InitializeAElfDPoS);

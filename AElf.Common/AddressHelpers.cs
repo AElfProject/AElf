@@ -8,13 +8,13 @@ namespace AElf.Common
         // Test only
         public static Address BuildAddress(byte[] key)
         {
-            return Address.FromPublicKey(new byte[] {0x01, 0x02, 0x03}, key);
+            return Address.FromPublicKey(key);
         }
         
         // Test only 
         public static Address BuildAddress(byte[] chainId, byte[] key)
         {
-            return Address.FromPublicKey(chainId, key);
+            return Address.FromPublicKey(key);
         }
     }
 }

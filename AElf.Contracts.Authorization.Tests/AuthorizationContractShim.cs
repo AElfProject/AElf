@@ -76,7 +76,7 @@ namespace AElf.Contracts.Authorization.Tests
             {
                 var tx = new Transaction
                 {
-                    From = Address.FromPublicKey(_chainId, sender.PublicKey),
+                    From = Address.FromPublicKey(sender.PublicKey),
                     To = AuthorizationContractAddress,
                     MethodName = "Propose",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(proposal))
@@ -108,7 +108,7 @@ namespace AElf.Contracts.Authorization.Tests
             {
                 var tx = new Transaction
                 {
-                    From = Address.FromPublicKey(_chainId, sender.PublicKey),
+                    From = Address.FromPublicKey(sender.PublicKey),
                     To = AuthorizationContractAddress,
                     MethodName = "SayYes",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(approval))
@@ -137,7 +137,7 @@ namespace AElf.Contracts.Authorization.Tests
             {
                 var tx = new Transaction
                 {
-                    From = Address.FromPublicKey(_chainId, sender.PublicKey),
+                    From = Address.FromPublicKey(sender.PublicKey),
                     To = AuthorizationContractAddress,
                     MethodName = "Release",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(proposalHash))

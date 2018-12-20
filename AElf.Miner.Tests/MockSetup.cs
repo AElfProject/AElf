@@ -272,9 +272,9 @@ namespace AElf.Miner.Tests
         }
 
         public ulong GetTimes = 0;
-        private Mock<ICrossChainInfoHelper> MockCrossChainInfo()
+        private Mock<ICrossChainInfoReader> MockCrossChainInfo()
         {
-            var mock = new Mock<ICrossChainInfoHelper>();
+            var mock = new Mock<ICrossChainInfoReader>();
             mock.Setup(m => m.GetParentChainCurrentHeight()).Returns(() => GetTimes);
             return mock;
         }
