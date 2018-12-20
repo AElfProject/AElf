@@ -274,7 +274,7 @@ message StringList {
 
 message BlockAbstract {
     string MinerPublicKey = 1;
-    
+    google.protobuf.Timestamp Time = 2;
 }
 
 enum BlockValidationResult {

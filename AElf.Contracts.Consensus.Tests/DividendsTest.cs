@@ -37,7 +37,7 @@ namespace AElf.Contracts.Consensus.Tests
             _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
         }
         
-        [Fact]
+        [Fact(Skip = "Time consuming")]
         public void GetDividendsTest()
         {
             GlobalConfig.ElfTokenPerBlock = 1000;
@@ -69,8 +69,13 @@ namespace AElf.Contracts.Consensus.Tests
             }
             Assert.NotNull(mustVotedVoter);
 
-            var ticketsToFriendlyString = _consensusContract.GetTicketsInfoToFriendlyString(mustVotedVoter);
+            var ticketsInformationInJson = _consensusContract.GetTicketsInfoToFriendlyString(mustVotedVoter);
             Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
+
+            var ticketsInformation = _consensusContract.GetTicketsInfo(mustVotedVoter);
+            var votedTickets = ticketsInformation.TotalTickets;
+            var balanceAfterVoting = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
+            Assert.True(votedTickets + balanceAfterVoting == 100_000);
 
             // Get victories of first term of election, they are miners then.
             var victories = _consensusContract.GetCurrentVictories().Values;

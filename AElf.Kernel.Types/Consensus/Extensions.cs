@@ -84,7 +84,8 @@ namespace AElf.Kernel
         {
             return new BlockAbstract
             {
-                MinerPublicKey = block.Header.P.ToByteArray().ToHex()
+                MinerPublicKey = block.Header.P.ToByteArray().ToHex(),
+                Time = block.Header.Time
             };
         }
         
