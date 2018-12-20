@@ -33,7 +33,7 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger = LogManager.GetLogger(nameof(BlockSet));
         }
         
-        public BlockState Init(List<string> miners, Block currentDbBlock)
+        public BlockState Init(List<string> miners, IBlock currentDbBlock)
         {
             _miners = miners.ToList();
             
