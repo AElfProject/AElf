@@ -58,43 +58,43 @@ bool
 
 To check whether the provided public key contained by the candidates list.
 
-### GetCandidatesList
+### GetCandidatesList / GetCandidatesListToFriendlyString
 
 *No params*
 
 Result Type:
-- StringList
+- StringList / string
 
 To get current candidates list.
 
-### GetCandidateHistoryInfo
+### GetCandidateHistoryInfo / GetCandidateHistoryInfoToFriendlyString
 
 Params:
 - string publicKeyHexString
 
 Result Type:
-CandidateInHistory
+CandidateInHistory / string
 
 To get the history information of provided candidate.
 
 No need to be the current candidate.
 
-### GetCurrentMiners
+### GetCurrentMiners / GetCurrentMinersToFriendlyString
 
 *No params*
 
 Result Type:
-- StringList
+- StringList / string
 
 To get current miners.
 
-### GetTicketsInfo
+### GetTicketsInfo / GetTicketsInfoToFriendlyString
 
 Params:
 - string publicKeyHexString
 
 Result type:
-- Tickets
+- Tickets / string
 
 To get the tickets information of provided public key.
 
@@ -109,22 +109,22 @@ Result Type:
 
 To get the age of this blockchain. (Currently the unit is day.)
 
-### GetCurrentVictories
+### GetCurrentVictories / GetCurrentVictoriesToFriendlyString
 
 *No params*
 
 Result Type:
-- StringList
+- StringList / string
 
 To get the victories of ongoing election.
 
-### GetTermSnapshot
+### GetTermSnapshot / GetTermSnapshotToFriendlyString
 
 Params:
 - ulong termNumbner
 
 Result Type:
-- TermSnapshot
+- TermSnapshot / string
 
 To get the term snapshot of provided term number.
 
@@ -138,12 +138,12 @@ Result Type:
 
 To get the term number of provided round number.
 
-### GetCurrentElectionInfo
+### GetCurrentElectionInfo / GetCurrentElectionInfoToFriendlyString
 
 *No params*
 
 Result Type:
-- TicketsDictionary
+- TicketsDictionary / string
 
 To get the election information during the election.
 
@@ -183,12 +183,12 @@ ulong
 
 To query total dividends of current term.
 
-### QueryAliasesInUse
+### QueryAliasesInUse / QueryAliasesInUseToFriendlyString
 
 *No params*
 
 Result Type:
-StringList
+StringList / string
 
 To query all the alias in use.
 
@@ -252,43 +252,43 @@ To query all the alias in use.
 
 检查提供的公钥是否是候选人的公钥。
 
-### GetCandidatesList
+### GetCandidatesList / GetCandidatesListToFriendlyString
 
 *无参数*
 
 返回类型：
-- StringList
+- StringList / string
 
 获取候选人公钥列表。
 
-### GetCandidateHistoryInfo
+### GetCandidateHistoryInfo / GetCandidateHistoryInfoToFriendlyString
 
 参数:
 - string publicKeyHexString
 
 返回类型：
-CandidateInHistory
+CandidateInHistory / string
 
 获取所提供公钥的候选人的对区块链的贡献历史，如历史出块数量、错过时间槽数量等。
 
 该候选人不必是当前候选人。
 
-### GetCurrentMiners
+### GetCurrentMiners / GetCurrentMinersToFriendlyString
 
 *无参数*
 
 返回类型：
-- StringList
+- StringList / string
 
 获取当前在任的区块生产者公钥列表，
 
-### GetTicketsInfo
+### GetTicketsInfo / GetTicketsInfoToFriendlyString
 
 参数:
 - string publicKeyHexString
 
 返回类型：
-- Tickets
+- Tickets / string
 
 获取所提供公钥的投票详情，
 
@@ -303,22 +303,22 @@ CandidateInHistory
 
 获取区块链的年龄。（当前单位为天）。
 
-### GetCurrentVictories
+### GetCurrentVictories / GetCurrentVictoriesToFriendlyString
 
 *无参数*
 
 返回类型：
-- StringList
+- StringList / string
 
 获取当前竞选的前N名。
 
-### GetTermSnapshot
+### GetTermSnapshot / GetTermSnapshotToFriendlyString
 
 参数:
 - ulong termNumbner
 
 返回类型：
-- TermSnapshot
+- TermSnapshot / string
 
 获取所提供届数的快照。
 
@@ -332,12 +332,12 @@ CandidateInHistory
 
 获取所提供轮数所在的届数。
 
-### GetCurrentElectionInfo
+### GetCurrentElectionInfo / GetCurrentElectionInfoToFriendlyString
 
 *无参数*
 
 返回类型:
-- TicketsDictionary
+- TicketsDictionary / string
 
 竞选过程中获取所有候选人的选票详情。
 
@@ -379,12 +379,12 @@ ulong
 
 出块奖励分红取决于本届的出块数，会不断增加。
 
-### QueryAliasesInUse
+### QueryAliasesInUse / QueryAliasesInUseToFriendlyString
 
 *无参数*
 
 返回类型：
-StringList
+StringList / string
 
 查询已经被使用的别名。
 

@@ -374,6 +374,30 @@ namespace AElf.Contracts.Consensus.Tests
             TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Tickets>();
         }
+        
+        public string GetTicketsInfoToFriendlyString(ECKeyPair keyPair)
+        {
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "GetTicketsInfoToFriendlyString",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(keyPair.PublicKey.ToHex()))
+            };
+            var signer = new ECSigner();
+            var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+
+            TransactionContext = new TransactionContext
+            {
+                Transaction = tx
+            };
+
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
 
         public StringList GetCurrentVictories()
         {

@@ -6,6 +6,7 @@ using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using AElf.Contracts.Consensus.Contracts;
+using Newtonsoft.Json.Linq;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus
@@ -107,6 +108,12 @@ namespace AElf.Contracts.Consensus
         {
             return Collection.CandidatesField.GetValue().PublicKeys.ToList().ToStringList();
         }
+        
+        [View]
+        public string GetCandidatesListToFriendlyString(string empty)
+        {
+            return Collection.CandidatesField.GetValue().PublicKeys.ToList().ToAString();
+        }
 
         [View]
         public CandidateInHistory GetCandidateHistoryInfo(string publicKey)
@@ -114,6 +121,12 @@ namespace AElf.Contracts.Consensus
             Api.Assert(Collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var info),
                 GlobalConfig.CandidateNotFound);
             return info;
+        }
+        
+        [View]
+        public string GetCandidateHistoryInfoToFriendlyString(string publicKey)
+        {
+            return GetCandidateHistoryInfo(publicKey).ToFriendlyString();
         }
 
         [View]
@@ -124,12 +137,28 @@ namespace AElf.Contracts.Consensus
                 GlobalConfig.TermNumberNotFound);
             return currentMiners.PublicKeys.ToList().ToStringList();
         }
+        
+        [View]
+        public string GetCurrentMinersToFriendlyString(string empty)
+        {
+            var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
+            Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
+                GlobalConfig.TermNumberNotFound);
+            return currentMiners.PublicKeys.ToList().ToAString();
+
+        }
 
         [View]
         public Tickets GetTicketsInfo(string publicKey)
         {
             Api.Assert(Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets), GlobalConfig.TicketsNotFound);
             return tickets;
+        }
+        
+        [View]
+        public string GetTicketsInfoToFriendlyString(string publicKey)
+        {
+            return GetTicketsInfo(publicKey).ToFriendlyString();
         }
 
         [View]
@@ -148,6 +177,21 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
+        public string GetCurrentElectionInfoToFriendlyString(string empty)
+        {
+            var jObject = new JObject();
+            foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
+            {
+                if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                {
+                    jObject.Add(publicKey, tickets.ToFriendlyString());
+                }
+            }
+
+            return jObject.ToString();
+        }
+        
+        [View]
         public ulong GetBlockchainAge(string empty)
         {
             return Collection.AgeField.GetValue();
@@ -156,7 +200,13 @@ namespace AElf.Contracts.Consensus
         [View]
         public StringList GetCurrentVictories(string empty)
         {
-            return Process.GetCurrentVictories();
+            return Process.GetVictories().ToStringList();
+        }
+        
+        [View]
+        public string GetCurrentVictoriesToFriendlyString(string empty)
+        {
+            return Process.GetVictories().ToAString();
         }
   
         [View]
@@ -164,6 +214,12 @@ namespace AElf.Contracts.Consensus
         {
             Api.Assert(Collection.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot), GlobalConfig.TermSnapshotNotFound);
             return snapshot;
+        }
+        
+        [View]
+        public string GetTermSnapshotToFriendlyString(ulong termNumber)
+        {
+            return GetTermSnapshot(termNumber).ToString();
         }
 
         [View]
@@ -216,6 +272,22 @@ namespace AElf.Contracts.Consensus
             }
 
             return result;
+        }
+        
+        [View]
+        public string QueryAliasesInUseToFriendlyString(string empty)
+        {
+            var candidates = Collection.CandidatesField.GetValue();
+            var result = new List<string>();
+            foreach (var publicKey in candidates.PublicKeys)
+            {
+                if (Collection.AliasesMap.TryGet(publicKey.ToStringValue(), out var alias))
+                {
+                    result.Add(alias.Value);
+                }
+            }
+
+            return result.ToAString();
         }
         
         public void AnnounceElection(string alias)

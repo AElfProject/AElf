@@ -302,11 +302,6 @@ namespace AElf.Contracts.Consensus.Contracts
                 .ToList();
         }
 
-        public StringList GetCurrentVictories()
-        {
-            return GetVictories().ToStringList();
-        }
-
         private void SnapshotAndDividends()
         {
             var currentRoundInfo = GetCurrentRoundInfo();

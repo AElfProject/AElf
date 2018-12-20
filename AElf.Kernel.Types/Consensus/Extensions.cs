@@ -41,9 +41,10 @@ namespace AElf.Kernel
             return new Miners {PublicKeys = {minerPublicKeys}};
         }
 
-        public static string ToAString(this IEnumerable<string> minerPublicKeys)
+        public static string ToAString<T>(this IEnumerable<T> element)
         {
-            var res = minerPublicKeys.Aggregate("", (current, minerPublicKey) => current + minerPublicKey + ";");
+            var res = element.Aggregate("",
+                (current, minerPublicKey) => current + $" {{ \" {minerPublicKey.ToString()} \" }} ");
             return res.Substring(0, res.Length - 1);
         }
 

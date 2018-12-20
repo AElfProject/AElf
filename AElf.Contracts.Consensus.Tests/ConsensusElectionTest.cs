@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.False(res);
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Time consuming.")]
         public void VoteTest()
         {
             InitializeToken();
