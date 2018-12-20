@@ -14,9 +14,13 @@ namespace AElf.Kernel
             
             builder.RegisterType<ProtobufSerializer>().As<IByteSerializer>().SingleInstance();
             
-            builder.RegisterType<StateManager>().As<IStateManager>();
             
             builder.RegisterType<StateStore>().As<IStateStore>().SingleInstance();
+            builder.RegisterType<TransactionStore>().As<ITransactionStore>().SingleInstance();
+            
+            builder.RegisterType<StateManager>().As<IStateManager>();
+            builder.RegisterType<TransactionManager>().As<ITransactionManager>();
+
             
             
             
@@ -25,9 +29,7 @@ namespace AElf.Kernel
             builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
             builder.RegisterType<HashManager>().As<IHashManager>();
             builder.RegisterType<MinersManager>().As<IMinersManager>();
-            builder.RegisterType<PointerManager>().As<IPointerManager>();
             builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
-            builder.RegisterType<TransactionManager>().As<ITransactionManager>();
             builder.RegisterType<TransactionReceiptManager>().As<ITransactionReceiptManager>();
             builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>();
             builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();

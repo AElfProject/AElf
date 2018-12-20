@@ -11,6 +11,7 @@ using AElf.Common;
 using AElf.Configuration;
 using NLog;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Storages;
 using AElf.Miner.TxMemPool;
 
 namespace AElf.Contracts.SideChain.Tests
@@ -21,15 +22,18 @@ namespace AElf.Contracts.SideChain.Tests
         private SideChainContractShim _contract;
         private ILogger _logger;
         private MockSetup Mock;
+        
+        private ITransactionStore _transactionStore;
 
-        public SideChainTest(ILogger logger)
+        public SideChainTest(ILogger logger, ITransactionStore transactionStore)
         {
             _logger = logger;
+            _transactionStore = transactionStore;
         }
 
         private void Init()
         {
-            Mock = new MockSetup(_logger);
+            Mock = new MockSetup(_logger, _transactionStore);
         }
 
         [Fact(Skip = "TBD")]

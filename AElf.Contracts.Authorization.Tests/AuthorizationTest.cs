@@ -3,6 +3,7 @@ using System.IO;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Transaction;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -20,7 +21,7 @@ namespace AElf.Contracts.Authorization.Tests
         private AuthorizationContractShim _contract;
         private ILogger _logger;
         private MockSetup Mock;
-
+        
         //private static byte[] ChainId = ChainHelpers.GetRandomChainId();
         
         private void Init()

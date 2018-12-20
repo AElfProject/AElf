@@ -41,6 +41,7 @@ namespace AElf.Kernel.Storages
             var databaseKey = GetDatabaseKey(key);
             var result = await KeyValueDatabase.GetAsync(DataPrefix, databaseKey);
             
+            // Todo need to check
             //CheckReturnValue(result);
 
             return (T) Convert.ChangeType(result, typeof(T));

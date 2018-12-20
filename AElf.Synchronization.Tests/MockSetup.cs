@@ -31,16 +31,18 @@ namespace AElf.Synchronization.Tests
         private IExecutingService _concurrencyExecutingService;
         private ITxHub _txHub;
         private IChainManagerBasic _chainManagerBasic;
+        private ITransactionStore _transactionStore;
 
         private IBlockSynchronizer _blockSynchronizer;
 
-        public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub)
+        public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub, ITransactionStore transactionStore)
         {
             _dataStore = dataStore;
             _stateManager = stateManager;
+            _transactionStore = transactionStore;
             
             _smartContractManager = new SmartContractManager(_dataStore);
-            _transactionManager = new TransactionManager(_dataStore);
+            _transactionManager = new TransactionManager(_transactionStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();

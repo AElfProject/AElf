@@ -45,17 +45,20 @@ namespace AElf.Contracts.SideChain.Tests
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ILogger _logger;
         private IDataStore _dataStore;
+        
+        private ITransactionStore _transactionStore;
 
-        public MockSetup(ILogger logger)
+        public MockSetup(ILogger logger,ITransactionStore transactionStore)
         {
             _logger = logger;
+            _transactionStore = transactionStore;
             Initialize();
         }
 
         private void Initialize()
         {
             NewStorage();
-            var transactionManager = new TransactionManager(_dataStore, _logger);
+            var transactionManager = new TransactionManager(_transactionStore);
             var transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             var chainManagerBasic = new ChainManagerBasic(_dataStore);
@@ -73,7 +76,7 @@ namespace AElf.Contracts.SideChain.Tests
                 await Init();
             }).Unwrap().Wait();
             SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
-            ChainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore), new TransactionManager(_dataStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
+            ChainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore), new TransactionManager(_transactionStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
         }
 
         private void NewStorage()

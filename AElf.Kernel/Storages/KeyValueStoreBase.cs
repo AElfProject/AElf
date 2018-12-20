@@ -49,9 +49,10 @@ namespace AElf.Kernel.Storages
             var databaseKey = GetDatabaseKey(key);
             var result = await KeyValueDatabase.GetAsync(DataPrefix, databaseKey);
             
-            CheckReturnValue(result);
+            // Todo need to check
+            //CheckReturnValue(result);
 
-            return ByteSerializer.Deserialize<T>(result);
+            return result == null ? default(T) : ByteSerializer.Deserialize<T>(result);
         }
 
         public virtual async Task RemoveAsync(string key)

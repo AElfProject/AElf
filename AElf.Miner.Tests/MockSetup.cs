@@ -57,8 +57,10 @@ namespace AElf.Miner.Tests
         private IChainManagerBasic _chainManagerBasic;
         private IAuthorizationInfo _authorizationInfo;
         private IStateManager _stateManager;
+        private ITransactionStore _transactionStore;
 
-        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateManager stateManager, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
+        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateManager stateManager, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator
+            ,ITransactionStore transactionStore)
         {
             _logger = logger;
             _database = database;
@@ -66,12 +68,13 @@ namespace AElf.Miner.Tests
             _stateManager = stateManager;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
+            _transactionStore = transactionStore;
             Initialize();
         }
 
         private void Initialize()
         {
-            _transactionManager = new TransactionManager(_dataStore, _logger);
+            _transactionManager = new TransactionManager(_transactionStore);
             _transactionReceiptManager = new TransactionReceiptManager(_database);
             _smartContractManager = new SmartContractManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
