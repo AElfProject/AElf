@@ -115,7 +115,7 @@ namespace AElf.Sdk.CSharp
             return RecoverPublicKey(GetTransaction().Sigs.First().ToByteArray(), GetTxnHash().DumpByteArray());
         }
         
-        public static List<byte[]> GetSystemReviewers()
+        public static List<byte[]> GetMiners()
         {
             Call(ConsensusContractAddress, "GetCurrentMiners");
             return GetCallResult().DeserializeToPbMessage<Miners>().Producers.Select(p => p.ToByteArray()).ToList();
@@ -286,7 +286,7 @@ namespace AElf.Sdk.CSharp
             SendInline(TokenContractAddress, "Transfer", GetContractAddress(), amount);
         }
         
-        public static void WithdrawToken(Address address, ulong amount)
+        public static void UnlockToken(Address address, ulong amount)
         {
             SendInlineByContract(TokenContractAddress, "Transfer", address, amount);
         }
@@ -311,6 +311,16 @@ namespace AElf.Sdk.CSharp
             {
                 throw new AssertionError(message);
             }
+        }
+
+        public static void Equal<T>(T expected, T actual, string message = "Assertion failed!")
+        {
+            Assert(expected.Equals(actual), message);
+        }
+        
+        public static void NotEqual<T>(T expected, T actual, string message = "Assertion failed!")
+        {
+            Assert(!expected.Equals(actual), message);
         }
 
         internal static void FireEvent(LogEvent logEvent)
@@ -373,7 +383,11 @@ namespace AElf.Sdk.CSharp
 
         }
 
-
+        public static void IsMiner(string err)
+        {
+            Assert(GetMiners().Any(m => m.BytesEqual(RecoverPublicKey())), err);
+        }
+        
         /// <summary>
         /// Create and propose a proposal. Proposer is current transaction from account.
         /// </summary>

@@ -43,11 +43,12 @@ namespace AElf.ChainController.Rpc
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public INodeService MainchainNodeService { get; set; }
-        public ICrossChainInfoHelper CrossChainInfoHelper { get; set; }
+        public ICrossChainInfoReader CrossChainInfoReader { get; set; }
         public IAuthorizationInfo AuthorizationInfo { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSet BlockSet { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
+        public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
 
         #endregion Properties
 
@@ -290,8 +291,8 @@ namespace AElf.ChainController.Rpc
                 var txResult = await this.GetTransactionResult(txHash);
                 if(txResult.Status != Status.Mined)
                    throw new Exception("Transaction is not mined.");
-                
-                var merklePath = txResult.MerklePath?.Clone();
+                var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(txResult.BlockNumber);
+                var merklePath = binaryMerkleTree.GenerateMerklePath(txResult.Index);
                 if(merklePath == null)
                     throw new Exception("Not found merkle path for this transaction.");
                 MerklePath merklePathInParentChain = null;
@@ -554,7 +555,7 @@ namespace AElf.ChainController.Rpc
                         ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.DumpHex(),
                         ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.DumpHex(),
                         ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.DumpHex(),
-                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.DumpHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot?.DumpHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),
