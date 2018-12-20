@@ -14,8 +14,8 @@ namespace AElf.ChainController
 {
     public class ChainService : IChainService
     {
-        private readonly IChainManagerBasic _chainManager;
-        private readonly IBlockManagerBasic _blockManager;
+        private readonly IChainManager _chainManager;
+        private readonly IBlockManager _blockManager;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IDataStore _dataStore;
@@ -23,7 +23,7 @@ namespace AElf.ChainController
 
         private readonly ConcurrentDictionary<Hash, BlockChain> _blockchains = new ConcurrentDictionary<Hash, BlockChain>();
 
-        public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
+        public ChainService(IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager, 
             IDataStore dataStore, IStateStore stateStore)
         {

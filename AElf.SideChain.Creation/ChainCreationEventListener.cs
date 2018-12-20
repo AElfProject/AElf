@@ -29,15 +29,15 @@ namespace AElf.SideChain.Creation
         private IChainCreationService ChainCreationService { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
-        private IChainManagerBasic _chainManagerBasic;
+        private IChainManager _chainManager;
 
         public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager, 
-            IChainCreationService chainCreationService, IChainManagerBasic chainManagerBasic)
+            IChainCreationService chainCreationService, IChainManager chainManager)
         {
             _logger = logger;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
-            _chainManagerBasic = chainManagerBasic;
+            _chainManager = chainManager;
             _interestedLogEvent = new LogEvent()
             {
                 Address = ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId)),
