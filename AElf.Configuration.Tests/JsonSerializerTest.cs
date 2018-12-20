@@ -80,5 +80,13 @@ namespace AElf.Configuration.Tests
 
             return true;
         }
+
+        public override int GetHashCode()
+        {
+            var hash = 1;
+            if (ValueString.Length > 0) hash ^= ValueString.GetHashCode();
+            if (ValueInt > 0) hash ^= ValueInt.GetHashCode();
+            return hash;
+        }
     }
 }

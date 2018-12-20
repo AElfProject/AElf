@@ -12,6 +12,8 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using ServiceStack;
 
+#pragma warning disable CS0169,CS0649
+
 // ReSharper disable UnusedMember.Global
 namespace AElf.Contracts.Token
 {

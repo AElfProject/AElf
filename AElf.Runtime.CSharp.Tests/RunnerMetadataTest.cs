@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Configuration.Config.Contract;
 using AElf.Common;
+using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
@@ -13,7 +13,6 @@ using Google.Protobuf;
 using QuickGraph;
 using Xunit;
 using Xunit.Frameworks.Autofac;
-using AElf.Common;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -34,7 +33,7 @@ namespace AElf.Runtime.CSharp.Tests
         {
             RunnerConfig.Instance.SdkDir = _mock.SdkDir;
             var runner = new SmartContractRunner();
-            
+
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -43,7 +42,7 @@ namespace AElf.Runtime.CSharp.Tests
             };
 
             var resC = runner.ExtractMetadata(typeof(TestContractC));
-            
+
             // Structure of the test data
             var groundTruthResC = new Dictionary<string, FunctionMetadataTemplate>(
                 new[] // function metadata map for contract
@@ -68,10 +67,10 @@ namespace AElf.Runtime.CSharp.Tests
                                     DataAccessMode.ReadOnlyAccountSharing)
                             })))
                 });
-            
+
             var groundTruthTemplateC = new ContractMetadataTemplate(typeof(TestContractC).FullName, groundTruthResC,
                 new Dictionary<string, Address>());
-            
+
             Assert.Equal(groundTruthTemplateC, resC, new ContractMetadataTemplateEqualityComparer());
 
             var resB = runner.ExtractMetadata(typeof(TestContractB));
@@ -92,17 +91,17 @@ namespace AElf.Runtime.CSharp.Tests
                         new HashSet<Resource>(new[]
                             {new Resource("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)})))
             });
-            
-            var refB = new Dictionary<string, Address>(new []
+
+            var refB = new Dictionary<string, Address>(new[]
             {
-                new KeyValuePair<string, Address>("ContractC", Address.FromString("ELF_1234_TestContractC")) 
+                new KeyValuePair<string, Address>("ContractC", Address.FromString("ELF_1234_TestContractC"))
             });
-            
+
             var groundTruthTemplateB = new ContractMetadataTemplate(typeof(TestContractB).FullName, groundTruthResB,
                 refB);
-            
+
             Assert.Equal(groundTruthTemplateB, resB, new ContractMetadataTemplateEqualityComparer());
-            
+
             var resA = runner.ExtractMetadata(typeof(TestContractA));
 
             var groundTruthResA = new Dictionary<string, FunctionMetadataTemplate>(new[]
@@ -161,23 +160,21 @@ namespace AElf.Runtime.CSharp.Tests
                         new HashSet<string>(new[] {"${_contractB}.Func1", "${this}.Func3"}),
                         new HashSet<Resource>())),
             });
-            
-            var refA = new Dictionary<string, Address>(new []
+
+            var refA = new Dictionary<string, Address>(new[]
             {
-                new KeyValuePair<string, Address>("ContractC", Address.FromString("ELF_1234_TestContractC")), 
-                new KeyValuePair<string, Address>("_contractB", Address.FromString("ELF_1234_TestContractB")), 
+                new KeyValuePair<string, Address>("ContractC", Address.FromString("ELF_1234_TestContractC")),
+                new KeyValuePair<string, Address>("_contractB", Address.FromString("ELF_1234_TestContractB")),
             });
-            
+
             var groundTruthTemplateA = new ContractMetadataTemplate(typeof(TestContractA).FullName, groundTruthResA,
                 refA);
-            
+
             Assert.Equal(groundTruthTemplateA, resA, new ContractMetadataTemplateEqualityComparer());
 
             //test fail cases
             await TestFailCases(runner);
         }
-        
-
 
         public async Task TestFailCases(SmartContractRunner runner)
         {
@@ -268,7 +265,6 @@ namespace AElf.Runtime.CSharp.Tests
 
         private string FunctionMetadataTemplateMapToString(Dictionary<string, FunctionMetadataTemplate> map)
         {
-
             return string.Join(
                 " ",
                 map.OrderBy(a => a.Key)
@@ -292,6 +288,7 @@ namespace AElf.Runtime.CSharp.Tests
 
     #region Dummy Contract for test
 
+#pragma warning disable CS0169,CS0649
     public class TestContractC
     {
         [SmartContractFieldData("${this}.resource4", DataAccessMode.AccountSpecific)]
@@ -311,6 +308,7 @@ namespace AElf.Runtime.CSharp.Tests
         }
     }
 
+#pragma warning disable CS0169,CS0649
     internal class TestContractB
     {
         [SmartContractFieldData("${this}.resource2", DataAccessMode.AccountSpecific)]
@@ -333,6 +331,7 @@ namespace AElf.Runtime.CSharp.Tests
         }
     }
 
+#pragma warning disable CS0169,CS0649
     internal class TestContractA
     {
         //test for different accessibility
@@ -401,6 +400,7 @@ namespace AElf.Runtime.CSharp.Tests
 
 
     //wrong cases
+#pragma warning disable CS0169,CS0649
     internal class TestContractD
     {
         //duplicate field name
@@ -411,6 +411,7 @@ namespace AElf.Runtime.CSharp.Tests
         public int resource1;
     }
 
+#pragma warning disable CS0169,CS0649
     internal class TestContractE
     {
         [SmartContractFieldData("${this}.resource0", DataAccessMode.AccountSpecific)]
@@ -435,6 +436,7 @@ namespace AElf.Runtime.CSharp.Tests
         }
     }
 
+#pragma warning disable CS0169,CS0649
     internal class TestContractF
     {
         [SmartContractFieldData("${this}.resource0", DataAccessMode.AccountSpecific)]

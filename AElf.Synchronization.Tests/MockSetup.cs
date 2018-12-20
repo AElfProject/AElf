@@ -32,7 +32,7 @@ namespace AElf.Synchronization.Tests
         private ITxHub _txHub;
         private IChainManager _chainManager;
 
-        private IBlockSynchronizer _blockSynchronizer;
+        // private IBlockSynchronizer _blockSynchronizer;
 
         public MockSetup(IDataStore dataStore, IStateStore stateStore, ITxHub txHub)
         {
