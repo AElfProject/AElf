@@ -6,11 +6,11 @@ namespace AElf.Kernel.Managers
 {
     public class BinaryMerkleTreeManager : IBinaryMerkleTreeManager
     {
-        private readonly IDataStore _dataStore;
+        private readonly IMerkleTreeStore _merkleTreeStore;
 
-        public BinaryMerkleTreeManager(IDataStore dataStore)
+        public BinaryMerkleTreeManager(IMerkleTreeStore merkleTreeStore)
         {
-            _dataStore = dataStore;
+            _merkleTreeStore = merkleTreeStore;
         }
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace AElf.Kernel.Managers
         public async Task AddTransactionsMerkleTreeAsync(BinaryMerkleTree binaryMerkleTree, Hash chainId, ulong height)
         {
             var key = DataPath.CalculatePointerForTransactionsMerkleTreeByHeight(chainId, height);
-            await _dataStore.InsertAsync(key, binaryMerkleTree);
+            await _merkleTreeStore.SetAsync(key.DumpHex(), binaryMerkleTree);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace AElf.Kernel.Managers
             Hash chainId, ulong height)
         {
             var key = DataPath.CalculatePointerForSideChainTxRootsMerkleTreeByHeight(chainId, height);
-            await _dataStore.InsertAsync(key, binaryMerkleTree);
+            await _merkleTreeStore.SetAsync(key.DumpHex(), binaryMerkleTree);
         }
 
         /// <summary> 
@@ -49,7 +49,7 @@ namespace AElf.Kernel.Managers
         public async Task<BinaryMerkleTree> GetTransactionsMerkleTreeByHeightAsync(Hash chainId, ulong height)
         {
             var key = DataPath.CalculatePointerForTransactionsMerkleTreeByHeight(chainId, height);
-            return await _dataStore.GetAsync<BinaryMerkleTree>(key);
+            return await _merkleTreeStore.GetAsync<BinaryMerkleTree>(key.DumpHex());
         }
 
         /// <summary> 
@@ -61,32 +61,7 @@ namespace AElf.Kernel.Managers
         public async Task<BinaryMerkleTree> GetSideChainTransactionRootsMerkleTreeByHeightAsync(Hash chainId, ulong height)
         {
             var key = DataPath.CalculatePointerForSideChainTxRootsMerkleTreeByHeight(chainId, height);
-            return await _dataStore.GetAsync<BinaryMerkleTree>(key);
-        }
-
-        /// <summary>
-        /// Add <see cref="MerklePath"/> for tx root of a block indexed by parent chain.
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="chainId">Child chain id</param>
-        /// <param name="height">Child chain height</param>
-        /// <returns></returns>
-        public async Task AddIndexedTxRootMerklePathInParentChain(MerklePath path, Hash chainId, ulong height)
-        {
-            var key = DataPath.CalculatePointerForIndexedTxRootMerklePathByHeight(chainId, height);
-            await _dataStore.InsertAsync(key, path);
-        }
-        
-        /// <summary>
-        /// Add <see cref="MerklePath"/> for tx root of a block indexed by parent chain.
-        /// </summary>
-        /// <param name="chainId">Child chain id</param>
-        /// <param name="height">Child chain height</param>
-        /// <returns></returns>
-        public async Task<MerklePath> GetIndexedTxRootMerklePathInParentChain(Hash chainId, ulong height)
-        {
-            var key = DataPath.CalculatePointerForIndexedTxRootMerklePathByHeight(chainId, height);
-            return await _dataStore.GetAsync<MerklePath>(key);
+            return await _merkleTreeStore.GetAsync<BinaryMerkleTree>(key.DumpHex());
         }
     }
 }

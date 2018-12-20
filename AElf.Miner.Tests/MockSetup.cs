@@ -58,9 +58,10 @@ namespace AElf.Miner.Tests
         private IAuthorizationInfo _authorizationInfo;
         private IStateManager _stateManager;
         private ITransactionStore _transactionStore;
+        private IMerkleTreeStore _merkleTreeStore;
 
         public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateManager stateManager, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator
-            ,ITransactionStore transactionStore)
+            ,ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore)
         {
             _logger = logger;
             _database = database;
@@ -69,6 +70,7 @@ namespace AElf.Miner.Tests
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
             _transactionStore = transactionStore;
+            _merkleTreeStore = merkleTreeStore;
             Initialize();
         }
 
@@ -98,7 +100,7 @@ namespace AElf.Miner.Tests
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
                     _stateManager, _functionMetadataService), _logger);
 
-            _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
+            _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_merkleTreeStore);
             _chainContextService = new ChainContextService(_chainService);
             _authorizationInfo = new AuthorizationInfo(_stateManager);
         }
