@@ -13,10 +13,10 @@ using Xunit;
 
 namespace AElf.Synchronization.Tests
 {
-    public abstract class BlockSyncTestBase : IDisposable
+    public class BlockSyncTestBase : IDisposable
     {
         // todo move to helpers and really make random
-        public static Miners GetRandomMiners()
+        public Miners GetRandomMiners()
         {
             Miners m = new Miners();
             m.PublicKeys.Add("04dfd983a2f6831ac0d75ced5a357a921eef69d467dd71bda3c0fdbd3c8f3b8de0fdb403317da85a9bd04c00f8b3e69815badc3dd752aa7aead10561567e8be49b");
