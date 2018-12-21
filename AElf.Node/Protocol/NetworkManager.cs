@@ -756,7 +756,7 @@ namespace AElf.Node.Protocol
 
                 if (_lastBlocksReceived.Contains(blockHash))
                 {
-                    _logger.Warn($"Block {blockHash} already in network cache.");
+                    _logger.Warn($"Block {block.BlockHashToHex} already in network cache.");
                     return null;
                 }
 

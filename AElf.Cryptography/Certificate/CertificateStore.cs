@@ -82,7 +82,7 @@ namespace AElf.Cryptography.Certificate
                 string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + CertExtension));
                 return crt;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
@@ -101,7 +101,7 @@ namespace AElf.Cryptography.Certificate
                 string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + KeyExtension));
                 return crt;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
@@ -109,7 +109,7 @@ namespace AElf.Cryptography.Certificate
 
         private CertGenerator GetCertificateGenerator(RSAKeyPair keyPair)
         {
-            return  new CertGenerator().SetPublicKey(keyPair.PublicKey);
+            return new CertGenerator().SetPublicKey(keyPair.PublicKey);
         }
 
         private bool WriteKeyAndCertificate(object obj, string dir, string fileName, string extension)
@@ -148,6 +148,5 @@ namespace AElf.Cryptography.Certificate
         {
             return str.StartsWith("0x") ? str : "0x" + str;
         }
-       
     }
 }

@@ -77,7 +77,7 @@ namespace AElf.Cryptography
                     OpenAsync(address, password, null);
                 }
             }
-            catch (InvalidPasswordException e)
+            catch (InvalidPasswordException)
             {
                 return Errors.WrongPassword;
             }

@@ -63,6 +63,7 @@ namespace AElf.Miner.Miner
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
+
             Config = config;
             
             _consensusDataProvider = new ConsensusDataProvider(stateStore);
