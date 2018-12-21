@@ -194,7 +194,7 @@ namespace AElf.ChainController.Rpc
                 var res = await this.CallReadOnly(transaction);
                 response = new JObject
                 {
-                    ["return"] = res.ToHex()
+                    ["return"] = res?.ToHex()
                 };
             }
             catch (Exception e)

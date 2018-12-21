@@ -245,12 +245,16 @@ namespace AElf.ChainController.Rpc
             {
                 await executive.SetTransactionContext(txCtxt).Apply();
             }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
             finally
             {
                 await s.SmartContractService.PutExecutiveAsync(tx.To, executive);
             }
 
-            return trace.RetVal.ToFriendlyBytes();
+            return trace.RetVal?.ToFriendlyBytes();
         }
 
         #region Cross chain
