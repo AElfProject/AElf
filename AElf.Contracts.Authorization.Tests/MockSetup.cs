@@ -7,7 +7,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using ServiceStack;
-using    AElf.Common;
+using AElf.Common;
 using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Kernel.Manager.Interfaces;
@@ -47,34 +47,39 @@ namespace AElf.Contracts.Authorization.Tests
         private ITransactionManager _transactionManager;
         private IBlockManager _blockManager;
         private ISmartContractManager _smartContractManager;
+        private ITransactionTraceManager _transactionTraceManager;
 
         public MockSetup(ILogger logger, IBlockManager blockManager, ITransactionManager transactionManager
-            ,IChainManager chainManager, ISmartContractManager smartContractManager)
+            , IChainManager chainManager, ISmartContractManager smartContractManager,
+            ITransactionTraceManager transactionTraceManager)
         {
             _logger = logger;
             _blockManager = blockManager;
             _chainManager = chainManager;
             _transactionManager = transactionManager;
             _smartContractManager = smartContractManager;
+            _transactionTraceManager = transactionTraceManager;
             Initialize();
         }
 
         private void Initialize()
         {
             NewStorage();
-            var transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             ChainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, transactionTraceManager, _dataStore, StateManager);
+                _transactionManager, _transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
-            var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
+            var runner =
+                new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
                     StateManager, _functionMetadataService), _logger);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
-            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, new TransactionTraceManager(_dataStore), _dataStore, StateManager);
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
+                StateManager, _functionMetadataService);
+            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager,
+                _transactionTraceManager, _dataStore, StateManager);
         }
 
         private void NewStorage()
@@ -89,7 +94,9 @@ namespace AElf.Contracts.Authorization.Tests
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Authorization/bin/Debug/netstandard2.0/AElf.Contracts.Authorization.dll")))
+                using (FileStream file = File.OpenRead(Path.GetFullPath(
+                    "../../../../AElf.Contracts.Authorization/bin/Debug/netstandard2.0/AElf.Contracts.Authorization.dll"))
+                )
                 {
                     code = file.ReadFully();
                 }
@@ -103,7 +110,8 @@ namespace AElf.Contracts.Authorization.Tests
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
+                using (FileStream file = File.OpenRead(Path.GetFullPath(
+                    "../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
                 {
                     code = file.ReadFully();
                 }

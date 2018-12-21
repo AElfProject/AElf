@@ -5,11 +5,11 @@ using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.Kernel.Manager.Managers
 {
-    public class BinaryMerkleTreeManager : IBinaryMerkleTreeManager
+    public class MerkleTreeManager : IMerkleTreeManager
     {
         private readonly IMerkleTreeStore _merkleTreeStore;
 
-        public BinaryMerkleTreeManager(IMerkleTreeStore merkleTreeStore)
+        public MerkleTreeManager(IMerkleTreeStore merkleTreeStore)
         {
             _merkleTreeStore = merkleTreeStore;
         }

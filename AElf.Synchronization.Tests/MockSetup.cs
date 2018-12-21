@@ -38,14 +38,14 @@ namespace AElf.Synchronization.Tests
         public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub,
             ITransactionManager transactionManager
             , IChainManager chainManager, ISmartContractManager smartContractManager,
-            ITransactionResultManager transactionResultManager)
+            ITransactionResultManager transactionResultManager, ITransactionTraceManager transactionTraceManager)
         {
             _dataStore = dataStore;
             _stateManager = stateManager;
             _transactionManager = transactionManager;
 
             _smartContractManager = smartContractManager;
-            _transactionTraceManager = new TransactionTraceManager(_dataStore);
+            _transactionTraceManager = transactionTraceManager;
             _transactionResultManager = transactionResultManager;
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             _concurrencyExecutingService = new SimpleExecutingService(

@@ -20,13 +20,13 @@ namespace AElf.Miner.Rpc.Server
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private IBlockChain BlockChain { get; set; }
-        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private readonly IMerkleTreeManager _merkleTreeManager;
         public ParentChainBlockInfoRpcServerImpl(IChainService chainService, ILogger logger, 
-            IBinaryMerkleTreeManager binaryMerkleTreeManager)
+            IMerkleTreeManager merkleTreeManager)
         {
             _chainService = chainService;
             _logger = logger;
-            _binaryMerkleTreeManager = binaryMerkleTreeManager;
+            _merkleTreeManager = merkleTreeManager;
         }
 
         public void Init(Hash chainId)
@@ -84,7 +84,7 @@ namespace AElf.Miner.Rpc.Server
                                 ChainId = header?.ChainId
                             }
                         };
-                        var tree = await _binaryMerkleTreeManager
+                        var tree = await _merkleTreeManager
                             .GetSideChainTransactionRootsMerkleTreeByHeightAsync(header?.ChainId, requestedHeight);
                         if (tree != null)
                         {
@@ -159,7 +159,7 @@ namespace AElf.Miner.Rpc.Server
                             }
                         };
                         
-                        var tree = await _binaryMerkleTreeManager
+                        var tree = await _merkleTreeManager
                             .GetSideChainTransactionRootsMerkleTreeByHeightAsync(header?.ChainId, height);
                         //Todo: this is to tell side chain the height of side chain block in this main chain block, which could be removed with subsequent improvement.
                         body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))

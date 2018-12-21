@@ -50,7 +50,7 @@ namespace AElf.Miner.Tests
         private IExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
-        private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private IMerkleTreeManager _merkleTreeManager;
         private IKeyValueDatabase _database;
         private readonly IDataStore _dataStore;
         private IChainContextService _chainContextService;
@@ -75,7 +75,8 @@ namespace AElf.Miner.Tests
             IGenesisBlockHashStore genesisBlockHashStore, ICurrentBlockHashStore currentBlockHashStore,
             IChainHeightStore chainHeightStore,
             IBlockManager blockManager, ISmartContractManager smartContractManager,
-            ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager)
+            ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager, 
+            ITransactionTraceManager transactionTraceManager)
         {
             _logger = logger;
             _database = database;
@@ -94,13 +95,13 @@ namespace AElf.Miner.Tests
             _smartContractManager = smartContractManager;
             _transactionReceiptManager = transactionReceiptManager;
             _transactionResultManager = transactionResultManager;
+            _transactionTraceManager = transactionTraceManager;
             Initialize();
         }
 
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_transactionStore);
-            _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainManager = new ChainManager(_chainHeightStore, _genesisBlockHashStore, _currentBlockHashStore);
             _stateManager = new StateManager(new StateStore(_database, new ProtobufSerializer()));
@@ -120,7 +121,7 @@ namespace AElf.Miner.Tests
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
                     _stateManager, _functionMetadataService), _logger);
 
-            _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_merkleTreeStore);
+            _merkleTreeManager = new MerkleTreeManager(_merkleTreeStore);
             _chainContextService = new ChainContextService(_chainService);
             _authorizationInfo = new AuthorizationInfo(_stateManager);
         }
@@ -146,7 +147,7 @@ namespace AElf.Miner.Tests
         internal IMiner GetMiner(IMinerConfig config, ITxHub hub, ClientManager clientManager = null)
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
-                _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
+                _transactionResultManager, _logger, clientManager, _merkleTreeManager, null,
                 MockBlockValidationService().Object, _chainContextService, _chainManager, _stateManager);
 
             return miner;
@@ -155,7 +156,7 @@ namespace AElf.Miner.Tests
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
-                _transactionResultManager, clientManager, _binaryMerkleTreeManager,
+                _transactionResultManager, clientManager, _merkleTreeManager,
                 new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManager, _stateManager);
 
             return blockExecutor;
@@ -247,9 +248,9 @@ namespace AElf.Miner.Tests
             return mock;
         }
 
-        private Mock<IBinaryMerkleTreeManager> MockBinaryMerkleTreeManager()
+        private Mock<IMerkleTreeManager> MockBinaryMerkleTreeManager()
         {
-            Mock<IBinaryMerkleTreeManager> mock = new Mock<IBinaryMerkleTreeManager>();
+            Mock<IMerkleTreeManager> mock = new Mock<IMerkleTreeManager>();
             mock.Setup(b => b.GetSideChainTransactionRootsMerkleTreeByHeightAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
                 .Returns<Hash, ulong>((_, u) =>
                 {

@@ -208,14 +208,6 @@ namespace AElf.Kernel
         
         #endregion
 
-        #region Calculate pointer for tx result
-
-        public static Hash CalculatePointerForTxResult(Hash txId)
-        {
-            return Hash.Xor(txId, Hash.FromString("TransactionResult"));
-        }
-
-        #endregion
     }
 
     public class DataPath<T> where T : IMessage, new()

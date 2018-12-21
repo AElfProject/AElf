@@ -34,7 +34,7 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IExecutingService _executingService;
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
-        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private readonly IMerkleTreeManager _merkleTreeManager;
         private readonly ITxHub _txHub;
         private readonly IChainManager _chainManager;
         private readonly IStateManager _stateManager;
@@ -48,13 +48,13 @@ namespace AElf.Synchronization.BlockExecution
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManager chainManager, IStateManager stateManager)
+            IMerkleTreeManager merkleTreeManager, ITxHub txHub, IChainManager chainManager, IStateManager stateManager)
         {
             _chainService = chainService;
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
             _clientManager = clientManager;
-            _binaryMerkleTreeManager = binaryMerkleTreeManager;
+            _merkleTreeManager = merkleTreeManager;
             _txHub = txHub;
             _chainManager = chainManager;
             _stateManager = stateManager;
@@ -492,9 +492,9 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns></returns>
         private async Task UpdateCrossChainInfo(IBlock block, List<TransactionResult> txnRes)
         {
-            await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
+            await _merkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
                 block.Header.ChainId, block.Header.Index);
-            await _binaryMerkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
+            await _merkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
                 block.Body.BinaryMerkleTreeForSideChainTransactionRoots, block.Header.ChainId, block.Header.Index);
 
             // update side chain block info if execution succeed

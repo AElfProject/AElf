@@ -29,24 +29,24 @@ namespace AElf.Kernel
             builder.RegisterType<SmartContractStore>().As<ISmartContractStore>().SingleInstance();
             builder.RegisterType<TransactionReceiptStore>().As<ITransactionReceiptStore>().SingleInstance();
             builder.RegisterType<TransactionResultStore>().As<ITransactionResultStore>().SingleInstance();
-
-
+            builder.RegisterType<TransactionTraceStore>().As<ITransactionTraceStore>().SingleInstance();
+            
             
             builder.RegisterType<StateManager>().As<IStateManager>();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
-            builder.RegisterType<BinaryMerkleTreeManager>().As<IBinaryMerkleTreeManager>();
+            builder.RegisterType<MerkleTreeManager>().As<IMerkleTreeManager>();
             builder.RegisterType<BlockManager>().As<IBlockManager>();
             builder.RegisterType<ChainManager>().As<IChainManager>();
             builder.RegisterType<MinersManager>().As<IMinersManager>();
             builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
             builder.RegisterType<TransactionReceiptManager>().As<ITransactionReceiptManager>();
             builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
-
-
-            
-            
-            
             builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>();
+
+
+            
+            
+            
             builder.RegisterType<DataStore>().As<IDataStore>();
         }
     }

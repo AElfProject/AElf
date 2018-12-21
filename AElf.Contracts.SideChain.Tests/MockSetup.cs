@@ -51,26 +51,27 @@ namespace AElf.Contracts.SideChain.Tests
         private IBlockManager _blockManager;
         private IChainManager _chainManager;
         private ITransactionManager _transactionManager;
+        private ITransactionTraceManager _transactionTraceManager;
         
 
         public MockSetup(ILogger logger,ITransactionManager transactionManager,IBlockManager blockManager
-            , IChainManager chainManager,ISmartContractManager smartContractManager)
+            , IChainManager chainManager,ISmartContractManager smartContractManager,ITransactionTraceManager transactionTraceManager)
         {
             _logger = logger;
             _transactionManager = transactionManager;
             _chainManager = chainManager;
             _blockManager = blockManager;
             SmartContractManager = smartContractManager;
+            _transactionTraceManager = transactionTraceManager;
             Initialize();
         }
 
         private void Initialize()
         {
             NewStorage();
-            var transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             ChainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, transactionTraceManager, _dataStore, StateManager);
+                _transactionManager, _transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
@@ -82,7 +83,7 @@ namespace AElf.Contracts.SideChain.Tests
                 await Init();
             }).Unwrap().Wait();
             SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
-            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, new TransactionTraceManager(_dataStore), _dataStore, StateManager);
+            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, _transactionTraceManager, _dataStore, StateManager);
         }
 
         private void NewStorage()

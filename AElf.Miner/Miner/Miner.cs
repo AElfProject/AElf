@@ -39,7 +39,7 @@ namespace AElf.Miner.Miner
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private readonly IMerkleTreeManager _merkleTreeManager;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
         
@@ -62,7 +62,7 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
+            IMerkleTreeManager merkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IChainContextService chainContextService
             , IChainManager chainManager,IStateManager stateManager)
         {
@@ -72,7 +72,7 @@ namespace AElf.Miner.Miner
             _transactionResultManager = transactionResultManager;
             _logger = logger;
             _clientManager = clientManager;
-            _binaryMerkleTreeManager = binaryMerkleTreeManager;
+            _merkleTreeManager = merkleTreeManager;
             _serverManager = serverManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
@@ -396,10 +396,10 @@ namespace AElf.Miner.Miner
                 await _transactionResultManager.AddTransactionResultAsync(r);
             });
             // update merkle tree
-            _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
+            _merkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
                 block.Header.Index);
             if (block.Body.IndexedInfo.Count > 0)
-                _binaryMerkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
+                _merkleTreeManager.AddSideChainTransactionRootsMerkleTreeAsync(
                     block.Body.BinaryMerkleTreeForSideChainTransactionRoots, Config.ChainId, block.Header.Index);
         }
 
