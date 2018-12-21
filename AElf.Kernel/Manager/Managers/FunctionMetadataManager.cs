@@ -17,9 +17,9 @@ namespace AElf.Kernel.Manager.Managers
             _callGraphStore = callGraphStore;
         }
 
-        private string GetMetadataKey(Hash chainId, string key)
+        private string GetMetadataKey(Hash chainId, string name)
         {
-            return DataPath.CalculatePointerForMetadata(chainId, key).DumpHex();
+            return chainId.DumpHex() + name;
         }
         
         public async Task AddMetadataAsync(Hash chainId, string name, FunctionMetadata metadata)

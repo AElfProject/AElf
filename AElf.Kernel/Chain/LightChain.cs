@@ -96,11 +96,6 @@ namespace AElf.Kernel
             MessageHub.Instance.Publish((BlockHeader) header);
         }
 
-        protected Hash GetHeightHash(ulong height)
-        {
-            return DataPath.CalculatePointerForGettingBlockHashByHeight(_chainId, height);
-        }
-
         public async Task<Hash> GetCanonicalHashAsync(ulong height)
         {
             var blockHash = await _chainManager.GetCanonical(_chainId, height);

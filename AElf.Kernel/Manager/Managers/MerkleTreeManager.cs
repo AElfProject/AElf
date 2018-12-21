@@ -23,8 +23,8 @@ namespace AElf.Kernel.Manager.Managers
         /// <returns></returns>
         public async Task AddTransactionsMerkleTreeAsync(BinaryMerkleTree binaryMerkleTree, Hash chainId, ulong height)
         {
-            var key = DataPath.CalculatePointerForTransactionsMerkleTreeByHeight(chainId, height);
-            await _merkleTreeStore.SetAsync(key.DumpHex(), binaryMerkleTree);
+            var key = GetTransactionsMerkleTreeKey(chainId, height);
+            await _merkleTreeStore.SetAsync(key, binaryMerkleTree);
         }
 
         /// <summary>
@@ -37,8 +37,8 @@ namespace AElf.Kernel.Manager.Managers
         public async Task AddSideChainTransactionRootsMerkleTreeAsync(BinaryMerkleTree binaryMerkleTree, 
             Hash chainId, ulong height)
         {
-            var key = DataPath.CalculatePointerForSideChainTxRootsMerkleTreeByHeight(chainId, height);
-            await _merkleTreeStore.SetAsync(key.DumpHex(), binaryMerkleTree);
+            var key = GetSideChainTransactionsMerkleTreeKey(chainId, height);
+            await _merkleTreeStore.SetAsync(key, binaryMerkleTree);
         }
 
         /// <summary> 
@@ -49,8 +49,8 @@ namespace AElf.Kernel.Manager.Managers
         /// <returns></returns>
         public async Task<BinaryMerkleTree> GetTransactionsMerkleTreeByHeightAsync(Hash chainId, ulong height)
         {
-            var key = DataPath.CalculatePointerForTransactionsMerkleTreeByHeight(chainId, height);
-            return await _merkleTreeStore.GetAsync<BinaryMerkleTree>(key.DumpHex());
+            var key = GetTransactionsMerkleTreeKey(chainId, height);
+            return await _merkleTreeStore.GetAsync<BinaryMerkleTree>(key);
         }
 
         /// <summary> 
@@ -61,8 +61,18 @@ namespace AElf.Kernel.Manager.Managers
         /// <returns></returns>
         public async Task<BinaryMerkleTree> GetSideChainTransactionRootsMerkleTreeByHeightAsync(Hash chainId, ulong height)
         {
-            var key = DataPath.CalculatePointerForSideChainTxRootsMerkleTreeByHeight(chainId, height);
-            return await _merkleTreeStore.GetAsync<BinaryMerkleTree>(key.DumpHex());
+            var key = GetSideChainTransactionsMerkleTreeKey(chainId, height);
+            return await _merkleTreeStore.GetAsync<BinaryMerkleTree>(key);
+        }
+
+        private string GetTransactionsMerkleTreeKey(Hash chainId, ulong height)
+        {
+            return chainId.DumpHex() + height;
+        }
+        
+        private string GetSideChainTransactionsMerkleTreeKey(Hash chainId, ulong height)
+        {
+            return "s"+chainId.DumpHex() + height;
         }
     }
 }

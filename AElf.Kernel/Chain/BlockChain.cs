@@ -71,7 +71,7 @@ namespace AElf.Kernel
         {
             await AddHeaderAsync(block.Header);
             // TODO: This will be problematic if the block is used somewhere else after this method
-            block.Body.TransactionList.Clear();
+            //block.Body.TransactionList.Clear();
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         }
 

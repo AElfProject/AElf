@@ -85,7 +85,7 @@ namespace AElf.Kernel.Manager.Managers
 
         private string GetCanonicalKey(Hash chainId, ulong height)
         {
-            return DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, height).DumpHex();
+            return chainId.DumpHex() + height;
         }
     }
 }

@@ -11,9 +11,6 @@ namespace AElf.Kernel
     {
         protected override void Load(ContainerBuilder builder)
         {
-            var assembly2 = typeof(BlockHeader).Assembly;
-            builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
-            
             builder.RegisterType<ProtobufSerializer>().As<IByteSerializer>().SingleInstance();
             
             builder.RegisterType<StateStore>().As<IStateStore>().SingleInstance();
