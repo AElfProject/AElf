@@ -4,8 +4,7 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
 
 namespace AElf.SmartContract.Proposal
 {

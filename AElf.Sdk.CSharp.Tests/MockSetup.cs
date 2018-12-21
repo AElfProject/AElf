@@ -2,8 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
@@ -11,6 +9,9 @@ using Google.Protobuf;
 using AElf.Kernel.Tests;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.Sdk.CSharp.Tests
 {

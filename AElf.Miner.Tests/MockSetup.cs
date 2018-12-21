@@ -7,8 +7,6 @@ using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc.Server;
 using AElf.Runtime.CSharp;
@@ -22,6 +20,10 @@ using AElf.Common.Serializers;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution.Execution;
+using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage.Storages;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
@@ -54,7 +56,7 @@ namespace AElf.Miner.Tests
         private IChainContextService _chainContextService;
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
-        private IChainManagerBasic _chainManagerBasic;
+        private IChainManager _chainManager;
         private IAuthorizationInfo _authorizationInfo;
         private IStateManager _stateManager;
         private ITransactionStore _transactionStore;
@@ -88,9 +90,9 @@ namespace AElf.Miner.Tests
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            _chainManagerBasic = new ChainManagerBasic(_dataStore);
+            _chainManager = new ChainManager(_dataStore);
             _stateManager = new StateManager(new StateStore(_database, new ProtobufSerializer()));
-            _chainService = new ChainService(_chainManagerBasic, new BlockManager(_blockHeaderStore, _blockBodyStore),
+            _chainService = new ChainService(_chainManager, new BlockManager(_blockHeaderStore, _blockBodyStore),
                 _transactionManager, _transactionTraceManager, _dataStore, _stateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
@@ -133,7 +135,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _chainContextService, _chainManagerBasic, _stateManager);
+                MockBlockValidationService().Object, _chainContextService, _chainManager, _stateManager);
 
             return miner;
         }
@@ -142,7 +144,7 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManagerBasic, _stateManager);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManager, _stateManager);
 
             return blockExecutor;
         }
@@ -260,9 +262,9 @@ namespace AElf.Miner.Tests
             return new ServerManager(impl1, impl2, _logger);
         }
         
-        public Mock<IChainManagerBasic> MockChainManager()
+        public Mock<IChainManager> MockChainManager()
         {
-            var mock = new Mock<IChainManagerBasic>();
+            var mock = new Mock<IChainManager>();
             mock.Setup(cm => cm.GetCurrentBlockHeightAsync(It.IsAny<Hash>())).Returns(() =>
             {
                 var k = _i;

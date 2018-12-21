@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Extensions;
 using AElf.SmartContract;
-using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -12,6 +11,7 @@ using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {

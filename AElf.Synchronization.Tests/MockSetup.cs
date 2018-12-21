@@ -4,8 +4,9 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Storage.Interfaces;
 using AElf.Miner.TxMemPool;
 using AElf.SmartContract;
 using AElf.Synchronization.BlockExecution;
@@ -30,7 +31,7 @@ namespace AElf.Synchronization.Tests
         private IFunctionMetadataService _functionMetadataService;
         private IExecutingService _concurrencyExecutingService;
         private ITxHub _txHub;
-        private IChainManagerBasic _chainManagerBasic;
+        private IChainManager _chainManager;
         private ITransactionStore _transactionStore;
 
         private IBlockSynchronizer _blockSynchronizer;
@@ -51,7 +52,7 @@ namespace AElf.Synchronization.Tests
                     _functionMetadataService), _transactionTraceManager, _stateManager,
                 new ChainContextService(GetChainService()));
             _txHub = txHub;
-            _chainManagerBasic = new ChainManagerBasic(dataStore);
+            _chainManager = new ChainManager(dataStore);
         }
 
         public IBlockSynchronizer GetBlockSynchronizer()
@@ -103,7 +104,7 @@ namespace AElf.Synchronization.Tests
         public IBlockExecutor GetBlockExecutor()
         {
             return new BlockExecutor(GetChainService(), _concurrencyExecutingService, 
-                _transactionResultManager, null, null, _txHub, _chainManagerBasic,_stateManager);
+                _transactionResultManager, null, null, _txHub, _chainManager,_stateManager);
         }
     }
 }

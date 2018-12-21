@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
 
 namespace AElf.SmartContract
 {

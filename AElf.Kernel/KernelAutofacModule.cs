@@ -1,6 +1,8 @@
 ﻿using AElf.Common.Serializers;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage.Storages;
 using Autofac;
 
 namespace AElf.Kernel
@@ -31,7 +33,7 @@ namespace AElf.Kernel
             
             
             
-            builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
+            builder.RegisterType<ChainManager>().As<IChainManager>();
             builder.RegisterType<MinersManager>().As<IMinersManager>();
             builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
             builder.RegisterType<TransactionReceiptManager>().As<ITransactionReceiptManager>();

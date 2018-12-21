@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Kernel.Storages;
 using NLog;
 using Org.BouncyCastle.Security;
 using AElf.Common;
+using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.SmartContract.Metadata
 {

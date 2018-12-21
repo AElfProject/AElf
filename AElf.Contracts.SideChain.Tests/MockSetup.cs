@@ -6,8 +6,6 @@ using AElf.ChainController;
 using AElf.ChainController.CrossChain;
 using AElf.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
 using ServiceStack;
@@ -15,6 +13,10 @@ using AElf.Common;
 using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Execution.Execution;
+using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage.Storages;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract.Metadata;
@@ -65,7 +67,7 @@ namespace AElf.Contracts.SideChain.Tests
             var transactionManager = new TransactionManager(_transactionStore);
             var transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            var chainManagerBasic = new ChainManagerBasic(_dataStore);
+            var chainManagerBasic = new ChainManager(_dataStore);
             ChainService = new ChainService(chainManagerBasic, _blockManager,
                 transactionManager, transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -80,7 +82,7 @@ namespace AElf.Contracts.SideChain.Tests
                 await Init();
             }).Unwrap().Wait();
             SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
-            ChainService = new ChainService(new ChainManagerBasic(_dataStore), _blockManager, new TransactionManager(_transactionStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
+            ChainService = new ChainService(new ChainManager(_dataStore), _blockManager, new TransactionManager(_transactionStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
         }
 
         private void NewStorage()

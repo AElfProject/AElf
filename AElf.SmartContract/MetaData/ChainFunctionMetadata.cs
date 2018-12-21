@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Storages;
 using Google.Protobuf;
 using NLog;
 using Org.BouncyCastle.Security;
@@ -11,6 +10,7 @@ using AElf.SmartContract.MetaData;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using AElf.Common;
+using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.SmartContract
 {

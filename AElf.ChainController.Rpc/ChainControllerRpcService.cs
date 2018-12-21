@@ -9,7 +9,7 @@ using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
-using AElf.Kernel.Managers;
+using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;

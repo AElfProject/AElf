@@ -1,6 +1,5 @@
 using AElf.Common;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
 using Google.Protobuf;
 
 namespace AElf.SmartContract

@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using Grpc.Core;
 using NLog;
 using NServiceKit.Common.Extensions;
 using AElf.Common;
+using AElf.Kernel.Manager.Interfaces;
 using NLog.Fluent;
 
 namespace AElf.Miner.Rpc.Server

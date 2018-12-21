@@ -17,7 +17,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
-using AElf.Kernel.Storages;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;

@@ -7,8 +7,6 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Akka.Cluster" Version="1.3.9" />
     <PackageReference Include="Easy.MessageHub" Version="3.4.0" />
     <PackageReference Include="LiteDB" Version="4.0.0" />

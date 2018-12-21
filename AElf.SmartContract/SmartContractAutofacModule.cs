@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Storages;
+﻿using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage.Storages;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Metadata;
 using AElf.SmartContract.Proposal;

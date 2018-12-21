@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
 
 namespace AElf.SmartContract.Consensus
 {

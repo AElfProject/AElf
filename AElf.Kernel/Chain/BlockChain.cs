@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
 using Easy.MessageHub;
 using NLog;
 using AElf.Common;
+using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Storage.Interfaces;
 using AElf.Kernel.Types.Common;
 
 // ReSharper disable once CheckNamespace
@@ -24,7 +24,7 @@ namespace AElf.Kernel
         private static bool _prepareTerminated;
         private static bool _terminated;
 
-        public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManager blockManager,
+        public BlockChain(Hash chainId, IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
             IStateManager stateManager, IDataStore dataStore) : base(
             chainId, chainManager, blockManager, dataStore)

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.Configuration.Config.Contract;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using AElf.SmartContract.MetaData;
 using AElf.Types.CSharp.MetadataAttribute;
@@ -14,6 +13,7 @@ using QuickGraph;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.Runtime.CSharp.Tests
 {

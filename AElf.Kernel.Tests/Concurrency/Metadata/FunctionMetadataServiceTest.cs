@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Extensions;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Storage.Interfaces;
 using AElf.SmartContract;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Sdk.CSharp;

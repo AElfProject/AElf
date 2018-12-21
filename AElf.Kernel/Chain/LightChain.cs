@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Storage.Interfaces;
 using Easy.MessageHub;
 using NLog;
 
@@ -13,14 +13,14 @@ namespace AElf.Kernel
     public class LightChain : ILightChain
     {
         protected readonly Hash _chainId;
-        protected readonly IChainManagerBasic _chainManager;
+        protected readonly IChainManager _chainManager;
         protected readonly IBlockManager _blockManager;
         protected readonly IDataStore _dataStore;
 
         private readonly ILogger _logger;
         
         public LightChain(Hash chainId,
-            IChainManagerBasic chainManager,
+            IChainManager chainManager,
             IBlockManager blockManager, IDataStore dataStore, ILogger logger = null)
         {
             _chainId = chainId.Clone();

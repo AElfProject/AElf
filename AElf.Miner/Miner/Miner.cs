@@ -14,8 +14,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
@@ -51,7 +50,7 @@ namespace AElf.Miner.Miner
 
         private Address _producerAddress;
         private ECKeyPair _keyPair;
-        private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly IChainManager _chainManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
 
         private IMinerConfig Config { get; }
@@ -65,7 +64,7 @@ namespace AElf.Miner.Miner
             ILogger logger, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IChainContextService chainContextService
-            , IChainManagerBasic chainManagerBasic,IStateManager stateManager)
+            , IChainManager chainManager,IStateManager stateManager)
         {
             _txHub = txHub;
             _chainService = chainService;

@@ -16,12 +16,12 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using AElf.Kernel.Managers;
 using Newtonsoft.Json.Linq;
 using NLog;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Manager.Interfaces;
 
 namespace AElf.SideChain.Creation
 {
@@ -34,15 +34,15 @@ namespace AElf.SideChain.Creation
         private IChainCreationService ChainCreationService { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
-        private IChainManagerBasic _chainManagerBasic;
+        private IChainManager _chainManager;
 
         public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager, 
-            IChainCreationService chainCreationService, IChainManagerBasic chainManagerBasic)
+            IChainCreationService chainCreationService, IChainManager chainManager)
         {
             _logger = logger;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
-            _chainManagerBasic = chainManagerBasic;
+            _chainManager = chainManager;
             _interestedLogEvent = new LogEvent()
             {
                 Address = ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId)),
