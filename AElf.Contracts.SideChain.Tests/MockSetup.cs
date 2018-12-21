@@ -47,16 +47,18 @@ namespace AElf.Contracts.SideChain.Tests
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ILogger _logger;
         private IDataStore _dataStore;
-        
-        private ITransactionStore _transactionStore;
-
+       
         private IBlockManager _blockManager;
+        private IChainManager _chainManager;
+        private ITransactionManager _transactionManager;
         
 
-        public MockSetup(ILogger logger,ITransactionStore transactionStore,IBlockManager blockManager)
+        public MockSetup(ILogger logger,ITransactionManager transactionManager,IBlockManager blockManager
+            , IChainManager chainManager)
         {
             _logger = logger;
-            _transactionStore = transactionStore;
+            _transactionManager = transactionManager;
+            _chainManager = chainManager;
             _blockManager = blockManager;
             Initialize();
         }
@@ -64,12 +66,10 @@ namespace AElf.Contracts.SideChain.Tests
         private void Initialize()
         {
             NewStorage();
-            var transactionManager = new TransactionManager(_transactionStore);
             var transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            var chainManagerBasic = new ChainManager(_dataStore);
-            ChainService = new ChainService(chainManagerBasic, _blockManager,
-                transactionManager, transactionTraceManager, _dataStore, StateManager);
+            ChainService = new ChainService(_chainManager, _blockManager,
+                _transactionManager, transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
@@ -82,7 +82,7 @@ namespace AElf.Contracts.SideChain.Tests
                 await Init();
             }).Unwrap().Wait();
             SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
-            ChainService = new ChainService(new ChainManager(_dataStore), _blockManager, new TransactionManager(_transactionStore), new TransactionTraceManager(_dataStore), _dataStore, StateManager);
+            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, new TransactionTraceManager(_dataStore), _dataStore, StateManager);
         }
 
         private void NewStorage()

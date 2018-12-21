@@ -32,18 +32,17 @@ namespace AElf.Synchronization.Tests
         private IExecutingService _concurrencyExecutingService;
         private ITxHub _txHub;
         private IChainManager _chainManager;
-        private ITransactionStore _transactionStore;
 
         private IBlockSynchronizer _blockSynchronizer;
 
-        public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub, ITransactionStore transactionStore)
+        public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub, ITransactionManager transactionManager
+            ,IChainManager chainManager)
         {
             _dataStore = dataStore;
             _stateManager = stateManager;
-            _transactionStore = transactionStore;
+            _transactionManager = transactionManager;
             
             _smartContractManager = new SmartContractManager(_dataStore);
-            _transactionManager = new TransactionManager(_transactionStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -52,7 +51,7 @@ namespace AElf.Synchronization.Tests
                     _functionMetadataService), _transactionTraceManager, _stateManager,
                 new ChainContextService(GetChainService()));
             _txHub = txHub;
-            _chainManager = new ChainManager(dataStore);
+            _chainManager = chainManager;
         }
 
         public IBlockSynchronizer GetBlockSynchronizer()

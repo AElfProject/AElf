@@ -8,29 +8,31 @@ namespace AElf.Kernel.Manager.Managers
 {
     public class ChainManager : IChainManager
     {
-        private readonly IDataStore _dataStore;
+        private readonly IChainHeightStore _chainHeightStore;
+        private readonly IGenesisBlockHashStore _genesisBlockHashStore;
+        private readonly ICurrentBlockHashStore _currentBlockHashStore;
 
-        public ChainManager(IDataStore dataStore)
+        public ChainManager(IChainHeightStore chainHeightStore, IGenesisBlockHashStore genesisBlockHashStore, ICurrentBlockHashStore currentBlockHashStore)
         {
-            _dataStore = dataStore;
+            _chainHeightStore = chainHeightStore;
+            _genesisBlockHashStore = genesisBlockHashStore;
+            _currentBlockHashStore = currentBlockHashStore;
         }
 
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
         {
-            await _dataStore.InsertAsync(chainId.OfType(HashType.GenesisHash), genesisBlockHash);
+            await _genesisBlockHashStore.SetAsync(chainId.DumpHex(), genesisBlockHash);
             await UpdateCurrentBlockHashAsync(chainId, genesisBlockHash);
         }
 
         public async Task UpdateCurrentBlockHashAsync(Hash chainId, Hash blockHash)
         {
-            var key = chainId.OfType(HashType.CurrentHash);
-            await _dataStore.InsertAsync(key, blockHash);
+            await _currentBlockHashStore.SetAsync(chainId.DumpHex(), blockHash);
         }
         
         public async Task<Hash> GetCurrentBlockHashAsync(Hash chainId)
         {
-            var key = chainId.OfType(HashType.CurrentHash);
-            var hash = await _dataStore.GetAsync<Hash>(key);
+            var hash = await _currentBlockHashStore.GetAsync<Hash>(chainId.DumpHex());
             return hash;
         }
         
@@ -42,8 +44,7 @@ namespace AElf.Kernel.Manager.Managers
         /// <returns></returns>
         public async Task UpdateCurrentBlockHeightAsync(Hash chainId, ulong height)
         {
-            var key = chainId.OfType(HashType.ChainHeight);
-            await _dataStore.InsertAsync(key, new UInt64Value
+            await _chainHeightStore.SetAsync(chainId.DumpHex(), new UInt64Value
             {
                 Value = height
             });
@@ -57,8 +58,7 @@ namespace AElf.Kernel.Manager.Managers
         /// <returns></returns>
         public async Task<ulong> GetCurrentBlockHeightAsync(Hash chainId)
         {
-            var key = chainId.OfType(HashType.ChainHeight);
-            var height = await _dataStore.GetAsync<UInt64Value>(key);
+            var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.DumpHex());
             return height?.Value ?? 0;
         }
         

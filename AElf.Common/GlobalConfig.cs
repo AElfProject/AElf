@@ -103,16 +103,19 @@ namespace AElf.Common
 
         #region data key prefixes
 
-        public const string StatePrefix = "s";
-        public const string MerkleTreePrefix = "m";
-        public const string BlockHeaderPrefix = "h";
+        public const string TransactionTracePrefix = "a";        
         public const string BlockBodyPrefix = "b";
-        public const string MinerPrefix = "p";
         public const string SmartContractPrefix = "c";
-        public const string TransactionPrefix = "t";
-        public const string TransactionResultPrefix = "l";
-        public const string TransactionTracePrefix = "a";
         public const string TransactionReceiptPrefix = "e";
+        public const string GenesisBlockHashPrefix = "g";
+        public const string BlockHeaderPrefix = "h";
+        public const string TransactionResultPrefix = "l";
+        public const string MerkleTreePrefix = "m";
+        public const string ChianHeightPrefix = "n";
+        public const string MinerPrefix = "p";
+        public const string CurrentBlockHashPrefix = "r";
+        public const string StatePrefix = "s";
+        public const string TransactionPrefix = "t";
 
         #endregion data key prefixes
         public static ulong BlockCacheLimit = 64; 

@@ -21,30 +21,17 @@ namespace AElf.Contracts.SideChain.Tests
     public class SideChainTest
     {
         private SideChainContractShim _contract;
-        private ILogger _logger;
-        private MockSetup Mock;
+        private MockSetup _mock;
 
-        private ITransactionStore _transactionStore;
-
-        private IBlockManager _blockManager;
-
-        public SideChainTest(ILogger logger, ITransactionStore transactionStore, IBlockManager blockManager)
+        public SideChainTest(MockSetup mock)
         {
-            _logger = logger;
-            _transactionStore = transactionStore;
-            _blockManager = blockManager;
-        }
-
-        private void Init()
-        {
-            Mock = new MockSetup(_logger, _transactionStore, _blockManager);
+            _mock = mock;
         }
 
         [Fact(Skip = "TBD")]
         public async Task SideChainLifetime()
         {
-            Init();
-            _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(Mock.ChainId1));
+            _contract = new SideChainContractShim(_mock, ContractHelpers.GetCrossChainContractAddress(_mock.ChainId1));
 //            var chainId = Hash.Generate();
             var chainId = Hash.FromString("Chain1");
             var lockedAddress = Address.Generate();
@@ -84,9 +71,8 @@ namespace AElf.Contracts.SideChain.Tests
         [Fact]
         public async Task MerklePathTest()
         {
-            Init();
-            var chainId = Mock.ChainId1;
-            _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(chainId));
+            var chainId = _mock.ChainId1;
+            _contract = new SideChainContractShim(_mock, ContractHelpers.GetCrossChainContractAddress(chainId));
             ulong pHeight = 1;
             ParentChainBlockRootInfo parentChainBlockRootInfo = new ParentChainBlockRootInfo
             {
@@ -106,7 +92,7 @@ namespace AElf.Contracts.SideChain.Tests
             await _contract.WriteParentChainBLockInfo(parentChainBlockInfo);
 
             ChainConfig.Instance.ChainId = chainId.DumpBase58();
-            var crossChainInfo = new CrossChainInfo(Mock.StateManager);
+            var crossChainInfo = new CrossChainInfo(_mock.StateManager);
             var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(pHeight);
             Assert.NotNull(merklepath);
             Assert.Equal(parentChainBlockInfo.IndexedBlockInfo[pHeight], merklepath);
@@ -123,10 +109,9 @@ namespace AElf.Contracts.SideChain.Tests
         [Fact]
         public async Task VerifyTransactionTest()
         {
-            Init();
-            var chainId = Mock.ChainId1;
+            var chainId = _mock.ChainId1;
             ChainConfig.Instance.ChainId = chainId.DumpBase58();
-            _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(chainId));
+            _contract = new SideChainContractShim(_mock, ContractHelpers.GetCrossChainContractAddress(chainId));
             ulong pHeight = 1;
             ParentChainBlockRootInfo pcbr1 = new ParentChainBlockRootInfo
             {
@@ -144,7 +129,7 @@ namespace AElf.Contracts.SideChain.Tests
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
             await _contract.WriteParentChainBLockInfo(pcb1);
-            var crossChainInfo = new CrossChainInfo(Mock.StateManager);
+            var crossChainInfo = new CrossChainInfo(_mock.StateManager);
             var parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);
             Transaction t1 = new Transaction

@@ -20,28 +20,17 @@ namespace AElf.Contracts.Authorization.Tests
     {
         private AuthorizationContractShim _contract;
         private ILogger _logger;
-        private MockSetup Mock;
+        private MockSetup _mock;
 
-        private IBlockManager _blockManager;
-
-        //private static byte[] ChainId = ChainHelpers.GetRandomChainId();
-
-        private void Init()
+        public AuthorizationTest(MockSetup mock)
         {
-            Mock = new MockSetup(_logger, _blockManager);
-        }
-
-        public AuthorizationTest(ILogger logger, IBlockManager blockManager)
-        {
-            _logger = logger;
-            _blockManager = blockManager;
+            _mock = mock;
         }
 
         [Fact]
         public void CreateMSigAccount()
         {
-            Init();
-            _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
+            _contract = new AuthorizationContractShim(_mock, ContractHelpers.GetAuthorizationContractAddress(_mock.ChainId), _mock.ChainId.DumpByteArray());
             Address msig = Address.Generate();
             var auth = new Kernel.Authorization
             {
@@ -77,13 +66,11 @@ namespace AElf.Contracts.Authorization.Tests
         [Fact]
         public void ProposeInvalidProposal()
         {
-            Init();
-
-            _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
+            _contract = new AuthorizationContractShim(_mock, ContractHelpers.GetAuthorizationContractAddress(_mock.ChainId), _mock.ChainId.DumpByteArray());
 
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
             var kpMsig = new KeyPairGenerator().Generate();
-            Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
+            Address msig = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
 
             var auth = new Kernel.Authorization
             {
@@ -160,7 +147,7 @@ namespace AElf.Contracts.Authorization.Tests
                 MultiSigAccount = msig,
                 Name = "Propose",
                 TxnData = CreateDemoTxn(msig).ToByteString(),
-                Proposer = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey),
+                Proposer = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kp1.PublicKey),
                 Status = ProposalStatus.ToBeDecided
             };
 
@@ -171,13 +158,11 @@ namespace AElf.Contracts.Authorization.Tests
         [Fact]
         public void ProposeValidProposal()
         {
-            Init();
-
-            _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
+            _contract = new AuthorizationContractShim(_mock, ContractHelpers.GetAuthorizationContractAddress(_mock.ChainId), _mock.ChainId.DumpByteArray());
 
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
             var kpMsig = new KeyPairGenerator().Generate();
-            Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
+            Address msig = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
 
             var auth = new Kernel.Authorization
             {
@@ -217,7 +202,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                Proposer = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey),
+                Proposer = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kp1.PublicKey),
                 TxnData = CreateDemoTxn(msig).ToByteString()
             };
 
@@ -229,13 +214,11 @@ namespace AElf.Contracts.Authorization.Tests
         [Fact]
         public void SayYes()
         {
-            Init();
-
-            _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
+            _contract = new AuthorizationContractShim(_mock, ContractHelpers.GetAuthorizationContractAddress(_mock.ChainId), _mock.ChainId.DumpByteArray());
 
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
             var kpMsig = new KeyPairGenerator().Generate();
-            Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
+            Address msig = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
 
             var auth = new Kernel.Authorization
             {
@@ -277,7 +260,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                Proposer = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey),
+                Proposer = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kp1.PublicKey),
                 TxnData = tx.ToByteString()
             };
 
@@ -320,13 +303,11 @@ namespace AElf.Contracts.Authorization.Tests
         [Fact]
         public void Release()
         {
-            Init();
-
-            _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
+            _contract = new AuthorizationContractShim(_mock, ContractHelpers.GetAuthorizationContractAddress(_mock.ChainId), _mock.ChainId.DumpByteArray());
 
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
             var kpMsig = new KeyPairGenerator().Generate();
-            Address msig = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
+            Address msig = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
 
             var auth = new Kernel.Authorization
             {
@@ -368,7 +349,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                Proposer = Address.FromPublicKey(Mock.ChainId.DumpByteArray(), kp1.PublicKey),
+                Proposer = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kp1.PublicKey),
                 TxnData = tx.ToByteString()
             };
 
@@ -432,7 +413,7 @@ namespace AElf.Contracts.Authorization.Tests
             var tx = new Transaction
             {
                 From = msig,
-                To = ContractHelpers.GetGenesisBasicContractAddress(Mock.ChainId),
+                To = ContractHelpers.GetGenesisBasicContractAddress(_mock.ChainId),
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(1, code)),
                 Type = TransactionType.MsigTransaction

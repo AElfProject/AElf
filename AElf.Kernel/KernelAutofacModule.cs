@@ -20,8 +20,11 @@ namespace AElf.Kernel
             builder.RegisterType<StateStore>().As<IStateStore>().SingleInstance();
             builder.RegisterType<TransactionStore>().As<ITransactionStore>().SingleInstance();
             builder.RegisterType<MerkleTreeStore>().As<IMerkleTreeStore>().SingleInstance();
-            builder.RegisterType<BlockHeaderStore>().As<IBlockHeaderStore>();
-            builder.RegisterType<BlockBodyStore>().As<IBlockBodyStore>();
+            builder.RegisterType<BlockHeaderStore>().As<IBlockHeaderStore>().SingleInstance();
+            builder.RegisterType<BlockBodyStore>().As<IBlockBodyStore>().SingleInstance();
+            builder.RegisterType<ChainHeightStore>().As<IChainHeightStore>().SingleInstance();
+            builder.RegisterType<GenesisBlockHashStore>().As<IGenesisBlockHashStore>().SingleInstance();
+            builder.RegisterType<CurrentBlockHashStore>().As<ICurrentBlockHashStore>().SingleInstance();
 
 
             
@@ -29,11 +32,12 @@ namespace AElf.Kernel
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
             builder.RegisterType<BinaryMerkleTreeManager>().As<IBinaryMerkleTreeManager>();
             builder.RegisterType<BlockManager>().As<IBlockManager>();
+            builder.RegisterType<ChainManager>().As<IChainManager>();
+
 
             
             
             
-            builder.RegisterType<ChainManager>().As<IChainManager>();
             builder.RegisterType<MinersManager>().As<IMinersManager>();
             builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
             builder.RegisterType<TransactionReceiptManager>().As<ITransactionReceiptManager>();

@@ -63,11 +63,15 @@ namespace AElf.Miner.Tests
         private IMerkleTreeStore _merkleTreeStore;
         private IBlockHeaderStore _blockHeaderStore;
         private IBlockBodyStore _blockBodyStore;
+        private IGenesisBlockHashStore _genesisBlockHashStore;
+        private ICurrentBlockHashStore _currentBlockHashStore;
+        private IChainHeightStore _chainHeightStore;
 
         public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateManager stateManager
             , ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator
             ,ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore
-            ,IBlockHeaderStore blockHeaderStore,IBlockBodyStore blockBodyStore)
+            ,IBlockHeaderStore blockHeaderStore,IBlockBodyStore blockBodyStore
+            ,IGenesisBlockHashStore genesisBlockHashStore, ICurrentBlockHashStore currentBlockHashStore, IChainHeightStore chainHeightStore)
         {
             _logger = logger;
             _database = database;
@@ -79,6 +83,9 @@ namespace AElf.Miner.Tests
             _merkleTreeStore = merkleTreeStore;
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
+            _genesisBlockHashStore = genesisBlockHashStore;
+            _currentBlockHashStore = currentBlockHashStore;
+            _chainHeightStore = chainHeightStore;
             Initialize();
         }
 
@@ -90,7 +97,7 @@ namespace AElf.Miner.Tests
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            _chainManager = new ChainManager(_dataStore);
+            _chainManager = new ChainManager(_chainHeightStore, _genesisBlockHashStore, _currentBlockHashStore);
             _stateManager = new StateManager(new StateStore(_database, new ProtobufSerializer()));
             _chainService = new ChainService(_chainManager, new BlockManager(_blockHeaderStore, _blockBodyStore),
                 _transactionManager, _transactionTraceManager, _dataStore, _stateManager);
