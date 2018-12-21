@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
 using AElf.Kernel;
@@ -23,6 +24,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
 using NLog;
+using Transaction = AElf.Kernel.Transaction;
 
 namespace AElf.ChainController.Rpc
 {
@@ -223,23 +225,16 @@ namespace AElf.ChainController.Rpc
                 return await Task.FromResult(res);
             }
             
-//            try
-//            {
-            // TODO: Wait validation done
+            try
+            {
+                //TODO: Wait validation done
+                transaction.GetTransactionInfo();
                 await TxHub.AddTransactionAsync(transaction);
-//                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
-//                {
-//                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
-//                }
-//                else
-//                {
-//                    res["error"] = valRes.ToString();
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                res["error"] = e.ToString();
-//            }
+            }
+            catch (Exception e)
+            {
+                res["error"] = e.ToString();
+            }
 
             return await Task.FromResult(res);
         }
