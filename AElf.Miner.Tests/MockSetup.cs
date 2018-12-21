@@ -73,7 +73,7 @@ namespace AElf.Miner.Tests
             ,ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore
             ,IBlockHeaderStore blockHeaderStore,IBlockBodyStore blockBodyStore
             ,IGenesisBlockHashStore genesisBlockHashStore, ICurrentBlockHashStore currentBlockHashStore, IChainHeightStore chainHeightStore
-            ,IBlockManager blockManager, ISmartContractManager smartContractManager)
+            ,IBlockManager blockManager, ISmartContractManager smartContractManager, ITransactionReceiptManager transactionReceiptManager)
         {
             _logger = logger;
             _database = database;
@@ -90,13 +90,13 @@ namespace AElf.Miner.Tests
             _chainHeightStore = chainHeightStore;
             _blockManager = blockManager;
             _smartContractManager = smartContractManager;
+            _transactionReceiptManager = transactionReceiptManager;
             Initialize();
         }
 
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_transactionStore);
-            _transactionReceiptManager = new TransactionReceiptManager(_database);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
