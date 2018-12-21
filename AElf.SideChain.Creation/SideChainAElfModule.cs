@@ -1,11 +1,11 @@
-﻿using AElf.Common.Module;
-using AElf.Kernel;
+﻿using AElf.Kernel;
+using AElf.Modularity;
 using Autofac;
 using Easy.MessageHub;
 
 namespace AElf.SideChain.Creation
 {
-    public class SideChainAElfModule:IAElfModule
+    public class SideChainAElfModule: AElfModule
     {
         public void Init(ContainerBuilder builder)
         {

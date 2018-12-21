@@ -1,18 +1,18 @@
-﻿using AElf.Common.Module;
-using AElf.Configuration.Config.RPC;
+﻿using AElf.Configuration.Config.RPC;
+using AElf.Modularity;
 using Autofac;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
 
 namespace AElf.Wallet.Rpc
 {
-    public class WalletRpcAElfModule:IAElfModule
+    public class WalletRpcAElfModule:AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            builder.RegisterModule(new WalletRpcAutofacModule());
+
+            context.Services.AddTransient<WalletRpcService>();
         }
 
-        public void Run(ILifetimeScope scope)
-        {
-        }
     }
 }

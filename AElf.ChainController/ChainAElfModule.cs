@@ -1,21 +1,39 @@
 ﻿using System.IO;
+using AElf.ChainController.CrossChain;
 using AElf.Common.Application;
 using AElf.Common;
-using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
-using Autofac;
+using AElf.Modularity;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Volo.Abp;
+using Volo.Abp.Modularity;
 
 namespace AElf.ChainController
 {
-    public class ChainAElfModule:IAElfModule
+    public class ChainAElfModule : AElfModule
     {
         private static readonly string FileFolder = Path.Combine(ApplicationHelpers.ConfigPath, "config");
         private static readonly string FilePath = Path.Combine(FileFolder, @"chain.json");
-        
-        public void Init(ContainerBuilder builder)
+
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+            services.AddAssemblyOf<ChainAElfModule>();
+
+
+            services.AddSingleton<ICrossChainInfoReader, CrossChainInfoReader>();
+            /*builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
+            builder.RegisterType<ChainCreationService>().As<IChainCreationService>();
+            builder.RegisterType<ChainContextService>().As<IChainContextService>();
+            builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
+            builder.RegisterType<CrossChainInfoReader>().As<ICrossChainInfoReader>().SingleInstance();*/
+        }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             if (NodeConfig.Instance.IsChainCreator)
             {
@@ -44,13 +62,6 @@ namespace AElf.ChainController
                     obj.WriteTo(writer);
                 }
             }
-
-            builder.RegisterModule(new ChainAutofacModule());
-           
-        }
-
-        public void Run(ILifetimeScope scope)
-        {
         }
     }
 }

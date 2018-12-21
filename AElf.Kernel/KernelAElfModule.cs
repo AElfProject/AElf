@@ -62,7 +62,7 @@ namespace AElf.Kernel
             }
 
             
-            //TODO: change log output 
+            //TODO! change log output 
             
             //context.ServiceProvider.GetService<ILoggerFactory>();
 
@@ -81,9 +81,9 @@ namespace AElf.Kernel
                 return lifeTime;
             }
             
-            //TODO: use IsAssignableFrom
+            //TODO! use IsAssignableFrom
             
-            if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Store"))
+            if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Store") || type.Name.EndsWith("Service"))
             {
                 return ServiceLifetime.Transient;
             }

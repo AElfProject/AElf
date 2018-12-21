@@ -12,7 +12,7 @@ namespace AElf.Database
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            //TODO: should remove switch context, should not read config file here.
+            //TODO! should remove switch context, should not read config file here.
             var services = context.Services;
             switch (DatabaseConfig.Instance.Type)
             {

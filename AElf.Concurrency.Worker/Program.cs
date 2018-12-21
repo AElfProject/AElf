@@ -22,7 +22,10 @@ namespace AElf.Concurrency.Worker
         
         static void Main(string[] args)
         {
-            var confParser = new ConfigParser();
+            //TODO! use abp bootstrap
+            
+            
+            /*var confParser = new ConfigParser();
             bool parsed;
             try
             {
@@ -64,9 +67,11 @@ namespace AElf.Concurrency.Worker
                 Console.WriteLine("Press Control + C to terminate.");
                 Console.CancelKeyPress += async (sender, eventArgs) => { await service.StopAsync(); };
                 service.TerminationHandle.Wait();
-            }
+            }*/
+            
         }
 
+        /*
         private static IContainer SetupIocContainer(bool isMiner, SmartContractRunnerFactory smartContractRunnerFactory)
         {
             var builder = new ContainerBuilder();
@@ -96,7 +101,7 @@ namespace AElf.Concurrency.Worker
                 return null;
             }
             return container;
-        }
+        }*/
 
         private static bool CheckDBConnect(IComponentContext container)
         {

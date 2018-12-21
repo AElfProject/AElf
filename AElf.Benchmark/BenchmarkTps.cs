@@ -14,11 +14,12 @@ using AElf.Execution.Scheduling;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
-using ServiceStack.Text;
+
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Storages;
+using ServiceStack;
+using ServiceStack.Text;
 
 namespace AElf.Benchmark
 {

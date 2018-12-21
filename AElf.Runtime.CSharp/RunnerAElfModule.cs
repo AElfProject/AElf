@@ -3,6 +3,7 @@ using AElf.Configuration.Config.Contract;
 using AElf.Modularity;
 using AElf.SmartContract;
 using Autofac;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Runtime.CSharp
@@ -18,7 +19,8 @@ namespace AElf.Runtime.CSharp
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
             
-            builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
+            context.Services.AddSingleton<ISmartContractRunnerFactory>(smartContractRunnerFactory);
+            
         }
 
     }

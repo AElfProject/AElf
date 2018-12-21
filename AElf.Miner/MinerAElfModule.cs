@@ -1,6 +1,5 @@
 ﻿using AElf.Common;
 using AElf.Common.Application;
-using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Miner.Miner;
@@ -8,15 +7,24 @@ using AElf.Miner.Rpc;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Server;
 using AElf.Miner.TxMemPool;
+using AElf.Modularity;
 using Autofac;
 using Google.Protobuf;
+using Volo.Abp.Modularity;
 
 namespace AElf.Miner
 {
-    public class MinerAElfModule : IAElfModule
+    public class MinerAElfModule : AElfModule
     {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            
+        }
+
         public void Init(ContainerBuilder builder)
         {
+            //TODO! move into configure services. spilt static configuration and runtime variables
+            
             var minerConfig = MinerConfig.Default;
             if (NodeConfig.Instance.IsMiner)
             {
@@ -52,8 +60,5 @@ namespace AElf.Miner
             builder.RegisterInstance(txPoolConfig).As<ITxPoolConfig>();
         }
 
-        public void Run(ILifetimeScope scope)
-        {
-        }
     }
 }

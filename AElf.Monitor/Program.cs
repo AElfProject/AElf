@@ -1,5 +1,4 @@
 ﻿using System;
-using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.RPC;
 using Microsoft.AspNetCore.Hosting;

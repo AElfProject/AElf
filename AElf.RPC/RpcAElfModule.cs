@@ -1,20 +1,31 @@
-﻿using AElf.Common.Module;
-using AElf.Configuration.Config.RPC;
+﻿using AElf.Configuration.Config.RPC;
+using AElf.Modularity;
 using Autofac;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
+using Volo.Abp.Modularity;
 
 namespace AElf.RPC
 {
-    public class RpcAElfModule:IAElfModule
+    public class RpcAElfModule: AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            builder.RegisterModule(new RpcAutofacModule());
+            //TODO! RPC server should change to controller
+            
+            context.Services.AddSingleton<IRpcServer,RpcServer>();
+
         }
 
-        public void Run(ILifetimeScope scope)
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var rpc = scope.Resolve<IRpcServer>();
-            rpc.Init(scope, RpcConfig.Instance.Host, RpcConfig.Instance.Port);
+            
+            
+            var rpc = context.ServiceProvider.GetService<IRpcServer>();
+            
+            //TODO! change the implement of rpc server.
+            //rpc.Init(scope, RpcConfig.Instance.Host, RpcConfig.Instance.Port);
         }
+
     }
 }

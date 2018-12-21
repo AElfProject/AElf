@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
@@ -12,7 +11,6 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using ServiceStack;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
