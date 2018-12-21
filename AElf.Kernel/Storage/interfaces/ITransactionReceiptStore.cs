@@ -3,10 +3,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storage.Interfaces
 {
-    public interface ITransactionReceiptStore
+    public interface ITransactionReceiptStore: IKeyValueStoreBase
     {
-        Task SetAsync(string key, object value);
-        Task<T> GetAsync<T>(string key);
-        Task<bool> PipelineSetAsync(Dictionary<string, object> pipelineSet);
     }
 }

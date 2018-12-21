@@ -2,9 +2,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storage.Interfaces
 {
-    public interface IBlockBodyStore
+    public interface IBlockBodyStore: IKeyValueStoreBase
     {
-        Task SetAsync(string key, object value);
-        Task<T> GetAsync<T>(string key);
     }
 }

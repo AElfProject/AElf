@@ -109,12 +109,14 @@ namespace AElf.Common
         public const string TransactionReceiptPrefix = "e";
         public const string GenesisBlockHashPrefix = "g";
         public const string BlockHeaderPrefix = "h";
+        public const string MerkleTreePrefix = "k";
         public const string TransactionResultPrefix = "l";
-        public const string MerkleTreePrefix = "m";
+        public const string MetadataPrefix = "m";
         public const string ChianHeightPrefix = "n";
         public const string CanonicalPrefix = "o";
         public const string MinersPrefix = "p";
         public const string CurrentBlockHashPrefix = "r";
+        public const string CallGraphPrefix = "i";
         public const string StatePrefix = "s";
         public const string TransactionPrefix = "t";
 

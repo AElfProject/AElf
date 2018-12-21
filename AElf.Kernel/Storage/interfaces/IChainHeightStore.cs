@@ -2,9 +2,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storage.Interfaces
 {
-    public interface IChainHeightStore
+    public interface IChainHeightStore: IKeyValueStoreBase
     {
-        Task SetAsync(string key, object value);
-        Task<T> GetAsync<T>(string key);
     }
 }

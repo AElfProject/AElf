@@ -24,6 +24,7 @@ namespace AElf.Contracts.SideChain.Tests
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
+            builder.RegisterModule(new SmartContractAutofacModule());
         }
     }
 }

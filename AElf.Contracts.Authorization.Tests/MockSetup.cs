@@ -51,7 +51,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         public MockSetup(ILogger logger, IBlockManager blockManager, ITransactionManager transactionManager
             , IChainManager chainManager, ISmartContractManager smartContractManager,
-            ITransactionTraceManager transactionTraceManager)
+            ITransactionTraceManager transactionTraceManager,IFunctionMetadataService functionMetadataService)
         {
             _logger = logger;
             _blockManager = blockManager;
@@ -59,13 +59,13 @@ namespace AElf.Contracts.Authorization.Tests
             _transactionManager = transactionManager;
             _smartContractManager = smartContractManager;
             _transactionTraceManager = transactionTraceManager;
+            _functionMetadataService = functionMetadataService;
             Initialize();
         }
 
         private void Initialize()
         {
             NewStorage();
-            _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             ChainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();

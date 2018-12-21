@@ -3,12 +3,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storage.Interfaces
 {
-    public interface IStateStore
+    public interface IStateStore: IKeyValueStoreBase
     {
-        Task SetAsync(string key, object value);
-
-        Task<bool> PipelineSetAsync(Dictionary<string, object> pipelineSet);
-
-        Task<T> GetAsync<T>(string key);
     }
 }

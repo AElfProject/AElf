@@ -10,6 +10,7 @@ using AElf.SmartContract.MetaData;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using AElf.Common;
+using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Storage.Interfaces;
 
@@ -19,14 +20,16 @@ namespace AElf.SmartContract
     {
         private readonly ILogger _logger;
         private readonly IDataStore _dataStore;
+        private readonly IFunctionMetadataManager _functionMetadataManager;
 
         public Dictionary<string, FunctionMetadata> FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
         
         
-        public ChainFunctionMetadata(IDataStore dataStore,  ILogger logger)
+        public ChainFunctionMetadata(IDataStore dataStore,  ILogger logger , IFunctionMetadataManager functionMetadataManager)
         {
             _dataStore = dataStore;
             _logger = logger;
+            _functionMetadataManager = functionMetadataManager;
         }
 
         /// <summary>
@@ -63,10 +66,7 @@ namespace AElf.SmartContract
                 foreach (var functionMetadata in tempMap)
                 {
                     FunctionMetadataMap.Add(functionMetadata.Key, functionMetadata.Value);
-                    
-                    await _dataStore.InsertAsync(
-                        DataPath.CalculatePointerForMetadata(chainId, functionMetadata.Key),
-                        functionMetadata.Value);
+                    await _functionMetadataManager.AddAsync(chainId, functionMetadata.Key, functionMetadata.Value);
                 }
             }
             catch (FunctionMetadataException e)
@@ -95,7 +95,7 @@ namespace AElf.SmartContract
 
                 foreach (var functionMetadata in tempMap)
                 {
-                    await _dataStore.RemoveAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, functionMetadata.Key));
+                    await _functionMetadataManager.RemoveAsync(chainId, functionMetadata.Key);
                     FunctionMetadataMap.Remove(functionMetadata.Key);
                 }
 
@@ -186,7 +186,7 @@ namespace AElf.SmartContract
             //BUG: if the smart contract can be updated, then somehow this in-memory cache FunctionMetadataMap need to be updated too. Currently the ChainFunctionMetadata has no way to know some metadata is updated; current thought is to request current "previous block hash" every time the ChainFunctionMetadata public interface got executed, that is "only use cache when in the same block, can clear the cache per block"
             if (!FunctionMetadataMap.TryGetValue(functionFullName, out var txMetadata))
             {
-                var data = await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, functionFullName));
+                var data = await _functionMetadataManager.GetAsync(chainId, functionFullName);
                 if (data != null)
                 {
                     txMetadata = data;

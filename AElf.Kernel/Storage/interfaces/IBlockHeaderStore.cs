@@ -1,10 +1,7 @@
-using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storage.Interfaces
 {
-    public interface IBlockHeaderStore
+    public interface IBlockHeaderStore: IKeyValueStoreBase
     {
-        Task SetAsync(string key, object value);
-        Task<T> GetAsync<T>(string key);
     }
 }

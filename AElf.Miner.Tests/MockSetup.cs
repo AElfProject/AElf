@@ -76,7 +76,7 @@ namespace AElf.Miner.Tests
             IChainHeightStore chainHeightStore,
             IBlockManager blockManager, ISmartContractManager smartContractManager,
             ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager, 
-            ITransactionTraceManager transactionTraceManager,IChainManager chainManager)
+            ITransactionTraceManager transactionTraceManager,IChainManager chainManager,IFunctionMetadataService functionMetadataService)
         {
             _logger = logger;
             _database = database;
@@ -97,13 +97,13 @@ namespace AElf.Miner.Tests
             _transactionResultManager = transactionResultManager;
             _transactionTraceManager = transactionTraceManager;
             _chainManager = chainManager;
+            _functionMetadataService = functionMetadataService;
             Initialize();
         }
 
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_transactionStore);
-            _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _stateManager = new StateManager(new StateStore(_database, new ProtobufSerializer()));
             _chainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, _dataStore, _stateManager);

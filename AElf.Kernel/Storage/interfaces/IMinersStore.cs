@@ -2,9 +2,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storage.Interfaces
 {
-    public interface IMinersStore
+    public interface IMinersStore: IKeyValueStoreBase
     {
-        Task SetAsync(string key, object value);
-        Task<T> GetAsync<T>(string key);
     }
 }

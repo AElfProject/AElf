@@ -57,7 +57,7 @@ namespace AElf.Contracts.SideChain.Tests
 
         public MockSetup(ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager
             , IChainManager chainManager, ISmartContractManager smartContractManager,
-            ITransactionTraceManager transactionTraceManager)
+            ITransactionTraceManager transactionTraceManager,IFunctionMetadataService functionMetadataService)
         {
             _logger = logger;
             _transactionManager = transactionManager;
@@ -65,13 +65,13 @@ namespace AElf.Contracts.SideChain.Tests
             _blockManager = blockManager;
             SmartContractManager = smartContractManager;
             _transactionTraceManager = transactionTraceManager;
+            _functionMetadataService = functionMetadataService;
             Initialize();
         }
 
         private void Initialize()
         {
             NewStorage();
-            _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             ChainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
