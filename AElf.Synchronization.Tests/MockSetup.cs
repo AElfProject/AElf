@@ -36,13 +36,13 @@ namespace AElf.Synchronization.Tests
         private IBlockSynchronizer _blockSynchronizer;
 
         public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub, ITransactionManager transactionManager
-            ,IChainManager chainManager)
+            ,IChainManager chainManager, ISmartContractManager smartContractManager)
         {
             _dataStore = dataStore;
             _stateManager = stateManager;
             _transactionManager = transactionManager;
             
-            _smartContractManager = new SmartContractManager(_dataStore);
+            _smartContractManager = smartContractManager;
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();

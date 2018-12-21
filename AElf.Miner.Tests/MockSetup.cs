@@ -73,7 +73,7 @@ namespace AElf.Miner.Tests
             ,ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore
             ,IBlockHeaderStore blockHeaderStore,IBlockBodyStore blockBodyStore
             ,IGenesisBlockHashStore genesisBlockHashStore, ICurrentBlockHashStore currentBlockHashStore, IChainHeightStore chainHeightStore
-            ,IBlockManager blockManager)
+            ,IBlockManager blockManager, ISmartContractManager smartContractManager)
         {
             _logger = logger;
             _database = database;
@@ -89,6 +89,7 @@ namespace AElf.Miner.Tests
             _currentBlockHashStore = currentBlockHashStore;
             _chainHeightStore = chainHeightStore;
             _blockManager = blockManager;
+            _smartContractManager = smartContractManager;
             Initialize();
         }
 
@@ -96,7 +97,6 @@ namespace AElf.Miner.Tests
         {
             _transactionManager = new TransactionManager(_transactionStore);
             _transactionReceiptManager = new TransactionReceiptManager(_database);
-            _smartContractManager = new SmartContractManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
@@ -115,7 +115,7 @@ namespace AElf.Miner.Tests
                 new ChainContextService(_chainService));
 
             _chainCreationService = new ChainCreationService(_chainService,
-                new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
+                new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
                     _stateManager, _functionMetadataService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_merkleTreeStore);

@@ -49,13 +49,15 @@ namespace AElf.Runtime.CSharp.Tests
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService, IDataStore dataStore, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService, IDataStore dataStore
+            , IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory
+            , ISmartContractManager smartContractManager)
         {
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractManager = new SmartContractManager(dataStore);
+            _smartContractManager = smartContractManager;
             Task.Factory.StartNew(async () =>
             {
                 await Init();

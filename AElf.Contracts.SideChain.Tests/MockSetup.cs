@@ -54,12 +54,13 @@ namespace AElf.Contracts.SideChain.Tests
         
 
         public MockSetup(ILogger logger,ITransactionManager transactionManager,IBlockManager blockManager
-            , IChainManager chainManager)
+            , IChainManager chainManager,ISmartContractManager smartContractManager)
         {
             _logger = logger;
             _transactionManager = transactionManager;
             _chainManager = chainManager;
             _blockManager = blockManager;
+            SmartContractManager = smartContractManager;
             Initialize();
         }
 
@@ -74,9 +75,8 @@ namespace AElf.Contracts.SideChain.Tests
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
-                new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory,
                     StateManager, _functionMetadataService), _logger);
-            SmartContractManager = new SmartContractManager(_dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
