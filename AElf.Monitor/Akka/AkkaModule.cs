@@ -1,20 +1,25 @@
 ﻿using System.Linq;
-using AElf.Common.Module;
 using AElf.Configuration;
+using AElf.Kernel;
+using AElf.Modularity;
 using Akka.Actor;
 using Akka.Configuration;
 using Autofac;
+using Volo.Abp;
+using Volo.Abp.Modularity;
 
 namespace AElf.Monitor
 {
-    public class AkkaModule:IAElfModule
-    {
-        public void Init(ContainerBuilder builder)
-        {
-        }
+    
+    [DependsOn(typeof(KernelAElfModule))]
 
-        public void Run(ILifetimeScope scope)
+    public class AkkaModule: AElfModule
+    {
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            //TODO: move to extensions method to support app.UseAkka()
+            
+            
             if (!ActorConfig.Instance.IsCluster)
             {
                 return;

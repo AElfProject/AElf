@@ -13,9 +13,9 @@ namespace AElf.Monitor
             var parsed = new CommandLineParser();
             parsed.Parse(args);
 
-            var handler = new AElfModuleHandler();
+            /*var handler = new AElfModuleHandler();
             handler.Register(new AkkaModule());
-            handler.Build();
+            handler.Build();*/
 
             var url = $"http://{RpcConfig.Instance.Host}:{RpcConfig.Instance.Port}";
 

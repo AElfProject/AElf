@@ -18,6 +18,11 @@ namespace AElf.Kernel
 {
     public class KernelAElfModule: AElfModule
     {
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddConventionalRegistrar(new AElfKernelConventionalRegistrar());
+        }
+
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
 
@@ -61,20 +66,36 @@ namespace AElf.Kernel
             
             //context.ServiceProvider.GetService<ILoggerFactory>();
 
-
-
             //builder.RegisterModule(new LoggerAutofacModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
         }
     }
 
-    public class AElfDefaultConventionalRegistrar : ConventionalRegistrarBase
+    
+    public class AElfKernelConventionalRegistrar : DefaultConventionalRegistrar
     {
-        public override void AddType(IServiceCollection services, Type type)
+        protected override ServiceLifetime? GetServiceLifetimeFromClassHierarcy(Type type)
         {
-            if (type.Name.EndsWith("Manager"))
+            var lifeTime = base.GetServiceLifetimeFromClassHierarcy(type);
+            if (lifeTime != null)
             {
-                //services.Add(type,);
+                return lifeTime;
             }
+            
+            //TODO: use IsAssignableFrom
+            
+            if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Store"))
+            {
+                return ServiceLifetime.Transient;
+            }
+
+            return null;
         }
+        
+        /*private static bool IsPageModel(Type type)
+        {
+            return typeof(PageModel).IsAssignableFrom(type) || type.IsDefined(typeof(PageModelAttribute), true);
+        }*/
     }
+    
+    
 }

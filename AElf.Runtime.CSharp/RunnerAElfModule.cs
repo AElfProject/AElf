@@ -1,14 +1,15 @@
 ﻿using System.IO;
-using AElf.Common.Module;
 using AElf.Configuration.Config.Contract;
+using AElf.Modularity;
 using AElf.SmartContract;
 using Autofac;
+using Volo.Abp.Modularity;
 
 namespace AElf.Runtime.CSharp
 {
-    public class RunnerAElfModule:IAElfModule
+    public class RunnerAElfModule: AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
             RunnerConfig.Instance.SdkDir = Path.GetDirectoryName(typeof(RunnerAElfModule).Assembly.Location);
             
@@ -18,11 +19,7 @@ namespace AElf.Runtime.CSharp
             smartContractRunnerFactory.AddRunner(1, runner);
             
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
-
         }
 
-        public void Run(ILifetimeScope scope)
-        {
-        }
     }
 }
