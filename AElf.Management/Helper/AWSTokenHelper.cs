@@ -9,7 +9,7 @@ namespace AElf.Management.Helper
         {
             var jsonResult = GetResultFromTerminal("heptio-authenticator-aws token -i aelf-blockchain-test-net");
             var credential = JsonConvert.DeserializeObject<K8SCredential>(jsonResult);
-            
+
             return credential;
         }
 
@@ -31,7 +31,7 @@ namespace AElf.Management.Helper
             p.StandardInput.WriteLine("exit");
             var result = p.StandardOutput.ReadToEnd();
             p.Close();
-            
+
             return result;
         }
     }

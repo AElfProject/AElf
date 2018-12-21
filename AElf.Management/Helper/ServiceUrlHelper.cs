@@ -11,7 +11,7 @@ namespace AElf.Management.Helper
     public class ServiceUrlHelper
     {
         private static object _lock = new object();
-        
+
         public static string GetRpcAddress(string chainId)
         {
             if (ServiceUrlConfig.Instance.ServiceUrls.TryGetValue(chainId, out var serviceUrl))
@@ -23,7 +23,7 @@ namespace AElf.Management.Helper
             }
 
             var service = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, chainId);
-            var address = "http://" + service.Status.LoadBalancer.Ingress.FirstOrDefault().Hostname + ":" + GlobalSetting.RpcPort;
+            var address = "http://" + service.Status.LoadBalancer.Ingress.FirstOrDefault()?.Hostname + ":" + GlobalSetting.RpcPort;
 
             lock (_lock)
             {
@@ -38,7 +38,7 @@ namespace AElf.Management.Helper
 
                 SaveConfigToFile();
             }
-            
+
             return address;
         }
 
@@ -68,13 +68,13 @@ namespace AElf.Management.Helper
 
                 SaveConfigToFile();
             }
-            
+
             return address;
         }
 
         private static void SaveConfigToFile()
         {
-            var configJson =  JsonSerializer.Instance.Serialize(ServiceUrlConfig.Instance);
+            var configJson = JsonSerializer.Instance.Serialize(ServiceUrlConfig.Instance);
             File.WriteAllText(Path.Combine(ApplicationHelpers.ConfigPath, "config", "service-url.json"), configJson);
         }
     }

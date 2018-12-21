@@ -246,7 +246,7 @@ namespace AElf.Kernel.Tests.Miner
         #region GRPC
 
         [Fact]
-        public async Task SideChainServerClientsTest()
+        public void SideChainServerClientsTest()
         {
             string dir = @"/tmp/ServerClientsTestA";
             _mock.ClearDirectory(dir);

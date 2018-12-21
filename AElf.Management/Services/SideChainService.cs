@@ -19,42 +19,47 @@ namespace AElf.Management.Services
             {
                 throw new ArgumentException("main chain id is empty!");
             }
+
             if (string.IsNullOrWhiteSpace(arg.SideChainId))
             {
                 arg.SideChainId = GenerateChainId();
             }
+
             arg.IsDeployMainChain = false;
 
             var commands = new List<IDeployCommand>
             {
-                new K8SAddNamespaceCommand(), 
+                new K8SAddNamespaceCommand(),
                 new K8SAddRedisCommand(),
                 new K8SAddLauncherServiceCommand(),
-                new K8SAddAccountKeyCommand(), 
-                new K8SAddConfigCommand(), 
+                new K8SAddAccountKeyCommand(),
+                new K8SAddConfigCommand(),
                 new K8SAddChainInfoCommand(),
                 new K8SGrpcKeyCommand(),
-                new K8SAddLighthouseCommand(), 
-                new K8SAddWorkerCommand(), 
+                new K8SAddLighthouseCommand(),
+                new K8SAddWorkerCommand(),
                 new K8SAddLauncherCommand(),
                 new K8SAddMonitorCommand(),
                 new SaveApiKeyCommand(),
-                new AddMonitorDBCommand()
+                new AddMonitorDbCommand()
             };
 
-            commands.ForEach(c => c.Action(arg));
+            foreach (var command in commands)
+            {
+                await command.Action(arg);
+            }
         }
 
-        public async Task  Remove(string chainId)
+        public async Task Remove(string chainId)
         {
-            GetHandler().Execute(DeployType.Remove, chainId);
+            await GetHandler().Execute(DeployType.Remove, chainId);
         }
 
         private IDeployHandler GetHandler()
         {
             return DeployHandlerFactory.GetHandler();
         }
-        
+
         private string GenerateChainId()
         {
             return SHA256.Create().ComputeHash(Guid.NewGuid().ToByteArray()).Take(GlobalConfig.ChainIdLength).ToArray().ToHex();
