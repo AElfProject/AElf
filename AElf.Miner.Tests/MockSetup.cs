@@ -51,7 +51,6 @@ namespace AElf.Miner.Tests
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
         private IMerkleTreeManager _merkleTreeManager;
-        private IKeyValueDatabase _database;
         private IChainContextService _chainContextService;
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
@@ -59,36 +58,18 @@ namespace AElf.Miner.Tests
         private IBlockManager _blockManager;
         private IAuthorizationInfo _authorizationInfo;
         private IStateManager _stateManager;
-        private ITransactionStore _transactionStore;
-        private IMerkleTreeStore _merkleTreeStore;
-        private IBlockHeaderStore _blockHeaderStore;
-        private IBlockBodyStore _blockBodyStore;
-        private IGenesisBlockHashStore _genesisBlockHashStore;
-        private ICurrentBlockHashStore _currentBlockHashStore;
-        private IChainHeightStore _chainHeightStore;
 
-        public MockSetup(ILogger logger, IKeyValueDatabase database, IStateManager stateManager,
+        public MockSetup(ILogger logger, IStateManager stateManager,
             ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
-            ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore,
-            IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            IGenesisBlockHashStore genesisBlockHashStore, ICurrentBlockHashStore currentBlockHashStore,
-            IChainHeightStore chainHeightStore,
             IBlockManager blockManager, ISmartContractManager smartContractManager,
             ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager, 
-            ITransactionTraceManager transactionTraceManager,IChainManager chainManager,IFunctionMetadataService functionMetadataService)
+            ITransactionTraceManager transactionTraceManager,IChainManager chainManager,IFunctionMetadataService functionMetadataService,
+            ITransactionManager transactionManager, IMerkleTreeManager merkleTreeManager)
         {
             _logger = logger;
-            _database = database;
             _stateManager = stateManager;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
-            _transactionStore = transactionStore;
-            _merkleTreeStore = merkleTreeStore;
-            _blockHeaderStore = blockHeaderStore;
-            _blockBodyStore = blockBodyStore;
-            _genesisBlockHashStore = genesisBlockHashStore;
-            _currentBlockHashStore = currentBlockHashStore;
-            _chainHeightStore = chainHeightStore;
             _blockManager = blockManager;
             _smartContractManager = smartContractManager;
             _transactionReceiptManager = transactionReceiptManager;
@@ -96,13 +77,14 @@ namespace AElf.Miner.Tests
             _transactionTraceManager = transactionTraceManager;
             _chainManager = chainManager;
             _functionMetadataService = functionMetadataService;
+            _transactionManager = transactionManager;
+            _stateManager = stateManager;
+            _merkleTreeManager = merkleTreeManager;
             Initialize();
         }
 
         private void Initialize()
         {
-            _transactionManager = new TransactionManager(_transactionStore);
-            _stateManager = new StateManager(new StateStore(_database, new ProtobufSerializer()));
             _chainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, _stateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -119,7 +101,6 @@ namespace AElf.Miner.Tests
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
                     _stateManager, _functionMetadataService), _logger);
 
-            _merkleTreeManager = new MerkleTreeManager(_merkleTreeStore);
             _chainContextService = new ChainContextService(_chainService);
             _authorizationInfo = new AuthorizationInfo(_stateManager);
         }

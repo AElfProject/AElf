@@ -56,7 +56,8 @@ namespace AElf.Contracts.SideChain.Tests
 
         public MockSetup(ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager
             , IChainManager chainManager, ISmartContractManager smartContractManager,
-            ITransactionTraceManager transactionTraceManager,IFunctionMetadataService functionMetadataService)
+            ITransactionTraceManager transactionTraceManager,IFunctionMetadataService functionMetadataService,
+            IStateManager stateManager)
         {
             _logger = logger;
             _transactionManager = transactionManager;
@@ -65,12 +66,12 @@ namespace AElf.Contracts.SideChain.Tests
             SmartContractManager = smartContractManager;
             _transactionTraceManager = transactionTraceManager;
             _functionMetadataService = functionMetadataService;
+            StateManager = stateManager;
             Initialize();
         }
 
         private void Initialize()
         {
-            NewStorage();
             ChainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -85,12 +86,6 @@ namespace AElf.Contracts.SideChain.Tests
                 StateManager, _functionMetadataService);
             ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, _transactionTraceManager,
                 StateManager);
-        }
-
-        private void NewStorage()
-        {
-            var db = new InMemoryDatabase();
-            StateManager = new StateManager(new StateStore(db, new ProtobufSerializer()));
         }
 
         public byte[] CrossChainCode

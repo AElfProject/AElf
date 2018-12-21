@@ -30,17 +30,17 @@ namespace AElf.Kernel
             builder.RegisterType<FunctionMetadataStore>().As<IFunctionMetadataStore>().SingleInstance();
             builder.RegisterType<CallGraphStore>().As<ICallGraphStore>().SingleInstance();
             
-            builder.RegisterType<StateManager>().As<IStateManager>();
-            builder.RegisterType<TransactionManager>().As<ITransactionManager>();
-            builder.RegisterType<MerkleTreeManager>().As<IMerkleTreeManager>();
-            builder.RegisterType<BlockManager>().As<IBlockManager>();
-            builder.RegisterType<ChainManager>().As<IChainManager>();
-            builder.RegisterType<MinersManager>().As<IMinersManager>();
-            builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
-            builder.RegisterType<TransactionReceiptManager>().As<ITransactionReceiptManager>();
-            builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
-            builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>();
-            builder.RegisterType<FunctionFunctionMetadataManager>().As<IFunctionMetadataManager>();
+            builder.RegisterType<StateManager>().As<IStateManager>().SingleInstance();
+            builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
+            builder.RegisterType<MerkleTreeManager>().As<IMerkleTreeManager>().SingleInstance();
+            builder.RegisterType<BlockManager>().As<IBlockManager>().SingleInstance();
+            builder.RegisterType<ChainManager>().As<IChainManager>().SingleInstance();
+            builder.RegisterType<MinersManager>().As<IMinersManager>().SingleInstance();
+            builder.RegisterType<SmartContractManager>().As<ISmartContractManager>().SingleInstance();
+            builder.RegisterType<TransactionReceiptManager>().As<ITransactionReceiptManager>().SingleInstance();
+            builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>().SingleInstance();
+            builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>().SingleInstance();
+            builder.RegisterType<FunctionFunctionMetadataManager>().As<IFunctionMetadataManager>().SingleInstance();
         }
     }
 }
