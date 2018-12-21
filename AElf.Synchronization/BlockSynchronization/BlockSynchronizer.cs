@@ -171,15 +171,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public void Init()
         {
-            _logger?.Debug("Initializing block sync...");
+            if (string.IsNullOrEmpty(ChainConfig.Instance?.ChainId))
+                throw new InvalidOperationException("Chain id cannot be empty...");
+            
             try
             {
-                if (string.IsNullOrEmpty(ChainConfig.Instance?.ChainId))
-                {
-                    _logger?.Debug("Chain id is empty...");
-                    return;
-                }
-                
                 _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             
                 Miners miners = _minersManager.GetMiners().Result;
@@ -260,7 +256,7 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         public async Task HandleNewBlock(IBlock block)
         {
-            _logger.Debug($"Handling {block} - state {CurrentState}");
+            _logger?.Debug($"Handling {block} - state {CurrentState}");
             
             if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
             {

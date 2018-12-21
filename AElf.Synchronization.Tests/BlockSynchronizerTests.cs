@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Synchronization.BlockExecution;
@@ -45,7 +46,7 @@ namespace AElf.Synchronization.Tests
 
         protected BlockSyncTestBase()
         {
-            ;
+            ChainConfig.Instance.ChainId = "kPBx"; 
         }
 
         // Genesis block with random miners, no validation, exec is success.
