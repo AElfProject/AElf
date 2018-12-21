@@ -68,12 +68,14 @@ namespace AElf.Miner.Tests
         private ICurrentBlockHashStore _currentBlockHashStore;
         private IChainHeightStore _chainHeightStore;
 
-        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateManager stateManager
-            , ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator
-            ,ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore
-            ,IBlockHeaderStore blockHeaderStore,IBlockBodyStore blockBodyStore
-            ,IGenesisBlockHashStore genesisBlockHashStore, ICurrentBlockHashStore currentBlockHashStore, IChainHeightStore chainHeightStore
-            ,IBlockManager blockManager, ISmartContractManager smartContractManager, ITransactionReceiptManager transactionReceiptManager)
+        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateManager stateManager,
+            ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
+            ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore,
+            IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            IGenesisBlockHashStore genesisBlockHashStore, ICurrentBlockHashStore currentBlockHashStore,
+            IChainHeightStore chainHeightStore,
+            IBlockManager blockManager, ISmartContractManager smartContractManager,
+            ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager)
         {
             _logger = logger;
             _database = database;
@@ -91,13 +93,13 @@ namespace AElf.Miner.Tests
             _blockManager = blockManager;
             _smartContractManager = smartContractManager;
             _transactionReceiptManager = transactionReceiptManager;
+            _transactionResultManager = transactionResultManager;
             Initialize();
         }
 
         private void Initialize()
         {
             _transactionManager = new TransactionManager(_transactionStore);
-            _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _chainManager = new ChainManager(_chainHeightStore, _genesisBlockHashStore, _currentBlockHashStore);

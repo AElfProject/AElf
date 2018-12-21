@@ -28,6 +28,7 @@ namespace AElf.Kernel
             builder.RegisterType<MinersStore>().As<IMinersStore>().SingleInstance();
             builder.RegisterType<SmartContractStore>().As<ISmartContractStore>().SingleInstance();
             builder.RegisterType<TransactionReceiptStore>().As<ITransactionReceiptStore>().SingleInstance();
+            builder.RegisterType<TransactionResultStore>().As<ITransactionResultStore>().SingleInstance();
 
 
             
@@ -39,13 +40,13 @@ namespace AElf.Kernel
             builder.RegisterType<MinersManager>().As<IMinersManager>();
             builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
             builder.RegisterType<TransactionReceiptManager>().As<ITransactionReceiptManager>();
+            builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
 
 
             
             
             
             builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>();
-            builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
             builder.RegisterType<DataStore>().As<IDataStore>();
         }
     }

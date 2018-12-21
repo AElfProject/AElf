@@ -20,7 +20,7 @@ namespace AElf.Synchronization.Tests
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
-        
+
         private readonly IDataStore _dataStore;
         private readonly IStateManager _stateManager;
         private readonly ISmartContractManager _smartContractManager;
@@ -35,16 +35,18 @@ namespace AElf.Synchronization.Tests
 
         private IBlockSynchronizer _blockSynchronizer;
 
-        public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub, ITransactionManager transactionManager
-            ,IChainManager chainManager, ISmartContractManager smartContractManager)
+        public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub,
+            ITransactionManager transactionManager
+            , IChainManager chainManager, ISmartContractManager smartContractManager,
+            ITransactionResultManager transactionResultManager)
         {
             _dataStore = dataStore;
             _stateManager = stateManager;
             _transactionManager = transactionManager;
-            
+
             _smartContractManager = smartContractManager;
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
-            _transactionResultManager = new TransactionResultManager(_dataStore);
+            _transactionResultManager = transactionResultManager;
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateManager,
@@ -87,7 +89,7 @@ namespace AElf.Synchronization.Tests
                 .Returns<ulong>(p => Task.FromResult(_blocks[(int) p - 1]));
             return mock;
         }
-        
+
         /// <summary>
         /// Which will always return true.
         /// </summary>
@@ -102,8 +104,8 @@ namespace AElf.Synchronization.Tests
 
         public IBlockExecutor GetBlockExecutor()
         {
-            return new BlockExecutor(GetChainService(), _concurrencyExecutingService, 
-                _transactionResultManager, null, null, _txHub, _chainManager,_stateManager);
+            return new BlockExecutor(GetChainService(), _concurrencyExecutingService,
+                _transactionResultManager, null, null, _txHub, _chainManager, _stateManager);
         }
     }
 }
