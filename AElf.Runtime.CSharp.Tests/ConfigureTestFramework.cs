@@ -21,6 +21,10 @@ namespace AElf.Runtime.CSharp.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
+            //TODO! change
+
+            
+            /*
             var assembly1 = typeof(IDataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
             var assembly2 = typeof(ISerializer<>).Assembly;
@@ -49,7 +53,7 @@ namespace AElf.Runtime.CSharp.Tests
             smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
             // configure your container
-            // e.g. builder.RegisterModule<TestOverrideModule>();
+            // e.g. builder.RegisterModule<TestOverrideModule>();*/
         }
     }
 }

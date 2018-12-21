@@ -11,6 +11,7 @@ using AElf.Miner;
 using AElf.Network;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
+using Akka.Remote;
 using Autofac;
 using NLog;
 
@@ -22,6 +23,7 @@ namespace AElf.Concurrency.Worker
         
         static void Main(string[] args)
         {
+            
             //TODO! use abp bootstrap
             
             

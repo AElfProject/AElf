@@ -3,20 +3,23 @@ using System.IO;
 using System.Net;
 using System.Security;
 using AElf.Common.Application;
-using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Modularity;
 using AElf.Node.AElfChain;
 using Autofac;
 
 namespace AElf.Node
 {
-    public class NodeAElfModule : IAElfModule
+    public class NodeAElfModule : AElfModule
     {
+        
+        //TODO! change implements
+        
         public void Init(ContainerBuilder builder)
         {
             ECKeyPair nodeKey = null;

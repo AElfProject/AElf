@@ -29,6 +29,8 @@ namespace AElf.Kernel.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
+            //TODO! change
+            /*
             ChainConfig.Instance.ChainId = "kPBx";
             NodeConfig.Instance.NodeAccount = Address.FromString("ELF_kPBx_TestContractA").GetFormatted();
 
@@ -69,7 +71,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
             builder.RegisterType<TxHub>().As<ITxHub>();
             // configure your container
-            // e.g. builder.RegisterModule<TestOverrideModule>();
+            // e.g. builder.RegisterModule<TestOverrideModule>();*/
         }
     }
 }

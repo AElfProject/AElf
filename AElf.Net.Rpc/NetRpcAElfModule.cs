@@ -1,18 +1,21 @@
-﻿using AElf.Common.Module;
-using AElf.Configuration.Config.RPC;
+﻿
+using AElf.Modularity;
 using Autofac;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
 
 namespace AElf.Net.Rpc
 {
-    public class NetRpcAElfModule:IAElfModule
+    public class NetRpcAElfModule: AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            builder.RegisterModule(new NetRpcAutofacModule());
+            context.Services.AddAssemblyOf<NetRpcAElfModule>();
+
+            /*
+            builder.RegisterType<NetRpcService>().PropertiesAutowired();*/
+
         }
 
-        public void Run(ILifetimeScope scope)
-        {
-        }
     }
 }

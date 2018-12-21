@@ -4,16 +4,18 @@ using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using AElf.Common.Module;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Types.Common;
+using AElf.Modularity;
 using Autofac;
 using Easy.MessageHub;
 using NLog;
 
 namespace AElf.Launcher
 {
-    public class LauncherAElfModule:IAElfModule
+    //TODO! need to change this file
+    
+    public class LauncherAElfModule: AElfModule
     {
         private static readonly ILogger Logger = LogManager.GetLogger("Launcher");
         private readonly AutoResetEvent _closing = new AutoResetEvent(false);

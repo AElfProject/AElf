@@ -3,7 +3,6 @@ using System.Threading.Channels;
 using AElf.ChainController;
 using AElf.ChainController.Rpc;
 using AElf.Common;
-using AElf.Common.Module;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Kernel;
@@ -25,6 +24,8 @@ namespace AElf.Launcher
     {
         static void Main(string[] args)
         {
+            //TODO! change
+            /*
             Console.WriteLine(string.Join(" ", args));
 
             var parsed = new CommandLineParser();
@@ -47,7 +48,7 @@ namespace AElf.Launcher
             handler.Register(new SideChainAElfModule());
             handler.Register(new LauncherAElfModule());
             handler.Register(new SyncAElfModule());
-            handler.Build();
+            handler.Build();*/
         }
     }
 }

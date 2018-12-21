@@ -24,6 +24,9 @@ namespace AElf.Benchmark
     {
         public static async Task Main(string[] args)
         {
+            //TODO!
+            
+            /*
             BenchmarkOptions opts = null;
             Parser.Default.ParseArguments<BenchmarkOptions>(args)
                 .WithParsed(o => { opts = o; })
@@ -155,6 +158,7 @@ namespace AElf.Benchmark
 
             Console.WriteLine("\n\nPress any key to continue ");
             Console.ReadKey();
+            */
         }
 
         private static bool CheckDbConnect(IComponentContext container)

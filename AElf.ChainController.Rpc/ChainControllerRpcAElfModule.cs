@@ -1,18 +1,18 @@
-﻿using AElf.Common.Module;
-using Autofac;
+﻿using AElf.Modularity;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
 
 namespace AElf.ChainController.Rpc
 {
-    public class ChainControllerRpcAElfModule:IAElfModule
+    public class ChainControllerRpcAElfModule: AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            builder.RegisterModule(new ChainControllerRpcAutofacModule());
+            context.Services.AddAssemblyOf<ChainControllerRpcAElfModule>();
+            /*
+            builder.RegisterType<TransactionResultService>().As<ITransactionResultService>().SingleInstance();
+            builder.RegisterType<ChainControllerRpcService>().PropertiesAutowired();*/
         }
 
-        public void Run(ILifetimeScope scope)
-        {
-
-        }
     }
 }
