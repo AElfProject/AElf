@@ -171,22 +171,29 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public void Init()
         {
-            _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            try
+            {
+                _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             
-            Miners miners = _minersManager.GetMiners().Result;
+                Miners miners = _minersManager.GetMiners().Result;
             
-            _currentMiners = new List<string>();
+                _currentMiners = new List<string>();
             
-            foreach (var miner in miners.PublicKeys)
-                _currentMiners.Add(miner);
+                foreach (var miner in miners.PublicKeys)
+                    _currentMiners.Add(miner);
             
-            var height = _blockChain.GetCurrentBlockHeightAsync().Result;
-            var currentBlock = _blockChain.GetBlockByHeightAsync(height).Result as Block;
+                var height = _blockChain.GetCurrentBlockHeightAsync().Result;
+                var currentBlock = _blockChain.GetBlockByHeightAsync(height).Result as Block;
             
-            HeadBlock = _blockSet.Init(_currentMiners, currentBlock);
+                HeadBlock = _blockSet.Init(_currentMiners, currentBlock);
 
-            if (HeadBlock.Index == GlobalConfig.GenesisBlockHeight)
-                CurrentLib = HeadBlock;
+                if (HeadBlock.Index == GlobalConfig.GenesisBlockHeight)
+                    CurrentLib = HeadBlock;
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e);
+            }
         }
         
         /// <summary>

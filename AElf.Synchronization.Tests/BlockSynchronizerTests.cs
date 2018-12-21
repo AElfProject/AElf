@@ -42,8 +42,11 @@ namespace AElf.Synchronization.Tests
         
         public IBlock Genesis { get; private set; }
         public BlockSynchronizer Synchronizer { get; private set; }
-        
-        protected BlockSyncTestBase() { }
+
+        protected BlockSyncTestBase()
+        {
+            ;
+        }
 
         // Genesis block with random miners, no validation, exec is success.
         public void GenesisChainSetup()
