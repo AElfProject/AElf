@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
 using AElf.Kernel;
@@ -23,6 +24,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
 using NLog;
+using Transaction = AElf.Kernel.Transaction;
 
 namespace AElf.ChainController.Rpc
 {
@@ -39,11 +41,12 @@ namespace AElf.ChainController.Rpc
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public INodeService MainchainNodeService { get; set; }
-        public ICrossChainInfo CrossChainInfo { get; set; }
+        public ICrossChainInfoReader CrossChainInfoReader { get; set; }
         public IAuthorizationInfo AuthorizationInfo { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSet BlockSet { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
+        public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
         public IElectionInfo ElectionInfo { get; set; }
 
         #endregion Properties
@@ -222,23 +225,16 @@ namespace AElf.ChainController.Rpc
                 return await Task.FromResult(res);
             }
             
-//            try
-//            {
-            // TODO: Wait validation done
+            try
+            {
+                //TODO: Wait validation done
+                transaction.GetTransactionInfo();
                 await TxHub.AddTransactionAsync(transaction);
-//                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
-//                {
-//                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
-//                }
-//                else
-//                {
-//                    res["error"] = valRes.ToString();
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                res["error"] = e.ToString();
-//            }
+            }
+            catch (Exception e)
+            {
+                res["error"] = e.ToString();
+            }
 
             return await Task.FromResult(res);
         }
@@ -288,8 +284,8 @@ namespace AElf.ChainController.Rpc
                 var txResult = await this.GetTransactionResult(txHash);
                 if(txResult.Status != Status.Mined)
                    throw new Exception("Transaction is not mined.");
-                
-                var merklePath = txResult.MerklePath?.Clone();
+                var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(txResult.BlockNumber);
+                var merklePath = binaryMerkleTree.GenerateMerklePath(txResult.Index);
                 if(merklePath == null)
                     throw new Exception("Not found merkle path for this transaction.");
                 MerklePath merklePathInParentChain = null;
@@ -554,7 +550,7 @@ namespace AElf.ChainController.Rpc
                         ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.ToHex(),
                         ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                         ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.ToHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot?.ToHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),

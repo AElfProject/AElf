@@ -47,7 +47,6 @@ namespace AElf.Kernel
                 MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),
                 MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState?.Clone(),
                 Bloom = Bloom,
-                SideChainBlockHeadersRoot = SideChainBlockHeadersRoot?.Clone(),
                 SideChainTransactionsRoot = MerkleTreeRootOfTransactions?.Clone()
             };
             if (Index > GlobalConfig.GenesisBlockHeight)

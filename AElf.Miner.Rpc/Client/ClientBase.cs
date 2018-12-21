@@ -22,19 +22,20 @@ namespace AElf.Miner.Rpc.Client
         private int _realInterval;
         private const int UnavailableConnectionInterval = 1_000;
         private readonly int _cachedBoundedCapacity;
-        
+        private readonly int _irreversible;
         private BlockingCollection<IBlockInfo> ToBeIndexedInfoQueue { get; } =
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
         private Queue<IBlockInfo> CachedInfoQueue { get; } = new Queue<IBlockInfo>();
         private Channel _channel;
-        protected ClientBase(Channel channel, ILogger logger, Hash targetChainId, int interval, int cachedBoundedCapacity)
+        protected ClientBase(Channel channel, ILogger logger, Hash targetChainId, int interval, int irreversible, int maximalIndexingCount)
         {
             _channel = channel;
             _logger = logger;
             _targetChainId = targetChainId;
             _interval = interval;
             _realInterval = _interval;
-            _cachedBoundedCapacity = cachedBoundedCapacity;
+            _irreversible = irreversible;
+            _cachedBoundedCapacity = irreversible * maximalIndexingCount;
         }
 
         public void UpdateRequestInterval(int interval)
@@ -200,7 +201,9 @@ namespace AElf.Miner.Rpc.Client
         public bool TryTake(int millisecondsTimeout, ulong height, out IBlockInfo blockInfo, bool cachingThreshold = false)
         {
             var first = First();
-            if (first != null && first.Height == height && (!cachingThreshold || ToBeIndexedInfoQueue.Count >= _cachedBoundedCapacity))
+            
+            // only mining process needs cachingThreshold, for most nodes have this block.
+            if (first != null && first.Height == height && (!cachingThreshold || ToBeIndexedInfoQueue.Count >= _irreversible))
             {
                 var res = ToBeIndexedInfoQueue.TryTake(out blockInfo, millisecondsTimeout);
                 if(res)
@@ -212,6 +215,7 @@ namespace AElf.Miner.Rpc.Client
                 return res;
             }
             
+            // this is because of rollback 
             blockInfo = CachedInfoQueue.FirstOrDefault(c => c.Height == height);
             if (blockInfo != null)
                 return !cachingThreshold ||

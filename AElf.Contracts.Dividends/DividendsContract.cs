@@ -114,7 +114,7 @@ namespace AElf.Contracts.Dividends
         {
             var owner = votingRecord.From;
             var ownerAddress =
-                Address.FromPublicKey(Api.ChainId.DumpByteArray(), ByteArrayHelpers.FromHexString(owner));
+                Address.FromPublicKey(ByteArrayHelpers.FromHexString(owner));
             var start = votingRecord.TermNumber;
             if (_lastRequestDividendsMap.TryGet(GetHashOfVotingRecord(votingRecord), out var history))
             {

@@ -15,11 +15,11 @@ namespace AElf.Kernel.Types.Transaction
                 return false;
             }
 
-            if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
+            if (tx.Sigs.Count == 1 && tx.Type != AElf.Kernel.TransactionType.MsigTransaction)
             {
                 var pubkey =
                     CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(), tx.GetHash().DumpByteArray());
-                return Address.FromPublicKey(new byte[0], pubkey).Equals(tx.From);
+                return Address.FromPublicKey(pubkey).Equals(tx.From);
             }
             
             foreach (var sig in tx.Sigs)
