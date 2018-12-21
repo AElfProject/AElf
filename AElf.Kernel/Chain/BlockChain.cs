@@ -140,8 +140,7 @@ namespace AElf.Kernel
                         txs.Add(tx);
                     }
 
-                    var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
-                    await _dataStore.RemoveAsync<Hash>(h);
+                    await _chainManager.RemoveCanonical(_chainId, i);
                     await RollbackSideChainInfo(block);
                     await RollbackStateForBlock(block);
                     blocks.Add((Block) block);

@@ -30,6 +30,7 @@ namespace AElf.Kernel
             builder.RegisterType<TransactionReceiptStore>().As<ITransactionReceiptStore>().SingleInstance();
             builder.RegisterType<TransactionResultStore>().As<ITransactionResultStore>().SingleInstance();
             builder.RegisterType<TransactionTraceStore>().As<ITransactionTraceStore>().SingleInstance();
+            builder.RegisterType<CanonicalStore>().As<ICanonicalStore>().SingleInstance();
             
             
             builder.RegisterType<StateManager>().As<IStateManager>();

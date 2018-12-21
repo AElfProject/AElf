@@ -29,10 +29,11 @@ namespace AElf.Contracts.SideChain.Tests
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
         private static int _incrementId = 0;
+
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
-            return (ulong)n;
+            return (ulong) n;
         }
 
         public Hash ChainId1 { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
@@ -47,15 +48,16 @@ namespace AElf.Contracts.SideChain.Tests
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ILogger _logger;
         private IDataStore _dataStore;
-       
+
         private IBlockManager _blockManager;
         private IChainManager _chainManager;
         private ITransactionManager _transactionManager;
         private ITransactionTraceManager _transactionTraceManager;
-        
 
-        public MockSetup(ILogger logger,ITransactionManager transactionManager,IBlockManager blockManager
-            , IChainManager chainManager,ISmartContractManager smartContractManager,ITransactionTraceManager transactionTraceManager)
+
+        public MockSetup(ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager
+            , IChainManager chainManager, ISmartContractManager smartContractManager,
+            ITransactionTraceManager transactionTraceManager)
         {
             _logger = logger;
             _transactionManager = transactionManager;
@@ -73,17 +75,17 @@ namespace AElf.Contracts.SideChain.Tests
             ChainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, _dataStore, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
-            var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
+            var runner =
+                new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(SmartContractManager, _smartContractRunnerFactory,
                     StateManager, _functionMetadataService), _logger);
-            Task.Factory.StartNew(async () =>
-            {
-                await Init();
-            }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
-            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, _transactionTraceManager, _dataStore, StateManager);
+            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory,
+                StateManager, _functionMetadataService);
+            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, _transactionTraceManager,
+                _dataStore, StateManager);
         }
 
         private void NewStorage()
@@ -92,33 +94,37 @@ namespace AElf.Contracts.SideChain.Tests
             StateManager = new StateManager(new StateStore(db, new ProtobufSerializer()));
             _dataStore = new DataStore(db);
         }
-        
+
         public byte[] CrossChainCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll")))
+                using (FileStream file = File.OpenRead(Path.GetFullPath(
+                    "../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll")))
                 {
                     code = file.ReadFully();
                 }
+
                 return code;
             }
         }
-        
+
         public byte[] SCZeroContractCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
+                using (FileStream file = File.OpenRead(Path.GetFullPath(
+                    "../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
                 {
                     code = file.ReadFully();
                 }
+
                 return code;
             }
         }
-        
+
         private async Task Init()
         {
             var reg1 = new SmartContractRegistration
@@ -140,7 +146,7 @@ namespace AElf.Contracts.SideChain.Tests
                 await _chainCreationService.CreateNewChainAsync(ChainId1,
                     new List<SmartContractRegistration> {reg0, reg1});
         }
-        
+
         public async Task<IExecutive> GetExecutiveAsync(Address address)
         {
             var executive = await SmartContractService.GetExecutiveAsync(address, ChainId1);

@@ -112,10 +112,12 @@ namespace AElf.Common
         public const string TransactionResultPrefix = "l";
         public const string MerkleTreePrefix = "m";
         public const string ChianHeightPrefix = "n";
+        public const string CanonicalPrefix = "o";
         public const string MinersPrefix = "p";
         public const string CurrentBlockHashPrefix = "r";
         public const string StatePrefix = "s";
         public const string TransactionPrefix = "t";
+
 
         #endregion data key prefixes
         public static ulong BlockCacheLimit = 64; 

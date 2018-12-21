@@ -11,12 +11,15 @@ namespace AElf.Kernel.Manager.Managers
         private readonly IChainHeightStore _chainHeightStore;
         private readonly IGenesisBlockHashStore _genesisBlockHashStore;
         private readonly ICurrentBlockHashStore _currentBlockHashStore;
+        private readonly ICanonicalStore _canonicalStore;
 
-        public ChainManager(IChainHeightStore chainHeightStore, IGenesisBlockHashStore genesisBlockHashStore, ICurrentBlockHashStore currentBlockHashStore)
+        public ChainManager(IChainHeightStore chainHeightStore, IGenesisBlockHashStore genesisBlockHashStore,
+            ICurrentBlockHashStore currentBlockHashStore, ICanonicalStore canonicalStore)
         {
             _chainHeightStore = chainHeightStore;
             _genesisBlockHashStore = genesisBlockHashStore;
             _currentBlockHashStore = currentBlockHashStore;
+            _canonicalStore = canonicalStore;
         }
 
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
@@ -29,13 +32,13 @@ namespace AElf.Kernel.Manager.Managers
         {
             await _currentBlockHashStore.SetAsync(chainId.DumpHex(), blockHash);
         }
-        
+
         public async Task<Hash> GetCurrentBlockHashAsync(Hash chainId)
         {
             var hash = await _currentBlockHashStore.GetAsync<Hash>(chainId.DumpHex());
             return hash;
         }
-        
+
         /// <summary>
         /// update block count in this chain not last block index
         /// </summary>
@@ -61,6 +64,28 @@ namespace AElf.Kernel.Manager.Managers
             var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.DumpHex());
             return height?.Value ?? 0;
         }
-        
+
+        public async Task SetCanonical(Hash chainId, ulong height, Hash canonical)
+        {
+            var key = GetCanonicalKey(chainId, height);
+            await _canonicalStore.SetAsync(key, canonical);
+        }
+
+        public async Task<Hash> GetCanonical(Hash chainId, ulong height)
+        {
+            var key = GetCanonicalKey(chainId, height);
+            return await _canonicalStore.GetAsync<Hash>(key);
+        }
+
+        public async Task RemoveCanonical(Hash chainId, ulong height)
+        {
+            var key = GetCanonicalKey(chainId, height);
+            await _canonicalStore.RemoveAsync(key);
+        }
+
+        private string GetCanonicalKey(Hash chainId, ulong height)
+        {
+            return DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, height).DumpHex();
+        }
     }
 }
