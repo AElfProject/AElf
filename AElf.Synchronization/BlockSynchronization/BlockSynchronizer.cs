@@ -171,16 +171,26 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public void Init()
         {
+            _logger?.Debug("Initializing block sync...");
             try
             {
+                if (string.IsNullOrEmpty(ChainConfig.Instance?.ChainId))
+                {
+                    _logger?.Debug("Chain id is empty...");
+                    return;
+                }
+                
                 _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             
                 Miners miners = _minersManager.GetMiners().Result;
             
                 _currentMiners = new List<string>();
-            
+
                 foreach (var miner in miners.PublicKeys)
+                {
                     _currentMiners.Add(miner);
+                    _logger?.Debug($"Added a miner {miner}");
+                }
             
                 var height = _blockChain.GetCurrentBlockHeightAsync().Result;
                 var currentBlock = _blockChain.GetBlockByHeightAsync(height).Result as Block;
