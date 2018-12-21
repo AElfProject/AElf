@@ -58,7 +58,7 @@ namespace AElf.Miner.Tests
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
         private IChainManager _chainManager;
-        private IAuthorizationInfo _authorizationInfo;
+        private IAuthorizationInfoReader _authorizationInfoReader;
         private IStateStore _stateStore;
 
         public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
@@ -99,7 +99,7 @@ namespace AElf.Miner.Tests
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
             _chainContextService = new ChainContextService(_chainService);
-            _authorizationInfo = new AuthorizationInfo(StateStore);
+            _authorizationInfoReader = new AuthorizationInfoReader(StateStore);
             _stateStore = new StateStore(_database);
         }
 
@@ -153,7 +153,7 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), StateStore);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, null), StateStore);
 
             return blockExecutor;
         }
@@ -165,7 +165,7 @@ namespace AElf.Miner.Tests
         
         internal ITxHub CreateAndInitTxHub()
         {
-            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null);
+            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, null);
             hub.Initialize();
             return hub;
         }
