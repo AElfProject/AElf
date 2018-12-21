@@ -59,7 +59,7 @@ namespace AElf.Kernel.Tests
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public BlockChainTests_MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
+        public BlockChainTests_MockSetup(IChainCreationService chainCreationService,
             IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ILogger logger,

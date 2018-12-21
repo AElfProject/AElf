@@ -49,7 +49,7 @@ namespace AElf.Contracts.Genesis.Tests
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
-            IDataStore dataStore, IChainContextService chainContextService,
+            IChainContextService chainContextService,
             IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory
             , ISmartContractManager smartContractManager)
         {

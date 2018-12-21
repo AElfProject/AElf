@@ -21,12 +21,10 @@ namespace AElf.Runtime.CSharp.Tests
     [UseAutofacTestFramework]
     public class RunnerMetadataTest
     {
-        private IDataStore _store;
         private MockSetup _mock;
 
-        public RunnerMetadataTest(IDataStore store, MockSetup mock)
+        public RunnerMetadataTest(MockSetup mock)
         {
-            _store = store;
             _mock = mock;
         }
 

@@ -26,14 +26,15 @@ namespace AElf.Runtime.CSharp.Tests
     public class MockSetup
     {
         private static int _incrementId = 0;
+
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
-            return (ulong)n;
+            return (ulong) n;
         }
 
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
-        public Hash ChainId2 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x04 });
+        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
+        public Hash ChainId2 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x04});
         public ISmartContractService SmartContractService;
 
         public IStateManager StateManager;
@@ -49,32 +50,24 @@ namespace AElf.Runtime.CSharp.Tests
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService, IDataStore dataStore
-            , IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory
-            , ISmartContractManager smartContractManager)
+        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
+            IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory,
+            ISmartContractManager smartContractManager)
         {
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
             _smartContractManager = smartContractManager;
-            Task.Factory.StartNew(async () =>
-            {
-                await Init();
-            }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
-            Task.Factory.StartNew(async () =>
-            {
-                await DeploySampleContracts();
-            }).Unwrap().Wait();
+            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
+                StateManager, _functionMetadataService);
+            Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
-        
+
         public byte[] SmartContractZeroCode
         {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
+            get { return ContractCodes.TestContractZeroCode; }
         }
 
         private async Task Init()
@@ -87,14 +80,16 @@ namespace AElf.Runtime.CSharp.Tests
                 SerialNumber = GlobalConfig.GenesisBasicContract
             };
 
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
+            var chain1 =
+                await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration> {reg});
             DataProvider1 = DataProvider.GetRootDataProvider(
                 chain1.Id,
                 Address.Generate()
             );
             DataProvider1.StateManager = StateManager;
 
-            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
+            var chain2 =
+                await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration> {reg});
             DataProvider2 = DataProvider.GetRootDataProvider(
                 chain2.Id,
                 Address.Generate()
@@ -119,16 +114,18 @@ namespace AElf.Runtime.CSharp.Tests
         {
             get => "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0";
         }
-        
+
         public byte[] ContractCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath($"{SdkDir}/AElf.Runtime.CSharp.Tests.TestContract.dll")))
+                using (FileStream file =
+                    File.OpenRead(System.IO.Path.GetFullPath($"{SdkDir}/AElf.Runtime.CSharp.Tests.TestContract.dll")))
                 {
                     code = file.ReadFully();
                 }
+
                 return code;
             }
         }

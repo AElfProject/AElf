@@ -21,7 +21,6 @@ namespace AElf.Synchronization.Tests
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
 
-        private readonly IDataStore _dataStore;
         private readonly IStateManager _stateManager;
         private readonly ISmartContractManager _smartContractManager;
         private ITransactionManager _transactionManager;
@@ -35,12 +34,11 @@ namespace AElf.Synchronization.Tests
 
         private IBlockSynchronizer _blockSynchronizer;
 
-        public MockSetup(IDataStore dataStore, IStateManager stateManager, ITxHub txHub,
+        public MockSetup(IStateManager stateManager, ITxHub txHub,
             ITransactionManager transactionManager
             , IChainManager chainManager, ISmartContractManager smartContractManager,
             ITransactionResultManager transactionResultManager, ITransactionTraceManager transactionTraceManager)
         {
-            _dataStore = dataStore;
             _stateManager = stateManager;
             _transactionManager = transactionManager;
 

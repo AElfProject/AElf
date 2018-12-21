@@ -70,7 +70,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
+        public MockSetup(IChainCreationService chainCreationService,
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ILogger logger,

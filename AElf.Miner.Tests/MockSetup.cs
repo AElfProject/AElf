@@ -52,7 +52,6 @@ namespace AElf.Miner.Tests
         private IChainService _chainService;
         private IMerkleTreeManager _merkleTreeManager;
         private IKeyValueDatabase _database;
-        private readonly IDataStore _dataStore;
         private IChainContextService _chainContextService;
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
@@ -68,7 +67,7 @@ namespace AElf.Miner.Tests
         private ICurrentBlockHashStore _currentBlockHashStore;
         private IChainHeightStore _chainHeightStore;
 
-        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateManager stateManager,
+        public MockSetup(ILogger logger, IKeyValueDatabase database, IStateManager stateManager,
             ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
             ITransactionStore transactionStore, IMerkleTreeStore merkleTreeStore,
             IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
@@ -80,7 +79,6 @@ namespace AElf.Miner.Tests
         {
             _logger = logger;
             _database = database;
-            _dataStore = dataStore;
             _stateManager = stateManager;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
@@ -106,7 +104,7 @@ namespace AElf.Miner.Tests
             _transactionManager = new TransactionManager(_transactionStore);
             _stateManager = new StateManager(new StateStore(_database, new ProtobufSerializer()));
             _chainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, _transactionTraceManager, _dataStore, _stateManager);
+                _transactionManager, _transactionTraceManager, _stateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);*/

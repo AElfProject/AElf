@@ -19,15 +19,13 @@ namespace AElf.SmartContract
     public class ChainFunctionMetadata : IChainFunctionMetadata
     {
         private readonly ILogger _logger;
-        private readonly IDataStore _dataStore;
         private readonly IFunctionMetadataManager _functionMetadataManager;
 
         public Dictionary<string, FunctionMetadata> FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
         
         
-        public ChainFunctionMetadata(IDataStore dataStore,  ILogger logger , IFunctionMetadataManager functionMetadataManager)
+        public ChainFunctionMetadata(ILogger logger , IFunctionMetadataManager functionMetadataManager)
         {
-            _dataStore = dataStore;
             _logger = logger;
             _functionMetadataManager = functionMetadataManager;
         }

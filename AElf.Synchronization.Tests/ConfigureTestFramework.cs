@@ -29,7 +29,6 @@ namespace AElf.Synchronization.Tests
         {
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
-            builder.RegisterType<DataStore>().As<IDataStore>();
             builder.RegisterType<BlockValidationService>().As<IBlockValidationService>().SingleInstance();
             builder.RegisterType<ChainContextService>().As<IChainContextService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();

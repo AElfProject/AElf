@@ -15,18 +15,16 @@ namespace AElf.Kernel
         protected readonly Hash _chainId;
         protected readonly IChainManager _chainManager;
         protected readonly IBlockManager _blockManager;
-        protected readonly IDataStore _dataStore;
 
         private readonly ILogger _logger;
 
         public LightChain(Hash chainId,
             IChainManager chainManager,
-            IBlockManager blockManager, IDataStore dataStore, ILogger logger = null)
+            IBlockManager blockManager, ILogger logger = null)
         {
             _chainId = chainId.Clone();
             _chainManager = chainManager;
             _blockManager = blockManager;
-            _dataStore = dataStore;
             _logger = logger;
         }
 

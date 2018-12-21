@@ -47,7 +47,6 @@ namespace AElf.Contracts.SideChain.Tests
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ILogger _logger;
-        private IDataStore _dataStore;
 
         private IBlockManager _blockManager;
         private IChainManager _chainManager;
@@ -73,7 +72,7 @@ namespace AElf.Contracts.SideChain.Tests
         {
             NewStorage();
             ChainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, _transactionTraceManager, _dataStore, StateManager);
+                _transactionManager, _transactionTraceManager, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner =
                 new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
@@ -85,14 +84,13 @@ namespace AElf.Contracts.SideChain.Tests
             SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory,
                 StateManager, _functionMetadataService);
             ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, _transactionTraceManager,
-                _dataStore, StateManager);
+                StateManager);
         }
 
         private void NewStorage()
         {
             var db = new InMemoryDatabase();
             StateManager = new StateManager(new StateStore(db, new ProtobufSerializer()));
-            _dataStore = new DataStore(db);
         }
 
         public byte[] CrossChainCode

@@ -13,14 +13,12 @@ namespace AElf.SmartContract.Metadata
     [LoggerName("SmartContract")]
     public class FunctionMetadataService : IFunctionMetadataService
     {
-        private IDataStore _dataStore;
         private readonly ConcurrentDictionary<Hash, ChainFunctionMetadata> _metadatas;
         private ILogger _logger;
         private readonly IFunctionMetadataManager _functionMetadataManager;
 
-        public FunctionMetadataService(IDataStore dataStore, ILogger logger,IFunctionMetadataManager functionMetadataManager)
+        public FunctionMetadataService(ILogger logger,IFunctionMetadataManager functionMetadataManager)
         {
-            _dataStore = dataStore;
             _logger = logger;
             _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
             _functionMetadataManager = functionMetadataManager;
@@ -33,7 +31,7 @@ namespace AElf.SmartContract.Metadata
             //TODO: find a way to mark these transaction as a same group (maybe by using "r/w account sharing data"?)
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore, _logger,_functionMetadataManager));
+                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_logger,_functionMetadataManager));
             }
             
             //TODO: need to
@@ -48,7 +46,7 @@ namespace AElf.SmartContract.Metadata
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore, _logger,_functionMetadataManager));
+                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_logger,_functionMetadataManager));
             }
 
             await chainFuncMetadata.UpdateContract(chainId, address, oldContractMetadataTemplate, newContractMetadataTemplate);

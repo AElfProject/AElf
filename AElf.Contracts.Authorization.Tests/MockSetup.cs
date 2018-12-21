@@ -42,7 +42,6 @@ namespace AElf.Contracts.Authorization.Tests
         private IChainCreationService _chainCreationService;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ILogger _logger;
-        private IDataStore _dataStore;
         private IChainManager _chainManager;
         private ITransactionManager _transactionManager;
         private IBlockManager _blockManager;
@@ -67,7 +66,7 @@ namespace AElf.Contracts.Authorization.Tests
         {
             NewStorage();
             ChainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, _transactionTraceManager, _dataStore, StateManager);
+                _transactionManager, _transactionTraceManager, StateManager);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner =
                 new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
@@ -79,14 +78,13 @@ namespace AElf.Contracts.Authorization.Tests
             SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
                 StateManager, _functionMetadataService);
             ChainService = new ChainService(_chainManager, _blockManager, _transactionManager,
-                _transactionTraceManager, _dataStore, StateManager);
+                _transactionTraceManager, StateManager);
         }
 
         private void NewStorage()
         {
             var db = new InMemoryDatabase();
             StateManager = new StateManager(new StateStore(db, new ProtobufSerializer()));
-            _dataStore = new DataStore(db);
         }
 
         public byte[] AuthorizationCode

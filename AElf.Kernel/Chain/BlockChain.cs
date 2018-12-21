@@ -26,8 +26,8 @@ namespace AElf.Kernel
 
         public BlockChain(Hash chainId, IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
-            IStateManager stateManager, IDataStore dataStore) : base(
-            chainId, chainManager, blockManager, dataStore)
+            IStateManager stateManager) : base(
+            chainId, chainManager, blockManager)
         {
             _transactionManager = transactionManager;
             _transactionTraceManager = transactionTraceManager;

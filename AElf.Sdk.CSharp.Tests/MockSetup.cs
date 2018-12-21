@@ -20,13 +20,14 @@ namespace AElf.Sdk.CSharp.Tests
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
         private static int _incrementId = 0;
+
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
-            return (ulong)n;
+            return (ulong) n;
         }
 
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
         private IFunctionMetadataService _functionMetadataService;
@@ -42,9 +43,9 @@ namespace AElf.Sdk.CSharp.Tests
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService, IDataStore dataStore
-            , IChainContextService chainContextService, IFunctionMetadataService functionMetadataService
-            , ISmartContractRunnerFactory smartContractRunnerFactory, ISmartContractManager smartContractManager)
+        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
+            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
+            ISmartContractRunnerFactory smartContractRunnerFactory, ISmartContractManager smartContractManager)
         {
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
@@ -52,11 +53,9 @@ namespace AElf.Sdk.CSharp.Tests
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
             SmartContractManager = smartContractManager;
-            Task.Factory.StartNew(async () =>
-            {
-                await Init();
-            }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateManager, _functionMetadataService);
+            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory,
+                StateManager, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
@@ -69,12 +68,9 @@ namespace AElf.Sdk.CSharp.Tests
 
         public byte[] SmartContractZeroCode
         {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
+            get { return ContractCodes.TestContractZeroCode; }
         }
-        
+
         private async Task Init()
         {
             var reg = new SmartContractRegistration
@@ -83,7 +79,8 @@ namespace AElf.Sdk.CSharp.Tests
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
+            var chain1 =
+                await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration> {reg});
 
             DataProvider1 = DataProvider.GetRootDataProvider(
                 chain1.Id,
@@ -109,6 +106,5 @@ namespace AElf.Sdk.CSharp.Tests
             var executive = await SmartContractService.GetExecutiveAsync(address, ChainId1);
             return executive;
         }
-
     }
 }

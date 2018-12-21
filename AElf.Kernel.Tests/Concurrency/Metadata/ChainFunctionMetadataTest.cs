@@ -21,18 +21,16 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     [UseAutofacTestFramework]
     public class ChainFunctionMetadataTest
     {
-        private readonly IDataStore _dataStore;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly IFunctionMetadataManager _functionMetadataManager;
 
-        public ChainFunctionMetadataTest(IDataStore templateStore,
-            ISmartContractRunnerFactory smartContractRunnerFactory, IFunctionMetadataService functionMetadataService,
+        public ChainFunctionMetadataTest(ISmartContractRunnerFactory smartContractRunnerFactory,
+            IFunctionMetadataService functionMetadataService,
             IFunctionMetadataManager functionMetadataManager)
         {
-            _dataStore = templateStore;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _functionMetadataService =functionMetadataService ;
+            _functionMetadataService = functionMetadataService;
             _functionMetadataManager = functionMetadataManager;
         }
 
@@ -247,7 +245,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }
                 }
             };
-            
+
             Assert.Equal(callGraph, await _functionMetadataManager.GetCallGraphAsync(chainId));
         }
     }

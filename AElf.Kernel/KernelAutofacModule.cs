@@ -44,8 +44,6 @@ namespace AElf.Kernel
             builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
             builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>();
             builder.RegisterType<FunctionFunctionMetadataManager>().As<IFunctionMetadataManager>();
-            
-            builder.RegisterType<DataStore>().As<IDataStore>();
         }
     }
 }

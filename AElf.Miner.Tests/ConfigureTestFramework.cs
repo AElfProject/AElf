@@ -41,7 +41,6 @@ namespace AElf.Miner.Tests
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
-            builder.RegisterType<DataStore>().As<IDataStore>();
             builder.RegisterType<BlockValidationService>().As<IBlockValidationService>().SingleInstance();
             builder.RegisterType<ChainContextService>().As<IChainContextService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
