@@ -16,7 +16,6 @@ namespace AElf.Kernel
             
             builder.RegisterType<ProtobufSerializer>().As<IByteSerializer>().SingleInstance();
             
-            
             builder.RegisterType<StateStore>().As<IStateStore>().SingleInstance();
             builder.RegisterType<TransactionStore>().As<ITransactionStore>().SingleInstance();
             builder.RegisterType<MerkleTreeStore>().As<IMerkleTreeStore>().SingleInstance();
@@ -32,7 +31,7 @@ namespace AElf.Kernel
             builder.RegisterType<TransactionTraceStore>().As<ITransactionTraceStore>().SingleInstance();
             builder.RegisterType<CanonicalStore>().As<ICanonicalStore>().SingleInstance();
             builder.RegisterType<FunctionMetadataStore>().As<IFunctionMetadataStore>().SingleInstance();
-            
+            builder.RegisterType<CallGraphStore>().As<ICallGraphStore>().SingleInstance();
             
             builder.RegisterType<StateManager>().As<IStateManager>();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
@@ -45,10 +44,6 @@ namespace AElf.Kernel
             builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
             builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>();
             builder.RegisterType<FunctionFunctionMetadataManager>().As<IFunctionMetadataManager>();
-
-
-            
-            
             
             builder.RegisterType<DataStore>().As<IDataStore>();
         }
