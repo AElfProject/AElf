@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Extensions;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Storage.Interfaces;
 using AElf.SmartContract;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
@@ -11,6 +12,7 @@ using AElf.Types.CSharp.MetadataAttribute;
 using Akka.Routing;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using FunctionMetadata = AElf.Kernel.SmartContract.FunctionMetadata;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {

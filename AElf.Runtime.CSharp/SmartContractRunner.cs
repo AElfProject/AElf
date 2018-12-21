@@ -16,7 +16,7 @@ using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
 using Mono.Cecil;
 using Module = AElf.ABI.CSharp.Module;
-using Resource = AElf.SmartContract.Resource;
+using Resource = AElf.Kernel.SmartContract.Resource;
 using Type = System.Type;
 using AElf.Common;
 

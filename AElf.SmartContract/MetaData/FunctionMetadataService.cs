@@ -4,6 +4,7 @@ using AElf.Common.Attributes;
 using NLog;
 using Org.BouncyCastle.Security;
 using AElf.Common;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.SmartContract.Metadata
