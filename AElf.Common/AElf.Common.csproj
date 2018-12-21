@@ -26,6 +26,6 @@
     <Folder Include="Protobuf\Generated" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf\AElf.csproj" />
+    <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
   </ItemGroup>
 </Project>
