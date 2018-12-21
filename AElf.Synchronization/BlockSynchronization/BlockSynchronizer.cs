@@ -51,6 +51,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private List<string> _currentMiners;
 
+        private Hash _chainId;
+
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IMinersManager minersManager, ILogger logger)
         {
@@ -85,6 +87,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     case NodeState.Catching:
                     case NodeState.Caught:
+                        _currentBlock = null;
                         await TryExecuteNextCachedBlock();
                         break;
 
@@ -176,7 +179,8 @@ namespace AElf.Synchronization.BlockSynchronization
             
             try
             {
-                _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+                _blockChain = _chainService.GetBlockChain(_chainId);
             
                 Miners miners = _minersManager.GetMiners().Result;
             
@@ -198,10 +202,12 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             catch (Exception e)
             {
-                _logger?.Error(e);
+                _logger?.Error(e, "Error while initializing block sync.");
             }
         }
-        
+
+        private IBlock _currentBlock;
+
         /// <summary>
         /// If the block CurrentHeight + 1 on current fork existes, then execute it.
         /// </summary>
@@ -220,6 +226,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
+            if (_currentBlock != null)
+            {
+                _logger?.Debug("Current not null, returning");
+                return;
+            }
+
             IBlock next;
             lock (_blockCacheLock)
             {
@@ -228,7 +240,10 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 // execute the block with the lowest index
                 next = _blockCache.OrderBy(b => b.Index).FirstOrDefault();
+                
                 _blockCache.Remove(next);
+
+                _currentBlock = next;
                 
                 _logger?.Debug($"Removed from cache : {next}");
             }
@@ -258,33 +273,9 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             _logger?.Debug($"Handling {block} - state {CurrentState}");
             
-            if (CurrentState != NodeState.Catching && CurrentState != NodeState.Caught)
-            {
-                // node is busy -> stash + return
-                CacheBlock(block);
-                _logger?.Trace($"Node was busy so block cached: {block}");
-            }
-            else
-            {
-                bool anyCached;
-                lock (_blockCacheLock) {
-                    anyCached = _blockCache.Any();
-                }
-                
-                // node not busy 
-                if (anyCached)
-                {
-                    _logger?.Warn($"Node not busy and cache not empty.");
-                    
-                    CacheBlock(block);
-                    await TryExecuteNextCachedBlock();
-                }
-                else
-                {
-                    //normal behaviour: not busy, no cached blocks -> exec
-                    await TryPushBlock(block);
-                }
-            }
+            CacheBlock(block);
+            
+            await TryExecuteNextCachedBlock();
         }
 
         /// <summary>
@@ -303,54 +294,49 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // Catching/Caught -> BlockValidating
                 MessageHub.Instance.Publish(StateEvent.ValidBlockHeader);
+                
+                // todo check existence in database
             
                 if (block.Index > HeadBlock.Index + 1)
                 {
                     _logger?.Warn($"Future block {block}, current height {HeadBlock.Index} ");
+                    MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
+                    return;
+                }
+                if (_blockSet.IsBlockReceived(block))
+                {
+                    _logger?.Warn($"Block already known {block}, current height {HeadBlock.Index} ");
+                    MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
                     return;
                 }
                 
-                // todo check existence in database
-                
-                // Add to a one of the branches if not already in the blocks
-                // can already be here if we come from "HandleNextValidBlock"
-                if (!_blockSet.IsBlockReceived(block))
+                try
                 {
-                    try
-                    {
-                        _blockSet.PushBlock(block);
-                    
-                        // if the current chain has just been extended update
-                        if (HeadBlock == _blockSet.CurrentHead.PreviousState)
-                            HeadBlock = _blockSet.CurrentHead;
-                    
-                        _logger?.Trace($"Pushed {block}, current state {CurrentState}");
-                        _logger?.Trace($"Current head {HeadBlock}");
-                    }
-                    catch (UnlinkableBlockException e)
-                    {
-                        _logger?.Warn($"Block unlinkable {block}");
-                        MessageHub.Instance.Publish(StateEvent.InvalidBlock);
-                        // todo event on unlinkable
-                        return;
-                    }
-                
-                    MessageHub.Instance.Publish(new BlockAccepted(block));
+                    _blockSet.PushBlock(block);
                 }
+                catch (UnlinkableBlockException e)
+                {
+                    _logger?.Warn($"Block unlinkable {block}");
+                    MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
+                    // todo event on unlinkable
+                    return;
+                }
+            
+                MessageHub.Instance.Publish(new BlockAccepted(block));
 
+                _logger?.Trace($"Pushed {block}, current state {CurrentState}, current head {HeadBlock}");
+                
                 // At this point we're ready to execute another block
                 // Here if we detect that we're out of sync with the current blockset head -> switch forks
-                if (HeadBlock != _blockSet.CurrentHead) 
+                if (HeadBlock.BlockHash != _blockSet.CurrentHead.Previous) 
                 {
                     // The SwitchFork method should handle the FSMs state, rollback current branch and execute the other branch.
                     // and the updates the current branch in the blockset
                     // it switches the FSM back to Catching/Caught so the state should be ok.
-                    _logger?.Trace("About to switch fork");
-                    await SwitchFork();
+                    await TrySwitchFork();
                 }
                 else
                 {
-                    _logger?.Trace($"Handling {block}");
                     await HandleBlock(block);
                 }
             }
@@ -368,8 +354,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
-            var blockValidationResult =
-                await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
+            var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
+            _logger?.Info($"Block validation result {block} - {blockValidationResult}");
 
             if (blockValidationResult.IsSuccess())
             {
@@ -382,13 +368,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 // BlockValidating -> Catching / Caught
                 MessageHub.Instance.Publish(StateEvent.InvalidBlock);
                 await HandleInvalidBlock(block, blockValidationResult);
+                // todo remove block from set
             }
         }
 
         private async Task<BlockExecutionResult> HandleValidBlock(IBlock block)
         {
-            _logger?.Info($"Valid block {block.BlockHashToHex}. Height: *{block.Index}*");
-
             if (_stateFsm.CurrentState != NodeState.BlockExecuting)
             {
                 IncorrectStateLog(nameof(HandleValidBlock));
@@ -397,10 +382,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
             var executionResult = await _blockExecutor.ExecuteBlock(block);
 
-            _logger?.Trace($"Execution result of block {block.BlockHashToHex}: {executionResult}. Height *{block.Index}*");
+            _logger?.Trace($"Execution result of block {block} - {executionResult}");
 
             if (executionResult.CanExecuteAgain())
             {
+                // todo side chain logic
                 // BlockExecuting -> ExecutingLoop
                 MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 //await KeepExecutingBlocksOfHeight(block.Index);
@@ -408,11 +394,12 @@ namespace AElf.Synchronization.BlockSynchronization
             }
 
             if (executionResult.CannotExecute())
-            {
                 _executeNextBlock = false;
-            }
+            
+            // if the current chain has just been extended update
+            if (HeadBlock == _blockSet.CurrentHead.PreviousState)
+                HeadBlock = _blockSet.CurrentHead;
 
-            // Update the consensus information.
             MessageHub.Instance.Publish(UpdateConsensus.Update);
 
             // BlockAppending -> Catching / Caught
@@ -442,7 +429,7 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <summary>
         /// Method called to switch the current branch to a longer one.
         /// </summary>
-        private async Task SwitchFork()
+        private async Task TrySwitchFork()
         {
             // We should come from either Catching or Caught
             if (CurrentState != NodeState.BlockValidating)
@@ -529,18 +516,16 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<IChainContext> GetChainContextAsync()
         {
-            var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
-            var blockchain = _chainService.GetBlockChain(chainId);
             IChainContext chainContext = new ChainContext
             {
-                ChainId = chainId,
-                BlockHash = await blockchain.GetCurrentBlockHashAsync()
+                ChainId = _chainId,
+                BlockHash = await _blockChain.GetCurrentBlockHashAsync()
             };
 
             if (chainContext.BlockHash != Hash.Genesis && chainContext.BlockHash != null)
             {
                 chainContext.BlockHeight =
-                    ((BlockHeader) await blockchain.GetHeaderByHashAsync(chainContext.BlockHash)).Index;
+                    ((BlockHeader) await _blockChain.GetHeaderByHashAsync(chainContext.BlockHash)).Index;
             }
 
             return chainContext;
@@ -572,7 +557,7 @@ namespace AElf.Synchronization.BlockSynchronization
 //        {
 //            _logger?.Trace("Entered KeepExecutingBlocksOfHeight");
 //
-//            while (_stateFSM.CurrentState == NodeState.ExecutingLoop)
+//            while (_stateFsm.CurrentState == NodeState.ExecutingLoop)
 //            {
 //                var blocks = _blockSet.GetBlocksByHeight(height).Where(b => _blockHeaderValidator.ValidateBlockHeaderAsync(b.Header).Result == BlockHeaderValidationResult.Success);
 //
@@ -583,7 +568,6 @@ namespace AElf.Synchronization.BlockSynchronization
 //                    if (res.IsSuccess())
 //                    {
 //                        MessageHub.Instance.Publish(StateEvent.BlockAppended);
-//                        
 //                        MessageHub.Instance.Publish(new BlockExecuted(block));
 //                    }
 //

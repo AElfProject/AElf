@@ -83,12 +83,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 try
                 {
                     _blocks.Add(newState);
-                    
-                    // update LIB
-//                    if (CurrentLib == null)
-//                    {
-                        // no lib has been found yet
-                        // just update all block prior to this one
 
                     BlockState newLib = null;
                     
