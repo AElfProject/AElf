@@ -24,7 +24,7 @@ namespace AElf.Kernel.Tests
             _executingService = executingService;
         }
 
-        [Fact(Skip = "Skip for now.")]
+        [Fact]
         public void StateRollbackTest()
         {
             var key =  new KeyPairGenerator().Generate();

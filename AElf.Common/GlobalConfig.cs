@@ -24,6 +24,7 @@ namespace AElf.Common
         public static readonly string GenesisCrossChainContractAssemblyName = "AElf.Contracts.CrossChain";
         public static readonly string GenesisAuthorizationContractAssemblyName = "AElf.Contracts.Authorization";
         public static readonly string GenesisResourceContractAssemblyName = "AElf.Contracts.Resource";
+        public static readonly string GenesisDividendsContractAssemblyName = "AElf.Contracts.Dividends";
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
