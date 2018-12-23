@@ -7,6 +7,7 @@ using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.FSM;
+using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
@@ -43,6 +44,7 @@ namespace AElf.Synchronization.BlockSynchronization
         private NodeState CurrentState => _stateFsm.CurrentState;
         
         private bool _executeNextBlock;
+        private IBlock _currentBlock;
 
         public int RollBackTimes { get; private set; }
 
@@ -52,6 +54,7 @@ namespace AElf.Synchronization.BlockSynchronization
         private List<string> _currentMiners;
 
         private Hash _chainId;
+        private string _nodePubKey;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IMinersManager minersManager, ILogger logger)
@@ -162,25 +165,36 @@ namespace AElf.Synchronization.BlockSynchronization
             
             MessageHub.Instance.Subscribe<NewLibFound>(sig =>
             {
-                _logger?.Trace($"new LIB : {sig.State}");
+                _logger?.Trace($"New lib found : {sig.State}");
                 CurrentLib = sig.State;
             });
             
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
-                await HandleNewBlock(inBlock.Block);
+                if (inBlock.Block == null)
+                    return;
+                    
+                _logger?.Debug($"Handling {inBlock.Block} - state {CurrentState}");
+            
+                CacheBlock(inBlock.Block);
+            
+                await TryExecuteNextCachedBlock();
             });
         }
 
         public void Init()
         {
             if (string.IsNullOrEmpty(ChainConfig.Instance?.ChainId))
-                throw new InvalidOperationException("Chain id cannot be empty...");
+                throw new InvalidOperationException("Chain id cannot be empty...");            
+            
+            if (NodeConfig.Instance?.ECKeyPair?.PublicKey == null)
+                throw new InvalidOperationException("Node key pair cannot be empty...");
             
             try
             {
                 _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
                 _blockChain = _chainService.GetBlockChain(_chainId);
+                _nodePubKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             
                 Miners miners = _minersManager.GetMiners().Result;
             
@@ -205,8 +219,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 _logger?.Error(e, "Error while initializing block sync.");
             }
         }
-
-        private IBlock _currentBlock;
 
         /// <summary>
         /// If the block CurrentHeight + 1 on current fork existes, then execute it.
@@ -267,18 +279,6 @@ namespace AElf.Synchronization.BlockSynchronization
         }
 
         /// <summary>
-        /// Entry point for block received from the network layer.
-        /// </summary>
-        public async Task HandleNewBlock(IBlock block)
-        {
-            _logger?.Debug($"Handling {block} - state {CurrentState}");
-            
-            CacheBlock(block);
-            
-            await TryExecuteNextCachedBlock();
-        }
-
-        /// <summary>
         /// Called when receiving a block through the network -or- NodeState.Catching/NodeState.Caught state
         /// change has triggered the <see cref="TryExecuteNextCachedBlock"/> method.
         /// </summary>
@@ -303,6 +303,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
                     return;
                 }
+                
                 if (_blockSet.IsBlockReceived(block))
                 {
                     _logger?.Warn($"Block already known {block}, current height {HeadBlock.Index} ");
@@ -326,7 +327,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 _logger?.Trace($"Pushed {block}, current state {CurrentState}, current head {HeadBlock}");
                 
-                // At this point we're ready to execute another block
+                // At this point we're ready to execute the block
                 // Here if we detect that we're out of sync with the current blockset head -> switch forks
                 if (HeadBlock.BlockHash != _blockSet.CurrentHead.Previous) 
                 {
@@ -368,7 +369,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 // BlockValidating -> Catching / Caught
                 MessageHub.Instance.Publish(StateEvent.InvalidBlock);
                 await HandleInvalidBlock(block, blockValidationResult);
-                // todo remove block from set
+                _blockSet.RemoveInvalidBlock(block);
             }
         }
 
@@ -392,11 +393,14 @@ namespace AElf.Synchronization.BlockSynchronization
                 //await KeepExecutingBlocksOfHeight(block.Index);
                 return BlockExecutionResult.InvalidSideChaiTransactionMerkleTree;
             }
-
-            if (executionResult.CannotExecute())
+            else if (executionResult.CannotExecute())
+            {
                 _executeNextBlock = false;
-            
-            // if the current chain has just been extended update
+                _blockSet.RemoveInvalidBlock(block);
+            }
+
+            // if the current chain has just been extended and the block was successfully
+            // executed we can change the synchronizers head.
             if (HeadBlock == _blockSet.CurrentHead.PreviousState)
                 HeadBlock = _blockSet.CurrentHead;
 
@@ -477,7 +481,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             try
             {
-                _blockSet.PushBlock(block);
+                _blockSet.PushBlock(block, true);
                         
                 // if the current chain has just been extended update
                 if (HeadBlock == _blockSet.CurrentHead.PreviousState)

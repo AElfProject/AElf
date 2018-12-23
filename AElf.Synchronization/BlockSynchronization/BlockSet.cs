@@ -35,6 +35,9 @@ namespace AElf.Synchronization.BlockSynchronization
         
         public BlockState Init(List<string> miners, IBlock currentDbBlock)
         {
+            if (miners.Count <= 0)
+                throw new ArgumentException("Miners is empty");
+            
             _miners = miners.ToList();
             
             CurrentHead = new BlockState(currentDbBlock, null, true, _miners);
@@ -46,12 +49,16 @@ namespace AElf.Synchronization.BlockSynchronization
             return CurrentHead;
         }
 
-        public void PushBlock(IBlock block)
+        public void PushBlock(IBlock block, bool isMined = false)
         {
             _rwLock.AcquireReaderLock(Timeout);
             
             try
             {
+                var newBlockHash = block.GetHash();
+                if (_blocks.Any(b => newBlockHash == b.BlockHash))
+                    return;
+                
                 var previous = _blocks.FirstOrDefault(pb => pb.BlockHash == block.Header.PreviousBlockHash);
                 
                 if (previous == null)
@@ -74,9 +81,6 @@ namespace AElf.Synchronization.BlockSynchronization
                     if (newState.Index > CurrentHead.Index)
                         CurrentHead = newState;
                 }
-            
-                if (_blocks.Any(b => newState == b))
-                    return;
 
                 var lc = _rwLock.UpgradeToWriterLock(Timeout);
                 
@@ -84,11 +88,17 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _blocks.Add(newState);
 
-                    BlockState newLib = null;
+                    if (isMined)
+                        return;
                     
+                    // update LIB
                     ulong libIndex = CurrentLib == null ? 0UL : CurrentLib.Index;
-                    var blocksToConfirm = _blocks.Where(b => libIndex < b.Index && b.Index < CurrentHead.Index).OrderByDescending(b => b.Index).ToList();
                     
+                    var blocksToConfirm = _blocks
+                        .Where(b => libIndex < b.Index && b.Index < CurrentHead.Index)
+                        .OrderByDescending(b => b.Index).ToList();
+                    
+                    BlockState newLib = null;
                     foreach (var blk in blocksToConfirm)
                     {
                         var hasAll = blk.AddConfirmation(newState.Producer);
@@ -102,8 +112,8 @@ namespace AElf.Synchronization.BlockSynchronization
                     if (newLib != null)
                     {
                         CurrentLib = newLib;
-                        // clear previous
                         _blocks.RemoveAll(b => b.Index < newLib.Index);
+                        
                         // todo clear branches
                         
                         MessageHub.Instance.Publish(new NewLibFound { State = newLib });
@@ -157,76 +167,6 @@ namespace AElf.Synchronization.BlockSynchronization
             return branchList;
         }
 
-        public void SwitchToCurrentHead()
-        {
-            if (CurrentHead.IsInCurrentBranch)
-            {
-                _logger?.Warn("Unexpected situation: current head already canonical.");
-                return;
-            }
-            
-            
-        }
-        
-//        public void AddOrUpdateMinedBlock(IBlock block)
-//        {
-//            if (block?.Header == null)
-//                throw new ArgumentNullException(nameof(block), "Null block or block header.");
-//            
-//            _rwLock.AcquireWriterLock(Timeout);
-//            
-//            try
-//            {
-//                BlockState blockState = new BlockState(block, null); // todo null confirmations
-//                
-//                // todo review old behaviour would first remove any with the same hash (??)
-//                _blocks.RemoveAll(bs => bs == blockState);
-//
-//                _blocks.Add(blockState);
-//                _blocks = _blocks.OrderBy(b => b.Index).ToList();
-//            }
-//            finally
-//            {
-//                _rwLock.ReleaseWriterLock();
-//            }
-//            
-//            _logger?.Trace($"Add or update block {block.BlockHashToHex} to block cache.");
-//        }
-
-//        private void RemoveExecutedBlockFromCache(IBlock block)
-//        {
-//            var toRemove = _blocks.FirstOrDefault(b => b.BlockHash == block.GetHash());
-//            
-//            if (toRemove == null)
-//                throw new InvalidOperationException("Block not present in block cache.");
-//            
-//            _rwLock.AcquireWriterLock(Timeout);
-//
-//            try
-//            {
-//                _blocks.Remove(toRemove);
-//            }
-//            finally
-//            {
-//                _rwLock.ReleaseWriterLock();
-//            }
-//            
-//            _logger?.Trace($"Transfered {toRemove.BlockHash.DumpHex()} from block cache to executed.");
-//        }
-
-        /// <summary>
-        /// Tell the block collection the height of block just successfully executed or mined.
-        /// </summary>
-        /// <param name="currentExecutedBlock"></param>
-        /// <returns></returns>
-//        public void Tell(IBlock currentExecutedBlock)
-//        {
-//            RemoveExecutedBlockFromCache(currentExecutedBlock);
-//
-//            if (currentExecutedBlock.Index >= KeepHeight)
-//                RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
-//        }
-
         public bool IsBlockReceived(IBlock block)
         {
             _rwLock.AcquireReaderLock(Timeout);
@@ -234,7 +174,8 @@ namespace AElf.Synchronization.BlockSynchronization
             bool res;
             try
             {
-                res = _blocks.Any(b => block.GetHash() == b.BlockHash);
+                var blockHash = block.GetHash();
+                res = _blocks.Any(b => blockHash == b.BlockHash);
             }
             finally
             {
@@ -277,34 +218,36 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        private void RemoveOldBlocks(ulong targetHeight)
+        public void RemoveInvalidBlock(IBlock block)
         {
+            if (block == null)
+                throw new ArgumentNullException();
+            
+            _rwLock.AcquireWriterLock(Timeout);
+            
             try
             {
-                _rwLock.AcquireWriterLock(Timeout);
+                var blockHash = block.GetHash();
+                var toRemove = _blocks.RemoveAll(b => b.BlockHash == blockHash);
                 
-                try
-                {
-                    var toRemove = _blocks.Where(b => b.Index <= targetHeight).ToList();
-                    
-                    if (!toRemove.Any())
-                        return;
-                    
-                    foreach (var block in toRemove)
-                    {
-                        _blocks.Remove(block);
-                        _logger?.Trace($"Removed block {block.BlockHash} from block cache.");
-                    }
-                    
-                }
-                finally
-                {
-                    _rwLock.ReleaseWriterLock();
-                }
+                // todo handle branch removal
+//                var workingSet = _blocks.Where(b => b.Index >= block.Index).ToList();
+//                
+//                if (!workingSet.Any())
+//                    return;
+//                
+//                List<BlockState> toRemove = new List<BlockState>();
+//                
+//                foreach (var blk in workingSet)
+//                {
+//                    _blocks.Remove(blk);
+//                    _logger?.Trace($"Removed block {blk.BlockHash} from block cache.");
+//                }
+
             }
-            catch (Exception e)
+            finally
             {
-                throw new Exception(e.Message);
+                _rwLock.ReleaseWriterLock();
             }
         }
         
@@ -354,10 +297,5 @@ namespace AElf.Synchronization.BlockSynchronization
 //                
 //            }
 //        }
-
-        public bool IsFull()
-        {
-            return _blocks.Count > MaxLenght;
-        }
     }
 }

@@ -4,29 +4,24 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Moq;
+using Org.BouncyCastle.Crypto.Generators;
 using Xunit;
 
 namespace AElf.Synchronization.Tests
 {
     public class BlockSyncTestBase : IDisposable
     {
-        // todo move to helpers and really make random
-        public Miners GetRandomMiners()
-        {
-            Miners m = new Miners();
-            m.PublicKeys.Add("04dfd983a2f6831ac0d75ced5a357a921eef69d467dd71bda3c0fdbd3c8f3b8de0fdb403317da85a9bd04c00f8b3e69815badc3dd752aa7aead10561567e8be49b");
-            m.PublicKeys.Add("04083f9253ce568a6afeccb582434e003d507f09633178ade1b63358a4f64c7306f7ed29494ee5fefb26178d3b0bc961dfcd180e8ebb5bfdd4ba7432372c251f3f");
-            m.PublicKeys.Add("04fd797631e1c07bb0f519b24775d414920fddcdfc433f058aef797564c558a08a672efd4ccb037a4b85fb2fa73808d5cde6a31e35cdaee5f8180d1f5d48fb9b93");
-            return m;
-        }
-
         protected Miners Miners;
+        protected ECKeyPair CurrentMiner;
         
         // chain service and block chain
         protected Mock<IBlockChain> MockChain;
@@ -69,7 +64,14 @@ namespace AElf.Synchronization.Tests
 
         protected void SetupMiners()
         {
-            Miners = GetRandomMiners();
+            List<ECKeyPair> miners = SyncTestHelpers.GetRandomMiners();
+
+            NodeConfig.Instance.ECKeyPair = miners.ElementAt(0);
+            CurrentMiner = miners.ElementAt(0);
+            
+            Miners = new Miners();
+            miners.ForEach(m => Miners.PublicKeys.Add(m.PublicKey.ToHex()));
+                
             MockMinersManager = new Mock<IMinersManager>();
             MockMinersManager.Setup(m => m.GetMiners()).ReturnsAsync(Miners);
         }
@@ -169,8 +171,8 @@ namespace AElf.Synchronization.Tests
             string miner3 = Miners.PublicKeys.ElementAt(2);
 
             IBlock block1 = SyncTestHelpers.BuildNext(Genesis, miner1); // miner 01
-            IBlock block2 = SyncTestHelpers.BuildNext(block1, miner2); // miner 02
-            IBlock block3 = SyncTestHelpers.BuildNext(block2, miner3); // miner 03
+            IBlock block2 = SyncTestHelpers.BuildNext(block1, miner2);  // miner 02
+            IBlock block3 = SyncTestHelpers.BuildNext(block2, miner3);  // miner 03
             
             // 2 and 3 should confirm the block
             
@@ -183,20 +185,6 @@ namespace AElf.Synchronization.Tests
             await Synchronizer.TryPushBlock(block3);
             
             Assert.Equal(block1.GetHash(), Synchronizer.CurrentLib.BlockHash);
-            ;
-        }
-
-        [Fact]
-        public async Task BlockStateCheck()
-        {
-            GenesisChainSetup();
-                
-            string miner1 = Miners.PublicKeys.ElementAt(0);
-            IBlock block1 = SyncTestHelpers.BuildNext(Genesis, miner1); // miner 01
-            
-            BlockState state = new BlockState(block1, null, false, null);
-            
-            Assert.Equal(state.BlockHash, block1.GetHash());
         }
     }
 }

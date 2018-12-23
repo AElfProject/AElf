@@ -24,7 +24,7 @@ namespace AElf.Synchronization.BlockExecution
         IncorrectNodeState,
 
         // Need to rollback
-        Fatal = 101,
+        Fatal = 101, // Unknown error
         ExecutionCancelled,
         IncorrectStateMerkleTree
     }

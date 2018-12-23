@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using AElf.Common;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf;
 using Xunit;
@@ -8,6 +10,23 @@ namespace AElf.Synchronization.Tests
 {
     public static class SyncTestHelpers
     {
+        /// <summary>
+        /// Generates <see cref="count"/> random miners.
+        /// </summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static List<ECKeyPair> GetRandomMiners(int count = 3)
+        {
+            Assert.True(count > 0);
+            
+            List<ECKeyPair> keyPairs = new List<ECKeyPair>(count);
+            
+            for (int i = 0; i < count; i++)
+                keyPairs.Add(CryptoHelpers.GenerateKeyPair());
+            
+            return keyPairs;
+        }
+        
         /// <summary>
         /// Builds the genesis block with AElfs builder.
         /// </summary>
