@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Types;
 using Org.BouncyCastle.Security;
-using SharpRepository.Repository.Caching.Hash;
 using AElf.Kernel;
 using AElf.Common;
 using Microsoft.Extensions.Logging;
