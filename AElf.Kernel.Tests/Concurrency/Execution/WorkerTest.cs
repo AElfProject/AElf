@@ -8,18 +8,33 @@ using Akka.TestKit.Xunit;
 using AElf.Execution;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Akka.Configuration;
 using Google.Protobuf;
 using Address= AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-    public class WorkerTest : TestKitBase
+    public abstract class AElfAkkaTestKitBase : TestKitBase
+    {
+        protected AElfKernelIntegratedTest _aelfKernelIntegratedTest=new AElfKernelIntegratedTest();
+
+        protected AElfAkkaTestKitBase(ITestKitAssertions assertions, ActorSystem system = null, string testActorName = null) : base(assertions, system, testActorName)
+        {
+        }
+
+        protected AElfAkkaTestKitBase(ITestKitAssertions assertions, Config config, string actorSystemName = null, string testActorName = null) : base(assertions, config, actorSystemName, testActorName)
+        {
+        }
+    }
+    
+    
+    public class WorkerTest : AElfAkkaTestKitBase
     {
         private MockSetup _mock;
 
-        public WorkerTest(MockSetup mock) : base(new XunitAssertions())
+        public WorkerTest() : base(new XunitAssertions())
         {
-            _mock = mock;
+            _mock = _aelfKernelIntegratedTest.GetRequiredService<MockSetup>();
         }
 
         [Fact]

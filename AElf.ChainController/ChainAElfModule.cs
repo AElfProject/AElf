@@ -4,6 +4,7 @@ using AElf.Common.Application;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -13,6 +14,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.ChainController
 {
+    [DependsOn(typeof(KernelAElfModule))]
     public class ChainAElfModule : AElfModule
     {
         private static readonly string FileFolder = Path.Combine(ApplicationHelpers.ConfigPath, "config");

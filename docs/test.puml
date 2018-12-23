@@ -1,16 +1,16 @@
 @startuml
 digraph G {
-    "AElf.Kernel" -> "AElf.Core";
+    "AElf.Kernel" -> {"AElf.Core";"AElf.Database"}
     "AElf.Kernel.Tests" -> "AElf.Kernel";
     "AElf.OS" -> "AElf.Kernel";
     "AElf.Execution" -> "AElf.Kernel";
-    "AElf.Execution.Tests" -> "AElf.Execution";
-    "AElf.Execution.Akka" -> "AElf.Execution";
-    "AElf.Execution.Akka.Tests" -> "AElf.Execution.Akka";
+    "AElf.Execution.Tests" -> {"AElf.Execution","AElf.TestBase"};
+    "AElf.TestBase" -> {"Autofac", "XUnit"}
+    "AElf.Execution.Akka" -> {"AElf.Execution", "Akka"};
+    "AElf.Execution.Akka.Tests" -> {"AElf.Execution.Akka","AElf.TestBase"};
     "AElf.SmartContract" -> "AElf.Kernel";
     "AElf.MiniSystem" -> {"AElf.Kernel";"AElf.SmartContract";"AElf.Execution"}
     "AElf.Network" -> "AElf.OS";
-    "AElf.Database" -> "AElf.OS";
-    "AElf.FullNode" -> {"AElf.MiniSystem"; "AElf.OS";"AElf.Network";"AElf.Database"};
+    "AElf.FullNode" -> {"AElf.MiniSystem"; "AElf.OS";"AElf.Network";"Autofac"};
   }
 @enduml

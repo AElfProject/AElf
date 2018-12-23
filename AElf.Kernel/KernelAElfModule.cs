@@ -1,5 +1,4 @@
-﻿using System;
-using AElf.Common;
+﻿using AElf.Common;
 using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
@@ -12,7 +11,6 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 
 using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel
 {
@@ -69,33 +67,4 @@ namespace AElf.Kernel
             //builder.RegisterModule(new LoggerAutofacModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
         }
     }
-
-    
-    public class AElfKernelConventionalRegistrar : DefaultConventionalRegistrar
-    {
-        protected override ServiceLifetime? GetServiceLifetimeFromClassHierarcy(Type type)
-        {
-            var lifeTime = base.GetServiceLifetimeFromClassHierarcy(type);
-            if (lifeTime != null)
-            {
-                return lifeTime;
-            }
-            
-            //TODO! use IsAssignableFrom
-            
-            if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Store") || type.Name.EndsWith("Service"))
-            {
-                return ServiceLifetime.Transient;
-            }
-
-            return null;
-        }
-        
-        /*private static bool IsPageModel(Type type)
-        {
-            return typeof(PageModel).IsAssignableFrom(type) || type.IsDefined(typeof(PageModelAttribute), true);
-        }*/
-    }
-    
-    
 }
