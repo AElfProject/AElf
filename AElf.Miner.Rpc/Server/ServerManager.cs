@@ -8,8 +8,6 @@ using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Miner.Rpc.Exceptions;
 using Grpc.Core;
-using NLog;
-
 namespace AElf.Miner.Rpc.Server
 {
     public class ServerManager
@@ -20,14 +18,14 @@ namespace AElf.Miner.Rpc.Server
         private SslServerCredentials _sslServerCredentials;
         private readonly ParentChainBlockInfoRpcServer _parentChainBlockInfoRpcServer;
         private readonly SideChainBlockInfoRpcServer _sideChainBlockInfoRpcServer;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         public ServerManager(ParentChainBlockInfoRpcServer parentChainBlockInfoRpcServer, 
-            SideChainBlockInfoRpcServer sideChainBlockInfoRpcServer, ILogger logger)
+            SideChainBlockInfoRpcServer sideChainBlockInfoRpcServer)
         {
             _parentChainBlockInfoRpcServer = parentChainBlockInfoRpcServer;
             _sideChainBlockInfoRpcServer = sideChainBlockInfoRpcServer;
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             GrpcLocalConfig.ConfigChanged += GrpcLocalConfigOnConfigChanged;
         }
 

@@ -9,18 +9,16 @@ using Autofac;
 using Easy.MessageHub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using NLog;
-
 namespace AElf.RPC
 {
     public class RpcServer : IRpcServer
     {
         private IWebHost _host;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         public RpcServer(ILogger logger)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
             {
@@ -74,7 +72,7 @@ namespace AElf.RPC
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while RPC server init.");
+                Logger.LogError(e, "Exception while RPC server init.");
                 return false;
             }
 
@@ -85,12 +83,12 @@ namespace AElf.RPC
         {
             try
             {
-                _logger?.Info("RPC server start.");
+                Logger.LogInformation("RPC server start.");
                 await _host.RunAsync();
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while start RPC server.");
+                Logger.LogError(e, "Exception while start RPC server.");
             }
         }
 

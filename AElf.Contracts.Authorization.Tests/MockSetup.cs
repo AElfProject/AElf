@@ -13,8 +13,6 @@ using    AElf.Common;
 using AElf.Database;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract.Metadata;
-using NLog;
-
 namespace AElf.Contracts.Authorization.Tests
 {
     public class MockSetup
@@ -43,7 +41,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         public MockSetup(ILogger logger)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             Initialize();
         }
 

@@ -3,17 +3,19 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using ServiceStack.Logging;
 
 namespace AElf.Kernel.Consensus
 {
     // ReSharper disable InconsistentNaming
     public class ConsensusObserver : IObserver<ConsensusBehavior>
     {
-        private readonly ILogger _logger;
+        public ILogger<ConsensusObserver> Logger {get;set;}
 
         private readonly Func<Task> _initialTerm;
         private readonly Func<Task> _packageOutValue;
@@ -34,7 +36,7 @@ namespace AElf.Kernel.Consensus
                 throw new ArgumentException("Incorrect functions count.", nameof(miningFunctions));
             }
 
-            _logger = LogManager.GetLogger(nameof(ConsensusObserver));
+            Logger = NullLogger<ConsensusObserver>.Instance;
 
             _initialTerm = miningFunctions[0];
             _packageOutValue = miningFunctions[1];
@@ -45,12 +47,12 @@ namespace AElf.Kernel.Consensus
 
         public void OnCompleted()
         {
-            _logger?.Trace($"{nameof(ConsensusObserver)} completed.");
+            Logger.LogTrace($"{nameof(ConsensusObserver)} completed.");
         }
 
         public void OnError(Exception error)
         {
-            _logger?.Error(error, $"{nameof(ConsensusObserver)} error.");
+            Logger.LogError(error, $"{nameof(ConsensusObserver)} error.");
         }
 
         public void OnNext(ConsensusBehavior value)
@@ -83,7 +85,7 @@ namespace AElf.Kernel.Consensus
             var delayInitialize = Observable
                 .Timer(timeWaitingOtherNodes)
                 .Select(_ => ConsensusBehavior.InitialTerm);
-            _logger?.Trace(
+            Logger.LogTrace(
                 $"Will initialize next term information after {timeWaitingOtherNodes.TotalSeconds} seconds - " +
                 $"{DateTime.UtcNow.AddMilliseconds(timeWaitingOtherNodes.TotalMilliseconds):HH:mm:ss.fff}.");
             return Observable.Return(ConsensusBehavior.NoOperationPerformed).Concat(delayInitialize).Subscribe(this);
@@ -97,7 +99,7 @@ namespace AElf.Kernel.Consensus
                 .Timer(timeSureToRecover)
                 .Select(_ => ConsensusBehavior.NextRound);
 
-            _logger?.Trace(
+            Logger.LogTrace(
                 $"Will produce extra block after {timeSureToRecover.Seconds} seconds due to recover mining process - " +
                 $"{DateTime.UtcNow.AddMilliseconds(timeSureToRecover.TotalMilliseconds):HH:mm:ss.fff}.");
 
@@ -126,7 +128,7 @@ namespace AElf.Kernel.Consensus
                     .Timer(TimeSpan.FromSeconds(distanceToProduceNormalBlock))
                     .Select(_ => ConsensusBehavior.PackageOutValue);
 
-                _logger?.Trace($"Will produce normal block after {distanceToProduceNormalBlock} seconds - " +
+                Logger.LogTrace($"Will produce normal block after {distanceToProduceNormalBlock} seconds - " +
                                $"{myMiningTime.ToDateTime():HH:mm:ss.fff}.");
             }
 
@@ -144,7 +146,7 @@ namespace AElf.Kernel.Consensus
                     produceExtraBlock = Observable
                         .Timer(TimeSpan.FromSeconds(distanceToProduceExtraBlock - distanceToProduceNormalBlock))
                         .Select(_ => ConsensusBehavior.NextRound);
-                    _logger?.Trace($"Will produce extra block after {distanceToProduceExtraBlock} seconds - " +
+                    Logger.LogTrace($"Will produce extra block after {distanceToProduceExtraBlock} seconds - " +
                                    $"{extraBlockTimeSlot.ToDateTime():HH:mm:ss.fff}.");
                 }
             }
@@ -156,7 +158,7 @@ namespace AElf.Kernel.Consensus
                     produceExtraBlock = Observable
                         .Timer(TimeSpan.FromSeconds(distanceToHelpProducingExtraBlock - distanceToProduceNormalBlock))
                         .Select(_ => ConsensusBehavior.NextRound);
-                    _logger?.Trace($"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
+                    Logger.LogTrace($"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
                                    $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * welcome.Order):HH:mm:ss.fff}");
                 }
             }

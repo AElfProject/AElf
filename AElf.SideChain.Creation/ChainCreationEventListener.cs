@@ -14,7 +14,6 @@ using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using AElf.Kernel.Managers;
-using NLog;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
 using AElf.Configuration.Config.Chain;
 
@@ -34,7 +33,7 @@ namespace AElf.SideChain.Creation
         public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager, 
             IChainCreationService chainCreationService, IChainManager chainManager)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
             _chainManager = chainManager;
@@ -95,21 +94,21 @@ namespace AElf.SideChain.Creation
 
             foreach (var info in infos)
             {
-                _logger?.Info($"Chain creation event: {info}");
+                Logger.LogInformation($"Chain creation event: {info}");
                 try
                 {
                     var response = await SendChainDeploymentRequestFor(info.ChainId, chainId);
                     
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        _logger?.Error(
+                        Logger.LogError(
                             $"Sending sidechain deployment request for {info.ChainId} failed. " +
                             $"StatusCode: {response.StatusCode}."
                         );
                     }
                     else
                     {
-                        _logger?.Info(
+                        Logger.LogInformation(
                             $"Successfully sent sidechain deployment request for {info.ChainId}. " +
                             $"Management API return message: {await response.Content.ReadAsStringAsync()}."
                         );
@@ -120,7 +119,7 @@ namespace AElf.SideChain.Creation
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, $"Sending sidechain deployment request for {info.ChainId} failed due to exception.");
+                    Logger.LogError(e, $"Sending sidechain deployment request for {info.ChainId} failed due to exception.");
                 }
             }
         }

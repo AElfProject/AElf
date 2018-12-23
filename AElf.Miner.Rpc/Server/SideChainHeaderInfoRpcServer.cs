@@ -5,7 +5,6 @@ using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Kernel;
 using Grpc.Core;
-using NLog;
 using AElf.Common;
 
 namespace AElf.Miner.Rpc.Server
@@ -14,13 +13,13 @@ namespace AElf.Miner.Rpc.Server
     public class SideChainBlockInfoRpcServer : SideChainBlockInfoRpc.SideChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private ILightChain LightChain { get; set; }
 
-        public SideChainBlockInfoRpcServer(IChainService chainService, ILogger logger)
+        public SideChainBlockInfoRpcServer(IChainService chainService)
         {
             _chainService = chainService;
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
         }
 
         public void Init(Hash chainId)
@@ -40,7 +39,7 @@ namespace AElf.Miner.Rpc.Server
             IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
-            _logger?.Debug("Side Chain Server received IndexedInfo message.");
+            Logger.LogDebug("Side Chain Server received IndexedInfo message.");
 
             try
             {
@@ -75,7 +74,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Side chain server out of service with exception.");
+                Logger.LogError(e, "Side chain server out of service with exception.");
             }
         }
 
@@ -91,7 +90,7 @@ namespace AElf.Miner.Rpc.Server
             IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
-            _logger?.Debug("Side Chain Server received IndexedInfo message.");
+            Logger.LogDebug("Side Chain Server received IndexedInfo message.");
 
             try
             {
@@ -110,14 +109,14 @@ namespace AElf.Miner.Rpc.Server
                             ChainId = blockHeader.ChainId
                         }
                     };
-                    //_logger?.Log(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {height}");
+                    //Logger.LogLog(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {height}");
                     await responseStream.WriteAsync(res);
                     height++;
                 }
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while index server streaming.");
+                Logger.LogError(e, "Exception while index server streaming.");
             }
         }
     }

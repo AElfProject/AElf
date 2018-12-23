@@ -7,8 +7,6 @@ using AElf.Kernel;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
-using NLog;
-
 namespace AElf.Synchronization
 {
     public class BlockHeaderValidator : IBlockHeaderValidator

@@ -17,8 +17,6 @@ using AElf.Execution.Execution;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract.Metadata;
-using NLog;
-
 namespace AElf.Contracts.SideChain.Tests
 {
     public class MockSetup
@@ -47,7 +45,7 @@ namespace AElf.Contracts.SideChain.Tests
 
         public MockSetup(ILogger logger)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             Initialize();
         }
 

@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Types;
-using NLog;
 using Org.BouncyCastle.Security;
 using SharpRepository.Repository.Caching.Hash;
 using AElf.Kernel;
@@ -19,10 +18,10 @@ namespace AElf.Execution.Scheduling
         private IResourceUsageDetectionService _resourceUsageDetectionService;
         private ILogger _logger;
 
-        public Grouper(IResourceUsageDetectionService resourceUsageDetectionService, ILogger logger = null)
+        public Grouper(IResourceUsageDetectionService resourceUsageDetectionService)
         {
             _resourceUsageDetectionService = resourceUsageDetectionService;
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
         }
 
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
@@ -98,7 +97,7 @@ namespace AElf.Execution.Scheduling
             }
             result.AddRange(grouped.Values);
 
-            _logger?.Info(string.Format(
+            Logger.LogInformation(string.Format(
                 "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}], There are also {4} transactions failed retriving resource", chainId.DumpBase58(),
                 transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count)), failedTxs.Count));
             
@@ -138,10 +137,10 @@ namespace AElf.Execution.Scheduling
                 else
                 {
                     mergedGroups = groupResults.Item1;
-                    _logger?.Error("Grouper: unsupported strategy: " + strategy);
+                    Logger.LogError("Grouper: unsupported strategy: " + strategy);
                 }
                 
-                _logger?.Info(string.Format(
+                Logger.LogInformation(string.Format(
                     "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
                     groupResults.Item1.Count, mergedGroups.Count, string.Join(", ", mergedGroups.Select(a=>a.Count))));
 

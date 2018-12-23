@@ -3,8 +3,6 @@ using AElf.Common.Attributes;
 using ChakraCore.NET;
 using ChakraCore.NET.Debug;
 using Newtonsoft.Json;
-using NLog;
-
 namespace AElf.CLI2.JS
 {
     public class JSDebugAdapter : IDebugAdapter

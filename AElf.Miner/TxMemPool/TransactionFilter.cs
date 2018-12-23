@@ -9,7 +9,6 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Types.Transaction;
 using Easy.MessageHub;
-using NLog;
 using NLog.Fluent;
 
 namespace AElf.Miner.TxMemPool
@@ -22,7 +21,7 @@ namespace AElf.Miner.TxMemPool
         private delegate int WhoIsFirst(Transaction t1, Transaction t2);
 
         private static readonly WhoIsFirst IsFirst = (t1, t2) => t1.Time.Nanos > t2.Time.Nanos ? -1 : 1;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         private static readonly List<string> _latestTxs = new List<string>();
 
@@ -156,14 +155,14 @@ namespace AElf.Miner.TxMemPool
             MessageHub.Instance.Subscribe<DPoSTransactionGenerated>(inTxId =>
             {
                 _latestTxs.Add(inTxId.TransactionId);
-                _logger?.Trace($"Added tx: {inTxId.TransactionId}");
+                Logger.LogTrace($"Added tx: {inTxId.TransactionId}");
             });
             
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
                 if (inState.IsMining)
                 {
-                    _logger?.Trace(
+                    Logger.LogTrace(
                         $"Consensus state changed to {inState.ConsensusBehavior.ToString()}, " +
                         "will reset dpos tx filter.");
                     switch (inState.ConsensusBehavior)
@@ -208,7 +207,7 @@ namespace AElf.Miner.TxMemPool
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace(e, "Failed to execute dpos txs filter.");
+                    Logger.LogTrace(e, "Failed to execute dpos txs filter.");
                     throw;
                 }
             }
@@ -216,10 +215,10 @@ namespace AElf.Miner.TxMemPool
 
         private void PrintTxList(IEnumerable<Transaction> txs)
         {
-            _logger?.Trace("Txs list:");
+            Logger.LogTrace("Txs list:");
             foreach (var transaction in txs)
             {
-                _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName}");
+                Logger.LogTrace($"{transaction.GetHash().ToHex()} - {transaction.MethodName}");
             }
         }
     }

@@ -1,6 +1,4 @@
 ﻿using System;
-using NLog;
-
 namespace AElf.Concurrency.Lighthouse
 {
     class Program

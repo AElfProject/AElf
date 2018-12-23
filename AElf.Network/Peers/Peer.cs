@@ -11,8 +11,6 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
 using Newtonsoft.Json;
-using NLog;
-
 namespace AElf.Network.Peers
 {
     public class PeerDisconnectedArgs : EventArgs
@@ -75,7 +73,7 @@ namespace AElf.Network.Peers
         private const double DefaultPingInterval = 1000;
         private const double DefaultAuthTimeout = 2000;
 
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private readonly IMessageReader _messageReader;
         private readonly IMessageWriter _messageWriter;
 
@@ -199,7 +197,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while initializing the connection.");
+                Logger.LogError(e, "Error while initializing the connection.");
                 Dispose();
                 return false;
             }
@@ -211,7 +209,7 @@ namespace AElf.Network.Peers
         {
             Dispose();
 
-            _logger?.Warn($"Peer connection has been terminated : {DistantNodeData}.");
+            Logger.LogWarn($"Peer connection has been terminated : {DistantNodeData}.");
 
             PeerDisconnected?.Invoke(this, new PeerDisconnectedArgs {Peer = this, Reason = DisconnectReason.StreamClosed});
         }
@@ -234,7 +232,7 @@ namespace AElf.Network.Peers
 
                 if (!IsAuthentified)
                 {
-                    _logger?.Warn($"Received message while not authentified: {a.Message}.");
+                    Logger.LogWarn($"Received message while not authentified: {a.Message}.");
                     return;
                 }
 
@@ -254,7 +252,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while handle received packet.");
+                Logger.LogError(e, "Exception while handle received packet.");
             }
         }
 
@@ -288,7 +286,7 @@ namespace AElf.Network.Peers
 
                 byte[] packet = nd.ToByteArray();
 
-                _logger?.Trace($"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
+                Logger.LogTrace($"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
 
                 _messageWriter.EnqueueMessage(new Message {Type = (int) MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
 
@@ -316,7 +314,7 @@ namespace AElf.Network.Peers
             if (IsAuthentified)
                 return;
 
-            _logger?.Warn("Authentification timed out.");
+            Logger.LogWarn("Authentification timed out.");
 
             Dispose();
 
@@ -347,7 +345,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error processing authentification information.");
+                Logger.LogError(e, "Error processing authentification information.");
                 Dispose();
             }
 
@@ -432,12 +430,12 @@ namespace AElf.Network.Peers
             {
                 if (!IsAuthentified)
                 {
-                    _logger?.Warn($"Can't write : not identified {DistantNodeData}.");
+                    Logger.LogWarn($"Can't write : not identified {DistantNodeData}.");
                 }
 
                 if (_messageWriter == null)
                 {
-                    _logger?.Warn($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
+                    Logger.LogWarn($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
                     return;
                 }
                 
@@ -445,7 +443,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while sending data.");
+                Logger.LogError(e, "Exception while sending data.");
             }
         }
 

@@ -5,8 +5,7 @@
 //using AElf.Common.Attributes;
 //using Autofac;
 //using Autofac.Core;
-//using NLog;
-//using NLog.Config;
+////using NLog.Config;
 //using NLog.Targets;
 //
 //namespace AElf.Common

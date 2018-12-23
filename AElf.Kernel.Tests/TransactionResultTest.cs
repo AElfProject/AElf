@@ -8,7 +8,6 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
-using NLog;
 using ITxSignatureVerifier = AElf.Kernel.Types.Transaction.ITxSignatureVerifier;
 
 namespace AElf.Kernel.Tests

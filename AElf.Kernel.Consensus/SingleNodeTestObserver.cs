@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using NLog;
 using AElf.Common;
 using AElf.Configuration.Config.Consensus;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus
 {
     public class SingleNodeTestObserver : IObserver<long>
     {
-        private readonly ILogger _logger;
+        public ILogger<SingleNodeTestObserver> Logger {get;set;}
         
         private readonly Func<Task> _miningAndBroadcasting;
 
@@ -20,19 +21,19 @@ namespace AElf.Kernel.Consensus
                 throw new ArgumentException("Incorrect functions count.", nameof(miningFunctions));
             }
             
-            _logger = logger;
+            Logger = NullLogger<SingleNodeTestObserver>.Instance;
 
             _miningAndBroadcasting = miningFunctions[0];
         }
 
         public void OnCompleted()
         {
-            _logger?.Trace($"{nameof(SingleNodeTestObserver)} completed.");
+            Logger.LogTrace($"{nameof(SingleNodeTestObserver)} completed.");
         }
 
         public void OnError(Exception error)
         {
-            _logger?.Error(error, $"{nameof(SingleNodeTestObserver)} error.");
+            Logger.LogError(error, $"{nameof(SingleNodeTestObserver)} error.");
         }
 
         public void OnNext(long value)

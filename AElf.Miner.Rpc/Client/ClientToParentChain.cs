@@ -2,7 +2,6 @@ using System;
 using AElf.Common.Attributes;
 using AElf.Common;
 using Grpc.Core;
-using NLog;
 using ServiceStack;
 
 namespace AElf.Miner.Rpc.Client
@@ -12,7 +11,7 @@ namespace AElf.Miner.Rpc.Client
     {
         private readonly ParentChainBlockInfoRpc.ParentChainBlockInfoRpcClient _client;
 
-        public ClientToParentChain(Channel channel, ILogger logger, Hash targetChainId, int interval,  int irreversible, int maximalIndexingCount) 
+        public ClientToParentChain(Channel channel, Hash targetChainId, int interval,  int irreversible, int maximalIndexingCount) 
             : base(channel, logger, targetChainId, interval, irreversible, maximalIndexingCount)
         {
             _client = new ParentChainBlockInfoRpc.ParentChainBlockInfoRpcClient(channel);

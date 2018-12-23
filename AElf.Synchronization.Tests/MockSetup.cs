@@ -13,8 +13,6 @@ using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Akka.Remote;
 using Moq;
-using NLog;
-
 namespace AElf.Synchronization.Tests
 {
     public class MockSetup

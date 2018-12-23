@@ -7,7 +7,6 @@ using AElf.SmartContract;
 using AElf.ChainController;
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
 using Xunit;
 using AElf.Common;
 using AElf.TestBase;
@@ -19,7 +18,7 @@ namespace AElf.Kernel.Tests
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly IChainService _chainService;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         public StoragesTest()
         {

@@ -4,28 +4,29 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 using Google.Protobuf;
-using NLog;
 using Org.BouncyCastle.Security;
 using AElf.Kernel;
 using AElf.SmartContract.MetaData;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.SmartContract
 {
     public class ChainFunctionMetadata : IChainFunctionMetadata
     {
-        private readonly ILogger _logger;
+        public ILogger<ChainFunctionMetadata> Logger {get;set;}
         private readonly IDataStore _dataStore;
 
         public Dictionary<string, FunctionMetadata> FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
         
         
-        public ChainFunctionMetadata(IDataStore dataStore,  ILogger logger)
+        public ChainFunctionMetadata(IDataStore dataStore)
         {
             _dataStore = dataStore;
-            _logger = logger;
+            Logger = NullLogger<ChainFunctionMetadata>.Instance;
         }
 
         /// <summary>
@@ -70,7 +71,7 @@ namespace AElf.SmartContract
             }
             catch (FunctionMetadataException e)
             {
-                _logger?.Error(e, "Exception while deploy new contract.");
+                Logger.LogError(e, "Exception while deploy new contract.");
                 throw;
             }
         }
@@ -103,7 +104,7 @@ namespace AElf.SmartContract
             }
             catch (FunctionMetadataException e)
             {
-                _logger?.Error(e, "Exception while deploy new contract.");
+                Logger.LogError(e, "Exception while deploy new contract.");
                 throw;
             }
         }

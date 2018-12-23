@@ -18,7 +18,6 @@ using AElf.SmartContract;
 using AElf.SmartContract.Metadata;
 using Google.Protobuf;
 using Moq;
-using NLog;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
@@ -38,7 +37,7 @@ namespace AElf.Miner.Tests
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private ulong _i = 0;
         private IChainCreationService _chainCreationService;
         private ISmartContractManager _smartContractManager;
@@ -63,7 +62,7 @@ namespace AElf.Miner.Tests
 
         public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             _database = database;
             _dataStore = dataStore;
             StateStore = stateStore;

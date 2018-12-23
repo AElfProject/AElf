@@ -1,20 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
-using NLog;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Managers
 {
     public class TransactionManager: ITransactionManager
     {
         private readonly IDataStore _dataStore;
-        private readonly ILogger _logger;
+        public ILogger<TransactionManager> Logger {get;set;}
 
-        public TransactionManager(IDataStore dataStore, ILogger logger = null)
+        public TransactionManager(IDataStore dataStore)
         {
             _dataStore = dataStore;
-            _logger = logger;
+            Logger = NullLogger<TransactionManager>.Instance;
         }
 
         public async Task<Hash> AddTransactionAsync(Transaction tx)
@@ -50,13 +51,13 @@ namespace AElf.Kernel.Managers
                     var tx = await _dataStore.GetAsync<Transaction>(txId);
                     if (tx == null)
                     {
-                        _logger?.Trace($"tx {txId} is null.");
+                        Logger.LogTrace($"tx {txId} is null.");
                     }
                     txs.Add(tx);
                     await _dataStore.RemoveAsync<Transaction>(txId);
                 }
 
-                _logger?.Trace($"Rollback block hash: {rollBackBlockHash.Value.ToByteArray().ToHex()}");
+                Logger.LogTrace($"Rollback block hash: {rollBackBlockHash.Value.ToByteArray().ToHex()}");
             }
 
             return txs;

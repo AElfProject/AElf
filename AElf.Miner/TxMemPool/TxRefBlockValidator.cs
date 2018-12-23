@@ -9,8 +9,6 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using Google.Protobuf;
-using NLog;
-
 namespace AElf.Miner.TxMemPool
 {
     public class TxRefBlockValidator : ITxRefBlockValidator

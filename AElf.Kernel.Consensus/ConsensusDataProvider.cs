@@ -8,7 +8,7 @@ using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus
 {
@@ -17,17 +17,20 @@ namespace AElf.Kernel.Consensus
     {
         private readonly IStateStore _stateStore;
 
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(ConsensusDataProvider));
+        public ILogger<ConsensusDataProvider> Logger { get; set; }
 
         public ConsensusDataProvider(IStateStore stateStore)
         {
             _stateStore = stateStore;
         }
 
+        
+        //TODO: configuration need be changed.
         public Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
+
         public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(
             Hash.LoadBase58(ChainConfig.Instance.ChainId));
-        
+
         private DataProvider DataProvider
         {
             get
@@ -37,7 +40,7 @@ namespace AElf.Kernel.Consensus
                 return dp;
             }
         }
-        
+
         /// <summary>
         /// Assert: Related value has surely exists in database.
         /// </summary>
@@ -50,7 +53,7 @@ namespace AElf.Kernel.Consensus
                 ? DataProvider.GetChild(resourceStr).GetAsync<T>(keyHash)
                 : DataProvider.GetAsync<T>(keyHash));
         }
-        
+
         public async Task<Miners> GetMiners()
         {
             try
@@ -62,7 +65,7 @@ namespace AElf.Kernel.Consensus
             }
             catch (Exception ex)
             {
-                _logger?.Trace(ex, "Failed to get miners list.");
+                Logger.LogTrace(ex, "Failed to get miners list.");
                 return new Miners();
             }
         }
@@ -77,7 +80,7 @@ namespace AElf.Kernel.Consensus
             }
             catch (Exception ex)
             {
-                _logger?.Trace(ex, "Failed to current round number.");
+                Logger.LogTrace(ex, "Failed to current round number.");
                 return 0;
             }
         }
@@ -106,7 +109,7 @@ namespace AElf.Kernel.Consensus
             {
                 publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             }
-            
+
             var round = await GetCurrentRoundInfo();
             return round.RealTimeMinersInfo[publicKey];
         }
@@ -146,11 +149,15 @@ namespace AElf.Kernel.Consensus
                 distance += (info.ExpectedMiningTime - now).ToTimeSpan().TotalMilliseconds;
                 if (info.IsExtraBlockProducer && distance < 0)
                 {
-                    distance += (GlobalConfig.BlockProducerNumber - info.Order + 2) * ConsensusConfig.Instance.DPoSMiningInterval;
+                    distance += (GlobalConfig.BlockProducerNumber - info.Order + 2) *
+                                ConsensusConfig.Instance.DPoSMiningInterval;
                 }
             }
+
             // Todo the time slot of dpos is not exact
-            return (distance < 1000 || distance > (double) ConsensusConfig.Instance.DPoSMiningInterval) ? ConsensusConfig.Instance.DPoSMiningInterval : distance;
+            return (distance < 1000 || distance > (double) ConsensusConfig.Instance.DPoSMiningInterval)
+                ? ConsensusConfig.Instance.DPoSMiningInterval
+                : distance;
         }
     }
 }

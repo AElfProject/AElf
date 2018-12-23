@@ -15,7 +15,6 @@ using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using Google.Protobuf;
 using Grpc.Core;
-using NLog;
 using ClientBase = AElf.Miner.Rpc.Client.ClientBase;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
@@ -30,7 +29,7 @@ namespace AElf.Miner.Rpc.Client
         private ClientToParentChain _clientToParentChain;
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         private CertificateStore _certificateStore;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private Dictionary<string, Uri> ChildChains => GrpcRemoteConfig.Instance.ChildChains;
         private CancellationTokenSource _tokenSourceToSideChain;
         private CancellationTokenSource _tokenSourceToParentChain;
@@ -43,7 +42,7 @@ namespace AElf.Miner.Rpc.Client
 
         public ClientManager(ILogger logger, ICrossChainInfoReader crossChainInfoReader)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             _crossChainInfoReader = crossChainInfoReader;
             GrpcRemoteConfig.ConfigChanged += GrpcRemoteConfigOnConfigChanged;
         }
@@ -125,7 +124,7 @@ namespace AElf.Miner.Rpc.Client
 
                 // keep-alive
                 client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height).ConfigureAwait(false);
-                _logger?.Info($"Created client to side chain {sideChainId}");
+                Logger.LogInformation($"Created client to side chain {sideChainId}");
             }
         }
 
@@ -150,7 +149,7 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while creating client to side chain.");
+                Logger.LogError(e, "Exception while creating client to side chain.");
                 throw;
             }
         }
@@ -176,11 +175,11 @@ namespace AElf.Miner.Rpc.Client
                 var targetHeight = GetParentChainTargetHeight() ;
                 _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, targetHeight)
                     .ConfigureAwait(false);
-                _logger?.Info($"Created client to parent chain {parent.ElementAt(0).Key}");
+                Logger.LogInformation($"Created client to parent chain {parent.ElementAt(0).Key}");
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while create client to parent chain.");
+                Logger.LogError(e, "Exception while create client to parent chain.");
                 throw;
             }
         }

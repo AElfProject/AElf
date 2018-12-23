@@ -8,7 +8,6 @@ using AElf.Common.Attributes;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Grpc.Core;
-using NLog;
 using AElf.Common;
 using NLog.Fluent;
 
@@ -18,13 +17,13 @@ namespace AElf.Miner.Rpc.Server
     public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private IBlockChain BlockChain { get; set; }
         private readonly ICrossChainInfoReader _crossChainInfoReader;
-        public ParentChainBlockInfoRpcServer(IChainService chainService, ILogger logger, ICrossChainInfoReader crossChainInfoReader)
+        public ParentChainBlockInfoRpcServer(IChainService chainService, ICrossChainInfoReader crossChainInfoReader)
         {
             _chainService = chainService;
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             _crossChainInfoReader = crossChainInfoReader;
         }
 
@@ -44,7 +43,7 @@ namespace AElf.Miner.Rpc.Server
         public override async Task RecordDuplexStreaming(IAsyncStreamReader<RequestBlockInfo> requestStream, 
             IServerStreamWriter<ResponseParentChainBlockInfo> responseStream, ServerCallContext context)
         {
-            _logger?.Debug("Parent Chain Server received IndexedInfo message.");
+            Logger.LogDebug("Parent Chain Server received IndexedInfo message.");
 
             try
             {
@@ -95,8 +94,8 @@ namespace AElf.Miner.Rpc.Server
                                 var merklePath = tree.GenerateMerklePath(i);
                                 if (merklePath == null)
                                 {
-                                    _logger?.Trace($"tree.Root == null: {tree.Root == null}");
-                                    _logger?.Trace($"tree.LeafCount = {tree.LeafCount}, index = {i}");
+                                    Logger.LogTrace($"tree.Root == null: {tree.Root == null}");
+                                    Logger.LogTrace($"tree.LeafCount = {tree.LeafCount}, index = {i}");
                                 }
                                 res.BlockInfo.IndexedBlockInfo.Add(info.Height, merklePath);
                             }
@@ -108,7 +107,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Miner server RecordDuplexStreaming failed.");
+                Logger.LogError(e, "Miner server RecordDuplexStreaming failed.");
             }
         }
 
@@ -122,7 +121,7 @@ namespace AElf.Miner.Rpc.Server
         /// <returns></returns>
         public override async Task RecordServerStreaming(RequestBlockInfo request, IServerStreamWriter<ResponseParentChainBlockInfo> responseStream, ServerCallContext context)
         {
-            _logger?.Trace("Parent Chain Server received IndexedInfo message.");
+            Logger.LogTrace("Parent Chain Server received IndexedInfo message.");
 
             try
             {
@@ -159,7 +158,7 @@ namespace AElf.Miner.Rpc.Server
                             .ToList().ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
                     }
                 
-                    //_logger?.Log(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");
+                    //Logger.LogLog(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");
                     await responseStream.WriteAsync(res);
 
                     height++;
@@ -167,7 +166,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch(Exception e)
             {
-                _logger?.Error(e, "Miner server RecordDuplexStreaming failed.");
+                Logger.LogError(e, "Miner server RecordDuplexStreaming failed.");
             }
         }
     }

@@ -4,8 +4,6 @@ using System.Timers;
 using AElf.Configuration;
 using AElf.Configuration.Config.Management;
 using AElf.Management.Interfaces;
-using NLog;
-
 namespace AElf.Management.Services
 {
     public class RecordService : IRecordService
@@ -16,7 +14,7 @@ namespace AElf.Management.Services
         private readonly INetworkService _networkService;
         private readonly Timer _timer;
 
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         public RecordService(IChainService chainService, ITransactionService transactionService, INodeService nodeService, INetworkService networkService)
         {

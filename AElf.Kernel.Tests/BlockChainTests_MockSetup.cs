@@ -61,10 +61,10 @@ namespace AElf.Kernel.Tests
         public BlockChainTests_MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
             IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ILogger logger,
+            ISmartContractRunnerFactory smartContractRunnerFactory,
             IStateStore stateStore, HashManager hashManager, TransactionManager transactionManager)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             _stateStore = stateStore;
             _hashManager = hashManager;
             _transactionManager = transactionManager;

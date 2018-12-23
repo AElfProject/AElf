@@ -5,8 +5,6 @@ using System.Linq;
 using AElf.Common.Attributes;
 using Alba.CsConsoleFormat.Fluent;
 using ChakraCore.NET.API;
-using NLog;
-
 namespace AElf.CLI2.JS.IO
 {
     public class Console : IConsole

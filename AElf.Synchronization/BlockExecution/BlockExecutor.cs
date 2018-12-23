@@ -24,8 +24,6 @@ using AElf.Miner.TxMemPool;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
-using NLog;
-
 namespace AElf.Synchronization.BlockExecution
 {
     public class BlockExecutor : IBlockExecutor
@@ -33,7 +31,7 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IChainService _chainService;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IExecutingService _executingService;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
@@ -91,7 +89,7 @@ namespace AElf.Synchronization.BlockExecution
                     _isLimitExecutionTime = true;
                 }
 
-                _logger?.Trace($"Current Event: {inState.ToString()}, IsLimitExecutionTime: {_isLimitExecutionTime}.");
+                Logger.LogTrace($"Current Event: {inState.ToString()}, IsLimitExecutionTime: {_isLimitExecutionTime}.");
             });
         }
 
@@ -102,7 +100,7 @@ namespace AElf.Synchronization.BlockExecution
         {
             if (_isMining)
             {
-                _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution," +
+                Logger.LogTrace($"Prevent block {block.BlockHashToHex} from entering block execution," +
                                "for this node is doing mining.");
                 return BlockExecutionResult.Mining;
             }
@@ -141,7 +139,7 @@ namespace AElf.Synchronization.BlockExecution
                 (res, crossChainIndexingSideChainTransactionId) = await TryCollectTransactions(block, cts);
                 if (result.IsFailed())
                 {
-                    _logger?.Warn($"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
+                    Logger.LogWarn($"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
                                   $"block hash: {block.BlockHashToHex}.");
                     res = result;
                     return res;
@@ -161,7 +159,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 if (cts.IsCancellationRequested)
                 {
-                    _logger?.Trace(
+                    Logger.LogTrace(
                         $"Execution Cancelled and rollback: block hash: {block.BlockHashToHex}, " +
                         $"execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
                     res = BlockExecutionResult.ExecutionCancelled;
@@ -197,7 +195,7 @@ namespace AElf.Synchronization.BlockExecution
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Exception while execute block {block.BlockHashToHex}.");
+                Logger.LogError(e, $"Exception while execute block {block.BlockHashToHex}.");
                 // TODO, no wait may need improve
                 Rollback(block, txnRes).ConfigureAwait(false);
 
@@ -216,10 +214,10 @@ namespace AElf.Synchronization.BlockExecution
                 stopwatch.Stop();
                 if (res.CanExecuteAgain())
                 {
-                    _logger?.Warn($"Block {block.BlockHashToHex} can execute again.");
+                    Logger.LogWarn($"Block {block.BlockHashToHex} can execute again.");
                 }
 
-                _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, " +
+                Logger.LogInformation($"Executed block {block.BlockHashToHex} with result {res}, " +
                               $"{block.Body.Transactions.Count} txns, duration {stopwatch.ElapsedMilliseconds} ms.");
             }
         }
@@ -319,7 +317,7 @@ namespace AElf.Synchronization.BlockExecution
             }
 
             if (res.IsFailed())
-                _logger?.Warn(errorLog);
+                Logger.LogWarn(errorLog);
 
             return res;
         }
@@ -454,12 +452,12 @@ namespace AElf.Synchronization.BlockExecution
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
-                _logger?.Trace($"{root.ToHex()} != {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
-                _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
-                _logger?.Trace("Transaction Results:");
+                Logger.LogTrace($"{root.ToHex()} != {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
+                Logger.LogWarn("ExecuteBlock - Incorrect merkle trees.");
+                Logger.LogTrace("Transaction Results:");
                 foreach (var r in transactionResults)
                 {
-                    _logger?.Trace($"TransactionId: {r.TransactionId.ToHex()}, " +
+                    Logger.LogTrace($"TransactionId: {r.TransactionId.ToHex()}, " +
                                    $"StateHash: {r.StateHash.ToHex()}，" +
                                    $"Status: {r.Status}, " +
                                    $"{r.RetVal}");

@@ -2,8 +2,6 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using NLog;
-
 namespace AElf.Network.Connection
 {
     public class IncomingConnectionArgs : EventArgs
@@ -13,7 +11,7 @@ namespace AElf.Network.Connection
     
     public class ConnectionListener : IConnectionListener
     {
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         public event EventHandler IncomingConnection;
         public event EventHandler ListeningStopped;
 
@@ -21,7 +19,7 @@ namespace AElf.Network.Connection
 
         public ConnectionListener(ILogger logger)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
         }
 
         public async Task StartListening(int port)
@@ -55,7 +53,7 @@ namespace AElf.Network.Connection
             IPEndPoint remoteIpEndPoint = client?.Client?.RemoteEndPoint as IPEndPoint;
             IPEndPoint localIpEndPoint = client?.Client?.LocalEndPoint as IPEndPoint;
             
-            _logger?.Trace($"[{localIpEndPoint?.Address}:{localIpEndPoint?.Port}] Accepted a connection from {remoteIpEndPoint?.Address}:{remoteIpEndPoint?.Port}.");
+            Logger.LogTrace($"[{localIpEndPoint?.Address}:{localIpEndPoint?.Port}] Accepted a connection from {remoteIpEndPoint?.Address}:{remoteIpEndPoint?.Port}.");
         }
 
         #region Closing and disposing

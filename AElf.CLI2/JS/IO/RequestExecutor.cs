@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Web;
 using AElf.Common.Attributes;
-using NLog;
-
 namespace AElf.CLI2.JS.IO
 {
     public class RequestExecutor : IRequestExecutor

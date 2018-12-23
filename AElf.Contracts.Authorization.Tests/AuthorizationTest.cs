@@ -7,7 +7,6 @@ using AElf.Kernel.Types.Transaction;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
 using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -30,7 +29,7 @@ namespace AElf.Contracts.Authorization.Tests
         
         public AuthorizationTest(ILogger logger)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
         }
 
         [Fact]

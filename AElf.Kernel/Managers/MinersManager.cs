@@ -3,7 +3,8 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel.Storages;
 using Google.Protobuf;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Managers
 {
@@ -11,13 +12,13 @@ namespace AElf.Kernel.Managers
     {
         private readonly IDataStore _dataStore;
 
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(MinersManager));
-
+        public ILogger<MinersManager> Logger { get; set; }
         private static Hash Key => Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash());
 
         public MinersManager(IDataStore dataStore)
         {
             _dataStore = dataStore;
+            Logger = NullLogger<MinersManager>.Instance;
         }
 
         public async Task<Miners> GetMiners()
@@ -47,7 +48,7 @@ namespace AElf.Kernel.Managers
         {
             foreach (var publicKey in miners.PublicKeys)
             {
-                _logger?.Trace($"Set miner {publicKey} to data store.");
+                Logger.LogTrace($"Set miner {publicKey} to data store.");
             }
 
             await _dataStore.InsertAsync(Key, miners);

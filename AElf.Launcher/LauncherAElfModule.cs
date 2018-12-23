@@ -9,8 +9,6 @@ using AElf.Kernel.Types.Common;
 using AElf.Modularity;
 using Autofac;
 using Easy.MessageHub;
-using NLog;
-
 namespace AElf.Launcher
 {
     //TODO! need to change this file

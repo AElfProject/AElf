@@ -8,7 +8,8 @@ using AElf.Kernel.Storages;
 using Akka.Dispatch;
 using Akka.Util;
 using Easy.MessageHub;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -20,17 +21,17 @@ namespace AElf.Kernel
         protected readonly IBlockManager _blockManager;
         protected readonly IDataStore _dataStore;
 
-        private readonly ILogger _logger;
+        public ILogger<LightChain> Logger {get;set;}
         
         public LightChain(Hash chainId,
             IChainManager chainManager,
-            IBlockManager blockManager, IDataStore dataStore, ILogger logger = null)
+            IBlockManager blockManager, IDataStore dataStore)
         {
             _chainId = chainId.Clone();
             _chainManager = chainManager;
             _blockManager = blockManager;
             _dataStore = dataStore;
-            _logger = logger;
+            Logger = NullLogger<LightChain>.Instance;
         }
 
         public async Task<ulong> GetCurrentBlockHeightAsync()

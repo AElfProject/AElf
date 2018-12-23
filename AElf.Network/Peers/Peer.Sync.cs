@@ -187,7 +187,7 @@ namespace AElf.Network.Peers
         {
             if (a?.Id == null)
             {
-                _logger?.Error($"[{this}] announcement or its id is null.");
+                Logger.LogError($"[{this}] announcement or its id is null.");
                 return;
             }
 
@@ -196,16 +196,16 @@ namespace AElf.Network.Peers
                 if (a.Height <= KnownHeight)
                 {
                     // todo just log for now, but this is probably a protocol error.
-                    _logger?.Warn($"[{this}] current know heigth: {KnownHeight} announcement height {a.Height}.");
+                    Logger.LogWarn($"[{this}] current know heigth: {KnownHeight} announcement height {a.Height}.");
                 }
 
                 KnownHeight = a.Height;
             
-                _logger?.Trace($"[{this}] received announcement, height increased: {KnownHeight}.");
+                Logger.LogTrace($"[{this}] received announcement, height increased: {KnownHeight}.");
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"[{this}] error processing announcement.");
+                Logger.LogError(e, $"[{this}] error processing announcement.");
             }
         }
 
@@ -249,7 +249,7 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                _logger?.Warn($"[{this}] request for block at height {index} failed because payload is null.");
+                Logger.LogWarn($"[{this}] request for block at height {index} failed because payload is null.");
                 return;
             }
 
@@ -264,7 +264,7 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                _logger?.Warn($"[{this}] request for block with id {id.ToHex()} failed because payload is null.");
+                Logger.LogWarn($"[{this}] request for block with id {id.ToHex()} failed because payload is null.");
                 return;
             }
 
@@ -287,9 +287,9 @@ namespace AElf.Network.Peers
                 blockRequest.Start();
 
                 if (blockRequest.IsById)
-                    _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
+                    Logger.LogTrace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
                 else
-                    _logger?.Trace($"[{this}] Block request sent {{ height: {blockRequest.Height} }}");
+                    Logger.LogTrace($"[{this}] Block request sent {{ height: {blockRequest.Height} }}");
             });
         }
 
@@ -297,7 +297,7 @@ namespace AElf.Network.Peers
         {
             if (sender is TimedBlockRequest req)
             {
-                _logger?.Warn($"[{this}] failed timed request {req}");
+                Logger.LogWarn($"[{this}] failed timed request {req}");
 
                 if (req.CurrentPeerRetries < MaxRequestRetries)
                 {
@@ -306,7 +306,7 @@ namespace AElf.Network.Peers
                         return;
                     }
 
-                    _logger?.Debug($"[{this}] try again {req}.");
+                    Logger.LogDebug($"[{this}] try again {req}.");
 
                     EnqueueOutgoing(req.Message, (_) =>
                     {
@@ -317,9 +317,9 @@ namespace AElf.Network.Peers
                         req.Start();
 
                         if (req.IsById)
-                            _logger?.Trace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
+                            Logger.LogTrace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
                         else
-                            _logger?.Trace($"[{this}] Block request sent {{ height: {req.Height} }}");
+                            Logger.LogTrace($"[{this}] Block request sent {{ height: {req.Height} }}");
                     });
                 }
                 else
@@ -329,7 +329,7 @@ namespace AElf.Network.Peers
                         BlockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
                     }
 
-                    _logger?.Warn($"[{this}] request failed {req}.");
+                    Logger.LogWarn($"[{this}] request failed {req}.");
 
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                     

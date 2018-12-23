@@ -24,7 +24,6 @@ using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
-using NLog;
 using ServiceStack;
 
 namespace AElf.Node.AElfChain
@@ -33,7 +32,7 @@ namespace AElf.Node.AElfChain
     [LoggerName("Node")]
     public class MainchainNodeService : INodeService
     {
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
@@ -64,7 +63,7 @@ namespace AElf.Node.AElfChain
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _txHub = hub;
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             _consensus = consensus;
             _miner = miner;
             _blockSynchronizer = blockSynchronizer;
@@ -127,11 +126,11 @@ namespace AElf.Node.AElfChain
         {
             if (string.IsNullOrWhiteSpace(ChainConfig.Instance.ChainId))
             {
-                _logger?.Error("No chain id.");
+                Logger.LogError("No chain id.");
                 return false;
             }
 
-            _logger?.Info($"Chain Id = {ChainConfig.Instance.ChainId}");
+            Logger.LogInformation($"Chain Id = {ChainConfig.Instance.ChainId}");
 
             #region setup
 
@@ -152,7 +151,7 @@ namespace AElf.Node.AElfChain
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Could not create the chain : {ChainConfig.Instance.ChainId}.");
+                Logger.LogError(e, $"Could not create the chain : {ChainConfig.Instance.ChainId}.");
             }
 
             #endregion setup
@@ -201,22 +200,22 @@ namespace AElf.Node.AElfChain
         private void LogGenesisContractInfo()
         {
             var genesis = ContractHelpers.GetGenesisBasicContractAddress(ChainId);
-            _logger?.Debug($"Genesis contract address = {genesis.GetFormatted()}");
+            Logger.LogDebug($"Genesis contract address = {genesis.GetFormatted()}");
 
             var tokenContractAddress = ContractHelpers.GetTokenContractAddress(ChainId);
-            _logger?.Debug($"Token contract address = {tokenContractAddress.GetFormatted()}");
+            Logger.LogDebug($"Token contract address = {tokenContractAddress.GetFormatted()}");
 
             var consensusAddress = ContractHelpers.GetConsensusContractAddress(ChainId);
-            _logger?.Debug($"DPoS contract address = {consensusAddress.GetFormatted()}");
+            Logger.LogDebug($"DPoS contract address = {consensusAddress.GetFormatted()}");
 
             var crosschainContractAddress = ContractHelpers.GetCrossChainContractAddress(ChainId);
-            _logger?.Debug($"CrossChain contract address = {crosschainContractAddress.GetFormatted()}");
+            Logger.LogDebug($"CrossChain contract address = {crosschainContractAddress.GetFormatted()}");
 
             var authorizationContractAddress = ContractHelpers.GetAuthorizationContractAddress(ChainId);
-            _logger?.Debug($"Authorization contract address = {authorizationContractAddress.GetFormatted()}");
+            Logger.LogDebug($"Authorization contract address = {authorizationContractAddress.GetFormatted()}");
 
             var resourceContractAddress = ContractHelpers.GetResourceContractAddress(ChainId);
-            _logger?.Debug($"Resource contract address = {resourceContractAddress.GetFormatted()}");
+            Logger.LogDebug($"Resource contract address = {resourceContractAddress.GetFormatted()}");
         }
 
         private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero,
@@ -272,7 +271,7 @@ namespace AElf.Node.AElfChain
             var res = _chainCreationService.CreateNewChainAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration>
                     {basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg}).Result;
-            _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");
+            Logger.LogDebug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");
         }
 
         #endregion private methods
@@ -286,7 +285,7 @@ namespace AElf.Node.AElfChain
         {
             if (height <= 0)
             {
-                _logger?.Warn($"Cannot get block - height {height} is not valid.");
+                Logger.LogWarn($"Cannot get block - height {height} is not valid.");
                 return null;
             }
             
@@ -298,7 +297,7 @@ namespace AElf.Node.AElfChain
         {
             if (hash == null || hash.Length <= 0)
             {
-                _logger?.Warn("Cannot get block - invalid hash.");
+                Logger.LogWarn("Cannot get block - invalid hash.");
                 return null;
             }
 

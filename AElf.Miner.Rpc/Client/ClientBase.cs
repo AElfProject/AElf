@@ -9,13 +9,11 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using Grpc.Core;
-using NLog;
-
 namespace AElf.Miner.Rpc.Client
 {
     public abstract class ClientBase<TResponse> : ClientBase where TResponse : IResponseIndexingMessage
     {
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private ulong _next;
         private readonly Hash _targetChainId;
         private int _interval;
@@ -27,10 +25,10 @@ namespace AElf.Miner.Rpc.Client
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
         private Queue<IBlockInfo> CachedInfoQueue { get; } = new Queue<IBlockInfo>();
         private Channel _channel;
-        protected ClientBase(Channel channel, ILogger logger, Hash targetChainId, int interval, int irreversible, int maximalIndexingCount)
+        protected ClientBase(Channel channel, Hash targetChainId, int interval, int irreversible, int maximalIndexingCount)
         {
             _channel = channel;
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             _targetChainId = targetChainId;
             _interval = interval;
             _realInterval = _interval;
@@ -68,7 +66,7 @@ namespace AElf.Miner.Rpc.Client
                     
                     _next++;
                     _realInterval = _interval;
-                    _logger?.Trace($"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
+                    Logger.LogTrace($"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
                 }
             });
 
@@ -129,10 +127,10 @@ namespace AElf.Miner.Rpc.Client
                     if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
                     {
                         var detail = e.Status.Detail;
-                        _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpBase58()}.");
+                        Logger.LogWarn($"{detail} exception during request to chain {_targetChainId.DumpBase58()}.");
                         while (_channel.State != ChannelState.Ready && _channel.State != ChannelState.Idle)
                         {
-                            //_logger?.Warn($"Channel state: {_channel.State}");
+                            //Logger.LogWarn($"Channel state: {_channel.State}");
                             await Task.Delay(UnavailableConnectionInterval);
                         }
 
@@ -140,7 +138,7 @@ namespace AElf.Miner.Rpc.Client
                         return;
                     }
 
-                    _logger?.Error(e, "Miner client stooped with exception.");
+                    Logger.LogError(e, "Miner client stooped with exception.");
                     throw;
                 }
                 finally
@@ -210,7 +208,7 @@ namespace AElf.Miner.Rpc.Client
                     CacheBlockInfo(blockInfo);
                 else
                 {
-                    _logger?.Trace($"Timeout to get cached data from chain {_targetChainId}");
+                    Logger.LogTrace($"Timeout to get cached data from chain {_targetChainId}");
                 }
                 return res;
             }
@@ -222,7 +220,7 @@ namespace AElf.Miner.Rpc.Client
                        ToBeIndexedInfoQueue.Count + CachedInfoQueue.Count(ci => ci.Height >= height) >=
                        _cachedBoundedCapacity;
             
-            //_logger?.Trace($"Not found cached data from chain {_targetChainId} at height {height}");
+            //Logger.LogTrace($"Not found cached data from chain {_targetChainId} at height {height}");
             return false;
         }
 

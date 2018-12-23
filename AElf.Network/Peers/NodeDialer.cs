@@ -2,8 +2,6 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using NLog;
-
 namespace AElf.Network.Peers
 {
     public class NodeDialer : INodeDialer
@@ -34,14 +32,14 @@ namespace AElf.Network.Peers
                 Task timeoutTask = Task.Delay(timeout);
                 Task connectTask = Task.Run(() => tcpClient.Connect(_ipAddress, _port));
                 
-                _logger?.Trace($"Dialing {_ipAddress}:{_port}.");
+                Logger.LogTrace($"Dialing {_ipAddress}:{_port}.");
 
                 if (await Task.WhenAny(timeoutTask, connectTask) != timeoutTask && tcpClient.Connected)
                     return tcpClient;
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception during connection.");
+                Logger.LogError(e, "Exception during connection.");
             }
             
             return null;

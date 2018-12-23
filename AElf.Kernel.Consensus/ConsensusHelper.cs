@@ -5,7 +5,8 @@ using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus
 {
@@ -14,10 +15,14 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable UnusedMember.Global
     public class ConsensusHelper
     {
-        private readonly IMinersManager _minersManager;
-        private readonly ConsensusDataReader _reader;
 
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(ConsensusHelper));
+        public ConsensusHelper()
+        {
+            Logger=NullLogger<ConsensusHelper>.Instance;
+        }
+        private readonly IMinersManager _minersManager;
+        private readonly ConsensusDataReader _reader;        
+        public ILogger<ConsensusHelper> Logger { get; set; }
 
         public List<string> Miners => _minersManager.GetMiners().Result.PublicKeys.ToList();
 
@@ -112,7 +117,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, "Failed to get DPoS information of current round.\n");
+                    Logger.LogError(e, "Failed to get DPoS information of current round.\n");
                     return new Round();
                 }
             }
@@ -282,7 +287,7 @@ namespace AElf.Kernel.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Failed to get dpos info");
+                Logger.LogError(e, "Failed to get dpos info");
                 return "";
             }
         }
@@ -299,15 +304,15 @@ namespace AElf.Kernel.Consensus
         public void SyncMiningInterval()
         {
             ConsensusConfig.Instance.DPoSMiningInterval = MiningInterval.Value;
-            _logger?.Info($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
+            Logger.LogInformation($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
         }
 
         public void LogDPoSInformation(ulong height)
         {
-            _logger?.Trace("Log dpos information - Start");
-            _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
+            Logger.LogTrace("Log dpos information - Start");
+            Logger.LogTrace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
                            $". Current height: {height}");
-            _logger?.Trace("Log dpos information - End");
+            Logger.LogTrace("Log dpos information - End");
         }
 
         public Round GetCurrentRoundInfo()
@@ -377,7 +382,7 @@ namespace AElf.Kernel.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Failed to get dpos info of round {roundNumber.Value}");
+                Logger.LogError(e, $"Failed to get dpos info of round {roundNumber.Value}");
                 return "";
             }
         }

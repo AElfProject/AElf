@@ -19,7 +19,6 @@ using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Types.Common;
 using AElf.Synchronization.EventMessages;
@@ -48,7 +47,7 @@ namespace AElf.Kernel.Node
                                               _chainService.GetBlockChain(
                                                   Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58())));
 
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         private readonly ConsensusHelper _helper;
 
@@ -100,20 +99,20 @@ namespace AElf.Kernel.Node
             GlobalConfig.BlockProducerNumber = count;
             GlobalConfig.BlockNumberOfEachRound = count + 1;
 
-            _logger?.Info("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
-            _logger?.Info("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
+            Logger.LogInformation("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
+            Logger.LogInformation("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
             
             MessageHub.Instance.Subscribe<UpdateConsensus>(async option =>
             {
                 if (option == UpdateConsensus.Update)
                 {
-                    _logger?.Trace("UpdateConsensus - Update");
+                    Logger.LogTrace("UpdateConsensus - Update");
                     await UpdateConsensusInformation();
                 }
 
                 if (option == UpdateConsensus.Dispose)
                 {
-                    _logger?.Trace("UpdateConsensus - Dispose");
+                    Logger.LogTrace("UpdateConsensus - Dispose");
                     DisposeConsensusEventList();
                 }
             });
@@ -188,13 +187,13 @@ namespace AElf.Kernel.Node
         {
             ConsensusDisposable?.Dispose();
             ConsensusDisposable = null;
-            _logger?.Trace("Mining stopped. Disposed previous consensus observables list.");
+            Logger.LogTrace("Mining stopped. Disposed previous consensus observables list.");
         }
 
         public void IncrementLockNumber()
         {
             Interlocked.Add(ref _lockNumber, 1);
-            _logger?.Trace($"Lock number increment: {_lockNumber}");
+            Logger.LogTrace($"Lock number increment: {_lockNumber}");
         }
 
         public void DecrementLockNumber()
@@ -205,7 +204,7 @@ namespace AElf.Kernel.Node
             }
 
             Interlocked.Add(ref _lockNumber, -1);
-            _logger?.Trace($"Lock number decrement: {_lockNumber}");
+            Logger.LogTrace($"Lock number decrement: {_lockNumber}");
         }
 
         private async Task<IBlock> Mine()
@@ -224,7 +223,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while mining.");
+                Logger.LogError(e, "Exception while mining.");
                 return null;
             }
         }
@@ -233,7 +232,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                _logger?.Trace("Entered generating tx.");
+                Logger.LogTrace("Entered generating tx.");
                 var bn = await BlockChain.GetCurrentBlockHeightAsync();
                 bn = bn > 4 ? bn - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
@@ -254,7 +253,7 @@ namespace AElf.Kernel.Node
                 var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
                 tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
-                _logger?.Trace("Leaving generating tx.");
+                Logger.LogTrace("Leaving generating tx.");
 
                 MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
 
@@ -262,7 +261,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error while during generating DPoS tx.");
+                Logger.LogTrace(e, "Error while during generating DPoS tx.");
             }
 
             return null;
@@ -272,7 +271,7 @@ namespace AElf.Kernel.Node
         {
             const ConsensusBehavior behavior = ConsensusBehavior.InitialTerm;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (_terminated)
             {
@@ -297,7 +296,7 @@ namespace AElf.Kernel.Node
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var firstTerm = _minersManager.GetMiners().Result
                         .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
@@ -316,7 +315,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(InitialTerm)}");
+                Logger.LogTrace(e, $"Error in {nameof(InitialTerm)}");
             }
             finally
             {
@@ -326,7 +325,7 @@ namespace AElf.Kernel.Node
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
 
@@ -334,7 +333,7 @@ namespace AElf.Kernel.Node
         {
             const ConsensusBehavior behavior = ConsensusBehavior.PackageOutValue;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (_terminated)
             {
@@ -359,7 +358,7 @@ namespace AElf.Kernel.Node
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var inValue = Hash.Generate();
                     if (_consensusData.Count <= 0)
@@ -397,7 +396,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(PackageOutValue)}");
+                Logger.LogTrace(e, $"Error in {nameof(PackageOutValue)}");
             }
             finally
             {
@@ -407,7 +406,7 @@ namespace AElf.Kernel.Node
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
 
                 await BroadcastInValue();
             }
@@ -417,7 +416,7 @@ namespace AElf.Kernel.Node
         {
             const ConsensusBehavior behavior = ConsensusBehavior.BroadcastInValue;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (_terminated)
             {
@@ -442,7 +441,7 @@ namespace AElf.Kernel.Node
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var roundInfo = _helper.GetCurrentRoundInfo();
 
@@ -466,7 +465,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(BroadcastInValue)}");
+                Logger.LogTrace(e, $"Error in {nameof(BroadcastInValue)}");
             }
             finally
             {
@@ -476,7 +475,7 @@ namespace AElf.Kernel.Node
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
 
@@ -485,7 +484,7 @@ namespace AElf.Kernel.Node
             const ConsensusBehavior behavior = ConsensusBehavior.NextRound;
             var goNextTerm = false;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (_terminated)
             {
@@ -510,7 +509,7 @@ namespace AElf.Kernel.Node
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
                     var roundInfo = _helper.GetCurrentRoundInfo();
@@ -577,7 +576,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(NextRound)}");
+                Logger.LogTrace(e, $"Error in {nameof(NextRound)}");
             }
             finally
             {
@@ -587,7 +586,7 @@ namespace AElf.Kernel.Node
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
 
                 if (goNextTerm)
                 {
@@ -601,7 +600,7 @@ namespace AElf.Kernel.Node
         {
             const ConsensusBehavior behavior = ConsensusBehavior.NextTerm;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (_terminated)
             {
@@ -626,7 +625,7 @@ namespace AElf.Kernel.Node
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var parameters = new List<object>
                     {
@@ -642,7 +641,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(NextRound)}");
+                Logger.LogTrace(e, $"Error in {nameof(NextRound)}");
             }
             finally
             {
@@ -652,7 +651,7 @@ namespace AElf.Kernel.Node
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
 
@@ -690,7 +689,7 @@ namespace AElf.Kernel.Node
             {
                 ConsensusDisposable.Dispose();
                 ConsensusDisposable = null;
-                _logger?.Trace("Disposed previous consensus observables list. Will update DPoS information.");
+                Logger.LogTrace("Disposed previous consensus observables list. Will update DPoS information.");
             }
 
             // Update observer.
@@ -733,12 +732,12 @@ namespace AElf.Kernel.Node
             if (tx.Type == TransactionType.DposTransaction)
             {
                 MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().ToHex()));
-                _logger?.Trace(
+                Logger.LogTrace(
                     $"A DPoS tx has been generated: {tx.GetHash().ToHex()} - {tx.MethodName} from {tx.From.GetFormatted()}.");
             }
 
             if (tx.From.Equals(_ownPubKey))
-                _logger?.Trace(
+                Logger.LogTrace(
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().ToHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
             

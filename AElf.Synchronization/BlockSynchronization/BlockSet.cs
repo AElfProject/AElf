@@ -7,8 +7,6 @@ using AElf.Common;
 using AElf.Kernel;
 using Akka.Util.Internal;
 using Easy.MessageHub;
-using NLog;
-
 namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable FieldCanBeMadeReadOnly.Local
@@ -56,7 +54,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         private static List<IBlock> _blockCache = new List<IBlock>();
 
@@ -76,7 +74,7 @@ namespace AElf.Synchronization.BlockSynchronization
         public void AddBlock(IBlock block)
         {
             var hash = block.BlockHashToHex;
-            _logger?.Trace($"Added block {hash} to block cache.");
+            Logger.LogTrace($"Added block {hash} to block cache.");
             _rwLock.AcquireReaderLock(Timeout);
             try
             {
@@ -103,7 +101,7 @@ namespace AElf.Synchronization.BlockSynchronization
         public void AddOrUpdateBlock(IBlock block)
         {
             var hash = block.BlockHashToHex;
-            _logger?.Trace($"Add or update block {hash} to block cache.");
+            Logger.LogTrace($"Add or update block {hash} to block cache.");
             _rwLock.AcquireWriterLock(Timeout);
             try
             {
@@ -136,8 +134,8 @@ namespace AElf.Synchronization.BlockSynchronization
             finally
             {
                 _rwLock.ReleaseWriterLock();
-                _logger?.Trace($"Removed block {blockHashHex} from block cache.");
-                _logger?.Trace($"Added block {blockHashHex} to executed block dict.");
+                Logger.LogTrace($"Removed block {blockHashHex} from block cache.");
+                Logger.LogTrace($"Added block {blockHashHex} to executed block dict.");
             }
         }
 
@@ -221,7 +219,7 @@ namespace AElf.Synchronization.BlockSynchronization
                         if (_executedBlocks.ContainsKey(i))
                         {
                             _executedBlocks.RemoveKey(i);
-                            _logger?.Trace($"Removed block of height {i} from executed block dict.");
+                            Logger.LogTrace($"Removed block of height {i} from executed block dict.");
                         }
                     }
 
@@ -231,7 +229,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     foreach (var block in toRemove)
                     {
                         _blockCache.Remove(block);
-                        _logger?.Trace($"Removed block {block.BlockHashToHex} from block cache.");
+                        Logger.LogTrace($"Removed block {block.BlockHashToHex} from block cache.");
                     }
                 }
                 finally
@@ -270,7 +268,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 if (higherBlocks.Any())
                 {
-                    _logger?.Trace("Find higher blocks in block set, will check whether there are longer valid chain.");
+                    Logger.LogTrace("Find higher blocks in block set, will check whether there are longer valid chain.");
 
                     // Get the index of highest block in block set.
                     var blockToCheck = higherBlocks.First();
@@ -307,12 +305,12 @@ namespace AElf.Synchronization.BlockSynchronization
                     }
                 }
 
-                _logger?.Trace($"Fork height: {forkHeight}");
-                _logger?.Trace($"Current height: {currentHeight}");
+                Logger.LogTrace($"Fork height: {forkHeight}");
+                Logger.LogTrace($"Current height: {currentHeight}");
 
                 if (forkHeight > currentHeight)
                 {
-                    _logger?.Trace("No proper fork height.");
+                    Logger.LogTrace("No proper fork height.");
                     return 0;
                 }
 
@@ -362,9 +360,9 @@ namespace AElf.Synchronization.BlockSynchronization
                     _rwLock.ReleaseWriterLock();
                 }
 
-                _logger?.Trace($"Removed block of height {block.Index} from executed block dict.");
+                Logger.LogTrace($"Removed block of height {block.Index} from executed block dict.");
                 _blockCache.Add(block);
-                _logger?.Trace($"Added block {block.BlockHashToHex} to block cache.");
+                Logger.LogTrace($"Added block {block.BlockHashToHex} to block cache.");
             }
         }
 
@@ -376,7 +374,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 str += $"{block.BlockHashToHex} - {block.Index}\n\tPreBlockHash:{block.Header.PreviousBlockHash.ToHex()}\n";
             }
 
-            _logger?.Trace(str);
+            Logger.LogTrace(str);
         }
 
         public bool IsFull()

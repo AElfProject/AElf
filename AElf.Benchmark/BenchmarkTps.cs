@@ -13,8 +13,6 @@ using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using NLog;
-
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Storages;
@@ -27,7 +25,7 @@ namespace AElf.Benchmark
     {
         private readonly IChainCreationService _chainCreationService;
         private readonly ISmartContractService _smartContractService;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private readonly BenchmarkOptions _options;
         private readonly IExecutingService _executingService;
         private readonly IStateStore _stateStore;
@@ -61,7 +59,7 @@ namespace AElf.Benchmark
             _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             _options = options;
             _executingService = executingService;
 

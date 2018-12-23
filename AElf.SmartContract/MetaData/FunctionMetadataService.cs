@@ -2,9 +2,10 @@
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
-using NLog;
 using Org.BouncyCastle.Security;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.SmartContract.Metadata
 {
@@ -13,12 +14,12 @@ namespace AElf.SmartContract.Metadata
     {
         private IDataStore _dataStore;
         private readonly ConcurrentDictionary<Hash, ChainFunctionMetadata> _metadatas;
-        private ILogger _logger;
+        public ILogger<FunctionMetadataService> Logger { get; set; }
 
-        public FunctionMetadataService(IDataStore dataStore, ILogger logger)
+        public FunctionMetadataService(IDataStore dataStore)
         {
             _dataStore = dataStore;
-            _logger = logger;
+            Logger = NullLogger<FunctionMetadataService>.Instance;
             _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
         }
 
@@ -29,22 +30,24 @@ namespace AElf.SmartContract.Metadata
             //TODO: find a way to mark these transaction as a same group (maybe by using "r/w account sharing data"?)
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore, _logger));
+                //TODO: remove new, get the instance from service provider
+                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore));
             }
+            
             
             //TODO: need to
             //1.figure out where to have this "contractReferences" properly and
             //2.how to implement the action's that call other contracts and
             //3.as the contract reference can be changed, need to set up the contract update accordingly, which is the functions that are not yet implemented
             await chainFuncMetadata.DeployNewContract(chainId, address, contractMetadataTemplate);
-            _logger?.Info($"Metadata of contract {contractMetadataTemplate.FullName} are extracted successfully.");
+            Logger.LogInformation($"Metadata of contract {contractMetadataTemplate.FullName} are extracted successfully.");
         }
 
         public async Task UpdateContract(Hash chainId, Address address, ContractMetadataTemplate oldContractMetadataTemplate, ContractMetadataTemplate newContractMetadataTemplate)
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore, _logger));
+                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore));
             }
 
             await chainFuncMetadata.UpdateContract(chainId, address, oldContractMetadataTemplate, newContractMetadataTemplate);

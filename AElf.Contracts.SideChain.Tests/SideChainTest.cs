@@ -9,7 +9,6 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Configuration;
-using NLog;
 using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
 
@@ -24,7 +23,7 @@ namespace AElf.Contracts.SideChain.Tests
 
         public SideChainTest(ILogger logger)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
         }
 
         private void Init()

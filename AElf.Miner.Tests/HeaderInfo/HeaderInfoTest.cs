@@ -8,7 +8,6 @@ using AElf.Miner.Rpc;
 using AElf.Miner.Rpc.Server;
 using Grpc.Core;
 using Moq;
-using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
@@ -18,7 +17,7 @@ namespace AElf.Miner.Tests.Grpc
     [UseAutofacTestFramework]
     public class HeaderInfoTest
     {
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<RequestBlockInfo> _requestIndexedInfoList = new List<RequestBlockInfo>();
@@ -26,7 +25,7 @@ namespace AElf.Miner.Tests.Grpc
 
         public HeaderInfoTest(ILogger logger)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
         }
 
         public Mock<ILightChain> MockLightChain()

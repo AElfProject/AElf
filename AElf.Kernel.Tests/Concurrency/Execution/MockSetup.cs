@@ -14,7 +14,6 @@ using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
-using NLog;
 using AElf.Common;
 using AElf.Execution.Execution;
 using Address = AElf.Common.Address;
@@ -73,10 +72,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ILogger logger,
+            ISmartContractRunnerFactory smartContractRunnerFactory,
             IStateStore stateStore, HashManager hashManager, TransactionManager transactionManager)
         {
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
             _stateStore = stateStore;
             ActorEnvironment = actorEnvironment;
             if (!ActorEnvironment.Initialized)

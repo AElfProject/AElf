@@ -5,21 +5,19 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
-using NLog;
-
 namespace AElf.ChainController
 {
     public class ChainCreationService : IChainCreationService
     {
         private readonly IChainService _chainService;
         private readonly ISmartContractService _smartContractService;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
-        public ChainCreationService(IChainService chainService, ISmartContractService smartContractService, ILogger logger)
+        public ChainCreationService(IChainService chainService, ISmartContractService smartContractService)
         {
             _chainService = chainService;
             _smartContractService = smartContractService;
-            _logger = logger;
+            Logger = NullLogger<TAAAAAA>.Instance;
         }
 
         /// <summary>

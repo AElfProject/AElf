@@ -10,8 +10,6 @@ using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
-
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
@@ -19,7 +17,7 @@ namespace AElf.ChainController
     public class ConsensusBlockValidationFilter
     {
         private readonly ISmartContractService _smartContractService;
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         
         private readonly Address _nodeAddress;
         private readonly ECKeyPair _nodeKeyPair;
@@ -139,7 +137,7 @@ namespace AElf.ChainController
         {
             if (contractAccountHash == null || keyPair == null || recipientAddress == null)
             {
-                _logger?.Error("Something wrong happened to consensus verification filter.");
+                Logger.LogError("Something wrong happened to consensus verification filter.");
                 return null;
             }
 

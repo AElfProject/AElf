@@ -13,8 +13,6 @@ using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Akka.Remote;
 using Autofac;
-using NLog;
-
 namespace AElf.Concurrency.Worker
 {
     class Program

@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Network.Data;
 using AElf.Network.Exceptions;
-using NLog;
-
 namespace AElf.Network.Connection
 {
     public class PacketReceivedEventArgs : EventArgs

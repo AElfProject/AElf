@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Managers
 {
@@ -12,13 +13,13 @@ namespace AElf.Kernel.Managers
     {
         private readonly IDataStore _dataStore;
 
-        private readonly ILogger _logger;
+        public ILogger<BlockManager> Logger {get;set;}
 
         public BlockManager(IDataStore dataStore)
         {
             _dataStore = dataStore;
 
-            _logger = LogManager.GetLogger(nameof(BlockManager));
+            Logger = NullLogger<BlockManager>.Instance;
         }
 
         public async Task<IBlock> AddBlockAsync(IBlock block)
@@ -64,7 +65,7 @@ namespace AElf.Kernel.Managers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Error while getting block {blockHash.ToHex()}.");
+                Logger.LogError(e, $"Error while getting block {blockHash.ToHex()}.");
                 return null;
             }
         }
@@ -104,12 +105,12 @@ namespace AElf.Kernel.Managers
 
         public async Task<Block> GetBlockByHeight(Hash chainId, ulong height)
         {
-            _logger?.Trace($"Trying to get block by height {height}.");
+            Logger.LogTrace($"Trying to get block by height {height}.");
 
             var key = DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, height);
             if (key == null)
             {
-                _logger?.Error($"Invalid block height - {height}.");
+                Logger.LogError($"Invalid block height - {height}.");
                 return null;
             }
 

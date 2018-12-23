@@ -13,8 +13,6 @@ using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
-using NLog;
-
 namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable InconsistentNaming
@@ -33,7 +31,7 @@ namespace AElf.Synchronization.BlockSynchronization
                                               _chainService.GetBlockChain(
                                                   Hash.LoadBase58(ChainConfig.Instance.ChainId)));
 
-        private readonly ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         private readonly FSM<NodeState> _stateFSM;
 
@@ -111,7 +109,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 if (inHeaders?.Headers == null || !inHeaders.Headers.Any())
                 {
-                    _logger?.Warn("Null headers or header list is empty.");
+                    Logger.LogWarn("Null headers or header list is empty.");
                     return;
                 }
 
@@ -192,7 +190,7 @@ namespace AElf.Synchronization.BlockSynchronization
             var blockHeaderValidationResult =
                 await _blockHeaderValidator.ValidateBlockHeaderAsync(block.Header);
 
-            _logger?.Trace(
+            Logger.LogTrace(
                 $"BlockHeader validation result: {blockHeaderValidationResult.ToString()} - {block.BlockHashToHex}. Height: *{block.Index}*");
 
             if (blockHeaderValidationResult == BlockHeaderValidationResult.Success)
@@ -273,7 +271,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task<BlockExecutionResult> HandleValidBlock(IBlock block)
         {
-            _logger?.Info($"Valid block {block.BlockHashToHex}. Height: *{block.Index}*");
+            Logger.LogInformation($"Valid block {block.BlockHashToHex}. Height: *{block.Index}*");
 
             if (_stateFSM.CurrentState != NodeState.BlockExecuting)
             {
@@ -283,7 +281,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             var executionResult = await _blockExecutor.ExecuteBlock(block);
 
-            _logger?.Trace($"Execution result of block {block.BlockHashToHex}: {executionResult}. Height *{block.Index}*");
+            Logger.LogTrace($"Execution result of block {block.BlockHashToHex}: {executionResult}. Height *{block.Index}*");
 
             if (executionResult.CanExecuteAgain())
             {
@@ -315,7 +313,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private Task HandleInvalidBlock(IBlock block, BlockValidationResult blockValidationResult)
         {
-            _logger?.Warn(
+            Logger.LogWarn(
                 $"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}. Height: *{block.Index}*");
 
             MessageHub.Instance.Publish(new LockMining(false));
@@ -346,7 +344,7 @@ namespace AElf.Synchronization.BlockSynchronization
             // We can say the "initial sync" is finished, set KeepHeight to a specific number
             if (_blockSet.KeepHeight == ulong.MaxValue)
             {
-                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
+                Logger.LogTrace($"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
                 _blockSet.KeepHeight = GlobalConfig.BlockCacheLimit;
             }
         }
@@ -428,7 +426,7 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <returns></returns>
         private async Task KeepExecutingBlocksOfHeight(ulong height)
         {
-            _logger?.Trace("Entered KeepExecutingBlocksOfHeight");
+            Logger.LogTrace("Entered KeepExecutingBlocksOfHeight");
 
             while (_stateFSM.CurrentState == NodeState.ExecutingLoop)
             {
@@ -449,7 +447,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                     if (new Random().Next(10000) % 1000 == 0)
                     {
-                        _logger?.Trace($"Execution result == {res.ToString()}");
+                        Logger.LogTrace($"Execution result == {res.ToString()}");
                     }
                 }
 
@@ -462,7 +460,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private void IncorrectStateLog(string methodName)
         {
-            _logger?.Trace(
+            Logger.LogTrace(
                 $"Incorrect fsm state: {_stateFSM.CurrentState.ToString()} in method {methodName}");
         }
     }
