@@ -155,6 +155,11 @@ ProjectSection(SolutionItems) = preProject
 	docs\README.md = docs\README.md
 EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
+ProjectSection(SolutionItems) = preProject
+	.travis.yml = .travis.yml
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
