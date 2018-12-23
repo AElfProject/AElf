@@ -2,13 +2,11 @@
 using System.IO;
 using System.Linq;
 using AElf.Kernel;
-using Xunit.Frameworks.Autofac;
 using Xunit;
 using AElf.Common;
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    [UseAutofacTestFramework]
     public class SdkTest
     {
         private TestContractShim _contractShim;
