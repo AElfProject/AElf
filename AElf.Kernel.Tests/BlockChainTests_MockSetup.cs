@@ -14,7 +14,6 @@ using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
-using NLog;
 using AElf.Common;
 using AElf.Execution.Execution;
 using Address = AElf.Common.Address;

@@ -6,9 +6,10 @@ using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Easy.MessageHub;
-using NLog;
 using AElf.Common;
 using AElf.Kernel.Types.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -19,7 +20,8 @@ namespace AElf.Kernel
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IStateStore _stateStore;
 
-        private readonly ILogger _logger;
+        public ILogger<BlockChain> Logger { get; set; }
+        
         private static bool _doingRollback;
         private static bool _prepareTerminated;
         private static bool _terminated;
@@ -37,7 +39,7 @@ namespace AElf.Kernel
             _prepareTerminated = false;
             _terminated = false;
             
-            _logger = LogManager.GetLogger(nameof(BlockChain));
+            Logger = NullLogger<BlockChain>.Instance;
             
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
             {
@@ -119,7 +121,7 @@ namespace AElf.Kernel
 
                 MessageHub.Instance.Publish(new RollBackStateChanged(true));
 
-                _logger?.Trace("Will rollback to " + height);
+                Logger.LogTrace("Will rollback to " + height);
 
                 var currentHash = await GetCurrentBlockHashAsync();
                 var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
@@ -154,7 +156,7 @@ namespace AElf.Kernel
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
 
                 MessageHub.Instance.Publish(new BranchRolledBack(blocks));
-                _logger?.Trace("Finished rollback to " + height);
+                Logger.LogTrace("Finished rollback to " + height);
                 MessageHub.Instance.Publish(new RollBackStateChanged(false));
 
                 return txs;

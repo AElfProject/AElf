@@ -9,7 +9,6 @@ using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using CommandLine;
-using NLog;
 
 namespace AElf.Configuration
 {
@@ -165,7 +164,7 @@ namespace AElf.Configuration
                 ManagementConfig.Instance.SideChainServicePath = opts.ManagementSideChainServicePath;
             }
             
-            LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
+            //LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }
     }
 }

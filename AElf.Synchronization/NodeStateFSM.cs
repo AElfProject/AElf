@@ -3,14 +3,21 @@ using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Synchronization
 {
     // ReSharper disable InconsistentNaming
     public class NodeStateFSM
     {
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(NodeStateFSM));
+
+        public NodeStateFSM()
+        {
+            Logger = NullLogger<NodeStateFSM>.Instance;
+        }
+        
+        public ILogger<NodeStateFSM> Logger { get; set; }
 
         private FSM<NodeState> _fsm;
 
@@ -270,24 +277,24 @@ namespace AElf.Synchronization
 
         private void WhenEnteringState()
         {
-            _logger?.Trace($"[NodeState] Entering State {_fsm.CurrentState.ToString()}");
+            Logger.LogTrace($"[NodeState] Entering State {_fsm.CurrentState.ToString()}");
             MessageHub.Instance.Publish(new EnteringState(_fsm.CurrentState));
             
             if (_inAState == 1)
             {
-                _logger?.Trace("Unexpected entering of current state.");
+                Logger.LogTrace("Unexpected entering of current state.");
             }
             Interlocked.Add(ref _inAState, 1);
         }
 
         private void WhenLeavingState()
         {
-            _logger?.Trace($"[NodeState] Leaving State {_fsm.CurrentState.ToString()}");
+            Logger.LogTrace($"[NodeState] Leaving State {_fsm.CurrentState.ToString()}");
             MessageHub.Instance.Publish(new LeavingState(_fsm.CurrentState));
             
             if (_inAState == 0)
             {
-                _logger?.Trace("Unexpected leaving of current state.");
+                Logger.LogTrace("Unexpected leaving of current state.");
             }
             Interlocked.Add(ref _inAState, 0);
         }

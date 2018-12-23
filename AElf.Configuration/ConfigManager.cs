@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using AElf.Common.Application;
-using NLog;
 
 [assembly: InternalsVisibleTo("AElf.Configuration.Tests")]
 
@@ -14,7 +13,7 @@ namespace AElf.Configuration
 {
     internal class ConfigManager
     {
-        private static readonly ILogger _logger;
+        //private static readonly ILogger _logger;
         
         public static List<string> ConfigFilePaths = new List<string>
         {
@@ -28,7 +27,7 @@ namespace AElf.Configuration
         static ConfigManager()
         {
             FileWatcher.FileChanged += ConfigChanged;
-            _logger = LogManager.GetLogger("Configuration");
+            //_logger = LogManager.GetLogger("Configuration");
         }
 
         internal static T GetConfigInstance<T>()
@@ -125,7 +124,7 @@ namespace AElf.Configuration
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex, "Exception while handle config changed.");
+                    // _logger.Error(ex, "Exception while handle config changed.");
                 }
             }
         }

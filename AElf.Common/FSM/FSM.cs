@@ -1,12 +1,22 @@
 using System;
 using System.Collections.Generic;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Common.FSM
 {
     // ReSharper disable InconsistentNaming
     public class FSM<T>
     {
+
+        public FSM()
+        {
+            Logger = NullLogger<FSM<T>>.Instance;
+        }
+        
+        
+        public ILogger<FSM<T>> Logger { get; set; }
+        
         private readonly Dictionary<T, FSMStateBehaviour<T>> _states = new Dictionary<T, FSMStateBehaviour<T>>();
 
         private T _currentState;
@@ -31,8 +41,6 @@ namespace AElf.Common.FSM
         private FSMStateBehaviour<T> _currentStateBehaviour;
 
         private int _stateAge = -1000;
-
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(FSM));
 
         public FSMStateBehaviour<T> AddState(T state)
         {
@@ -76,7 +84,7 @@ namespace AElf.Common.FSM
 
         public void ProcessWithStateEvent(StateEvent stateEvent)
         {
-            _logger?.Trace($"[StateEvent] {stateEvent.ToString()}");
+            Logger.LogTrace($"[StateEvent] {stateEvent.ToString()}");
             StateEvent = stateEvent;
 
             if ((NodeState) (object) CurrentState == NodeState.Stay)

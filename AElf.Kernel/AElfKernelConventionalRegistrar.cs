@@ -16,6 +16,17 @@ namespace AElf.Kernel
             
             //TODO! use IsAssignableFrom
             
+            
+            
+            if (type.Name.EndsWith("Store"))
+            {
+                return ServiceLifetime.Transient;
+            }
+            if (type.Name.EndsWith("Info"))
+            {
+                return ServiceLifetime.Transient;
+            }
+            
             if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Store") || type.Name.EndsWith("Service"))
             {
                 return ServiceLifetime.Transient;
