@@ -1,0 +1,12 @@
+@startuml
+digraph G {
+    "AElf.Kernel" -> "AElf.Core";
+    "AElf.OS" -> "AElf.Kernel";
+    "AElf.Execution" -> "AElf.Kernel";
+    "AElf.SmartContract" -> "AElf.Kernel";
+    "AElf.MiniSystem" -> {"AElf.Kernel";"AElf.SmartContract";"AElf.Execution"}
+    "AElf.Network" -> "AElf.OS";
+    "AElf.Database" -> "AElf.OS";
+    "AElf.FullNode" -> {"AElf.MiniSystem"; "AElf.OS";"AElf.Network";"AElf.Database"};
+  }
+@enduml

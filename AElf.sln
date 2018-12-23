@@ -147,7 +147,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Core", "AElf.Core\AElf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.FeeReceiver", "AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj", "{201ED8C0-9CEC-451D-9A8B-824443ADE7B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestFramework", "AElf.TestFramework\AElf.TestFramework.csproj", "{7FEA756D-FA6F-48AF-A1F9-E6CD65F6DEF5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestBase", "AElf.TestBase\AElf.TestBase.csproj", "{7FEA756D-FA6F-48AF-A1F9-E6CD65F6DEF5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{17BB24BA-6B44-4CA2-B989-6F5703DA0A67}"
+ProjectSection(SolutionItems) = preProject
+	docs\test.puml = docs\test.puml
+	docs\README.md = docs\README.md
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
