@@ -36,7 +36,7 @@ namespace AElf.Miner.TxMemPool
             try
             {
                 _chainService = chainService;
-                _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain, LogManager.GetLogger(nameof(TxRefBlockValidator)));
+                _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain);
             }
             catch (Exception e)
             {

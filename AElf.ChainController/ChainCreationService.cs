@@ -5,19 +5,22 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.ChainController
 {
     public class ChainCreationService : IChainCreationService
     {
         private readonly IChainService _chainService;
         private readonly ISmartContractService _smartContractService;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<ChainCreationService> Logger {get;set;}
 
         public ChainCreationService(IChainService chainService, ISmartContractService smartContractService)
         {
             _chainService = chainService;
             _smartContractService = smartContractService;
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<ChainCreationService>.Instance;
         }
 
         /// <summary>
@@ -53,7 +56,7 @@ namespace AElf.ChainController
             }
             catch (Exception e)
             {
-                _logger.Error("CreateNewChainAsync Error: " + e);
+                Logger.LogError("CreateNewChainAsync Error: " + e);
                 return null;
             }
         }

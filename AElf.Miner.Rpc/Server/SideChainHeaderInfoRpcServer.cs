@@ -6,6 +6,8 @@ using AElf.Common.Attributes;
 using AElf.Kernel;
 using Grpc.Core;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Miner.Rpc.Server
 {
@@ -13,13 +15,13 @@ namespace AElf.Miner.Rpc.Server
     public class SideChainBlockInfoRpcServer : SideChainBlockInfoRpc.SideChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<SideChainBlockInfoRpcServer> Logger {get;set;}
         private ILightChain LightChain { get; set; }
 
         public SideChainBlockInfoRpcServer(IChainService chainService)
         {
             _chainService = chainService;
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<SideChainBlockInfoRpcServer>.Instance;
         }
 
         public void Init(Hash chainId)

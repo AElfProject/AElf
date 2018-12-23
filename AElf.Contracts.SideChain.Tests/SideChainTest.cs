@@ -18,17 +18,17 @@ namespace AElf.Contracts.SideChain.Tests
     public class SideChainTest
     {
         private SideChainContractShim _contract;
-        private ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private MockSetup Mock;
 
-        public SideChainTest(ILogger logger)
+        public SideChainTest()
         {
             Logger = NullLogger<TAAAAAA>.Instance;
         }
 
         private void Init()
         {
-            Mock = new MockSetup(_logger);
+            Mock = new MockSetup();
         }
 
         [Fact(Skip = "TBD, side chain lifetime")]

@@ -6,7 +6,7 @@ namespace AElf.Configuration
     [LoggerName("Configuration")]
     public class ConfigBase<T> where T : new()
     {
-        //internal readonly ILogger _logger;
+        //internal readonly ILogger Logger.Log
         private static T _instance = ConfigManager.GetConfigInstance<T>();
 
         public static T Instance
@@ -31,7 +31,7 @@ namespace AElf.Configuration
 
         public ConfigBase()
         {
-            //_logger = LogManager.GetLogger("Configuration");
+            //Logger= LogManager.GetLogger("Configuration");
         }
     }
 }

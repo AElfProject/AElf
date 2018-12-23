@@ -13,6 +13,10 @@ using AElf.Miner.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using ServiceStack.Logging;
+
 namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable InconsistentNaming
@@ -31,7 +35,7 @@ namespace AElf.Synchronization.BlockSynchronization
                                               _chainService.GetBlockChain(
                                                   Hash.LoadBase58(ChainConfig.Instance.ChainId)));
 
-        public ILogger<T> Logger {get;set;}
+        public ILogger<BlockSynchronizer> Logger {get;set;}
 
         private readonly FSM<NodeState> _stateFSM;
 
@@ -54,7 +58,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             _stateFSM = new NodeStateFSM().Create();
 
-            _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
+            Logger= NullLogger<BlockSynchronizer>.Instance;
 
             _terminated = false;
             _executeNextBlock = true;
@@ -109,7 +113,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 if (inHeaders?.Headers == null || !inHeaders.Headers.Any())
                 {
-                    Logger.LogWarn("Null headers or header list is empty.");
+                    Logger.LogWarning("Null headers or header list is empty.");
                     return;
                 }
 
@@ -313,7 +317,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private Task HandleInvalidBlock(IBlock block, BlockValidationResult blockValidationResult)
         {
-            Logger.LogWarn(
+            Logger.LogWarning(
                 $"Invalid block {block.BlockHashToHex} : {blockValidationResult.ToString()}. Height: *{block.Index}*");
 
             MessageHub.Instance.Publish(new LockMining(false));

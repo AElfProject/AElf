@@ -25,7 +25,7 @@ namespace AElf.Kernel.Tests
             _dataStore = GetRequiredService<IDataStore>();
             _blockTest = GetRequiredService<BlockTest>();
             _chainService = GetRequiredService<IChainService>();
-            _logger = GetRequiredService<ILogger>();
+            Logger= GetRequiredService<ILogger>();
         }
 
         // ReSharper disable once MemberCanBeMadeStatic.Local

@@ -14,7 +14,7 @@ namespace AElf.Kernel.Consensus
         
         private readonly Func<Task> _miningAndBroadcasting;
 
-        public SingleNodeTestObserver(ILogger logger, params Func<Task>[] miningFunctions)
+        public SingleNodeTestObserver( params Func<Task>[] miningFunctions)
         {
             if (miningFunctions.Length != 1)
             {

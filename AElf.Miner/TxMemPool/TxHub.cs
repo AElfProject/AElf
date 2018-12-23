@@ -18,12 +18,15 @@ using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using AElf.SmartContract.Proposal;
 using Easy.MessageHub;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.Miner.TxMemPool
 {
     [LoggerName(nameof(TxHub))]
     public class TxHub : ITxHub
     {
-        public ILogger<T> Logger {get;set;}
+        public ILogger<TxHub> Logger {get;set;}
         
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionReceiptManager _receiptManager;
@@ -56,7 +59,7 @@ namespace AElf.Miner.TxMemPool
             IChainService chainService, IAuthorizationInfo authorizationInfo, ITxSignatureVerifier signatureVerifier,
             ITxRefBlockValidator refBlockValidator)
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _receiptManager = receiptManager;
             _chainService = chainService;
@@ -78,7 +81,7 @@ namespace AElf.Miner.TxMemPool
 
             if (_blockChain == null)
             {
-                Logger.LogWarn($"Could not find the blockchain for {_chainId}.");
+                Logger.LogWarning($"Could not find the blockchain for {_chainId}.");
                 return;
             }
 
@@ -125,13 +128,13 @@ namespace AElf.Miner.TxMemPool
             // if the transaction is in TransactionManager, it is either executed or added into _allTxns
             if (txn != null && !txn.Equals(new Transaction()))
             {
-                // Logger.LogWarn($"Transaction {transaction.GetHash()} already exists.");
+                // Logger.LogWarning($"Transaction {transaction.GetHash()} already exists.");
                 return;
             }
 
             if (!_allTxns.TryAdd(tr.TransactionId, tr))
             {
-                // Logger.LogWarn($"Transaction {transaction.GetHash()} already exists.");
+                // Logger.LogWarning($"Transaction {transaction.GetHash()} already exists.");
                 return;
             }
 

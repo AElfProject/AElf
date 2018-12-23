@@ -9,11 +9,14 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.Miner.Rpc.Client
 {
     public abstract class ClientBase<TResponse> : ClientBase where TResponse : IResponseIndexingMessage
     {
-        public ILogger<T> Logger {get;set;}
+        public ILogger<ClientBase<TResponse>> Logger {get;set;}
         private ulong _next;
         private readonly Hash _targetChainId;
         private int _interval;
@@ -28,7 +31,7 @@ namespace AElf.Miner.Rpc.Client
         protected ClientBase(Channel channel, Hash targetChainId, int interval, int irreversible, int maximalIndexingCount)
         {
             _channel = channel;
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<ClientBase<TResponse>>.Instance;
             _targetChainId = targetChainId;
             _interval = interval;
             _realInterval = _interval;
@@ -94,7 +97,7 @@ namespace AElf.Miner.Rpc.Client
                     ChainId = Hash.LoadBase58(ChainConfig.Instance.ChainId),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
-                //_logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
+                //Logger.LogTrace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_realInterval);
             }
@@ -127,10 +130,10 @@ namespace AElf.Miner.Rpc.Client
                     if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
                     {
                         var detail = e.Status.Detail;
-                        Logger.LogWarn($"{detail} exception during request to chain {_targetChainId.DumpBase58()}.");
+                        Logger.LogWarning($"{detail} exception during request to chain {_targetChainId.DumpBase58()}.");
                         while (_channel.State != ChannelState.Ready && _channel.State != ChannelState.Idle)
                         {
-                            //Logger.LogWarn($"Channel state: {_channel.State}");
+                            //Logger.LogWarning($"Channel state: {_channel.State}");
                             await Task.Delay(UnavailableConnectionInterval);
                         }
 
@@ -183,7 +186,7 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (RpcException e)
             {
-                _logger.Error(e);
+                Logger.LogError(e.ToString());
                 throw;
             }
         }

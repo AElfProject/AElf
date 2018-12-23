@@ -7,6 +7,8 @@ using AElf.Kernel.Types.Transaction;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -17,19 +19,19 @@ namespace AElf.Contracts.Authorization.Tests
     public class AuthorizationTest
     {
         private AuthorizationContractShim _contract;
-        private ILogger _logger;
+        public ILogger<AuthorizationTest> Logger {get;set;}
         private MockSetup Mock;
 
         //private static byte[] ChainId = ChainHelpers.GetRandomChainId();
         
         private void Init()
         {
-            Mock = new MockSetup(_logger);
+            Mock = new MockSetup();
         }
         
-        public AuthorizationTest(ILogger logger)
+        public AuthorizationTest()
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<AuthorizationTest>.Instance;
         }
 
         [Fact]

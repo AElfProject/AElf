@@ -12,12 +12,14 @@ using AElf.SmartContract.Metadata;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Akka.Remote;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 namespace AElf.Synchronization.Tests
 {
     public class MockSetup
     {
-        private ILogger _logger = LogManager.GetLogger("Synchronization.Tests");
+        public ILogger<MockSetup> Logger { get; set; }
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
@@ -38,6 +40,7 @@ namespace AElf.Synchronization.Tests
 
         public MockSetup(IDataStore dataStore, IStateStore stateStore, ITxHub txHub)
         {
+            Logger=NullLogger<MockSetup>.Instance;
             _dataStore = dataStore;
             _stateStore = stateStore;
             
@@ -46,7 +49,7 @@ namespace AElf.Synchronization.Tests
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
-            _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
+            _functionMetadataService = new FunctionMetadataService(_dataStore);
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateStore,
                     _functionMetadataService), _transactionTraceManager, _stateStore,

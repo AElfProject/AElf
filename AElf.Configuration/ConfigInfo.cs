@@ -7,7 +7,7 @@ namespace AElf.Configuration
         private string _name;
         public Type Type { get; }
         public object Value { get; }
-        //private readonly ILogger _logger = LogManager.GetLogger("Configuration");
+        //private readonly ILogger Logger= LogManager.GetLogger("Configuration");
 
         public ConfigInfo(string name, Type type, string content)
         {
@@ -25,7 +25,7 @@ namespace AElf.Configuration
                 }
                 catch (Exception e)
                 {
-                    //_logger.Error($"create {name} config instance error:{e.Message}");
+                    //Logger.LogError($"create {name} config instance error:{e.Message}");
                     Value = CreateDefaultInstance(type);
                 }
             }

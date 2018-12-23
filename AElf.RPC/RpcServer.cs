@@ -9,16 +9,19 @@ using Autofac;
 using Easy.MessageHub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.RPC
 {
     public class RpcServer : IRpcServer
     {
         private IWebHost _host;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<RpcServer> Logger {get;set;}
 
-        public RpcServer(ILogger logger)
+        public RpcServer()
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<RpcServer>.Instance;
             
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
             {

@@ -4,6 +4,9 @@ using System.Timers;
 using AElf.Configuration;
 using AElf.Configuration.Config.Management;
 using AElf.Management.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.Management.Services
 {
     public class RecordService : IRecordService
@@ -14,11 +17,11 @@ namespace AElf.Management.Services
         private readonly INetworkService _networkService;
         private readonly Timer _timer;
 
-        public ILogger<T> Logger {get;set;}
+        public ILogger<RecordService> Logger {get;set;}
 
         public RecordService(IChainService chainService, ITransactionService transactionService, INodeService nodeService, INetworkService networkService)
         {
-            _logger = LogManager.GetLogger("RecordService");
+            Logger= NullLogger<RecordService>.Instance;
 
             _chainService = chainService;
             _transactionService = transactionService;
@@ -49,7 +52,7 @@ namespace AElf.Management.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error(ex, "record data error.");
+                        Logger.LogError(ex, "record data error.");
                     }
                 }
             );

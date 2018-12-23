@@ -6,7 +6,6 @@ using AElf.CLI2.Utils;
 using Autofac;
 using ChakraCore.NET;
 using CommandLine;
-using NLog.Targets;
 
 namespace AElf.CLI2.Commands
 {

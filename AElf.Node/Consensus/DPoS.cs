@@ -22,6 +22,9 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Types.Common;
 using AElf.Synchronization.EventMessages;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using ServiceStack.Logging;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -47,7 +50,7 @@ namespace AElf.Kernel.Node
                                               _chainService.GetBlockChain(
                                                   Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58())));
 
-        public ILogger<T> Logger {get;set;}
+        public ILogger<DPoS> Logger {get;set;}
 
         private readonly ConsensusHelper _helper;
 
@@ -92,7 +95,7 @@ namespace AElf.Kernel.Node
             
             _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
 
-            _logger = LogManager.GetLogger(nameof(DPoS));
+            Logger= NullLogger<DPoS>.Instance;
             
             var count = MinersConfig.Instance.Producers.Count;
 

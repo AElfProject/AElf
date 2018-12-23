@@ -24,6 +24,10 @@ using AElf.Miner.TxMemPool;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using ServiceStack.Logging;
+
 namespace AElf.Synchronization.BlockExecution
 {
     public class BlockExecutor : IBlockExecutor
@@ -31,7 +35,7 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IChainService _chainService;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IExecutingService _executingService;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<BlockExecutor> Logger {get;set;}
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
@@ -53,7 +57,7 @@ namespace AElf.Synchronization.BlockExecution
             _txHub = txHub;
             _consensusDataProvider = new ConsensusDataProvider(stateStore);
 
-            _logger = LogManager.GetLogger(nameof(BlockExecutor));
+            Logger= NullLogger<BlockExecutor>.Instance;
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
 
@@ -139,7 +143,7 @@ namespace AElf.Synchronization.BlockExecution
                 (res, crossChainIndexingSideChainTransactionId) = await TryCollectTransactions(block, cts);
                 if (result.IsFailed())
                 {
-                    Logger.LogWarn($"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
+                    Logger.LogWarning($"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
                                   $"block hash: {block.BlockHashToHex}.");
                     res = result;
                     return res;
@@ -214,7 +218,7 @@ namespace AElf.Synchronization.BlockExecution
                 stopwatch.Stop();
                 if (res.CanExecuteAgain())
                 {
-                    Logger.LogWarn($"Block {block.BlockHashToHex} can execute again.");
+                    Logger.LogWarning($"Block {block.BlockHashToHex} can execute again.");
                 }
 
                 Logger.LogInformation($"Executed block {block.BlockHashToHex} with result {res}, " +
@@ -317,7 +321,7 @@ namespace AElf.Synchronization.BlockExecution
             }
 
             if (res.IsFailed())
-                Logger.LogWarn(errorLog);
+                Logger.LogWarning(errorLog);
 
             return res;
         }
@@ -430,7 +434,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 if (e is ClientShutDownException)
                     return true;
-                _logger.Warn("Parent chain block info validation failed.");
+                Logger.LogWarning("Parent chain block info validation failed.");
                 return false;
             }
         }
@@ -453,7 +457,7 @@ namespace AElf.Synchronization.BlockExecution
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
                 Logger.LogTrace($"{root.ToHex()} != {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
-                Logger.LogWarn("ExecuteBlock - Incorrect merkle trees.");
+                Logger.LogWarning("ExecuteBlock - Incorrect merkle trees.");
                 Logger.LogTrace("Transaction Results:");
                 foreach (var r in transactionResults)
                 {

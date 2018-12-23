@@ -97,7 +97,7 @@ namespace AElf.Kernel.Consensus
             }
             catch (Exception e)
             {
-                _logger.Error(e,
+                Logger.LogError(e,
                     $"Failed to get Round information of provided round number. - {currentRoundNumber}\n");
                 return null;
             }

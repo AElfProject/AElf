@@ -7,6 +7,8 @@ using Org.BouncyCastle.Security;
 using SharpRepository.Repository.Caching.Hash;
 using AElf.Kernel;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Execution.Scheduling
 {
@@ -16,12 +18,12 @@ namespace AElf.Execution.Scheduling
     public class Grouper : IGrouper
     {
         private IResourceUsageDetectionService _resourceUsageDetectionService;
-        private ILogger _logger;
+        public ILogger<Grouper> Logger {get;set;}
 
         public Grouper(IResourceUsageDetectionService resourceUsageDetectionService)
         {
             _resourceUsageDetectionService = resourceUsageDetectionService;
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<Grouper>.Instance;
         }
 
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
@@ -51,7 +53,7 @@ namespace AElf.Execution.Scheduling
                     continue;
                 }
                 
-                //_logger.Debug(string.Format("tx {0} have resource [{1}]", tx.From, string.Join(" ||| ", resources)));
+                //Logger.LogDebug(string.Format("tx {0} have resource [{1}]", tx.From, string.Join(" ||| ", resources)));
                 foreach (var resource in resources)
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
@@ -242,7 +244,7 @@ namespace AElf.Execution.Scheduling
             //in case there is a bug 
             if (totalCount != transactionCount)
             {
-                _logger.Fatal("There is a bug in the Grouper, get inconsist transaction count, some tx lost");
+                Logger.LogCritical("There is a bug in the Grouper, get inconsist transaction count, some tx lost");
             }
 
             if (res.Count > resGroupCount)

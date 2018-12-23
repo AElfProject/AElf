@@ -7,6 +7,7 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Network.Peers
 {

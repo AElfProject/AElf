@@ -7,12 +7,15 @@ using AElf.Network;
 using AElf.Node.AElfChain;
 using AElf.Node.EventMessages;
 using Easy.MessageHub;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.Node
 {
     [LoggerName(nameof(Node))]
     public class Node : INode
     {
-        public ILogger<T> Logger {get;set;}
+        public ILogger<Node> Logger {get;set;}
         private readonly IRpcServer _rpcServer;
         private readonly INetworkManager _netManager;
 
@@ -20,9 +23,9 @@ namespace AElf.Node
 
         private bool _startRpc;
 
-        public Node(ILogger logger, IRpcServer rpcServer, INetworkManager netManager)
+        public Node( IRpcServer rpcServer, INetworkManager netManager)
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<Node>.Instance;
             _rpcServer = rpcServer;
             _netManager = netManager;
         }

@@ -10,6 +10,10 @@ using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
@@ -17,7 +21,7 @@ namespace AElf.ChainController
     public class ConsensusBlockValidationFilter
     {
         private readonly ISmartContractService _smartContractService;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<ConsensusBlockValidationFilter> Logger {get;set;}
         
         private readonly Address _nodeAddress;
         private readonly ECKeyPair _nodeKeyPair;
@@ -29,7 +33,7 @@ namespace AElf.ChainController
             _nodeAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
             _nodeKeyPair = NodeConfig.Instance.ECKeyPair;
             
-            _logger = LogManager.GetLogger(nameof(ConsensusBlockValidationFilter));
+            Logger= NullLogger<ConsensusBlockValidationFilter>.Instance;
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
@@ -106,7 +110,7 @@ namespace AElf.ChainController
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())
             {
-                _logger.Trace("Failed to execute tx Validation: " + trace.StdErr);
+                Logger.LogTrace("Failed to execute tx Validation: " + trace.StdErr);
                 return BlockValidationResult.FailedToCheckConsensusInvalidation;
             }
 

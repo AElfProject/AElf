@@ -16,6 +16,8 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 [assembly: InternalsVisibleTo("AElf.Network.Tests")]
@@ -42,7 +44,7 @@ namespace AElf.Network.Peers
 
         public const int TargetPeerCount = 8;
 
-        public ILogger<T> Logger {get;set;}
+        public ILogger<PeerManager> Logger {get;set;}
         private readonly IConnectionListener _connectionListener;
 
         private readonly IChainService _chainService;
@@ -78,7 +80,7 @@ namespace AElf.Network.Peers
             _connectionListener = connectionListener;
             _chainService = chainService;
             //_blockChain = blockChain;
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<PeerManager>.Instance;
 
             _nodeName = NodeConfig.Instance.NodeName;
 
@@ -149,7 +151,7 @@ namespace AElf.Network.Peers
             }
             else
             {
-                Logger.LogWarn("Bootnode list is empty.");
+                Logger.LogWarning("Bootnode list is empty.");
             }
 
             Task.Run(() => StartProcessing()).ConfigureAwait(false);
@@ -203,7 +205,7 @@ namespace AElf.Network.Peers
                 }
                 catch (Exception e)
                 {
-                    Logger.LogWarn(e, "Exception while dequeuing job.");
+                    Logger.LogWarning(e, "Exception while dequeuing job.");
                 }
             }
         }
@@ -234,7 +236,7 @@ namespace AElf.Network.Peers
         {
             if (nodeData == null)
             {
-                Logger.LogWarn("Data is null, cannot add peer.");
+                Logger.LogWarning("Data is null, cannot add peer.");
                 return;
             }
 
@@ -243,7 +245,7 @@ namespace AElf.Network.Peers
 
             if (client == null)
             {
-                Logger.LogWarn($"Could not connect to {nodeData.IpAddress}:{nodeData.Port}, operation timed out.");
+                Logger.LogWarning($"Could not connect to {nodeData.IpAddress}:{nodeData.Port}, operation timed out.");
                 return;
             }
 
@@ -307,7 +309,7 @@ namespace AElf.Network.Peers
 
             if (!authArgs.IsAuthentified)
             {
-                Logger.LogWarn($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
+                Logger.LogWarning($"Peer {peer} not authentified, reason : {authArgs.Reason}.");
                 RemovePeer(peer);
                 return;
             }
@@ -318,7 +320,7 @@ namespace AElf.Network.Peers
             {
                 case AllowedConnection.BPs when !peer.IsBp:
                 {
-                    Logger.LogWarn($"Only producers are allowed to connect. Rejecting {peer}.");
+                    Logger.LogWarning($"Only producers are allowed to connect. Rejecting {peer}.");
                     RemovePeer(peer);
                     return;
                 }
@@ -330,14 +332,14 @@ namespace AElf.Network.Peers
 
                     if (_allowedConnections == AllowedConnection.Listed && !inWhiteList)
                     {
-                        Logger.LogWarn($"Only listed peers are allowed to connect. Rejecting {peer}.");
+                        Logger.LogWarning($"Only listed peers are allowed to connect. Rejecting {peer}.");
                         RemovePeer(peer);
                         return;
                     }
 
                     if (_allowedConnections == AllowedConnection.BPsAndListed && !inWhiteList && !peer.IsBp)
                     {
-                        Logger.LogWarn($"Only listed peers or bps are allowed to connect. Rejecting {peer}.");
+                        Logger.LogWarning($"Only listed peers or bps are allowed to connect. Rejecting {peer}.");
                         RemovePeer(peer);
                         return;
                     }
@@ -364,13 +366,13 @@ namespace AElf.Network.Peers
         {
             if (peer == null)
             {
-                Logger.LogWarn("Peer is null, cannot add.");
+                Logger.LogWarning("Peer is null, cannot add.");
                 return;
             }
 
             if (!peer.IsAuthentified)
             {
-                Logger.LogWarn($"Peer not authentified, cannot add {peer}");
+                Logger.LogWarning($"Peer not authentified, cannot add {peer}");
                 return;
             }
 
@@ -413,9 +415,9 @@ namespace AElf.Network.Peers
             else
             {
                 if (sender is IPeer peer)
-                    Logger.LogWarn($"Received an invalid message from {peer.DistantNodeData}.");
+                    Logger.LogWarning($"Received an invalid message from {peer.DistantNodeData}.");
                 else
-                    Logger.LogWarn("Received an invalid message.");
+                    Logger.LogWarning("Received an invalid message.");
             }
         }
 
@@ -445,7 +447,7 @@ namespace AElf.Network.Peers
         {
             if (peer == null)
             {
-                Logger.LogWarn("removing peer but peer is null.");
+                Logger.LogWarning("removing peer but peer is null.");
                 return;
             }
 
@@ -465,7 +467,7 @@ namespace AElf.Network.Peers
             }
             else
             {
-                Logger.LogWarn($"Tried to remove peer, but not in list {peer}");
+                Logger.LogWarning($"Tried to remove peer, but not in list {peer}");
             }
         }
 
@@ -591,7 +593,7 @@ namespace AElf.Network.Peers
 
         private void OnListeningStopped(object sender, EventArgs eventArgs)
         {
-            _logger.Warn("Listening stopped.");
+            Logger.LogWarning("Listening stopped.");
         }
 
         private void OnIncomingConnection(object sender, EventArgs eventArgs)

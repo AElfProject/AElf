@@ -54,7 +54,7 @@ namespace AElf.ChainController.Rpc
 
         private bool _canBroadcastTxs = true;
 
-        public ChainControllerRpcService(ILogger logger)
+        public ChainControllerRpcService()
         {
             Logger = NullLogger<TAAAAAA>.Instance;
 

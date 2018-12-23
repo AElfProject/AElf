@@ -13,7 +13,7 @@ namespace AElf.Configuration
 {
     internal class ConfigManager
     {
-        //private static readonly ILogger _logger;
+        //private static readonly ILogger Logger.Log
         
         public static List<string> ConfigFilePaths = new List<string>
         {
@@ -27,7 +27,7 @@ namespace AElf.Configuration
         static ConfigManager()
         {
             FileWatcher.FileChanged += ConfigChanged;
-            //_logger = LogManager.GetLogger("Configuration");
+            //Logger= LogManager.GetLogger("Configuration");
         }
 
         internal static T GetConfigInstance<T>()
@@ -124,7 +124,7 @@ namespace AElf.Configuration
                 }
                 catch (Exception ex)
                 {
-                    // _logger.Error(ex, "Exception while handle config changed.");
+                    // Logger.LogError(ex, "Exception while handle config changed.");
                 }
             }
         }

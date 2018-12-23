@@ -5,11 +5,19 @@ using System.Linq;
 using AElf.Common.Attributes;
 using Alba.CsConsoleFormat.Fluent;
 using ChakraCore.NET.API;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.CLI2.JS.IO
 {
     public class Console : IConsole
     {
-        private readonly ILogger _logger = LogManager.GetLogger("js.console");
+        public ILogger<Console> Logger { get; set; }
+
+        public Console()
+        {
+            Logger = NullLogger<Console>.Instance;
+        }
 
         public void Log(IEnumerable<JavaScriptValue> args)
         {

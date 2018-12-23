@@ -16,7 +16,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            builder.RegisterModule(new LoggerAutofacModule());
+            //builder.RegisterModule(new LoggerAutofacModule());
         }
     }
 }

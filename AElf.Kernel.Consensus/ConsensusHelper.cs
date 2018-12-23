@@ -160,12 +160,12 @@ namespace AElf.Kernel.Consensus
                     if (round.RealTimeMinersInfo.ContainsKey(accountAddressHex))
                         return round.RealTimeMinersInfo[accountAddressHex];
 
-                    _logger.Error("No such Block Producer in current round.");
+                    Logger.LogError("No such Block Producer in current round.");
                     return default(MinerInRound);
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e, "Failed to get Block Producer information of current round.");
+                    Logger.LogError(e, "Failed to get Block Producer information of current round.");
                     return default(MinerInRound);
                 }
             }

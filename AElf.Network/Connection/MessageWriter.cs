@@ -7,15 +7,20 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+
 [assembly: InternalsVisibleTo("AElf.Network.Tests")]
+
 namespace AElf.Network.Connection
 {
-
     public class WriteJob
     {
         public Message Message { get; set; }
         public Action<Message> SuccessCallback { get; set; }
     }
+
     /// <summary>
     /// This class performs writes to the underlying tcp stream.
     /// </summary>
@@ -23,7 +28,7 @@ namespace AElf.Network.Connection
     {
         private const int DefaultMaxOutboundPacketSize = 20148;
 
-        public ILogger<T> Logger {get;set;}
+        public ILogger<MessageWriter> Logger { get; set; }
         private readonly NetworkStream _stream;
 
         private BlockingCollection<WriteJob> _outboundMessages;
@@ -43,7 +48,7 @@ namespace AElf.Network.Connection
             _outboundMessages = new BlockingCollection<WriteJob>();
             _stream = stream;
 
-            _logger = LogManager.GetLogger(nameof(MessageWriter));
+            Logger = NullLogger<MessageWriter>.Instance;
         }
 
         /// <summary>
@@ -61,11 +66,11 @@ namespace AElf.Network.Connection
 
             try
             {
-                _outboundMessages.Add(new WriteJob { Message = p, SuccessCallback = successCallback});
+                _outboundMessages.Add(new WriteJob {Message = p, SuccessCallback = successCallback});
             }
             catch (Exception e)
             {
-                _logger.Trace(e, "Exception while enqueue for outgoing message.");
+                Logger.LogTrace(e, "Exception while enqueue for outgoing message.");
             }
         }
 
@@ -92,10 +97,10 @@ namespace AElf.Network.Connection
 
                 if (p == null)
                 {
-                    Logger.LogWarn("Cannot write a null message.");
+                    Logger.LogWarning("Cannot write a null message.");
                     continue;
                 }
-                
+
                 try
                 {
                     if (p.Payload.Length > MaxOutboundPacketSize)
@@ -114,7 +119,7 @@ namespace AElf.Network.Connection
                         // Send without splitting
                         SendPacketFromMessage(p);
                     }
-                    
+
                     job.SuccessCallback?.Invoke(p);
                 }
                 catch (Exception e) when (e is IOException || e is ObjectDisposedException)
@@ -135,7 +140,7 @@ namespace AElf.Network.Connection
         {
             List<PartialPacket> splitted = new List<PartialPacket>();
 
-            int sourceArrayLength = arrayToSplit.Length; 
+            int sourceArrayLength = arrayToSplit.Length;
             int wholePacketCount = sourceArrayLength / chunckSize;
             int lastPacketSize = sourceArrayLength % chunckSize;
 
@@ -145,27 +150,29 @@ namespace AElf.Network.Connection
             for (int i = 0; i < wholePacketCount; i++)
             {
                 byte[] slice = new byte[chunckSize];
-                Array.Copy(arrayToSplit, i*chunckSize, slice, 0, MaxOutboundPacketSize);
-                
-                var partial = new PartialPacket {
+                Array.Copy(arrayToSplit, i * chunckSize, slice, 0, MaxOutboundPacketSize);
+
+                var partial = new PartialPacket
+                {
                     Type = msgType, Position = i, TotalDataSize = sourceArrayLength, Data = slice
                 };
-                
+
                 splitted.Add(partial);
             }
-            
+
             if (lastPacketSize != 0)
             {
                 byte[] slice = new byte[lastPacketSize];
-                Array.Copy(arrayToSplit, wholePacketCount*chunckSize, slice, 0, lastPacketSize);
-                
-                var partial = new PartialPacket {
+                Array.Copy(arrayToSplit, wholePacketCount * chunckSize, slice, 0, lastPacketSize);
+
+                var partial = new PartialPacket
+                {
                     Type = msgType, Position = wholePacketCount, TotalDataSize = sourceArrayLength, Data = slice
                 };
-                
+
                 // Set last packet flag to this packet
                 partial.IsEnd = true;
-                
+
                 splitted.Add(partial);
             }
             else
@@ -214,11 +221,13 @@ namespace AElf.Network.Connection
             byte[] b;
             if (p.HasId)
             {
-                b = ByteArrayHelpers.Combine(type, hasId, p.Id, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
+                b = ByteArrayHelpers.Combine(type, hasId, p.Id, isbuffered, length, posBytes, isEndBytes,
+                    totalLengthBytes, arrData);
             }
             else
             {
-                b = ByteArrayHelpers.Combine(type, hasId, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
+                b = ByteArrayHelpers.Combine(type, hasId, isbuffered, length, posBytes, isEndBytes, totalLengthBytes,
+                    arrData);
             }
 
             _stream.Write(b, 0, b.Length);

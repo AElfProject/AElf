@@ -7,6 +7,9 @@ using AElf.Common;
 using AElf.Kernel;
 using Akka.Util.Internal;
 using Easy.MessageHub;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable FieldCanBeMadeReadOnly.Local
@@ -54,7 +57,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        public ILogger<T> Logger {get;set;}
+        public ILogger<BlockSet> Logger {get;set;}
 
         private static List<IBlock> _blockCache = new List<IBlock>();
 
@@ -68,7 +71,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public BlockSet()
         {
-            _logger = LogManager.GetLogger(nameof(BlockSet));
+            Logger= NullLogger<BlockSet>.Instance;
         }
 
         public void AddBlock(IBlock block)

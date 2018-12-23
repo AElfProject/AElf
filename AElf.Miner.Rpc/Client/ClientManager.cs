@@ -15,6 +15,8 @@ using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using Google.Protobuf;
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ClientBase = AElf.Miner.Rpc.Client.ClientBase;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
@@ -29,7 +31,7 @@ namespace AElf.Miner.Rpc.Client
         private ClientToParentChain _clientToParentChain;
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         private CertificateStore _certificateStore;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<ClientManager> Logger {get;set;}
         private Dictionary<string, Uri> ChildChains => GrpcRemoteConfig.Instance.ChildChains;
         private CancellationTokenSource _tokenSourceToSideChain;
         private CancellationTokenSource _tokenSourceToParentChain;
@@ -40,9 +42,9 @@ namespace AElf.Miner.Rpc.Client
         /// </summary>
         private int WaitingIntervalInMillisecond => GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
 
-        public ClientManager(ILogger logger, ICrossChainInfoReader crossChainInfoReader)
+        public ClientManager( ICrossChainInfoReader crossChainInfoReader)
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<ClientManager>.Instance;
             _crossChainInfoReader = crossChainInfoReader;
             GrpcRemoteConfig.ConfigChanged += GrpcRemoteConfigOnConfigChanged;
         }
@@ -200,8 +202,8 @@ namespace AElf.Miner.Rpc.Client
             var channel = CreateChannel(uriStr, targetChainId);
             var chainId = Hash.LoadBase58(targetChainId);
             if (isClientToSideChain)
-                return new ClientToSideChain(channel, _logger, chainId, _interval,  GlobalConfig.InvertibleChainHeight, GlobalConfig.MaximalCountForIndexingSideChainBlock);
-            return new ClientToParentChain(channel, _logger, chainId, _interval, 
+                return new ClientToSideChain(channel, chainId, _interval,  GlobalConfig.InvertibleChainHeight, GlobalConfig.MaximalCountForIndexingSideChainBlock);
+            return new ClientToParentChain(channel, chainId, _interval, 
                 GlobalConfig.InvertibleChainHeight,  GlobalConfig.MaximalCountForIndexingParentChainBlock);
         }
 
@@ -246,7 +248,7 @@ namespace AElf.Miner.Rpc.Client
                     continue;
                 
                 res.Add((SideChainBlockInfo) blockInfo);
-                _logger.Trace($"Removed side chain block info at height {blockInfo.Height}");
+                Logger.LogTrace($"Removed side chain block info at height {blockInfo.Height}");
             }
 
             return res;

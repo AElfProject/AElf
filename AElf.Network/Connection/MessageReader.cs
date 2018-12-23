@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Network.Data;
 using AElf.Network.Exceptions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+
 namespace AElf.Network.Connection
 {
     public class PacketReceivedEventArgs : EventArgs
@@ -19,7 +23,7 @@ namespace AElf.Network.Connection
         private const int IntLength = 4;
         private const int IdLength = 16;
 
-        private ILogger _logger;
+        public ILogger<MessageReader> Logger {get;set;}
 
         private readonly NetworkStream _stream;
 
@@ -35,6 +39,8 @@ namespace AElf.Network.Connection
             _partialPacketBuffer = new List<PartialPacket>();
 
             _stream = stream;
+            
+            Logger = NullLogger<MessageReader>.Instance;
         }
 
         public void Start()
@@ -42,7 +48,7 @@ namespace AElf.Network.Connection
             Task.Run(Read).ConfigureAwait(false);
             IsConnected = true;
 
-            _logger = LogManager.GetLogger(nameof(MessageReader));
+            
         }
 
         /// <summary>
@@ -85,7 +91,7 @@ namespace AElf.Network.Connection
                             _partialPacketBuffer.Add(partialPacket);
                             
                             if (_partialPacketBuffer.Count == 0)
-                                _logger.Trace($"Received first packet: {partialPacket.Type}, total size: {partialPacket.TotalDataSize}.");
+                                Logger.LogTrace($"Received first packet: {partialPacket.Type}, total size: {partialPacket.TotalDataSize}.");
                         }
                         else
                         {
@@ -97,7 +103,7 @@ namespace AElf.Network.Connection
                             byte[] allData =
                                 ByteArrayHelpers.Combine(_partialPacketBuffer.Select(pp => pp.Data).ToArray());
 
-                            _logger.Trace($"Received last packet: {_partialPacketBuffer.Count}, total length: {allData.Length}.");
+                            Logger.LogTrace($"Received last packet: {_partialPacketBuffer.Count}, total length: {allData.Length}.");
 
                             // Clear the buffer for the next partial to receive 
                             _partialPacketBuffer.Clear();
@@ -203,7 +209,7 @@ namespace AElf.Network.Connection
         {
             if (amount == 0)
             {
-                _logger.Trace("Read amount is 0.");
+                Logger.LogTrace("Read amount is 0.");
                 return new byte[0];
             }
 

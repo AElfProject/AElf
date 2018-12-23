@@ -24,6 +24,8 @@ using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ServiceStack;
 
 namespace AElf.Node.AElfChain
@@ -32,7 +34,7 @@ namespace AElf.Node.AElfChain
     [LoggerName("Node")]
     public class MainchainNodeService : INodeService
     {
-        public ILogger<T> Logger {get;set;}
+        public ILogger<MainchainNodeService> Logger {get;set;}
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
@@ -56,14 +58,14 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            IConsensus consensus,
-            ILogger logger
+            IConsensus consensus
+            
             )
         {
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _txHub = hub;
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<MainchainNodeService>.Instance;
             _consensus = consensus;
             _miner = miner;
             _blockSynchronizer = blockSynchronizer;
@@ -285,7 +287,7 @@ namespace AElf.Node.AElfChain
         {
             if (height <= 0)
             {
-                Logger.LogWarn($"Cannot get block - height {height} is not valid.");
+                Logger.LogWarning($"Cannot get block - height {height} is not valid.");
                 return null;
             }
             
@@ -297,7 +299,7 @@ namespace AElf.Node.AElfChain
         {
             if (hash == null || hash.Length <= 0)
             {
-                Logger.LogWarn("Cannot get block - invalid hash.");
+                Logger.LogWarning("Cannot get block - invalid hash.");
                 return null;
             }
 

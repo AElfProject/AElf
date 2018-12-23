@@ -8,7 +8,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack.Logging;
+
 
 namespace AElf.Kernel.Consensus
 {

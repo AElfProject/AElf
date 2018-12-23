@@ -40,10 +40,10 @@ namespace AElf.Contracts.SideChain.Tests
         private IChainCreationService _chainCreationService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
-        private ILogger _logger;
+        public ILogger<T> Logger {get;set;}
         private IDataStore _dataStore;
 
-        public MockSetup(ILogger logger)
+        public MockSetup()
         {
             Logger = NullLogger<TAAAAAA>.Instance;
             Initialize();
@@ -52,9 +52,9 @@ namespace AElf.Contracts.SideChain.Tests
         private void Initialize()
         {
             NewStorage();
-            var transactionManager = new TransactionManager(_dataStore, _logger);
+            var transactionManager = new TransactionManager(_dataStore)
             var transactionTraceManager = new TransactionTraceManager(_dataStore);
-            _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
+            _functionMetadataService = new FunctionMetadataService(_dataStore)
             var chainManager = new ChainManager(_dataStore);
             ChainService = new ChainService(chainManager, new BlockManager(_dataStore),
                 transactionManager, transactionTraceManager, _dataStore, StateStore);
@@ -63,7 +63,7 @@ namespace AElf.Contracts.SideChain.Tests
             _smartContractRunnerFactory.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
-                    StateStore, _functionMetadataService), _logger);
+                    StateStore, _functionMetadataService))
             SmartContractManager = new SmartContractManager(_dataStore);
             Task.Factory.StartNew(async () =>
             {

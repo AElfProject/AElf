@@ -48,7 +48,7 @@ namespace AElf.Kernel.Tests
         public IBlockChain BlockChain => ChainService.GetBlockChain(ChainId1);
 
         private IFunctionMetadataService _functionMetadataService;
-        private ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         private IStateStore _stateStore;
         public IActorEnvironment ActorEnvironment { get; private set; }

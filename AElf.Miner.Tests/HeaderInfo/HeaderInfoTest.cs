@@ -11,21 +11,23 @@ using Moq;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Miner.Tests.Grpc
 {
     [UseAutofacTestFramework]
     public class HeaderInfoTest
     {
-        public ILogger<T> Logger {get;set;}
+        public ILogger<HeaderInfoTest> Logger {get;set;}
 
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<RequestBlockInfo> _requestIndexedInfoList = new List<RequestBlockInfo>();
         private List<ResponseSideChainBlockInfo> _responseIndexedInfoMessages = new List<ResponseSideChainBlockInfo>();
 
-        public HeaderInfoTest(ILogger logger)
+        public HeaderInfoTest()
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<HeaderInfoTest>.Instance;
         }
 
         public Mock<ILightChain> MockLightChain()
@@ -115,9 +117,9 @@ namespace AElf.Miner.Tests.Grpc
                     NextHeight = 2
                 }
             };
-            
-            
-            var headerInfoServer = new SideChainBlockInfoRpcServer(MockChainService().Object, _logger);
+
+
+            var headerInfoServer = new SideChainBlockInfoRpcServer(MockChainService().Object);
             var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
             headerInfoServer.Init(chainId);
             await headerInfoServer.IndexDuplexStreaming(MockRequestStream(_requestIndexedInfoList.Count).Object,

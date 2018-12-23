@@ -8,6 +8,7 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using Easy.MessageHub;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Network.Peers
 {
@@ -196,7 +197,7 @@ namespace AElf.Network.Peers
                 if (a.Height <= KnownHeight)
                 {
                     // todo just log for now, but this is probably a protocol error.
-                    Logger.LogWarn($"[{this}] current know heigth: {KnownHeight} announcement height {a.Height}.");
+                    Logger.LogWarning($"[{this}] current know heigth: {KnownHeight} announcement height {a.Height}.");
                 }
 
                 KnownHeight = a.Height;
@@ -218,7 +219,7 @@ namespace AElf.Network.Peers
             byte[] blockHash = block.GetHashBytes();
             int blockHeight = (int) block.Header.Index;
 
-            _logger.Info($"Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
+            Logger.LogInformation($"Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
                          $"with {block.Body.Transactions.Count} txns. (TransactionListCount = {block.Body.TransactionList.Count})");
 
             lock (_blockReqLock)
@@ -249,7 +250,7 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                Logger.LogWarn($"[{this}] request for block at height {index} failed because payload is null.");
+                Logger.LogWarning($"[{this}] request for block at height {index} failed because payload is null.");
                 return;
             }
 
@@ -264,7 +265,7 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                Logger.LogWarn($"[{this}] request for block with id {id.ToHex()} failed because payload is null.");
+                Logger.LogWarning($"[{this}] request for block with id {id.ToHex()} failed because payload is null.");
                 return;
             }
 
@@ -297,7 +298,7 @@ namespace AElf.Network.Peers
         {
             if (sender is TimedBlockRequest req)
             {
-                Logger.LogWarn($"[{this}] failed timed request {req}");
+                Logger.LogWarning($"[{this}] failed timed request {req}");
 
                 if (req.CurrentPeerRetries < MaxRequestRetries)
                 {
@@ -329,7 +330,7 @@ namespace AElf.Network.Peers
                         BlockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
                     }
 
-                    Logger.LogWarn($"[{this}] request failed {req}.");
+                    Logger.LogWarning($"[{this}] request failed {req}.");
 
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                     

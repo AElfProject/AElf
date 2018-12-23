@@ -15,7 +15,7 @@ namespace AElf.Launcher
     
     public class LauncherAElfModule: AElfModule
     {
-        private static readonly ILogger Logger = LogManager.GetLogger("Launcher");
+        private static readonly  = LogManager.GetLogger("Launcher");
         private readonly AutoResetEvent _closing = new AutoResetEvent(false);
         private readonly Queue<TerminatedModuleEnum> _modules = new Queue<TerminatedModuleEnum>();
         private TerminatedModuleEnum _prepareTerminatedModule;

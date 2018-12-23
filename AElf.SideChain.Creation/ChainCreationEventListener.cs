@@ -16,6 +16,8 @@ using Google.Protobuf;
 using AElf.Kernel.Managers;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
 using AElf.Configuration.Config.Chain;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.SideChain.Creation
 {
@@ -23,17 +25,17 @@ namespace AElf.SideChain.Creation
     public class ChainCreationEventListener
     {
         private HttpClient _client;
-        private ILogger _logger;
+        public ILogger<ChainCreationEventListener> Logger {get;set;}
         private ITransactionResultManager TransactionResultManager { get; set; }
         private IChainCreationService ChainCreationService { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
         private IChainManager _chainManager;
 
-        public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager, 
+        public ChainCreationEventListener( ITransactionResultManager transactionResultManager, 
             IChainCreationService chainCreationService, IChainManager chainManager)
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<ChainCreationEventListener>.Instance;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
             _chainManager = chainManager;

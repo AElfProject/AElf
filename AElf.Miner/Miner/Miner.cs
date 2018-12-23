@@ -26,12 +26,15 @@ using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.Miner.Miner
 {
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
-        public ILogger<T> Logger {get;set;}
+        public ILogger<Miner> Logger {get;set;}
         private readonly ITxHub _txHub;
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
@@ -49,7 +52,7 @@ namespace AElf.Miner.Miner
 
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
-            ILogger logger, ClientManager clientManager,
+             ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,IBlockValidationService blockValidationService, IChainContextService chainContextService
             ,IStateStore stateStore)
         {
@@ -57,7 +60,7 @@ namespace AElf.Miner.Miner
             _chainService = chainService;
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<Miner>.Instance;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
@@ -109,17 +112,17 @@ namespace AElf.Miner.Miner
                 if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
-                    _logger.Trace($"Before filter:");
+                    Logger.LogTrace($"Before filter:");
                     foreach (var tx in sysTxs)
                     {
-                        _logger.Trace($"{tx.GetHash()} - {tx.MethodName}");
+                        Logger.LogTrace($"{tx.GetHash()} - {tx.MethodName}");
                     }
                     
                     _txFilter.Execute(sysTxs);
-                    _logger.Trace($"After filter:");
+                    Logger.LogTrace($"After filter:");
                     foreach (var tx in sysTxs)
                     {
-                        _logger.Trace($"{tx.GetHash()} - {tx.MethodName}");
+                        Logger.LogTrace($"{tx.GetHash()} - {tx.MethodName}");
                     }
 
                     Logger.LogTrace($"Start executing {sysTxs.Count} system transactions.");
@@ -180,7 +183,7 @@ namespace AElf.Miner.Miner
                 var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
                 if (blockValidationResult != BlockValidationResult.Success)
                 {
-                    Logger.LogWarn($"Found the block generated before invalid: {blockValidationResult}.");
+                    Logger.LogWarning($"Found the block generated before invalid: {blockValidationResult}.");
                     return null;
                 }
                 // append block
@@ -328,21 +331,21 @@ namespace AElf.Miner.Miner
                             results.Add(txResF);
                             break;
                         case ExecutionStatus.Undefined:
-                            Logger.LogFatal(
+                            Logger.LogCritical(
                                 $@"Transaction Id ""{
                                         trace.TransactionId
                                     } is executed with status Undefined. Transaction trace: {trace}""");
                             break;
                         case ExecutionStatus.SystemError:
                             // SystemError shouldn't happen, and need to fix
-                            Logger.LogFatal(
+                            Logger.LogCritical(
                                 $@"Transaction Id ""{
                                         trace.TransactionId
                                     } is executed with status SystemError. Transaction trace: {trace}""");
                             break;
                         case ExecutionStatus.ExecutedButNotCommitted:
                             // If this happens, there's problem with the code
-                            Logger.LogFatal(
+                            Logger.LogCritical(
                                 $@"Transaction Id ""{
                                         trace.TransactionId
                                     } is executed with status ExecutedButNotCommitted. Transaction trace: {

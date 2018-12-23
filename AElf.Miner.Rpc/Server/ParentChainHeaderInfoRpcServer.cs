@@ -9,7 +9,8 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Grpc.Core;
 using AElf.Common;
-using NLog.Fluent;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Miner.Rpc.Server
 {
@@ -17,13 +18,13 @@ namespace AElf.Miner.Rpc.Server
     public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<ParentChainBlockInfoRpcServer> Logger {get;set;}
         private IBlockChain BlockChain { get; set; }
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         public ParentChainBlockInfoRpcServer(IChainService chainService, ICrossChainInfoReader crossChainInfoReader)
         {
             _chainService = chainService;
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<ParentChainBlockInfoRpcServer>.Instance;
             _crossChainInfoReader = crossChainInfoReader;
         }
 

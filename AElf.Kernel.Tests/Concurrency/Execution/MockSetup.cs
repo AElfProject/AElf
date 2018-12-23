@@ -59,7 +59,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IChainCreationService _chainCreationService;
         private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;
-        private ILogger _logger;
+        public ILogger<T> Logger {get;set;}
 
         private IStateStore _stateStore;
         public IActorEnvironment ActorEnvironment { get; private set; }

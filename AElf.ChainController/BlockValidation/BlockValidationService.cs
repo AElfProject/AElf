@@ -5,13 +5,17 @@ using AElf.ChainController.EventMessages;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
     public class BlockValidationService : IBlockValidationService
     {
         private readonly IEnumerable<IBlockValidationFilter> _filters;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<BlockValidationService> Logger { get; set; }
 
         private bool _doingRollback;
 
@@ -19,7 +23,7 @@ namespace AElf.ChainController
         {
             _filters = filters;
 
-            _logger = LogManager.GetLogger(nameof(BlockValidationService));
+            Logger = NullLogger<BlockValidationService>.Instance;
 
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inState => { _doingRollback = inState.DoingRollback; });
         }
@@ -39,8 +43,8 @@ namespace AElf.ChainController
             foreach (var filter in _filters)
             {
                 var result = await filter.ValidateBlockAsync(block, context);
-                if(result != BlockValidationResult.Success)
-                    Logger.LogWarn($"Result of {filter.GetType().Name}: {result} - {block.BlockHashToHex}");
+                if (result != BlockValidationResult.Success)
+                    Logger.LogWarning($"Result of {filter.GetType().Name}: {result} - {block.BlockHashToHex}");
                 resultCollection.Add(result);
             }
 

@@ -21,6 +21,9 @@ using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Node.Protocol
 {
@@ -49,7 +52,7 @@ namespace AElf.Node.Protocol
         #endregion
         
         private readonly IPeerManager _peerManager;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<NetworkManager> Logger {get;set;}
         private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly INodeService _nodeService;
 
@@ -76,7 +79,7 @@ namespace AElf.Node.Protocol
             _peers = new List<IPeer>();
 
             _peerManager = peerManager;
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<NetworkManager>.Instance;
             _blockSynchronizer = blockSynchronizer;
             _nodeService = nodeService;
 
@@ -86,7 +89,7 @@ namespace AElf.Node.Protocol
             {
                 if (inTx?.Transaction == null)
                 {
-                    Logger.LogWarn("[event] Transaction null.");
+                    Logger.LogWarning("[event] Transaction null.");
                     return;
                 }
 
@@ -105,7 +108,7 @@ namespace AElf.Node.Protocol
             {
                 if (inBlock?.Block == null)
                 {
-                    Logger.LogWarn("[event] Block null.");
+                    Logger.LogWarning("[event] Block null.");
                     return;
                 }
 
@@ -126,7 +129,7 @@ namespace AElf.Node.Protocol
             {
                 if (inBlock?.Block == null)
                 {
-                    Logger.LogWarn("[event] Block null.");
+                    Logger.LogWarning("[event] Block null.");
                     return;
                 }
 
@@ -163,7 +166,7 @@ namespace AElf.Node.Protocol
             {
                 if (inBlock?.Block == null)
                 {
-                    Logger.LogWarn("[event] Block null.");
+                    Logger.LogWarning("[event] Block null.");
                     return;
                 }
 
@@ -185,11 +188,11 @@ namespace AElf.Node.Protocol
 
                     if (CurrentSyncSource == null)
                     {
-                        Logger.LogWarn("Unexpected situation, executed a block but no peer is currently syncing.");
+                        Logger.LogWarning("Unexpected situation, executed a block but no peer is currently syncing.");
                     }
                     else if (!CurrentSyncSource.IsSyncing)
                     {
-                        Logger.LogWarn($"{CurrentSyncSource} is sync source but not in sync state.");
+                        Logger.LogWarning($"{CurrentSyncSource} is sync source but not in sync state.");
                     }
                     else if (CurrentSyncSource.IsSyncingHistory)
                     {
@@ -217,14 +220,14 @@ namespace AElf.Node.Protocol
                                 return;
                             }
                         
-                            Logger.LogWarn($"{CurrentSyncSource} Failed to start announcement sync.");
+                            Logger.LogWarning($"{CurrentSyncSource} Failed to start announcement sync.");
                         }
                     }
                     else if (CurrentSyncSource.IsSyncingAnnounced)
                     {
                         // we check if the hash of the accepted block is the one the sync source fetched 
                         if (!CurrentSyncSource.SyncedAnnouncement.Id.ToByteArray().BytesEqual(blockHash))
-                            Logger.LogWarn($"Block {blockHash.ToHex()} accepted by the chain but not currently synced.");
+                            Logger.LogWarning($"Block {blockHash.ToHex()} accepted by the chain but not currently synced.");
                         
                         foreach (var peer in _peers)
                         {
@@ -249,7 +252,7 @@ namespace AElf.Node.Protocol
             {
                 if (unlinkableHeaderMsg?.Header == null)
                 {
-                    Logger.LogWarn("[event] message or header null.");
+                    Logger.LogWarning("[event] message or header null.");
                     return;
                 }
                 
@@ -298,7 +301,7 @@ namespace AElf.Node.Protocol
 
                 if (target == null)
                 {
-                    Logger.LogWarn("[event] no peers to sync from.");
+                    Logger.LogWarning("[event] no peers to sync from.");
                     return;
                 }
 
@@ -309,20 +312,20 @@ namespace AElf.Node.Protocol
             {
                 if (header?.Header == null)
                 {
-                    Logger.LogWarn("[event] message or header null.");
+                    Logger.LogWarning("[event] message or header null.");
                     return;
                 }
 
                 if (UnlinkableHeaderIndex != 0)
                 {
-                    Logger.LogWarn("[event] HeaderAccepted but network module not in recovery mode.");
+                    Logger.LogWarning("[event] HeaderAccepted but network module not in recovery mode.");
                     return;
                 }
                 
                 if (CurrentSyncSource != null)
                 {
                     // todo possible sync reset
-                    Logger.LogWarn("[event] current sync source is not null");
+                    Logger.LogWarning("[event] current sync source is not null");
                     return;
                 }
 
@@ -344,7 +347,7 @@ namespace AElf.Node.Protocol
     
                     if (target == null)
                     {
-                        Logger.LogWarn("[event] no peers to sync from.");
+                        Logger.LogWarning("[event] no peers to sync from.");
                         return;
                     }
                     
@@ -560,13 +563,13 @@ namespace AElf.Node.Protocol
         {
             if (args?.Peer == null)
             {
-                _logger.Warn("Peer is invalid.");
+                Logger.LogWarning("Peer is invalid.");
                 return;
             }
             
             if (args.Message?.Payload == null)
             {
-                Logger.LogWarn($"Message from {args.Peer}, message/payload is null.");
+                Logger.LogWarning($"Message from {args.Peer}, message/payload is null.");
                 return;
             }
 
@@ -638,7 +641,7 @@ namespace AElf.Node.Protocol
 
                 if (b == null)
                 {
-                    Logger.LogWarn($"Block not found {breq.Id?.ToByteArray().ToHex()}");
+                    Logger.LogWarning($"Block not found {breq.Id?.ToByteArray().ToHex()}");
                     return;
                 }
                 
@@ -754,7 +757,7 @@ namespace AElf.Node.Protocol
 
                 if (_lastBlocksReceived.Contains(blockHash))
                 {
-                    _logger.Warn($"Block {block.BlockHashToHex} already in network cache.");
+                    Logger.LogWarning($"Block {block.BlockHashToHex} already in network cache.");
                     return null;
                 }
 
@@ -785,7 +788,7 @@ namespace AElf.Node.Protocol
         {
             if (_peers == null || !_peers.Any())
             {
-                Logger.LogWarn("Cannot broadcast - no peers.");
+                Logger.LogWarning("Cannot broadcast - no peers.");
                 return;
             }
             

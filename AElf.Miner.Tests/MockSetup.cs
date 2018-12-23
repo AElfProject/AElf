@@ -28,6 +28,8 @@ using AElf.Miner.TxMemPool;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ServiceStack;
 
 namespace AElf.Miner.Tests
@@ -37,7 +39,7 @@ namespace AElf.Miner.Tests
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
-        public ILogger<T> Logger {get;set;}
+        public ILogger<MockSetup> Logger {get;set;}
         private ulong _i = 0;
         private IChainCreationService _chainCreationService;
         private ISmartContractManager _smartContractManager;
@@ -60,9 +62,9 @@ namespace AElf.Miner.Tests
         private IAuthorizationInfo _authorizationInfo;
         private IStateStore _stateStore;
 
-        public MockSetup(ILogger logger, IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
+        public MockSetup( IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<MockSetup>.Instance;
             _database = database;
             _dataStore = dataStore;
             StateStore = stateStore;
@@ -73,12 +75,12 @@ namespace AElf.Miner.Tests
 
         private void Initialize()
         {
-            _transactionManager = new TransactionManager(_dataStore, _logger);
+            _transactionManager = new TransactionManager(_dataStore);
             _transactionReceiptManager = new TransactionReceiptManager(_database);
             _smartContractManager = new SmartContractManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
-            _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
+            _functionMetadataService = new FunctionMetadataService(_dataStore);
             _chainManager = new ChainManager(_dataStore);
             _chainService = new ChainService(_chainManager, new BlockManager(_dataStore),
                 _transactionManager, _transactionTraceManager, _dataStore, StateStore);
@@ -91,10 +93,10 @@ namespace AElf.Miner.Tests
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory, StateStore,
                     _functionMetadataService), _transactionTraceManager, StateStore,
                 new ChainContextService(_chainService));
-            
+
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
-                    StateStore, _functionMetadataService), _logger);
+                    StateStore, _functionMetadataService));
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
             _chainContextService = new ChainContextService(_chainService);
@@ -142,7 +144,7 @@ namespace AElf.Miner.Tests
         internal IMiner GetMiner(IMinerConfig config, ITxHub hub, ClientManager clientManager = null)
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
-                _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
+                _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
                 MockBlockValidationService().Object, _chainContextService, _stateStore);
 
             return miner;
@@ -244,17 +246,17 @@ namespace AElf.Miner.Tests
         
         public ParentChainBlockInfoRpcServer MockParentChainBlockInfoRpcServer()
         {
-            return new ParentChainBlockInfoRpcServer(MockChainService().Object, _logger, MockCrossChainInfoReader().Object);
+            return new ParentChainBlockInfoRpcServer(MockChainService().Object, MockCrossChainInfoReader().Object);
         }
 
         public SideChainBlockInfoRpcServer MockSideChainBlockInfoRpcServer()
         {
-            return new SideChainBlockInfoRpcServer(MockChainService().Object, _logger);
+            return new SideChainBlockInfoRpcServer(MockChainService().Object);
         }
         
         public ServerManager ServerManager(ParentChainBlockInfoRpcServer impl1, SideChainBlockInfoRpcServer impl2)
         {
-            return new ServerManager(impl1, impl2, _logger);
+            return new ServerManager(impl1, impl2);
         }
         
         public Mock<IChainManager> MockChainManager()
@@ -276,7 +278,7 @@ namespace AElf.Miner.Tests
 
         public ClientManager MinerClientManager()
         {
-            return new ClientManager(_logger, MockCrossChainInfoReader().Object);
+            return new ClientManager(MockCrossChainInfoReader().Object);
         }
 
         public ulong GetTimes = 0;
