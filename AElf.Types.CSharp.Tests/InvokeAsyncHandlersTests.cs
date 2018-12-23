@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Reflection;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Kernel;
 using Xunit;
 using AElf.Common;
 
