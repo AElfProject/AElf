@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
@@ -14,7 +13,6 @@ using Address= AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-    [UseAutofacTestFramework]
     public class WorkerTest : TestKitBase
     {
         private MockSetup _mock;

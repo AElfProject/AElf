@@ -7,12 +7,10 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
     public class BlockTest
     {
         private readonly IChainCreationService _chainCreationService;

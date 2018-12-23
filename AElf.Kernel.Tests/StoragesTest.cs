@@ -9,25 +9,24 @@ using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.TestBase;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
-    public class StoragesTest
+    public sealed class StoragesTest : AElfKernelIntegratedTest
     {
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
 
-        public StoragesTest(IDataStore dataStore, BlockTest blockTest, IChainService chainService, ILogger logger)
+        public StoragesTest()
         {
-            _dataStore = dataStore;
-            _blockTest = blockTest;
-            _chainService = chainService;
-            _logger = logger;
+            _dataStore = GetRequiredService<IDataStore>();
+            _blockTest = GetRequiredService<BlockTest>();
+            _chainService = GetRequiredService<IChainService>();
+            _logger = GetRequiredService<ILogger>();
         }
 
         // ReSharper disable once MemberCanBeMadeStatic.Local

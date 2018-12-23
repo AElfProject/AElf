@@ -1,8 +1,12 @@
 @startuml
 digraph G {
     "AElf.Kernel" -> "AElf.Core";
+    "AElf.Kernel.Tests" -> "AElf.Kernel";
     "AElf.OS" -> "AElf.Kernel";
     "AElf.Execution" -> "AElf.Kernel";
+    "AElf.Execution.Tests" -> "AElf.Execution";
+    "AElf.Execution.Akka" -> "AElf.Execution";
+    "AElf.Execution.Akka.Tests" -> "AElf.Execution.Akka";
     "AElf.SmartContract" -> "AElf.Kernel";
     "AElf.MiniSystem" -> {"AElf.Kernel";"AElf.SmartContract";"AElf.Execution"}
     "AElf.Network" -> "AElf.OS";

@@ -3,19 +3,18 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using Google.Protobuf;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.TestBase;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
-    public class ChainCreationServiceTests
+    public class ChainCreationServiceTests : AElfKernelIntegratedTest
     {
-        private IChainCreationService _service;
+        private readonly IChainCreationService _service;
 
         public ChainCreationServiceTests(IChainCreationService service)
         {
-            _service = service;
+            _service = this.GetRequiredService<IChainCreationService>();
         }
         
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;

@@ -6,16 +6,15 @@ using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using AElf.Kernel.Storages;
+using AElf.TestBase;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
-    [UseAutofacTestFramework]
-    public class ContractTest
+    public sealed class ContractTest : AElfKernelIntegratedTest
     {
         // todo warning this test obviously uses bad  
         
@@ -30,30 +29,16 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         }
 
         private IChainCreationService _chainCreationService;
-        private IChainContextService _chainContextService;
-        private IChainService _chainService;
-        private ITransactionManager _transactionManager;
         private IStateStore _stateStore;
         private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
-        private IFunctionMetadataService _functionMetadataService;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
-
-        public ContractTest(IStateStore stateStore,
-            IChainCreationService chainCreationService, IChainService chainService,
-            ITransactionManager transactionManager, ISmartContractManager smartContractManager,
-            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public ContractTest()
         {
-            _stateStore = stateStore;
-            _chainCreationService = chainCreationService;
-            _chainService = chainService;
-            _transactionManager = transactionManager;
-            _smartContractManager = smartContractManager;
-            _chainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, stateStore, _functionMetadataService);
+            _stateStore = GetRequiredService<IStateStore>();
+            _chainCreationService = GetRequiredService<IChainCreationService>();
+            _smartContractManager = GetRequiredService<ISmartContractManager>();
+            _smartContractService = GetRequiredService<ISmartContractService>();
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;

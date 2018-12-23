@@ -5,23 +5,22 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Kernel.Managers;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.TestBase;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
-    public class ChainTest
+    public sealed class ChainTest : AElfKernelIntegratedTest
     {
         private readonly IChainCreationService _chainCreationService;
         private readonly IChainService _chainService;
 
-        public ChainTest(IChainCreationService chainCreationService, IChainService chainService)
+        public ChainTest()
         {
-            _chainCreationService = chainCreationService;
-            _chainService = chainService;
+            _chainCreationService = GetRequiredService<IChainCreationService>();
+            _chainService = GetRequiredService<IChainService>();
         }
 
         private static byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;

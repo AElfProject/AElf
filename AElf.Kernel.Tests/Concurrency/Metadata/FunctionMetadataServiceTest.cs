@@ -6,25 +6,24 @@ using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Sdk.CSharp;
+using AElf.TestBase;
 using AElf.Types.CSharp.MetadataAttribute;
 using Akka.Routing;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
-    [UseAutofacTestFramework]
-    public class FunctionMetadataServiceTest
+    public sealed class FunctionMetadataServiceTest : AElfKernelIntegratedTest
     {
         private IDataStore _dataStore;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public FunctionMetadataServiceTest(IFunctionMetadataService functionMetadataService, IDataStore dataStore, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public FunctionMetadataServiceTest()
         {
-            _functionMetadataService = functionMetadataService;
-            _dataStore = dataStore;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
+            _functionMetadataService = GetRequiredService<IFunctionMetadataService>();
+            _dataStore = GetRequiredService<IDataStore>();
+            _smartContractRunnerFactory = GetRequiredService<ISmartContractRunnerFactory>();
         }
 
         [Fact]

@@ -4,7 +4,6 @@ using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.ChainController.Rpc;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
@@ -14,29 +13,17 @@ using ITxSignatureVerifier = AElf.Kernel.Types.Transaction.ITxSignatureVerifier;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
-    public class TransactionResultTest
+    public sealed class TransactionResultTest : AElfKernelIntegratedTest
     {
         private readonly ITransactionResultService _transactionResultService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly ITxSignatureVerifier _signatureVerifier;
-        private readonly ITxRefBlockValidator _refBlockValidator;
-        private readonly ITxHub _txHub;
 
-        public TransactionResultTest(ITxPoolConfig txPoolConfig, IChainService chainService,
-            ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
-            ITransactionResultManager transactionResultManager, ITxHub txHub)
+        public TransactionResultTest()
         {
             ChainConfig.Instance.ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }).DumpBase58();
             NodeConfig.Instance.NodeAccount = Address.Generate().GetFormatted();
-            _transactionResultManager = transactionResultManager;
-            _signatureVerifier = signatureVerifier;
-            _refBlockValidator = refBlockValidator;
-            _txHub = txHub;
-//            _transactionResultService = new TransactionResultService(
-//                new TxPool(logger,
-//                    new NewTxHub(transactionManager, chainService, signatureVerifier, refBlockValidator)), transactionResultManager);
-            _transactionResultService = new TransactionResultService(_txHub, _transactionResultManager);
+            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
+            _transactionResultService = GetRequiredService<ITransactionResultService>();
         }
 
         private TransactionResult CreateResult(Hash txId, Status status)

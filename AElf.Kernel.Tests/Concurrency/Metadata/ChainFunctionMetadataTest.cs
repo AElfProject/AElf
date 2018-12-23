@@ -9,23 +9,22 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using ServiceStack;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.TestBase;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
-    [UseAutofacTestFramework]
-    public class ChainFunctionMetadataTest
+    public sealed class ChainFunctionMetadataTest : AElfKernelIntegratedTest
     {        
         private readonly IDataStore _dataStore;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public ChainFunctionMetadataTest(IDataStore templateStore, ISmartContractRunnerFactory smartContractRunnerFactory, IFunctionMetadataService functionMetadataService)
+        public ChainFunctionMetadataTest()
         {
-            _dataStore = templateStore ?? throw new ArgumentNullException(nameof(templateStore));
-            _smartContractRunnerFactory = smartContractRunnerFactory ?? throw new ArgumentException(nameof(smartContractRunnerFactory));
-            _functionMetadataService = functionMetadataService ?? throw new ArgumentException(nameof(functionMetadataService));
+            _dataStore = GetRequiredService<IDataStore>();
+            _smartContractRunnerFactory = GetRequiredService<ISmartContractRunnerFactory>();
+            _functionMetadataService = GetRequiredService<IFunctionMetadataService>();
         }
         
         [Fact]

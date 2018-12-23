@@ -12,9 +12,8 @@ using AElf.Miner.TxMemPool;
 using Autofac;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Frameworks.Autofac;
 using ITxSignatureVerifier = AElf.Kernel.Types.Transaction.ITxSignatureVerifier;
-
+/*
 [assembly: TestFramework("AElf.Kernel.Tests.ConfigureTestFramework", "AElf.Kernel.Tests")]
 
 namespace AElf.Kernel.Tests
@@ -70,7 +69,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
             builder.RegisterType<TxHub>().As<ITxHub>();
             // configure your container
-            // e.g. builder.RegisterModule<TestOverrideModule>();*/
+            // e.g. builder.RegisterModule<TestOverrideModule>();
         }
     }
-}
+}*/
