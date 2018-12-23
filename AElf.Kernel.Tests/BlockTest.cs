@@ -11,16 +11,15 @@ using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {
-    public class BlockTest
+    public class BlockTest: AElfKernelIntegratedTest
     {
         private readonly IChainCreationService _chainCreationService;
         private readonly IChainService _chainService;
 
-        public BlockTest(IChainService chainService, IChainCreationService chainCreationService)
+        public BlockTest()
         {
-            //_smartContractZero = smartContractZero;
-            _chainCreationService = chainCreationService;
-            _chainService = chainService;
+            _chainCreationService = GetRequiredService<IChainCreationService>();
+            _chainService = GetRequiredService<IChainService>();
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;

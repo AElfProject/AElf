@@ -57,7 +57,7 @@ namespace AElf.ChainController
             catch (Exception e)
             {
                 Logger.LogError("CreateNewChainAsync Error: " + e);
-                return null;
+                throw;
             }
         }
     }

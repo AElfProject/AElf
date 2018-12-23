@@ -18,6 +18,10 @@ namespace AElf.Kernel
             
             
             
+            if (type.Name.EndsWith("Factory"))
+            {
+                return ServiceLifetime.Transient;
+            }
             if (type.Name.EndsWith("Store"))
             {
                 return ServiceLifetime.Transient;
