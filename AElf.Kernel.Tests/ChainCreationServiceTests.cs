@@ -12,7 +12,7 @@ namespace AElf.Kernel.Tests
     {
         private readonly IChainCreationService _service;
 
-        public ChainCreationServiceTests(IChainCreationService service)
+        public ChainCreationServiceTests()
         {
             _service = this.GetRequiredService<IChainCreationService>();
         }

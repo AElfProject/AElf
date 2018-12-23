@@ -1,4 +1,5 @@
 ﻿using AElf.Configuration.Config.RPC;
+using AElf.Kernel;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -6,6 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.RPC
 {
+    [DependsOn(typeof(KernelAElfModule))]
     public class RpcAElfModule: AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

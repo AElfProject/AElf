@@ -2,6 +2,7 @@
 using AElf.Common.Application;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc;
 using AElf.Miner.Rpc.Client;
@@ -15,6 +16,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Miner
 {
+    [DependsOn(typeof(KernelAElfModule))]
     public class MinerAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
