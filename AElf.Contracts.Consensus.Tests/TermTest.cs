@@ -6,16 +6,15 @@ using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 
 namespace AElf.Contracts.Consensus.Tests
 {
-    [UseAutofacTestFramework]
     public class TermTest
     {
         private const int CandidatesCount = 18;
         private const int VotersCount = 2;
-        
+
         private readonly ConsensusContractShim _consensusContract;
 
         private readonly MockSetup _mock;
@@ -34,9 +33,10 @@ namespace AElf.Contracts.Consensus.Tests
             const ulong totalSupply = 100_000_000_000;
             _consensusContract.Initialize("ELF", "AElf Token", totalSupply, 2);
 
-            _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
+            _consensusContract.Transfer(_consensusContract.DividendsContractAddress,
+                (ulong) (totalSupply * 0.12 * 0.2));
         }
-        
+
         private void InitialMiners()
         {
             for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
@@ -75,10 +75,10 @@ namespace AElf.Contracts.Consensus.Tests
             // we have no choice but appoint some miners to do the initialization.
             InitialMiners();
             InitialTerm(_initialMiners[0]);
-            
+
             InitialCandidates();
             InitialVoters();
-            
+
             // Vote to candidates randomized
             foreach (var voter in _voters)
             {
@@ -93,12 +93,12 @@ namespace AElf.Contracts.Consensus.Tests
 
             // Get victories of first term of election, they are miners then.
             var victories = _consensusContract.GetCurrentVictories().Values;
-            
+
             // Next term.
             var nextTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 2);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), nextTerm);
             Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
-            
+
             // Check the information of the last round of previous term.
             // All the initial miners have missed 1 time slot.
             var firstRound = _consensusContract.GetRoundInfo(1);
@@ -106,6 +106,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 Assert.Equal((ulong) 1, firstRound.RealTimeMinersInfo[initialMiner.PublicKey.ToHex()].MissedTimeSlots);
             }
+
             // And the one started the blockchain has produced one block.
             Assert.Equal((ulong) 1, firstRound.RealTimeMinersInfo[_initialMiners[0].PublicKey.ToHex()].MissedTimeSlots);
 
@@ -115,11 +116,12 @@ namespace AElf.Contracts.Consensus.Tests
             var secondRoundOfNewTerm = _consensusContract.GetRoundInfo(3);
             Assert.True(!secondRoundOfNewTerm.RealTimeMinersInfo.Keys.Except(victories).Any());
         }
-        
+
         private void InitialTerm(ECKeyPair starterKeyPair)
         {
             var initialTerm =
-                new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(MiningInterval);
+                new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(
+                    MiningInterval);
             _consensusContract.InitialTerm(starterKeyPair, initialTerm);
         }
 

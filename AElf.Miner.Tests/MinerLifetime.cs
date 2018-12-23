@@ -10,7 +10,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Miner.Tests;
 using Google.Protobuf;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 using AElf.Runtime.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -25,8 +25,7 @@ using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Kernel.Tests.Miner
 {
-    [UseAutofacTestFramework]
-    public class MinerLifetime
+public class MinerLifetime
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId

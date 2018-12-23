@@ -4,7 +4,6 @@ using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Modularity;
-using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;

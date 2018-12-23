@@ -15,7 +15,6 @@ using AElf.Kernel;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Akka.Actor;
-using Autofac;
 using CommandLine;
 
 namespace AElf.Benchmark
@@ -161,6 +160,7 @@ namespace AElf.Benchmark
             */
         }
 
+        /*
         private static bool CheckDbConnect(IComponentContext container)
         {
             var db = container.Resolve<IKeyValueDatabase>();
@@ -173,6 +173,6 @@ namespace AElf.Benchmark
                 Console.WriteLine(e);
                 return false;
             }
-        }
+        }*/
     }
 }

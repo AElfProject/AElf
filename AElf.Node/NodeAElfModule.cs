@@ -11,8 +11,6 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Modularity;
 using AElf.Node.AElfChain;
-using Autofac;
-
 namespace AElf.Node
 {
     public class NodeAElfModule : AElfModule
@@ -20,6 +18,7 @@ namespace AElf.Node
         
         //TODO! change implements
         
+        /*
         public void Init(ContainerBuilder builder)
         {
             ECKeyPair nodeKey = null;
@@ -105,5 +104,6 @@ namespace AElf.Node
             Console.WriteLine();
             return new NetworkCredential("", pwd).Password;
         }
+        */
     }
 }

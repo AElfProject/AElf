@@ -9,9 +9,8 @@ namespace AElf.ChainController.Rpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<ChainControllerRpcAElfModule>();
-            /*
-            builder.RegisterType<TransactionResultService>().As<ITransactionResultService>().SingleInstance();
-            builder.RegisterType<ChainControllerRpcService>().PropertiesAutowired();*/
+
+            context.Services.AddTransient<ChainControllerRpcService>();
         }
 
     }

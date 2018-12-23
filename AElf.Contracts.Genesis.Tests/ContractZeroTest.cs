@@ -2,7 +2,7 @@
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
-using Xunit.Frameworks.Autofac;
+
 using Xunit;
 using ServiceStack;
 using AElf.Common;
@@ -10,7 +10,6 @@ using Google.Protobuf;
 
 namespace AElf.Contracts.Genesis.Tests
 {
-    [UseAutofacTestFramework]
     public class ContractZeroTest
     {
         private TestContractShim _contractShim;

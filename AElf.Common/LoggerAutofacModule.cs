@@ -3,8 +3,7 @@
 //using System.Linq;
 //using AElf.Common.Application;
 //using AElf.Common.Attributes;
-//using Autofac;
-//using Autofac.Core;
+////using Autofac.Core;
 ////using NLog.Config;
 //using NLog.Targets;
 //

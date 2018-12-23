@@ -1,7 +1,6 @@
 using AElf.Modularity;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
-using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 

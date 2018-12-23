@@ -1,4 +1,3 @@
-using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 

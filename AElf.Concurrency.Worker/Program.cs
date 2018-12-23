@@ -12,7 +12,6 @@ using AElf.Network;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Akka.Remote;
-using Autofac;
 namespace AElf.Concurrency.Worker
 {
     class Program
@@ -102,19 +101,19 @@ namespace AElf.Concurrency.Worker
             }
             return container;
         }*/
-
-        private static bool CheckDBConnect(IComponentContext container)
-        {
-            var db = container.Resolve<IKeyValueDatabase>();
-            try
-            {
-                return db.IsConnected();
-            }
-            catch (Exception e)
-            {
-                //Logger.LogError(e);
-                return false;
-            }
-        }
+//
+//        private static bool CheckDBConnect(IComponentContext container)
+//        {
+//            var db = container.Resolve<IKeyValueDatabase>();
+//            try
+//            {
+//                return db.IsConnected();
+//            }
+//            catch (Exception e)
+//            {
+//                //Logger.LogError(e);
+//                return false;
+//            }
+//        }
     }
 }

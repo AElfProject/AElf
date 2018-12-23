@@ -1,6 +1,5 @@
 ﻿using System.Timers;
 using AElf.Management.Interfaces;
-using Autofac;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;

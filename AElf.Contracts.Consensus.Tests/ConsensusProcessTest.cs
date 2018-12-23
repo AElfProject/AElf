@@ -5,14 +5,13 @@ using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 
 namespace AElf.Contracts.Consensus.Tests
 {
     /// <summary>
     /// In these test cases, we just care about the sequences, not the time slots.
     /// </summary>
-    [UseAutofacTestFramework]
     public class ConsensusProcessTest
     {
         private readonly ConsensusContractShim _consensusContract;
@@ -38,7 +37,7 @@ namespace AElf.Contracts.Consensus.Tests
         public void InitialTermTest()
         {
             InitialMiners();
-            
+
             InitialTerm(_miners[0]);
             Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
 
@@ -67,7 +66,7 @@ namespace AElf.Contracts.Consensus.Tests
             // In Value and Out Value is null.
             Assert.True(secondRound.RealTimeMinersInfo.Values.Count(m => m.InValue == null) == _miners.Count);
             Assert.True(secondRound.RealTimeMinersInfo.Values.Count(m => m.OutValue == null) == _miners.Count);
-            
+
             // Check produced block count.
             Assert.Equal((ulong) 1, firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].ProducedBlocks);
 
@@ -94,7 +93,7 @@ namespace AElf.Contracts.Consensus.Tests
 
             var outValue = Hash.Generate();
             var signatureOfInitialization = firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].Signature;
-            var signature = Hash.Generate();// Should be update to round info, we'll see.
+            var signature = Hash.Generate(); // Should be update to round info, we'll see.
             var toPackage = new ToPackage
             {
                 OutValue = outValue,
@@ -113,7 +112,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].InValue == null);
             Assert.Equal((ulong) 2, firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].ProducedBlocks);
         }
-        
+
         [Fact(Skip = "Time consuming")]
         public void PackageOutValueTest_RoundIdNotMatched()
         {
@@ -125,7 +124,7 @@ namespace AElf.Contracts.Consensus.Tests
             var toPackage = new ToPackage
             {
                 OutValue = Hash.Generate(),
-                RoundId = firstRound.RoundId + 1,// Wrong round id.
+                RoundId = firstRound.RoundId + 1, // Wrong round id.
                 Signature = Hash.Generate()
             };
 
@@ -164,7 +163,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].OutValue == outValue);
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].InValue == inValue);
         }
-        
+
         [Fact(Skip = "Time consuming")]
         public void BroadcastInValueTest_OutValueIsNull()
         {
@@ -174,8 +173,8 @@ namespace AElf.Contracts.Consensus.Tests
             var outValue = Hash.FromMessage(inValue);
 
             InitialTerm(_miners[0]);
-            
-            var firstRound= _consensusContract.GetRoundInfo(1);
+
+            var firstRound = _consensusContract.GetRoundInfo(1);
             try
             {
                 _consensusContract.BroadcastInValue(_miners[0], new ToBroadcast
@@ -189,7 +188,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Assert.Equal(GlobalConfig.OutValueIsNull, _consensusContract.TransactionContext.Trace.StdErr);
             }
         }
-        
+
         [Fact(Skip = "Time consuming")]
         public void BroadcastInValueTest_InValueNotMatchToOutValue()
         {
@@ -198,7 +197,7 @@ namespace AElf.Contracts.Consensus.Tests
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
             var notMatchOutValue = Hash.FromMessage(outValue);
-            
+
             var firstRound = InitialTermAndPackageOutValue(_miners[0], notMatchOutValue);
 
             try
@@ -211,7 +210,8 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.InValueNotMatchToOutValue, _consensusContract.TransactionContext.Trace.StdErr);
+                Assert.Equal(GlobalConfig.InValueNotMatchToOutValue,
+                    _consensusContract.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -219,9 +219,9 @@ namespace AElf.Contracts.Consensus.Tests
         public void NextRoundTest()
         {
             InitialMiners();
-            
+
             InitialTerm(_miners[0]);
-            
+
             var firstRound = _consensusContract.GetRoundInfo(1);
 
             // Generate in values and out values.
@@ -233,7 +233,7 @@ namespace AElf.Contracts.Consensus.Tests
                 inValuesList.Push(inValue);
                 outValuesList.Push(Hash.FromMessage(inValue));
             }
-            
+
             // Actually their go one round.
             foreach (var keyPair in _miners)
             {
@@ -243,13 +243,14 @@ namespace AElf.Contracts.Consensus.Tests
                     RoundId = firstRound.RoundId,
                     Signature = Hash.Default
                 });
-                
+
                 _consensusContract.BroadcastInValue(keyPair, new ToBroadcast
                 {
                     InValue = inValuesList.Pop(),
                     RoundId = firstRound.RoundId
                 });
             }
+
             // Extra block.
             firstRound = _consensusContract.GetRoundInfo(1);
             var suppliedFirstRound = firstRound.SupplementForFirstRound();
@@ -264,12 +265,12 @@ namespace AElf.Contracts.Consensus.Tests
                 CurrentRoundInfo = suppliedFirstRound,
                 NextRoundInfo = secondRound
             });
-            
+
             Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
 
             Assert.Equal((ulong) 2, _consensusContract.GetCurrentRoundNumber());
         }
-        
+
         private void InitialTerm(ECKeyPair starterKeyPair)
         {
             var initialTerm =
@@ -287,7 +288,7 @@ namespace AElf.Contracts.Consensus.Tests
                 RoundId = firstRound.RoundId,
                 Signature = Hash.Default
             });
-            
+
             return _consensusContract.GetRoundInfo(1);
         }
     }

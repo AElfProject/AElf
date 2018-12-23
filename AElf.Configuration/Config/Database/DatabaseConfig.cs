@@ -8,6 +8,8 @@ namespace AElf.Configuration
     [ConfigFile(FileName = "database.json")]
     public class DatabaseConfig : ConfigBase<DatabaseConfig>
     {
+        
+        
         [JsonConverter(typeof(StringEnumConverter))]
         public DatabaseType Type { get; set; }
 

@@ -3,14 +3,13 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using AElf.SmartContract;
-using Xunit.Frameworks.Autofac;
+
 using Xunit;
 using ServiceStack;
 
 namespace AElf.Contracts.Token.Tests
 {
-    [UseAutofacTestFramework]
-    public class TokenContractTest
+public class TokenContractTest
     {
         private TokenContractShim _contract;
         private MockSetup _mock;

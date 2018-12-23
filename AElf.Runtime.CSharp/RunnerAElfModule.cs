@@ -2,7 +2,6 @@
 using AElf.Configuration.Config.Contract;
 using AElf.Modularity;
 using AElf.SmartContract;
-using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 

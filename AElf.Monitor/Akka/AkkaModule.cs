@@ -4,7 +4,6 @@ using AElf.Kernel;
 using AElf.Modularity;
 using Akka.Actor;
 using Akka.Configuration;
-using Autofac;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 

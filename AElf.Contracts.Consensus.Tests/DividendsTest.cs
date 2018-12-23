@@ -5,16 +5,15 @@ using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 
 namespace AElf.Contracts.Consensus.Tests
 {
-    [UseAutofacTestFramework]
     public class DividendsTest
     {
         private const int CandidatesCount = 18;
         private const int VotersCount = 2;
-        
+
         private readonly ConsensusContractShim _consensusContract;
 
         private readonly MockSetup _mock;
@@ -24,7 +23,7 @@ namespace AElf.Contracts.Consensus.Tests
         private readonly List<ECKeyPair> _voters = new List<ECKeyPair>();
 
         private int MiningInterval => 1;
-        
+
         public DividendsTest(MockSetup mock)
         {
             _mock = mock;
@@ -33,16 +32,17 @@ namespace AElf.Contracts.Consensus.Tests
             const ulong totalSupply = 100_000_000_000;
             _consensusContract.Initialize("ELF", "AElf Token", totalSupply, 2);
 
-            _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
+            _consensusContract.Transfer(_consensusContract.DividendsContractAddress,
+                (ulong) (totalSupply * 0.12 * 0.2));
         }
-        
+
         [Fact(Skip = "Time consuming.")]
         public void GetDividendsTest()
         {
             GlobalConfig.ElfTokenPerBlock = 1000;
             InitialMiners();
             InitialTerm(_initialMiners[0]);
-            
+
             InitialCandidates();
             InitialVoters();
 
@@ -62,17 +62,18 @@ namespace AElf.Contracts.Consensus.Tests
                     }
                 }
             }
+
             Assert.NotNull(mustVotedVoter);
 
             // Get victories of first term of election, they are miners then.
             var victories = _consensusContract.GetCurrentVictories().Values;
-            
+
             // Next term.
             var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 2);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), secondTerm);
 
             var secondRound = _consensusContract.GetRoundInfo(2);
-            
+
             // New miners produce some blocks.
             var inValuesList = new Stack<Hash>();
             var outValuesList = new Stack<Hash>();
@@ -91,7 +92,7 @@ namespace AElf.Contracts.Consensus.Tests
                     RoundId = secondRound.RoundId,
                     Signature = Hash.Default
                 });
-                
+
                 _consensusContract.BroadcastInValue(GetCandidateKeyPair(newMiner), new ToBroadcast
                 {
                     InValue = inValuesList.Pop(),
@@ -109,7 +110,7 @@ namespace AElf.Contracts.Consensus.Tests
             var dividendsOfSecondTerm = _consensusContract.GetTermDividends(2);
             var shouldBe = (ulong) (18 * GlobalConfig.ElfTokenPerBlock * 0.2);
             Assert.True(dividendsOfSecondTerm == shouldBe);
-            
+
             var balanceBefore = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
             _consensusContract.GetAllDividends(mustVotedVoter);
             var balanceAfter = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
@@ -121,7 +122,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             return _candidates.First(c => c.PublicKey.ToHex() == publicKey);
         }
-        
+
         private void InitialMiners()
         {
             for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
@@ -152,11 +153,12 @@ namespace AElf.Contracts.Consensus.Tests
                 _consensusContract.Transfer(GetAddress(keyPair), 100_000);
             }
         }
-        
+
         private void InitialTerm(ECKeyPair starterKeyPair)
         {
             var initialTerm =
-                new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(MiningInterval);
+                new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(
+                    MiningInterval);
             _consensusContract.InitialTerm(starterKeyPair, initialTerm);
         }
 

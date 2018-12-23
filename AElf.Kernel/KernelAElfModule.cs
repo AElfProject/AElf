@@ -5,7 +5,6 @@ using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Database;
 using AElf.Modularity;
-using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;

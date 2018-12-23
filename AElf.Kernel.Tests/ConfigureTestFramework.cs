@@ -9,7 +9,6 @@ using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
-using Autofac;
 using Xunit;
 using Xunit.Abstractions;
 using ITxSignatureVerifier = AElf.Kernel.Types.Transaction.ITxSignatureVerifier;

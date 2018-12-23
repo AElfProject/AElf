@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Autofac;
-using Autofac.Core;
 using Community.AspNetCore;
 using Community.AspNetCore.JsonRpc;
 using Microsoft.AspNetCore;
@@ -14,18 +12,23 @@ namespace AElf.RPC
 {
     internal static class RpcServerHelpers
     {
-        private static List<Type> GetServiceTypes(ILifetimeScope scope)
+        private static List<Type> GetServiceTypes(IServiceProvider scope)
         {
-            var types = scope.ComponentRegistry.Registrations
+            //TODO! rewrite this project by aspnet core webapi
+            throw new NotImplementedException();
+            /*
+                        var types = scope.ComponentRegistry.Registrations
                 .SelectMany(r => r.Services.OfType<IServiceWithType>(), (r, s) => new {r, s})
                 .Where(rs => typeof(IJsonRpcService).IsAssignableFrom(rs.s.ServiceType))
                 .Select(rs => rs.r.Activator.LimitType).ToList();
-            return types;
+            return types;*/
         }
 
-        private static object Resolve(ILifetimeScope scope, Type type)
+        private static object Resolve(IServiceProvider scope, Type type)
         {
-            var methodInfo = typeof(ResolutionExtensions).GetMethod("Resolve", new []
+            throw new NotImplementedException();
+
+            /*var methodInfo = typeof(ResolutionExtensions).GetMethod("Resolve", new []
             {
                 typeof(IComponentContext)
             });
@@ -35,7 +38,7 @@ namespace AElf.RPC
                     "Cannot find extension method Resolve(IComponentContext) for ResolutionExtensions.");
             }
             var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] { type });
-            return methodInfoGeneric.Invoke(scope, new object[] { scope });
+            return methodInfoGeneric.Invoke(scope, new object[] { scope });*/
         }
         
         private static void AddJsonRpcService(IServiceCollection services, Type type)
@@ -62,7 +65,7 @@ namespace AElf.RPC
             methodInfoGeneric.Invoke(appBuilder, new object[] { appBuilder , path});
         }
         
-        internal static void ConfigureServices(IServiceCollection services, ILifetimeScope scope)
+        internal static void ConfigureServices(IServiceCollection services, IServiceProvider scope)
         {
             var types = GetServiceTypes(scope);
             foreach (var serviceType in types)
@@ -72,7 +75,7 @@ namespace AElf.RPC
             }
         }
 
-        internal static void Configure(IApplicationBuilder appBuilder, ILifetimeScope scope)
+        internal static void Configure(IApplicationBuilder appBuilder, IServiceProvider scope)
         {
             var types = GetServiceTypes(scope);
             foreach (var serviceType in types)

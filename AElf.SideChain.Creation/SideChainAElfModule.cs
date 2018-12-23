@@ -1,24 +1,29 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
-using Autofac;
 using Easy.MessageHub;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
+using Volo.Abp.Modularity;
 
 namespace AElf.SideChain.Creation
 {
+    [DependsOn(typeof(KernelAElfModule))]
     public class SideChainAElfModule: AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
+            base.ConfigureServices(context);
+            context.Services.AddTransient<ChainCreationEventListener>();
         }
 
-        public void Run(ILifetimeScope scope)
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var evListener = scope.Resolve<ChainCreationEventListener>();
+            var evListener = context.ServiceProvider.GetRequiredService<ChainCreationEventListener>();
             MessageHub.Instance.Subscribe<IBlock>(async (t) =>
             {
                 await evListener.OnBlockAppended(t);
             });
         }
+
     }
 }

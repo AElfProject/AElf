@@ -5,7 +5,6 @@ using AElf.Network;
 using AElf.Network.Peers;
 using AElf.RPC.Hubs.Net;
 using Microsoft.AspNetCore.Hosting;
-using Autofac;
 using Easy.MessageHub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +32,7 @@ namespace AElf.RPC
             });
         }
 
-        public bool Init(ILifetimeScope scope, string rpcHost, int rpcPort)
+        public bool Init(IServiceProvider scope, string rpcHost, int rpcPort)
         {
             try
             {
@@ -52,8 +51,8 @@ namespace AElf.RPC
                     .ConfigureServices(sc =>
                     {
                         sc.AddCors();
-                        sc.AddSingleton(scope.Resolve<INetworkManager>());
-                        sc.AddSingleton(scope.Resolve<IPeerManager>());
+                        sc.AddSingleton(scope.GetRequiredService<INetworkManager>());
+                        sc.AddSingleton(scope.GetRequiredService<IPeerManager>());
 
                         sc.AddSignalRCore();
                         sc.AddSignalR();

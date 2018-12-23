@@ -25,7 +25,6 @@
     <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.8.1" />
     <PackageReference Include="CommandLineParser" Version="2.3.0" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>

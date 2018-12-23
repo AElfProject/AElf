@@ -11,12 +11,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ServiceStack;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 
 namespace AElf.Contracts.Authorization.Tests
 {
-    [UseAutofacTestFramework]
-    public class AuthorizationTest
+public class AuthorizationTest
     {
         private AuthorizationContractShim _contract;
         public ILogger<AuthorizationTest> Logger {get;set;}

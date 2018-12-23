@@ -3,7 +3,6 @@ using System.IO;
 using System.Xml.Serialization;
 using AElf.CLI2.JS;
 using AElf.CLI2.Utils;
-using Autofac;
 using ChakraCore.NET;
 using CommandLine;
 

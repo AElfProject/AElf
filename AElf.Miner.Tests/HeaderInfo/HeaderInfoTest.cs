@@ -9,15 +9,14 @@ using AElf.Miner.Rpc.Server;
 using Grpc.Core;
 using Moq;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 using AElf.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Miner.Tests.Grpc
 {
-    [UseAutofacTestFramework]
-    public class HeaderInfoTest
+public class HeaderInfoTest
     {
         public ILogger<HeaderInfoTest> Logger {get;set;}
 

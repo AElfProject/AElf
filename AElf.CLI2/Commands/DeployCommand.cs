@@ -6,7 +6,6 @@ using System.Xml.Serialization;
 using AElf.CLI2.JS;
 using AElf.Common;
 using Alba.CsConsoleFormat.Fluent;
-using Autofac;
 using ChakraCore.NET;
 using CommandLine;
 

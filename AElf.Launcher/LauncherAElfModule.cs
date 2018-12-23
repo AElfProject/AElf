@@ -7,7 +7,6 @@ using System.Timers;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Types.Common;
 using AElf.Modularity;
-using Autofac;
 using Easy.MessageHub;
 namespace AElf.Launcher
 {
@@ -24,6 +23,10 @@ namespace AElf.Launcher
         private TerminatedModuleEnum _prepareTerminatedModule;
         private static System.Timers.Timer _timer;
         
+        
+        //TODO: rewrite, not understand
+        
+        /*
         public void Init(ContainerBuilder builder)
         {
             MessageHub.Instance.Subscribe<TerminatedModule>(OnModuleTerminated);
@@ -118,5 +121,6 @@ namespace AElf.Launcher
             
             _timer.Start();
         }
+        */
     }
 }

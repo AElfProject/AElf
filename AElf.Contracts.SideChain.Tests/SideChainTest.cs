@@ -6,7 +6,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
@@ -16,8 +16,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Contracts.SideChain.Tests
 {
-    [UseAutofacTestFramework]
-    public class SideChainTest
+public class SideChainTest
     {
         private SideChainContractShim _contract;
         private MockSetup Mock;

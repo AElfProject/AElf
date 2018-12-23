@@ -7,8 +7,6 @@ using AElf.Net.Rpc;
 using AElf.Node;
 using AElf.Node.AElfChain;
 using AElf.RPC;
-using Autofac;
-using IContainer = Autofac.IContainer;
 
 namespace AElf.Network.Sim.Node
 {
@@ -16,6 +14,7 @@ namespace AElf.Network.Sim.Node
     {
         static void Main(string[] args)
         {
+            /*
             NodeConfiguration confContext = new NodeConfiguration();
             confContext.WithRpc = true;
     
@@ -69,7 +68,7 @@ namespace AElf.Network.Sim.Node
                 }
             }
 
-            Console.ReadKey();
+            Console.ReadKey();*/
         }
     }
 }
