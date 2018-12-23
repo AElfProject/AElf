@@ -16,6 +16,8 @@ using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests
@@ -48,7 +50,7 @@ namespace AElf.Kernel.Tests
         public IBlockChain BlockChain => ChainService.GetBlockChain(ChainId1);
 
         private IFunctionMetadataService _functionMetadataService;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<BlockChainTests_MockSetup> Logger {get;set;}
 
         private IStateStore _stateStore;
         public IActorEnvironment ActorEnvironment { get; private set; }
@@ -64,7 +66,7 @@ namespace AElf.Kernel.Tests
             ISmartContractRunnerFactory smartContractRunnerFactory,
             IStateStore stateStore, HashManager hashManager, TransactionManager transactionManager)
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<BlockChainTests_MockSetup>.Instance;
             _stateStore = stateStore;
             _hashManager = hashManager;
             _transactionManager = transactionManager;

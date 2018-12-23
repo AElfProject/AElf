@@ -25,7 +25,6 @@ namespace AElf.Synchronization.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterType<DataStore>().As<IDataStore>();
             builder.RegisterType<BlockValidationService>().As<IBlockValidationService>().SingleInstance();

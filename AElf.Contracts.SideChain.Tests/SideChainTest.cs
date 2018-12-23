@@ -11,6 +11,8 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Contracts.SideChain.Tests
 {
@@ -18,12 +20,10 @@ namespace AElf.Contracts.SideChain.Tests
     public class SideChainTest
     {
         private SideChainContractShim _contract;
-        public ILogger<T> Logger {get;set;}
         private MockSetup Mock;
 
         public SideChainTest()
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
         }
 
         private void Init()

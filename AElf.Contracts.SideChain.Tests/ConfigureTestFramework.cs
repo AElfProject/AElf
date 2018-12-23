@@ -21,7 +21,6 @@ namespace AElf.Contracts.SideChain.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            builder.RegisterModule(new LoggerAutofacModule());
         }
     }
 }

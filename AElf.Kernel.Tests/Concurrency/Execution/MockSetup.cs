@@ -16,6 +16,8 @@ using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
@@ -59,7 +61,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IChainCreationService _chainCreationService;
         private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<MockSetup> Logger {get;set;}
 
         private IStateStore _stateStore;
         public IActorEnvironment ActorEnvironment { get; private set; }
@@ -75,7 +77,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             ISmartContractRunnerFactory smartContractRunnerFactory,
             IStateStore stateStore, HashManager hashManager, TransactionManager transactionManager)
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<MockSetup>.Instance;
             _stateStore = stateStore;
             ActorEnvironment = actorEnvironment;
             if (!ActorEnvironment.Initialized)

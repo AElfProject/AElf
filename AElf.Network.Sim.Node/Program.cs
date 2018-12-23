@@ -25,7 +25,6 @@ namespace AElf.Network.Sim.Node
             builder.RegisterModule(new NetRpcAutofacModule());
             builder.RegisterModule(new NodeAutofacModule());
             builder.RegisterModule(new NetworkAutofacModule());
-            builder.RegisterModule(new LoggerAutofacModule());
                 
             IContainer container = null;
             

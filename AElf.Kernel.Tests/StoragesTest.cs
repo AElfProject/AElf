@@ -10,6 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using AElf.Common;
 using AElf.TestBase;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Tests
 {
@@ -18,14 +19,14 @@ namespace AElf.Kernel.Tests
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly IChainService _chainService;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<StoragesTest> Logger {get;set;}
 
         public StoragesTest()
         {
             _dataStore = GetRequiredService<IDataStore>();
             _blockTest = GetRequiredService<BlockTest>();
             _chainService = GetRequiredService<IChainService>();
-            Logger= GetRequiredService<ILogger>();
+            Logger= GetRequiredService<ILogger<StoragesTest>>();
         }
 
         // ReSharper disable once MemberCanBeMadeStatic.Local

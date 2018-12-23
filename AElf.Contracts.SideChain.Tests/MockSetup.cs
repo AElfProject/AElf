@@ -17,6 +17,9 @@ using AElf.Execution.Execution;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract.Metadata;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AElf.Contracts.SideChain.Tests
 {
     public class MockSetup
@@ -40,21 +43,21 @@ namespace AElf.Contracts.SideChain.Tests
         private IChainCreationService _chainCreationService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
-        public ILogger<T> Logger {get;set;}
+        public ILogger<MockSetup> Logger {get;set;}
         private IDataStore _dataStore;
 
         public MockSetup()
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<MockSetup>.Instance;
             Initialize();
         }
 
         private void Initialize()
         {
             NewStorage();
-            var transactionManager = new TransactionManager(_dataStore)
+            var transactionManager = new TransactionManager(_dataStore);
             var transactionTraceManager = new TransactionTraceManager(_dataStore);
-            _functionMetadataService = new FunctionMetadataService(_dataStore)
+            _functionMetadataService = new FunctionMetadataService(_dataStore);
             var chainManager = new ChainManager(_dataStore);
             ChainService = new ChainService(chainManager, new BlockManager(_dataStore),
                 transactionManager, transactionTraceManager, _dataStore, StateStore);
@@ -63,7 +66,7 @@ namespace AElf.Contracts.SideChain.Tests
             _smartContractRunnerFactory.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
-                    StateStore, _functionMetadataService))
+                    StateStore, _functionMetadataService));
             SmartContractManager = new SmartContractManager(_dataStore);
             Task.Factory.StartNew(async () =>
             {

@@ -303,7 +303,10 @@ namespace AElf.Kernel.Node
 
                     var firstTerm = _minersManager.GetMiners().Result
                         .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
-                    var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
+                    
+                    //TODO! should not pass any parameters about logging system
+                    //var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
+                    var logLevel = new Int32Value {Value = 0};
                     
                     var parameters = new List<object>
                     {

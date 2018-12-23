@@ -23,6 +23,8 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Transaction = AElf.Kernel.Transaction;
 
 namespace AElf.ChainController.Rpc
@@ -50,13 +52,13 @@ namespace AElf.ChainController.Rpc
 
         #endregion Properties
 
-        public ILogger<T> Logger {get;set;}
+        public ILogger<ChainControllerRpcService> Logger {get;set;}
 
         private bool _canBroadcastTxs = true;
 
         public ChainControllerRpcService()
         {
-            Logger = NullLogger<TAAAAAA>.Instance;
+            Logger = NullLogger<ChainControllerRpcService>.Instance;
 
             MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
