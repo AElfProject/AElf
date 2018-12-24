@@ -23,6 +23,8 @@ namespace AElf.ABI.CSharp.Tests
             task.Wait();
             return task.Result;
         }
+
+        [Fee(99)]
         public bool Transfer(Address to, uint value)
         {
             return true;
