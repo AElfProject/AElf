@@ -34,7 +34,7 @@ namespace AElf.Kernel.Manager.Managers
 
         private string GetStringKey(StatePath path)
         {
-            return path.GetHash().DumpHex();
+            return path.GetHash().ToHex();
         }
     }
 }

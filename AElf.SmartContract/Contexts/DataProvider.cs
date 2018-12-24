@@ -33,7 +33,12 @@ namespace AElf.SmartContract
         public Hash ChainId { get; }
         public Address ContractAddress { get; }
         public IReadOnlyList<ByteString> Path { get; }
-        private Dictionary<string, StateValue> _cache = new Dictionary<string, StateValue>();
+
+        /// <summary>
+        /// Used to cache data changes for this DataProvider
+        /// </summary>
+        private Dictionary<string, StateValue> _localCache = new Dictionary<string, StateValue>();
+
         private readonly List<DataProvider> _children = new List<DataProvider>();
 
         private DataProvider(Hash chainId, Address contractAddress, IReadOnlyList<ByteString> path)
@@ -47,7 +52,7 @@ namespace AElf.SmartContract
         {
             return new DataProvider(chainId, contractAddress, new ByteString[]
             {
-               ByteString.CopyFrom(contractAddress.DumpByteArray())
+                ByteString.CopyFrom(contractAddress.DumpByteArray())
             });
         }
 
@@ -74,12 +79,11 @@ namespace AElf.SmartContract
 
         public void ClearCache()
         {
-            _cache = new Dictionary<string, StateValue>();
+            _localCache = new Dictionary<string, StateValue>();
             foreach (var child in _children)
             {
                 child.ClearCache();
             }
-            StateCache = new Dictionary<DataPath, StateCache>();
         }
 
         public async Task<byte[]> GetAsync(string key)
@@ -89,13 +93,23 @@ namespace AElf.SmartContract
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (_cache.TryGetValue(key, out var value))
+            if (_localCache.TryGetValue(key, out var value))
             {
                 return value.Get();
             }
 
-            var bytes = await _stateManager.GetAsync(GetStatePathFor(key));
-            _cache[key] = StateValue.Create(bytes);
+            var path = GetStatePathFor(key);
+            byte[] bytes;
+            if (_stateCache.TryGetValue(path, out var cached))
+            {
+                bytes = cached.CurrentValue;
+            }
+            else
+            {
+                bytes = await _stateManager.GetAsync(path);
+            }
+
+            _localCache[key] = StateValue.Create(bytes);
             return bytes;
         }
 
@@ -111,15 +125,16 @@ namespace AElf.SmartContract
                 throw new ArgumentNullException(nameof(value));
             }
 
-            if (!_cache.TryGetValue(key, out var c))
+            if (!_localCache.TryGetValue(key, out var c))
             {
                 await GetAsync(key);
-                if (!_cache.TryGetValue(key, out c))
+                if (!_localCache.TryGetValue(key, out c))
                 {
                     // This should not happen
                     throw new Exception("Error initializing cache.");
                 }
             }
+
             c.Set(value);
             await Task.CompletedTask;
         }
@@ -127,7 +142,7 @@ namespace AElf.SmartContract
         public Dictionary<StatePath, StateValue> GetChanges()
         {
             var d = new Dictionary<StatePath, StateValue>();
-            foreach (var kv in _cache)
+            foreach (var kv in _localCache)
             {
                 if (kv.Value.IsDirty)
                 {
@@ -156,12 +171,12 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-            return await GetAsync(keyHash.DumpHex());
+            return await GetAsync(keyHash.ToHex());
         }
 
         public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
         {
-            await SetAsync(keyHash.DumpHex(), obj);
+            await SetAsync(keyHash.ToHex(), obj);
         }
 
         public IDataProvider GetDataProvider(string dataProviderKey)
@@ -169,10 +184,16 @@ namespace AElf.SmartContract
             return GetChild(dataProviderKey);
         }
 
-        private Dictionary<DataPath, StateCache> _stateCache = new Dictionary<DataPath, StateCache>();
+        private Dictionary<StatePath, StateCache> _stateCache = new Dictionary<StatePath, StateCache>();
 
-        public Dictionary<DataPath, StateCache> StateCache
+        /// <summary>
+        /// Used to cache state for current transaction tree (i.e. transaction with nested inline transactions),
+        /// the cached values have not been committed to database yet, which will be done after the transaction tree
+        /// finishes. 
+        /// </summary>
+        public Dictionary<StatePath, StateCache> StateCache
         {
+            // TODO: This cache maybe moved to DataStore
             get => _stateCache;
             set
             {

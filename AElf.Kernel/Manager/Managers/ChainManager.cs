@@ -24,18 +24,18 @@ namespace AElf.Kernel.Manager.Managers
 
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
         {
-            await _genesisBlockHashStore.SetAsync(chainId.DumpHex(), genesisBlockHash);
+            await _genesisBlockHashStore.SetAsync(chainId.ToHex(), genesisBlockHash);
             await UpdateCurrentBlockHashAsync(chainId, genesisBlockHash);
         }
 
         public async Task UpdateCurrentBlockHashAsync(Hash chainId, Hash blockHash)
         {
-            await _currentBlockHashStore.SetAsync(chainId.DumpHex(), blockHash);
+            await _currentBlockHashStore.SetAsync(chainId.ToHex(), blockHash);
         }
 
         public async Task<Hash> GetCurrentBlockHashAsync(Hash chainId)
         {
-            var hash = await _currentBlockHashStore.GetAsync<Hash>(chainId.DumpHex());
+            var hash = await _currentBlockHashStore.GetAsync<Hash>(chainId.ToHex());
             return hash;
         }
 
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Manager.Managers
         /// <returns></returns>
         public async Task UpdateCurrentBlockHeightAsync(Hash chainId, ulong height)
         {
-            await _chainHeightStore.SetAsync(chainId.DumpHex(), new UInt64Value
+            await _chainHeightStore.SetAsync(chainId.ToHex(), new UInt64Value
             {
                 Value = height
             });
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Manager.Managers
         /// <returns></returns>
         public async Task<ulong> GetCurrentBlockHeightAsync(Hash chainId)
         {
-            var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.DumpHex());
+            var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.ToHex());
             return height?.Value ?? 0;
         }
 
@@ -85,7 +85,7 @@ namespace AElf.Kernel.Manager.Managers
 
         private string GetCanonicalKey(Hash chainId, ulong height)
         {
-            return chainId.DumpHex() + height;
+            return chainId.ToHex() + height;
         }
     }
 }

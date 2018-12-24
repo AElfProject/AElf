@@ -61,5 +61,21 @@ namespace AElf.Kernel
                 TermNumber = votingRecord.TermNumber
             };
         }
+
+        public static StringList ToStringList(this IEnumerable<string> list)
+        {
+            return new StringList {Values = {list}};
+        }
+
+        public static TicketsDictionary ToTicketsDictionary(this Dictionary<string, Tickets> dictionary)
+        {
+            var ticketsDictionary = new TicketsDictionary();
+            foreach (var keyPair in dictionary)
+            {
+                ticketsDictionary.Maps.Add(keyPair.Key, keyPair.Value);
+            }
+
+            return ticketsDictionary;
+        }
     }
 }

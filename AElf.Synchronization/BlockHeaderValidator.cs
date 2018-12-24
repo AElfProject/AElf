@@ -35,7 +35,7 @@ namespace AElf.Synchronization
             previousBlocks.AddRange(_blockSet.GetBlocksByHeight(blockHeader.Index - 1));
             foreach (var previousBlock in previousBlocks)
             {
-                if (previousBlock.BlockHashToHex == blockHeader.PreviousBlockHash.DumpHex())
+                if (previousBlock.BlockHashToHex == blockHeader.PreviousBlockHash.ToHex())
                 {
                     return true;
                 }
@@ -67,7 +67,7 @@ namespace AElf.Synchronization
                 }
                 
                 var localCurrentBlock = await BlockChain.GetBlockByHeightAsync(currentHeight);
-                if (localCurrentBlock.BlockHashToHex != blockHeader.PreviousBlockHash.DumpHex())
+                if (localCurrentBlock.BlockHashToHex != blockHeader.PreviousBlockHash.ToHex())
                 {
                     MessageHub.Instance.Publish(new BranchedBlockReceived());
                     return BlockHeaderValidationResult.Branched;
@@ -77,7 +77,7 @@ namespace AElf.Synchronization
             }
             
             var localBlock = await BlockChain.GetBlockByHeightAsync(blockHeader.Index);
-            if (localBlock.BlockHashToHex == blockHeader.GetHash().DumpHex())
+            if (localBlock.BlockHashToHex == blockHeader.GetHash().ToHex())
             {
                 return BlockHeaderValidationResult.AlreadyExecuted;
             }

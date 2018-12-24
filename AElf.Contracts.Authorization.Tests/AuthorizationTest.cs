@@ -9,7 +9,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using NServiceKit.Text;
+using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -70,8 +70,8 @@ namespace AElf.Contracts.Authorization.Tests
 
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
             var kpMsig = new KeyPairGenerator().Generate();
-            Address msig = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
-
+            Address msig = Address.FromPublicKey(kpMsig.PublicKey);
+            
             var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
@@ -147,7 +147,7 @@ namespace AElf.Contracts.Authorization.Tests
                 MultiSigAccount = msig,
                 Name = "Propose",
                 TxnData = CreateDemoTxn(msig).ToByteString(),
-                Proposer = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kp1.PublicKey),
+                Proposer = Address.FromPublicKey(kp1.PublicKey),
                 Status = ProposalStatus.ToBeDecided
             };
 
@@ -162,8 +162,8 @@ namespace AElf.Contracts.Authorization.Tests
 
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
             var kpMsig = new KeyPairGenerator().Generate();
-            Address msig = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
-
+            Address msig = Address.FromPublicKey(kpMsig.PublicKey);
+            
             var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
@@ -202,7 +202,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                Proposer = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kp1.PublicKey),
+                Proposer = Address.FromPublicKey(kp1.PublicKey),
                 TxnData = CreateDemoTxn(msig).ToByteString()
             };
 
@@ -218,8 +218,8 @@ namespace AElf.Contracts.Authorization.Tests
 
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
             var kpMsig = new KeyPairGenerator().Generate();
-            Address msig = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
-
+            Address msig = Address.FromPublicKey(kpMsig.PublicKey);
+            
             var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
@@ -260,7 +260,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                Proposer = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kp1.PublicKey),
+                Proposer = Address.FromPublicKey(kp1.PublicKey),
                 TxnData = tx.ToByteString()
             };
 
@@ -307,8 +307,8 @@ namespace AElf.Contracts.Authorization.Tests
 
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
             var kpMsig = new KeyPairGenerator().Generate();
-            Address msig = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kpMsig.PublicKey);
-
+            Address msig = Address.FromPublicKey(kpMsig.PublicKey);
+            
             var auth = new Kernel.Authorization
             {
                 ExecutionThreshold = 2,
@@ -349,7 +349,7 @@ namespace AElf.Contracts.Authorization.Tests
                 ExpiredTime = TimerHelper.ConvertToUnixTimestamp(DateTime.UtcNow.AddSeconds(10)),
                 MultiSigAccount = msig,
                 Name = "Propose",
-                Proposer = Address.FromPublicKey(_mock.ChainId.DumpByteArray(), kp1.PublicKey),
+                Proposer = Address.FromPublicKey(kp1.PublicKey),
                 TxnData = tx.ToByteString()
             };
 

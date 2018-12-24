@@ -10,7 +10,6 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Network;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
@@ -125,7 +124,7 @@ namespace AElf.Network.Peers
             _nodeKey = NetworkConfig.Instance.EcKeyPair;
 
             // This nodes key
-            var thisAddr = Address.FromPublicKey(ChainConfig.Instance.ChainId.DecodeBase58(), _nodeKey.PublicKey).GetFormatted();
+            var thisAddr = Address.FromPublicKey(_nodeKey.PublicKey).GetFormatted();
             _isBp = _bpAddresses.Any(k => k.Equals(thisAddr));
         }
 

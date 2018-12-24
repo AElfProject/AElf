@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Timers;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Network.Connection;
@@ -285,7 +284,7 @@ namespace AElf.Network.Peers
                 };
 
                 if (_nodeKey.PublicKey == null)
-                    ;
+                    _logger.Warn("Node public key is null.");
 
                 byte[] packet = nd.ToByteArray();
 
@@ -386,13 +385,12 @@ namespace AElf.Network.Peers
                 }
                 
                 DistantNodeAddress 
-                    = Address.FromPublicKey(ChainConfig.Instance.ChainId.DecodeBase58(), DistantPublicKey).GetFormatted(); 
+                    = Address.FromPublicKey(DistantPublicKey).GetFormatted(); 
 
                 // verify sig
                 ECVerifier verifier = new ECVerifier();
                 
-                bool sigValid 
-                    = verifier.Verify(new ECSignature(handshakeMsg.Sig.ToByteArray()), SHA256.Create().ComputeHash(handshakeMsg.NodeInfo.ToByteArray()));
+                bool sigValid = verifier.Verify(new ECSignature(handshakeMsg.Sig.ToByteArray()), SHA256.Create().ComputeHash(handshakeMsg.NodeInfo.ToByteArray()));
 
                 if (!sigValid)
                 {
@@ -400,7 +398,7 @@ namespace AElf.Network.Peers
                     return RejectReason.AuthInvalidSig;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 FireInvalidAuth(RejectReason.AuthInvalidKey);
                 return RejectReason.AuthInvalidKey;
@@ -476,6 +474,14 @@ namespace AElf.Network.Peers
                 return false;
 
             return p.DistantNodeData.Equals(DistantNodeData);
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = 1;
+            if (IpAddress.Length != 0) hash ^= IpAddress.GetHashCode();
+            if (Port != 0) hash ^= Port.GetHashCode();
+            return hash;
         }
 
         #region Closing and disposing

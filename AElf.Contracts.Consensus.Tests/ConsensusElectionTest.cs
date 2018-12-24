@@ -97,7 +97,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(ticketsOfVoter.TotalTickets == amount);
             var votingRecordOfVoter = ticketsOfVoter.VotingRecords.First();
             Assert.NotNull(votingRecordOfVoter);
-            Assert.False(votingRecordOfVoter.IsExpired());
+            Assert.False(votingRecordOfVoter.IsExpired(1));
             Assert.True(votingRecordOfVoter.Count == amount);
             Assert.True(votingRecordOfVoter.From == _voter1.PublicKey.ToHex());
             Assert.True(votingRecordOfVoter.To == _candidate2.PublicKey.ToHex());
@@ -109,7 +109,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(ticketsOfVoter.TotalTickets == amount);
             var votingRecordOfCandidate = ticketsOfVoter.VotingRecords.First();
             Assert.NotNull(votingRecordOfCandidate);
-            Assert.False(votingRecordOfCandidate.IsExpired());
+            Assert.False(votingRecordOfCandidate.IsExpired(1));
             Assert.True(votingRecordOfCandidate.Count == amount);
             Assert.True(votingRecordOfCandidate.From == _voter1.PublicKey.ToHex());
             Assert.True(votingRecordOfCandidate.To == _candidate2.PublicKey.ToHex());
@@ -206,7 +206,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private Address GetAddress(ECKeyPair keyPair)
         {
-            return Address.FromPublicKey(_mock.ChainId.DumpByteArray(), keyPair.PublicKey);
+            return Address.FromPublicKey(keyPair.PublicKey);
         }
     }
 }

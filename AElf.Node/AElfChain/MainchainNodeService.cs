@@ -22,8 +22,6 @@ using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
-using Base58Check;
-using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
@@ -122,7 +120,7 @@ namespace AElf.Node.AElfChain
             });
 
             _txHub.Initialize();
-            _miner.Init(_nodeKeyPair);
+            _miner.Init();
         }
 
         public bool Start()
@@ -274,7 +272,7 @@ namespace AElf.Node.AElfChain
             var res = _chainCreationService.CreateNewChainAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration>
                     {basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg}).Result;
-            _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");
+            _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");
         }
 
         #endregion private methods

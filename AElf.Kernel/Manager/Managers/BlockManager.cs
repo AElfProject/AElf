@@ -28,13 +28,13 @@ namespace AElf.Kernel.Manager.Managers
         
         public async Task AddBlockHeaderAsync(BlockHeader header)
         {
-            await _blockHeaderStore.SetAsync(header.GetHash().DumpHex(), header);
+            await _blockHeaderStore.SetAsync(header.GetHash().ToHex(), header);
         }
 
         public async Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody)
         {
             blockBody.TransactionList.Clear();
-            await _blockBodyStore.SetAsync(blockHash.Clone().DumpHex(), blockBody);
+            await _blockBodyStore.SetAsync(blockHash.Clone().ToHex(), blockBody);
         }
         
         public async Task<Block> GetBlockAsync(Hash blockHash)
@@ -51,19 +51,19 @@ namespace AElf.Kernel.Manager.Managers
             }
             catch (Exception e)
             {
-                _logger.Error(e, $"Error while getting block {blockHash.DumpHex()}.");
+                _logger.Error(e, $"Error while getting block {blockHash.ToHex()}.");
                 return null;
             }
         }
 
         public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
-            return await _blockHeaderStore.GetAsync<BlockHeader>(blockHash.DumpHex());
+            return await _blockHeaderStore.GetAsync<BlockHeader>(blockHash.ToHex());
         }
 
         public async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
         {
-            return await _blockBodyStore.GetAsync<BlockBody>(bodyHash.DumpHex());
+            return await _blockBodyStore.GetAsync<BlockBody>(bodyHash.ToHex());
         }
     }
 }

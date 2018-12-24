@@ -18,7 +18,6 @@ using Mono.Cecil;
 using Module = AElf.ABI.CSharp.Module;
 using Resource = AElf.Kernel.SmartContract.Resource;
 using Type = System.Type;
-using AElf.Common;
 
 namespace AElf.Runtime.CSharp
 {

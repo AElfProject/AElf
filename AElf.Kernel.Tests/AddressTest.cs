@@ -1,8 +1,6 @@
 ﻿using System;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
-using Base58Check;
-using Google.Protobuf;
 using Xunit;
 
 namespace AElf.Kernel.Tests
@@ -21,7 +19,7 @@ namespace AElf.Kernel.Tests
             byte[] hash = new byte[3];
             rnd.NextBytes(hash);
             
-            Address adr = Address.FromPublicKey(hash, kp);
+            Address adr = Address.FromPublicKey(kp);
             string adr_formatted = adr.GetFormatted();
             ;
             

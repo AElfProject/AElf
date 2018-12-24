@@ -17,7 +17,7 @@ namespace AElf.Kernel.Manager.Managers
         private string GetDisambiguatedKey(Hash txId, Hash disambiguationHash)
         {
             var hash = disambiguationHash == null ? txId : Hash.Xor(disambiguationHash, txId);
-            return hash.DumpHex();
+            return hash.ToHex();
         }
         
         public async Task AddTransactionTraceAsync(TransactionTrace tr, Hash disambiguationHash = null)

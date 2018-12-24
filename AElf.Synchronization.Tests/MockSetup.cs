@@ -9,14 +9,18 @@ using AElf.Kernel.Manager.Managers;
 using AElf.Kernel.Storage.Interfaces;
 using AElf.Miner.TxMemPool;
 using AElf.SmartContract;
+using AElf.SmartContract.Metadata;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
+using Akka.Remote;
 using Moq;
+using NLog;
 
 namespace AElf.Synchronization.Tests
 {
     public class MockSetup
     {
+        private ILogger _logger = LogManager.GetLogger("Synchronization.Tests");
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
@@ -31,21 +35,24 @@ namespace AElf.Synchronization.Tests
         private IExecutingService _concurrencyExecutingService;
         private ITxHub _txHub;
         private IChainManager _chainManager;
+        private IFunctionMetadataManager _functionMetadataManager;
 
-        private IBlockSynchronizer _blockSynchronizer;
+        // private IBlockSynchronizer _blockSynchronizer;
 
         public MockSetup(IStateManager stateManager, ITxHub txHub,
             ITransactionManager transactionManager
             , IChainManager chainManager, ISmartContractManager smartContractManager,
-            ITransactionResultManager transactionResultManager, ITransactionTraceManager transactionTraceManager)
+            ITransactionResultManager transactionResultManager, ITransactionTraceManager transactionTraceManager,
+            IFunctionMetadataManager functionMetadataManager)
         {
             _stateManager = stateManager;
             _transactionManager = transactionManager;
-
+            _functionMetadataManager = functionMetadataManager;
             _smartContractManager = smartContractManager;
             _transactionTraceManager = transactionTraceManager;
             _transactionResultManager = transactionResultManager;
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            _functionMetadataService = new FunctionMetadataService(_logger,_functionMetadataManager);
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateManager,
                     _functionMetadataService), _transactionTraceManager, _stateManager,

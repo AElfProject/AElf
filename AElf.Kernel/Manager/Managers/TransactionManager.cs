@@ -36,7 +36,7 @@ namespace AElf.Kernel.Manager.Managers
         
         private string GetStringKey(Hash txId)
         {
-            return txId.DumpHex();
+            return txId.ToHex();
         }
     }
 }

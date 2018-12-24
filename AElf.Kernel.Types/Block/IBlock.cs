@@ -11,7 +11,7 @@ namespace AElf.Kernel
         BlockHeader Header { get; set; }
         BlockBody Body { get; set; }
         void FillTxsMerkleTreeRootInHeader();
-        Block Complete();
+        void Complete(SideChainBlockInfo[] indexedSideChainBlockInfo = null, HashSet<TransactionResult> results = null);
         bool AddTransactions(IEnumerable<Hash> txHashes);
         void Sign(ECKeyPair keyPair);
         ulong Index { get; set; }

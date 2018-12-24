@@ -12,6 +12,8 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using ServiceStack;
 
+#pragma warning disable CS0169,CS0649
+
 // ReSharper disable UnusedMember.Global
 namespace AElf.Contracts.Token
 {
@@ -37,6 +39,12 @@ namespace AElf.Contracts.Token
         [Indexed] public Address Owner { get; set; }
         [Indexed] public Address Spender { get; set; }
         [Indexed] public ulong Amount { get; set; }
+    }
+
+    public class Burned : Event
+    {
+        public Address Burner { get; set; }
+        public ulong Amount { get; set; }
     }
 
     #endregion Events
@@ -146,10 +154,10 @@ namespace AElf.Contracts.Token
         public void TransferFrom(Address from, Address to, ulong amount)
         {
             var allowance = Allowances.GetAllowance(from, Api.GetFromAddress());
-            Api.Assert(allowance > amount, "Insufficient allowance.");
+            Api.Assert(allowance >= amount, "Insufficient allowance.");
 
             DoTransfer(from, to, amount);
-            Allowances.Reduce(from, amount);
+            Allowances.Reduce(from, Api.GetFromAddress(), amount);
         }
 
         [SmartContractFunction("${this}.Approve", new string[] { }, new string[] {"${this}._allowancePlaceHolder"})]
@@ -167,11 +175,26 @@ namespace AElf.Contracts.Token
         [SmartContractFunction("${this}.UnApprove", new string[] { }, new string[] {"${this}._allowancePlaceHolder"})]
         public void UnApprove(Address spender, ulong amount)
         {
-            Allowances.Reduce(spender, amount);
+            var amountOrAll = Math.Min(amount, Allowances.GetAllowance(Api.GetFromAddress(), spender));
+            Allowances.Reduce(Api.GetFromAddress(), spender, amountOrAll);
             new UnApproved()
             {
                 Owner = Api.GetFromAddress(),
                 Spender = spender,
+                Amount = amountOrAll
+            }.Fire();
+        }
+
+        [SmartContractFunction("${this}.Burn", new string[] { }, new string[] {"${this}._balances"})]
+        public void Burn(ulong amount)
+        {
+            var bal = _balances[Api.GetFromAddress()];
+            Api.Assert(bal >= amount, "Burner doesn't own enough balance.");
+            _balances[Api.GetFromAddress()] = bal.Sub(amount);
+            _totalSupply.SetValue(_totalSupply.GetValue().Sub(amount));
+            new Burned()
+            {
+                Burner = Api.GetFromAddress(),
                 Amount = amount
             }.Fire();
         }
@@ -220,9 +243,9 @@ namespace AElf.Contracts.Token
             _allowances[pair] = _allowances[pair].Add(amount);
         }
 
-        public static void Reduce(Address owner, ulong amount)
+        public static void Reduce(Address owner, Address spender, ulong amount)
         {
-            var pair = new AddressPair() {First = owner, Second = Api.GetFromAddress()};
+            var pair = new AddressPair() {First = owner, Second = spender};
             _allowances[pair] = _allowances[pair].Sub(amount);
         }
     }

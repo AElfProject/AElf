@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.CrossChain;
 using AElf.Common.Attributes;
 using AElf.Kernel;
 using Grpc.Core;
 using NLog;
-using NServiceKit.Common.Extensions;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
 using NLog.Fluent;
@@ -15,18 +15,18 @@ using NLog.Fluent;
 namespace AElf.Miner.Rpc.Server
 {
     [LoggerName("ParentChainRpcServer")]
-    public class ParentChainBlockInfoRpcServerImpl : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase
+    public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private IBlockChain BlockChain { get; set; }
         private readonly IMerkleTreeManager _merkleTreeManager;
-        public ParentChainBlockInfoRpcServerImpl(IChainService chainService, ILogger logger, 
-            IMerkleTreeManager merkleTreeManager)
+        private readonly ICrossChainInfoReader _crossChainInfoReader;
+        public ParentChainBlockInfoRpcServer(IChainService chainService, ILogger logger, ICrossChainInfoReader crossChainInfoReader)
         {
             _chainService = chainService;
             _logger = logger;
-            _merkleTreeManager = merkleTreeManager;
+            _crossChainInfoReader = crossChainInfoReader;
         }
 
         public void Init(Hash chainId)
@@ -79,20 +79,15 @@ namespace AElf.Miner.Rpc.Server
                             Root = new ParentChainBlockRootInfo
                             {
                                 Height = requestedHeight,
-                                SideChainBlockHeadersRoot = header?.SideChainBlockHeadersRoot,
                                 SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
                                 ChainId = header?.ChainId
                             }
                         };
-                        var tree = await _merkleTreeManager
-                            .GetSideChainTransactionRootsMerkleTreeByHeightAsync(header?.ChainId, requestedHeight);
+                        var tree = _crossChainInfoReader.GetMerkleTreeForSideChainTransactionRoot(requestedHeight);
                         if (tree != null)
                         {
-                            //Todo: this is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
-                            /*body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
-                                .Select((info, index) =>
-                                    new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
-                                .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));*/
+                            // This is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
+                            // This assumes indexing multi blocks from one chain at once, actually only one every time right now.
                             for (int i = 0; i < body?.IndexedInfo.Count; i++)
                             {
                                 var info = body.IndexedInfo[i];
@@ -107,7 +102,6 @@ namespace AElf.Miner.Rpc.Server
                                 res.BlockInfo.IndexedBlockInfo.Add(info.Height, merklePath);
                             }
                         }
-                        
                     }
 
                     await responseStream.WriteAsync(res);
@@ -153,19 +147,17 @@ namespace AElf.Miner.Rpc.Server
                             Root = new ParentChainBlockRootInfo
                             {
                                 Height = height,
-                                SideChainBlockHeadersRoot = header?.SideChainBlockHeadersRoot,
                                 SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
                                 ChainId = header?.ChainId
                             }
                         };
                         
-                        var tree = await _merkleTreeManager
-                            .GetSideChainTransactionRootsMerkleTreeByHeightAsync(header?.ChainId, height);
+                        var tree = _crossChainInfoReader.GetMerkleTreeForSideChainTransactionRoot(height);
                         //Todo: this is to tell side chain the height of side chain block in this main chain block, which could be removed with subsequent improvement.
                         body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
                             .Select((info, index) =>
                                 new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
-                            .ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
+                            .ToList().ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
                     }
                 
                     //_logger?.Log(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");

@@ -67,12 +67,12 @@ namespace AElf.Kernel.Manager.Managers
 
         private string GetTransactionsMerkleTreeKey(Hash chainId, ulong height)
         {
-            return chainId.DumpHex() + height;
+            return chainId.ToHex() + height;
         }
         
         private string GetSideChainTransactionsMerkleTreeKey(Hash chainId, ulong height)
         {
-            return "s"+chainId.DumpHex() + height;
+            return "s"+chainId.ToHex() + height;
         }
     }
 }

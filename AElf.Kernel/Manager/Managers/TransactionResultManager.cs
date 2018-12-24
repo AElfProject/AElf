@@ -16,12 +16,12 @@ namespace AElf.Kernel.Manager.Managers
 
         public async Task AddTransactionResultAsync(TransactionResult tr)
         {
-            await _transactionResultStore.SetAsync(tr.TransactionId.DumpHex(), tr);
+            await _transactionResultStore.SetAsync(tr.TransactionId.ToHex(), tr);
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId)
         {
-            return await _transactionResultStore.GetAsync<TransactionResult>(txId.DumpHex());
+            return await _transactionResultStore.GetAsync<TransactionResult>(txId.ToHex());
         }
     }
 }

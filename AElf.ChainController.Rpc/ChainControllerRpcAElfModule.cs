@@ -1,5 +1,4 @@
 ﻿using AElf.Common.Module;
-using AElf.Configuration.Config.RPC;
 using Autofac;
 
 namespace AElf.ChainController.Rpc

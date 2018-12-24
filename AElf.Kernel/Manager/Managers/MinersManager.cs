@@ -22,7 +22,7 @@ namespace AElf.Kernel.Manager.Managers
 
         public async Task<Miners> GetMiners()
         {
-            var miners = await GetMiners(Key.DumpHex());
+            var miners = await GetMiners(Key.ToHex());
             if (miners != null && !miners.IsEmpty())
                 return miners;
 
@@ -39,7 +39,7 @@ namespace AElf.Kernel.Manager.Managers
 
         public async Task<bool> IsMinersInDatabase()
         {
-            var miners = await GetMiners(Key.DumpHex());
+            var miners = await GetMiners(Key.ToHex());
             return miners != null && !miners.IsEmpty();
         }
 
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Manager.Managers
                 _logger?.Trace($"Set miner {publicKey} to data store.");
             }
 
-            await SetMiners(Key.DumpHex(), miners);
+            await SetMiners(Key.ToHex(), miners);
         }
 
         private async Task<Miners> GetMiners(string key)

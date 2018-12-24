@@ -82,8 +82,8 @@ namespace AElf.Network.Tests
             
             Assert.False(movedToNext);
             
-            Assert.Equal(p.SyncTarget, 0);
-            Assert.Equal(p.CurrentlyRequestedHeight, 0);
+            Assert.True(p.SyncTarget == 0);
+            Assert.True(p.CurrentlyRequestedHeight == 0);
         }
         
         [Fact]
@@ -130,14 +130,14 @@ namespace AElf.Network.Tests
             
             // Should effectively request the block
             Assert.True(movedToNext);
-            Assert.Equal(req.Height, 10);
-            Assert.Equal(req.Id.ToStringUtf8(), "FakeHash");
+            Assert.True(req.Height == 10);
+            Assert.True(req.Id.ToStringUtf8() == "FakeHash");
             
             Assert.Equal(p.SyncedAnnouncement, annoucement);
             Assert.False(p.AnyStashed);
             
-            Assert.Equal(p.SyncTarget, 0);
-            Assert.Equal(p.CurrentlyRequestedHeight, 0);
+            Assert.True(p.SyncTarget == 0);
+            Assert.True(p.CurrentlyRequestedHeight == 0);
         }
         
         [Fact]

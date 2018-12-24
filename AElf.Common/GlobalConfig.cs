@@ -47,6 +47,7 @@ namespace AElf.Common
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public static int AElfDPoSMiningInterval = 4000;
+        public const int AliasLimit = 20;
         public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
         public const int ProducerRepetitions = 8;
         public const int AElfWaitFirstRoundTime = 8000;
@@ -62,7 +63,9 @@ namespace AElf.Common
         public const string AElfDPoSSnapshotMapString = "__AElfDPoSSnapshotFieldString__";
         public const string AElfDPoSDividendsMapString = "__AElfDPoSDividendsMapString__";
         public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
-        public const string AElfVotingRecordsString = "__AElfVotingRecordsString__";
+        public const string AElfDPoSAliasesLookupMapString = "__AElfDPoSAliasesLookupMapString__";
+        public const string AElfVotesCountString = "__AElfVotesCountString__";
+        public const string AElfTicketsCountString = "__AElfTicketsCountString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
         public const string AElfDPoSBlockchainStartTimestamp = "__AElfDPoSBlockchainStartTimestamp__";
@@ -72,10 +75,14 @@ namespace AElf.Common
         #region AElf Cross Chain
         public const string AElfTxRootMerklePathInParentChain = "__TxRootMerklePathInParentChain__";
         public const string AElfParentChainBlockInfo = "__ParentChainBlockInfo__";
+        public const string AElfSideChainBlockInfo = "__SideChainBlockInfo__";
         public const string AElfBoundParentChainHeight = "__BoundParentChainHeight__";
-        public static readonly int AElfInitCrossChainRequestInterval = 4;
+        public const int AElfInitCrossChainRequestInterval = 4;
         public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
-
+        public const string AElfCurrentSideChainHeight = "__SideChainHeight__";
+        public const string AElfBinaryMerkleTreeForSideChainTxnRoot = "__BinaryMerkleTreeForSideChainTxnRoot__";
+        public const int MaximalCountForIndexingParentChainBlock = 256;
+        public const int MaximalCountForIndexingSideChainBlock = 1;
         #endregion
 
         #region Authorization
@@ -87,11 +94,11 @@ namespace AElf.Common
         #region Dividends
 
         public static ulong ElfTokenPerBlock = 100;
-        public const double DividendsForEveryMiner = 0.4;
-        public const double DividendsForTicketsCount = 0.1;
-        public const double DividendsForReappointment = 0.1;
-        public const double DividendsForBackupNodes = 0.2;
-        public const double DividendsForVoters = 0.2;
+        public const double DividendsForEveryMinerRatio = 0.4;
+        public const double DividendsForTicketsCountRatio = 0.1;
+        public const double DividendsForReappointmentRatio = 0.1;
+        public const double DividendsForBackupNodesRatio = 0.2;
+        public const double DividendsForVotersRatio = 0.2;
         public const string DividendsMapString = "__DividendsMapString__";
         public const string WeightsMapString = "__WeightsMapString__";
         public const string TotalWeightsMapString = "__TotalWeightsMapString__";

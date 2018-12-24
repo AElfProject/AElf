@@ -33,7 +33,7 @@ namespace AElf.Execution.Execution
             TransactionType transactionType = TransactionType.ContractTransaction)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
-            var stateCache = new Dictionary<DataPath, StateCache>();
+            var stateCache = new Dictionary<StatePath, StateCache>();
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
@@ -58,7 +58,7 @@ namespace AElf.Execution.Execution
                 }
 
                 traces.Add(trace);
-                
+
                 if (cancellationToken.IsCancellationRequested)
                 {
                     break;
@@ -70,12 +70,11 @@ namespace AElf.Execution.Execution
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
-            IChainContext chainContext, Dictionary<DataPath, StateCache> stateCache,
+            IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
             CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                Console.WriteLine("IsCancellationRequested");
                 return new TransactionTrace()
                 {
                     TransactionId = transaction.GetHash(),
@@ -103,6 +102,13 @@ namespace AElf.Execution.Execution
             {
                 executive.SetDataCache(stateCache);
                 await executive.SetTransactionContext(txCtxt).Apply();
+
+                foreach (var kv in txCtxt.Trace.StateChanges)
+                {
+                    // TODO: Better encapsulation/abstraction for committing to state cache
+                    stateCache[kv.StatePath] = new StateCache(kv.StateValue.CurrentValue.ToByteArray());
+                }
+
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
                     var inlineTrace = await ExecuteOneAsync(depth + 1, inlineTx, chainId, chainContext, stateCache,

@@ -19,7 +19,7 @@ namespace AElf.Kernel.Manager.Managers
 
         private string GetMetadataKey(Hash chainId, string name)
         {
-            return chainId.DumpHex() + name;
+            return chainId.ToHex() + name;
         }
         
         public async Task AddMetadataAsync(Hash chainId, string name, FunctionMetadata metadata)
@@ -42,12 +42,12 @@ namespace AElf.Kernel.Manager.Managers
 
         public async Task AddCallGraphAsync(Hash chainId, SerializedCallGraph callGraph)
         {
-            await _callGraphStore.SetAsync(chainId.DumpHex(), callGraph);
+            await _callGraphStore.SetAsync(chainId.ToHex(), callGraph);
         }
         
         public async Task<SerializedCallGraph> GetCallGraphAsync(Hash chainId)
         {
-            return await _callGraphStore.GetAsync<SerializedCallGraph>(chainId.DumpHex());
+            return await _callGraphStore.GetAsync<SerializedCallGraph>(chainId.ToHex());
         }
     }
 }

@@ -64,7 +64,7 @@ namespace AElf.Kernel.Consensus
         
         public byte[] ReadMap<T>(IMessage message, string resourceStr) where T : IMessage, new()
         {
-            return ReadMapAsync<T>(Hash.FromMessage(message).DumpHex(), resourceStr).Result;
+            return ReadMapAsync<T>(Hash.FromMessage(message).ToHex(), resourceStr).Result;
         }
 
         public byte[] ReadMap<T>(string key, string resourceStr) where T : IMessage, new()

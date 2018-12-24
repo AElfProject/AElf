@@ -90,8 +90,7 @@ namespace AElf.Contracts.Authorization
                 "Invalid authorization for multi signature.");
             // TODO: check public key -- if no Multisig account then ELF_chainID_SHA^2(authorization)
             Address multiSigAccount = authorization.MultiSigAccount ??
-                                      Address.FromPublicKey(Api.ChainId.DumpByteArray(),
-                                          authorization.ToByteArray().ToArray());
+                                      Address.FromPublicKey(authorization.ToByteArray().ToArray());
             Api.Assert(_multiSig.GetValue(multiSigAccount).Equals(new Kernel.Authorization()),
                 "MultiSigAccount already existed.");
             authorization.MultiSigAccount = multiSigAccount;
@@ -210,7 +209,7 @@ namespace AElf.Contracts.Authorization
             if (!address.Equals(Genesis))
                 return _multiSig.GetValue(address);
             // case 2: get authorization of system account  
-            var reviewers = Api.GetSystemReviewers();
+            var reviewers = Api.GetMiners().PublicKeys;
             var auth = new Kernel.Authorization
             {
                 MultiSigAccount = Genesis,

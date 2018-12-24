@@ -108,13 +108,13 @@ namespace AElf.Kernel.Node
                 if (option == UpdateConsensus.Update)
                 {
                     _logger?.Trace("UpdateConsensus - Update");
-                    await UpdateConsensusEventList();
+                    await UpdateConsensusInformation();
                 }
 
                 if (option == UpdateConsensus.Dispose)
                 {
                     _logger?.Trace("UpdateConsensus - Dispose");
-                    DisposeConsensusList();
+                    DisposeConsensusEventList();
                 }
             });
 
@@ -184,7 +184,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public void DisposeConsensusList()
+        public void DisposeConsensusEventList()
         {
             ConsensusDisposable?.Dispose();
             ConsensusDisposable = null;
@@ -241,7 +241,7 @@ namespace AElf.Kernel.Node
                 
                 var tx = new Transaction
                 {
-                    From = Address.FromPublicKey(_chainId.DumpByteArray(), _ownPubKey),
+                    From = Address.FromPublicKey(_ownPubKey),
                     To = ContractAddress,
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
@@ -656,7 +656,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public async Task UpdateConsensusEventList()
+        public async Task UpdateConsensusInformation()
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
@@ -678,6 +678,11 @@ namespace AElf.Kernel.Node
                 {
                     await _minersManager.SetMiners(_helper.GetCurrentMiners());
                 }
+            }
+            
+            if (!NodeConfig.Instance.IsMiner)
+            {
+                return;
             }
             
             // Dispose previous observer.
@@ -727,14 +732,14 @@ namespace AElf.Kernel.Node
 
             if (tx.Type == TransactionType.DposTransaction)
             {
-                MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().DumpHex()));
+                MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().ToHex()));
                 _logger?.Trace(
-                    $"A DPoS tx has been generated: {tx.GetHash().DumpHex()} - {tx.MethodName} from {tx.From.GetFormatted()}.");
+                    $"A DPoS tx has been generated: {tx.GetHash().ToHex()} - {tx.MethodName} from {tx.From.GetFormatted()}.");
             }
 
             if (tx.From.Equals(_ownPubKey))
                 _logger?.Trace(
-                    $"Try to insert DPoS transaction to pool: {tx.GetHash().DumpHex()} " +
+                    $"Try to insert DPoS transaction to pool: {tx.GetHash().ToHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
             
             await _txHub.AddTransactionAsync(tx, true);

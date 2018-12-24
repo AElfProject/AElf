@@ -5,49 +5,34 @@ namespace AElf.Kernel
 {
     public partial class VotingRecord
     {
-        private TimeSpan PastTime => DateTime.UtcNow - VoteTimestamp.ToDateTime();
+        public ulong Weight => CalculateWeight(Count, LockDaysList[0]);
 
-        public ulong Weight => (GetCurrentLockingDays() / 270 + 2 / 3) * Count;
-
-        public ulong DurationDays
+        public static ulong CalculateWeight(ulong ticketsAmount, int lockTime)
         {
-            get
-            {
-                var days = (ulong) ((DateTime.UtcNow - VoteTimestamp.ToDateTime()).TotalDays + 1);
-                ulong totalLockDays = 0;
-                foreach (var d in LockDaysList)
-                {
-                    totalLockDays += d;
-                }
-
-                return Math.Min(days, totalLockDays);
-            }
-        } 
-        
-        public bool IsExpired()
-        {
-            uint lockDays = 0;
-            foreach (var day in LockDaysList)
-            {
-                lockDays += day;
-            }
-
-            return PastTime.TotalDays >= lockDays;
+            return (ulong) (lockTime / 270 + 2 / 3) * ticketsAmount;
         }
 
-        public uint GetCurrentLockingDays()
+        public ulong GetDurationDays(ulong currentAge)
         {
-            uint lockDays = 0;
-            foreach (var day in LockDaysList)
+            var days = currentAge - VoteAge + 1;
+            ulong totalLockDays = 0;
+            foreach (var d in LockDaysList)
             {
-                lockDays += day;
-                if (lockDays > PastTime.TotalDays)
-                {
-                    return day;
-                }
+                totalLockDays += (ulong) d;
             }
 
-            return lockDays;
+            return Math.Min(days, totalLockDays);
+        }
+        
+        public bool IsExpired(ulong currentAge)
+        {
+            var lockExpiredAge = VoteAge;
+            foreach (var day in LockDaysList)
+            {
+                lockExpiredAge += (ulong) day;
+            }
+
+            return lockExpiredAge <= currentAge;
         }
     }
 }
