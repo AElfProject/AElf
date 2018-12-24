@@ -26,11 +26,11 @@ namespace AElf.Kernel.Tests
     [DependsOn(typeof(KernelAElfModule),
         
         //TODO: only test kernel aelf module here
-        typeof(ChainAElfModule),typeof(ExecutionAElfModule), 
-        typeof(SmartContractAElfModule),typeof(ChainControllerRpcAElfModule),
+        typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 
+        typeof(SmartContractAElfModule),typeof(RpcChainControllerAElfModule),
         typeof(MinerAElfModule),
         typeof(MinerRpcAElfModule),
-        typeof(RunnerAElfModule),
+        typeof(CSharpRuntimeAElfModule),
         
         typeof(TestBaseAElfModule))]
     public class KernelTestAElfModule : AElfModule

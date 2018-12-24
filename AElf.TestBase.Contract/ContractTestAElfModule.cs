@@ -6,9 +6,9 @@ using Volo.Abp.Modularity;
 namespace AElf.TestBase.Contract
 {
     [DependsOn(
-        typeof(AElf.ChainController.ChainAElfModule),
+        typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
-        typeof(AElf.Runtime.CSharp.RunnerAElfModule),
+        typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(KernelAElfModule)
     )]
     public class ContractTestAElfModule : AElfModule

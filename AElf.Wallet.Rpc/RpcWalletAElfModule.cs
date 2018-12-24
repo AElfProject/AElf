@@ -5,7 +5,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Wallet.Rpc
 {
-    public class WalletRpcAElfModule:AElfModule
+    public class RpcWalletAElfModule:AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

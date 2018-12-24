@@ -15,7 +15,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Miner
 {
-    [DependsOn(typeof(ChainAElfModule))]
+    [DependsOn(typeof(ChainControllerAElfModule))]
     public class MinerAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
