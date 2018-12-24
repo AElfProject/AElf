@@ -7,7 +7,7 @@ namespace AElf.Database
     {
         public static void UseInMemoryDatabase(this AbpApplicationCreationOptions options)
         {
-            options.Services.AddTransient<IKeyValueDatabase, InMemoryDatabase>();
+            options.Services.AddSingleton<IKeyValueDatabase, InMemoryDatabase>();
         }
         public static void UseRedisDatabase(this AbpApplicationCreationOptions options)
         {

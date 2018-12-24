@@ -15,10 +15,12 @@ using Type = System.Type;
 using AElf.Common;
 using AElf.Kernel.Storages;
 using Akka.Util.Internal;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.SmartContract
 {
-    public class SmartContractService : ISmartContractService
+    //TODO: remove _executivePools, _contractHashs, change ISingletonDependency to ITransientDependency
+    public class SmartContractService : ISmartContractService, ISingletonDependency
     {
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;

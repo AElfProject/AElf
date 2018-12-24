@@ -160,6 +160,8 @@ ProjectSection(SolutionItems) = preProject
 	.travis.yml = .travis.yml
 EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -505,5 +507,6 @@ Global
 		{AC922E2A-54E4-4D21-A049-D6E08E50232F} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{201ED8C0-9CEC-451D-9A8B-824443ADE7B2} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{7FEA756D-FA6F-48AF-A1F9-E6CD65F6DEF5} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{D3950CC9-808F-4ED8-946A-79A992F3F8EF} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

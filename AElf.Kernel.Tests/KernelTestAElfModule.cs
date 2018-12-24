@@ -19,7 +19,7 @@ namespace AElf.Kernel.Tests
         typeof(ChainAElfModule),typeof(ExecutionAElfModule), 
         typeof(SmartContractAElfModule),typeof(ChainControllerRpcAElfModule),
         typeof(MinerAElfModule),
-        
+
         typeof(TestBaseAElfModule))]
     public class KernelTestAElfModule : AElfModule
     {

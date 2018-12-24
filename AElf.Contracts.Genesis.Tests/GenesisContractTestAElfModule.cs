@@ -10,6 +10,7 @@ namespace AElf.Contracts.Genesis.Tests
     [DependsOn(
         typeof(AElf.ChainController.ChainAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
+        typeof(AElf.Runtime.CSharp.RunnerAElfModule),
         typeof(KernelAElfModule)
         )]
     public class GenesisContractTestAElfModule : AElfModule

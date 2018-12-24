@@ -2,10 +2,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Database
 {
-    public class InMemoryDatabase : IKeyValueDatabase
+    public class InMemoryDatabase : IKeyValueDatabase, ISingletonDependency
     {
         private readonly ConcurrentDictionary<string, byte[]> _dictionary = new ConcurrentDictionary<string, byte[]>();
         

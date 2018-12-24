@@ -7,6 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Runtime.CSharp
 {
+    [DependsOn(typeof(SmartContractAElfModule))]
     public class RunnerAElfModule: AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
