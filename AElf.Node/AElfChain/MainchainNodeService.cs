@@ -184,14 +184,14 @@ namespace AElf.Node.AElfChain
             return true;
         }
 
-        public bool IsDPoSAlive()
+        public async Task<bool> CheckDPoSAliveAsync()
         {
-            return _consensus.IsAlive();
+            return await Task.FromResult(_consensus.IsAlive());
         }
 
-        public bool IsForked()
+        public async Task<bool> CheckForkedAsync()
         {
-            return _forkFlag;
+            return await Task.FromResult(_forkFlag);
         }
 
         #region private methods

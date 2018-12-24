@@ -26,13 +26,13 @@ namespace AElf.Management.Commands
                     Name = GlobalSetting.KeysConfigName,
                     NamespaceProperty = arg.SideChainId
                 },
-                Data = GetAndCreateAccountKey(arg)
+                Data = await GetAndCreateAccountKey(arg)
             };
 
             await K8SRequestHelper.GetClient().CreateNamespacedConfigMapAsync(body, arg.SideChainId);
         }
 
-        private Dictionary<string, string> GetAndCreateAccountKey(DeployArg arg)
+        private async Task<Dictionary<string, string>> GetAndCreateAccountKey(DeployArg arg)
         {
             if (string.IsNullOrWhiteSpace(arg.ChainAccount))
             {
@@ -41,7 +41,7 @@ namespace AElf.Management.Commands
                 var chainPrefixBase58 = Base58CheckEncoding.Encode(ByteArrayHelpers.FromHexString(arg.SideChainId));
                 var chainPrefix = chainPrefixBase58.Substring(0, 4);
 
-                var key = keyStore.Create(arg.AccountPassword, chainPrefix);
+                var key = await keyStore.CreateAsync(arg.AccountPassword, chainPrefix);
                 // todo clean
                 //arg.ChainAccount = "ELF_" + chainPrefix + "_" + key.GetEncodedPublicKey();
             }
