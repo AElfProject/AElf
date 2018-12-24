@@ -298,6 +298,11 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 result = manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(0, count);
+                
+                // reset
+                GrpcLocalConfig.Instance.ClientToSideChain = false;
+                GrpcLocalConfig.Instance.SideChainServer = false;
+
             }
             finally
             {
@@ -374,6 +379,10 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 Assert.True(1 == result[0].IndexedBlockInfo.Count);
                 Assert.True(result[0].IndexedBlockInfo.Keys.Contains(GlobalConfig.GenesisBlockHeight + 2));
                 manager.CloseClientToParentChain();
+                
+                // reset
+                GrpcLocalConfig.Instance.ClientToSideChain = false;
+                GrpcLocalConfig.Instance.SideChainServer = false;
             }
             finally
             {

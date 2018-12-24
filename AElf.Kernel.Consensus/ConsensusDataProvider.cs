@@ -74,9 +74,8 @@ namespace AElf.Kernel.Consensus
         {
             try
             {
-                var number = UInt64Value.Parser.ParseFrom(
-                    await GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber)));
-                return number.Value;
+                var rawValue = await GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber));
+                return rawValue != null ?  UInt64Value.Parser.ParseFrom(rawValue).Value : 0;
             }
             catch (Exception ex)
             {
