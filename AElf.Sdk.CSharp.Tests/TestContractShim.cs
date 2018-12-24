@@ -5,10 +5,11 @@ using ServiceStack;
 using Google.Protobuf;
 using AElf.Types.CSharp;
 using AElf.Common;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    public class TestContractShim
+    public class TestContractShim : ITransientDependency
     {
         private MockSetup _mock;
         public Address ContractAddres = Address.Generate();

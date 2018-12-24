@@ -7,12 +7,12 @@ using AElf.Common;
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    public class SdkTest
+    public sealed class SdkTest : CSharpSdkTestBase
     {
         private TestContractShim _contractShim;
-        public SdkTest(TestContractShim contractShim)
+        public SdkTest()
         {
-            _contractShim = contractShim;
+            _contractShim = GetRequiredService<TestContractShim>();
         }
 
         [Fact]

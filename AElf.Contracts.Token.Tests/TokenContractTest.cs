@@ -9,16 +9,16 @@ using ServiceStack;
 
 namespace AElf.Contracts.Token.Tests
 {
-public class TokenContractTest
+public sealed class TokenContractTest : ContractTestBase
     {
         private TokenContractShim _contract;
         private MockSetup _mock;
 
         private IExecutive Executive { get; set; }
 
-        public TokenContractTest(MockSetup mock)
+        public TokenContractTest()
         {
-            _mock = mock;
+            _mock = GetRequiredService<MockSetup>();
             Init();
         }
 

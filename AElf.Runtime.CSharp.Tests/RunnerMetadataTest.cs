@@ -16,7 +16,6 @@ using Xunit.Frameworks.Autofac;
 
 namespace AElf.Runtime.CSharp.Tests
 {
-    [UseAutofacTestFramework]
     public class RunnerMetadataTest
     {
         private IDataStore _store;

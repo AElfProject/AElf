@@ -11,10 +11,11 @@ using Google.Protobuf;
 using AElf.Kernel.Tests;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    public class MockSetup
+    public class MockSetup : ITransientDependency
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId

@@ -1,31 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
-using AElf.Configuration.Config.GRPC;
-using AElf.Cryptography.ECDSA;
-using AElf.Miner.Tests;
-using Google.Protobuf;
-using Xunit;
-
-using AElf.Runtime.CSharp;
-using AElf.Types.CSharp;
-using Google.Protobuf.WellKnownTypes;
-using Moq;
 using AElf.Common;
-using Address = AElf.Common.Address;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Configuration.Config.GRPC;
+using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
+using AElf.Types.CSharp;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Xunit;
+using Address = AElf.Common.Address;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
-namespace AElf.Kernel.Tests.Miner
+namespace AElf.Miner.Tests
 {
-public class MinerLifetime
+public sealed class MinerLifetimeTests : MinerTestBase
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
@@ -40,9 +35,9 @@ public class MinerLifetime
 
         private MockSetup _mock;
 
-        public MinerLifetime(MockSetup mock)
+        public MinerLifetimeTests()
         {
-            _mock = mock;
+            _mock = GetRequiredService<MockSetup>();
         }
 
         public byte[] ExampleContractCode
