@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using AElf.Common.Attributes;
+
 using AElf.Kernel.Storages;
 using Org.BouncyCastle.Security;
 using AElf.Common;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.SmartContract.Metadata
 {
-    [LoggerName("SmartContract")]
+    
     public class FunctionMetadataService : IFunctionMetadataService
     {
         private IDataStore _dataStore;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
-using AElf.Common.Attributes;
+
 using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
@@ -32,7 +32,6 @@ using Volo.Abp.DependencyInjection;
 namespace AElf.Node.AElfChain
 {
     // ReSharper disable InconsistentNaming
-    [LoggerName("Node")]
     public class MainchainNodeService : INodeService, ITransientDependency
     {
         public ILogger<MainchainNodeService> Logger {get;set;}

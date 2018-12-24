@@ -2,7 +2,7 @@
 //using System.IO;
 //using System.Linq;
 //using AElf.Common.Application;
-//using AElf.Common.Attributes;
+//
 ////using Autofac.Core;
 ////using NLog.Config;
 //using NLog.Targets;

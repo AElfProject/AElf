@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using AElf.Common.Attributes;
+
 using Alba.CsConsoleFormat.Fluent;
 using ChakraCore.NET.API;
 using Microsoft.Extensions.Logging;

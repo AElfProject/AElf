@@ -1,10 +1,10 @@
 using System;
-using AElf.Common.Attributes;
+
 using AElf.Common;
 using Grpc.Core;
 namespace AElf.Miner.Rpc.Client
 {
-    [LoggerName("ClientToSideChain")]
+    
     public class ClientToSideChain : ClientBase<ResponseSideChainBlockInfo>
     {
         private readonly SideChainBlockInfoRpc.SideChainBlockInfoRpcClient _client;

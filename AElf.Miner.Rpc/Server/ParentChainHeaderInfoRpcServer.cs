@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.CrossChain;
-using AElf.Common.Attributes;
+
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Grpc.Core;
@@ -15,7 +15,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Rpc.Server
 {
-    [LoggerName("ParentChainRpcServer")]
+    
     public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase, ITransientDependency
     {
         private readonly IChainService _chainService;

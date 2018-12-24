@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Common.Attributes;
+
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;

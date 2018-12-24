@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
-using AElf.Common.Attributes;
+
 using AElf.Network;
 using AElf.Node.AElfChain;
 using AElf.Node.EventMessages;
@@ -13,7 +13,6 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Node
 {
-    [LoggerName(nameof(Node))]
     public class Node : INode, ITransientDependency
     {
         public ILogger<Node> Logger {get;set;}
