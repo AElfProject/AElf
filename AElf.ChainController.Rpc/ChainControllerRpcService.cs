@@ -42,7 +42,7 @@ namespace AElf.ChainController.Rpc
         public ISmartContractService SmartContractService { get; set; }
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfoReader CrossChainInfoReader { get; set; }
-        public IAuthorizationInfo AuthorizationInfo { get; set; }
+        public IAuthorizationInfoReader AuthorizationInfoReader { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
