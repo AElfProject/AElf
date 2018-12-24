@@ -16,21 +16,21 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     public sealed class FunctionMetadataServiceTest : AElfKernelIntegratedTest
     {
         private IDataStore _dataStore;
-        private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IFunctionMetadataService _functionMetadataService;
 
         public FunctionMetadataServiceTest()
         {
             _functionMetadataService = GetRequiredService<IFunctionMetadataService>();
             _dataStore = GetRequiredService<IDataStore>();
-            _smartContractRunnerFactory = GetRequiredService<ISmartContractRunnerFactory>();
+            _smartContractRunnerContainer = GetRequiredService<ISmartContractRunnerContainer>();
         }
 
         [Fact]
         public async Task TestDepolyContract()
         {   
             var chainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x06});
-            var runner = _smartContractRunnerFactory.GetRunner(0);
+            var runner = _smartContractRunnerContainer.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);
             var contractAType = typeof(TestContractA);
@@ -233,7 +233,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public async Task TestEmptyContract()
         {
             var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x07 });
-            var runner = _smartContractRunnerFactory.GetRunner(0);
+            var runner = _smartContractRunnerContainer.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);
             var contractAType = typeof(TestContractA);

@@ -237,6 +237,8 @@ namespace AElf.ChainController.Rpc
                 await s.SmartContractService.PutExecutiveAsync(tx.To, executive);
             }
 
+            if(!string.IsNullOrEmpty(trace.StdErr))
+                throw new Exception(trace.StdErr);
             return trace.RetVal.ToFriendlyBytes();
         }
 
@@ -272,12 +274,12 @@ namespace AElf.ChainController.Rpc
 
         internal static Proposal GetProposal(this Svc s, Hash proposalHash)
         {
-            return s.AuthorizationInfo.GetProposal(proposalHash);
+            return s.AuthorizationInfoReader.GetProposal(proposalHash);
         }
 
         internal static Authorization GetAuthorization(this Svc s, Address msig)
         {
-            return s.AuthorizationInfo.GetAuthorization(msig);
+            return s.AuthorizationInfoReader.GetAuthorization(msig);
         }
 
         #endregion

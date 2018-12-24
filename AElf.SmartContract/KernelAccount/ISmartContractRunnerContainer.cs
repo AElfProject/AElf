@@ -1,6 +1,6 @@
 namespace AElf.SmartContract
 {
-    public interface ISmartContractRunnerFactory
+    public interface ISmartContractRunnerContainer
     {
         ISmartContractRunner GetRunner(int category);
         void AddRunner(int category, ISmartContractRunner runner);

@@ -15,13 +15,10 @@ namespace AElf.Runtime.CSharp
             RunnerConfig.Instance.SdkDir = Path.GetDirectoryName(typeof(RunnerAElfModule).Assembly.Location);
             
             var runner = new SmartContractRunner();
-            var smartContractRunnerFactory = new SmartContractRunnerFactory();
+            var smartContractRunnerFactory = new SmartContractRunnerContainer();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
-            
-            context.Services.AddSingleton<ISmartContractRunnerFactory>(smartContractRunnerFactory);
-            
+            context.Services.AddSingleton<ISmartContractRunnerContainer>(smartContractRunnerFactory);
         }
-
     }
 }

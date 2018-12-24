@@ -42,8 +42,9 @@ namespace AElf.Contracts.SideChain.Tests
 
         private IChainCreationService _chainCreationService;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
         public ILogger<MockSetup> Logger {get;set;}
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
+
         private IDataStore _dataStore;
 
         public MockSetup()
@@ -61,18 +62,18 @@ namespace AElf.Contracts.SideChain.Tests
             var chainManager = new ChainManager(_dataStore);
             ChainService = new ChainService(chainManager, new BlockManager(_dataStore),
                 transactionManager, transactionTraceManager, _dataStore, StateStore);
-            _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            _smartContractRunnerContainer = new SmartContractRunnerContainer();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractRunnerContainer.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
-                new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
+                new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerContainer,
                     StateStore, _functionMetadataService));
             SmartContractManager = new SmartContractManager(_dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateStore, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer, StateStore, _functionMetadataService);
             ChainService = new ChainService(new ChainManager(_dataStore), new BlockManager(_dataStore), new TransactionManager(_dataStore), new TransactionTraceManager(_dataStore), _dataStore, StateStore);
         }
 

@@ -96,10 +96,10 @@ namespace AElf.Benchmark
                 builder.RegisterModule(new SmartContractAutofacModule());
                 builder.RegisterType<Benchmarks>().WithParameter("options", opts);
                 var runner = new SmartContractRunner(opts.SdkDir);
-                SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
-                smartContractRunnerFactory.AddRunner(0, runner);
-                smartContractRunnerFactory.AddRunner(1, runner);
-                builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
+                SmartContractRunnerContainer smartContractRunnerContainer = new SmartContractRunnerContainer();
+                smartContractRunnerContainer.AddRunner(0, runner);
+                smartContractRunnerContainer.AddRunner(1, runner);
+                builder.RegisterInstance(smartContractRunnerContainer).As<ISmartContractRunnerContainer>().SingleInstance();
 
                 if (ParallelConfig.Instance.IsParallelEnable)
                 {

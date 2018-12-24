@@ -44,7 +44,7 @@ namespace AElf.Miner.Tests
         private ulong _i = 0;
         private IChainCreationService _chainCreationService;
         private ISmartContractManager _smartContractManager;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
         private ITransactionManager _transactionManager;
         private ITransactionReceiptManager _transactionReceiptManager;
         private ITransactionResultManager _transactionResultManager;
@@ -60,7 +60,7 @@ namespace AElf.Miner.Tests
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
         private IChainManager _chainManager;
-        private IAuthorizationInfo _authorizationInfo;
+        private IAuthorizationInfoReader _authorizationInfoReader;
         private IStateStore _stateStore;
 
         public MockSetup( IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
@@ -85,23 +85,23 @@ namespace AElf.Miner.Tests
             _chainManager = new ChainManager(_dataStore);
             _chainService = new ChainService(_chainManager, new BlockManager(_dataStore),
                 _transactionManager, _transactionTraceManager, _dataStore, StateStore);
-            _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            _smartContractRunnerContainer = new SmartContractRunnerContainer();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, runner);*/
+            _smartContractRunnerContainer.AddRunner(0, runner);*/
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-            _smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractRunnerContainer.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, StateStore,
+                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateStore,
                     _functionMetadataService), _transactionTraceManager, StateStore,
                 new ChainContextService(_chainService));
 
             _chainCreationService = new ChainCreationService(_chainService,
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
+                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
                     StateStore, _functionMetadataService));
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
             _chainContextService = new ChainContextService(_chainService);
-            _authorizationInfo = new AuthorizationInfo(StateStore);
+            _authorizationInfoReader = new AuthorizationInfoReader(StateStore);
             _stateStore = new StateStore(_database);
         }
 
@@ -155,7 +155,9 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator), StateStore);
+
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator), StateStore);
+
 
             return blockExecutor;
         }
@@ -167,7 +169,7 @@ namespace AElf.Miner.Tests
         
         internal ITxHub CreateAndInitTxHub()
         {
-            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator);
+            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator);
             hub.Initialize();
             return hub;
         }

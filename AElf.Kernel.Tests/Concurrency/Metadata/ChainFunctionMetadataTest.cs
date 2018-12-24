@@ -17,13 +17,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     public sealed class ChainFunctionMetadataTest : AElfKernelIntegratedTest
     {        
         private readonly IDataStore _dataStore;
-        private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IFunctionMetadataService _functionMetadataService;
 
         public ChainFunctionMetadataTest()
         {
             _dataStore = GetRequiredService<IDataStore>();
-            _smartContractRunnerFactory = GetRequiredService<ISmartContractRunnerFactory>();
+            _smartContractRunnerContainer = GetRequiredService<ISmartContractRunnerContainer>();
             _functionMetadataService = GetRequiredService<IFunctionMetadataService>();
         }
         
@@ -31,7 +31,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public async Task TestDeployNewFunction()
         {
             var chainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
-            var runner = _smartContractRunnerFactory.GetRunner(0);
+            var runner = _smartContractRunnerContainer.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);
             var contractAType = typeof(TestContractA);

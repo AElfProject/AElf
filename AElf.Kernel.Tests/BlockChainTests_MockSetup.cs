@@ -58,12 +58,12 @@ namespace AElf.Kernel.Tests
         private readonly HashManager _hashManager;
         private readonly TransactionManager _transactionManager;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         public BlockChainTests_MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
             IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory,
+            ISmartContractRunnerContainer smartContractRunnerContainer,
             IStateStore stateStore, HashManager hashManager, TransactionManager transactionManager)
         {
             Logger = NullLogger<BlockChainTests_MockSetup>.Instance;
@@ -74,11 +74,11 @@ namespace AElf.Kernel.Tests
             ChainService = chainService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
+            _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, stateStore,
+                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateStore,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
