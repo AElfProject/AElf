@@ -10,7 +10,7 @@ using Google.Protobuf;
 
 namespace AElf.Contracts.Genesis.Tests
 {
-    public class ContractZeroTest
+    public sealed class ContractZeroTest : GenesisContractTestBase
     {
         private TestContractShim _contractShim;
 
@@ -41,9 +41,9 @@ namespace AElf.Contracts.Genesis.Tests
             }
         }
         
-        public ContractZeroTest(TestContractShim contractShim)
+        public ContractZeroTest()
         {
-            _contractShim = contractShim;
+            _contractShim = GetRequiredService<TestContractShim>();
         }
 
         [Fact]

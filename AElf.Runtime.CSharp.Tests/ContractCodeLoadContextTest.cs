@@ -8,8 +8,8 @@ namespace AElf.Runtime.CSharp.Tests
     public class ContractCodeLoadContextTest
     {
 
-        private string _apiDllDirectory = "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.1/";
-        private string _codePath = "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.1/AElf.Runtime.CSharp.Tests.TestContract.dll";
+        private string _apiDllDirectory = "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.2/";
+        private string _codePath = "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.2/AElf.Runtime.CSharp.Tests.TestContract.dll";
 
         private ContractCodeLoadContext _loadContext;
         public ContractCodeLoadContextTest()
