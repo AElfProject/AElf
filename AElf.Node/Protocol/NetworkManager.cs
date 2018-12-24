@@ -755,6 +755,8 @@ namespace AElf.Node.Protocol
                 Block block = Block.Parser.ParseFrom(serializedBlock);
 
                 byte[] blockHash = block.GetHashBytes();
+                
+                peer.StopBlockTimer(block);
 
                 if (_lastBlocksReceived.Contains(blockHash))
                 {
@@ -763,8 +765,6 @@ namespace AElf.Node.Protocol
                 }
 
                 _lastBlocksReceived.Enqueue(blockHash);
-
-                peer.StopBlockTimer(block);
 
                 return block;
             }
