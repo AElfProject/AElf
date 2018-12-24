@@ -40,6 +40,8 @@ namespace AElf.Kernel.Node
 
         private bool _consensusInitialized;
 
+        private bool _minerFlag;
+
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
@@ -667,9 +669,6 @@ namespace AElf.Kernel.Node
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
-            _logger?.Trace($"LatestTermNumber: {LatestTermNumber}");
-            _logger?.Trace($"_helper.CurrentTermNumber.Value: {_helper.CurrentTermNumber.Value}");
-            
             // Update miners.
             if (LatestTermNumber + 1 == _helper.CurrentTermNumber.Value)
             {
@@ -712,8 +711,16 @@ namespace AElf.Kernel.Node
             var miners = _helper.Miners;
             if (miners.All(m => m != _ownPubKey.ToHex()))
             {
+                _minerFlag = false;
                 return;
             }
+
+            if (!_minerFlag)
+            {
+                _logger?.Trace("Become a miner just now.");
+            }
+
+            _minerFlag = true;
 
             ConsensusDisposable = ConsensusObserver.SubscribeMiningProcess(_helper.GetCurrentRoundInfo());
         }
