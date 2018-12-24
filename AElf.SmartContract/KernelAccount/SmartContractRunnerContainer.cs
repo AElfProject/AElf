@@ -3,7 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace AElf.SmartContract
 {
-    public class SmartContractRunnerFactory : ISmartContractRunnerFactory
+    public class SmartContractRunnerContainer : ISmartContractRunnerContainer
     {
         private readonly ConcurrentDictionary<int, ISmartContractRunner> _runners = new ConcurrentDictionary<int, ISmartContractRunner>();
         
