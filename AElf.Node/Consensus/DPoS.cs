@@ -31,7 +31,7 @@ namespace AElf.Kernel.Node
     public class DPoS : IConsensus
     {
         private ulong LatestRoundNumber { get; set; }
-        
+
         private ulong LatestTermNumber { get; set; }
 
         private static IDisposable ConsensusDisposable { get; set; }
@@ -90,11 +90,11 @@ namespace AElf.Kernel.Node
             _helper = helper;
             _prepareTerminated = false;
             _terminated = false;
-            
+
             _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
 
             _logger = LogManager.GetLogger(nameof(DPoS));
-            
+
             var count = MinersConfig.Instance.Producers.Count;
 
             GlobalConfig.BlockProducerNumber = count;
@@ -102,7 +102,7 @@ namespace AElf.Kernel.Node
 
             _logger?.Info("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
             _logger?.Info("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
-            
+
             MessageHub.Instance.Subscribe<UpdateConsensus>(async option =>
             {
                 if (option == UpdateConsensus.Update)
@@ -152,7 +152,7 @@ namespace AElf.Kernel.Node
             {
                 return;
             }
-            
+
             // Consensus information already generated.
             if (ConsensusDisposable != null)
             {
@@ -238,7 +238,7 @@ namespace AElf.Kernel.Node
                 bn = bn > 4 ? bn - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
-                
+
                 var tx = new Transaction
                 {
                     From = Address.FromPublicKey(_chainId.DumpByteArray(), _ownPubKey),
@@ -249,7 +249,7 @@ namespace AElf.Kernel.Node
                     Type = TransactionType.DposTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
                 };
-                
+
                 var signer = new ECSigner();
                 var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
                 tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
@@ -302,7 +302,7 @@ namespace AElf.Kernel.Node
                     var firstTerm = _minersManager.GetMiners().Result
                         .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
-                    
+
                     var parameters = new List<object>
                     {
                         firstTerm,
@@ -527,7 +527,9 @@ namespace AElf.Kernel.Node
 
                     var calculatedAge = _helper.CalculateBlockchainAge();
 
-                    if (calculatedAge % GlobalConfig.DaysEachTerm == 0)
+                    if (calculatedAge % GlobalConfig.DaysEachTerm == 0 ||
+                        LatestRoundNumber / 50 + 1 != LatestTermNumber ||
+                        (LatestTermNumber == 1 && _helper.GetVictories().Count == GlobalConfig.BlockProducerNumber))
                     {
                         throw new NextTermException();
                     }
@@ -541,13 +543,13 @@ namespace AElf.Kernel.Node
                             var poorGuyPublicKey = minerInRound.PublicKey;
                             var latestTermSnapshot = _helper.GetLatestTermSnapshot();
                             var luckyGuyPublicKey = latestTermSnapshot.GetNextCandidate(miners);
-                            
+
                             nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey] =
                                 nextRoundInfo.RealTimeMinersInfo[poorGuyPublicKey];
                             nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].MissedTimeSlots = 0;
                             nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].ProducedBlocks = 0;
                             nextRoundInfo.RealTimeMinersInfo.Remove(poorGuyPublicKey);
-                            
+
                             miners.PublicKeys.Remove(poorGuyPublicKey);
                             miners.PublicKeys.Add(luckyGuyPublicKey);
                         }
@@ -677,16 +679,16 @@ namespace AElf.Kernel.Node
                 if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
                 {
                     await _minersManager.SetMiners(_helper.GetCurrentMiners());
-                    
-                    
+
+
                 }
             }
-            
+
             if (!NodeConfig.Instance.IsMiner)
             {
                 return;
             }
-            
+
             // Dispose previous observer.
             if (ConsensusDisposable != null)
             {
@@ -712,7 +714,8 @@ namespace AElf.Kernel.Node
         {
             var currentTime = DateTime.UtcNow;
             var currentRound = _helper.GetCurrentRoundInfo();
-            var startTimeSlot = currentRound.RealTimeMinersInfo.First(bp => bp.Value.Order == 1).Value.ExpectedMiningTime
+            var startTimeSlot = currentRound.RealTimeMinersInfo.First(bp => bp.Value.Order == 1).Value
+                .ExpectedMiningTime
                 .ToDateTime();
 
             var endTimeSlot =
@@ -743,7 +746,7 @@ namespace AElf.Kernel.Node
                 _logger?.Trace(
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().ToHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
-            
+
             await _txHub.AddTransactionAsync(tx, true);
         }
 
