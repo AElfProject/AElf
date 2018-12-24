@@ -72,6 +72,8 @@ namespace AElf.Contracts.Token
         [SmartContractFieldData("${this}._allowancePlaceHolder", DataAccessMode.AccountSpecific)]
         private readonly object _allowancePlaceHolder;
 
+        private readonly MapToUInt64<Address> _chargedFees = new MapToUInt64<Address>("_ChargedFees_");
+
         #region ABI (Public) Methods
 
         #region View Only Methods
@@ -195,6 +197,19 @@ namespace AElf.Contracts.Token
                 Burner = Api.GetFromAddress(),
                 Amount = amount
             }.Fire();
+        }
+
+        /// <summary>
+        /// The fees will be first locked according to transaction hash and will be claimed by the miner during
+        /// finalizing the block. This method is only called by the main transaction (non-inline transactions).
+        /// </summary>
+        /// <param name="txHash"></param>
+        /// <param name="feeAmount"></param>
+        public void ChargeTransactionFees(ulong feeAmount)
+        {
+            var fromAddress = Api.GetFromAddress();
+            _balances[fromAddress] = _balances[fromAddress].Sub(feeAmount);
+            _chargedFees[fromAddress] = _chargedFees[fromAddress].Add(feeAmount);
         }
 
         #endregion Actions

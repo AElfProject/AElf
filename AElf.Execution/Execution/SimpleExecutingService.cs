@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -9,6 +10,8 @@ using AElf.SmartContract;
 using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 
 namespace AElf.Execution.Execution
 {
@@ -33,30 +36,60 @@ namespace AElf.Execution.Execution
             CancellationToken cancellationToken, Hash disambiguationHash = null,
             TransactionType transactionType = TransactionType.ContractTransaction)
         {
+            var feeAmount = transactionType == TransactionType.DposTransaction ? 0UL : 1UL;
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<StatePath, StateCache>();
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
-                //Console.WriteLine($"{transaction.GetHash().ToHex()} : {trace.ExecutionStatus.ToString()}");
-                if (trace.IsSuccessful())
+                var chargeFeesTrace =
+                    await ChargeTransactionFeesFor(feeAmount, transaction, chainId, chainContext, stateCache,
+                        cancellationToken);
+                TransactionTrace trace;
+                if (chargeFeesTrace.ExecutionStatus == ExecutionStatus.Canceled)
                 {
-                    if (trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
+                    trace = new TransactionTrace()
                     {
-                        await trace.CommitChangesAsync(_stateStore);
-                    }
+                        TransactionId = transaction.GetHash(),
+                        StdErr = "Execution Canceled",
+                        ExecutionStatus = ExecutionStatus.Canceled
+                    };
+                }
+                else if (!chargeFeesTrace.IsSuccessful())
+                {
+                    trace = new TransactionTrace()
+                    {
+                        TransactionId = transaction.GetHash(),
+                        ExecutionStatus = ExecutionStatus.InsufficientTransactionFees
+                    };
                 }
                 else
                 {
-                    trace.SurfaceUpError();
+                    trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
+                    trace.FeeTransactionTrace = chargeFeesTrace;
+                    //Console.WriteLine($"{transaction.GetHash().ToHex()} : {trace.ExecutionStatus.ToString()}");
+                    if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
+                    {
+                        await trace.CommitChangesAsync(_stateStore);
+                    }
+                    else
+                    {
+                        // TODO: Cancelation due to prolonged execution should also be charged with transaction fees
+                        trace.SurfaceUpError();
+                        if (trace.Chargeable())
+                        {
+                            // In this case, transaction fees should also be charged.
+                            await chargeFeesTrace.CommitChangesAsync(_stateStore);
+                        }
+                    }
+
+                    if (_transactionTraceManager != null)
+                    {
+                        // Will be null only in tests
+                        await _transactionTraceManager.AddTransactionTraceAsync(trace, disambiguationHash);
+                    }
                 }
 
-                if (_transactionTraceManager != null)
-                {
-                    // Will be null only in tests
-                    await _transactionTraceManager.AddTransactionTraceAsync(trace, disambiguationHash);
-                }
 
                 traces.Add(trace);
 
@@ -128,6 +161,25 @@ namespace AElf.Execution.Execution
             }
 
             return trace;
+        }
+
+        private async Task<TransactionTrace> ChargeTransactionFeesFor(ulong feeAmount, Transaction originalTxn,
+            Hash chainId,
+            IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
+            CancellationToken cancellationToken)
+        {
+            if (originalTxn.To == ContractHelpers.GetTokenContractAddress(chainId) && originalTxn.MethodName == "Initialize")
+            {
+                feeAmount = 0;
+            }
+            var chargeFeesTxn = new Transaction()
+            {
+                From = originalTxn.From,
+                To = ContractHelpers.GetTokenContractAddress(chainId),
+                MethodName = "ChargeTransactionFees",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(feeAmount))
+            };
+            return await ExecuteOneAsync(0, chargeFeesTxn, chainId, chainContext, stateCache, cancellationToken);
         }
     }
 }

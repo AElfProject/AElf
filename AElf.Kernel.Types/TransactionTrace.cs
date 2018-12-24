@@ -27,7 +27,8 @@ namespace AElf.Kernel
 
         public bool IsSuccessful()
         {
-            var successful = string.IsNullOrEmpty(StdErr);
+            var successful = ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted ||
+                             ExecutionStatus == ExecutionStatus.ExecutedAndCommitted;
             foreach (var trace in InlineTraces)
             {
                 successful &= trace.IsSuccessful();
@@ -36,15 +37,28 @@ namespace AElf.Kernel
             return successful;
         }
 
+        public bool Chargeable()
+        {
+            // Now we cannot differentiate cancellations due to late start and due to prolonged running
+            return ExecutionStatus == ExecutionStatus.ContractError ||
+                   ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted ||
+                   ExecutionStatus == ExecutionStatus.ExceededMaxCallDepth;
+        }
+
         public Hash GetSummarizedStateHash()
         {
-            if (InlineTraces.Count == 0)
+            var hashes = new List<Hash>();
+            if (Chargeable())
             {
-                return StateHash ?? Hash.Default;
+                hashes.Add(FeeTransactionTrace.StateHash);
             }
 
-            var hashes = new List<Hash>() {StateHash};
-            hashes.AddRange(InlineTraces.Select(x => x.GetSummarizedStateHash()));
+            if (IsSuccessful())
+            {
+                hashes.Add(StateHash);
+                hashes.AddRange(InlineTraces.Select(x => x.GetSummarizedStateHash()));
+            }
+
             return Hash.FromRawBytes(ByteArrayHelpers.Combine(hashes.Select(x => x.DumpByteArray()).ToArray()));
         }
 
@@ -57,6 +71,19 @@ namespace AElf.Kernel
                 {
                     ExecutionStatus = inline.ExecutionStatus;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Clears all state changes. To be called after the transaction failed, in which case the state should not
+        /// be committed except the transaction fees related states.
+        /// </summary>
+        public void ClearStateChanges()
+        {
+            StateChanges.Clear();
+            foreach (var trace in InlineTraces)
+            {
+                trace.ClearStateChanges();
             }
         }
     }

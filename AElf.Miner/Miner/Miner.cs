@@ -328,6 +328,17 @@ namespace AElf.Miner.Miner
                             };
                             results.Add(txResF);
                             break;
+                        case ExecutionStatus.InsufficientTransactionFees:
+                            var txResITF = new TransactionResult()
+                            {
+                                TransactionId = trace.TransactionId,
+                                RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
+                                Status = Status.Failed,
+                                StateHash = trace.GetSummarizedStateHash(),
+                                Index = index++
+                            };
+                            results.Add(txResITF);
+                            break;
                         case ExecutionStatus.Undefined:
                             _logger?.Fatal(
                                 $@"Transaction Id ""{
