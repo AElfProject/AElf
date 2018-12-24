@@ -23,6 +23,8 @@ using NLog;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Types.Common;
 using AElf.Synchronization.EventMessages;
+using NLog.Fluent;
+using ServiceStack;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -528,9 +530,11 @@ namespace AElf.Kernel.Node
                     var calculatedAge = _helper.CalculateBlockchainAge();
 
                     if (calculatedAge % GlobalConfig.DaysEachTerm == 0 ||
-                        LatestRoundNumber / 50 + 1 != LatestTermNumber ||
-                        (LatestTermNumber == 1 && _helper.GetVictories().Count == GlobalConfig.BlockProducerNumber))
+                        LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber ||
+                        (LatestTermNumber == 1 && _helper.TryToGetVictories(out var victories) &&
+                         victories.Count == GlobalConfig.BlockProducerNumber))
                     {
+                        _logger?.Trace("Will change term.");
                         throw new NextTermException();
                     }
 
@@ -630,9 +634,10 @@ namespace AElf.Kernel.Node
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
+                    _helper.TryToGetVictories(out var victories);
                     var parameters = new List<object>
                     {
-                        _helper.GetVictories().ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
+                        victories.ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
                             _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
                     };
 
@@ -662,12 +667,16 @@ namespace AElf.Kernel.Node
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
+            _logger?.Trace($"LatestTermNumber: {LatestTermNumber}");
+            _logger?.Trace($"_helper.CurrentTermNumber.Value: {_helper.CurrentTermNumber.Value}");
+            
             // Update miners.
-            if (LatestTermNumber == _helper.CurrentTermNumber.Value + 1)
+            if (LatestTermNumber + 1 == _helper.CurrentTermNumber.Value)
             {
+                _logger?.Trace("Term changed, will update miners.");
                 await _minersManager.SetMiners(_helper.GetCurrentMiners());
             }
-
+            
             if (LatestRoundNumber == _helper.CurrentRoundNumber.Value)
             {
                 return;
@@ -679,10 +688,12 @@ namespace AElf.Kernel.Node
                 if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
                 {
                     await _minersManager.SetMiners(_helper.GetCurrentMiners());
-
-
                 }
             }
+            
+            // Update current round number and current term number.
+            LatestRoundNumber = _helper.CurrentRoundNumber.Value;
+            LatestTermNumber = _helper.CurrentTermNumber.Value;
 
             if (!NodeConfig.Instance.IsMiner)
             {
@@ -705,9 +716,6 @@ namespace AElf.Kernel.Node
             }
 
             ConsensusDisposable = ConsensusObserver.SubscribeMiningProcess(_helper.GetCurrentRoundInfo());
-
-            // Update current round number.
-            LatestRoundNumber = _helper.CurrentRoundNumber.Value;
         }
 
         public bool IsAlive()
@@ -760,6 +768,5 @@ namespace AElf.Kernel.Node
         {
             return _lockNumber != 0;
         }
-
     }
 }

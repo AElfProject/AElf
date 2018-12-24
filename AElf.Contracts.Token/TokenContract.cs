@@ -209,6 +209,7 @@ namespace AElf.Contracts.Token
         private void DoTransfer(Address from, Address to, ulong amount)
         {
             var balSender = _balances[from];
+            Console.WriteLine("transfer...");
             Api.Assert(balSender >= amount, $"Insufficient balance. Current balance: {balSender}");
             var balReceiver = _balances[to];
             balSender = balSender.Sub(amount);

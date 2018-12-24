@@ -22,8 +22,8 @@ namespace AElf.Contracts.Consensus
             CandidatesField = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
             TermNumberLookupField = new PbField<TermNumberLookUp>(GlobalConfig.AElfDPoSTermNumberLookupString),
             AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
-            CurrentTermNumberField= new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
-            BlockchainStartTimestamp= new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
+            CurrentTermNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
+            BlockchainStartTimestamp = new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
             VotesCountField = new UInt64Field(GlobalConfig.AElfVotesCountString),
             TicketsCountField = new UInt64Field(GlobalConfig.AElfTicketsCountString),
 

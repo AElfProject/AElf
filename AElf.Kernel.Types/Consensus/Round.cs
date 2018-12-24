@@ -79,7 +79,7 @@ namespace AElf.Kernel
             {
                 if (minerInRound.Value.Signature == null)
                 {
-                    throw new Exception("Signature can't be null.");
+                    minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
                 }
             }
             

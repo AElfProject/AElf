@@ -25,6 +25,7 @@ using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
+using NLog.Fluent;
 
 namespace AElf.Synchronization.BlockExecution
 {
@@ -150,7 +151,7 @@ namespace AElf.Synchronization.BlockExecution
                 var readyTxs = block.Body.TransactionList.ToList();
                 var traces = await ExecuteTransactions(readyTxs, block.Header.ChainId,
                     block.Header.GetDisambiguationHash(), cts);
-                
+
                 // Execute transactions.
                 // After this, rollback needed
                 if((res = ExtractTransactionResults(traces, crossChainIndexingSideChainTransactionId, 

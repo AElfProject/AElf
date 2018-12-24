@@ -37,8 +37,8 @@ namespace AElf.Contracts.Consensus.Tests
             _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
         }
         
-        //[Fact]
-        [Fact(Skip = "Time consuming")]
+        [Fact]
+        //[Fact(Skip = "Time consuming")]
         public void GetDividendsTest()
         {
             GlobalConfig.ElfTokenPerBlock = 1000;
@@ -82,7 +82,7 @@ namespace AElf.Contracts.Consensus.Tests
             var victories = _consensusContract.GetCurrentVictories().Values;
             
             // Next term.
-            var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 2);
+            var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 1);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), secondTerm);
 
             var secondRound = _consensusContract.GetRoundInfo(2);
@@ -114,7 +114,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
 
             // Third item.
-            var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3, 3);
+            var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3, 2);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);
 
             var snapshotOfSecondTerm = _consensusContract.GetTermSnapshot(2);

@@ -227,6 +227,12 @@ namespace AElf.Sdk.CSharp
             Call(TokenContractAddress, "BalanceOf", address);
             return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
         }
+
+        public static ulong GetBalanceOfDividendsContract()
+        {
+            Call(TokenContractAddress, "BalanceOf", DividendsContractAddress);
+            return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
+        }
         
         #endregion Getters used by contract
 
@@ -245,13 +251,16 @@ namespace AElf.Sdk.CSharp
 
         public static void SendDividends(params object[] args)
         {
-            _transactionContext.Trace.InlineTransactions.Add(new Transaction()
+            if (GetBalanceOfDividendsContract() > 0)
             {
-                From = DividendsContractAddress,
-                To = TokenContractAddress,
-                MethodName = "Transfer",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
-            });
+                _transactionContext.Trace.InlineTransactions.Add(new Transaction()
+                {
+                    From = DividendsContractAddress,
+                    To = TokenContractAddress,
+                    MethodName = "Transfer",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+                });
+            }
         }
 
         /// <summary>
