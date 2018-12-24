@@ -31,10 +31,11 @@ using AElf.Synchronization.BlockSynchronization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ServiceStack;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Tests
 {
-    public class MockSetup
+    public class MockSetup : ITransientDependency
     {
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();

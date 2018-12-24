@@ -9,9 +9,11 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
+
 namespace AElf.Miner.TxMemPool
 {
-    public class TxRefBlockValidator : ITxRefBlockValidator
+    public class TxRefBlockValidator : ITxRefBlockValidator, ISingletonDependency
     {
         private IChainService _chainService;
         private IBlockChain _blockChain;

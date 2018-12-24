@@ -3,10 +3,11 @@ using System.Linq;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Types.Transaction
 {
-    public class TxSignatureVerifier : ITxSignatureVerifier
+    public class TxSignatureVerifier : ITxSignatureVerifier, ITransientDependency
     {
         public bool Verify(Kernel.Transaction tx)
         {

@@ -4,6 +4,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Database;
+using AElf.Kernel.Types;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel
 {
+    [DependsOn(typeof(TypesAElfModule))]
     public class KernelAElfModule: AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -25,6 +27,8 @@ namespace AElf.Kernel
         {
             var services = context.Services;
 
+            services.AddAssemblyOf<KernelAElfModule>();
+            
             services.AddAssemblyOf<KernelAElfModule>();
 
             services.AddTransient(
