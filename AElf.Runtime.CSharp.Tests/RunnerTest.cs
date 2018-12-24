@@ -78,6 +78,10 @@ namespace AElf.Runtime.CSharp.Tests
             
             var runner2 = new SmartContractRunner();
             Assert.Throws<InvalidCodeException>(()=>runner2.CodeCheck(_mock.ContractCode, true));
+            
+            // reset
+            RunnerConfig.Instance.BlackList = new List<string>();
+            RunnerConfig.Instance.WhiteList = new List<string>();
         }
     }
 }
