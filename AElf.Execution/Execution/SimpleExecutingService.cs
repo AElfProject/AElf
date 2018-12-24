@@ -42,52 +42,18 @@ namespace AElf.Execution.Execution
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                var chargeFeesTrace =
-                    await ChargeTransactionFeesFor(feeAmount, transaction, chainId, chainContext, stateCache,
-                        cancellationToken);
-                TransactionTrace trace;
-                if (chargeFeesTrace.ExecutionStatus == ExecutionStatus.Canceled)
+                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
+                if (!trace.IsSuccessful())
                 {
-                    trace = new TransactionTrace()
-                    {
-                        TransactionId = transaction.GetHash(),
-                        StdErr = "Execution Canceled",
-                        ExecutionStatus = ExecutionStatus.Canceled
-                    };
+                    trace.SurfaceUpError();
                 }
-                else if (!chargeFeesTrace.IsSuccessful())
-                {
-                    trace = new TransactionTrace()
-                    {
-                        TransactionId = transaction.GetHash(),
-                        ExecutionStatus = ExecutionStatus.InsufficientTransactionFees
-                    };
-                }
-                else
-                {
-                    trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
-                    trace.FeeTransactionTrace = chargeFeesTrace;
-                    //Console.WriteLine($"{transaction.GetHash().ToHex()} : {trace.ExecutionStatus.ToString()}");
-                    if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
-                    {
-                        await trace.CommitChangesAsync(_stateStore);
-                    }
-                    else
-                    {
-                        // TODO: Cancelation due to prolonged execution should also be charged with transaction fees
-                        trace.SurfaceUpError();
-                        if (trace.Chargeable())
-                        {
-                            // In this case, transaction fees should also be charged.
-                            await chargeFeesTrace.CommitChangesAsync(_stateStore);
-                        }
-                    }
 
-                    if (_transactionTraceManager != null)
-                    {
-                        // Will be null only in tests
-                        await _transactionTraceManager.AddTransactionTraceAsync(trace, disambiguationHash);
-                    }
+                await trace.SmartCommitChangesAsync(_stateStore);
+
+                if (_transactionTraceManager != null)
+                {
+                    // Will be null only in tests
+                    await _transactionTraceManager.AddTransactionTraceAsync(trace, disambiguationHash);
                 }
 
 
@@ -132,6 +98,39 @@ namespace AElf.Execution.Execution
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
+
+            #region Charge Fees
+
+            if (depth == 0)
+            {
+                // Fee is only charged to the main transaction
+                var feeAmount = executive.GetFee(transaction.MethodName);
+                var chargeFeesTrace = await ChargeTransactionFeesFor(feeAmount, transaction, chainId, chainContext,
+                    stateCache, cancellationToken);
+                if (chargeFeesTrace.ExecutionStatus == ExecutionStatus.Canceled)
+                {
+                    return new TransactionTrace()
+                    {
+                        TransactionId = transaction.GetHash(),
+                        StdErr = "Execution Canceled",
+                        ExecutionStatus = ExecutionStatus.Canceled
+                    };
+                }
+
+                if (!chargeFeesTrace.IsSuccessful())
+                {
+                    return new TransactionTrace()
+                    {
+                        TransactionId = transaction.GetHash(),
+                        ExecutionStatus = ExecutionStatus.InsufficientTransactionFees
+                    };
+                }
+
+                trace.FeeTransactionTrace = chargeFeesTrace;
+            }
+
+            #endregion
+
             try
             {
                 executive.SetDataCache(stateCache);
@@ -168,10 +167,6 @@ namespace AElf.Execution.Execution
             IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
             CancellationToken cancellationToken)
         {
-            if (originalTxn.To == ContractHelpers.GetTokenContractAddress(chainId) && originalTxn.MethodName == "Initialize")
-            {
-                feeAmount = 0;
-            }
             var chargeFeesTxn = new Transaction()
             {
                 From = originalTxn.From,
@@ -179,7 +174,7 @@ namespace AElf.Execution.Execution
                 MethodName = "ChargeTransactionFees",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(feeAmount))
             };
-            return await ExecuteOneAsync(0, chargeFeesTxn, chainId, chainContext, stateCache, cancellationToken);
+            return await ExecuteOneAsync(1, chargeFeesTxn, chainId, chainContext, stateCache, cancellationToken);
         }
     }
 }

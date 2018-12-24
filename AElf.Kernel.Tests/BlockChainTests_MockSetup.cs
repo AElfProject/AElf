@@ -113,7 +113,7 @@ namespace AElf.Kernel.Tests
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_stateStore);
+            await trace.SmartCommitChangesAsync(_stateStore);
         }
 
         public void Initialize1(Address account, ulong qty)

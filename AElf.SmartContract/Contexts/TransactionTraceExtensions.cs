@@ -13,8 +13,21 @@ namespace AElf.SmartContract
 {
     public static class TransactionTraceExtensions
     {
-        public static async Task CommitChangesAsync(this TransactionTrace trace, IStateStore stateStore)
+        public static async Task SmartCommitChangesAsync(this TransactionTrace trace, IStateStore stateStore)
         {
+            if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
+            {
+                await trace.CommitChangesAsync(stateStore);
+            }
+            else if (trace.Chargeable())
+            {
+                await trace.FeeTransactionTrace.CommitChangesAsync(stateStore);
+            }
+        }
+
+        private static async Task CommitChangesAsync(this TransactionTrace trace, IStateStore stateStore)
+        {
+            Console.WriteLine(nameof(CommitChangesAsync));
             if (trace.ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
                 throw new InvalidOperationException(
@@ -23,10 +36,12 @@ namespace AElf.SmartContract
 
             if (trace.StateChanges.Count > 0)
             {
-                await stateStore.PipelineSetDataAsync(trace.StateChanges.ToDictionary(x => x.StatePath, x => x.StateValue.CurrentValue.ToByteArray()));
+                await stateStore.PipelineSetDataAsync(trace.StateChanges.ToDictionary(x => x.StatePath,
+                    x => x.StateValue.CurrentValue.ToByteArray()));
             }
 
-            trace.StateHash = Hash.FromRawBytes(ByteArrayHelpers.Combine(trace.StateChanges.Select(x=>x.StatePath.GetHash()).OrderBy(x=>x).Select(x=>x.Value.ToByteArray()).ToArray()));
+            trace.StateHash = Hash.FromRawBytes(ByteArrayHelpers.Combine(trace.StateChanges
+                .Select(x => x.StatePath.GetHash()).OrderBy(x => x).Select(x => x.Value.ToByteArray()).ToArray()));
             trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
             foreach (var trc in trace.InlineTraces)
             {

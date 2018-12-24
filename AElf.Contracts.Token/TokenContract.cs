@@ -129,6 +129,7 @@ namespace AElf.Contracts.Token
             "${this}._initialized", "${this}._symbol", "${this}._tokenName", "${this}._totalSupply",
             "${this}._decimals", "${this}._balances"
         })]
+        [Fee(0)]
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
             Api.Assert(!_initialized.GetValue(), "Already initialized.");

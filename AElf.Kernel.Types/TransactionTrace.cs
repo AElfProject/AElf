@@ -29,12 +29,20 @@ namespace AElf.Kernel
         {
             var successful = ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted ||
                              ExecutionStatus == ExecutionStatus.ExecutedAndCommitted;
-            foreach (var trace in InlineTraces)
+            if (!successful)
             {
-                successful &= trace.IsSuccessful();
+                return false;
             }
 
-            return successful;
+            foreach (var trace in InlineTraces)
+            {
+                if (!trace.IsSuccessful())
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool Chargeable()
@@ -48,7 +56,7 @@ namespace AElf.Kernel
         public Hash GetSummarizedStateHash()
         {
             var hashes = new List<Hash>();
-            if (Chargeable())
+            if (FeeTransactionTrace != null && Chargeable())
             {
                 hashes.Add(FeeTransactionTrace.StateHash);
             }

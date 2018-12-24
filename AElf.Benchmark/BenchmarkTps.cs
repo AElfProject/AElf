@@ -268,7 +268,7 @@ namespace AElf.Benchmark
             try
             {
                 await executive.SetTransactionContext(txnCtxt).Apply();
-                await txnCtxt.Trace.CommitChangesAsync(_stateStore);
+                await txnCtxt.Trace.SmartCommitChangesAsync(_stateStore);
             }
             finally
             {
@@ -305,7 +305,7 @@ namespace AElf.Benchmark
             try
             {
                 await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-                await txnInitCtxt.Trace.CommitChangesAsync(_stateStore);
+                await txnInitCtxt.Trace.SmartCommitChangesAsync(_stateStore);
             }
             finally
             {

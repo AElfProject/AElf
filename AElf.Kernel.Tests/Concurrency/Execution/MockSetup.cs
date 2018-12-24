@@ -149,7 +149,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_stateStore);
+            await trace.SmartCommitChangesAsync(_stateStore);
 //            await StateDictator.ApplyCachedDataAction(changesDict);
         }
 

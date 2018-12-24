@@ -15,5 +15,6 @@ namespace AElf.SmartContract
         IExecutive SetStateStore(IStateStore stateStore);
         void SetDataCache(Dictionary<StatePath, StateCache> cache); //temporary solution to let data provider access actor's state cache
         Task Apply();
+        ulong GetFee(string methodName);
     }
 }
