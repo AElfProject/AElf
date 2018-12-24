@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
-using AElf.Common.Attributes;
+
 using AElf.Common.Collections;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
@@ -27,7 +27,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Node.Protocol
 {
-    [LoggerName(nameof(NetworkManager))]
+    
     public class NetworkManager : INetworkManager
     {
         #region Settings

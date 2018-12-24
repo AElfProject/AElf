@@ -1,12 +1,12 @@
 using System;
-using AElf.Common.Attributes;
+
 using AElf.Common;
 using Grpc.Core;
 using ServiceStack;
 
 namespace AElf.Miner.Rpc.Client
 {
-    [LoggerName("ClientToParentChain")]
+    
     public class ClientToParentChain : ClientBase<ResponseParentChainBlockInfo>
     {
         private readonly ParentChainBlockInfoRpc.ParentChainBlockInfoRpcClient _client;

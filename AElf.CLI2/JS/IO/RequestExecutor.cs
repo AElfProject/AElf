@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Web;
-using AElf.Common.Attributes;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

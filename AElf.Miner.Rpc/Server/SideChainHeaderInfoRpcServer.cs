@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Common.Attributes;
+
 using AElf.Kernel;
 using Grpc.Core;
 using AElf.Common;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Miner.Rpc.Server
 {
-    [LoggerName("SideChainRpcServer")]
+    
     public class SideChainBlockInfoRpcServer : SideChainBlockInfoRpc.SideChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;

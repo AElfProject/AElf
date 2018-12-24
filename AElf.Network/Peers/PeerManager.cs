@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Common.Attributes;
+
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Cryptography.ECDSA;
@@ -37,7 +37,7 @@ namespace AElf.Network.Peers
         public PeerMessageReceivedArgs Message { get; set; }
     }
 
-    [LoggerName(nameof(PeerManager))]
+    
     public class PeerManager : IPeerManager
     {
         public event EventHandler PeerEvent;

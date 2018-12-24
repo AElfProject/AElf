@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Common.Attributes;
+
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
@@ -31,7 +31,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Miner.Miner
 {
-    [LoggerName(nameof(Miner))]
+    
     public class Miner : IMiner
     {
         public ILogger<Miner> Logger {get;set;}

@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController.CrossChain;
 using AElf.Common;
-using AElf.Common.Attributes;
+
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
@@ -22,7 +22,7 @@ using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Miner.Rpc.Client
 {
-    [LoggerName("MinerClient")]
+    
     public class ClientManager
     {
         private readonly Dictionary<Hash, ClientToSideChain> _clientsToSideChains =

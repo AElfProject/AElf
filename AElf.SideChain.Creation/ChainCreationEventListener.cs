@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Common.Attributes;
+
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Management;
@@ -21,7 +21,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.SideChain.Creation
 {
-    [LoggerName(nameof(ChainCreationEventListener))]
+    
     public class ChainCreationEventListener
     {
         private HttpClient _client;

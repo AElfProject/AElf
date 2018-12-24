@@ -1,9 +1,9 @@
 ﻿using System;
-using AElf.Common.Attributes;
+
 
 namespace AElf.Configuration
 {
-    [LoggerName("Configuration")]
+    
     public class ConfigBase<T> where T : new()
     {
         //internal readonly ILogger Logger.Log

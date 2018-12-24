@@ -1,5 +1,5 @@
 ﻿using System;
-using AElf.Common.Attributes;
+
 using ChakraCore.NET;
 using ChakraCore.NET.Debug;
 using Microsoft.Extensions.Logging;

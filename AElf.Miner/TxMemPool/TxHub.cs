@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Common.Attributes;
+
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
