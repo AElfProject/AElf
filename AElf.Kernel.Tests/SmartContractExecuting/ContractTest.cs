@@ -37,12 +37,12 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         private ISmartContractService _smartContractService;
         private IFunctionMetadataService _functionMetadataService;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         public ContractTest(IStateManager stateManager,
             IChainCreationService chainCreationService, IChainService chainService,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
-            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer)
         {
             _stateManager = stateManager;
             _chainCreationService = chainCreationService;
@@ -51,8 +51,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _smartContractManager = smartContractManager;
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateManager, _functionMetadataService);
+            _smartContractRunnerContainer = smartContractRunnerContainer;
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager, _functionMetadataService);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;

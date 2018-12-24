@@ -43,7 +43,7 @@ namespace AElf.Miner.Tests
         private ulong _i = 0;
         private IChainCreationService _chainCreationService;
         private ISmartContractManager _smartContractManager;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
         private ITransactionManager _transactionManager;
         private ITransactionReceiptManager _transactionReceiptManager;
         private ITransactionResultManager _transactionResultManager;
@@ -57,7 +57,7 @@ namespace AElf.Miner.Tests
         private ITxRefBlockValidator _refBlockValidator;
         private IChainManager _chainManager;
         private IBlockManager _blockManager;
-        private IAuthorizationInfo _authorizationInfo;
+        private IAuthorizationInfoReader _authorizationInfoReader;
         private IStateManager _stateManager;
 
         public MockSetup(ILogger logger, IStateManager stateManager,
@@ -88,22 +88,22 @@ namespace AElf.Miner.Tests
         {
             _chainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, _stateManager);
-            _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            _smartContractRunnerContainer = new SmartContractRunnerContainer();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, runner);*/
+            _smartContractRunnerContainer.AddRunner(0, runner);*/
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-            _smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractRunnerContainer.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateManager,
+                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager,
                     _functionMetadataService), _transactionTraceManager, _stateManager,
                 new ChainContextService(_chainService));
 
             _chainCreationService = new ChainCreationService(_chainService,
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
+                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
                     _stateManager, _functionMetadataService), _logger);
 
             _chainContextService = new ChainContextService(_chainService);
-            _authorizationInfo = new AuthorizationInfo(_stateManager);
+            _authorizationInfoReader = new AuthorizationInfoReader(_stateManager);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -156,7 +156,7 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _merkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null), _chainManager, _stateManager);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, null), _chainManager, _stateManager);
 
             return blockExecutor;
         }
@@ -168,7 +168,7 @@ namespace AElf.Miner.Tests
         
         internal ITxHub CreateAndInitTxHub()
         {
-            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfo, _signatureVerifier, _refBlockValidator, null);
+            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, null);
             hub.Initialize();
             return hub;
         }

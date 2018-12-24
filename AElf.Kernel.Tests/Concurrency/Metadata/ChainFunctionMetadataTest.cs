@@ -19,15 +19,15 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     [UseAutofacTestFramework]
     public class ChainFunctionMetadataTest
     {
-        private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly IFunctionMetadataManager _functionMetadataManager;
 
-        public ChainFunctionMetadataTest(ISmartContractRunnerFactory smartContractRunnerFactory,
+        public ChainFunctionMetadataTest(ISmartContractRunnerContainer smartContractRunnerContainer,
             IFunctionMetadataService functionMetadataService,
             IFunctionMetadataManager functionMetadataManager)
         {
-            _smartContractRunnerFactory = smartContractRunnerFactory;
+            _smartContractRunnerContainer = smartContractRunnerContainer;
             _functionMetadataService = functionMetadataService;
             _functionMetadataManager = functionMetadataManager;
         }
@@ -36,7 +36,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public async Task TestDeployNewFunction()
         {
             var chainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
-            var runner = _smartContractRunnerFactory.GetRunner(0);
+            var runner = _smartContractRunnerContainer.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);
             var contractAType = typeof(TestContractA);

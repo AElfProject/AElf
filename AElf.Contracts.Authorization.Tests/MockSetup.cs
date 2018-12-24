@@ -38,7 +38,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         private IFunctionMetadataService _functionMetadataService;
         private IChainCreationService _chainCreationService;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
         private ILogger _logger;
         private IChainManager _chainManager;
         private ITransactionManager _transactionManager;
@@ -66,15 +66,15 @@ namespace AElf.Contracts.Authorization.Tests
         {
             ChainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, StateManager);
-            _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            _smartContractRunnerContainer = new SmartContractRunnerContainer();
             var runner =
                 new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractRunnerContainer.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
+                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
                     StateManager, _functionMetadataService), _logger);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory,
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
                 StateManager, _functionMetadataService);
             ChainService = new ChainService(_chainManager, _blockManager, _transactionManager,
                 _transactionTraceManager, StateManager);

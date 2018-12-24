@@ -17,7 +17,7 @@ namespace AElf.SmartContract
             
             builder.RegisterType<SmartContractService>().As<ISmartContractService>().SingleInstance();
             builder.RegisterType<FunctionMetadataService>().As<IFunctionMetadataService>().SingleInstance();
-            builder.RegisterType<AuthorizationInfo>().As<IAuthorizationInfo>().SingleInstance();
+            builder.RegisterType<AuthorizationInfoReader>().As<IAuthorizationInfoReader>().SingleInstance();
             builder.RegisterType<ElectionInfo>().As<IElectionInfo>().SingleInstance();
         }
     }

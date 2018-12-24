@@ -9,14 +9,14 @@ using AElf.Kernel.Manager.Interfaces;
 namespace AElf.SmartContract.Proposal
 {
     // todo review byte array performance
-    public class AuthorizationInfo : IAuthorizationInfo
+    public class AuthorizationInfoReader : IAuthorizationInfoReader
     {
         private readonly ContractInfoReader _contractInfoReader;
 
         private Address AuthorizationContractAddress =>
             ContractHelpers.GetAuthorizationContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
         
-        public AuthorizationInfo(IStateManager stateManager)
+        public AuthorizationInfoReader(IStateManager stateManager)
         {
             var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
             _contractInfoReader = new ContractInfoReader(chainId, stateManager);

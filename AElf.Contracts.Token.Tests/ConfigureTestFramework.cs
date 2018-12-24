@@ -41,11 +41,11 @@ namespace AElf.Contracts.Token.Tests
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
             
-            var smartContractRunnerFactory = new SmartContractRunnerFactory();
+            var smartContractRunnerFactory = new SmartContractRunnerContainer();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
-            builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
+            builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerContainer>().SingleInstance();
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();
         }

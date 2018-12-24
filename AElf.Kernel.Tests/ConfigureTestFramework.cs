@@ -57,11 +57,11 @@ namespace AElf.Kernel.Tests
             builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
             builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
 
-            var smartContractRunnerFactory = new SmartContractRunnerFactory();
+            var smartContractRunnerFactory = new SmartContractRunnerContainer();
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
-            builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
+            builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerContainer>().SingleInstance();
             builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
             builder.RegisterType<TxHub>().As<ITxHub>();

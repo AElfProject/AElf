@@ -11,7 +11,6 @@ using AElf.SmartContract;
 using AElf.SmartContract.Metadata;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
-using Akka.Remote;
 using Moq;
 using NLog;
 
@@ -29,7 +28,7 @@ namespace AElf.Synchronization.Tests
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
         private ITransactionTraceManager _transactionTraceManager;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
         private IFunctionMetadataService _functionMetadataService;
         private IExecutingService _concurrencyExecutingService;
         private ITxHub _txHub;
@@ -50,10 +49,10 @@ namespace AElf.Synchronization.Tests
             _smartContractManager = smartContractManager;
             _transactionTraceManager = transactionTraceManager;
             _transactionResultManager = transactionResultManager;
-            _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            _smartContractRunnerContainer = new SmartContractRunnerContainer();
             _functionMetadataService = new FunctionMetadataService(_logger,_functionMetadataManager);
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateManager,
+                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager,
                     _functionMetadataService), _transactionTraceManager, _stateManager,
                 new ChainContextService(GetChainService()));
             _txHub = txHub;
