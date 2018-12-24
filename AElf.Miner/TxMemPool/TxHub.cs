@@ -20,11 +20,11 @@ using AElf.SmartContract.Proposal;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.TxMemPool
 {
-    [LoggerName(nameof(TxHub))]
-    public class TxHub : ITxHub
+    public class TxHub : ITxHub, ITransientDependency
     {
         public ILogger<TxHub> Logger {get;set;}
         

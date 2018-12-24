@@ -11,11 +11,12 @@ using Grpc.Core;
 using AElf.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Rpc.Server
 {
     [LoggerName("ParentChainRpcServer")]
-    public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase
+    public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase, ITransientDependency
     {
         private readonly IChainService _chainService;
         public ILogger<ParentChainBlockInfoRpcServer> Logger {get;set;}

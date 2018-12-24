@@ -16,15 +16,15 @@ using Xunit.Frameworks.Autofac;
 
 namespace AElf.Runtime.CSharp.Tests
 {
-    public class RunnerMetadataTest
+    public sealed class RunnerMetadataTest : CSharpRuntimeTestBase
     {
         private IDataStore _store;
         private MockSetup _mock;
 
-        public RunnerMetadataTest(IDataStore store, MockSetup mock)
+        public RunnerMetadataTest()
         {
-            _store = store;
-            _mock = mock;
+            _store = GetRequiredService<IDataStore>();
+            _mock = GetRequiredService<MockSetup>();
         }
 
         [Fact]

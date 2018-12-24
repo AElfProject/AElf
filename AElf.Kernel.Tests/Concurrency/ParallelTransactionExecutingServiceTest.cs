@@ -20,13 +20,13 @@ using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency
 {
-    public class ParallelTransactionExecutingServiceTest : TestKitBase
+    public class ParallelTransactionExecutingServiceTest : AElfAkkaTestKitBase
     {
         private MockSetup _mock;
 
-        public ParallelTransactionExecutingServiceTest(MockSetup mock) : base(new XunitAssertions())
+        public ParallelTransactionExecutingServiceTest() : base(new XunitAssertions())
         {
-            _mock = mock;
+            _mock = this._aelfKernelIntegratedTest.GetRequiredService<MockSetup>();
         }
 
         [Fact]

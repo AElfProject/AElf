@@ -3,31 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Akka.Actor;
-using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using AElf.Execution;
 using AElf.Common;
 using AElf.Execution.Execution;
-using Akka.Configuration;
 using Google.Protobuf;
 using Address= AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-    public abstract class AElfAkkaTestKitBase : TestKitBase
-    {
-        protected AElfKernelIntegratedTest _aelfKernelIntegratedTest=new AElfKernelIntegratedTest();
-
-        protected AElfAkkaTestKitBase(ITestKitAssertions assertions, ActorSystem system = null, string testActorName = null) : base(assertions, system, testActorName)
-        {
-        }
-
-        protected AElfAkkaTestKitBase(ITestKitAssertions assertions, Config config, string actorSystemName = null, string testActorName = null) : base(assertions, config, actorSystemName, testActorName)
-        {
-        }
-    }
-    
-    
     public class WorkerTest : AElfAkkaTestKitBase
     {
         private MockSetup _mock;

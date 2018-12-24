@@ -5,19 +5,19 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp.Tests
 {
-    [UseAutofacTestFramework]
-    public class RunnerTest
+    public sealed class RunnerTest : CSharpRuntimeTestBase
     {
         private MockSetup _mock;
         private TestContractShim _contract1;
         private TestContractShim _contract2;
 
-        public RunnerTest(MockSetup mock)
+        public RunnerTest()
         {
-            _mock = mock;
+            _mock = GetRequiredService<MockSetup>();
             _contract1 = new TestContractShim(_mock);
             _contract2 = new TestContractShim(_mock, true);
         }

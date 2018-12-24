@@ -9,8 +9,6 @@ namespace AElf.Sdk.CSharp.Tests
         typeof(AElf.ChainController.ChainAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.RunnerAElfModule),
-        typeof(AElf.Miner.MinerAElfModule),
-        typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
         typeof(KernelAElfModule)
     )]
     public class CSharpSdkAElfModule : AElfModule

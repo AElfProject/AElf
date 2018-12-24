@@ -19,10 +19,11 @@ using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp.Tests
 {
-    public class MockSetup
+    public class MockSetup : ITransientDependency
     {
         private static int _incrementId = 0;
         public ulong NewIncrementId()
