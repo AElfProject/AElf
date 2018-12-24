@@ -632,7 +632,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         }
     
     }
-        
+
+#pragma warning disable CS0169,CS0649
     public class TestContractC
     {
         [SmartContractFieldData("${this}.resource4", DataAccessMode.AccountSpecific)]
@@ -652,6 +653,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         }
     }
 
+#pragma warning disable CS0169,CS0649
     internal class TestContractB
     {
         [SmartContractFieldData("${this}.resource2", DataAccessMode.AccountSpecific)]
@@ -673,7 +675,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         {
         }
     }
-
+    
+#pragma warning disable CS0169,CS0649
     internal class TestContractA
     {
         //test for different accessibility
@@ -740,6 +743,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         }
     }
 
+#pragma warning disable CS0169,CS0649
     public class TestRefNonAttrContract : CSharpSmartContract
     {
         [SmartContractReference("ref1", "ELF_1234_TestNonAttrContract1")]

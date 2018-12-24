@@ -8,14 +8,17 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Miner.TxMemPool;
 using AElf.SmartContract;
+using AElf.SmartContract.Metadata;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Moq;
+using NLog;
 
 namespace AElf.Synchronization.Tests
 {
     public class MockSetup
     {
+        private ILogger _logger = LogManager.GetLogger("Synchronization.Tests");
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
@@ -32,7 +35,7 @@ namespace AElf.Synchronization.Tests
         private ITxHub _txHub;
         private IChainManager _chainManager;
 
-        private IBlockSynchronizer _blockSynchronizer;
+        // private IBlockSynchronizer _blockSynchronizer;
 
         public MockSetup(IDataStore dataStore, IStateStore stateStore, ITxHub txHub)
         {
@@ -44,6 +47,7 @@ namespace AElf.Synchronization.Tests
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _smartContractRunnerContainer = new SmartContractRunnerContainer();
+            _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateStore,
                     _functionMetadataService), _transactionTraceManager, _stateStore,
