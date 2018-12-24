@@ -141,17 +141,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 MessageHub.Instance.Publish(inState.IsMining ? StateEvent.MiningStart : StateEvent.MiningEnd);
             });
 
-            MessageHub.Instance.Subscribe<BlockMined>(async inBlock =>
+            MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
             {
-                // Update DPoS process.
-                await AddMinedBlock(inBlock.Block);
-            });
-            
-            MessageHub.Instance.Subscribe<BlockMinedAndStored>(inBlock =>
-            {
-                // Update DPoS process.
-                MessageHub.Instance.Publish(UpdateConsensus.Update);
-                HandleMinedAndStoredBlock(inBlock.Block);
+                AddMinedBlock(inBlock.Block);
             });
 
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
@@ -308,14 +300,14 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _logger?.Warn($"Block already known {block}, current height {HeadBlock.Index} ");
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
-                    //return;
+                    return;
                 }
                 
                 try
                 {
                     _blockSet.PushBlock(block);
                 }
-                catch (UnlinkableBlockException e)
+                catch (UnlinkableBlockException)
                 {
                     _logger?.Warn($"Block unlinkable {block}");
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
@@ -468,6 +460,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
             HeadBlock = _blockSet.CurrentHead;
 
+            RollBackTimes++;
+                
             // Reverting -> Catching
             MessageHub.Instance.Publish(StateEvent.RollbackFinished);
         }
@@ -477,7 +471,7 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        private async Task AddMinedBlock(IBlock block)
+        private void AddMinedBlock(IBlock block)
         {
             try
             {
@@ -494,27 +488,9 @@ namespace AElf.Synchronization.BlockSynchronization
                     _logger?.Warn($"Mined block did not extend current chain ! Pushed {block}, current head {HeadBlock}, current state {CurrentState}");
                 }
             }
-            catch (UnlinkableBlockException e)
+            catch (UnlinkableBlockException)
             {
                 _logger?.Warn($"Block unlinkable {block}");
-                return;
-            }
-            
-            SetKeepHeight();
-        }
-        
-        private void HandleMinedAndStoredBlock(IBlock block)
-        {
-            SetKeepHeight();
-        }
-
-        private void SetKeepHeight()
-        {
-            // We can say the "initial sync" is finished, set KeepHeight to a specific number
-            if (_blockSet.KeepHeight == ulong.MaxValue)
-            {
-                _logger?.Trace($"Set the limit of the branched blocks cache in block set to {GlobalConfig.BlockCacheLimit}.");
-                _blockSet.KeepHeight = GlobalConfig.BlockCacheLimit;
             }
         }
 
@@ -555,8 +531,6 @@ namespace AElf.Synchronization.BlockSynchronization
         /// <summary>
         /// Keep executing blocks of specific height until the NodeState changed.
         /// </summary>
-        /// <param name="height"></param>
-        /// <returns></returns>
 //        private async Task KeepExecutingBlocksOfHeight(ulong height)
 //        {
 //            _logger?.Trace("Entered KeepExecutingBlocksOfHeight");

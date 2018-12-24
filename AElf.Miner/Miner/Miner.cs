@@ -14,6 +14,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Transaction;
@@ -192,9 +193,13 @@ namespace AElf.Miner.Miner
 
                 // insert to db
                 UpdateStorage(results, block);
+                
                 await _txHub.OnNewBlock((Block)block);
-                MessageHub.Instance.Publish(new BlockMinedAndStored(block));
+                
+                MessageHub.Instance.Publish(UpdateConsensus.Update); 
+                
                 stopwatch.Stop();
+                
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 
