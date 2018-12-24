@@ -488,8 +488,7 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                _logger.Error(e);
             }
         }
 
@@ -512,6 +511,7 @@ namespace AElf.Node.Protocol
 
                 lock (_syncLock)
                 {
+                    _logger?.Debug($"Peer {args.Peer} has been removed, trying to find another peer to sync.");
                     SyncNext();
                 }
             }
