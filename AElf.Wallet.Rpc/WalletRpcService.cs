@@ -53,25 +53,25 @@ namespace AElf.Wallet.Rpc
                     return new JObject();
                 }
 
-                return new JObject
+                return await Task.FromResult(new JObject
                 {
                     ["address"] = "0x",
                     ["error"] = "Failed"
-                };
+                });
             }
             catch (Exception e)
             {
-                return new JObject
+                return await Task.FromResult(new JObject
                 {
                     ["error"] = e.ToString()
-                };
+                });
             }
         }
 
         [JsonRpcMethod("list_accounts")]
         public async Task<List<string>> ListAccounts()
         {
-            return KeyStore.ListAccounts();
+            return await Task.FromResult(KeyStore.ListAccounts());
         }
 
         [JsonRpcMethod("sign_hash", "address", "password", "hash")]
@@ -95,10 +95,10 @@ namespace AElf.Wallet.Rpc
 
             // TODO: Standardize encoding
             // todo test
-            return new JObject()
+            return await Task.FromResult(new JObject
             {
                 ["sig"] = signature.SigBytes
-            };
+            });
         }
 
         #endregion

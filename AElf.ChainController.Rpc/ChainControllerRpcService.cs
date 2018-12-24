@@ -309,12 +309,13 @@ namespace AElf.ChainController.Rpc
                 {
                     throw new Exception("Unable to get parent chain block at height " + height);
                 }
-                return new JObject
+
+                return await Task.FromResult(new JObject
                 {
                     ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
                     ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
                     ["parent_height"] = merklePathInParentChain.Height
-                };
+                });
             }
             catch (Exception e)
             {
@@ -430,7 +431,7 @@ namespace AElf.ChainController.Rpc
                 var transaction = receipt.Transaction;
                 txInfo = transaction.GetTransactionInfo();
                 ((JObject) txInfo["tx"]).Add("params",
-                    String.Join(", ", await this.GetTransactionParameters(transaction)));
+                    string.Join(", ", await this.GetTransactionParameters(transaction)));
                 ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
                 ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
                 ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
@@ -572,7 +573,7 @@ namespace AElf.ChainController.Rpc
                 ["IsAlive"] = isAlive
             };
 
-            return JObject.FromObject(response);
+            return await Task.FromResult(JObject.FromObject(response));
         }
         
         [JsonRpcMethod("node_isforked")]
@@ -584,7 +585,7 @@ namespace AElf.ChainController.Rpc
                 ["IsForked"] = isForked
             };
 
-            return JObject.FromObject(response);
+            return await Task.FromResult(JObject.FromObject(response));
         }
         
         #endregion Methods
@@ -607,7 +608,7 @@ namespace AElf.ChainController.Rpc
 
                 var proposal = this.GetProposal(proposalHash);
                 DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-                return new JObject
+                return await Task.FromResult(new JObject
                 {
                     ["result"] = new JObject
                     {
@@ -618,14 +619,14 @@ namespace AElf.ChainController.Rpc
                         ["status"] = proposal.Status.ToString(),
                         ["proposer"] = proposal.Proposer.GetFormatted()
                     }
-                };
+                });
             }
             catch (Exception e)
             {
-                return new JObject
+                return await Task.FromResult(new JObject
                 {
                     ["error"] = e.Message
-                };
+                });
             }
         }
         #endregion
@@ -637,20 +638,20 @@ namespace AElf.ChainController.Rpc
             try
             {
                 var general = this.GetVotesGeneral();
-                return new JObject
+                return await Task.FromResult(new JObject
                 {
                     ["error"] = 0,
                     ["voters_count"] = general.Item1,
                     ["tickets_count"] = general.Item2,
-                };
+                });
             }
             catch (Exception e)
             {
-                return new JObject
+                return await Task.FromResult(new JObject
                 {
                     ["error"] = 1,
                     ["errormsg"] = e.Message
-                };
+                });
             }
         }
 
@@ -661,14 +662,14 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("get_invalid_block")]
         public async Task<JObject> InvalidBlockCount()
         {
-            var invalidBlockCount = await this.GetInvalidBlockCount();
+            var invalidBlockCount = this.GetInvalidBlockCount();
                 
             var response = new JObject
             {
                 ["InvalidBlockCount"] = invalidBlockCount
             };
 
-            return JObject.FromObject(response);
+            return await Task.FromResult(JObject.FromObject(response));
         }
         
         [JsonRpcMethod("get_rollback_times")]
@@ -681,7 +682,7 @@ namespace AElf.ChainController.Rpc
                 ["RollBackTimes"] = rollBackTimes
             };
 
-            return JObject.FromObject(response);
+            return await Task.FromResult(JObject.FromObject(response));
         }
 
         [JsonRpcMethod("get_db_value","key")]
@@ -725,7 +726,7 @@ namespace AElf.ChainController.Rpc
                     ["Value"] = JObject.Parse(value.ToString())
                 };
 
-                return JObject.FromObject(response);
+                return await Task.FromResult(JObject.FromObject(response));
             }
             catch (Exception e)
             {

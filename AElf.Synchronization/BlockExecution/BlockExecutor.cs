@@ -162,7 +162,7 @@ namespace AElf.Synchronization.BlockExecution
                 if (cts.IsCancellationRequested)
                 {
                     _logger?.Trace(
-                        $"Execution Cancelled and rollback: block hash: {block.BlockHashToHex}, " +
+                        $"Execution cancelled and rollback: block hash: {block.BlockHashToHex}, " +
                         $"execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
                     res = BlockExecutionResult.ExecutionCancelled;
                     throw new InvalidBlockException("Block execution timeout");

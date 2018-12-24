@@ -288,7 +288,7 @@ namespace AElf.ChainController.Rpc
             return (Block) await blockchain.GetBlockByHashAsync(blockHash);
         }
 
-        internal static async Task<int> GetInvalidBlockCount(this Svc s)
+        internal static int GetInvalidBlockCount(this Svc s)
         {
             return s.BlockSet.InvalidBlockCount;
         }
