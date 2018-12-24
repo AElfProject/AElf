@@ -13,7 +13,7 @@ namespace AElf.ChainController
             builder.RegisterType<ChainCreationService>().As<IChainCreationService>();
             builder.RegisterType<ChainContextService>().As<IChainContextService>();
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
-            builder.RegisterType<CrossChainInfo>().As<ICrossChainInfo>().SingleInstance();
+            builder.RegisterType<CrossChainInfoReader>().As<ICrossChainInfoReader>().SingleInstance();
         }
     }
 }

@@ -117,9 +117,15 @@ namespace AElf.Sdk.CSharp
             return RecoverPublicKey(GetTransaction().Sigs.First().ToByteArray(), GetTxnHash().DumpByteArray());
         }
         
+        public static Miners GetMiners()
+        {
+            Call(ConsensusContractAddress, "GetCurrentMiners");
+            return GetCallResult().DeserializeToPbMessage<Miners>();
+        }
+        
         public static List<string> GetCurrentMiners()
         {
-            if (Call(ConsensusContractAddress, "GetCurrentMiners", ParamsPacker.Pack("")))
+            if (Call(ConsensusContractAddress, "GetCurrentMiners", ""))
             {
                 return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
             }
@@ -129,7 +135,7 @@ namespace AElf.Sdk.CSharp
 
         public static ulong GetCurrentRoundNumber()
         {
-            if (Call(ConsensusContractAddress, "GetCurrentRoundNumber", ParamsPacker.Pack("")))
+            if (Call(ConsensusContractAddress, "GetCurrentRoundNumber", ""))
             {
                 return GetCallResult().ToUInt64();
             }
@@ -139,7 +145,7 @@ namespace AElf.Sdk.CSharp
         
         public static ulong GetCurrentTermNumber()
         {
-            if (Call(ConsensusContractAddress, "GetCurrentTermNumber", ParamsPacker.Pack("")))
+            if (Call(ConsensusContractAddress, "GetCurrentTermNumber", ""))
             {
                 return GetCallResult().ToUInt64();
             }
@@ -149,7 +155,7 @@ namespace AElf.Sdk.CSharp
 
         public static TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            if (Call(ConsensusContractAddress, "GetTermSnapshot", ParamsPacker.Pack(termNumber)))
+            if (Call(ConsensusContractAddress, "GetTermSnapshot", termNumber))
             {
                 return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
             }
@@ -159,8 +165,7 @@ namespace AElf.Sdk.CSharp
         
         public static Address GetContractOwner()
         {
-            if (Call(ContractZeroAddress, "GetContractOwner",
-                ParamsPacker.Pack(_smartContractContext.ContractAddress)))
+            if (Call(ContractZeroAddress, "GetContractOwner", _smartContractContext.ContractAddress))
             {
                 return GetCallResult().DeserializeToPbMessage<Address>();
             }
@@ -207,7 +212,7 @@ namespace AElf.Sdk.CSharp
         public static ulong GetResourceBalance(Address address, ResourceType resourceType)
         {
             Assert(GetFromAddress().Equals(address), "Not authorized to check resource");
-            Call(ResourceContractAddress, "GetResourceBalance", ParamsPacker.Pack(address, resourceType.ToString()));
+            Call(ResourceContractAddress, "GetResourceBalance", address, resourceType.ToString());
             return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
         }
         
@@ -219,7 +224,7 @@ namespace AElf.Sdk.CSharp
         public static ulong GetTokenBalance(Address address)
         {
             Assert(GetFromAddress().Equals(address), "Not authorized to check resource");
-            Call(TokenContractAddress, "BalanceOf", ParamsPacker.Pack(address));
+            Call(TokenContractAddress, "BalanceOf", address);
             return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
         }
         
@@ -266,7 +271,7 @@ namespace AElf.Sdk.CSharp
             });
         }
 
-        public static bool Call(Address contractAddress, string methodName, byte[] args = null)
+        public static bool Call(Address contractAddress, string methodName, params object[] args)
         {
             _lastCallContext = new TransactionContext()
             {
@@ -275,7 +280,7 @@ namespace AElf.Sdk.CSharp
                     From = _smartContractContext.ContractAddress,
                     To = contractAddress,
                     MethodName = methodName,
-                    Params = ByteString.CopyFrom(args ?? new byte[0])
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
                 }
             };
 
@@ -285,6 +290,7 @@ namespace AElf.Sdk.CSharp
             Task.Factory.StartNew(async () =>
             {
                 var executive = await svc.GetExecutiveAsync(contractAddress, chainId);
+                executive.SetDataCache(_dataProviders[""].StateCache);
                 try
                 {
                     // view only, write actions need to be sent via SendInline
@@ -301,7 +307,7 @@ namespace AElf.Sdk.CSharp
             return _lastCallContext.Trace.IsSuccessful();
         }
 
-        private static byte[] GetCallResult()
+        public static byte[] GetCallResult()
         {
             if (_lastCallContext != null)
             {
@@ -325,7 +331,7 @@ namespace AElf.Sdk.CSharp
                 throw new InternalError("No side chain contract was found.\n" + _lastCallContext.Trace.StdErr);
             }
 
-            if (Call(scAddress, "VerifyTransaction", ParamsPacker.Pack(txId, merklePath, parentChainHeight)))
+            if (Call(scAddress, "VerifyTransaction", txId, merklePath, parentChainHeight))
             {
                 return GetCallResult().DeserializeToPbMessage<BoolValue>().Value;
             }
@@ -338,7 +344,7 @@ namespace AElf.Sdk.CSharp
             SendInline(TokenContractAddress, "Transfer", GetContractAddress(), amount);
         }
         
-        public static void WithdrawToken(Address address, ulong amount)
+        public static void UnlockToken(Address address, ulong amount)
         {
             SendInlineByContract(TokenContractAddress, "Transfer", address, amount);
         }
@@ -363,6 +369,16 @@ namespace AElf.Sdk.CSharp
             {
                 throw new AssertionError(message);
             }
+        }
+
+        public static void Equal<T>(T expected, T actual, string message = "Assertion failed!")
+        {
+            Assert(expected.Equals(actual), message);
+        }
+        
+        public static void NotEqual<T>(T expected, T actual, string message = "Assertion failed!")
+        {
+            Assert(!expected.Equals(actual), message);
         }
 
         internal static void FireEvent(LogEvent logEvent)
@@ -401,7 +417,7 @@ namespace AElf.Sdk.CSharp
                 // No need to verify signature again if it is not multi sig account.
                 return;
             
-            Call(AuthorizationContractAddress, "GetAuth", ParamsPacker.Pack(_transactionContext.Transaction.From));
+            Call(AuthorizationContractAddress, "GetAuth", _transactionContext.Transaction.From);
 
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
             
@@ -425,7 +441,11 @@ namespace AElf.Sdk.CSharp
 
         }
 
-
+        public static void IsMiner(string err)
+        {
+            Assert(GetMiners().PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(RecoverPublicKey())), err);
+        }
+        
         /// <summary>
         /// Create and propose a proposal. Proposer is current transaction from account.
         /// </summary>

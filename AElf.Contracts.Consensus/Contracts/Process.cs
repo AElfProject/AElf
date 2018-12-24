@@ -350,8 +350,7 @@ namespace AElf.Contracts.Consensus.Contracts
             foreach (var candidateInTerm in candidateInTerms)
             {
                 Api.SendDividends(
-                    Address.FromPublicKey(Api.ChainId.DumpByteArray(),
-                        ByteArrayHelpers.FromHexString(candidateInTerm.PublicKey)),
+                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(candidateInTerm.PublicKey)),
                     Config.GetDividendsForEveryMiner(minedBlocks) +
                     (totalVotes == 0
                         ? 0
@@ -368,7 +367,7 @@ namespace AElf.Contracts.Consensus.Contracts
             {
                 var backupCount = (ulong) backups.Count;
                 Api.SendDividends(
-                    Address.FromPublicKey(Api.ChainId.DumpByteArray(), ByteArrayHelpers.FromHexString(backup)),
+                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
                     backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount);
             }
 

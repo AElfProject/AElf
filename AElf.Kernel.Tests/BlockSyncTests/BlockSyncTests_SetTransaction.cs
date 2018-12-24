@@ -6,7 +6,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
     public class BlockSyncTests_SetTransaction
     {
         [Fact]
-        public async Task AddBlockToSync_TxMissing_ShouldPutBlockToSync()
+        public void AddBlockToSync_TxMissing_ShouldPutBlockToSync()
         {
             /*var missingTxHash = ByteArrayHelpers.RandomFill(256);
             var returnTxHashes = new List<Hash> { new Hash(missingTxHash) };

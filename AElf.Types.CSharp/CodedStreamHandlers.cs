@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Google.Protobuf;
 
@@ -62,17 +63,48 @@ namespace AElf.Types.CSharp
         
         public static object ReadFromStream(this Type type, CodedInputStream input)
         {
+            uint length = 1;
+            bool isArray = false;
             if (_readHandlers.TryGetValue(type, out var h))
             {
                 return h(input);
             }
-            else if (type.IsPbMessageType())
+            
+            if (type.IsArray && type != typeof(byte[]))
             {
-                var obj = (IMessage)Activator.CreateInstance(type);
+                length = input.ReadUInt32();
+                isArray = true;
+            }
+
+            // PbMessage type
+            if (type.IsPbMessageType())
+            {
+                var obj = (IMessage) Activator.CreateInstance(type);
                 input.ReadMessage(obj);
                 return obj;
             }
-            else if (type.IsUserType())
+            
+            // PbMessage array
+            if( isArray && type.GetElementType().IsPbMessageType())
+            {
+                if (length == 0)
+                    return null;
+                object[] array = new Object[length];
+                //var array = Activator.CreateInstance(type.GetElementType(), length);
+                for (int i = 0; i < length; i++)
+                {
+                    var obj = (IMessage) Activator.CreateInstance(type.GetElementType());
+                    input.ReadMessage(obj);
+                    array[i] = obj;
+                }
+
+                Array destinationArray = Array.CreateInstance(type.GetElementType(), length);
+                Array.Copy(array, destinationArray, length);
+                return destinationArray;
+            }
+
+            // User type
+            if (type.IsUserType())
             {
                 var obj = (UserType)Activator.CreateInstance(type);
                 var holder = new UserTypeHolder();
@@ -80,10 +112,27 @@ namespace AElf.Types.CSharp
                 obj.Unpack(holder);
                 return obj;
             }
-            else
+            
+            // User type
+            if(isArray && type.GetElementType().IsUserType())
             {
-                throw new Exception($"Unable to read for type {type}.");
+                if (length == 0)
+                    return null;
+                var array = new object[length];
+                for (int i = 0; i < length; i++)
+                {
+                    var obj = (UserType)Activator.CreateInstance(type.GetElementType());
+                    var holder = new UserTypeHolder();
+                    input.ReadMessage(holder);
+                    obj.Unpack(holder);
+                    array[i] = obj;
+                }
+                Array destinationArray = Array.CreateInstance(type.GetElementType(), length);
+                Array.Copy(array, destinationArray, length);
+                return destinationArray;
             }
+
+            throw new Exception($"Unable to read for type {type}.");
         }
     }
 }

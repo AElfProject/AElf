@@ -1,12 +1,11 @@
 ﻿using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 
 namespace AElf.Miner.Miner
 {
     public interface IMiner
     {
-        void Init(ECKeyPair _nodeKeyPair);
+        void Init();
         
         /// <summary>
         /// This method mines a block.

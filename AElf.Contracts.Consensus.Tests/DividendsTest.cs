@@ -176,7 +176,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private Address GetAddress(ECKeyPair keyPair)
         {
-            return Address.FromPublicKey(_mock.ChainId.DumpByteArray(), keyPair.PublicKey);
+            return Address.FromPublicKey(keyPair.PublicKey);
         }
     }
 }

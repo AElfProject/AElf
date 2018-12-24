@@ -22,12 +22,12 @@ namespace AElf.Configuration.Tests
             var fileName = "test.json";
             CheckAndCreateFile(fileName);
 
-            Assert.Equal(TestConfig.Instance.StringValue, "str-a");
+            Assert.Equal("str-a", TestConfig.Instance.StringValue);
 
             ChangeFile(fileName);
             Thread.Sleep(6000);
             
-            Assert.Equal(TestConfig.Instance.StringValue, "str-a");
+            Assert.Equal("str-a", TestConfig.Instance.StringValue);
             
             DeleteFile(fileName);
         }
@@ -38,12 +38,12 @@ namespace AElf.Configuration.Tests
             var fileName = "test-file-watch.json";
             CheckAndCreateFile(fileName);
 
-            Assert.Equal(TestFileWatchConfig.Instance.StringValue, "str-a");
+            Assert.Equal("str-a", TestFileWatchConfig.Instance.StringValue);
 
             ChangeFile(fileName);
             Thread.Sleep(6000);
             
-            Assert.Equal(TestFileWatchConfig.Instance.StringValue, "str-b");
+            Assert.Equal("str-b", TestFileWatchConfig.Instance.StringValue);
             
             DeleteFile(fileName);
         }

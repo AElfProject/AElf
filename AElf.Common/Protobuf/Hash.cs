@@ -81,7 +81,7 @@ namespace AElf.Common
         /// <returns></returns>
         public static Hash FromTwoHashes(Hash hash1, Hash hash2)
         {
-            var hashes = new List<Hash>()
+            var hashes = new List<Hash>
             {
                 hash1, hash2
             };
@@ -183,15 +183,17 @@ namespace AElf.Common
         /// <returns></returns>
         public static Hash Xor(Hash h1, Hash h2)
         {
-            var newHashBytes = new byte[h1.Value.Length];
-            for (int i = 0; i < newHashBytes.Length; i++)
+            // Fix: The chainId & general hash are not the same length.
+            var newBytes = h1.Value.Length > h2.Value.Length ? h1.ToByteArray() : h2.ToByteArray();
+            var minLength = Math.Min(h1.Value.Length, h2.Value.Length);
+            for (var i = 0; i < minLength; i++)
             {
-                newHashBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
+                newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
             }
 
-            return new Hash()
+            return new Hash
             {
-                Value = ByteString.CopyFrom(newHashBytes)
+                Value = ByteString.CopyFrom(newBytes)
             };
         }
 

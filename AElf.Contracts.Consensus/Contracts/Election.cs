@@ -61,7 +61,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void QuitElection()
         {
-            Api.WithdrawToken(Api.GetFromAddress(), GlobalConfig.LockTokenForElection);
+            Api.UnlockToken(Api.GetFromAddress(), GlobalConfig.LockTokenForElection);
             var candidates = _collection.CandidatesField.GetValue();
             candidates.PublicKeys.Remove(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);

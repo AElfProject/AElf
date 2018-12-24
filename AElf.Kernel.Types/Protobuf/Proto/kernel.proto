@@ -70,9 +70,8 @@ message TransactionList {
 enum TransactionType {
     ContractTransaction = 0;
     DposTransaction = 1;
-    CrossChainBlockInfoTransaction = 2;
-    MsigTransaction = 3;
-    ContractDeployTransaction=4;
+    MsigTransaction = 2;
+    ContractDeployTransaction=3;
 }
 
 enum Status {
@@ -93,8 +92,7 @@ message TransactionResult {
     int32 Index = 8;
     Hash StateHash = 9;
     // Merkle proof path for this transaction
-    MerklePath MerklePath = 10;
-    Hash DeferredTxnId = 11; 
+    Hash DeferredTxnId = 10; 
 }
 
 // For failed transactions, its status follows the Min of
@@ -168,8 +166,7 @@ message BlockHeader {
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
     Hash ChainId = 10;
-    Hash SideChainBlockHeadersRoot = 11;
-    Hash SideChainTransactionsRoot = 12;
+    Hash SideChainTransactionsRoot = 11;
 }
 
 message BlockBody {
