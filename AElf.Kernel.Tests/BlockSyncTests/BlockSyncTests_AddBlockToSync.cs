@@ -8,22 +8,23 @@ namespace AElf.Kernel.Tests.BlockSyncTests
 {
     public class BlockSyncTests_AddBlockToSync
     {
-
-//        [Fact(Skip = "todo")]
-//        public void Test()
-//        {
-//            byte[] byte01 = ByteArrayHelpers.RandomFill(10);
-//            byte[] byte02 = new byte[10];
-//            
-//            byte[] byte03 = ByteArrayHelpers.RandomFill(10);
-//            
-//            Array.Copy(byte01, byte02, 10);
-//            
-//            SyncPeer s = new SyncPeer();
-//            s.AlreadyRequested.Enqueue(byte01);
-//            
-//            Assert.True(s.AlreadyRequested.Contains(byte03));
-//        }
+        [Fact(Skip = "todo")]
+        public void Test()
+        {
+            /*
+            byte[] byte01 = ByteArrayHelpers.RandomFill(10);
+            byte[] byte02 = new byte[10];
+            
+            byte[] byte03 = ByteArrayHelpers.RandomFill(10);
+            
+            Array.Copy(byte01, byte02, 10);
+            
+            SyncPeer s = new SyncPeer();
+            s.AlreadyRequested.Enqueue(byte01);
+            
+            Assert.True(s.AlreadyRequested.Contains(byte03));
+            */
+        }
         
         [Fact(Skip = "todo")]
         public void Test2()
@@ -40,7 +41,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         }
         
         [Fact(Skip = "todo")]
-        public async Task AddBlockToSync_NullBlock_ShouldThrow()
+        public void AddBlockToSync_NullBlock_ShouldThrow()
         {
             /*BlockSynchronizer s = new BlockSynchronizer(null, null);
             
@@ -55,7 +56,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         }
 
         [Fact(Skip = "todo")]
-        public async Task AddBlockToSync_NoTransactions_ShouldThrow()
+        public void AddBlockToSync_NoTransactions_ShouldThrow()
         {
             /*
             BlockSynchronizer s = new BlockSynchronizer(null, null);
@@ -70,7 +71,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         }
 
         [Fact(Skip = "todo")]
-        public async Task AddBlockToSync_NoHash_ShouldThrow()
+        public void AddBlockToSync_NoHash_ShouldThrow()
         {
             /*BlockSynchronizer s = new BlockSynchronizer(null, null);
             
@@ -84,7 +85,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         }
         
         [Fact(Skip = "todo")]
-        public async Task AddBlockToSync_BlockHeightLowerThanCurrent_ReturnsFalse()
+        public void AddBlockToSync_BlockHeightLowerThanCurrent_ReturnsFalse()
         {
             /*BlockSynchronizer s = new BlockSynchronizer(null, null);
             s.SetNodeHeight(2);
@@ -98,7 +99,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         }
 
         [Fact(Skip = "todo")]
-        public async Task AddBlockToSync_TxMissing_ShouldPutBlockToSync()
+        public void AddBlockToSync_TxMissing_ShouldPutBlockToSync()
         {
             /*var missingTxHash = ByteArrayHelpers.RandomFill(256);
             var returnTxHashes = new List<Hash> { new Hash(missingTxHash) };
@@ -125,7 +126,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         }
 
         [Fact(Skip = "todo")]
-        public async Task AddBlockToSync_AlreadyInPool_ShouldPutBlockToSyncIfOrphan()
+        public void AddBlockToSync_AlreadyInPool_ShouldPutBlockToSyncIfOrphan()
         {
             /*Mock<IAElfNode> mock = new Mock<IAElfNode>();
             

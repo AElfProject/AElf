@@ -156,30 +156,16 @@ namespace AElf.Miner.TxMemPool
             return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).ToList());
         }
 
-        public async Task<List<TransactionReceipt>> GetReceiptsForAsync(IEnumerable<Transaction> transactions,CancellationTokenSource cancellationTokenSource)
+        public async Task<TransactionReceipt> GetCheckedReceiptsAsync(Transaction txn)
         {
-            var trs = new List<TransactionReceipt>();
-            // TODO: Check if parallelization is needed
-            foreach (var txn in transactions)
+            if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
             {
-                if (cancellationTokenSource.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
-                {
-                    tr = new TransactionReceipt(txn);
-                    _allTxns.TryAdd(tr.TransactionId, tr);
-                }
-
-                VerifySignature(tr);
-                await ValidateRefBlock(tr);
-
-                trs.Add(tr);
+                tr = new TransactionReceipt(txn);
+                _allTxns.TryAdd(tr.TransactionId, tr);
             }
-
-            return trs;
+            VerifySignature(tr);
+            await ValidateRefBlock(tr);
+            return tr;
         }
 
         public async Task<TransactionReceipt> GetReceiptAsync(Hash txId)

@@ -19,7 +19,7 @@ namespace AElf.Synchronization.BlockSynchronization
         public BlockState CurrentHead { get; private set; }
         public BlockState CurrentLib { get; private set; }
         
-        private static List<BlockState> _blocks = new List<BlockState>();
+        private List<BlockState> _blocks;
 
         private ReaderWriterLock _rwLock = new ReaderWriterLock();
         private static int _flag;
@@ -39,6 +39,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 throw new ArgumentException("Miners is empty");
             
             _miners = miners.ToList();
+            _blocks = new List<BlockState>();
             
             CurrentHead = new BlockState(currentDbBlock, null, true, _miners);
             _blocks.Add(CurrentHead);

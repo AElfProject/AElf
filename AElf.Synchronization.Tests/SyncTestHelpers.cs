@@ -26,6 +26,16 @@ namespace AElf.Synchronization.Tests
             
             return keyPairs;
         }
+
+        public static List<string> ToPubKeyStrings(this List<ECKeyPair> keyPairs)
+        {
+            List<string> pubKeyStrings = new List<string>(keyPairs.Count);
+            
+            foreach (var key in keyPairs)
+                pubKeyStrings.Add(key.PublicKey.ToHex());
+
+            return pubKeyStrings;
+        }
         
         /// <summary>
         /// Builds the genesis block with AElfs builder.

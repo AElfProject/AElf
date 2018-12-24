@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
 using AElf.Kernel;
@@ -23,6 +24,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
 using NLog;
+using Transaction = AElf.Kernel.Transaction;
 
 namespace AElf.ChainController.Rpc
 {
@@ -154,34 +156,6 @@ namespace AElf.ChainController.Rpc
             }
         }
 
-        [JsonRpcMethod("get_increment", "address")]
-        public async Task<JObject> ProcessGetIncrementId(string address)
-        {
-            Address addr;
-            try
-            {
-                addr = Address.Parse(address);
-            }
-            catch (Exception)
-            {
-                return JObject.FromObject(new JObject
-                {
-                    ["error"] = "Invalid Address Format"
-                });
-            }
-
-            var current = await this.GetIncrementId(addr);
-            var response = new JObject
-            {
-                ["result"] = new JObject
-                {
-                    ["increment"] = current
-                }
-            };
-
-            return JObject.FromObject(response);
-        }
-
         [JsonRpcMethod("call", "rawtx")]
         public async Task<JObject> ProcessCallReadOnly(string raw64)
         {
@@ -222,23 +196,16 @@ namespace AElf.ChainController.Rpc
                 return await Task.FromResult(res);
             }
             
-//            try
-//            {
-            // TODO: Wait validation done
+            try
+            {
+                //TODO: Wait validation done
+                transaction.GetTransactionInfo();
                 await TxHub.AddTransactionAsync(transaction);
-//                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
-//                {
-//                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
-//                }
-//                else
-//                {
-//                    res["error"] = valRes.ToString();
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                res["error"] = e.ToString();
-//            }
+            }
+            catch (Exception e)
+            {
+                res["error"] = e.ToString();
+            }
 
             return await Task.FromResult(res);
         }
@@ -706,7 +673,7 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("get_rollback_times")]
         public async Task<JObject> RollBackTimes()
         {
-            var rollBackTimes = await this.GetRollBackTimes();
+            var rollBackTimes = this.GetRollBackTimes();
                 
             var response = new JObject
             {
@@ -716,33 +683,6 @@ namespace AElf.ChainController.Rpc
             return JObject.FromObject(response);
         }
 
-//        [JsonRpcMethod("set_block_volume", "minimal", "maximal")]
-//        public async Task<JObject> ProcSetBlockVolume(string minimal, string maximal)
-//        {
-//            /* TODO: This is a privileged method, need:
-//             *   1. Optional enabling of this method (maybe separate endpoint), and/or
-//             *   2. Authentication / authorization
-//             */
-//            try
-//            {
-//                var min = int.Parse(minimal);
-//                var max = int.Parse(maximal);
-//                this.SetBlockVolume(min, max);
-//                return await Task.FromResult(new JObject
-//                {
-//                    ["result"] = "Success"
-//                });
-//            }
-//            catch (Exception e)
-//            {
-//                _logger.Error(e, "Exception while ProcSetBlockVolume.");
-//                return await Task.FromResult(new JObject
-//                {
-//                    ["error"] = "Failed"
-//                });
-//            }
-//        }
-        
         [JsonRpcMethod("get_db_value","key")]
         public async Task<JObject> GetDbValue(string key)
         {

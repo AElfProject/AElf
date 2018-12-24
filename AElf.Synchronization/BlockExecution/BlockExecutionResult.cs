@@ -7,17 +7,20 @@ namespace AElf.Synchronization.BlockExecution
         Success = 1,
         PrepareSuccess,
         CollectTransactionsSuccess,
+        TransactionExecutionSuccess,
         UpdateWorldStateSuccess,
 
         // Add to cache
         //     Haven't appended yet, can execute again
-        InvalidSideChaiTransactionMerkleTree = 11,
+        InvalidSideChaiTransactionMerkleTreeRoot = 11,
         InvalidParentChainBlockInfo,
+        InvalidSideChainBlockInfo,
+        TooManyTxsForCrossChainIndexing,
+        NotExecutable,
 
         //     Simply cache
         BlockIsNull = 21,
         NoTransaction,
-        TooManyTxsForCrossChainIndexing,
         AlreadyAppended,
         Terminated,
         Mining,
@@ -26,7 +29,7 @@ namespace AElf.Synchronization.BlockExecution
         // Need to rollback
         Fatal = 101, // Unknown error
         ExecutionCancelled,
-        IncorrectStateMerkleTree
+        IncorrectStateMerkleTree,
     }
 
     public static class ExecutionResultExtensions

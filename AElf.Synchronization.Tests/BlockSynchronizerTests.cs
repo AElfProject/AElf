@@ -12,6 +12,7 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
+using Easy.MessageHub;
 using Moq;
 using Org.BouncyCastle.Crypto.Generators;
 using Xunit;
@@ -100,6 +101,7 @@ namespace AElf.Synchronization.Tests
 
         public void Dispose()
         {
+            MessageHub.Instance.ClearSubscriptions();
         }
     }
     

@@ -16,7 +16,7 @@ namespace AElf.Synchronization.Tests
             var genesis = SyncTestHelpers.GetGenesisBlock();
             
             BlockSet blockSet = new BlockSet();
-            blockSet.Init(new List<string>(), genesis);
+            blockSet.Init(SyncTestHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
             
             Assert.Equal(blockSet.CurrentLib.BlockHash, genesis.GetHash());
         }
@@ -27,7 +27,7 @@ namespace AElf.Synchronization.Tests
             var genesis = SyncTestHelpers.GetGenesisBlock();
             
             BlockSet blockSet = new BlockSet();
-            blockSet.Init(new List<string>(), genesis);
+            blockSet.Init(SyncTestHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
 
             var block1 = SyncTestHelpers.BuildNext(genesis);
             var block2 = SyncTestHelpers.BuildNext(block1);
@@ -54,7 +54,7 @@ namespace AElf.Synchronization.Tests
             var genesis = SyncTestHelpers.GetGenesisBlock();
             
             BlockSet blockSet = new BlockSet();
-            blockSet.Init(new List<string>(), genesis);
+            blockSet.Init(SyncTestHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
 
             var invalidBlock = SyncTestHelpers.BuildNext(genesis);
             
@@ -68,13 +68,7 @@ namespace AElf.Synchronization.Tests
         public void ExtendChainToLibBasicTest()
         {
             // 3 miners (self included).
-            var miners = SyncTestHelpers.GetRandomMiners();
-            var minerPubKeys = new List<string>
-            {
-                miners.ElementAt(0).PublicKey.ToHex(),
-                miners.ElementAt(1).PublicKey.ToHex(),
-                miners.ElementAt(2).PublicKey.ToHex()
-            };
+            var minerPubKeys = SyncTestHelpers.GetRandomMiners().ToPubKeyStrings();
             
             var genesis = SyncTestHelpers.GetGenesisBlock();
             BlockSet blockSet = new BlockSet();
@@ -85,7 +79,7 @@ namespace AElf.Synchronization.Tests
             IBlock block3 = SyncTestHelpers.BuildNext(block2, minerPubKeys[2]);  // miner 03 (self - doesn't add a conf)
             
             IBlock block4 = SyncTestHelpers.BuildNext(block3, minerPubKeys[0]);  // miner 04
-
+            
             List<BlockState> eventList = new List<BlockState>();
             MessageHub.Instance.Subscribe<NewLibFound>(e =>
             {

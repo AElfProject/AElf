@@ -308,7 +308,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _logger?.Warn($"Block already known {block}, current height {HeadBlock.Index} ");
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
-                    return;
+                    //return;
                 }
                 
                 try
@@ -389,9 +389,9 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // todo side chain logic
                 // BlockExecuting -> ExecutingLoop
-                MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
+                //MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 //await KeepExecutingBlocksOfHeight(block.Index);
-                return BlockExecutionResult.InvalidSideChaiTransactionMerkleTree;
+                return BlockExecutionResult.InvalidSideChaiTransactionMerkleTreeRoot;
             }
             else if (executionResult.CannotExecute())
             {
