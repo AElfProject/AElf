@@ -172,6 +172,8 @@ namespace AElf.Node.Protocol
                 // Note - This should not happen during header this
                 if (UnlinkableHeaderIndex != 0)
                     return;
+                
+                LocalHeight++;
 
                 IBlock acceptedBlock = inBlock.Block;
                 

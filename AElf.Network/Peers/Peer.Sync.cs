@@ -106,6 +106,8 @@ namespace AElf.Network.Peers
             // set sync state
             SyncTarget = target;
             CurrentlyRequestedHeight = start;
+            
+            _logger?.Debug($"[{this}] Syncing to height {SyncTarget}.");
 
             // request 
             RequestBlockByIndex(CurrentlyRequestedHeight);
@@ -126,9 +128,9 @@ namespace AElf.Network.Peers
                 {
                     var aa = _announcements.OrderBy(a => a.Height).FirstOrDefault();
                     if (aa != null && aa.Height != SyncTarget+1)
-                        _logger?.Warn($"We're missing a block, first announce {aa.Height} sync target {SyncTarget}");
+                        _logger?.Warn($"[{this}] We're missing a block, first announce {aa.Height} sync target {SyncTarget}");
                     else
-                        _logger?.Debug($"All synced : next {aa?.Height} sync target {SyncTarget}");
+                        _logger?.Debug($"[{this}] All synced : next {aa?.Height} sync target {SyncTarget}");
                 }
                 
                 SyncTarget = 0;
@@ -342,7 +344,7 @@ namespace AElf.Network.Peers
 
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                     
-                    Dispose();
+                    //Dispose();
                 }
             }
         }

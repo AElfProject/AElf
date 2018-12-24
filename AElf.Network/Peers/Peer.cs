@@ -288,7 +288,7 @@ namespace AElf.Network.Peers
 
                 byte[] packet = nd.ToByteArray();
 
-                _logger?.Trace($"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
+                _logger?.Trace($"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()}, height: {nd.Height}, version {nd.Version} }}");
 
                 _messageWriter.EnqueueMessage(new Message {Type = (int) MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
 
