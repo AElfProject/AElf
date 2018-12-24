@@ -132,6 +132,10 @@ namespace AElf.Contracts.Consensus
         public StringList GetCurrentMiners(string empty)
         {
             var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
+            if (currentTermNumber == 0)
+            {
+                currentTermNumber = 1;
+            }
             Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
                 GlobalConfig.TermNumberNotFound);
             return currentMiners.PublicKeys.ToList().ToStringList();
@@ -299,19 +303,19 @@ namespace AElf.Contracts.Consensus
             Election.Vote(candidatePublicKey, amount, lockTime);
         }
 
-        public void GetDividendsByDetail(string candidatePublicKey, ulong amount, int lockDays)
+        public void ReceiveDividendsByVotingDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
-            Election.GetDividends(candidatePublicKey, amount, lockDays);
+            Election.ReceiveDividends(candidatePublicKey, amount, lockDays);
         }
 
-        public void GetDividendsByTransactionId(Hash transactionId)
+        public void ReceiveDividendsByTransactionId(Hash transactionId)
         {
-            Election.GetDividends(transactionId);
+            Election.ReceiveDividends(transactionId);
         }
         
-        public void GetAllDividends(string empty)
+        public void ReceiveAllDividends(string empty)
         {
-            Election.GetDividends();
+            Election.ReceiveDividends();
         }
         
         public void WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)

@@ -141,7 +141,7 @@ namespace AElf.Contracts.Consensus.Contracts
             Console.WriteLine($"Voted {amount} tickets to {candidatePublicKey}.");
         }
 
-        public void GetDividends(string candidatePublicKey, ulong amount, int lockDays)
+        public void ReceiveDividends(string candidatePublicKey, ulong amount, int lockDays)
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
@@ -159,7 +159,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
         }
 
-        public void GetDividends(Hash transactionId)
+        public void ReceiveDividends(Hash transactionId)
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
@@ -175,7 +175,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
         }
 
-        public void GetDividends()
+        public void ReceiveDividends()
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {

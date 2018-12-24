@@ -125,7 +125,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(dividendsOfSecondTerm == shouldBe);
             
             var balanceBefore = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
-            _consensusContract.GetAllDividends(mustVotedVoter);
+            _consensusContract.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
             Assert.True(balanceAfter >= balanceBefore);

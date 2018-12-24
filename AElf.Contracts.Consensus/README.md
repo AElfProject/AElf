@@ -38,7 +38,7 @@ The **Weight** of this voting (VotingRecord) will be calculated by tickets amoun
 
 In addition, current candidates can't vote to any public key.
 
-### `GetAllDividends`
+### `ReceiveAllDividends`
 
 *No params*
 
@@ -237,7 +237,7 @@ To query all the alias in use.
 
 当前候选人不能为任何人投票。
 
-### `GetAllDividends`
+### `ReceiveAllDividends`
 
 *无参数*
 

@@ -543,14 +543,14 @@ namespace AElf.Contracts.Consensus.Tests
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
-        public void GetAllDividends(ECKeyPair ownerKeyPair)
+        public void ReceiveAllDividends(ECKeyPair ownerKeyPair)
         {
             var tx = new Transaction
             {
                 From = GetAddress(ownerKeyPair),
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
-                MethodName = "GetAllDividends",
+                MethodName = "ReceiveAllDividends",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
             };
             var signer = new ECSigner();
