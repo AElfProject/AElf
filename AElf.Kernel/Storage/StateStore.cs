@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Serializers;
 using AElf.Database;
-using AElf.Kernel.Storage.Interfaces;
 
-namespace AElf.Kernel.Storage.Storages
+namespace AElf.Kernel.Storage
 {
-    public class StateStore : KeyValueStoreBase, IStateStore
+    public class StateStore : KeyValueStoreBase
     {
 
         public StateStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)

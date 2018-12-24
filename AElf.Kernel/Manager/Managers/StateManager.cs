@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage;
 
 namespace AElf.Kernel.Manager.Managers
 {
     public class StateManager : IStateManager
     {
-        private readonly IStateStore _stateStore;
+        private readonly IKeyValueStore _stateStore;
 
-        public StateManager(IStateStore stateStore)
+        public StateManager(StateStore stateStore)
         {
             _stateStore = stateStore;
         }

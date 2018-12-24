@@ -1,17 +1,17 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage;
 using NLog;
 
 namespace AElf.Kernel.Manager.Managers
 {
     public class TransactionManager: ITransactionManager
     {
-        private readonly ITransactionStore _transactionStore;
+        private readonly IKeyValueStore _transactionStore;
         private readonly ILogger _logger;
 
-        public TransactionManager(ITransactionStore transactionStore)
+        public TransactionManager(TransactionStore transactionStore)
         {
             _transactionStore = transactionStore;
             _logger = LogManager.GetLogger(nameof(TransactionManager));

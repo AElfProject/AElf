@@ -17,7 +17,6 @@ using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Manager.Managers;
-using AElf.Kernel.Storage.Interfaces;
 using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution

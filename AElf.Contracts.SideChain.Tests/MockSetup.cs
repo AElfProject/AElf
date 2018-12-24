@@ -15,8 +15,6 @@ using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Manager.Managers;
-using AElf.Kernel.Storage.Interfaces;
-using AElf.Kernel.Storage.Storages;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract.Metadata;

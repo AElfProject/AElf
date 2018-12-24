@@ -7,7 +7,6 @@ using Easy.MessageHub;
 using NLog;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
 using AElf.Kernel.Types.Common;
 
 // ReSharper disable once CheckNamespace

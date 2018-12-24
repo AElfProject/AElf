@@ -1,15 +1,15 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage;
 
 namespace AElf.Kernel.Manager.Managers
 {
     public class SmartContractManager : ISmartContractManager
     {
-        private readonly ISmartContractStore _smartContractStore;
+        private readonly IKeyValueStore _smartContractStore;
 
-        public SmartContractManager(ISmartContractStore smartContractStore)
+        public SmartContractManager(SmartContractStore smartContractStore)
         {
             _smartContractStore = smartContractStore;
         }

@@ -12,8 +12,6 @@ using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Manager.Managers;
-using AElf.Kernel.Storage.Interfaces;
-using AElf.Kernel.Storage.Storages;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract.Metadata;
 using NLog;

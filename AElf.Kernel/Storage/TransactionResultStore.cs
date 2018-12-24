@@ -1,11 +1,10 @@
 using AElf.Common;
 using AElf.Common.Serializers;
 using AElf.Database;
-using AElf.Kernel.Storage.Interfaces;
 
-namespace AElf.Kernel.Storage.Storages
+namespace AElf.Kernel.Storage
 {
-    public class TransactionResultStore : KeyValueStoreBase, ITransactionResultStore
+    public class TransactionResultStore : KeyValueStoreBase
     {
         public TransactionResultStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
             : base(keyValueDatabase, byteSerializer, GlobalConfig.TransactionResultPrefix)

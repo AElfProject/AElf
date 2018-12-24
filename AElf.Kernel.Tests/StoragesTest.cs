@@ -10,7 +10,6 @@ using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
-using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.Kernel.Tests
 {

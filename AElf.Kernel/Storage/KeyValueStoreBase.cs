@@ -4,11 +4,10 @@ using System.Threading.Tasks;
 using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Kernel.Exceptions;
-using AElf.Kernel.Storage.Interfaces;
 
-namespace AElf.Kernel.Storage.Storages
+namespace AElf.Kernel.Storage
 {
-    public abstract class KeyValueStoreBase : IKeyValueStoreBase
+    public abstract class KeyValueStoreBase : IKeyValueStore
     {
         protected readonly IKeyValueDatabase KeyValueDatabase;
         protected readonly IByteSerializer ByteSerializer;

@@ -6,7 +6,6 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Manager.Managers;
-using AElf.Kernel.Storage.Interfaces;
 using AElf.Miner.TxMemPool;
 using AElf.SmartContract;
 using AElf.SmartContract.Metadata;

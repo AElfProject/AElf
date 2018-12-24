@@ -2,20 +2,20 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage;
 using NLog;
 
 namespace AElf.Kernel.Manager.Managers
 {
     public class MinersManager : IMinersManager
     {
-        private readonly IMinersStore _minersStore;
+        private readonly IKeyValueStore _minersStore;
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(MinersManager));
 
         private static Hash Key => Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash());
 
-        public MinersManager(IMinersStore minersStore)
+        public MinersManager(MinersStore minersStore)
         {
             _minersStore = minersStore;
         }

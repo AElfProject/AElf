@@ -2,16 +2,16 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage;
 
 namespace AElf.Kernel.Manager.Managers
 {
     public class FunctionFunctionMetadataManager : IFunctionMetadataManager
     {
-        private readonly IFunctionMetadataStore _functionMetadataStore;
-        private readonly ICallGraphStore _callGraphStore;
+        private readonly IKeyValueStore _functionMetadataStore;
+        private readonly IKeyValueStore _callGraphStore;
         
-        public FunctionFunctionMetadataManager(IFunctionMetadataStore functionMetadataStore, ICallGraphStore callGraphStore)
+        public FunctionFunctionMetadataManager(FunctionMetadataStore functionMetadataStore, CallGraphStore callGraphStore)
         {
             _functionMetadataStore = functionMetadataStore;
             _callGraphStore = callGraphStore;

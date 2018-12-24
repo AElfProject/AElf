@@ -9,7 +9,6 @@ using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Manager.Managers;
-using AElf.Kernel.Storage.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.Collections;

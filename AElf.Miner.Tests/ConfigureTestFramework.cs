@@ -8,8 +8,6 @@ using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Manager.Managers;
-using AElf.Kernel.Storage.Interfaces;
-using AElf.Kernel.Storage.Storages;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
@@ -49,7 +47,6 @@ namespace AElf.Miner.Tests
             builder.RegisterType<BlockManager>().As<IBlockManager>().SingleInstance();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
             builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>().SingleInstance();
-            builder.RegisterType<StateStore>().As<IStateStore>();
             builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
         }

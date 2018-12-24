@@ -12,7 +12,6 @@ using QuickGraph.Algorithms;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.SmartContract
 {

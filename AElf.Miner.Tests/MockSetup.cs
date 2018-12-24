@@ -24,8 +24,6 @@ using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Manager.Managers;
-using AElf.Kernel.Storage.Interfaces;
-using AElf.Kernel.Storage.Storages;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;

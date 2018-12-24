@@ -12,7 +12,6 @@ using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Storage.Interfaces;
 using FunctionMetadata = AElf.Kernel.SmartContract.FunctionMetadata;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata

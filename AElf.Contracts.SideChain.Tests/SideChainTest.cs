@@ -12,7 +12,6 @@ using AElf.Configuration;
 using NLog;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
 using AElf.Miner.TxMemPool;
 
 namespace AElf.Contracts.SideChain.Tests

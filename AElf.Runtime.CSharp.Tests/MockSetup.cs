@@ -19,7 +19,6 @@ using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Manager.Managers;
-using AElf.Kernel.Storage.Interfaces;
 
 namespace AElf.Runtime.CSharp.Tests
 {

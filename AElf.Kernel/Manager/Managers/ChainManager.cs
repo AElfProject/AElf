@@ -1,20 +1,20 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Manager.Managers
 {
     public class ChainManager : IChainManager
     {
-        private readonly IChainHeightStore _chainHeightStore;
-        private readonly IGenesisBlockHashStore _genesisBlockHashStore;
-        private readonly ICurrentBlockHashStore _currentBlockHashStore;
-        private readonly ICanonicalStore _canonicalStore;
+        private readonly IKeyValueStore _chainHeightStore;
+        private readonly IKeyValueStore _genesisBlockHashStore;
+        private readonly IKeyValueStore _currentBlockHashStore;
+        private readonly IKeyValueStore _canonicalStore;
 
-        public ChainManager(IChainHeightStore chainHeightStore, IGenesisBlockHashStore genesisBlockHashStore,
-            ICurrentBlockHashStore currentBlockHashStore, ICanonicalStore canonicalStore)
+        public ChainManager(ChainHeightStore chainHeightStore, GenesisBlockHashStore genesisBlockHashStore,
+            CurrentBlockHashStore currentBlockHashStore, CanonicalStore canonicalStore)
         {
             _chainHeightStore = chainHeightStore;
             _genesisBlockHashStore = genesisBlockHashStore;

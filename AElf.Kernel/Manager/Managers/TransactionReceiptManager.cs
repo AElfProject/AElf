@@ -3,15 +3,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage;
 
 namespace AElf.Kernel.Manager.Managers
 {
     public class TransactionReceiptManager : ITransactionReceiptManager
     {
-        private readonly ITransactionReceiptStore _transactionReceiptStore;
+        private readonly IKeyValueStore _transactionReceiptStore;
 
-        public TransactionReceiptManager(ITransactionReceiptStore transactionReceiptStore)
+        public TransactionReceiptManager(TransactionReceiptStore transactionReceiptStore)
         {
             _transactionReceiptStore = transactionReceiptStore;
         }

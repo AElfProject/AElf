@@ -2,18 +2,18 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage;
 using NLog;
 
 namespace AElf.Kernel.Manager.Managers
 {
     public class BlockManager : IBlockManager
     {
-        private readonly IBlockHeaderStore _blockHeaderStore;
-        private readonly IBlockBodyStore _blockBodyStore;
+        private readonly IKeyValueStore _blockHeaderStore;
+        private readonly IKeyValueStore _blockBodyStore;
         private readonly ILogger _logger;
 
-        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore)
+        public BlockManager(BlockHeaderStore blockHeaderStore, BlockBodyStore blockBodyStore)
         {
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;

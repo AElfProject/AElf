@@ -1,15 +1,15 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Storage.Interfaces;
+using AElf.Kernel.Storage;
 
 namespace AElf.Kernel.Manager.Managers
 {
     public class TransactionTraceManager : ITransactionTraceManager
     {
-        private readonly ITransactionTraceStore _transactionTraceStore;
+        private readonly IKeyValueStore _transactionTraceStore;
         
-        public TransactionTraceManager(ITransactionTraceStore transactionTraceStore)
+        public TransactionTraceManager(TransactionTraceStore transactionTraceStore)
         {
             _transactionTraceStore = transactionTraceStore;
         }
