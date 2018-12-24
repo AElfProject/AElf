@@ -8,10 +8,10 @@
             'ContractCode' : code,
             'Proposer' : account
         };
-        var txHash = chain.crossChainContract.ReuqestChainCreation(sideChainInfo).hash;
-        console.log('tx_hash is: ' + txHash);
+        var hash = chain.crossChainContract.ReuqestChainCreation(sideChainInfo).hash;
+        console.log('tx_hash is: ' + hash);
         _repeatedCalls(function () {
-            var res = aelf.chain.getTxResult(txHash).result;
+            var res = aelf.chain.getTxResult(hash).result;
             if (res.tx_status !== 'Pending') {
                 console.log('TxStatus is: ', res.tx_status);
             }
@@ -23,10 +23,10 @@
     };
 
     request_chain_disposal = function (chain_id) {
-        var txHash = chain.crossChainContract.RequestChainDisposal(chain_id).hash;
-        console.log('tx_hash is: ' + txHash);
+        var hash = chain.crossChainContract.RequestChainDisposal(chain_id).hash;
+        console.log('tx_hash is: ', hash);
         _repeatedCalls(function () {
-            var res = aelf.chain.getTxResult(txHash).result;
+            var res = aelf.chain.getTxResult(hash).result;
             if (res.tx_status !== 'Pending') {
                 console.log('TxStatus is: ', res.tx_status);
             }
@@ -41,10 +41,31 @@
         var res =  chain.crossChainContract.GetChainStatus(chain_id);
         var resStr = JSON.stringify(res, null, 2);
         
-        if(resStr['return']){
+        if(resStr['error']){
             console.log('Unable to check this side chain.');
             return;
         }
         console.log(resStr);
-    }
+    };
+    
+    verify_crosschain_transaction = function (txid, merklepath, parent_height){
+        var hash = chain.crossChainContract.VerifyTransaction(txid, merklepath, parent_height).hash;
+        console.log('tx_hash is: ' + hash);
+        _repeatedCalls(function () {
+            var res = aelf.chain.getTxResult(hash).result;
+            if (res.tx_status !== 'Pending') {
+                console.log('TxStatus is: ', res.tx_status);
+            }
+            if (res.tx_status === 'Mined') {
+                if(res.return.toString() === '01') {
+                    console.log('Verification result: ', 'success');
+                }
+                else
+                {
+                    console.log('Verification result: ', 'fail');
+                }
+            }
+            return res.tx_status !== 'Pending';
+        }, 3000);
+    };
 })();
