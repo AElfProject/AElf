@@ -1,5 +1,6 @@
 ﻿using AElf.Common;
 using AElf.Common.Enums;
+using AElf.Common.MultiIndexDictionary;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
@@ -34,6 +35,15 @@ namespace AElf.Kernel
             services.AddTransient(
                 typeof(ISerializer<>), 
                 typeof(Serializer<>));
+
+            services.AddTransient(
+                typeof(IEqualityIndex<>), 
+                typeof(EqualityIndex<,>));
+            
+            services.AddTransient(
+                typeof(IComparisionIndex<>), 
+                typeof(ComparisionIndex<,>));
+            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

@@ -27,12 +27,13 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ServiceStack;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Node.AElfChain
 {
     // ReSharper disable InconsistentNaming
     [LoggerName("Node")]
-    public class MainchainNodeService : INodeService
+    public class MainchainNodeService : INodeService, ITransientDependency
     {
         public ILogger<MainchainNodeService> Logger {get;set;}
         private readonly ITxHub _txHub;
