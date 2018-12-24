@@ -18,11 +18,12 @@ using AElf.Common;
 using AElf.Execution.Execution;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-    public class MockSetup
+    public class MockSetup : ISingletonDependency
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
