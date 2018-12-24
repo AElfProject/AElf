@@ -103,6 +103,9 @@ namespace AElf.ChainController.Rpc
                 var authorizationContract =
                     ContractHelpers.GetAuthorizationContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                var consensusContract = ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                var dividendsContract = ContractHelpers.GetDividendsContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject()
                 {
@@ -113,6 +116,8 @@ namespace AElf.ChainController.Rpc
                             [GlobalConfig.GenesisCrossChainContractAssemblyName] = crosschainContract.GetFormatted(),
                             [GlobalConfig.GenesisAuthorizationContractAssemblyName] = authorizationContract.GetFormatted(),
                             [GlobalConfig.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
+                            [GlobalConfig.GenesisConsensusContractAssemblyName] = consensusContract.GetFormatted(),
+                            [GlobalConfig.GenesisDividendsContractAssemblyName] = dividendsContract.GetFormatted(),
                             ["chain_id"] = ChainConfig.Instance.ChainId
                         }
                 };
