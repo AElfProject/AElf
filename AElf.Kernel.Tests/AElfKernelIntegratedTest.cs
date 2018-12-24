@@ -13,10 +13,9 @@ namespace AElf.Kernel.Tests
 
         protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
         {
-            
+            base.SetAbpApplicationCreationOptions(options);
             //config test project to use in memory database
             options.UseInMemoryDatabase();
-            options.UseAutofac();
         }
     }
 }

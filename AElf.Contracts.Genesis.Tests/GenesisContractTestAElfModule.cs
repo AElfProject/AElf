@@ -1,6 +1,8 @@
+using AElf.Database;
 using AElf.Kernel;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.Genesis.Tests
@@ -20,6 +22,10 @@ namespace AElf.Contracts.Genesis.Tests
 
     public class GenesisContractTestBase : TestBase.AElfIntegratedTest<GenesisContractTestAElfModule>
     {
-        
+        protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
+        {
+            base.SetAbpApplicationCreationOptions(options);
+            options.UseInMemoryDatabase();
+        }
     }
 }
