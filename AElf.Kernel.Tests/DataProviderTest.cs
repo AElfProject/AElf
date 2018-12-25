@@ -4,37 +4,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AElf.Common;
-using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
     public class DataProviderTest
     {
-        private readonly IStateManager _stateManager;
-        
-        public DataProviderTest(IStateManager stateManager)
-        {
-            _stateManager = stateManager;
-        }
-
         [Fact]
         public async Task Test()
         {
+            var db = new InMemoryDatabase();
             var chainId = Hash.FromString("chain1");
             var address = Address.Generate();
             var root = DataProvider.GetRootDataProvider(chainId, address);
-            root.StateManager = _stateManager;
+            root.StateStore = new StateStore(db);
             var s = "test";
             var sb = Encoding.UTF8.GetBytes(s);
             var statePath = new StatePath()
@@ -52,11 +42,11 @@ namespace AElf.Kernel.Tests
 
             // Commit changes to store
             var toCommit = retrievedChanges.ToDictionary(kv => kv.Key, kv => kv.Value.CurrentValue.ToByteArray());
-            await root.StateManager.PipelineSetAsync(toCommit);
+            await root.StateStore.PipelineSetDataAsync(toCommit);
 
             // Setting the same value again in another DataProvider, no change will be returned
             var root2 = DataProvider.GetRootDataProvider(chainId, address);
-            root2.StateManager = _stateManager;
+            root2.StateStore = new StateStore(db);
             await root2.SetAsync(s, sb);
             var changes2 = root2.GetChanges();
             Assert.True(0 == changes2.Count);

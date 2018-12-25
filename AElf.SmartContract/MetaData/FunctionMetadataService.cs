@@ -1,26 +1,25 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Kernel.Storages;
 using NLog;
 using Org.BouncyCastle.Security;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.SmartContract;
 
 namespace AElf.SmartContract.Metadata
 {
     [LoggerName("SmartContract")]
     public class FunctionMetadataService : IFunctionMetadataService
     {
+        private IDataStore _dataStore;
         private readonly ConcurrentDictionary<Hash, ChainFunctionMetadata> _metadatas;
         private ILogger _logger;
-        private readonly IFunctionMetadataManager _functionMetadataManager;
 
-        public FunctionMetadataService(ILogger logger,IFunctionMetadataManager functionMetadataManager)
+        public FunctionMetadataService(IDataStore dataStore, ILogger logger)
         {
+            _dataStore = dataStore;
             _logger = logger;
             _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
-            _functionMetadataManager = functionMetadataManager;
         }
 
         public async Task DeployContract(Hash chainId, Address address, ContractMetadataTemplate contractMetadataTemplate)
@@ -30,7 +29,7 @@ namespace AElf.SmartContract.Metadata
             //TODO: find a way to mark these transaction as a same group (maybe by using "r/w account sharing data"?)
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_logger,_functionMetadataManager));
+                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore, _logger));
             }
             
             //TODO: need to
@@ -45,7 +44,7 @@ namespace AElf.SmartContract.Metadata
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_logger,_functionMetadataManager));
+                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore, _logger));
             }
 
             await chainFuncMetadata.UpdateContract(chainId, address, oldContractMetadataTemplate, newContractMetadataTemplate);

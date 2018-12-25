@@ -6,8 +6,8 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
-using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 
 namespace AElf.Execution.Execution
 {
@@ -16,16 +16,16 @@ namespace AElf.Execution.Execution
         private ISmartContractService _smartContractService;
         private ITransactionTraceManager _transactionTraceManager;
         private IChainContextService _chainContextService;
-        private IStateManager _stateManager;
+        private IStateStore _stateStore;
 
         public SimpleExecutingService(ISmartContractService smartContractService,
-            ITransactionTraceManager transactionTraceManager, IStateManager stateManager,
+            ITransactionTraceManager transactionTraceManager, IStateStore stateStore,
             IChainContextService chainContextService)
         {
             _smartContractService = smartContractService;
             _transactionTraceManager = transactionTraceManager;
             _chainContextService = chainContextService;
-            _stateManager = stateManager;
+            _stateStore = stateStore;
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
@@ -43,7 +43,7 @@ namespace AElf.Execution.Execution
                 {
                     if (trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                     {
-                        await trace.CommitChangesAsync(_stateManager);
+                        await trace.CommitChangesAsync(_stateStore);
                     }
                 }
                 else

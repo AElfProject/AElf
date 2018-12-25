@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
@@ -17,7 +18,7 @@ using ServiceStack;
 using ServiceStack.Text;
 using AElf.Common;
 using AElf.Execution.Execution;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Storages;
 
 namespace AElf.Benchmark
 {
@@ -28,7 +29,7 @@ namespace AElf.Benchmark
         private readonly ILogger _logger;
         private readonly BenchmarkOptions _options;
         private readonly IExecutingService _executingService;
-        private readonly IStateManager _stateManager;
+        private readonly IStateStore _stateStore;
 
         private readonly ServicePack _servicePack;
 
@@ -51,12 +52,12 @@ namespace AElf.Benchmark
             }
         }
 
-        public Benchmarks(IStateManager stateManager, IChainCreationService chainCreationService,
+        public Benchmarks(IStateStore stateStore, IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
             ILogger logger, IFunctionMetadataService functionMetadataService,BenchmarkOptions options, IExecutingService executingService)
         {
             ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
-            _stateManager = stateManager;
+            _stateStore = stateStore;
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;
             _logger = logger;
@@ -69,7 +70,7 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                StateManager = _stateManager
+                StateStore = _stateStore
             };
 
             _dataGenerater = new TransactionDataGenerator(options);
@@ -267,7 +268,7 @@ namespace AElf.Benchmark
             try
             {
                 await executive.SetTransactionContext(txnCtxt).Apply();
-                await txnCtxt.Trace.CommitChangesAsync(_stateManager);
+                await txnCtxt.Trace.CommitChangesAsync(_stateStore);
             }
             finally
             {
@@ -304,7 +305,7 @@ namespace AElf.Benchmark
             try
             {
                 await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-                await txnInitCtxt.Trace.CommitChangesAsync(_stateManager);
+                await txnInitCtxt.Trace.CommitChangesAsync(_stateStore);
             }
             finally
             {

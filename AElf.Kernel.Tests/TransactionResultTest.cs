@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.ChainController.Rpc;
 using Xunit;
@@ -7,7 +8,6 @@ using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
-using AElf.Kernel.Manager.Interfaces;
 using AElf.Miner.TxMemPool;
 using NLog;
 using ITxSignatureVerifier = AElf.Kernel.Types.Transaction.ITxSignatureVerifier;
