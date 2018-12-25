@@ -9,10 +9,11 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Akka.Dispatch;
 using ServiceStack;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.ChainController
 {
-    public class ChainService : IChainService
+    public class ChainService : IChainService, ISingletonDependency
     {
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;

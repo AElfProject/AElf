@@ -7,10 +7,13 @@ using System.Timers;
 using AElf.ChainController.Rpc;
 using AElf.Configuration.Config.Consensus;
 using AElf.Execution;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Types.Common;
 using AElf.Miner;
+using AElf.Miner.Rpc;
 using AElf.Modularity;
 using AElf.Net.Rpc;
+using AElf.Network;
 using AElf.Node;
 using AElf.RPC;
 using AElf.Runtime.CSharp;
@@ -18,6 +21,7 @@ using AElf.SideChain.Creation;
 using AElf.Wallet.Rpc;
 using Easy.MessageHub;
 using Grpc.Core.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
@@ -26,7 +30,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Launcher
 {
     //TODO! need to change this file
-    
+
     [DependsOn(typeof(RpcChainControllerAElfModule),
         typeof(ExecutionAElfModule),
         typeof(MinerAElfModule),
@@ -34,8 +38,11 @@ namespace AElf.Launcher
         typeof(NodeAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(SideChainAElfModule),
-        typeof(RpcWalletAElfModule))]
-    public class LauncherAElfModule: AElfModule
+        typeof(RpcWalletAElfModule),
+        typeof(MinerRpcAElfModule),
+        typeof(NetworkAElfModule),
+        typeof(ConsensusKernelAElfModule))]
+    public class LauncherAElfModule : AElfModule
     {
         public static readonly AutoResetEvent Closing = new AutoResetEvent(false);
         private readonly Queue<TerminatedModuleEnum> _modules = new Queue<TerminatedModuleEnum>();
@@ -48,10 +55,14 @@ namespace AElf.Launcher
             Logger = NullLogger<LauncherAElfModule>.Instance;
         }
 
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+        }
+
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             MessageHub.Instance.Subscribe<TerminatedModule>(OnModuleTerminated);
-            
+
             _modules.Enqueue(TerminatedModuleEnum.Rpc);
             _modules.Enqueue(TerminatedModuleEnum.TxPool);
             _modules.Enqueue(TerminatedModuleEnum.Mining);
@@ -62,8 +73,8 @@ namespace AElf.Launcher
             _timer = new System.Timers.Timer(ConsensusConfig.Instance.DPoSMiningInterval * 2);
             _timer.AutoReset = false;
             _timer.Elapsed += TimerOnElapsed;
-            
-            AssemblyLoadContext.Default.Unloading += DefaultOnUnloading;           
+
+            AssemblyLoadContext.Default.Unloading += DefaultOnUnloading;
             Console.CancelKeyPress += OnCancelKeyPress;
         }
 
@@ -99,7 +110,6 @@ namespace AElf.Launcher
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
         {
-            
         }
 
         private void OnModuleTerminated(TerminatedModule moduleTerminated)
@@ -141,9 +151,8 @@ namespace AElf.Launcher
             _prepareTerminatedModule = _modules.Peek();
             Logger.LogTrace($"begin stop {_prepareTerminatedModule.ToString()}...");
             MessageHub.Instance.Publish(new TerminationSignal(_prepareTerminatedModule));
-            
+
             _timer.Start();
         }
-
     }
 }

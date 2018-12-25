@@ -41,7 +41,7 @@ namespace AElf.Kernel.Tests
             
             //should move out of this project
             services.AddSingleton<IActorEnvironment, ActorEnvironment>();
-            services.AddTransient<ServicePack>();
+            services.AddSingleton<ServicePack>();
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

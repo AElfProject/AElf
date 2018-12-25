@@ -1,14 +1,17 @@
 @startuml
 digraph G {
-    "AElf.Kernel" -> {"AElf.Core";"AElf.Database";"AElf.Types"}
-
+    "AElf.Kernel" -> {"AElf.Core";"AElf.Database";"AElf.Types";"AElf.Common"};
+    
     "AElf.OS" -> "AElf.Kernel";
     "AElf.Execution" -> "AElf.Kernel";
     "AElf.Execution.Akka" -> {"AElf.Execution", "Akka"};
     "AElf.SmartContract" -> "AElf.Kernel";
-    "AElf.MiniSystem" -> {"AElf.Kernel";"AElf.SmartContract";"AElf.Execution"}
+    "AElf.MiniSystem" -> {"AElf.Kernel";"AElf.SmartContract";"AElf.Execution"}[color=blue];
+    "AElf.MiniSystem"[color=blue];
     "AElf.Network" -> "AElf.OS";
-    "AElf.FullNode" -> {"AElf.MiniSystem"; "AElf.OS";"AElf.Network";"Autofac"};
+    "AElf.FullNode" -> {"AElf.MiniSystem"; "AElf.OS";"AElf.Network";"Autofac"} [color=red]; 
+    "AElf.FullNode" [color=red] ;
+    "AElf.Launcher" -> {"AElf.FullNode","ThirdParty.MongodbDatabse"};
     "AElf.Rpc";
     "AElf.Rpc.Kernel" -> {"AElf.Rpc","AElf.Kernel"};
     "AElf.Rpc.Network" -> {"AElf.Rpc","AElf.Network"};
@@ -16,7 +19,8 @@ digraph G {
     "AElf.Kernel.Tests" -> "AElf.Kernel";
     "AElf.Execution.Tests" -> {"AElf.Execution","AElf.TestBase"};
     "AElf.TestBase" -> {"Autofac", "XUnit"}
-    "AElf.Execution.Akka.Tests" -> {"AElf.Execution.Akka","AElf.TestBase"};
+    "AElf.Execution.Akka.Tests" -> {"AElf.Execution.Akka","AElf.TestBase","Akka.TestBase"};
+    "Akka.TestBase" -> "Akka";
 
   }
 @enduml

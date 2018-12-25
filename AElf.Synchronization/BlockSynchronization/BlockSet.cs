@@ -9,11 +9,12 @@ using Akka.Util.Internal;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable FieldCanBeMadeReadOnly.Local
-    public class BlockSet : IBlockSet
+    public class BlockSet : IBlockSet , ISingletonDependency
     {
         private const int Timeout = int.MaxValue;
 

@@ -7,10 +7,11 @@ using AElf.Common;
 using AElf.Database;
 using AElf.Kernel.Types;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Storages
 {
-    public class StateStore : IStateStore
+    public class StateStore : IStateStore, ISingletonDependency
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
         

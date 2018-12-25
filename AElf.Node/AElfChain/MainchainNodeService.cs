@@ -32,7 +32,7 @@ using Volo.Abp.DependencyInjection;
 namespace AElf.Node.AElfChain
 {
     // ReSharper disable InconsistentNaming
-    public class MainchainNodeService : INodeService, ITransientDependency
+    public class MainchainNodeService : INodeService, ISingletonDependency
     {
         public ILogger<MainchainNodeService> Logger {get;set;}
         private readonly ITxHub _txHub;

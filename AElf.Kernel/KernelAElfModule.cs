@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel
 {
-    [DependsOn(typeof(TypesAElfModule))]
+    [DependsOn(typeof(TypesAElfModule),typeof(DatabaseAElfModule))]
     public class KernelAElfModule: AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)

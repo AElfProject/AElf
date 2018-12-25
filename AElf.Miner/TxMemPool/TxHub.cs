@@ -24,7 +24,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.TxMemPool
 {
-    public class TxHub : ITxHub, ITransientDependency
+    public class TxHub : ITxHub, ISingletonDependency 
     {
         public ILogger<TxHub> Logger {get;set;}
         

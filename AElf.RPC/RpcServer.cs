@@ -38,6 +38,7 @@ namespace AElf.RPC
             {
                 var url = "http://" + rpcHost + ":" + rpcPort;
 
+                Startup.Parent = scope;
                 _host = new WebHostBuilder()
                     .UseKestrel(options =>
                         {
@@ -47,30 +48,11 @@ namespace AElf.RPC
                             //options.Limits.MaxRequestBodySize = 10 * 1024;
                         }
                     )
+                    .UseStartup<Startup>()
                     .UseUrls(url)
-                    .ConfigureServices(sc =>
-                    {
-                        sc.AddCors();
-                        sc.AddSingleton(scope.GetRequiredService<INetworkManager>());
-                        sc.AddSingleton(scope.GetRequiredService<IPeerManager>());
-
-                        sc.AddSignalRCore();
-                        sc.AddSignalR();
-
-                        sc.AddScoped<NetContext>();
-
-                        RpcServerHelpers.ConfigureServices(sc, scope);
-                    })
-                    .Configure(ab =>
-                    {
-                        ab.UseCors(builder => { builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
-                        ab.UseSignalR(routes => { routes.MapHub<NetworkHub>("/events/net"); });
-
-                        RpcServerHelpers.Configure(ab, scope);
-                    })
                     .Build();
 
-                _host.Services.GetService<NetContext>();
+                //_host.Services.GetService<NetContext>();
             }
             catch (Exception e)
             {
@@ -98,5 +80,56 @@ namespace AElf.RPC
         {
              _host.StopAsync();
         }
+        
+        
+        public class Startup
+        {
+            public static IServiceProvider Parent { get; set; }
+        
+            public IServiceProvider ConfigureServices(IServiceCollection sc)
+            {
+                sc.AddCors();
+
+                sc.AddSignalRCore();
+                sc.AddSignalR();
+
+                sc.AddScoped<NetContext>();
+                
+                return new ChildServiceProvider(Parent,sc.BuildServiceProviderFromFactory());
+            }
+            
+            public void Configure(IApplicationBuilder app)
+            {
+                app.UseCors(builder => { builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
+                app.UseSignalR(routes => { routes.MapHub<NetworkHub>("/events/net"); });
+
+                RpcServerHelpers.Configure(app, Parent.GetRequiredService<IServiceCollection>());
+            }
+
+        }
+    
+        public class ChildServiceProvider : IServiceProvider
+        {
+            private readonly IServiceProvider _child;
+            private readonly IServiceProvider _parent;
+
+            public ChildServiceProvider(IServiceProvider parent, IServiceProvider child)
+            {
+                _parent = parent;
+                _child = child;
+            }
+
+            public ChildServiceProvider(IServiceProvider parent, IServiceCollection services)
+            {
+                _parent = parent;
+                _child = services.BuildServiceProvider();
+            }
+
+            public object GetService(Type serviceType)
+            {
+                return _child.GetService(serviceType) ?? _parent.GetService(serviceType);
+            }
+        }
     }
+    
 }

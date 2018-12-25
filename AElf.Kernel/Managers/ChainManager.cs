@@ -5,10 +5,11 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Managers
 {
-    public class ChainManager : IChainManager
+    public class ChainManager : IChainManager, ISingletonDependency
     {
         private readonly IDataStore _dataStore;
         public ILogger<ChainManager> Logger {get;set;}
