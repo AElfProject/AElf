@@ -46,9 +46,7 @@ namespace AElf.Common
         public const ulong DaysEachTerm = 7;
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
-        public static int AElfDPoSMiningInterval = 4000;
         public const int AliasLimit = 20;
-        public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
         public const int ProducerRepetitions = 8;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
@@ -127,8 +125,8 @@ namespace AElf.Common
         public const string StatePrefix = "s";
         public const string TransactionPrefix = "t";
 
-
         #endregion data key prefixes
+        
         public static ulong BlockCacheLimit = 64; 
         
         public const ulong ForkDetectionLength = 4;
