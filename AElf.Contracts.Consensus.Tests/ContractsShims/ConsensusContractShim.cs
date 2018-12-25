@@ -88,6 +88,7 @@ namespace AElf.Contracts.Consensus.Tests
             var tx = new Transaction
             {
                 From = Sender,
+                
                 To = address0,
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
@@ -367,7 +368,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
@@ -415,7 +416,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
 
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateStore).Wait();
+            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
