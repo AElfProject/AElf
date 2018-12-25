@@ -8,11 +8,11 @@ namespace AElf.Kernel.Managers
 {
     public class BlockManager : IBlockManager
     {
-        private readonly IKeyValueStore _blockHeaderStore;
-        private readonly IKeyValueStore _blockBodyStore;
+        private readonly IBlockHeaderStore _blockHeaderStore;
+        private readonly IBlockBodyStore _blockBodyStore;
         private readonly ILogger _logger;
 
-        public BlockManager(BlockHeaderStore blockHeaderStore, BlockBodyStore blockBodyStore)
+        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore)
         {
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;

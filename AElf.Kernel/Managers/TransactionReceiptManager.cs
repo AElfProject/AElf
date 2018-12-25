@@ -8,9 +8,9 @@ namespace AElf.Kernel.Managers
 {
     public class TransactionReceiptManager : ITransactionReceiptManager
     {
-        private readonly IKeyValueStore _transactionReceiptStore;
+        private readonly ITransactionReceiptStore _transactionReceiptStore;
 
-        public TransactionReceiptManager(TransactionReceiptStore transactionReceiptStore)
+        public TransactionReceiptManager(ITransactionReceiptStore transactionReceiptStore)
         {
             _transactionReceiptStore = transactionReceiptStore;
         }

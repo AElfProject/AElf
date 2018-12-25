@@ -8,13 +8,13 @@ namespace AElf.Kernel.Managers
 {
     public class MinersManager : IMinersManager
     {
-        private readonly IKeyValueStore _minersStore;
+        private readonly IMinersStore _minersStore;
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(MinersManager));
 
         private static Hash Key => Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash());
 
-        public MinersManager(MinersStore minersStore)
+        public MinersManager(IMinersStore minersStore)
         {
             _minersStore = minersStore;
         }

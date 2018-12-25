@@ -7,13 +7,13 @@ namespace AElf.Kernel.Managers
 {
     public class ChainManager : IChainManager
     {
-        private readonly IKeyValueStore _chainHeightStore;
-        private readonly IKeyValueStore _genesisBlockHashStore;
-        private readonly IKeyValueStore _currentBlockHashStore;
-        private readonly IKeyValueStore _canonicalStore;
+        private readonly IChainHeightStore _chainHeightStore;
+        private readonly IGenesisBlockHashStore _genesisBlockHashStore;
+        private readonly ICurrentBlockHashStore _currentBlockHashStore;
+        private readonly ICanonicalStore _canonicalStore;
 
-        public ChainManager(ChainHeightStore chainHeightStore, GenesisBlockHashStore genesisBlockHashStore,
-            CurrentBlockHashStore currentBlockHashStore, CanonicalStore canonicalStore)
+        public ChainManager(IChainHeightStore chainHeightStore, IGenesisBlockHashStore genesisBlockHashStore,
+            ICurrentBlockHashStore currentBlockHashStore, ICanonicalStore canonicalStore)
         {
             _chainHeightStore = chainHeightStore;
             _genesisBlockHashStore = genesisBlockHashStore;

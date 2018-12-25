@@ -4,7 +4,7 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class BlockBodyStore : KeyValueStoreBase
+    public class BlockBodyStore : KeyValueStoreBase, IBlockBodyStore
     {
         public BlockBodyStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
             : base(keyValueDatabase, byteSerializer, GlobalConfig.BlockBodyPrefix)

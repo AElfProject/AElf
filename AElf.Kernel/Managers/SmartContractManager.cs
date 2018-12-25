@@ -6,9 +6,9 @@ namespace AElf.Kernel.Managers
 {
     public class SmartContractManager : ISmartContractManager
     {
-        private readonly IKeyValueStore _smartContractStore;
+        private readonly ISmartContractStore _smartContractStore;
 
-        public SmartContractManager(SmartContractStore smartContractStore)
+        public SmartContractManager(ISmartContractStore smartContractStore)
         {
             _smartContractStore = smartContractStore;
         }

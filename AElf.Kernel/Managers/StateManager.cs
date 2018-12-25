@@ -7,9 +7,9 @@ namespace AElf.Kernel.Managers
 {
     public class StateManager : IStateManager
     {
-        private readonly IKeyValueStore _stateStore;
+        private readonly IStateStore _stateStore;
 
-        public StateManager(StateStore stateStore)
+        public StateManager(IStateStore stateStore)
         {
             _stateStore = stateStore;
         }

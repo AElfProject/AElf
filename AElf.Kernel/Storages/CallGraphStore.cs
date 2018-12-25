@@ -4,7 +4,7 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class CallGraphStore : KeyValueStoreBase
+    public class CallGraphStore : KeyValueStoreBase, ICallGraphStore
     {
         public CallGraphStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
             : base(keyValueDatabase, byteSerializer, GlobalConfig.CallGraphPrefix)

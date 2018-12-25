@@ -6,9 +6,9 @@ namespace AElf.Kernel.Managers
 {
     public class TransactionResultManager : ITransactionResultManager
     {
-        private readonly IKeyValueStore _transactionResultStore;
+        private readonly ITransactionResultStore _transactionResultStore;
 
-        public TransactionResultManager(TransactionResultStore transactionResultStore)
+        public TransactionResultManager(ITransactionResultStore transactionResultStore)
         {
             _transactionResultStore = transactionResultStore;
         }

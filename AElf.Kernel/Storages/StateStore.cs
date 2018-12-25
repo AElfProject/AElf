@@ -8,7 +8,7 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class StateStore : KeyValueStoreBase
+    public class StateStore : KeyValueStoreBase, IStateStore
     {
 
         public StateStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
