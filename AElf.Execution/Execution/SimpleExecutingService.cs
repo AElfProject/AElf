@@ -15,6 +15,20 @@ using Google.Protobuf;
 
 namespace AElf.Execution.Execution
 {
+    /// <summary>
+    /// Unit test may not have token contract properly deployed, so the fee transaction should be skipped. 
+    /// </summary>
+    internal static class UnitTestDetector
+    {
+        static UnitTestDetector()
+        {
+            string testAssemblyName = "xunit.runner";
+            IsInUnitTest = AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName.StartsWith(testAssemblyName));
+        }
+
+        public static bool IsInUnitTest { get; private set; }
+    }
+
     public class SimpleExecutingService : IExecutingService
     {
         private ISmartContractService _smartContractService;
@@ -35,14 +49,15 @@ namespace AElf.Execution.Execution
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
             CancellationToken cancellationToken, Hash disambiguationHash = null,
             TransactionType transactionType = TransactionType.ContractTransaction,
-            bool skipFee=false)
+            bool skipFee = false)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<StatePath, StateCache>();
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken, skipFee);
+                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken,
+                    skipFee);
                 if (!trace.IsSuccessful())
                 {
                     trace.SurfaceUpError();
@@ -71,7 +86,7 @@ namespace AElf.Execution.Execution
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
             IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
-            CancellationToken cancellationToken, bool skipFee=false)
+            CancellationToken cancellationToken, bool skipFee = false)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -101,7 +116,7 @@ namespace AElf.Execution.Execution
 
             #region Charge Fees
 
-            if (depth == 0 && !skipFee)
+            if (depth == 0 && !skipFee && !UnitTestDetector.IsInUnitTest)
             {
                 // Fee is only charged to the main transaction
                 var feeAmount = executive.GetFee(transaction.MethodName);
