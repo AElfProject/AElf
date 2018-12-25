@@ -217,6 +217,20 @@ namespace AElf.Contracts.Consensus
 
             return result;
         }
+
+        [View]
+        public ulong QueryMinedBlockCountInCurrentTerm(string publicKey)
+        {
+            if (Collection.RoundsMap.TryGet(Api.GetCurrentRoundNumber().ToUInt64Value(), out var round))
+            {
+                if (round.RealTimeMinersInfo.ContainsKey(publicKey))
+                {
+                    return round.RealTimeMinersInfo[publicKey].ProducedBlocks;
+                }
+            }
+
+            return 0;
+        }
         
         public void AnnounceElection(string alias)
         {

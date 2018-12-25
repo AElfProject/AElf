@@ -25,7 +25,7 @@ Transfer the specific amount of tokens back to the caller, at the same time remo
 
 Params:
 - string publicKeyHexString
-- ulong amount
+- ulong ticketsAmount
 - ink lockTime
 
 To vote to a candidate via specifc amount of tickets and lock days.
@@ -47,6 +47,18 @@ To get all the dividends for locked tokens of the caller, which should be a vote
 *No params*
 
 To withdraw all the locked tokens of the caller.
+
+### WithdrawByDetail
+
+Params:
+- string publicKeyHexString
+- ulong ticketsAmount
+- int lockTime
+
+### WithdrawByTransactionId
+
+Params:
+- Hash transactionId
 
 ### IsCandidate
 
@@ -192,6 +204,16 @@ StringList
 
 To query all the alias in use.
 
+### QueryMinedBlockCountInCurrentTerm
+
+Params:
+- string publicKeyHexString
+
+Return Type:
+ulong
+
+To query the count of mined blocks by provided miner in current term.
+
 # 投票/选举系统
 
 ## 可用方法
@@ -241,6 +263,18 @@ To query all the alias in use.
 *无参数*
 
 投票者赎回自己的选票。
+
+### WithdrawByDetail
+
+参数:
+- string publicKeyHexString
+- ulong ticketsAmount
+- int lockTime
+
+### WithdrawByTransactionId
+
+参数:
+- Hash transactionId
 
 ### IsCandidate
 
@@ -388,6 +422,16 @@ StringList
 
 查询已经被使用的别名。
 
+### QueryMinedBlockCountInCurrentTerm
+
+参数:
+- string publicKeyHexString
+
+返回类型:
+ulong
+
+获取某节点当前届的出块数量。
+
 ## Data Structure
 
 ```Protobuf
@@ -462,6 +506,7 @@ message CandidateInHistory {
     uint64 MissedTimeSlots = 3;
     uint64 ContinualAppointmentCount = 4;
     uint64 ReappointmentCount = 5;
+    repeated string Aliases = 6;
 }
 
 message TicketsDictionary {

@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.Tests
             const ulong totalSupply = 100_000_000_000;
             _consensusContract.Initialize("ELF", "AElf Token", totalSupply, 2);
 
-            _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
+            _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12));
         }
         
         [Fact(Skip = "Time consuming.")]
