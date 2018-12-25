@@ -12,19 +12,24 @@ using AElf.Network;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Akka.Remote;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using ServiceStack.Logging;
+using Volo.Abp;
+
 namespace AElf.Concurrency.Worker
 {
     class Program
     {
-        //private static ILogger Logger= LogManager.GetCurrentClassLogger();
-        
+        private static ILogger<Program> Logger = NullLogger<Program>.Instance;
+
         static void Main(string[] args)
         {
-            
             //TODO! use abp bootstrap
-            
-            
-            /*var confParser = new ConfigParser();
+
+
+            var confParser = new ConfigParser();
             bool parsed;
             try
             {
@@ -39,81 +44,45 @@ namespace AElf.Concurrency.Worker
             if (!parsed)
                 return;
 
-            RunnerConfig.Instance.SdkDir = Path.GetDirectoryName(typeof(RunnerAElfModule).Assembly.Location);
-            var runner = new SmartContractRunner();
-            var smartContractRunnerFactory = new SmartContractRunnerContainer();
-            smartContractRunnerFactory.AddRunner(0, runner);
-            smartContractRunnerFactory.AddRunner(1, runner);
 
-            // Setup ioc 
-            var container = SetupIocContainer(true, smartContractRunnerFactory);
-            if (container == null)
+            using (var application = AbpApplicationFactory.Create<WorkerConcurrencyAElfModule>(options =>
             {
-                Logger.LogError("IoC setup failed.");
-                return;
-            }
+                options.UseAutofac();
 
-            if (!CheckDBConnect(container))
+                options.Services.AddLogging(builder =>
+                {
+                    builder.SetMinimumLevel(LogLevel.Trace)
+                        .AddConsole()
+                        .AddFile();
+                });
+            }))
             {
-                Logger.LogError("Database connection failed.");
-                return;
-            }
+                application.Initialize();
 
-            using (var scope = container.BeginLifetimeScope())
-            {
-                var service = scope.Resolve<ActorEnvironment>();
+                Logger = application.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                
+                var service = application.ServiceProvider.GetRequiredService<ActorEnvironment>();
                 service.InitWorkActorSystem();
                 Console.WriteLine("Press Control + C to terminate.");
                 Console.CancelKeyPress += async (sender, eventArgs) => { await service.StopAsync(); };
                 service.TerminationHandle.Wait();
-            }*/
-            
+            }
+
         }
 
-        /*
-        private static IContainer SetupIocContainer(bool isMiner, SmartContractRunnerContainer smartContractRunnerContainer)
+
+        private static bool CheckDBConnect(IServiceProvider sp)
         {
-            var builder = new ContainerBuilder();
-
-            //builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
-
-            // Module registrations
-            builder.RegisterModule(new LoggerAutofacModule());
-            builder.RegisterModule(new DatabaseAutofacModule());
-            builder.RegisterModule(new NetworkAutofacModule());
-            builder.RegisterModule(new MinerAutofacModule(null));
-            builder.RegisterModule(new ChainAutofacModule());
-            builder.RegisterModule(new KernelAutofacModule());
-            builder.RegisterModule(new SmartContractAutofacModule());
-
-            builder.RegisterInstance(smartContractRunnerContainer).As<ISmartContractRunnerContainer>().SingleInstance();
-            builder.RegisterType<ServicePack>().PropertiesAutowired();
-            builder.RegisterType<ActorEnvironment>().SingleInstance();
-            IContainer container;
+            var db = sp.GetRequiredService<IKeyValueDatabase>();
             try
             {
-                container = builder.Build();
+                return db.IsConnected();
             }
             catch (Exception e)
             {
-                Logger.LogError(e);
-                return null;
+                //Logger.LogError(e);
+                return false;
             }
-            return container;
-        }*/
-//
-//        private static bool CheckDBConnect(IComponentContext container)
-//        {
-//            var db = container.Resolve<IKeyValueDatabase>();
-//            try
-//            {
-//                return db.IsConnected();
-//            }
-//            catch (Exception e)
-//            {
-//                //Logger.LogError(e);
-//                return false;
-//            }
-//        }
+        }
     }
 }
