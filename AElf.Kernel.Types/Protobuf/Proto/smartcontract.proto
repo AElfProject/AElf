@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.SmartContract";
+option csharp_namespace = "AElf.Kernel.SmartContract";
 
 import "common.proto";
 import "kernel.proto";
@@ -15,7 +15,7 @@ message FunctionMetadata {
     // AElf allows one contracts to invoke others. This field record
     // which contracts are invoked by the current contract.
     repeated string SerializeCallingSet = 1;
-    
+
     // All data members except other contracts are recorded by this field.
     repeated Resource SerializeFullResourceSet = 2;
 }

@@ -1,18 +1,19 @@
 using System.Threading.Tasks;
-using AElf.Kernel.Storages;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
 {
     public class BinaryMerkleTreeManager : IBinaryMerkleTreeManager
     {
-        private readonly IDataStore _dataStore;
+        private readonly IKeyValueStore _binaryMerkleTreeStore;
 
-        public BinaryMerkleTreeManager(IDataStore dataStore)
+        public BinaryMerkleTreeManager(BinaryMerkleTreeStore binaryMerkleTreeStore)
         {
-            _dataStore = dataStore;
+            _binaryMerkleTreeStore = binaryMerkleTreeStore;
         }
 
+        // Todo change arguments height=>blockhash
         /// <summary>
         /// Store <see cref="BinaryMerkleTree"/> for transactions.
         /// </summary>
@@ -22,10 +23,9 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task AddTransactionsMerkleTreeAsync(BinaryMerkleTree binaryMerkleTree, Hash chainId, ulong height)
         {
-            var key = DataPath.CalculatePointerForTransactionsMerkleTreeByHeight(chainId, height);
-            await _dataStore.InsertAsync(key, binaryMerkleTree);
+            var key = GetTransactionsMerkleTreeKey(chainId, height);
+            await _binaryMerkleTreeStore.SetAsync(key, binaryMerkleTree);
         }
-
 
         /// <summary> 
         /// Get <see cref="BinaryMerkleTree"/> of transactions.
@@ -35,9 +35,13 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task<BinaryMerkleTree> GetTransactionsMerkleTreeByHeightAsync(Hash chainId, ulong height)
         {
-            var key = DataPath.CalculatePointerForTransactionsMerkleTreeByHeight(chainId, height);
-            return await _dataStore.GetAsync<BinaryMerkleTree>(key);
+            var key = GetTransactionsMerkleTreeKey(chainId, height);
+            return await _binaryMerkleTreeStore.GetAsync<BinaryMerkleTree>(key);
         }
 
+        private string GetTransactionsMerkleTreeKey(Hash chainId, ulong height)
+        {
+            return chainId.ToHex() + height;
+        }
     }
 }

@@ -6,31 +6,29 @@ namespace AElf.Kernel.Managers
 {
     public class TransactionTraceManager : ITransactionTraceManager
     {
-        private readonly IDataStore _dataStore;
-
-        private readonly Hash _typeIdHash = Hash.FromString("__TransactionTrace__");
+        private readonly IKeyValueStore _transactionTraceStore;
         
-        public TransactionTraceManager(IDataStore dataStore)
+        public TransactionTraceManager(TransactionTraceStore transactionTraceStore)
         {
-            _dataStore = dataStore;
+            _transactionTraceStore = transactionTraceStore;
         }
 
-        private Hash GetDisambiguatedHash(Hash txId, Hash disambiguationHash)
+        private string GetDisambiguatedKey(Hash txId, Hash disambiguationHash)
         {
             var hash = disambiguationHash == null ? txId : Hash.Xor(disambiguationHash, txId);
-            return Hash.Xor(hash, _typeIdHash);
+            return hash.ToHex();
         }
         
         public async Task AddTransactionTraceAsync(TransactionTrace tr, Hash disambiguationHash = null)
         {
-            var trKey = GetDisambiguatedHash(tr.TransactionId, disambiguationHash);
-            await _dataStore.InsertAsync(trKey, tr);
+            var key = GetDisambiguatedKey(tr.TransactionId, disambiguationHash);
+            await _transactionTraceStore.SetAsync(key, tr);
         }
 
         public async Task<TransactionTrace> GetTransactionTraceAsync(Hash txId, Hash disambiguationHash = null)
         {
-            var trKey = GetDisambiguatedHash(txId, disambiguationHash);
-            return await _dataStore.GetAsync<TransactionTrace>(trKey);
+            var key = GetDisambiguatedKey(txId, disambiguationHash);
+            return await _transactionTraceStore.GetAsync<TransactionTrace>(key);
         }
     }
 }

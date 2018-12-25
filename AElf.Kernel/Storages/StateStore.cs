@@ -1,88 +1,44 @@
 using System;
-using System.Collections.Concurrent;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Common.Serializers;
 using AElf.Database;
-using AElf.Kernel.Types;
-using Google.Protobuf;
 
 namespace AElf.Kernel.Storages
 {
-    public class StateStore : IStateStore
+    public class StateStore : KeyValueStoreBase
     {
-        private readonly IKeyValueDatabase _keyValueDatabase;
-        
-        private const string _dbName = "State";
 
-        public StateStore(IKeyValueDatabase keyValueDatabase)
+        public StateStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
+            : base(keyValueDatabase, byteSerializer, GlobalConfig.StatePrefix)
         {
-            _keyValueDatabase = keyValueDatabase;
         }
 
-        private static string GetKey(StatePath path)
+        public override async Task SetAsync(string key, object value)
         {
-            return $"{GlobalConfig.StatePrefix}{path.GetHash().ToHex()}";
+            CheckKey(key);
+            CheckValue(value);
+
+            var databaseKey = GetDatabaseKey(key);
+            await KeyValueDatabase.SetAsync(DataPrefix, databaseKey, (byte[]) value);
         }
 
-        public async Task SetAsync(StatePath path, byte[] value)
+        public override async Task<bool> PipelineSetAsync(Dictionary<string, object> pipelineSet)
         {
-            try
-            {
-                if (path == null)
-                {
-                    throw new ArgumentNullException(nameof(path));
-                }
-
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                var key = GetKey(path);
-                await _keyValueDatabase.SetAsync(_dbName,key, value);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            var dict = pipelineSet.ToDictionary(kv => GetDatabaseKey(kv.Key), kv => (byte[])kv.Value);
+            return await KeyValueDatabase.PipelineSetAsync(DataPrefix, dict);
         }
 
-        public async Task<byte[]> GetAsync(StatePath path)
+        public override async Task<T> GetAsync<T>(string key)
         {
-            try
-            {
-                if (path == null)
-                {
-                    throw new ArgumentNullException(nameof(path));
-                }
+            CheckKey(key);
 
-                var key = GetKey(path);
-                var res = await _keyValueDatabase.GetAsync(_dbName,key);
-//                return res ?? new byte[0];
-                return res;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-        }
+            var databaseKey = GetDatabaseKey(key);
+            var result = await KeyValueDatabase.GetAsync(DataPrefix, databaseKey);
 
-        public async Task<bool> PipelineSetDataAsync(Dictionary<StatePath, byte[]> pipelineSet)
-        {
-            try
-            {
-                var dict = pipelineSet.ToDictionary(kv => GetKey(kv.Key), kv => kv.Value);
-                return await _keyValueDatabase.PipelineSetAsync(_dbName,dict);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return false;
-            }
+            return (T) Convert.ChangeType(result, typeof(T));
         }
     }
 }
