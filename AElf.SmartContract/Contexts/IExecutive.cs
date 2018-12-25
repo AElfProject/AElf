@@ -12,7 +12,7 @@ namespace AElf.SmartContract
         IExecutive SetMaxCallDepth(int maxCallDepth);
         IExecutive SetSmartContractContext(ISmartContractContext contractContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
-        IExecutive SetStateStore(IStateManager stateManager);
+        IExecutive SetStateManager(IStateManager stateManager);
         void SetDataCache(Dictionary<StatePath, StateCache> cache); //temporary solution to let data provider access actor's state cache
         Task Apply();
     }

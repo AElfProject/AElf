@@ -88,7 +88,7 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public IExecutive SetStateStore(IStateManager stateManager)
+        public IExecutive SetStateManager(IStateManager stateManager)
         {
             _stateManager = stateManager;
             return this;

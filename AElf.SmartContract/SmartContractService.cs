@@ -88,7 +88,7 @@ namespace AElf.SmartContract
 
             executive = await runner.RunAsync(reg);
             executive.ContractHash = reg.ContractHash;
-            executive.SetStateStore(_stateManager);
+            executive.SetStateManager(_stateManager);
             
             executive.SetSmartContractContext(new SmartContractContext()
             {
