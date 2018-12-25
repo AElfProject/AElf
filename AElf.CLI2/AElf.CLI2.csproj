@@ -23,9 +23,10 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="Scripts\aelf.min.js" />
+        <EmbeddedResource Include="Scripts\aelf.js" />
         <EmbeddedResource Include="Scripts\helpers.js" />
         <EmbeddedResource Include="Scripts\crypto.js" />
         <EmbeddedResource Include="Scripts\requestor.js" />

@@ -18,7 +18,7 @@ namespace AElf.Contracts.SideChain.Tests
         public IExecutive Executive {
             get
             {
-                _executive?.SetDataCache(new Dictionary<DataPath, StateCache>());
+                _executive?.SetDataCache(new Dictionary<StatePath, StateCache>());
                 return _executive;
             }
       
@@ -190,15 +190,15 @@ namespace AElf.Contracts.SideChain.Tests
             await CommitChangesAsync(TransactionContext.Trace);
         }
 
-        public async Task WriteParentChainBLockInfo(ParentChainBlockInfo parentChainBlockInfo)
+        public async Task WriteParentChainBLockInfo(ParentChainBlockInfo[] parentChainBlockInfo)
         {
             var tx = new Transaction
             {
                 From = Sender,
                 To = SideChainContractAddress,
                 IncrementId = _mock.NewIncrementId(),
-                MethodName = "WriteParentChainBlockInfo",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(parentChainBlockInfo))
+                MethodName = ContractHelpers.IndexingParentChainMethodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(new object[]{parentChainBlockInfo}))
             };
             TransactionContext = new TransactionContext()
             {

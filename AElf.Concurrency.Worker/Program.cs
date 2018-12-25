@@ -39,7 +39,7 @@ namespace AElf.Concurrency.Worker
 
             RunnerConfig.Instance.SdkDir = Path.GetDirectoryName(typeof(RunnerAElfModule).Assembly.Location);
             var runner = new SmartContractRunner();
-            var smartContractRunnerFactory = new SmartContractRunnerFactory();
+            var smartContractRunnerFactory = new SmartContractRunnerContainer();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
 
@@ -67,7 +67,7 @@ namespace AElf.Concurrency.Worker
             }
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, SmartContractRunnerFactory smartContractRunnerFactory)
+        private static IContainer SetupIocContainer(bool isMiner, SmartContractRunnerContainer smartContractRunnerContainer)
         {
             var builder = new ContainerBuilder();
 
@@ -82,7 +82,7 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
 
-            builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
+            builder.RegisterInstance(smartContractRunnerContainer).As<ISmartContractRunnerContainer>().SingleInstance();
             builder.RegisterType<ServicePack>().PropertiesAutowired();
             builder.RegisterType<ActorEnvironment>().SingleInstance();
             IContainer container;

@@ -57,18 +57,11 @@ namespace AElf.Contracts.Consensus.Contracts
                 $"Miners list is wrong of round {term.SecondRound.RoundNumber}.");
 
             CountMissedTimeSlots();
-
             SnapshotAndDividends();
 
-            if (CurrentTermNumber == term.TermNumber - 1)
-            {
-                _collection.CurrentTermNumberField.SetValue(term.TermNumber);
-            }
-
-            if (CurrentRoundNumber == term.FirstRound.RoundNumber - 1)
-            {
-                _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
-            }
+            _collection.CurrentTermNumberField.SetValue(term.TermNumber);
+            
+            _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
 
             foreach (var minerInRound in term.FirstRound.RealTimeMinersInfo.Values)
             {
@@ -83,11 +76,10 @@ namespace AElf.Contracts.Consensus.Contracts
             }
 
             term.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
-
             _collection.MinersMap.SetValue(term.TermNumber.ToUInt64Value(), term.Miners);
-
+            
             var lookUp = _collection.TermNumberLookupField.GetValue();
-            lookUp.Map.Add(term.TermNumber, term.FirstRound.RoundNumber);
+            lookUp.Map[term.TermNumber] = term.FirstRound.RoundNumber;
             _collection.TermNumberLookupField.SetValue(lookUp);
 
             term.FirstRound.BlockchainAge = CurrentAge;
@@ -302,11 +294,6 @@ namespace AElf.Contracts.Consensus.Contracts
                 .ToList();
         }
 
-        public StringList GetCurrentVictories()
-        {
-            return GetVictories().ToStringList();
-        }
-
         private void SnapshotAndDividends()
         {
             var currentRoundInfo = GetCurrentRoundInfo();
@@ -321,7 +308,6 @@ namespace AElf.Contracts.Consensus.Contracts
             Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber, Config.GetDividendsForVoters(minedBlocks));
 
             var candidateInTerms = new List<CandidateInTerm>();
-
             ulong totalVotes = 0;
             ulong totalReappointment = 0;
             var temp = new Dictionary<string, ulong>();
@@ -350,13 +336,11 @@ namespace AElf.Contracts.Consensus.Contracts
                 }
             }
 
-
             // Transfer dividends for actual miners. (The miners list based on last round of current term.)
             foreach (var candidateInTerm in candidateInTerms)
             {
                 Api.SendDividends(
-                    Address.FromPublicKey(Api.ChainId.DumpByteArray(),
-                        ByteArrayHelpers.FromHexString(candidateInTerm.PublicKey)),
+                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(candidateInTerm.PublicKey)),
                     Config.GetDividendsForEveryMiner(minedBlocks) +
                     (totalVotes == 0
                         ? 0
@@ -373,7 +357,7 @@ namespace AElf.Contracts.Consensus.Contracts
             {
                 var backupCount = (ulong) backups.Count;
                 Api.SendDividends(
-                    Address.FromPublicKey(Api.ChainId.DumpByteArray(), ByteArrayHelpers.FromHexString(backup)),
+                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
                     backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount);
             }
 

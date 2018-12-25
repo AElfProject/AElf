@@ -49,6 +49,7 @@ message TermNumberLookUp {
 // All the candidates.
 message Candidates {
     repeated string PublicKeys = 1;
+    bool IsInitialMiners = 2;
 }
 
 // The ticket / voting information for one user.

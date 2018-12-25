@@ -36,9 +36,7 @@ namespace AElf.Kernel.Tests.Serialization
         [Fact]
         public void DefaultValueTest()
         {
-            var d = default(UInt64Value);
             System.Diagnostics.Debug.WriteLine(default(UInt64Value));
         }
-        
     }
 }

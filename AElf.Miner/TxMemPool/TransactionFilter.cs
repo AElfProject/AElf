@@ -7,6 +7,7 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Types.Transaction;
 using Easy.MessageHub;
 using NLog;
 using NLog.Fluent;
@@ -39,22 +40,33 @@ namespace AElf.Miner.TxMemPool
             // remove cross chain transaction from others
             // actually this should be empty, because this transaction type won't be broadcast  
             var crossChainTxnsFromOthers = list.FindAll(tx =>
-                tx.Type == TransactionType.CrossChainBlockInfoTransaction &&
-                tx.From != Address.Parse(NodeConfig.Instance.NodeAccount)).ToList();
+                    tx.IsCrossChainIndexingTransaction() && !tx.From.Equals(Address.Parse(NodeConfig.Instance.NodeAccount)))
+                .ToList();
             toRemove.AddRange(crossChainTxnsFromOthers);
-            
-            var crossChainTxnsFromMe = list.FindAll(tx =>
-                tx.Type == TransactionType.CrossChainBlockInfoTransaction &&
-                tx.From == Address.Parse(NodeConfig.Instance.NodeAccount)).ToList();
+
+            var crossChainTxnsFromMe = list.Where(tx => tx.IsCrossChainIndexingTransaction() &&
+                tx.From.Equals(Address.Parse(NodeConfig.Instance.NodeAccount))).ToList();
             if (crossChainTxnsFromMe.Count <= 1)
                 return toRemove;
+            
+            // transaction indexing side chain
             // sort txns with timestamp
-            crossChainTxnsFromMe.Sort((t1, t2) => IsFirst(t1, t2));
-            var firstTxn = crossChainTxnsFromMe.FirstOrDefault();
+            var indexingSideChainTxns =
+                crossChainTxnsFromMe.Where(t => t.IsIndexingSideChainTransaction()).ToList();
+            indexingSideChainTxns.Sort((t1, t2) => IsFirst(t1, t2));
+            var firstIndexingSideChainTxn= indexingSideChainTxns.FirstOrDefault();
             // only reserve first txn
-            if (firstTxn != null)
-                toRemove.AddRange(list.FindAll(t =>
-                    t.Type == TransactionType.CrossChainBlockInfoTransaction && !t.Equals(firstTxn)));
+            if (firstIndexingSideChainTxn != null)
+                toRemove.AddRange(indexingSideChainTxns.FindAll(t => !t.Equals(firstIndexingSideChainTxn)));
+            
+            // transaction indexing parent chain
+            var indexingParentChainTxns =
+                crossChainTxnsFromMe.Where(t => t.IsIndexingParentChainTransaction()).ToList();
+            indexingParentChainTxns.Sort((t1, t2) => IsFirst(t1, t2));
+            var firstIndexingParentChainTxn = indexingParentChainTxns.FirstOrDefault();
+            // only reserve first txn
+            if (firstIndexingParentChainTxn != null)
+                toRemove.AddRange(indexingParentChainTxns.FindAll(t => !t.Equals(firstIndexingParentChainTxn)));
             return toRemove;
         };
         
@@ -68,7 +80,7 @@ namespace AElf.Miner.TxMemPool
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.InitialTerm.ToString());
             if (count > 1)
             {
-                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
+                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().ToHex())));
             }
 
             _latestTxs.Clear();
@@ -90,7 +102,7 @@ namespace AElf.Miner.TxMemPool
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PackageOutValue.ToString());
             if (count > 1)
             {
-                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
+                toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().ToHex())));
             }
 
             _latestTxs.Clear();
@@ -106,7 +118,7 @@ namespace AElf.Miner.TxMemPool
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
 
-        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneUpdateAElfDPoSTxAndOnePublishInValueTxByMe = (list, logger) =>
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneNextRoundTxAndOnePublishInValueTxByMe = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
             
@@ -120,7 +132,7 @@ namespace AElf.Miner.TxMemPool
                 return toRemove;
             }
             
-            toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().DumpHex())));
+            toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().ToHex())));
 
             _latestTxs.Clear();
             Console.WriteLine("Cleared latest txs.");
@@ -134,6 +146,39 @@ namespace AElf.Miner.TxMemPool
             toRemove.AddRange(
                 list.FindAll(tx =>
                     tx.MethodName != ConsensusBehavior.NextRound.ToString() &&
+                    tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString()));
+
+            return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
+        };
+        
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneNextTermTxAndOnePublishInValueTxByMe = (list, logger) =>
+        {
+            var toRemove = new List<Transaction>();
+            
+            var count = list.Count(tx =>
+                tx.MethodName == ConsensusBehavior.NextTerm.ToString() ||
+                tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
+            
+            if (count == 0)
+            {
+                logger?.Warn("No NextTerm tx or BroadcastInValue tx in pool.");
+                return toRemove;
+            }
+            
+            toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().ToHex())));
+
+            _latestTxs.Clear();
+            Console.WriteLine("Cleared latest txs.");
+            
+            var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString())?.RefBlockNumber;
+            if (correctRefBlockNumber.HasValue)
+            {
+                toRemove.RemoveAll(tx => tx.RefBlockNumber == correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
+            }
+            
+            toRemove.AddRange(
+                list.FindAll(tx =>
+                    tx.MethodName != ConsensusBehavior.NextTerm.ToString() &&
                     tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString()));
 
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
@@ -168,13 +213,18 @@ namespace AElf.Miner.TxMemPool
                             break;
                         case ConsensusBehavior.NextRound:
                             _txFilter = null;
-                            _txFilter += _oneUpdateAElfDPoSTxAndOnePublishInValueTxByMe;
+                            _txFilter += _oneNextRoundTxAndOnePublishInValueTxByMe;
+                            break;
+                        case ConsensusBehavior.NextTerm:
+                            _txFilter = null;
+                            _txFilter += _oneNextTermTxAndOnePublishInValueTxByMe;
                             break;
                     }
                 }
 
                 _txFilter += _firstCrossChainTxnGeneratedByMe;
             });
+            _txFilter += _firstCrossChainTxnGeneratedByMe;
 
             _logger = LogManager.GetLogger(nameof(TransactionFilter));
         }
@@ -206,7 +256,7 @@ namespace AElf.Miner.TxMemPool
             _logger?.Trace("Txs list:");
             foreach (var transaction in txs)
             {
-                _logger?.Trace($"{transaction.GetHash().DumpHex()} - {transaction.MethodName}");
+                _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName}");
             }
         }
     }

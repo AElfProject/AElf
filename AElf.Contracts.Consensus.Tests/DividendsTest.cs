@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -36,7 +37,8 @@ namespace AElf.Contracts.Consensus.Tests
             _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12));
         }
         
-        [Fact(Skip = "Time consuming.")]
+        //[Fact]
+        [Fact(Skip = "Time consuming")]
         public void GetDividendsTest()
         {
             GlobalConfig.ElfTokenPerBlock = 1000;
@@ -46,6 +48,10 @@ namespace AElf.Contracts.Consensus.Tests
             InitialCandidates();
             InitialVoters();
 
+            var candidatesList = _consensusContract.GetCandidatesListToFriendlyString();
+            Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
+            Assert.Contains(_candidates[1].PublicKey.ToHex(), candidatesList);
+            
             var balanceOfConsensusContract = _consensusContract.BalanceOf(_consensusContract.ConsensusContractAddress);
             Assert.True(balanceOfConsensusContract > 0);
 
@@ -64,11 +70,19 @@ namespace AElf.Contracts.Consensus.Tests
             }
             Assert.NotNull(mustVotedVoter);
 
+            var ticketsInformationInJson = _consensusContract.GetTicketsInfoToFriendlyString(mustVotedVoter);
+            Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
+
+            var ticketsInformation = _consensusContract.GetTicketsInfo(mustVotedVoter);
+            var votedTickets = ticketsInformation.TotalTickets;
+            var balanceAfterVoting = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
+            Assert.True(votedTickets + balanceAfterVoting == 100_000);
+
             // Get victories of first term of election, they are miners then.
             var victories = _consensusContract.GetCurrentVictories().Values;
             
             // Next term.
-            var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 2);
+            var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 1);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), secondTerm);
 
             var secondRound = _consensusContract.GetRoundInfo(2);
@@ -100,7 +114,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
 
             // Third item.
-            var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3, 3);
+            var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3, 2);
             _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);
 
             var snapshotOfSecondTerm = _consensusContract.GetTermSnapshot(2);
@@ -111,7 +125,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(dividendsOfSecondTerm == shouldBe);
             
             var balanceBefore = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
-            _consensusContract.GetAllDividends(mustVotedVoter);
+            _consensusContract.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _consensusContract.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
             Assert.True(balanceAfter >= balanceBefore);
@@ -162,7 +176,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private Address GetAddress(ECKeyPair keyPair)
         {
-            return Address.FromPublicKey(_mock.ChainId.DumpByteArray(), keyPair.PublicKey);
+            return Address.FromPublicKey(keyPair.PublicKey);
         }
     }
 }

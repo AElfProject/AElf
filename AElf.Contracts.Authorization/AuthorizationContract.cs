@@ -82,6 +82,19 @@ namespace AElf.Contracts.Authorization
         private Address Genesis { get;} = Address.Genesis;
         //private readonly ProposalSerialNumber _proposalSerialNumber = ProposalSerialNumber.Instance;
 
+        #region View
+
+        [View]
+        public Proposal GetProposal(Hash proposalHash)
+        {
+            var proposal = _proposals[proposalHash];
+            Api.NotEqual(proposal, new Proposal(), "Not found proposal.");
+            return proposal;
+        }
+
+        #endregion view
+        
+        
         #region Actions
 
         public byte[] CreateMultiSigAccount(Kernel.Authorization authorization)
@@ -90,8 +103,7 @@ namespace AElf.Contracts.Authorization
                 "Invalid authorization for multi signature.");
             // TODO: check public key -- if no Multisig account then ELF_chainID_SHA^2(authorization)
             Address multiSigAccount = authorization.MultiSigAccount ??
-                                      Address.FromPublicKey(Api.ChainId.DumpByteArray(),
-                                          authorization.ToByteArray().ToArray());
+                                      Address.FromPublicKey(authorization.ToByteArray().ToArray());
             Api.Assert(_multiSig.GetValue(multiSigAccount).Equals(new Kernel.Authorization()),
                 "MultiSigAccount already existed.");
             authorization.MultiSigAccount = multiSigAccount;
@@ -194,15 +206,7 @@ namespace AElf.Contracts.Authorization
 
         #endregion
 
-        public Kernel.Authorization GetProposal(Hash address)
-        {
-            // case 1
-            // get authorization of system account
-
-            // case 2 
-            // get authorization of normal multi sig account
-            return null;
-        }
+        
 
         public Kernel.Authorization GetAuth(Address address)
         {
@@ -210,7 +214,7 @@ namespace AElf.Contracts.Authorization
             if (!address.Equals(Genesis))
                 return _multiSig.GetValue(address);
             // case 2: get authorization of system account  
-            var reviewers = Api.GetCurrentMiners();
+            var reviewers = Api.GetMiners().PublicKeys;
             var auth = new Kernel.Authorization
             {
                 MultiSigAccount = Genesis,

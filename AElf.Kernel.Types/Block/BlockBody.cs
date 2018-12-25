@@ -9,56 +9,17 @@ namespace AElf.Kernel
     public partial class BlockBody : IBlockBody
     {
         public int TransactionsCount => Transactions.Count;
-        public Hash SideChainBlockHeadersRoot { get; private set; }
-        public Hash SideChainTransactionsRoot{ get; private set; }
         private Hash _blockBodyHash;
         public BinaryMerkleTree BinaryMerkleTree { get; } = new BinaryMerkleTree();
-        public BinaryMerkleTree BinaryMerkleTreeForSideChainTransactionRoots { get; }= new BinaryMerkleTree();
 
         private Hash CalculateBodyHash()
         {
             _blockBodyHash = new List<Hash>()
             {
                 BlockHeader,
-                BinaryMerkleTree.Root,
-                SideChainBlockHeadersRoot ?? CalculateSideChainBlockHeadersRoot(),
-                SideChainTransactionsRoot ?? CalculateSideChainTransactionsRoot()
+                BinaryMerkleTree.Root
             }.Aggregate(Hash.FromTwoHashes);
             return _blockBodyHash;
-        }
-        
-        private Hash CalculateSideChainBlockHeadersRoot()
-        {
-            if (SideChainBlockHeadersRoot == null)
-                SideChainBlockHeadersRoot = CalculateSideChainRoot(isHeaderRoot: true);
-            return SideChainBlockHeadersRoot;
-        }
-        
-        private Hash CalculateSideChainTransactionsRoot()
-        {
-            if (SideChainTransactionsRoot == null)
-                SideChainTransactionsRoot = CalculateSideChainRoot(isHeaderRoot: false);
-            return SideChainTransactionsRoot;
-        }
-
-        /// <summary>
-        /// Calculate header root or transaction root
-        /// </summary>
-        /// <param name="isHeaderRoot"></param>
-        /// <returns></returns>
-        private Hash CalculateSideChainRoot(bool isHeaderRoot)
-        {
-            Hash res;
-            if (IndexedInfo.Count != 0)
-            {
-                var roots = IndexedInfo
-                    .Select(info => isHeaderRoot ? info.BlockHeaderHash : info.TransactionMKRoot).ToList();
-                res = (isHeaderRoot ? new BinaryMerkleTree() : BinaryMerkleTreeForSideChainTransactionRoots)
-                    .AddNodes(roots).ComputeRootHash();
-            }
-            else 
-                res = Hash.Default;
-            return res;
         }
         
         public bool AddTransaction(Transaction tx)
@@ -81,9 +42,6 @@ namespace AElf.Kernel
         public Hash CalculateMerkleTreeRoots()
         {
             // side chain info
-            CalculateSideChainBlockHeadersRoot();
-            CalculateSideChainTransactionsRoot();
-            
             if (TransactionsCount == 0)
                 return Hash.Default;
             if (BinaryMerkleTree.Root != null)
@@ -99,14 +57,18 @@ namespace AElf.Kernel
         {
             return _blockBodyHash ?? CalculateBodyHash();
         }
-        
+
         /// <summary>
         /// Set block header hash
         /// </summary>
         /// <param name="blockHeaderHash"></param>
-        public void Complete(Hash blockHeaderHash)
+        /// <param name="indexedSideChainBlockInfo"></param>
+        public void Complete(Hash blockHeaderHash, SideChainBlockInfo[] indexedSideChainBlockInfo = null)
         {
             BlockHeader = blockHeaderHash;
+            if (indexedSideChainBlockInfo == null)
+                return;
+            IndexedInfo.AddRange(indexedSideChainBlockInfo);
         }
     }
 }

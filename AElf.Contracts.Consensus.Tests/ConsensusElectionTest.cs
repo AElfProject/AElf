@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.False(res);
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Time consuming.")]
         public void VoteTest()
         {
             InitializeToken();
@@ -206,7 +206,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private Address GetAddress(ECKeyPair keyPair)
         {
-            return Address.FromPublicKey(_mock.ChainId.DumpByteArray(), keyPair.PublicKey);
+            return Address.FromPublicKey(keyPair.PublicKey);
         }
     }
 }

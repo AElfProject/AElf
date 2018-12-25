@@ -10,11 +10,11 @@ namespace AElf.Miner.Rpc
      {
          protected override void Load(ContainerBuilder builder)
          {
-             builder.RegisterType<SideChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
+             builder.RegisterType<SideChainBlockInfoRpcServer>().SingleInstance().OnActivated(impl =>
              {
                  impl.Instance.Init(Hash.LoadBase58(ChainConfig.Instance.ChainId));
              });
-             builder.RegisterType<ParentChainBlockInfoRpcServerImpl>().SingleInstance().OnActivated(impl =>
+             builder.RegisterType<ParentChainBlockInfoRpcServer>().SingleInstance().OnActivated(impl =>
              {
                  impl.Instance.Init(Hash.LoadBase58(ChainConfig.Instance.ChainId));
              });

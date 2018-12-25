@@ -42,7 +42,7 @@ namespace AElf.ABI.CSharp
                 {typeof(Proposal), (s) => Proposal.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Timestamp), (s) => Timestamp.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Approval), (s) => Approval.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
-                {typeof(SideChainInfo), s => SideChainInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))}
+                
             };
 
 
@@ -59,7 +59,7 @@ namespace AElf.ABI.CSharp
                     typeof(byte[]),
                     obj => ((byte[]) obj).ToHex()
                 },
-                {typeof(Hash), obj=> ((Hash)obj).DumpHex()},
+                {typeof(Hash), obj=> ((Hash)obj).ToHex()},
                 {typeof(Address), obj=> ((Address)obj).GetFormatted()},
                 {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()},
                 {typeof(ParentChainBlockInfo), obj => ((ParentChainBlockInfo) obj).ToByteArray().ToHex()},
@@ -68,13 +68,27 @@ namespace AElf.ABI.CSharp
                 {typeof(Proposal), obj => ((Proposal) obj).ToByteArray().ToHex()},
                 {typeof(Timestamp), obj => ((Timestamp) obj).ToByteArray().ToHex()},
                 {typeof(Approval), obj => ((Approval) obj).ToByteArray().ToHex()},
-                {typeof(SideChainInfo), obj => ((SideChainInfo) obj).ToByteArray().ToHex()}
+                {typeof(SideChainInfo), obj => ((SideChainInfo) obj).ToByteArray().ToHex()},
+                {typeof(SideChainBlockInfo[]), objs =>
+                    {
+                        string[] res = ((SideChainBlockInfo[]) objs).Select(obj => obj.ToByteArray().ToHex())
+                            .ToArray();
+                        return "[" + string.Join(", ", res) + "]";
+                    }
+                },
+                {typeof(ParentChainBlockInfo[]), objs =>
+                    {
+                        string[] res = ((ParentChainBlockInfo[]) objs).Select(obj => obj.ToByteArray().ToHex())
+                            .ToArray();
+                        return "[" + string.Join(", ", res) + "]";
+                    }
+                }
             };
 
         static StringInputParsers()
         {
             _nameToType = new Dictionary<string, System.Type>();
-            foreach (var t in StringHandlers.Keys)
+            foreach (var t in ObjectHandlers.Keys)
             {
                 _nameToType.Add(t.FullName, t);
                 var shortName = t.FullName.ToShorterName();
@@ -131,7 +145,7 @@ namespace AElf.ABI.CSharp
 
             if (typeName == Globals.HASH_TYPE_FULL_NAME)
             {
-                return obj => ((Hash) obj).DumpHex();
+                return obj => ((Hash) obj).ToHex();
             }
 
             throw new Exception($"Not Found parser for type {typeName}");

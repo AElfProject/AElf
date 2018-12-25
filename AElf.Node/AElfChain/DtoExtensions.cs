@@ -12,7 +12,7 @@ namespace AElf.Node.AElfChain
             {
                 ["tx"] = new JObject
                 {
-                    {"TxId", tx.GetHash().DumpHex()},
+                    {"TxId", tx.GetHash().ToHex()},
                     {"From", tx.From.GetFormatted()},
                     {"To", tx.To.GetFormatted()},
                     {"Method", tx.MethodName},

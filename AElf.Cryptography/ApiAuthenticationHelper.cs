@@ -40,14 +40,14 @@ namespace AElf.Cryptography
 
         public static string GetTimestamp(DateTime time)
         {
-            var startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1, 0, 0, 0, 0));
+            var startTime = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1, 0, 0, 0, 0), TimeZoneInfo.Local);
             var t = (time.Ticks - startTime.Ticks) / 10000000;
             return t.ToString();
         }
 
         public static DateTime GetTime(string timeStamp)
         {
-            var dtStart = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1));
+            var dtStart = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1), TimeZoneInfo.Local);
             var lTime = long.Parse(timeStamp + "0000000");
             var toNow = new TimeSpan(lTime);
             return dtStart.Add(toNow);

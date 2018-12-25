@@ -37,7 +37,7 @@ namespace AElf.Contracts.Authorization.Tests
         
         private IFunctionMetadataService _functionMetadataService;
         private IChainCreationService _chainCreationService;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
         private ILogger _logger;
         private IDataStore _dataStore;
 
@@ -53,22 +53,22 @@ namespace AElf.Contracts.Authorization.Tests
             var transactionManager = new TransactionManager(_dataStore, _logger);
             var transactionTraceManager = new TransactionTraceManager(_dataStore);
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
-            var chainManagerBasic = new ChainManagerBasic(_dataStore);
-            ChainService = new ChainService(chainManagerBasic, new BlockManagerBasic(_dataStore),
+            var chainManager = new ChainManager(_dataStore);
+            ChainService = new ChainService(chainManager, new BlockManager(_dataStore),
                 transactionManager, transactionTraceManager, _dataStore, StateStore);
-            _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            _smartContractRunnerContainer = new SmartContractRunnerContainer();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractRunnerContainer.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
-                new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerFactory,
+                new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerContainer,
                     StateStore, _functionMetadataService), _logger);
             SmartContractManager = new SmartContractManager(_dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, StateStore, _functionMetadataService);
-            ChainService = new ChainService(new ChainManagerBasic(_dataStore), new BlockManagerBasic(_dataStore), new TransactionManager(_dataStore), new TransactionTraceManager(_dataStore), _dataStore, StateStore);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer, StateStore, _functionMetadataService);
+            ChainService = new ChainService(new ChainManager(_dataStore), new BlockManager(_dataStore), new TransactionManager(_dataStore), new TransactionTraceManager(_dataStore), _dataStore, StateStore);
         }
 
         private void NewStorage()

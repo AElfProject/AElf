@@ -26,7 +26,6 @@ namespace AElf.CLI2.Commands.CrossChain
             _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
                 .GetManifestResourceStream("AElf.CLI2.Scripts.cross-chain.js"));
             _engine.GlobalObject.CallMethod("check_sidechain_status", _option.ChainId);
-            
         }
     }
 }

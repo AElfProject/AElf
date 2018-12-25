@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
-using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
-using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.RPC;
@@ -24,10 +23,8 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
-using Newtonsoft.Json.Serialization;
 using NLog;
-using NServiceKit.Text;
-using ServiceStack.Templates;
+using Transaction = AElf.Kernel.Transaction;
 
 namespace AElf.ChainController.Rpc
 {
@@ -44,11 +41,12 @@ namespace AElf.ChainController.Rpc
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public INodeService MainchainNodeService { get; set; }
-        public ICrossChainInfo CrossChainInfo { get; set; }
-        public IAuthorizationInfo AuthorizationInfo { get; set; }
+        public ICrossChainInfoReader CrossChainInfoReader { get; set; }
+        public IAuthorizationInfoReader AuthorizationInfoReader { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSet BlockSet { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
+        public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
         public IElectionInfo ElectionInfo { get; set; }
 
         #endregion Properties
@@ -105,6 +103,9 @@ namespace AElf.ChainController.Rpc
                 var authorizationContract =
                     ContractHelpers.GetAuthorizationContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                var consensusContract = ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                var dividendsContract = ContractHelpers.GetDividendsContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject()
                 {
@@ -115,6 +116,8 @@ namespace AElf.ChainController.Rpc
                             [GlobalConfig.GenesisCrossChainContractAssemblyName] = crosschainContract.GetFormatted(),
                             [GlobalConfig.GenesisAuthorizationContractAssemblyName] = authorizationContract.GetFormatted(),
                             [GlobalConfig.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
+                            [GlobalConfig.GenesisConsensusContractAssemblyName] = consensusContract.GetFormatted(),
+                            [GlobalConfig.GenesisDividendsContractAssemblyName] = dividendsContract.GetFormatted(),
                             ["chain_id"] = ChainConfig.Instance.ChainId
                         }
                 };
@@ -148,7 +151,7 @@ namespace AElf.ChainController.Rpc
                     ["error"] = ""
                 };
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new JObject
                 {
@@ -157,34 +160,6 @@ namespace AElf.ChainController.Rpc
                     ["error"] = "Not Found"
                 };
             }
-        }
-
-        [JsonRpcMethod("get_increment", "address")]
-        public async Task<JObject> ProcessGetIncrementId(string address)
-        {
-            Address addr;
-            try
-            {
-                addr = Address.Parse(address);
-            }
-            catch (Exception e)
-            {
-                return JObject.FromObject(new JObject
-                {
-                    ["error"] = "Invalid Address Format"
-                });
-            }
-
-            var current = await this.GetIncrementId(addr);
-            var response = new JObject
-            {
-                ["result"] = new JObject
-                {
-                    ["increment"] = current
-                }
-            };
-
-            return JObject.FromObject(response);
         }
 
         [JsonRpcMethod("call", "rawtx")]
@@ -199,7 +174,7 @@ namespace AElf.ChainController.Rpc
                 var res = await this.CallReadOnly(transaction);
                 response = new JObject
                 {
-                    ["return"] = res.ToHex()
+                    ["return"] = res?.ToHex()
                 };
             }
             catch (Exception e)
@@ -219,7 +194,7 @@ namespace AElf.ChainController.Rpc
             var hexString = ByteArrayHelpers.FromHexString(raw64);
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
-            var res = new JObject {["hash"] = transaction.GetHash().DumpHex()};
+            var res = new JObject {["hash"] = transaction.GetHash().ToHex()};
 
             if (!_canBroadcastTxs)
             {
@@ -227,23 +202,16 @@ namespace AElf.ChainController.Rpc
                 return await Task.FromResult(res);
             }
             
-//            try
-//            {
-            // TODO: Wait validation done
+            try
+            {
+                //TODO: Wait validation done
+                transaction.GetTransactionInfo();
                 await TxHub.AddTransactionAsync(transaction);
-//                if (valRes == TxValidation.TxInsertionAndBroadcastingError.Success)
-//                {
-//                    MessageHub.Instance.Publish(new TransactionAddedToPool(transaction));
-//                }
-//                else
-//                {
-//                    res["error"] = valRes.ToString();
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                res["error"] = e.ToString();
-//            }
+            }
+            catch (Exception e)
+            {
+                res["error"] = e.ToString();
+            }
 
             return await Task.FromResult(res);
         }
@@ -293,8 +261,8 @@ namespace AElf.ChainController.Rpc
                 var txResult = await this.GetTransactionResult(txHash);
                 if(txResult.Status != Status.Mined)
                    throw new Exception("Transaction is not mined.");
-                
-                var merklePath = txResult.MerklePath?.Clone();
+                var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(txResult.BlockNumber);
+                var merklePath = binaryMerkleTree.GenerateMerklePath(txResult.Index);
                 if(merklePath == null)
                     throw new Exception("Not found merkle path for this transaction.");
                 MerklePath merklePathInParentChain = null;
@@ -306,7 +274,7 @@ namespace AElf.ChainController.Rpc
                 }
                 catch (Exception e)
                 {
-                    throw new Exception("Unable to get merkle path from parent chain");
+                    throw new Exception($"Unable to get merkle path from parent chain {e}");
                 }
                 /*if(merklePathInParentChain == null)
                     throw new Exception("Not found merkle path in parent chain");*/
@@ -349,7 +317,7 @@ namespace AElf.ChainController.Rpc
                 return new JObject
                 {
                     ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
-                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.DumpHex(),
+                    ["side_chain_txs_root"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
                     ["parent_height"] = merklePathInParentChain.Height
                 };
             }
@@ -497,7 +465,7 @@ namespace AElf.ChainController.Rpc
             if (txResult.Status == Status.Mined)
             {
                 response["block_number"] = txResult.BlockNumber;
-                response["block_hash"] = txResult.BlockHash.DumpHex();
+                response["block_hash"] = txResult.BlockHash.ToHex();
 #if DEBUG
                 response["return_type"] = txtrc.RetVal.Type.ToString();
 #endif
@@ -506,7 +474,7 @@ namespace AElf.ChainController.Rpc
                     response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
 
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // not an error
                     response["return"] = txResult.RetVal.ToByteArray().ToHex();
@@ -553,13 +521,13 @@ namespace AElf.ChainController.Rpc
             {
                 ["result"] = new JObject
                 {
-                    ["Blockhash"] = blockinfo.GetHash().DumpHex(),
+                    ["Blockhash"] = blockinfo.GetHash().ToHex(),
                     ["Header"] = new JObject
                     {
-                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.DumpHex(),
-                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.DumpHex(),
-                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.DumpHex(),
-                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot.DumpHex(),
+                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.ToHex(),
+                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.ToHex(),
+                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot?.ToHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),
@@ -579,7 +547,7 @@ namespace AElf.ChainController.Rpc
                 var txs = new List<string>();
                 foreach (var txHash in transactions)
                 {
-                    txs.Add(txHash.DumpHex());
+                    txs.Add(txHash.ToHex());
                 }
 
                 response["result"]["Body"]["Transactions"] = JArray.FromObject(txs);
@@ -711,7 +679,7 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("get_rollback_times")]
         public async Task<JObject> RollBackTimes()
         {
-            var rollBackTimes = await this.GetRollBackTimes();
+            var rollBackTimes = this.GetRollBackTimes();
                 
             var response = new JObject
             {
@@ -721,33 +689,6 @@ namespace AElf.ChainController.Rpc
             return JObject.FromObject(response);
         }
 
-//        [JsonRpcMethod("set_block_volume", "minimal", "maximal")]
-//        public async Task<JObject> ProcSetBlockVolume(string minimal, string maximal)
-//        {
-//            /* TODO: This is a privileged method, need:
-//             *   1. Optional enabling of this method (maybe separate endpoint), and/or
-//             *   2. Authentication / authorization
-//             */
-//            try
-//            {
-//                var min = int.Parse(minimal);
-//                var max = int.Parse(maximal);
-//                this.SetBlockVolume(min, max);
-//                return await Task.FromResult(new JObject
-//                {
-//                    ["result"] = "Success"
-//                });
-//            }
-//            catch (Exception e)
-//            {
-//                _logger.Error(e, "Exception while ProcSetBlockVolume.");
-//                return await Task.FromResult(new JObject
-//                {
-//                    ["error"] = "Failed"
-//                });
-//            }
-//        }
-        
         [JsonRpcMethod("get_db_value","key")]
         public async Task<JObject> GetDbValue(string key)
         {

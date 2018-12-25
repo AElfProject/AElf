@@ -22,8 +22,8 @@ namespace AElf.Contracts.Consensus
             CandidatesField = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
             TermNumberLookupField = new PbField<TermNumberLookUp>(GlobalConfig.AElfDPoSTermNumberLookupString),
             AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
-            CurrentTermNumberField= new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
-            BlockchainStartTimestamp= new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
+            CurrentTermNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
+            BlockchainStartTimestamp = new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
             VotesCountField = new UInt64Field(GlobalConfig.AElfVotesCountString),
             TicketsCountField = new UInt64Field(GlobalConfig.AElfTicketsCountString),
 
@@ -107,6 +107,12 @@ namespace AElf.Contracts.Consensus
         {
             return Collection.CandidatesField.GetValue().PublicKeys.ToList().ToStringList();
         }
+        
+        [View]
+        public string GetCandidatesListToFriendlyString(string empty)
+        {
+            return GetCandidatesList(empty).ToString();
+        }
 
         [View]
         public CandidateInHistory GetCandidateHistoryInfo(string publicKey)
@@ -115,14 +121,30 @@ namespace AElf.Contracts.Consensus
                 GlobalConfig.CandidateNotFound);
             return info;
         }
+        
+        [View]
+        public string GetCandidateHistoryInfoToFriendlyString(string publicKey)
+        {
+            return GetCandidateHistoryInfo(publicKey).ToString();
+        }
 
         [View]
-        public StringList GetCurrentMiners(string empty)
+        public Miners GetCurrentMiners(string empty)
         {
             var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
+            if (currentTermNumber == 0)
+            {
+                currentTermNumber = 1;
+            }
             Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
                 GlobalConfig.TermNumberNotFound);
-            return currentMiners.PublicKeys.ToList().ToStringList();
+            return currentMiners;
+        }
+        
+        [View]
+        public string GetCurrentMinersToFriendlyString(string empty)
+        {
+            return GetCurrentMiners(empty).ToString();
         }
 
         [View]
@@ -131,20 +153,50 @@ namespace AElf.Contracts.Consensus
             Api.Assert(Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets), GlobalConfig.TicketsNotFound);
             return tickets;
         }
-
+        
         [View]
-        public TicketsDictionary GetCurrentElectionInfo(string empty)
+        public string GetTicketsInfoToFriendlyString(string publicKey)
         {
-            var dict = new Dictionary<string, Tickets>();
-            foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
+            return GetTicketsInfo(publicKey).ToString();
+        }
+
+        /// <summary>
+        /// Order by:
+        /// 0 - Announcement order. (Default)
+        /// </summary>
+        /// <param name="startIndex"></param>
+        /// <param name="length"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
+        [View]
+        public TicketsDictionary GetCurrentElectionInfo(int startIndex = 0, int length = 0, int orderBy = 0)
+        {
+            if (orderBy == 0)
             {
-                if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
+                if (length == 0)
                 {
-                    dict.Add(publicKey, tickets);
+                    length = publicKeys.Count;
                 }
+                var dict = new Dictionary<string, Tickets>();
+                foreach (var publicKey in publicKeys.Skip(startIndex).Take(length - startIndex))
+                {
+                    if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                    {
+                        dict.Add(publicKey, tickets);
+                    }
+                }
+
+                return dict.ToTicketsDictionary();
             }
 
-            return dict.ToTicketsDictionary();
+            return new Dictionary<string, Tickets>().ToTicketsDictionary();
+        }
+        
+        [View]
+        public string GetCurrentElectionInfoToFriendlyString(int startIndex = 0, int length = 0, int orderBy = 0)
+        {
+            return GetCurrentElectionInfo(startIndex, length, orderBy).ToString();
         }
         
         [View]
@@ -156,7 +208,13 @@ namespace AElf.Contracts.Consensus
         [View]
         public StringList GetCurrentVictories(string empty)
         {
-            return Process.GetCurrentVictories();
+            return Process.GetVictories().ToStringList();
+        }
+        
+        [View]
+        public string GetCurrentVictoriesToFriendlyString(string empty)
+        {
+            return GetCurrentVictories(empty).ToString();
         }
   
         [View]
@@ -164,6 +222,12 @@ namespace AElf.Contracts.Consensus
         {
             Api.Assert(Collection.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot), GlobalConfig.TermSnapshotNotFound);
             return snapshot;
+        }
+        
+        [View]
+        public string GetTermSnapshotToFriendlyString(ulong termNumber)
+        {
+            return GetTermSnapshot(termNumber).ToString();
         }
 
         [View]
@@ -232,6 +296,12 @@ namespace AElf.Contracts.Consensus
             return 0;
         }
         
+        [View]
+        public string QueryAliasesInUseToFriendlyString(string empty)
+        {
+            return QueryAliasesInUse(empty).ToString();
+        }
+        
         public void AnnounceElection(string alias)
         {
             Election.AnnounceElection(alias);
@@ -247,19 +317,19 @@ namespace AElf.Contracts.Consensus
             Election.Vote(candidatePublicKey, amount, lockTime);
         }
 
-        public void GetDividendsByDetail(string candidatePublicKey, ulong amount, int lockDays)
+        public void ReceiveDividendsByVotingDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
-            Election.GetDividends(candidatePublicKey, amount, lockDays);
+            Election.ReceiveDividends(candidatePublicKey, amount, lockDays);
         }
 
-        public void GetDividendsByTransactionId(Hash transactionId)
+        public void ReceiveDividendsByTransactionId(Hash transactionId)
         {
-            Election.GetDividends(transactionId);
+            Election.ReceiveDividends(transactionId);
         }
         
-        public void GetAllDividends(string empty)
+        public void ReceiveAllDividends(string empty)
         {
-            Election.GetDividends();
+            Election.ReceiveDividends();
         }
         
         public void WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)

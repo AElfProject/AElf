@@ -24,7 +24,6 @@ using AElf.CLI.Wallet.Exceptions;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Cryptography.ECDSA;
-using Base58Check;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

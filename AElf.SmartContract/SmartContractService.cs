@@ -21,17 +21,17 @@ namespace AElf.SmartContract
     public class SmartContractService : ISmartContractService
     {
         private readonly ISmartContractManager _smartContractManager;
-        private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
         private readonly ConcurrentDictionary<Address, Hash> _contractHashs = new ConcurrentDictionary<Address, Hash>();
         private readonly IStateStore _stateStore;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IStateStore stateStore,
+        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer, IStateStore stateStore,
             IFunctionMetadataService functionMetadataService)
         {
             _smartContractManager = smartContractManager;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
+            _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateStore = stateStore;
             _functionMetadataService = functionMetadataService;
         }
@@ -75,7 +75,7 @@ namespace AElf.SmartContract
             var reg = await _smartContractManager.GetAsync(contractAddress);
 
             // get runner
-            var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
+            var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
 
             if (runner == null)
             {
@@ -107,7 +107,7 @@ namespace AElf.SmartContract
             if (executive.ContractHash.Equals(GetContractVersion(account)))
             {
                 executive.SetTransactionContext(new TransactionContext());
-                executive.SetDataCache(new Dictionary<DataPath, StateCache>());
+                executive.SetDataCache(new Dictionary<StatePath, StateCache>());
                 GetPoolFor(account).Add(executive);
             }
 
@@ -116,7 +116,7 @@ namespace AElf.SmartContract
 
         private Type GetContractType(SmartContractRegistration registration)
         {
-            var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
+            var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
             if (runner == null)
             {
                 throw new NotSupportedException($"Runner for category {registration.Category} is not registered.");
@@ -128,7 +128,7 @@ namespace AElf.SmartContract
         public async Task DeployContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
         {
             // get runnner
-            var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
+            var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
             runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
 
             if (ParallelConfig.Instance.IsParallelEnable)
@@ -145,7 +145,7 @@ namespace AElf.SmartContract
         public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration newRegistration, bool isPrivileged)
         {
             // get runnner
-            var runner = _smartContractRunnerFactory.GetRunner(newRegistration.Category);
+            var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);
             runner.CodeCheck(newRegistration.ContractBytes.ToByteArray(), isPrivileged);
 
             if (ParallelConfig.Instance.IsParallelEnable)
@@ -189,7 +189,7 @@ namespace AElf.SmartContract
 
         private IMessage GetAbiAsync(SmartContractRegistration reg)
         {
-            var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
+            var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
             return runner.GetAbi(reg);
         }
     }

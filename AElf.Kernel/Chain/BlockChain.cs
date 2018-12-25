@@ -9,7 +9,6 @@ using Easy.MessageHub;
 using NLog;
 using AElf.Common;
 using AElf.Kernel.Types.Common;
-using NServiceKit.Common.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -25,7 +24,7 @@ namespace AElf.Kernel
         private static bool _prepareTerminated;
         private static bool _terminated;
 
-        public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
+        public BlockChain(Hash chainId, IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
             IStateStore stateStore, IDataStore dataStore) : base(
             chainId, chainManager, blockManager, dataStore)

@@ -17,13 +17,10 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node;
-using AElf.Kernel.Storages;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
-using AElf.Synchronization.EventMessages;
-using Base58Check;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
@@ -90,6 +87,8 @@ namespace AElf.Node.AElfChain
 
         private byte[] ResourceContractZero => ReadContractCode(GlobalConfig.GenesisResourceContractAssemblyName);
 
+        private byte[] DividendsContractZero => ReadContractCode(GlobalConfig.GenesisDividendsContractAssemblyName);
+
         private byte[] ReadContractCode(string assemblyName)
         {
             var contractZeroDllPath = Path.Combine(_assemblyDir, $"{assemblyName}.dll");
@@ -123,7 +122,7 @@ namespace AElf.Node.AElfChain
             });
 
             _txHub.Initialize();
-            _miner.Init(_nodeKeyPair);
+            _miner.Init();
         }
 
         public bool Start()
@@ -150,7 +149,7 @@ namespace AElf.Node.AElfChain
                 {
                     // Create the chain if it doesn't exist
                     CreateNewChain(TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero,
-                        CrossChainGenesisContractZero, AuthorizationContractZero, ResourceContractZero);
+                        CrossChainGenesisContractZero, AuthorizationContractZero, ResourceContractZero, DividendsContractZero);
                 }
             }
             catch (Exception e)
@@ -209,8 +208,8 @@ namespace AElf.Node.AElfChain
             var tokenContractAddress = ContractHelpers.GetTokenContractAddress(ChainId);
             _logger?.Debug($"Token contract address = {tokenContractAddress.GetFormatted()}");
 
-            var consensusAddress = ContractHelpers.GetConsensusContractAddress(ChainId);
-            _logger?.Debug($"DPoS contract address = {consensusAddress.GetFormatted()}");
+            var consensusContractAddress = ContractHelpers.GetConsensusContractAddress(ChainId);
+            _logger?.Debug($"Consensus contract address = {consensusContractAddress.GetFormatted()}");
 
             var crosschainContractAddress = ContractHelpers.GetCrossChainContractAddress(ChainId);
             _logger?.Debug($"CrossChain contract address = {crosschainContractAddress.GetFormatted()}");
@@ -220,10 +219,13 @@ namespace AElf.Node.AElfChain
 
             var resourceContractAddress = ContractHelpers.GetResourceContractAddress(ChainId);
             _logger?.Debug($"Resource contract address = {resourceContractAddress.GetFormatted()}");
+            
+            var dividendsContractAddress = ContractHelpers.GetDividendsContractAddress(ChainId);
+            _logger?.Debug($"Dividends contract address = {dividendsContractAddress.GetFormatted()}");
         }
 
         private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero,
-            byte[] crossChainGenesisContractCode, byte[] authorizationContractCode, byte[] resourceContractCode)
+            byte[] crossChainGenesisContractCode, byte[] authorizationContractCode, byte[] resourceContractCode, byte[] dividendsContractCode)
         {
             var tokenCReg = new SmartContractRegistration
             {
@@ -272,10 +274,19 @@ namespace AElf.Node.AElfChain
                 ContractHash = Hash.FromRawBytes(resourceContractCode),
                 SerialNumber = GlobalConfig.ResourceContract
             };
+            
+            var dividendsCReg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(dividendsContractCode),
+                ContractHash = Hash.FromRawBytes(dividendsContractCode),
+                SerialNumber = GlobalConfig.DividendsContract
+            };
+            
             var res = _chainCreationService.CreateNewChainAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
                 new List<SmartContractRegistration>
-                    {basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg}).Result;
-            _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.DumpHex()}");
+                    {basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg, dividendsCReg}).Result;
+            _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");
         }
 
         #endregion private methods

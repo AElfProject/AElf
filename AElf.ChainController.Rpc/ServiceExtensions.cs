@@ -5,7 +5,6 @@ using System.Data.JsonRpc;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
@@ -140,24 +139,6 @@ namespace AElf.ChainController.Rpc
             return await s.SmartContractService.GetAbiAsync(address);
         }
 
-        internal static async Task<ulong> GetIncrementId(this Svc s, Address addr)
-        {
-            try
-            {
-                // ReSharper disable once InconsistentNaming
-//                var idInDB = (await s.AccountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
-//                    .IncrementId;
-//                var idInPool = s.TxPool.GetIncrementId(addr);
-//
-//                return Math.Max(idInDB, idInPool);
-                return ulong.MaxValue;
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
-        }
-
         internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
         {
             var r = await s.TxHub.GetReceiptAsync(txId);
@@ -191,7 +172,14 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
         {
-            return await s.SmartContractService.GetInvokingParams(tx);
+            try
+            {
+                return await s.SmartContractService.GetInvokingParams(tx);
+            }
+            catch (Exception)
+            {
+                return new List<string>();
+            }
         }
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)
@@ -209,6 +197,11 @@ namespace AElf.ChainController.Rpc
         internal static async Task<ulong> GetTransactionPoolSize(this Svc s)
         {
             return (ulong)(await s.TxHub.GetReceiptsOfExecutablesAsync()).Count;
+        }
+
+        internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this Svc s, ulong height)
+        {
+            return await s.BinaryMerkleTreeManager.GetTransactionsMerkleTreeByHeightAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId), height);
         }
 
 //        internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
@@ -244,6 +237,8 @@ namespace AElf.ChainController.Rpc
                 await s.SmartContractService.PutExecutiveAsync(tx.To, executive);
             }
 
+            if(!string.IsNullOrEmpty(trace.StdErr))
+                throw new Exception(trace.StdErr);
             return trace.RetVal.ToFriendlyBytes();
         }
 
@@ -251,7 +246,7 @@ namespace AElf.ChainController.Rpc
 
         internal static MerklePath GetTxRootMerklePathInParentChain(this Svc s, ulong height)
         {
-            var merklePath = s.CrossChainInfo.GetTxRootMerklePathInParentChain(height);
+            var merklePath = s.CrossChainInfoReader.GetTxRootMerklePathInParentChain(height);
             if (merklePath != null)
                 return merklePath;
             throw new Exception();
@@ -259,7 +254,7 @@ namespace AElf.ChainController.Rpc
 
         internal static ParentChainBlockInfo GetParentChainBlockInfo(this Svc s, ulong height)
         {
-            var parentChainBlockInfo = s.CrossChainInfo.GetBoundParentChainBlockInfo(height);
+            var parentChainBlockInfo = s.CrossChainInfoReader.GetBoundParentChainBlockInfo(height);
             if (parentChainBlockInfo != null)
                 return parentChainBlockInfo;
             throw new Exception();
@@ -267,7 +262,7 @@ namespace AElf.ChainController.Rpc
 
         internal static ulong GetBoundParentChainHeight(this Svc s, ulong height)
         {
-            var parentHeight = s.CrossChainInfo.GetBoundParentChainHeight(height);
+            var parentHeight = s.CrossChainInfoReader.GetBoundParentChainHeight(height);
             if (parentHeight != 0)
                 return parentHeight;
             throw new Exception();
@@ -279,12 +274,12 @@ namespace AElf.ChainController.Rpc
 
         internal static Proposal GetProposal(this Svc s, Hash proposalHash)
         {
-            return s.AuthorizationInfo.GetProposal(proposalHash);
+            return s.AuthorizationInfoReader.GetProposal(proposalHash);
         }
 
         internal static Authorization GetAuthorization(this Svc s, Address msig)
         {
-            return s.AuthorizationInfo.GetAuthorization(msig);
+            return s.AuthorizationInfoReader.GetAuthorization(msig);
         }
 
         #endregion
@@ -313,7 +308,7 @@ namespace AElf.ChainController.Rpc
         }
         
         #endregion
-        
+
         internal static IMessage GetInstance(this Svc s,string type)
         {
             switch (type)
@@ -341,7 +336,7 @@ namespace AElf.ChainController.Rpc
             }
         }
         
-        internal static async Task<int> GetRollBackTimes(this Svc s)
+        internal static int GetRollBackTimes(this Svc s)
         {
             return s.BlockSynchronizer.RollBackTimes;
         }

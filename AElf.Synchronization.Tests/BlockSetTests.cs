@@ -66,7 +66,7 @@ namespace AElf.Synchronization.Tests
             var temp = Hash.Generate();
             for (var i = firstIndex; i < number + firstIndex; i++)
             {
-                var block = MockBlock((ulong) i, Hash.Generate().DumpHex(), temp == null ? Hash.Generate() : temp);
+                var block = MockBlock((ulong) i, Hash.Generate().ToHex(), temp == null ? Hash.Generate() : temp);
                 list.Add(block);
                 temp = block.GetHash();
             }
@@ -83,7 +83,6 @@ namespace AElf.Synchronization.Tests
                 {
                     MerkleTreeRootOfTransactions = Hash.Generate(),
                     SideChainTransactionsRoot = Hash.Generate(),
-                    SideChainBlockHeadersRoot = Hash.Generate(),
                     ChainId = Hash.Generate(),
                     PreviousBlockHash = preBlockHash,
                     MerkleTreeRootOfWorldState = Hash.Generate(),
