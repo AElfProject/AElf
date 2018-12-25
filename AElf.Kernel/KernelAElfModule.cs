@@ -1,6 +1,7 @@
 ﻿using AElf.Common;
 using AElf.Common.Enums;
 using AElf.Common.MultiIndexDictionary;
+using AElf.Common.Serializers;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
@@ -13,6 +14,7 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 
 using Microsoft.Extensions.Logging;
+using ProtobufSerializer = Akka.Remote.Serialization.ProtobufSerializer;
 
 namespace AElf.Kernel
 {
@@ -29,11 +31,9 @@ namespace AElf.Kernel
             var services = context.Services;
 
             services.AddAssemblyOf<KernelAElfModule>();
-            
-            services.AddTransient(
-                typeof(ISerializer<>), 
-                typeof(Serializer<>));
 
+            services.AddTransient<IByteSerializer, AElf.Common.Serializers.ProtobufSerializer>();
+            
             services.AddTransient(
                 typeof(IEqualityIndex<>), 
                 typeof(EqualityIndex<,>));

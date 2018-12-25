@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
-using Akka.Dispatch;
-using Akka.Util;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,18 +15,15 @@ namespace AElf.Kernel
         protected readonly Hash _chainId;
         protected readonly IChainManager _chainManager;
         protected readonly IBlockManager _blockManager;
-        protected readonly IDataStore _dataStore;
 
         public ILogger<LightChain> Logger {get;set;}
-        
         public LightChain(Hash chainId,
             IChainManager chainManager,
-            IBlockManager blockManager, IDataStore dataStore)
+            IBlockManager blockManager)
         {
             _chainId = chainId.Clone();
             _chainManager = chainManager;
             _blockManager = blockManager;
-            _dataStore = dataStore;
             Logger = NullLogger<LightChain>.Instance;
         }
 
@@ -41,10 +34,11 @@ namespace AElf.Kernel
             {
                 return GlobalConfig.GenesisBlockHeight;
             }
+
             var header = (BlockHeader) await GetHeaderByHashAsync(hash);
             return header.Index;
         }
-        
+
         public async Task<Hash> GetCurrentBlockHashAsync()
         {
             var hash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
@@ -101,14 +95,9 @@ namespace AElf.Kernel
             MessageHub.Instance.Publish((BlockHeader) header);
         }
 
-        protected Hash GetHeightHash(ulong height)
-        {
-            return DataPath.CalculatePointerForGettingBlockHashByHeight(_chainId, height);
-        }
-
         public async Task<Hash> GetCanonicalHashAsync(ulong height)
         {
-            var blockHash = await _dataStore.GetAsync<Hash>(GetHeightHash(height).OfType(HashType.CanonicalHash));
+            var blockHash = await _chainManager.GetCanonical(_chainId, height);
             return blockHash;
         }
 
@@ -117,6 +106,7 @@ namespace AElf.Kernel
             var blockHeader = (BlockHeader) header;
 
             #region genesis
+
             // TODO: more strict genesis
             if (blockHeader.Index == GlobalConfig.GenesisBlockHeight)
             {
@@ -125,10 +115,12 @@ namespace AElf.Kernel
                 {
                     await _chainManager.AddChainAsync(_chainId, header.GetHash());
                 }
+
                 return;
             }
 
             #endregion genesis
+
             var prevHeader = await GetHeaderByHashAsync(blockHeader.PreviousBlockHash);
             if (prevHeader == null)
             {
@@ -136,9 +128,9 @@ namespace AElf.Kernel
             }
 
             var expected = ((BlockHeader) prevHeader).Index + 1;
-            var actual = blockHeader.Index; 
-            
-            if ( actual != expected )
+            var actual = blockHeader.Index;
+
+            if (actual != expected)
             {
                 throw new InvalidOperationException($"Incorrect index. Expected: {expected}, actual: {actual}");
             }
@@ -165,6 +157,7 @@ namespace AElf.Kernel
                 {
                     break;
                 }
+
                 tempNewHead = (BlockHeader) await GetHeaderByHashAsync(tempNewHead.PreviousBlockHash);
             }
 
@@ -190,21 +183,17 @@ namespace AElf.Kernel
             var blockHeader = (BlockHeader) header;
             if (blockHeader.Index <= GlobalConfig.GenesisBlockHeight)
             {
-                var hash = GetHeightHash(blockHeader.Index).OfType(HashType.CanonicalHash);
-//                hash.Height = blockHeader.Index;
-                await _dataStore.InsertAsync(hash, header.GetHash());
+                await _chainManager.SetCanonical(_chainId, blockHeader.Index, header.GetHash());
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 return;
             }
-            
+
             var currentBlockHash = await GetCurrentBlockHashAsync();
             var currentHeader = await GetHeaderByHashAsync(currentBlockHash);
             if (currentHeader.GetHash().Equals(((BlockHeader) header).PreviousBlockHash) ||
                 ((BlockHeader) header).PreviousBlockHash.Equals(Hash.Genesis))
             {
-                var hash = GetHeightHash(((BlockHeader) header).Index).OfType(HashType.CanonicalHash);
-//                hash.Height = ((BlockHeader) header).Index;
-                await _dataStore.InsertAsync(hash, header.GetHash());
+                await _chainManager.SetCanonical(_chainId, header.Index, header.GetHash());
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 return;
             }
@@ -222,14 +211,10 @@ namespace AElf.Kernel
                             break;
                         }
 
-                        var hash = GetHeightHash(((BlockHeader) newBranchHeader).Index).OfType(HashType.CanonicalHash);
-//                        hash.Height = ((BlockHeader) newBranchHeader).Index;
-                        await _dataStore.InsertAsync(hash, newBranchHeader.GetHash());
+                        await _chainManager.SetCanonical(_chainId, newBranchHeader.Index, newBranchHeader.GetHash());
                     }
                 }
             }
         }
-
-
     }
 }

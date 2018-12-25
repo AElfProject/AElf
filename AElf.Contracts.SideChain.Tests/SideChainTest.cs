@@ -10,30 +10,26 @@ using Xunit;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Contracts.Authorization.Tests;
 using AElf.Miner.TxMemPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Contracts.SideChain.Tests
 {
-public class SideChainTest
+public class SideChainTest : ContractTestBase
     {
         private SideChainContractShim _contract;
         private MockSetup Mock;
 
         public SideChainTest()
         {
-        }
-
-        private void Init()
-        {
-            Mock = new MockSetup();
+            Mock = this.GetRequiredService<MockSetup>();
         }
 
         [Fact(Skip = "TBD, side chain lifetime")]
         public async Task SideChainLifetime()
         {
-            Init();
             _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(Mock.ChainId1));
 //            var chainId = Hash.Generate();
             var chainId = Hash.FromString("Chain1");
@@ -74,7 +70,6 @@ public class SideChainTest
         [Fact]
         public async Task MerklePathTest()
         {
-            Init();
             var chainId = Mock.ChainId1;
             _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(chainId));
             ulong pHeight = 1;
@@ -96,7 +91,7 @@ public class SideChainTest
             await _contract.WriteParentChainBLockInfo(new []{parentChainBlockInfo});
             
             ChainConfig.Instance.ChainId = chainId.DumpBase58();
-            var crossChainInfo = new CrossChainInfoReader(Mock.StateStore);
+            var crossChainInfo = new CrossChainInfoReader(Mock.StateManager);
             var merklepath = crossChainInfo.GetTxRootMerklePathInParentChain(pHeight);
             Assert.NotNull(merklepath);
             Assert.Equal(parentChainBlockInfo.IndexedBlockInfo[pHeight], merklepath);
@@ -113,7 +108,6 @@ public class SideChainTest
         [Fact]
         public async Task VerifyTransactionTest()
         {
-            Init();
             var chainId = Mock.ChainId1;
             ChainConfig.Instance.ChainId = chainId.DumpBase58();
             _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(chainId));
@@ -134,7 +128,7 @@ public class SideChainTest
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
             await _contract.WriteParentChainBLockInfo(new []{pcb1});
-            var crossChainInfo = new CrossChainInfoReader(Mock.StateStore);
+            var crossChainInfo = new CrossChainInfoReader(Mock.StateManager);
             var parentHeight = crossChainInfo.GetParentChainCurrentHeight();
             Assert.Equal(pHeight, parentHeight);
             Transaction t1 = new Transaction

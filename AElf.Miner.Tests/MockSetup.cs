@@ -9,8 +9,6 @@ using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc.Server;
 using AElf.Runtime.CSharp;
@@ -22,6 +20,7 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution.Execution;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
@@ -53,56 +52,58 @@ namespace AElf.Miner.Tests
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
-        private IKeyValueDatabase _database;
-        private readonly IDataStore _dataStore;
-        public readonly IStateStore StateStore;
         private IChainContextService _chainContextService;
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
         private IChainManager _chainManager;
+        private IBlockManager _blockManager;
         private IAuthorizationInfoReader _authorizationInfoReader;
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
 
-        public MockSetup( IKeyValueDatabase database, IDataStore dataStore, IStateStore stateStore, ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator)
+        public MockSetup(IStateManager stateManager,
+            ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
+            IBlockManager blockManager, ISmartContractManager smartContractManager,
+            ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager, 
+            ITransactionTraceManager transactionTraceManager,IChainManager chainManager,IFunctionMetadataService functionMetadataService,
+            ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             Logger = NullLogger<MockSetup>.Instance;
-            _database = database;
-            _dataStore = dataStore;
-            StateStore = stateStore;
+            _stateManager = stateManager;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
+            _blockManager = blockManager;
+            _smartContractManager = smartContractManager;
+            _transactionReceiptManager = transactionReceiptManager;
+            _transactionResultManager = transactionResultManager;
+            _transactionTraceManager = transactionTraceManager;
+            _chainManager = chainManager;
+            _functionMetadataService = functionMetadataService;
+            _transactionManager = transactionManager;
+            _stateManager = stateManager;
+            _binaryMerkleTreeManager = binaryMerkleTreeManager;
             Initialize();
         }
 
         private void Initialize()
         {
-            _transactionManager = new TransactionManager(_dataStore);
-            _transactionReceiptManager = new TransactionReceiptManager(_database);
-            _smartContractManager = new SmartContractManager(_dataStore);
-            _transactionResultManager = new TransactionResultManager(_dataStore);
-            _transactionTraceManager = new TransactionTraceManager(_dataStore);
-            _functionMetadataService = new FunctionMetadataService(_dataStore);
-            _chainManager = new ChainManager(_dataStore);
-            _chainService = new ChainService(_chainManager, new BlockManager(_dataStore),
-                _transactionManager, _transactionTraceManager, _dataStore, StateStore);
+            _chainService = new ChainService(_chainManager, _blockManager,
+                _transactionManager, _transactionTraceManager, _stateManager);
             _smartContractRunnerContainer = new SmartContractRunnerContainer();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerContainer.AddRunner(0, runner);*/
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerContainer.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateStore,
-                    _functionMetadataService), _transactionTraceManager, StateStore,
+                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager,
+                    _functionMetadataService), _transactionTraceManager, _stateManager,
                 new ChainContextService(_chainService));
 
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    StateStore, _functionMetadataService));
+                    _stateManager, _functionMetadataService));
 
-            _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
             _chainContextService = new ChainContextService(_chainService);
-            _authorizationInfoReader = new AuthorizationInfoReader(StateStore);
-            _stateStore = new StateStore(_database);
+            _authorizationInfoReader = new AuthorizationInfoReader(_stateManager);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -146,7 +147,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _chainContextService, _stateStore);
+                MockBlockValidationService().Object, _chainContextService, _chainManager, _stateManager);
 
             return miner;
         }
@@ -156,8 +157,7 @@ namespace AElf.Miner.Tests
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
 
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator), StateStore);
-
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator), _chainManager, _stateManager);
 
             return blockExecutor;
         }

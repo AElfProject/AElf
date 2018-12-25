@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using AElf.SmartContract.MetaData;
@@ -18,12 +19,10 @@ namespace AElf.Runtime.CSharp.Tests
 {
     public sealed class RunnerMetadataTest : CSharpRuntimeTestBase
     {
-        private IDataStore _store;
         private MockSetup _mock;
 
         public RunnerMetadataTest()
         {
-            _store = GetRequiredService<IDataStore>();
             _mock = GetRequiredService<MockSetup>();
         }
 

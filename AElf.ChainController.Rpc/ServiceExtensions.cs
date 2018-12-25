@@ -286,7 +286,7 @@ namespace AElf.ChainController.Rpc
         
         internal static async Task<Block> GetBlock(this Svc s, Hash blockHash)
         {
-            var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var blockchain = s.ChainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHashAsync(blockHash);
         }
 

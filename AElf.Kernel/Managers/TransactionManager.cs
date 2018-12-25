@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Kernel.Storages;
+﻿using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Storages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -9,58 +8,35 @@ namespace AElf.Kernel.Managers
 {
     public class TransactionManager: ITransactionManager
     {
-        private readonly IDataStore _dataStore;
+        private readonly ITransactionStore _transactionStore;
         public ILogger<TransactionManager> Logger {get;set;}
 
-        public TransactionManager(IDataStore dataStore)
+        public TransactionManager(ITransactionStore transactionStore)
         {
-            _dataStore = dataStore;
+            _transactionStore = transactionStore;
             Logger = NullLogger<TransactionManager>.Instance;
         }
 
         public async Task<Hash> AddTransactionAsync(Transaction tx)
         {
-            await _dataStore.InsertAsync(tx.GetHash(), tx);
-            return tx.GetHash();
+            var txHash = tx.GetHash();
+            await _transactionStore.SetAsync(GetStringKey(txHash), tx);
+            return txHash;
         }
 
         public async Task<Transaction> GetTransaction(Hash txId)
         {
-            return await _dataStore.GetAsync<Transaction>(txId);
+            return await _transactionStore.GetAsync<Transaction>(GetStringKey(txId));
         }
 
         public async Task RemoveTransaction(Hash txId)
         {
-            await _dataStore.RemoveAsync<Transaction>(txId);
+            await _transactionStore.RemoveAsync(GetStringKey(txId));
         }
         
-        public async Task<List<Transaction>> RollbackTransactions(Hash chainId, ulong currentHeight, ulong specificHeight)
+        private string GetStringKey(Hash txId)
         {
-            var txs = new List<Transaction>();
-            for (var i = currentHeight - 1; i >= specificHeight; i--)
-            {
-                var rollBackBlockHash =
-                    await _dataStore.GetAsync<Hash>(
-                        DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, i));
-                var header = await _dataStore.GetAsync<BlockHeader>(rollBackBlockHash);
-                var body = await _dataStore.GetAsync<BlockBody>(
-                    Hash.Xor(
-                    header.GetHash(),header.MerkleTreeRootOfTransactions));
-                foreach (var txId in body.Transactions)
-                {
-                    var tx = await _dataStore.GetAsync<Transaction>(txId);
-                    if (tx == null)
-                    {
-                        Logger.LogTrace($"tx {txId} is null.");
-                    }
-                    txs.Add(tx);
-                    await _dataStore.RemoveAsync<Transaction>(txId);
-                }
-
-                Logger.LogTrace($"Rollback block hash: {rollBackBlockHash.Value.ToByteArray().ToHex()}");
-            }
-
-            return txs;
+            return txId.ToHex();
         }
     }
 }

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.ChainController;
 using AElf.SmartContract;
@@ -16,6 +14,7 @@ using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.Kernel.Managers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Address = AElf.Common.Address;
@@ -52,33 +51,31 @@ namespace AElf.Kernel.Tests
         private IFunctionMetadataService _functionMetadataService;
         public ILogger<BlockChainTests_MockSetup> Logger {get;set;}
 
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
         public IActorEnvironment ActorEnvironment { get; private set; }
 
-        private readonly HashManager _hashManager;
         private readonly TransactionManager _transactionManager;
 
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        public BlockChainTests_MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
+        public BlockChainTests_MockSetup(IChainCreationService chainCreationService,
             IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerContainer smartContractRunnerContainer,
-            IStateStore stateStore, HashManager hashManager, TransactionManager transactionManager)
+            IStateManager stateManager, TransactionManager transactionManager, ISmartContractManager smartContractManager)
         {
             Logger = NullLogger<BlockChainTests_MockSetup>.Instance;
-            _stateStore = stateStore;
-            _hashManager = hashManager;
+            _stateManager = stateManager;
             _transactionManager = transactionManager;
             _chainCreationService = chainCreationService;
             ChainService = chainService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
-            SmartContractManager = new SmartContractManager(dataStore);
+            SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateStore,
+                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, _stateManager,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
@@ -114,7 +111,7 @@ namespace AElf.Kernel.Tests
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_stateStore);
+            await trace.CommitChangesAsync(_stateManager);
         }
 
         public void Initialize1(Address account, ulong qty)

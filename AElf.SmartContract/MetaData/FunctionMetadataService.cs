@@ -6,21 +6,23 @@ using Org.BouncyCastle.Security;
 using AElf.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.SmartContract.Metadata
 {
     
     public class FunctionMetadataService : IFunctionMetadataService
     {
-        private IDataStore _dataStore;
         private readonly ConcurrentDictionary<Hash, ChainFunctionMetadata> _metadatas;
         public ILogger<FunctionMetadataService> Logger { get; set; }
+        private readonly IFunctionMetadataManager _functionMetadataManager;
 
-        public FunctionMetadataService(IDataStore dataStore)
+        public FunctionMetadataService(IFunctionMetadataManager functionMetadataManager)
         {
-            _dataStore = dataStore;
             Logger = NullLogger<FunctionMetadataService>.Instance;
             _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
+            _functionMetadataManager = functionMetadataManager;
         }
 
         public async Task DeployContract(Hash chainId, Address address, ContractMetadataTemplate contractMetadataTemplate)
@@ -31,9 +33,8 @@ namespace AElf.SmartContract.Metadata
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
                 //TODO: remove new, get the instance from service provider
-                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore));
+                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_functionMetadataManager));
             }
-            
             
             //TODO: need to
             //1.figure out where to have this "contractReferences" properly and
@@ -47,7 +48,7 @@ namespace AElf.SmartContract.Metadata
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_dataStore));
+                chainFuncMetadata = _metadatas.GetOrAdd(chainId, new ChainFunctionMetadata(_functionMetadataManager));
             }
 
             await chainFuncMetadata.UpdateContract(chainId, address, oldContractMetadataTemplate, newContractMetadataTemplate);

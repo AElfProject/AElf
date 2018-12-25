@@ -29,13 +29,13 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         }
 
         private IChainCreationService _chainCreationService;
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
         private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
 
         public ContractTest()
         {
-            _stateStore = GetRequiredService<IStateStore>();
+            _stateManager = GetRequiredService<IStateManager>();
             _chainCreationService = GetRequiredService<IChainCreationService>();
             _smartContractManager = GetRequiredService<ISmartContractManager>();
             _smartContractService = GetRequiredService<ISmartContractService>();
@@ -99,7 +99,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
-            await txnCtxt.Trace.CommitChangesAsync(_stateStore);
+            await txnCtxt.Trace.CommitChangesAsync(_stateManager);
             
             Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
@@ -152,7 +152,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
-            await txnCtxt.Trace.CommitChangesAsync(_stateStore);
+            await txnCtxt.Trace.CommitChangesAsync(_stateManager);
 
             var returnVal = txnCtxt.Trace.RetVal;
             var address = Address.FromBytes(returnVal.Data.DeserializeToBytes());
@@ -173,7 +173,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(address, ChainId);
             await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-            await txnInitCtxt.Trace.CommitChangesAsync(_stateStore);
+            await txnInitCtxt.Trace.CommitChangesAsync(_stateManager);
             
             #endregion initialize account balance
 
@@ -209,7 +209,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 Transaction = txnBal
             };
             await executiveUser.SetTransactionContext(txnPrintcxt).Apply();
-            await txnPrintcxt.Trace.CommitChangesAsync(_stateStore);
+            await txnPrintcxt.Trace.CommitChangesAsync(_stateManager);
 
             //Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
             #endregion

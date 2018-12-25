@@ -16,14 +16,12 @@ namespace AElf.Kernel.Tests
 {
     public sealed class StoragesTest : AElfKernelIntegratedTest
     {
-        private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly IChainService _chainService;
         public ILogger<StoragesTest> Logger {get;set;}
 
         public StoragesTest()
         {
-            _dataStore = GetRequiredService<IDataStore>();
             _blockTest = GetRequiredService<BlockTest>();
             _chainService = GetRequiredService<IChainService>();
             Logger= GetRequiredService<ILogger<StoragesTest>>();

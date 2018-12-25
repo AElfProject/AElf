@@ -11,52 +11,40 @@ namespace AElf.Kernel.Managers
 {
     public class BlockManager : IBlockManager
     {
-        private readonly IDataStore _dataStore;
-
+        private readonly IBlockHeaderStore _blockHeaderStore;
+        private readonly IBlockBodyStore _blockBodyStore;
         public ILogger<BlockManager> Logger {get;set;}
 
-        public BlockManager(IDataStore dataStore)
+        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore)
         {
-            _dataStore = dataStore;
-
             Logger = NullLogger<BlockManager>.Instance;
+            _blockHeaderStore = blockHeaderStore;
+            _blockBodyStore = blockBodyStore;
         }
 
-        public async Task<IBlock> AddBlockAsync(IBlock block)
+        public async Task AddBlockAsync(IBlock block)
         {
-            await _dataStore.InsertAsync(block.GetHash().OfType(HashType.BlockHeaderHash), block.Header);
-            await _dataStore.InsertAsync(block.GetHash().OfType(HashType.BlockBodyHash), block.Body);
-
-            return block;
+            await AddBlockHeaderAsync(block.Header);
+            await AddBlockBodyAsync(block.GetHash(), block.Body);
+        }
+        
+        public async Task AddBlockHeaderAsync(BlockHeader header)
+        {
+            await _blockHeaderStore.SetAsync(header.GetHash().ToHex(), header);
         }
 
         public async Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody)
         {
-            await _dataStore.InsertAsync(blockHash.Clone().OfType(HashType.BlockBodyHash), blockBody);
+            blockBody.TransactionList.Clear();
+            await _blockBodyStore.SetAsync(blockHash.Clone().ToHex(), blockBody);
         }
-
-        public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
-        {
-            return await _dataStore.GetAsync<BlockHeader>(blockHash.Clone().OfType(HashType.BlockHeaderHash));
-        }
-
-        public async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
-        {
-            return await _dataStore.GetAsync<BlockBody>(bodyHash.Clone().OfType(HashType.BlockBodyHash));
-        }
-
-        public async Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header)
-        {
-            await _dataStore.InsertAsync(header.GetHash().OfType(HashType.BlockHeaderHash), header);
-            return header;
-        }
-
+        
         public async Task<Block> GetBlockAsync(Hash blockHash)
         {
             try
             {
-                var header = await _dataStore.GetAsync<BlockHeader>(blockHash.Clone().OfType(HashType.BlockHeaderHash));
-                var bb = await _dataStore.GetAsync<BlockBody>(blockHash.Clone().OfType(HashType.BlockBodyHash));
+                var header = await GetBlockHeaderAsync(blockHash);
+                var bb = await GetBlockBodyAsync(blockHash);
 
                 if (header == null || bb == null)
                     return null;
@@ -70,59 +58,14 @@ namespace AElf.Kernel.Managers
             }
         }
 
-        /// <summary>
-        /// Bind child chain height with parent height who indexed it.  
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <param name="childHeight"></param>
-        /// <param name="parentHeight"></param>
-        /// <returns></returns>
-        public async Task BindParentChainHeight(Hash chainId, ulong childHeight, ulong parentHeight)
+        public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
-            var key = DataPath.CalculatePointerForParentChainHeightByChildChainHeight(chainId, childHeight);
-            await _dataStore.InsertAsync(key, new UInt64Value {Value = parentHeight});
+            return await _blockHeaderStore.GetAsync<BlockHeader>(blockHash.ToHex());
         }
 
-        /// <summary>
-        /// Get the parent chain block height indexing the child chain <param name="childHeight"/>.
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <param name="childHeight"></param>
-        /// <returns></returns>
-        public async Task<ulong> GetBoundParentChainHeight(Hash chainId, ulong childHeight)
+        public async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
         {
-            var key = DataPath.CalculatePointerForParentChainHeightByChildChainHeight(chainId, childHeight);
-            return (await _dataStore.GetAsync<UInt64Value>(key))?.Value ?? 0;
-        }
-
-        public async Task<Block> GetNextBlockOf(Hash chainId, Hash blockHash)
-        {
-            var nextBlockHeight = (await GetBlockHeaderAsync(blockHash)).Index + 1;
-            var nextBlockHash = await _dataStore.GetAsync<Hash>(
-                DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, nextBlockHeight));
-            return await GetBlockAsync(nextBlockHash);
-        }
-
-        public async Task<Block> GetBlockByHeight(Hash chainId, ulong height)
-        {
-            Logger.LogTrace($"Trying to get block by height {height}.");
-
-            var key = DataPath.CalculatePointerForGettingBlockHashByHeight(chainId, height);
-            if (key == null)
-            {
-                Logger.LogError($"Invalid block height - {height}.");
-                return null;
-            }
-
-            var blockHash = await _dataStore.GetAsync<Hash>(key);
-
-            var blockHeader = await _dataStore.GetAsync<BlockHeader>(blockHash.OfType(HashType.BlockHeaderHash));
-            var blockBody = await _dataStore.GetAsync<BlockBody>(blockHash.OfType(HashType.BlockBodyHash));
-            return new Block
-            {
-                Header = blockHeader,
-                Body = blockBody
-            };
+            return await _blockBodyStore.GetAsync<BlockBody>(bodyHash.ToHex());
         }
     }
 }

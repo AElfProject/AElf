@@ -6,7 +6,7 @@ using System.Text;
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
@@ -15,16 +15,22 @@ using Xunit;
 
 namespace AElf.Kernel.Tests
 {
-    public class DataProviderTest
+    public class DataProviderTest : AElfKernelIntegratedTest
     {
+        private readonly IStateManager _stateManager;
+        
+        public DataProviderTest()
+        {
+            _stateManager = GetRequiredService<IStateManager>();
+        }
+
         [Fact]
         public async Task Test()
         {
-            var db = new InMemoryDatabase();
             var chainId = Hash.FromString("chain1");
             var address = Address.Generate();
             var root = DataProvider.GetRootDataProvider(chainId, address);
-            root.StateStore = new StateStore(db);
+            root.StateManager = _stateManager;
             var s = "test";
             var sb = Encoding.UTF8.GetBytes(s);
             var statePath = new StatePath()
@@ -42,11 +48,11 @@ namespace AElf.Kernel.Tests
 
             // Commit changes to store
             var toCommit = retrievedChanges.ToDictionary(kv => kv.Key, kv => kv.Value.CurrentValue.ToByteArray());
-            await root.StateStore.PipelineSetDataAsync(toCommit);
+            await root.StateManager.PipelineSetAsync(toCommit);
 
             // Setting the same value again in another DataProvider, no change will be returned
             var root2 = DataProvider.GetRootDataProvider(chainId, address);
-            root2.StateStore = new StateStore(db);
+            root2.StateManager = _stateManager;
             await root2.SetAsync(s, sb);
             var changes2 = root2.GetChanges();
             Assert.True(0 == changes2.Count);

@@ -4,8 +4,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
@@ -14,7 +12,9 @@ using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.Kernel.Managers;
 using Volo.Abp.DependencyInjection;
+
 
 namespace AElf.Contracts.Token.Tests
 {
@@ -29,7 +29,7 @@ namespace AElf.Contracts.Token.Tests
             return (ulong)n;
         }
 
-        public IStateStore StateStore { get; }
+        public IStateManager StateManager { get; }
         public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService { get; }
@@ -45,11 +45,11 @@ namespace AElf.Contracts.Token.Tests
 
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        public MockSetup(IStateStore stateStore, ISmartContractService smartContractService,
+        public MockSetup(IStateManager stateManager, ISmartContractService smartContractService,
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer)
         {
-            StateStore = stateStore;
+            StateManager = stateManager;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
@@ -65,7 +65,7 @@ namespace AElf.Contracts.Token.Tests
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                StateStore = StateStore
+                StateManager = StateManager
             };
         }
 

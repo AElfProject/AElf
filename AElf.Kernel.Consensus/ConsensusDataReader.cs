@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
@@ -16,11 +16,11 @@ namespace AElf.Kernel.Consensus
         private static Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
         private static Address ContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
         
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
 
-        public ConsensusDataReader(IStateStore stateStore)
+        public ConsensusDataReader(IStateManager stateManager)
         {
-            _stateStore = stateStore;
+            _stateManager = stateManager;
         }
 
         private DataProvider DataProvider
@@ -28,7 +28,7 @@ namespace AElf.Kernel.Consensus
             get
             {
                 var dp = DataProvider.GetRootDataProvider(ChainId, ContractAddress);
-                dp.StateStore = _stateStore;
+                dp.StateManager = _stateManager;
                 return dp;
             }
         }

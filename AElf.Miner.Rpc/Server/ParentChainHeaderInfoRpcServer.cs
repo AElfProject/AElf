@@ -21,6 +21,7 @@ namespace AElf.Miner.Rpc.Server
         private readonly IChainService _chainService;
         public ILogger<ParentChainBlockInfoRpcServer> Logger {get;set;}
         private IBlockChain BlockChain { get; set; }
+        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         public ParentChainBlockInfoRpcServer(IChainService chainService, ICrossChainInfoReader crossChainInfoReader)
         {

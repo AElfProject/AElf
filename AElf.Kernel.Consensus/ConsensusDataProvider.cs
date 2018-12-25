@@ -4,7 +4,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -15,13 +15,13 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable InconsistentNaming
     public class ConsensusDataProvider
     {
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
 
         public ILogger<ConsensusDataProvider> Logger { get; set; }
 
-        public ConsensusDataProvider(IStateStore stateStore)
+        public ConsensusDataProvider(IStateManager stateManager)
         {
-            _stateStore = stateStore;
+            _stateManager = stateManager;
         }
 
         
@@ -36,7 +36,7 @@ namespace AElf.Kernel.Consensus
             get
             {
                 var dp = DataProvider.GetRootDataProvider(ChainId, ContractAddress);
-                dp.StateStore = _stateStore;
+                dp.StateManager = _stateManager;
                 return dp;
             }
         }
