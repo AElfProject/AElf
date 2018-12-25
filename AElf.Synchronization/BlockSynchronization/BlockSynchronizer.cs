@@ -155,12 +155,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
             });
             
-            MessageHub.Instance.Subscribe<NewLibFound>(sig =>
-            {
-                _logger?.Trace($"New lib found : {sig.State}");
-                CurrentLib = sig.State;
-            });
-            
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
                 if (inBlock.Block == null)
@@ -202,6 +196,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 var currentBlock = _blockChain.GetBlockByHeightAsync(height).Result as Block;
             
                 HeadBlock = _blockSet.Init(_currentMiners, currentBlock);
+                _blockSet.LibChanged += BlockSetOnLibChanged;
 
                 if (HeadBlock.Index == GlobalConfig.GenesisBlockHeight)
                     CurrentLib = HeadBlock;
@@ -209,6 +204,20 @@ namespace AElf.Synchronization.BlockSynchronization
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while initializing block sync.");
+            }
+        }
+
+        private void BlockSetOnLibChanged(object sender, EventArgs e)
+        {
+            if (e is LibChangedArgs libChangedArgs)
+            {
+                CurrentLib = libChangedArgs.NewLib;
+                
+                MessageHub.Instance.Publish(new NewLibFound
+                {
+                    Height = libChangedArgs.NewLib.Index,
+                    BlockHash = libChangedArgs.NewLib.BlockHash
+                });
             }
         }
 

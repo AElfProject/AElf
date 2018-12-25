@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Synchronization.BlockSynchronization;
@@ -67,11 +68,20 @@ namespace AElf.Synchronization.Tests
         [Fact]
         public void ExtendChainToLibBasicTest()
         {
+            List<BlockState> eventList = new List<BlockState>();
+            
             // 3 miners (self included).
             var minerPubKeys = SyncTestHelpers.GetRandomMiners().ToPubKeyStrings();
             
             var genesis = SyncTestHelpers.GetGenesisBlock();
+            
             BlockSet blockSet = new BlockSet();
+            blockSet.LibChanged += (sender, args) =>
+            {
+                if (args is LibChangedArgs e)
+                    eventList.Add(e.NewLib);
+            };
+            
             blockSet.Init(minerPubKeys, genesis); // CurrentLIB = head = genesis
 
             IBlock block1 = SyncTestHelpers.BuildNext(genesis, minerPubKeys[0]); // miner 01 
@@ -80,11 +90,7 @@ namespace AElf.Synchronization.Tests
             
             IBlock block4 = SyncTestHelpers.BuildNext(block3, minerPubKeys[0]);  // miner 04
             
-            List<BlockState> eventList = new List<BlockState>();
-            MessageHub.Instance.Subscribe<NewLibFound>(e =>
-            {
-                eventList.Add(e.State);
-            });
+
             
             blockSet.PushBlock(block1);
             blockSet.PushBlock(block2);

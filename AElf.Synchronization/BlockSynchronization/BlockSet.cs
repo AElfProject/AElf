@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
 using Easy.MessageHub;
@@ -9,8 +10,15 @@ using NLog;
 
 namespace AElf.Synchronization.BlockSynchronization
 {
+    public class LibChangedArgs : EventArgs
+    {
+        public BlockState NewLib { get; set; }
+    }
+    
     public class BlockSet
     {
+        public event EventHandler LibChanged;
+            
         private const int MaxLenght = 200;
         private const int Timeout = int.MaxValue;
 
@@ -120,7 +128,7 @@ namespace AElf.Synchronization.BlockSynchronization
                         
                         // todo clear branches
                         
-                        MessageHub.Instance.Publish(new NewLibFound { State = newLib });
+                        FireLibChanged(newLib);
                     }
                 }
                 finally
@@ -131,6 +139,15 @@ namespace AElf.Synchronization.BlockSynchronization
             finally
             {
                 _rwLock.ReleaseReaderLock();
+            }
+        }
+        
+        private void FireLibChanged(BlockState blockState)
+        {
+            EventHandler handler = LibChanged;
+            if (handler != null)
+            {
+                handler(this, new LibChangedArgs { NewLib = blockState });
             }
         }
 
