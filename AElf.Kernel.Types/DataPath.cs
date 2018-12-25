@@ -57,5 +57,173 @@ namespace AElf.Kernel
             ChainId = chainId;
             return this;
         }
+        
+        public DataPath SetBlockHeight(ulong blockHeight)
+        {
+            BlockHeight = blockHeight;
+            return this;
+        }
+        
+        public DataPath SetBlockProducerAddress(Address blockProducerAddress)
+        {
+            BlockProducerAddress = blockProducerAddress;
+            return this;
+        }
+
+        public DataPath SetAccountAddress(Address contractAddress)
+        {
+            ContractAddress = contractAddress;
+            return this;
+        }
+
+        public DataPath SetDataProvider(Hash dataProviderHash)
+        {
+            DataProviderHash = dataProviderHash;
+            return this;
+        }
+        
+        public DataPath SetDataKey(Hash keyHash)
+        {
+            KeyHash = keyHash;
+            return this;
+        }
+
+        public bool AreYouOk()
+        {
+            return ChainId != null
+                   && BlockProducerAddress != null
+                   && ContractAddress != null
+                   && DataProviderHash != null
+                   && KeyHash != null;
+        }
+
+        /*
+         * Directly calculate pointer value zone
+         */
+        
+        #region Calculate pointer for chain context
+        
+        /// <summary>
+        /// Calculate pointer hash for metadata of a chain
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="addrFuncSig">should be the key of the function metadata, which is [contract address].[function name]</param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForMetadata(Hash chainId, string addrFuncSig)
+        {
+            return Hash.FromTwoHashes(chainId, Hash.FromString("Metadata" + addrFuncSig));
+        }
+
+        /// <summary>
+        /// Calculate pointer hash for using block height get block hash
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForGettingBlockHashByHeight(Hash chainId, ulong height)
+        {
+            return new List<Hash> {
+                chainId,
+                Hash.FromString("HeightHashMap"),
+                Hash.FromMessage(new UInt64Value {Value = height})
+            }.Aggregate(Hash.Xor);
+        }
+        
+        /// <summary>
+        /// Calculate pointer hash of <see cref="BinaryMerkleTree"/> for transactions using chainId and chain height.
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForTransactionsMerkleTreeByHeight(Hash chainId, ulong height)
+        {
+            return new List<Hash>()
+            {
+                chainId, Hash.FromString("TransactionsMerkleTree"),
+                Hash.FromMessage(new UInt64Value {Value = height}) 
+            }.Aggregate(Hash.Xor);
+        }
+        
+        /// <summary>
+        /// Calculate pointer hash of <see cref="BinaryMerkleTree"/>
+        /// for side chain transaction roots using chainId and chain height.
+        /// </summary>
+        /// /// <param name="chainId">Parent chainId</param>
+        /// <param name="height">Height of parent chain.</param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForSideChainTxRootsMerkleTreeByHeight(Hash chainId, ulong height)
+        {
+            return new List<Hash>()
+            {
+                chainId, Hash.FromString("SideChainTxRootsMerkleTree"),
+                Hash.FromMessage(new UInt64Value {Value = height}) 
+            }.Aggregate(Hash.Xor);
+        }
+        
+        /// <summary>
+        /// Calculate pointer hash of <see cref="MerklePath"/>
+        /// for tx root of a block indexed by parent chain.
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForIndexedTxRootMerklePathByHeight(Hash chainId, ulong height)
+        {
+            return new List<Hash>()
+            {
+                chainId, Hash.FromString("IndexedBlockTxRoot"),
+                Hash.FromMessage(new UInt64Value {Value = height}) 
+            }.Aggregate(Hash.Xor);
+        }
+
+        public static Hash CalculatePointerForParentChainHeightByChildChainHeight(Hash chainId, ulong height)
+        {
+            return new List<Hash>()
+            {
+                chainId, Hash.FromString("ParentChainHeight"),
+                Hash.FromMessage(new UInt64Value {Value = height}) 
+            }.Aggregate(Hash.Xor);
+        }
+        
+        #endregion
+
+        #region Calculate pointer for account
+        
+        /// <summary>
+        /// Calculate new account address,
+        /// using parent account address and nonce
+        /// </summary>
+        /// <param name="parentAccount"></param>
+        /// <param name="nonce"></param>
+        /// <returns></returns>
+        public static Address CalculateAccountAddress(Address parentAccount, ulong nonce)
+        {
+            return Address.FromBytes(Hash.Xor(
+                Hash.FromMessage(parentAccount),
+                Hash.FromMessage(new UInt64Value
+            {
+                Value = nonce
+            })).ToByteArray());
+        }
+        
+        #endregion
+
+        #region Calculate pointer for tx result
+
+        public static Hash CalculatePointerForTxResult(Hash txId)
+        {
+            return Hash.Xor(txId, Hash.FromString("TransactionResult"));
+        }
+
+        #endregion
+    }
+
+    public class DataPath<T> where T : IMessage, new()
+    {
+        private readonly DataPath _dataPath;
+        public DataPath(DataPath dataPath)
+        {
+            _dataPath = dataPath;
+        }
     }
 }

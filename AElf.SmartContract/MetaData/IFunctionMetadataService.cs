@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Types;
 using AElf.Common;
-using AElf.Kernel.SmartContract;
 
 namespace AElf.SmartContract
 {

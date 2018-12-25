@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 using Easy.MessageHub;
 using NLog;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Types.Common;
 
 // ReSharper disable once CheckNamespace
@@ -16,7 +17,7 @@ namespace AElf.Kernel
     {    
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
-        private readonly IStateManager _stateManager;
+        private readonly IStateStore _stateStore;
 
         private readonly ILogger _logger;
         private static bool _doingRollback;
@@ -25,12 +26,12 @@ namespace AElf.Kernel
 
         public BlockChain(Hash chainId, IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
-            IStateManager stateManager) : base(
-            chainId, chainManager, blockManager)
+            IStateStore stateStore, IDataStore dataStore) : base(
+            chainId, chainManager, blockManager, dataStore)
         {
             _transactionManager = transactionManager;
             _transactionTraceManager = transactionTraceManager;
-            _stateManager = stateManager;
+            _stateStore = stateStore;
 
             _doingRollback = false;
             _prepareTerminated = false;
@@ -70,7 +71,7 @@ namespace AElf.Kernel
         {
             await AddHeaderAsync(block.Header);
             // TODO: This will be problematic if the block is used somewhere else after this method
-            //block.Body.TransactionList.Clear();
+            block.Body.TransactionList.Clear();
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         }
 
@@ -139,7 +140,8 @@ namespace AElf.Kernel
                         txs.Add(tx);
                     }
 
-                    await _chainManager.RemoveCanonical(_chainId, i);
+                    var h = GetHeightHash(i).OfType(HashType.CanonicalHash);
+                    await _dataStore.RemoveAsync<Hash>(h);
                     await RollbackSideChainInfo(block);
                     await RollbackStateForBlock(block);
                     blocks.Add((Block) block);
@@ -196,7 +198,7 @@ namespace AElf.Kernel
                 }
             }
 
-            await _stateManager.PipelineSetAsync(origValues);
+            await _stateStore.PipelineSetDataAsync(origValues);
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Storages;
 
 namespace AElf.SmartContract.Consensus
 {
@@ -20,10 +20,10 @@ namespace AElf.SmartContract.Consensus
         private static Address TokenContractAddress =>
             ContractHelpers.GetTokenContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
         
-        public ElectionInfo(IStateManager stateManager)
+        public ElectionInfo(IStateStore stateStore)
         {
             var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
-            _contractInfoReader = new ContractInfoReader(chainId, stateManager);
+            _contractInfoReader = new ContractInfoReader(chainId, stateStore);
         }
         
         public bool IsCandidate(string publicKey)
