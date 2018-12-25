@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Storages;
 using Google.Protobuf;
 using NLog;
 using Org.BouncyCastle.Security;
@@ -10,23 +11,21 @@ using AElf.SmartContract.MetaData;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.SmartContract;
 
 namespace AElf.SmartContract
 {
     public class ChainFunctionMetadata : IChainFunctionMetadata
     {
         private readonly ILogger _logger;
-        private readonly IFunctionMetadataManager _functionMetadataManager;
+        private readonly IDataStore _dataStore;
 
         public Dictionary<string, FunctionMetadata> FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
         
         
-        public ChainFunctionMetadata(ILogger logger , IFunctionMetadataManager functionMetadataManager)
+        public ChainFunctionMetadata(IDataStore dataStore,  ILogger logger)
         {
+            _dataStore = dataStore;
             _logger = logger;
-            _functionMetadataManager = functionMetadataManager;
         }
 
         /// <summary>
@@ -57,12 +56,16 @@ namespace AElf.SmartContract
                 }
 
                 //if no exception is thrown, merge the tempMap into FunctionMetadataMap and update call graph in database
-                await _functionMetadataManager.AddCallGraphAsync(chainId, SerializeCallingGraph(newCallGraph));
+                await _dataStore.InsertAsync(chainId.OfType(HashType.CallingGraph),
+                    SerializeCallingGraph(newCallGraph));
                 
                 foreach (var functionMetadata in tempMap)
                 {
                     FunctionMetadataMap.Add(functionMetadata.Key, functionMetadata.Value);
-                    await _functionMetadataManager.AddMetadataAsync(chainId, functionMetadata.Key, functionMetadata.Value);
+                    
+                    await _dataStore.InsertAsync(
+                        DataPath.CalculatePointerForMetadata(chainId, functionMetadata.Key),
+                        functionMetadata.Value);
                 }
             }
             catch (FunctionMetadataException e)
@@ -80,7 +83,7 @@ namespace AElf.SmartContract
             {
                 var globalCallGraph = await GetCallingGraphForChain(chainId); 
                 var newCallGraph = TryRemoveAndGetCallingGraph(chainId, contractAddr, globalCallGraph, oldContractMetadataTemplate);
-                await _functionMetadataManager.AddCallGraphAsync(chainId, SerializeCallingGraph(newCallGraph));
+                await _dataStore.InsertAsync(chainId.OfType(HashType.CallingGraph),SerializeCallingGraph(newCallGraph));
                 foreach (var localFuncName in oldContractMetadataTemplate.ProcessFunctionOrder)
                 {
                     var funcNameWithAddr = Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This,contractAddr.GetFormatted());
@@ -91,7 +94,7 @@ namespace AElf.SmartContract
 
                 foreach (var functionMetadata in tempMap)
                 {
-                    await _functionMetadataManager.RemoveMetadataAsync(chainId, functionMetadata.Key);
+                    await _dataStore.RemoveAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, functionMetadata.Key));
                     FunctionMetadataMap.Remove(functionMetadata.Key);
                 }
 
@@ -182,7 +185,7 @@ namespace AElf.SmartContract
             //BUG: if the smart contract can be updated, then somehow this in-memory cache FunctionMetadataMap need to be updated too. Currently the ChainFunctionMetadata has no way to know some metadata is updated; current thought is to request current "previous block hash" every time the ChainFunctionMetadata public interface got executed, that is "only use cache when in the same block, can clear the cache per block"
             if (!FunctionMetadataMap.TryGetValue(functionFullName, out var txMetadata))
             {
-                var data = await _functionMetadataManager.GetMetadataAsync(chainId, functionFullName);
+                var data = await _dataStore.GetAsync<FunctionMetadata>(DataPath.CalculatePointerForMetadata(chainId, functionFullName));
                 if (data != null)
                 {
                     txMetadata = data;
@@ -360,7 +363,7 @@ namespace AElf.SmartContract
         #region Serialize
         private async Task<CallGraph> GetCallingGraphForChain(Hash chainId)
         {
-            var graphCache =await _functionMetadataManager.GetCallGraphAsync(chainId);
+            var graphCache = await _dataStore.GetAsync<SerializedCallGraph>(chainId.OfType(HashType.CallingGraph));
             if (graphCache == null)
             {
                 return new CallGraph();
