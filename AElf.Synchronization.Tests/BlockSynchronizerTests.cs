@@ -128,6 +128,24 @@ namespace AElf.Synchronization.Tests
         }
 
         [Fact]
+        public async Task ReceiveSameBlockHeightAfterMined()
+        {
+            GenesisChainSetup();
+            
+            Synchronizer.Init();
+            
+            IBlock forkRoot = SyncTestHelpers.BuildNext(Genesis); // Height 2
+            IBlock blockForkA = SyncTestHelpers.BuildNext(forkRoot); // Height 3
+            IBlock blockForkB = SyncTestHelpers.BuildNext(forkRoot); // Height 3
+            
+            await Synchronizer.TryPushBlock(forkRoot);
+            Synchronizer.AddMinedBlock(blockForkA); // mined
+            await Synchronizer.TryPushBlock(blockForkB); // from net
+            
+            Assert.Equal(Synchronizer.HeadBlock.BlockHash, blockForkA.GetHash());
+        }
+
+        [Fact]
         public async Task HeadBlock_OnExtendForkHigherThanHead_ShouldSwitch()
         {
             GenesisChainSetup();
