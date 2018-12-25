@@ -83,12 +83,20 @@ namespace AElf.Kernel
             }
         }
 
-        public async Task<IBlock> GetBlockByHashAsync(Hash blockId)
+        public async Task<IBlock> GetBlockByHashAsync(Hash blockId, bool withTransaction=false)
         {
-            return await _blockManager.GetBlockAsync(blockId);
+            var blk = await _blockManager.GetBlockAsync(blockId);
+            blk.Body.TransactionList.Clear();
+            foreach (var txHash in blk.Body.Transactions)
+            {
+                var t = await _transactionManager.GetTransaction(txHash);
+                blk.Body.TransactionList.Add(t);
+            }
+
+            return blk;
         }
 
-        public async Task<IBlock> GetBlockByHeightAsync(ulong height)
+        public async Task<IBlock> GetBlockByHeightAsync(ulong height, bool withTransaction=false)
         {
             var header = await GetHeaderByHeightAsync(height);
             if (header == null)
