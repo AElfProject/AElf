@@ -8,8 +8,6 @@ using AElf.Types.CSharp;
 using Akka.Util.Internal.Collections;
 using Google.Protobuf;
 using Org.BouncyCastle.Security;
-using ServiceStack;
-
 namespace AElf.Benchmark
 {
     public class TransactionDataGenerator

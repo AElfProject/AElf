@@ -4,7 +4,6 @@ using AElf.SmartContract;
 using AElf.Types.CSharp;
 
 using Xunit;
-using ServiceStack;
 using AElf.Common;
 using Google.Protobuf;
 

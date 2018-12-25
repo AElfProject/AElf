@@ -2,7 +2,6 @@ using System;
 
 using AElf.Common;
 using Grpc.Core;
-using ServiceStack;
 
 namespace AElf.Miner.Rpc.Client
 {

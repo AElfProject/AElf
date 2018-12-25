@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using AElf.Kernel;
 using AElf.SmartContract;
-using ServiceStack;
 using Google.Protobuf;
 using AElf.Types.CSharp;
 using AElf.Common;

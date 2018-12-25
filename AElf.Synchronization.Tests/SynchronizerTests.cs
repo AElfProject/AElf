@@ -8,7 +8,6 @@ using AElf.Kernel;
 using AElf.Synchronization.BlockExecution;
 using Google.Protobuf;
 using Moq;
-using ServiceStack;
 using Xunit;
 
 

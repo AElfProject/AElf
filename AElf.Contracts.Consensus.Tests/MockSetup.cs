@@ -6,7 +6,6 @@ using AElf.Kernel;
 using AElf.ChainController;
 using AElf.SmartContract;
 using Google.Protobuf;
-using ServiceStack;
 using AElf.Common;
 using AElf.Kernel.Managers;
 

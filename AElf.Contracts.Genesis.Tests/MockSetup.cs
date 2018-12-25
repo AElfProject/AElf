@@ -13,7 +13,6 @@ using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Execution;
 using Google.Protobuf;
-using ServiceStack;
 using AElf.Common;
 using AElf.Execution.Execution;
 using Volo.Abp.DependencyInjection;

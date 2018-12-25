@@ -9,7 +9,6 @@ using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using ServiceStack;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Managers;

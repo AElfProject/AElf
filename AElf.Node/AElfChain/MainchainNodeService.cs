@@ -26,7 +26,6 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Node.AElfChain

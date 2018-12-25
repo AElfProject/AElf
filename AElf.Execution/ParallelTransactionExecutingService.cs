@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using AElf.ChainController;
 using Akka.Actor;
-using ServiceStack.Text;
 using AElf.Kernel;
 using AElf.Configuration;
 using AElf.Execution.Scheduling;
@@ -86,7 +85,7 @@ namespace AElf.Execution
                 var failedTrace = new TransactionTrace
                 {
                     StdErr = "Transaction with ID/hash " + failed.Key.GetHash().ToHex() +
-                             " failed, detail message: \n" + failed.Value.Dump(),
+                             " failed, detail message: \n" + failed.Value.ToString(),
                     TransactionId = failed.Key.GetHash()
                 };
                 results.Add(failedTrace);

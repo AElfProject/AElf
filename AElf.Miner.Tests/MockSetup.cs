@@ -29,7 +29,6 @@ using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Tests

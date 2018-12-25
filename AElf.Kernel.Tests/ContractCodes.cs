@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 using Google.Protobuf;
-using ServiceStack;
-
 namespace AElf.Kernel.Tests
 {
     public static class ContractCodes

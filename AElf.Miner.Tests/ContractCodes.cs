@@ -1,6 +1,4 @@
 ﻿using System.IO;
-using ServiceStack;
-
 namespace AElf.Miner.Tests
 {
     public static class ContractCodes

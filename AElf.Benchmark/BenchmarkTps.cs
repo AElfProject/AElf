@@ -18,9 +18,6 @@ using AElf.Execution.Execution;
 using AElf.Kernel.Storages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack;
-using ServiceStack.Text;
-
 namespace AElf.Benchmark
 {
     public class Benchmarks

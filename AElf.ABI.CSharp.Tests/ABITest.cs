@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using ServiceStack;
 using Google.Protobuf;
 using AElf.ABI.CSharp;
 using Xunit;

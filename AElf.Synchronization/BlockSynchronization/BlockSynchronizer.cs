@@ -15,7 +15,6 @@ using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack.Logging;
 
 namespace AElf.Synchronization.BlockSynchronization
 {

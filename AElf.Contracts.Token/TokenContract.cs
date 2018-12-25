@@ -10,7 +10,6 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using ServiceStack;
 
 #pragma warning disable CS0169,CS0649
 

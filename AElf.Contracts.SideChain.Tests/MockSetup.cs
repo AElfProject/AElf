@@ -8,7 +8,6 @@ using AElf.Execution;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
-using ServiceStack;
 using AElf.Common;
 using AElf.Database;
 using AElf.Execution.Execution;
