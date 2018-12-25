@@ -5,8 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
 using Akka.Dispatch;
 using ServiceStack;
 
@@ -18,21 +17,19 @@ namespace AElf.ChainController
         private readonly IBlockManager _blockManager;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
-        private readonly IDataStore _dataStore;
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
 
         private readonly ConcurrentDictionary<Hash, BlockChain> _blockchains = new ConcurrentDictionary<Hash, BlockChain>();
 
         public ChainService(IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager, 
-            IDataStore dataStore, IStateStore stateStore)
+            IStateManager stateManager)
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
             _transactionManager = transactionManager;
             _transactionTraceManager = transactionTraceManager;
-            _dataStore = dataStore;
-            _stateStore = stateStore;
+            _stateManager = stateManager;
         }
 
         public IBlockChain GetBlockChain(Hash chainId)
@@ -49,14 +46,14 @@ namespace AElf.ChainController
             }
 
             blockChain = new BlockChain(chainId, _chainManager, _blockManager, _transactionManager,
-                _transactionTraceManager, _stateStore, _dataStore);
+                _transactionTraceManager, _stateManager);
             _blockchains.TryAdd(chainId, blockChain);
             return blockChain;
         }
 
         public ILightChain GetLightChain(Hash chainId)
         {
-            return new LightChain(chainId, _chainManager, _blockManager, _dataStore);
+            return new LightChain(chainId, _chainManager, _blockManager);
         }
     }
 }

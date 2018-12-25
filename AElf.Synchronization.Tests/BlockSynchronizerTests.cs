@@ -9,12 +9,11 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
+using AElf.Kernel.Manager.Interfaces;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Easy.MessageHub;
 using Moq;
-using Org.BouncyCastle.Crypto.Generators;
 using Xunit;
 
 namespace AElf.Synchronization.Tests

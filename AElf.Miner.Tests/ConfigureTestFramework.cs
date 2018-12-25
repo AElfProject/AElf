@@ -6,8 +6,8 @@ using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Manager.Managers;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
@@ -37,7 +37,8 @@ namespace AElf.Miner.Tests
 
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new DatabaseAutofacModule());
-            builder.RegisterType<DataStore>().As<IDataStore>();
+            builder.RegisterModule(new KernelAutofacModule());
+            builder.RegisterModule(new SmartContractAutofacModule());
             builder.RegisterType<BlockValidationService>().As<IBlockValidationService>().SingleInstance();
             builder.RegisterType<ChainContextService>().As<IChainContextService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
@@ -45,7 +46,6 @@ namespace AElf.Miner.Tests
             builder.RegisterType<BlockManager>().As<IBlockManager>().SingleInstance();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
             builder.RegisterType<TransactionTraceManager>().As<ITransactionTraceManager>().SingleInstance();
-            builder.RegisterType<StateStore>().As<IStateStore>();
             builder.RegisterType<TxSignatureVerifier>().As<ITxSignatureVerifier>();
             builder.RegisterType<TxRefBlockValidator>().As<ITxRefBlockValidator>();
         }
