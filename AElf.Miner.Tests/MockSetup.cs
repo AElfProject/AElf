@@ -90,12 +90,12 @@ namespace AElf.Miner.Tests
             _smartContractRunnerContainer.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateStore,
-                    _functionMetadataService), _transactionTraceManager, StateStore,
+                    _functionMetadataService, _chainService), _transactionTraceManager, StateStore,
                 new ChainContextService(_chainService));
             
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    StateStore, _functionMetadataService), _logger);
+                    StateStore, _functionMetadataService, _chainService), _logger);
 
             _binaryMerkleTreeManager = new BinaryMerkleTreeManager(_dataStore);
             _chainContextService = new ChainContextService(_chainService);

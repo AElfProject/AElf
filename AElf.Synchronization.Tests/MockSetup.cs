@@ -33,7 +33,9 @@ namespace AElf.Synchronization.Tests
         private IFunctionMetadataService _functionMetadataService;
         private IExecutingService _concurrencyExecutingService;
         private ITxHub _txHub;
+        private IBlockManager _blockManager;
         private IChainManager _chainManager;
+        private IChainService _chainService;
 
         // private IBlockSynchronizer _blockSynchronizer;
 
@@ -48,9 +50,13 @@ namespace AElf.Synchronization.Tests
             _transactionResultManager = new TransactionResultManager(_dataStore);
             _smartContractRunnerContainer = new SmartContractRunnerContainer();
             _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
+            _blockManager = new BlockManager(_dataStore);
+            _chainManager = new ChainManager(_dataStore);
+            _chainService = new ChainService(_chainManager, _blockManager, _transactionManager, _transactionTraceManager,
+                _dataStore, _stateStore);
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateStore,
-                    _functionMetadataService), _transactionTraceManager, _stateStore,
+                    _functionMetadataService, _chainService), _transactionTraceManager, _stateStore,
                 new ChainContextService(GetChainService()));
             _txHub = txHub;
             _chainManager = new ChainManager(dataStore);

@@ -49,7 +49,8 @@ namespace AElf.Contracts.Genesis.Tests
 
         public MockSetup(IStateStore stateStore, IChainCreationService chainCreationService,
             IDataStore dataStore, IChainContextService chainContextService,
-            IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer)
+            IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer,
+            IChainService chainService)
         {
             StateStore = stateStore;
             _chainCreationService = chainCreationService;
@@ -59,7 +60,7 @@ namespace AElf.Contracts.Genesis.Tests
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                stateStore, _functionMetadataService);
+                stateStore, _functionMetadataService, chainService);
 
             ServicePack = new ServicePack()
             {

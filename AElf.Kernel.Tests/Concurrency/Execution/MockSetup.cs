@@ -94,7 +94,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
                 new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateStore,
-                    functionMetadataService);
+                    functionMetadataService, _chainService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
             {

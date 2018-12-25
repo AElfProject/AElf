@@ -78,7 +78,7 @@ namespace AElf.Kernel.Tests
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
                 new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateStore,
-                    functionMetadataService);
+                    functionMetadataService, ChainService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
 

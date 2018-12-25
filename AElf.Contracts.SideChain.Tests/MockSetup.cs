@@ -65,13 +65,13 @@ namespace AElf.Contracts.SideChain.Tests
             _smartContractRunnerContainer.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(new SmartContractManager(_dataStore), _smartContractRunnerContainer,
-                    StateStore, _functionMetadataService), _logger);
+                    StateStore, _functionMetadataService, ChainService), _logger);
             SmartContractManager = new SmartContractManager(_dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer, StateStore, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer, StateStore, _functionMetadataService, ChainService);
             ChainService = new ChainService(new ChainManager(_dataStore), new BlockManager(_dataStore), new TransactionManager(_dataStore), new TransactionTraceManager(_dataStore), _dataStore, StateStore);
         }
 

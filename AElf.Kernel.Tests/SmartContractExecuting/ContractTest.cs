@@ -53,7 +53,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, stateStore, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, stateStore, _functionMetadataService, _chainService);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
