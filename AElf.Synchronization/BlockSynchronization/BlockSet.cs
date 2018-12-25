@@ -149,7 +149,16 @@ namespace AElf.Synchronization.BlockSynchronization
         public void Tell(IBlock currentExecutedBlock)
         {
             RemoveExecutedBlock(currentExecutedBlock.BlockHashToHex);
+            
+            // IF currentExecutedBlock - 15 > currentLIB => currentExecutedBlock - 15 = LIB
+            // publish NEW LIB
 
+            if(currentExecutedBlock.Index > 15)
+                MessageHub.Instance.Publish(new NewLibFound{
+                    Height = currentExecutedBlock.Index - 15,
+                    BlockHash = currentExecutedBlock.GetHash()
+                });
+            
             if (currentExecutedBlock.Index >= KeepHeight)
                 RemoveOldBlocks(currentExecutedBlock.Index - KeepHeight);
         }
