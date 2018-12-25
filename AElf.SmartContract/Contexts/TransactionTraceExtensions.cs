@@ -17,6 +17,7 @@ namespace AElf.SmartContract
         {
             if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
             {
+                await trace.FeeTransactionTrace.CommitChangesAsync(stateStore);
                 await trace.CommitChangesAsync(stateStore);
             }
             else if (trace.Chargeable() && trace.FeeTransactionTrace != null)
