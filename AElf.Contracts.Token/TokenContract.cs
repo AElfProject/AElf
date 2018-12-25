@@ -122,6 +122,12 @@ namespace AElf.Contracts.Token
             return Allowances.GetAllowance(owner, spender);
         }
 
+        [View]
+        public ulong ChargedFees(Address address)
+        {
+            return _chargedFees[address];
+        }
+
         #endregion View Only Methods
 
         #region Actions
@@ -202,6 +208,8 @@ namespace AElf.Contracts.Token
             }.Fire();
         }
 
+        #region Used Transaction Fees
+
         /// <summary>
         /// The fees will be first locked according to transaction hash and will be claimed by the miner during
         /// finalizing the block. This method is only called by the main transaction (non-inline transactions).
@@ -214,6 +222,21 @@ namespace AElf.Contracts.Token
             _balances[fromAddress] = _balances[fromAddress].Sub(feeAmount);
             _chargedFees[fromAddress] = _chargedFees[fromAddress].Add(feeAmount);
         }
+
+        [Fee(0)]
+        public void ClaimTransactionFees(ulong height)
+        {
+            var blk = Api.GetBlockByHeight(height);
+            var senders = blk.Body.TransactionList.Select(t => t.From);
+            foreach (var sender in senders)
+            {
+                var fee = _chargedFees[sender];
+                _chargedFees[sender] = 0UL;
+                _balances[Api.GetFromAddress()] = _balances[Api.GetFromAddress()].Add(fee);
+            }
+        }
+
+        #endregion Used Transaction Fees
 
         #endregion Actions
 
