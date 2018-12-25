@@ -4,7 +4,7 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class MinersStore : KeyValueStoreBase
+    public class MinersStore : KeyValueStoreBase, IMinersStore
     {
         public MinersStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
             : base(keyValueDatabase, byteSerializer, GlobalConfig.MinersPrefix)

@@ -6,9 +6,9 @@ namespace AElf.Kernel.Managers
 {
     public class TransactionTraceManager : ITransactionTraceManager
     {
-        private readonly IKeyValueStore _transactionTraceStore;
+        private readonly ITransactionTraceStore _transactionTraceStore;
         
-        public TransactionTraceManager(TransactionTraceStore transactionTraceStore)
+        public TransactionTraceManager(ITransactionTraceStore transactionTraceStore)
         {
             _transactionTraceStore = transactionTraceStore;
         }

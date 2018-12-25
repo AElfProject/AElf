@@ -7,10 +7,10 @@ namespace AElf.Kernel.Managers
 {
     public class TransactionManager: ITransactionManager
     {
-        private readonly IKeyValueStore _transactionStore;
+        private readonly ITransactionStore _transactionStore;
         private readonly ILogger _logger;
 
-        public TransactionManager(TransactionStore transactionStore)
+        public TransactionManager(ITransactionStore transactionStore)
         {
             _transactionStore = transactionStore;
             _logger = LogManager.GetLogger(nameof(TransactionManager));

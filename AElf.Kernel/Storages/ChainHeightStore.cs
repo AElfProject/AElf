@@ -4,7 +4,7 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class ChainHeightStore : KeyValueStoreBase
+    public class ChainHeightStore : KeyValueStoreBase, IChainHeightStore
     {
         public ChainHeightStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
             : base(keyValueDatabase, byteSerializer, GlobalConfig.ChianHeightPrefix)

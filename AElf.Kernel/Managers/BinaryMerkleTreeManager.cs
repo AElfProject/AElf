@@ -6,9 +6,9 @@ namespace AElf.Kernel.Managers
 {
     public class BinaryMerkleTreeManager : IBinaryMerkleTreeManager
     {
-        private readonly IKeyValueStore _binaryMerkleTreeStore;
+        private readonly IBinaryMerkleTreeStore _binaryMerkleTreeStore;
 
-        public BinaryMerkleTreeManager(BinaryMerkleTreeStore binaryMerkleTreeStore)
+        public BinaryMerkleTreeManager(IBinaryMerkleTreeStore binaryMerkleTreeStore)
         {
             _binaryMerkleTreeStore = binaryMerkleTreeStore;
         }
