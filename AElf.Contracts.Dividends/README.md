@@ -128,6 +128,18 @@ To check the final dividends of a given voting of previous term.
 
 用于获取所提供VotingRecord实例当前可领取的出块奖励分红。
 
+### GetAvailableDividendsByVotingInformation
+
+参数：
+- Hash transctionId
+- ulong termNumber
+- ulong weight
+
+返回类型:
+- ulong
+
+用于获取所提供投票信息相关投票实例当前可领取的出块奖励分红。
+
 ### CheckStandardDividends
 
 参数:

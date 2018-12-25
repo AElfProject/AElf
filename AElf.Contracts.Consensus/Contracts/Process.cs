@@ -377,7 +377,7 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             if (previousTerm == null)
             {
-                // Initial history information for every miner.
+                // Initial history information for initial miners.
                 foreach (var candidate in currentRoundInfo.RealTimeMinersInfo)
                 {
                     _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory

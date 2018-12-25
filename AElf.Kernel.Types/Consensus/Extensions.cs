@@ -41,13 +41,6 @@ namespace AElf.Kernel
             return new Miners {PublicKeys = {minerPublicKeys}};
         }
 
-        public static string ToAString<T>(this IEnumerable<T> element)
-        {
-            var res = element.Aggregate("",
-                (current, minerPublicKey) => current + $" {{ \" {minerPublicKey.ToString()} \" }} ");
-            return res.Substring(0, res.Length - 1);
-        }
-
         /// <summary>
         /// For calculating hash.
         /// </summary>
@@ -60,7 +53,8 @@ namespace AElf.Kernel
                 Count = votingRecord.Count,
                 From = votingRecord.From,
                 To = votingRecord.To,
-                TermNumber = votingRecord.TermNumber
+                TermNumber = votingRecord.TermNumber,
+                
             };
         }
 

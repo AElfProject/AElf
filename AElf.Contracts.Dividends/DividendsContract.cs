@@ -45,7 +45,7 @@ namespace AElf.Contracts.Dividends
         [View]
         public ulong GetLatestRequestDividendsTermNumber(VotingRecord votingRecord)
         {
-            return _lastRequestDividendsMap.TryGet(GetHashOfVotingRecord(votingRecord), out var termNumber)
+            return _lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var termNumber)
                 ? termNumber.Value
                 : votingRecord.TermNumber;
         }
@@ -55,7 +55,7 @@ namespace AElf.Contracts.Dividends
         {
             ulong dividends = 0;
             var start = votingRecord.TermNumber;
-            if (_lastRequestDividendsMap.TryGet(GetHashOfVotingRecord(votingRecord), out var history))
+            if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var history))
             {
                 start = history.Value + 1;
             }
@@ -67,6 +67,30 @@ namespace AElf.Contracts.Dividends
                     if (_dividendsMap.TryGet(i.ToUInt64Value(), out var totalDividends))
                     {
                         dividends += totalDividends.Value * votingRecord.Weight / totalWeights.Value;
+                    }
+                }
+            }
+
+            return dividends;
+        }
+
+        [View]
+        public ulong GetAvailableDividendsByVotingInformation(Hash transactionId, ulong termNumber, ulong weight)
+        {
+            ulong dividends = 0;
+            var start = termNumber;
+            if (_lastRequestDividendsMap.TryGet(transactionId, out var history))
+            {
+                start = history.Value + 1;
+            }
+            
+            for (var i = start; i <= Api.GetCurrentTermNumber(); i++)
+            {
+                if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
+                {
+                    if (_dividendsMap.TryGet(i.ToUInt64Value(), out var totalDividends))
+                    {
+                        dividends += totalDividends.Value * weight / totalWeights.Value;
                     }
                 }
             }
@@ -116,7 +140,7 @@ namespace AElf.Contracts.Dividends
             var ownerAddress =
                 Address.FromPublicKey(ByteArrayHelpers.FromHexString(owner));
             var start = votingRecord.TermNumber;
-            if (_lastRequestDividendsMap.TryGet(GetHashOfVotingRecord(votingRecord), out var history))
+            if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var history))
             {
                 start = history.Value + 1;
             }
@@ -136,7 +160,7 @@ namespace AElf.Contracts.Dividends
                 }
             }
 
-            _lastRequestDividendsMap.SetValue(GetHashOfVotingRecord(votingRecord), actualTermNumber.ToUInt64Value());
+            _lastRequestDividendsMap.SetValue(votingRecord.TransactionId, actualTermNumber.ToUInt64Value());
         }
 
         public void AddDividends(ulong termNumber, ulong dividendsAmount)
@@ -167,11 +191,6 @@ namespace AElf.Contracts.Dividends
                 var newWeights = totalWeights.Value - weights;
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), newWeights.ToUInt64Value());
             }
-        }
-
-        private Hash GetHashOfVotingRecord(VotingRecord votingRecord)
-        {
-            return Hash.FromMessage(votingRecord.ToSimpleRecord());
         }
     }
 }
