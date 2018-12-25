@@ -80,7 +80,10 @@ namespace AElf.Synchronization.BlockSynchronization
                     
                     // if this other chain becomes higher than the head -> switch
                     if (newState.Index > CurrentHead.Index)
+                    {
+                        _logger?.Debug($"Switching chain ({CurrentHead.BlockHash} -> {newState.BlockHash})");
                         CurrentHead = newState;
+                    }
                 }
 
                 var lc = _rwLock.UpgradeToWriterLock(Timeout);
