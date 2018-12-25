@@ -12,33 +12,18 @@ namespace AElf.RPC
 {
     internal static class RpcServerHelpers
     {
-        private static List<Type> GetServiceTypes(IServiceProvider scope)
+        private static List<Type> GetServiceTypes(IServiceCollection scope)
         {
+            return scope.Where(p => p.ImplementationType != null && typeof(IJsonRpcService).IsAssignableFrom(p.ServiceType))
+                .Select(p => p.ImplementationType).ToList();
+            
             //TODO! rewrite this project by aspnet core webapi
-            throw new NotImplementedException();
-            /*
-                        var types = scope.ComponentRegistry.Registrations
-                .SelectMany(r => r.Services.OfType<IServiceWithType>(), (r, s) => new {r, s})
-                .Where(rs => typeof(IJsonRpcService).IsAssignableFrom(rs.s.ServiceType))
-                .Select(rs => rs.r.Activator.LimitType).ToList();
-            return types;*/
+
         }
 
         private static object Resolve(IServiceProvider scope, Type type)
         {
-            throw new NotImplementedException();
-
-            /*var methodInfo = typeof(ResolutionExtensions).GetMethod("Resolve", new []
-            {
-                typeof(IComponentContext)
-            });
-            if (methodInfo == null)
-            {
-                throw new InvalidOperationException(
-                    "Cannot find extension method Resolve(IComponentContext) for ResolutionExtensions.");
-            }
-            var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] { type });
-            return methodInfoGeneric.Invoke(scope, new object[] { scope });*/
+            return scope.GetService(type);
         }
         
         private static void AddJsonRpcService(IServiceCollection services, Type type)
@@ -65,17 +50,20 @@ namespace AElf.RPC
             methodInfoGeneric.Invoke(appBuilder, new object[] { appBuilder , path});
         }
         
+        /*
         internal static void ConfigureServices(IServiceCollection services, IServiceProvider scope)
         {
             var types = GetServiceTypes(scope);
+            
+            
             foreach (var serviceType in types)
             {
                 services.AddSingleton(serviceType, Resolve(scope, serviceType));
                 AddJsonRpcService(services, serviceType);
             }
-        }
+        }*/
 
-        internal static void Configure(IApplicationBuilder appBuilder, IServiceProvider scope)
+        internal static void Configure(IApplicationBuilder appBuilder, IServiceCollection scope)
         {
             var types = GetServiceTypes(scope);
             foreach (var serviceType in types)

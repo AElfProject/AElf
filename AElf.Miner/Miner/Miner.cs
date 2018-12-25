@@ -28,11 +28,12 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Miner
 {
     
-    public class Miner : IMiner
+    public class Miner : IMiner, ISingletonDependency
     {
         public ILogger<Miner> Logger {get;set;}
         private readonly ITxHub _txHub;

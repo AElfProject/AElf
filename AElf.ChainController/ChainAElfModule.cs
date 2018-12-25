@@ -15,7 +15,7 @@ using Volo.Abp.Modularity;
 namespace AElf.ChainController
 {
     [DependsOn(typeof(KernelAElfModule))]
-    public class ChainAElfModule : AElfModule
+    public class ChainControllerAElfModule : AElfModule
     {
         private static readonly string FileFolder = Path.Combine(ApplicationHelpers.ConfigPath, "config");
         private static readonly string FilePath = Path.Combine(FileFolder, @"chain.json");
@@ -24,7 +24,7 @@ namespace AElf.ChainController
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddAssemblyOf<ChainAElfModule>();
+            services.AddAssemblyOf<ChainControllerAElfModule>();
 
 
             services.AddSingleton<ICrossChainInfoReader, CrossChainInfoReader>();

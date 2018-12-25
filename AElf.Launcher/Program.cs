@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Threading.Channels;
-using AElf.ChainController;
-using AElf.ChainController.Rpc;
-using AElf.Common;
-using AElf.Database;
-using AElf.Execution;
-using AElf.Kernel;
+using AElf.Common.Enums;
 using AElf.Configuration;
-using AElf.Miner;
-using AElf.Net.Rpc;
-using AElf.Network;
-using AElf.Node;
-using AElf.RPC;
-using AElf.Runtime.CSharp;
-using AElf.SideChain.Creation;
-using AElf.SmartContract;
-using AElf.Synchronization;
-using AElf.Wallet.Rpc;
+using AElf.Database;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp;
+
 
 namespace AElf.Launcher
 {
@@ -24,31 +14,45 @@ namespace AElf.Launcher
     {
         static void Main(string[] args)
         {
-            //TODO! change
-            /*
-            Console.WriteLine(string.Join(" ", args));
+            ILogger<Program> logger = NullLogger<Program>.Instance;
+            try
+            {
+                Console.WriteLine(string.Join(" ", args));
 
-            var parsed = new CommandLineParser();
-            parsed.Parse(args);
+                var parsed = new CommandLineParser();
+                parsed.Parse(args);
+                
+                using (var application = AbpApplicationFactory.Create<LauncherAElfModule>(options =>
+                {
+                    options.UseAutofac(); //Autofac integration
+                    //options.UseInMemoryDatabase(); // 
 
-            var handler = new AElfModuleHandler();
-            handler.Register(new DatabaseAElfModule());
-            handler.Register(new KernelAElfModule());
-            handler.Register(new SmartContractAElfModule());
-            handler.Register(new ChainAElfModule());
-            handler.Register(new MinerAElfModule());
-            handler.Register(new ChainControllerRpcAElfModule());
-            handler.Register(new NetRpcAElfModule());
-            handler.Register(new WalletRpcAElfModule());
-            handler.Register(new RunnerAElfModule());
-            handler.Register(new ExecutionAElfModule());
-            handler.Register(new NetworkAElfModule());
-            handler.Register(new RpcAElfModule());
-            handler.Register(new NodeAElfModule());
-            handler.Register(new SideChainAElfModule());
-            handler.Register(new LauncherAElfModule());
-            handler.Register(new SyncAElfModule());
-            handler.Build();*/
+                    options.Services.AddLogging(builder =>
+                    {
+                        builder.SetMinimumLevel(LogLevel.Trace)
+                            .AddConsole()
+                            .AddFile();
+                    });
+                        
+                    //DatabaseConfig.Instance.Type = DatabaseType.Redis;
+                }))
+                {
+                    
+                    
+
+                    application.Initialize();
+                    
+                    logger = application.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                    LauncherAElfModule.Closing.WaitOne();
+                }
+            }
+            catch (Exception e)
+            {
+                if(logger == NullLogger<Program>.Instance)
+                    Console.WriteLine(e);
+                logger.LogCritical(e,"program crashed");
+            }
         }
     }
 }

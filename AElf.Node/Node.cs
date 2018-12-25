@@ -9,11 +9,11 @@ using AElf.Node.EventMessages;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Node
 {
-    
-    public class Node : INode
+    public class Node : INode, ITransientDependency
     {
         public ILogger<Node> Logger {get;set;}
         private readonly IRpcServer _rpcServer;

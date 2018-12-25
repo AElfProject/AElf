@@ -1,5 +1,6 @@
 ﻿using AElf.Common;
 using AElf.Common.Enums;
+using AElf.Common.MultiIndexDictionary;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
@@ -15,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel
 {
-    [DependsOn(typeof(TypesAElfModule))]
+    [DependsOn(typeof(TypesAElfModule),typeof(DatabaseAElfModule),typeof(CoreAElfModule))]
     public class KernelAElfModule: AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -29,11 +30,18 @@ namespace AElf.Kernel
 
             services.AddAssemblyOf<KernelAElfModule>();
             
-            services.AddAssemblyOf<KernelAElfModule>();
-
             services.AddTransient(
                 typeof(ISerializer<>), 
                 typeof(Serializer<>));
+
+            services.AddTransient(
+                typeof(IEqualityIndex<>), 
+                typeof(EqualityIndex<,>));
+            
+            services.AddTransient(
+                typeof(IComparisionIndex<>), 
+                typeof(ComparisionIndex<,>));
+            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

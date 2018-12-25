@@ -1,5 +1,6 @@
 ﻿using AElf.Common;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Miner
 {

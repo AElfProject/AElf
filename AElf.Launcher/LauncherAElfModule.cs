@@ -4,33 +4,65 @@ using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using AElf.ChainController.Rpc;
 using AElf.Configuration.Config.Consensus;
+using AElf.Execution;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Types.Common;
+using AElf.Miner;
+using AElf.Miner.Rpc;
 using AElf.Modularity;
+using AElf.Net.Rpc;
+using AElf.Network;
+using AElf.Node;
+using AElf.RPC;
+using AElf.Runtime.CSharp;
+using AElf.SideChain.Creation;
+using AElf.Wallet.Rpc;
 using Easy.MessageHub;
+using Grpc.Core.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp;
+using Volo.Abp.Modularity;
+
 namespace AElf.Launcher
 {
     //TODO! need to change this file
-    
-    public class LauncherAElfModule: AElfModule
+
+    [DependsOn(typeof(RpcChainControllerAElfModule),
+        typeof(ExecutionAElfModule),
+        typeof(MinerAElfModule),
+        typeof(NetRpcAElfModule),
+        typeof(NodeAElfModule),
+        typeof(CSharpRuntimeAElfModule),
+        typeof(SideChainAElfModule),
+        typeof(RpcWalletAElfModule),
+        typeof(MinerRpcAElfModule),
+        typeof(NetworkAElfModule),
+        typeof(ConsensusKernelAElfModule))]
+    public class LauncherAElfModule : AElfModule
     {
-        //private static readonly  = LogManager.GetLogger("Launcher");
-        
-        
-        
-        private readonly AutoResetEvent _closing = new AutoResetEvent(false);
+        public static readonly AutoResetEvent Closing = new AutoResetEvent(false);
         private readonly Queue<TerminatedModuleEnum> _modules = new Queue<TerminatedModuleEnum>();
         private TerminatedModuleEnum _prepareTerminatedModule;
         private static System.Timers.Timer _timer;
-        
-        
-        //TODO: rewrite, not understand
-        
-        /*
-        public void Init(ContainerBuilder builder)
+        public ILogger<LauncherAElfModule> Logger { get; set; }
+
+        public LauncherAElfModule()
+        {
+            Logger = NullLogger<LauncherAElfModule>.Instance;
+        }
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+        }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             MessageHub.Instance.Subscribe<TerminatedModule>(OnModuleTerminated);
-            
+
             _modules.Enqueue(TerminatedModuleEnum.Rpc);
             _modules.Enqueue(TerminatedModuleEnum.TxPool);
             _modules.Enqueue(TerminatedModuleEnum.Mining);
@@ -41,19 +73,19 @@ namespace AElf.Launcher
             _timer = new System.Timers.Timer(ConsensusConfig.Instance.DPoSMiningInterval * 2);
             _timer.AutoReset = false;
             _timer.Elapsed += TimerOnElapsed;
-            
-            AssemblyLoadContext.Default.Unloading += DefaultOnUnloading;           
-            Console.CancelKeyPress += OnCancelKeyPress;
 
+            AssemblyLoadContext.Default.Unloading += DefaultOnUnloading;
+            Console.CancelKeyPress += OnCancelKeyPress;
         }
+
 
         private void DefaultOnUnloading(AssemblyLoadContext obj)
         {
-            _closing.Set();
+            Closing.Set();
             if (_modules.Count != 0)
             {
                 PublishMessage();
-                _closing.WaitOne();
+                Closing.WaitOne();
             }
         }
 
@@ -62,10 +94,6 @@ namespace AElf.Launcher
             OnModuleTerminated(new TerminatedModule(_prepareTerminatedModule));
         }
 
-        public void Run(ILifetimeScope scope)
-        {
-            _closing.WaitOne();
-        }
 
         private void OnCancelKeyPress(object sender, EventArgs args)
         {
@@ -75,8 +103,13 @@ namespace AElf.Launcher
             }
             else
             {
-                _closing.Set();
+                Closing.Set();
             }
+        }
+
+
+        public override void OnApplicationShutdown(ApplicationShutdownContext context)
+        {
         }
 
         private void OnModuleTerminated(TerminatedModule moduleTerminated)
@@ -87,7 +120,7 @@ namespace AElf.Launcher
                 if (_prepareTerminatedModule == moduleTerminated.Module)
                 {
                     _modules.Dequeue();
-                    //Logger.Trace($"{_prepareTerminatedModule.ToString()} stopped.");
+                    Logger.LogTrace($"{_prepareTerminatedModule.ToString()} stopped.");
                 }
                 else
                 {
@@ -96,15 +129,15 @@ namespace AElf.Launcher
 
                 if (_modules.Count == 0)
                 {
-                    //Logger.Trace("node will be closed after 5s...");
+                    Logger.LogTrace("node will be closed after 5s...");
                     for (var i = 0; i < 5; i++)
                     {
-                        //Logger.Trace($"{5 - i}");
+                        Logger.LogTrace($"{5 - i}");
                         Thread.Sleep(1000);
                     }
 
-                    //Logger.Trace("node is closed.");
-                    _closing.Set();
+                    Logger.LogTrace("node is closed.");
+                    Closing.Set();
                 }
                 else
                 {
@@ -116,11 +149,10 @@ namespace AElf.Launcher
         private void PublishMessage()
         {
             _prepareTerminatedModule = _modules.Peek();
-            //Logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}...");
+            Logger.LogTrace($"begin stop {_prepareTerminatedModule.ToString()}...");
             MessageHub.Instance.Publish(new TerminationSignal(_prepareTerminatedModule));
-            
+
             _timer.Start();
         }
-        */
     }
 }

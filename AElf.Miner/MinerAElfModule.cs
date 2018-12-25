@@ -15,7 +15,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Miner
 {
-    [DependsOn(typeof(ChainAElfModule))]
+    [DependsOn(typeof(ChainControllerAElfModule))]
     public class MinerAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -34,11 +34,14 @@ namespace AElf.Miner
             {
                 Value = ByteString.CopyFrom(ChainConfig.Instance.ChainId.DecodeBase58())
             };
+            
+            
 
             var services = context.Services;
+
+            services.AddSingleton<IMinerConfig>(minerConfig);
             services.AddSingleton<ClientManager>();
             services.AddSingleton<ServerManager>();
-            services.AddSingleton<ClientManager>();
 
             
 

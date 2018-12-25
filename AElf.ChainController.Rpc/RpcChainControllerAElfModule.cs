@@ -6,12 +6,12 @@ using Volo.Abp.Modularity;
 
 namespace AElf.ChainController.Rpc
 {
-    [DependsOn(typeof(RpcAElfModule))]
-    public class ChainControllerRpcAElfModule: AElfModule
+    [DependsOn(typeof(RpcAElfModule),typeof(ChainControllerAElfModule))]
+    public class RpcChainControllerAElfModule: AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<ChainControllerRpcAElfModule>();
+            context.Services.AddAssemblyOf<RpcChainControllerAElfModule>();
 
             context.Services.AddTransient<ChainControllerRpcService>();
         }

@@ -26,7 +26,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0" />
+    <PackageReference Include="NetEscapades.Extensions.Logging.RollingFile" Version="1.0.1" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
+    <PackageReference Include="Volo.Abp.Autofac" Version="0.10.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="netstandard2.0\**" />

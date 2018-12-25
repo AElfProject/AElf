@@ -3,23 +3,36 @@ using System.IO;
 using System.Net;
 using System.Security;
 using AElf.Common.Application;
+using AElf.Common.Enums;
+using AElf.Common.MultiIndexDictionary;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.Node;
 using AElf.Modularity;
+using AElf.Network;
 using AElf.Node.AElfChain;
+using AElf.Node.Protocol;
+using AElf.Synchronization.BlockSynchronization;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
+using Volo.Abp.Modularity;
+
 namespace AElf.Node
 {
+    [DependsOn(typeof(AElf.Network.NetworkAElfModule),
+        typeof(AElf.Synchronization.SyncAElfModule),
+        typeof(AElf.Kernel.KernelAElfModule))]
     public class NodeAElfModule : AElfModule
     {
         
         //TODO! change implements
-        
-        /*
-        public void Init(ContainerBuilder builder)
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
             ECKeyPair nodeKey = null;
             if (!string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccount))
@@ -52,10 +65,21 @@ namespace AElf.Node
             TransactionPoolConfig.Instance.EcKeyPair = nodeKey;
             NetworkConfig.Instance.EcKeyPair = nodeKey;
 
-            builder.RegisterModule(new NodeAutofacModule());
+
+            switch (ConsensusConfig.Instance.ConsensusType)
+            {
+                case ConsensusType.AElfDPoS:
+                    context.Services.AddSingleton<IConsensus, DPoS>();
+                    context.Services.AddTransient<ConsensusHelper>();
+                    break;
+                case ConsensusType.PoW:
+                    break;
+                case ConsensusType.SingleNode:
+                    break;
+            }
         }
 
-        public void Run(ILifetimeScope scope)
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             Console.WriteLine($"Using consensus: {ConsensusConfig.Instance.ConsensusType}");
 
@@ -69,13 +93,13 @@ namespace AElf.Node
             confContext.WithRpc = RpcConfig.Instance.UseRpc;
             confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node).Assembly.Location);
 
-            var mainChainNodeService = scope.Resolve<INodeService>();
-            var node = scope.Resolve<INode>();
+            var mainChainNodeService = context.ServiceProvider.GetRequiredService<INodeService>();
+            var node = context.ServiceProvider.GetRequiredService<INode>();
             node.Register(mainChainNodeService);
             node.Initialize(confContext);
             node.Start();
         }
-
+        
         private static string AskInvisible(string prefix)
         {
             Console.Write("Node account password: ");
@@ -104,6 +128,5 @@ namespace AElf.Node
             Console.WriteLine();
             return new NetworkCredential("", pwd).Password;
         }
-        */
     }
 }

@@ -4,13 +4,14 @@ using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus
 {
     /// <summary>
     /// Reads contract data from state store.
     /// </summary>
-    public class ConsensusDataReader
+    public class ConsensusDataReader : ISingletonDependency
     {
         private static Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
         private static Address ContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
