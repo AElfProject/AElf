@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using Google.Protobuf;
 
-namespace AElf.Kernel
+namespace AElf.Common.Serializers
 {
     /// <summary>
     /// Protobuf serializer. This uses the serialization code
     /// built into the generated protobuf types
     /// </summary>
-    public class ProtobufSerializer 
+    public class ProtobufSerializer : IByteSerializer
     {
         /// <summary>
         /// Cache that stores the protobuf types. It's needed to avoid
@@ -24,7 +24,7 @@ namespace AElf.Kernel
         /// </summary>
         public byte[] Serialize(object obj)
         {
-            IMessage message = obj as IMessage;
+            var message = obj as IMessage;
             return message?.ToByteArray();
         }
 
@@ -32,10 +32,10 @@ namespace AElf.Kernel
         /// Helper method to perform the cast. Note that you
         /// cannot use this method to deserialize structs.
         /// </summary>
-        public T Deserialize<T>(byte[] bytes) where T : class
+        public T Deserialize<T>(byte[] bytes)
         {
             var data = Deserialize(bytes, typeof(T));
-            return data != null ? (T)data : null;
+            return (T) data;
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace AElf.Kernel
         /// <param name="type">The type of the Protobuf generated type that
         /// you want to deserialize to.</param>
         /// <returns></returns>
-        public object Deserialize(byte[] bytes, Type type)
+        private object Deserialize(byte[] bytes, Type type)
         {
             if (TypeCache.TryGetValue(type.FullName, out var parser))
             {
@@ -59,9 +59,9 @@ namespace AElf.Kernel
             return parser?.ParseFrom(bytes);
         }
 
-        public MessageParser RegisterProtobufTypeParser(Type messageType)
+        private MessageParser RegisterProtobufTypeParser(Type messageType)
         {
-            IMessage msg = Activator.CreateInstance(messageType) as IMessage;
+            var msg = Activator.CreateInstance(messageType) as IMessage;
 
             if (msg?.Descriptor == null)
                 return null;
