@@ -3,12 +3,12 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
 using AElf.ChainController;
 using AElf.SmartContract;
 using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
+using AElf.Kernel.Manager.Interfaces;
 
 namespace AElf.Contracts.Consensus.Tests
 {
@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        public IStateStore StateStore { get; }
+        public IStateManager StateManager { get; }
         public Hash ChainId { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
         private ISmartContractService SmartContractService { get; }
 
@@ -35,10 +35,10 @@ namespace AElf.Contracts.Consensus.Tests
 
         private readonly IChainCreationService _chainCreationService;
 
-        public MockSetup(IStateStore stateStore, ISmartContractService smartContractService,
+        public MockSetup(IStateManager stateManager, ISmartContractService smartContractService,
             IChainCreationService chainCreationService, IChainContextService chainContextService)
         {
-            StateStore = stateStore;
+            StateManager = stateManager;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();

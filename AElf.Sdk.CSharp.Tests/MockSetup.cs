@@ -2,8 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
@@ -11,6 +9,8 @@ using Google.Protobuf;
 using AElf.Kernel.Tests;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Manager.Managers;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -19,20 +19,21 @@ namespace AElf.Sdk.CSharp.Tests
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
         private static int _incrementId = 0;
+
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
-            return (ulong)n;
+            return (ulong) n;
         }
 
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
         private IFunctionMetadataService _functionMetadataService;
 
         public IChainContextService ChainContextService;
 
-        public IStateStore StateStore;
+        public IStateManager StateManager;
         public DataProvider DataProvider1;
 
         public ServicePack ServicePack;
@@ -41,37 +42,34 @@ namespace AElf.Sdk.CSharp.Tests
 
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        public MockSetup(IStateStore stateStore, IChainCreationService chainCreationService, IDataStore dataStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer)
+        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
+            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
+            ISmartContractRunnerContainer smartContractRunnerContainer, ISmartContractManager smartContractManager)
         {
-            StateStore = stateStore;
+            StateManager = stateManager;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
-            SmartContractManager = new SmartContractManager(dataStore);
-            Task.Factory.StartNew(async () =>
-            {
-                await Init();
-            }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateStore, _functionMetadataService);
+            SmartContractManager = smartContractManager;
+            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
+                StateManager, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                StateStore = StateStore
+                StateManager = StateManager
             };
         }
 
         public byte[] SmartContractZeroCode
         {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
+            get { return ContractCodes.TestContractZeroCode; }
         }
-        
+
         private async Task Init()
         {
             var reg = new SmartContractRegistration
@@ -80,13 +78,14 @@ namespace AElf.Sdk.CSharp.Tests
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
+            var chain1 =
+                await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration> {reg});
 
             DataProvider1 = DataProvider.GetRootDataProvider(
                 chain1.Id,
                 Address.Generate() // todo warning adr contract adress
             );
-            DataProvider1.StateStore = StateStore;
+            DataProvider1.StateManager = StateManager;
         }
 
         public async Task DeployContractAsync(byte[] code, Address address)
@@ -106,6 +105,5 @@ namespace AElf.Sdk.CSharp.Tests
             var executive = await SmartContractService.GetExecutiveAsync(address, ChainId1);
             return executive;
         }
-
     }
 }

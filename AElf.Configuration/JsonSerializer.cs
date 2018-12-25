@@ -17,15 +17,15 @@ namespace AElf.Configuration
             return json;
         }
 
-        public T Deserialize<T>(string vaule) where T : class
+        public T Deserialize<T>(string value) where T : class
         {
-            var obj = JsonConvert.DeserializeObject<T>(vaule);
+            var obj = JsonConvert.DeserializeObject<T>(value);
             return obj;
         }
 
-        public object Deserialize(string vaule, Type type)
+        public object Deserialize(string value, Type type)
         {
-            var obj = JsonConvert.DeserializeObject(vaule, type);
+            var obj = JsonConvert.DeserializeObject(value, type);
             return obj;
         }
     }

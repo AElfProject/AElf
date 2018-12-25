@@ -201,7 +201,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this Svc s, ulong height)
         {
-            return await s.BinaryMerkleTreeManager.GetTransactionsMerkleTreeByHeightAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId), height);
+            return await s.MerkleTreeManager.GetTransactionsMerkleTreeByHeightAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId), height);
         }
 
 //        internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
@@ -286,7 +286,7 @@ namespace AElf.ChainController.Rpc
         
         internal static async Task<Block> GetBlock(this Svc s, Hash blockHash)
         {
-            var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var blockchain = s.ChainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHashAsync(blockHash);
         }
 

@@ -14,9 +14,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Types.Transaction;
+using AElf.Kernel.Manager.Interfaces;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
@@ -27,6 +25,7 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using AElf.Kernel.Types.Transaction;
 
 namespace AElf.Miner.Miner
 {
@@ -38,12 +37,13 @@ namespace AElf.Miner.Miner
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
+        private readonly IMerkleTreeManager _merkleTreeManager;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
         private IBlockChain _blockChain;
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private ECKeyPair _keyPair;
+        private readonly IChainManager _chainManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;
@@ -52,21 +52,22 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,IBlockValidationService blockValidationService, IChainContextService chainContextService
-            ,IStateStore stateStore)
+            IMerkleTreeManager merkleTreeManager, ServerManager serverManager,
+            IBlockValidationService blockValidationService, IChainContextService chainContextService
+            , IChainManager chainManager,IStateManager stateManager)
         {
             _txHub = txHub;
             _chainService = chainService;
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
-            _binaryMerkleTreeManager = binaryMerkleTreeManager;
+            _merkleTreeManager = merkleTreeManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
 
             Config = config;
             
-            _consensusDataProvider = new ConsensusDataProvider(stateStore);
+            _consensusDataProvider = new ConsensusDataProvider(stateManager);
 
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
             _crossChainIndexingTransactionGenerator = new CrossChainIndexingTransactionGenerator(clientManager,
@@ -375,7 +376,7 @@ namespace AElf.Miner.Miner
                 await _transactionResultManager.AddTransactionResultAsync(r);
             });
             // update merkle tree
-            _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
+            _merkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
                 block.Header.Index);
         }
 

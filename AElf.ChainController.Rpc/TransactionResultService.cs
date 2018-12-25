@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
+using AElf.Kernel.Manager.Interfaces;
 using AElf.Miner.TxMemPool;
 
 namespace AElf.ChainController.Rpc

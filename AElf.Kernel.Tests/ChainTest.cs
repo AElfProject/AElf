@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Kernel.Managers;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
