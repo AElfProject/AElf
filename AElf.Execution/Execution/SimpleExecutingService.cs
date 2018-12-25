@@ -34,15 +34,15 @@ namespace AElf.Execution.Execution
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
             CancellationToken cancellationToken, Hash disambiguationHash = null,
-            TransactionType transactionType = TransactionType.ContractTransaction)
+            TransactionType transactionType = TransactionType.ContractTransaction,
+            bool skipFee=false)
         {
-            var feeAmount = transactionType == TransactionType.DposTransaction ? 0UL : 1UL;
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<StatePath, StateCache>();
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
+                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken, skipFee);
                 if (!trace.IsSuccessful())
                 {
                     trace.SurfaceUpError();
@@ -71,7 +71,7 @@ namespace AElf.Execution.Execution
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
             IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken, bool skipFee=false)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -101,7 +101,7 @@ namespace AElf.Execution.Execution
 
             #region Charge Fees
 
-            if (depth == 0)
+            if (depth == 0 && !skipFee)
             {
                 // Fee is only charged to the main transaction
                 var feeAmount = executive.GetFee(transaction.MethodName);
@@ -145,7 +145,7 @@ namespace AElf.Execution.Execution
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
                     var inlineTrace = await ExecuteOneAsync(depth + 1, inlineTx, chainId, chainContext, stateCache,
-                        cancellationToken);
+                        cancellationToken, skipFee);
                     trace.InlineTraces.Add(inlineTrace);
                 }
             }
