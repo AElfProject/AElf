@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf;
 

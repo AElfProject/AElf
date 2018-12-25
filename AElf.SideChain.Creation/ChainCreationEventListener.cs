@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 using NLog;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
 using AElf.Configuration.Config.Chain;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 
 namespace AElf.SideChain.Creation
 {

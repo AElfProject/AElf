@@ -14,7 +14,7 @@ using AElf.Configuration.Config.Consensus;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Common;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
@@ -34,7 +34,7 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IExecutingService _executingService;
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
-        private readonly IMerkleTreeManager _merkleTreeManager;
+        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
         private readonly IChainManager _chainManager;
         private readonly IStateManager _stateManager;
@@ -46,13 +46,13 @@ namespace AElf.Synchronization.BlockExecution
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IMerkleTreeManager merkleTreeManager, ITxHub txHub, IChainManager chainManager, IStateManager stateManager)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManager chainManager, IStateManager stateManager)
         {
             _chainService = chainService;
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
             _clientManager = clientManager;
-            _merkleTreeManager = merkleTreeManager;
+            _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
             _chainManager = chainManager;
             _stateManager = stateManager;
@@ -495,7 +495,7 @@ namespace AElf.Synchronization.BlockExecution
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
 
-            await _merkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
+            await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
                 block.Header.ChainId, block.Header.Index);
             txResults.AsParallel().ToList().ForEach(async r =>
             {

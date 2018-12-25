@@ -3,7 +3,6 @@ using System.IO;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Types.Transaction;
 using AElf.Types.CSharp;
 using Google.Protobuf;

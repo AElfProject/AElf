@@ -10,7 +10,6 @@ using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using Google.Protobuf;

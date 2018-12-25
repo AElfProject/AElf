@@ -1,7 +1,6 @@
 ﻿using AElf.Common.Serializers;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Manager.Managers;
-using AElf.Kernel.Storage;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 using Autofac;
 
 namespace AElf.Kernel
@@ -14,7 +13,7 @@ namespace AElf.Kernel
             
             builder.RegisterType<StateStore>().SingleInstance();
             builder.RegisterType<TransactionStore>().SingleInstance();
-            builder.RegisterType<MerkleTreeStore>().SingleInstance();
+            builder.RegisterType<BinaryMerkleTreeStore>().SingleInstance();
             builder.RegisterType<BlockHeaderStore>().SingleInstance();
             builder.RegisterType<BlockBodyStore>().SingleInstance();
             builder.RegisterType<ChainHeightStore>().SingleInstance();
@@ -31,7 +30,7 @@ namespace AElf.Kernel
             
             builder.RegisterType<StateManager>().As<IStateManager>().SingleInstance();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();
-            builder.RegisterType<MerkleTreeManager>().As<IMerkleTreeManager>().SingleInstance();
+            builder.RegisterType<BinaryMerkleTreeManager>().As<IBinaryMerkleTreeManager>().SingleInstance();
             builder.RegisterType<BlockManager>().As<IBlockManager>().SingleInstance();
             builder.RegisterType<ChainManager>().As<IChainManager>().SingleInstance();
             builder.RegisterType<MinersManager>().As<IMinersManager>().SingleInstance();

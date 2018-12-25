@@ -12,7 +12,7 @@ using AElf.Configuration;
 using AElf.Types.CSharp;
 using Type = System.Type;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using Akka.Util.Internal;
 
 namespace AElf.SmartContract

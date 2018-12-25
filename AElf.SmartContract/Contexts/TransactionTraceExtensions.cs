@@ -6,7 +6,7 @@ using AElf.Common;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 
 namespace AElf.SmartContract
 {

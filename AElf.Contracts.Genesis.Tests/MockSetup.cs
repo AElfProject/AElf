@@ -15,8 +15,7 @@ using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
 using AElf.Execution.Execution;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Managers;
 
 namespace AElf.Contracts.Genesis.Tests
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Configuration.Config.Consensus;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 

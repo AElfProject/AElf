@@ -9,7 +9,7 @@ using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {

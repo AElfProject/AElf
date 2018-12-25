@@ -2,8 +2,6 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Manager.Managers;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockSynchronization;

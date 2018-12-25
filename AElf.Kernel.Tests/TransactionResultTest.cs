@@ -7,7 +7,7 @@ using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Miner.TxMemPool;
 using NLog;
 using ITxSignatureVerifier = AElf.Kernel.Types.Transaction.ITxSignatureVerifier;

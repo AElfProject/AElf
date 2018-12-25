@@ -17,7 +17,7 @@ using ServiceStack;
 using ServiceStack.Text;
 using AElf.Common;
 using AElf.Execution.Execution;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 
 namespace AElf.Benchmark
 {
