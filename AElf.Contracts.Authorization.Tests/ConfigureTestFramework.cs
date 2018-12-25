@@ -1,7 +1,4 @@
 using AElf.Common;
-using AElf.Database;
-using AElf.Kernel;
-using AElf.SmartContract;
 using Autofac;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,9 +17,6 @@ namespace AElf.Contracts.Authorization.Tests
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
             builder.RegisterModule(new LoggerAutofacModule());
-            builder.RegisterModule(new DatabaseAutofacModule());
-            builder.RegisterModule(new KernelAutofacModule());
-            builder.RegisterModule(new SmartContractAutofacModule());
         }
     }
 }

@@ -4,7 +4,7 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Storages;
 
 namespace AElf.SmartContract.Proposal
 {
@@ -16,10 +16,10 @@ namespace AElf.SmartContract.Proposal
         private Address AuthorizationContractAddress =>
             ContractHelpers.GetAuthorizationContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
         
-        public AuthorizationInfoReader(IStateManager stateManager)
+        public AuthorizationInfoReader(IStateStore stateStore)
         {
             var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
-            _contractInfoReader = new ContractInfoReader(chainId, stateManager);
+            _contractInfoReader = new ContractInfoReader(chainId, stateStore);
         }
         
         // todo review

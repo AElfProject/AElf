@@ -1,7 +1,10 @@
+using System;
+using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;
 
@@ -12,11 +15,10 @@ namespace AElf.ChainController.CrossChain
         private readonly ContractInfoReader _contractInfoReader;
         private Address CrossChainContractAddress =>
             ContractHelpers.GetCrossChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-        
-        public CrossChainInfoReader(IStateManager stateManager)
+        public CrossChainInfoReader(IStateStore stateStore)
         {
             var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
-            _contractInfoReader = new ContractInfoReader(chainId, stateManager);
+            _contractInfoReader = new ContractInfoReader(chainId, stateStore);
         }
 
         /// <summary>

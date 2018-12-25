@@ -24,6 +24,8 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var assembly1 = typeof(IDataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
+            var assembly2 = typeof(ISerializer<>).Assembly;
+            builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
             var assembly3 = typeof(DataProvider).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
             var assembly4 = typeof(BlockValidationService).Assembly;
@@ -34,6 +36,7 @@ namespace AElf.Sdk.CSharp.Tests
             builder.RegisterAssemblyTypes(assembly6).AsImplementedInterfaces();
             var assembly7 = typeof(BlockHeader).Assembly;
             builder.RegisterAssemblyTypes(assembly7).AsImplementedInterfaces();
+            builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
             
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new LoggerAutofacModule());

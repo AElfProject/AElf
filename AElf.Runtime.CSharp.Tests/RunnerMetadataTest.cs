@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using AElf.SmartContract.MetaData;
 using AElf.Types.CSharp.MetadataAttribute;
@@ -12,18 +13,18 @@ using Google.Protobuf;
 using QuickGraph;
 using Xunit;
 using Xunit.Frameworks.Autofac;
-using AElf.Common;
-using AElf.Kernel.SmartContract;
 
 namespace AElf.Runtime.CSharp.Tests
 {
     [UseAutofacTestFramework]
     public class RunnerMetadataTest
     {
+        private IDataStore _store;
         private MockSetup _mock;
 
-        public RunnerMetadataTest(MockSetup mock)
+        public RunnerMetadataTest(IDataStore store, MockSetup mock)
         {
+            _store = store;
             _mock = mock;
         }
 

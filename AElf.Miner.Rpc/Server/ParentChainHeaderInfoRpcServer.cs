@@ -6,10 +6,10 @@ using AElf.ChainController;
 using AElf.ChainController.CrossChain;
 using AElf.Common.Attributes;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using Grpc.Core;
 using NLog;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
 using NLog.Fluent;
 
 namespace AElf.Miner.Rpc.Server
@@ -20,7 +20,6 @@ namespace AElf.Miner.Rpc.Server
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private IBlockChain BlockChain { get; set; }
-        private readonly IMerkleTreeManager _merkleTreeManager;
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         public ParentChainBlockInfoRpcServer(IChainService chainService, ILogger logger, ICrossChainInfoReader crossChainInfoReader)
         {

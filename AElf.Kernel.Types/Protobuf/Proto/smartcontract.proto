@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Kernel.SmartContract";
+option csharp_namespace = "AElf.SmartContract";
 
 import "common.proto";
 import "kernel.proto";
