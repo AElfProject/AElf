@@ -13,7 +13,6 @@ using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Execution;
 using Google.Protobuf;
-using ServiceStack;
 using AElf.Common;
 using AElf.Execution.Execution;
 using Volo.Abp.DependencyInjection;
@@ -75,11 +74,8 @@ namespace AElf.Contracts.Genesis.Tests
         {
             get
             {
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath(
+                    "../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll"));
                 return code;
             }
         }

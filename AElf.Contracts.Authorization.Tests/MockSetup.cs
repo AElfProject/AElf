@@ -6,7 +6,6 @@ using AElf.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
-using ServiceStack;
 using    AElf.Common;
 using AElf.Database;
 using AElf.Kernel.Managers;
@@ -84,13 +83,8 @@ namespace AElf.Contracts.Authorization.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath(
-                    "../../../../AElf.Contracts.Authorization/bin/Debug/netstandard2.0/AElf.Contracts.Authorization.dll"))
-                )
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath("../../../../AElf.Contracts.Authorization/bin/Debug/netstandard2.0/AElf.Contracts.Authorization.dll"));
+
 
                 return code;
             }
@@ -100,12 +94,8 @@ namespace AElf.Contracts.Authorization.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath(
-                    "../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll"));
+
 
                 return code;
             }

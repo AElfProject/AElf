@@ -8,7 +8,6 @@ using AElf.Kernel;
 using AElf.Synchronization.BlockExecution;
 using Google.Protobuf;
 using Moq;
-using ServiceStack;
 using Xunit;
 
 
@@ -29,11 +28,7 @@ public class SynchronizerTests
         {
             get
             {
-                byte[] code;
-                using (FileStream file = File.OpenRead(Path.GetFullPath(TestContractDllPath)))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath(TestContractDllPath));
 
                 return code;
             }

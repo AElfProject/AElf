@@ -21,11 +21,8 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Types.Common;
-using AElf.Synchronization.EventMessages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack.Logging;
-
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
 {

@@ -1,6 +1,4 @@
 ﻿using System.IO;
-using ServiceStack;
-
 namespace AElf.Miner.Tests
 {
     public static class ContractCodes
@@ -30,11 +28,7 @@ namespace AElf.Miner.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(TestContractDllPath)))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath(TestContractDllPath));
                 return code;
             }
         }
@@ -59,11 +53,7 @@ namespace AElf.Miner.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(TestContractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath(TestContractZeroDllPath));
                 return code;
             }
         }

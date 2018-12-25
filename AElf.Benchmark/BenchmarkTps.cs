@@ -18,9 +18,6 @@ using AElf.Execution.Execution;
 using AElf.Kernel.Storages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack;
-using ServiceStack.Text;
-
 namespace AElf.Benchmark
 {
     public class Benchmarks
@@ -44,11 +41,8 @@ namespace AElf.Benchmark
         {
             get
             {
-                byte[] code;
-                using (FileStream file = File.OpenRead(Path.GetFullPath(Path.Combine(_options.DllDir, _options.ZeroContractDll))))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath(Path.GetFullPath(Path.Combine(_options.DllDir, _options.ZeroContractDll))));
+
                 return code;
             }
         }
@@ -75,11 +69,8 @@ namespace AElf.Benchmark
             };
 
             _dataGenerater = new TransactionDataGenerator(options);
-            byte[] code;
-            using (FileStream file = File.OpenRead(Path.GetFullPath(options.DllDir + "/" + options.ContractDll)))
-            {
-                code = file.ReadFully();
-            }
+            byte[] code = File.ReadAllBytes(Path.GetFullPath(options.DllDir + "/" + options.ContractDll));
+
             _contractHash = Prepare(code).Result;
             
         }
@@ -98,9 +89,9 @@ namespace AElf.Benchmark
                     resDict.Add(res.Key, res.Value);
                 }
 
-                Logger.LogInformation("Benchmark report \n \t Configuration: \n" + 
-                             string.Join("\n", _options.ToStringDictionary().Select(option => string.Format("\t {0} - {1}", option.Key, option.Value))) + 
-                             "\n\n\n\t Benchmark result:\n" + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)));
+                /*Logger.LogInformation("Benchmark report \n \t Configuration: \n" + 
+                             string.Join("\n", _options.Select(option => string.Format("\t {0} - {1}", option.Key, option.Value))) + 
+                             "\n\n\n\t Benchmark result:\n" + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)));*/
             }
             catch (Exception e)
             {

@@ -222,7 +222,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     {
                         if (_executedBlocks.ContainsKey(i))
                         {
-                            _executedBlocks.RemoveKey(i);
+                            _executedBlocks.Remove(i);
                             Logger.LogTrace($"Removed block of height {i} from executed block dict.");
                         }
                     }

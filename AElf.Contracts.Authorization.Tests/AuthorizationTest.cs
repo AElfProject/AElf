@@ -9,7 +9,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack;
 using Xunit;
 
 
@@ -408,11 +407,7 @@ public class AuthorizationTest : ContractTestBase
         
         private Transaction CreateDemoTxn(Address msig)
         {
-            byte[] code;
-            using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll")))
-            {
-                code = file.ReadFully();
-            }
+            byte[] code = File.ReadAllBytes(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll"));
             var tx = new Transaction
             {
                 From = msig,

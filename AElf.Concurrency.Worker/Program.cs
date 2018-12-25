@@ -15,7 +15,6 @@ using Akka.Remote;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack.Logging;
 using Volo.Abp;
 
 namespace AElf.Concurrency.Worker

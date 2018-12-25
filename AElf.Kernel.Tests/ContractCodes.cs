@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 using Google.Protobuf;
-using ServiceStack;
-
 namespace AElf.Kernel.Tests
 {
     public static class ContractCodes
@@ -42,11 +40,8 @@ namespace AElf.Kernel.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(TestContractDllPath)))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(System.IO.Path.GetFullPath(TestContractDllPath));
+
                 return code;
             }
         }
@@ -71,11 +66,7 @@ namespace AElf.Kernel.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(TestContractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(System.IO.Path.GetFullPath(TestContractZeroDllPath));
                 return code;
             }
         }

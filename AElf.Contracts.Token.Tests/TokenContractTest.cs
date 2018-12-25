@@ -5,8 +5,6 @@ using AElf.Types.CSharp;
 using AElf.SmartContract;
 
 using Xunit;
-using ServiceStack;
-
 namespace AElf.Contracts.Token.Tests
 {
 public sealed class TokenContractTest : ContractTestBase

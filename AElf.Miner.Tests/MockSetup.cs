@@ -29,7 +29,6 @@ using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using ServiceStack;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Tests
@@ -112,11 +111,7 @@ namespace AElf.Miner.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll")))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath("../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll"));
                 return code;
             }
         }

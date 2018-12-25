@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using ServiceStack;
 using Google.Protobuf;
 using AElf.ABI.CSharp;
 using Xunit;
@@ -30,11 +29,8 @@ namespace AElf.ABI.Tests
 
         public static byte[] GetCode(string filePath)
         {
-            byte[] code;
-            using (var file = File.OpenRead(Path.GetFullPath(filePath)))
-            {
-                code = file.ReadFully();
-            }
+            byte[] code = File.ReadAllBytes(Path.GetFullPath(filePath));
+
             return code;
         }
     }

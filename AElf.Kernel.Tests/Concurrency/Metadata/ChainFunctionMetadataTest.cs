@@ -6,7 +6,6 @@ using AElf.SmartContract;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using ServiceStack;
 using Xunit;
 using AElf.Common;
 using AElf.TestBase;
