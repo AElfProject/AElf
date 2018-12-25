@@ -8,14 +8,17 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Miner.TxMemPool;
 using AElf.SmartContract;
+using AElf.SmartContract.Metadata;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Moq;
+using NLog;
 
 namespace AElf.Synchronization.Tests
 {
     public class MockSetup
     {
+        private ILogger _logger = LogManager.GetLogger("Synchronization.Tests");
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
@@ -26,13 +29,13 @@ namespace AElf.Synchronization.Tests
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
         private ITransactionTraceManager _transactionTraceManager;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
         private IFunctionMetadataService _functionMetadataService;
         private IExecutingService _concurrencyExecutingService;
         private ITxHub _txHub;
         private IChainManager _chainManager;
 
-        private IBlockSynchronizer _blockSynchronizer;
+        // private IBlockSynchronizer _blockSynchronizer;
 
         public MockSetup(IDataStore dataStore, IStateStore stateStore, ITxHub txHub)
         {
@@ -43,9 +46,10 @@ namespace AElf.Synchronization.Tests
             _transactionManager = new TransactionManager(_dataStore);
             _transactionTraceManager = new TransactionTraceManager(_dataStore);
             _transactionResultManager = new TransactionResultManager(_dataStore);
-            _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            _smartContractRunnerContainer = new SmartContractRunnerContainer();
+            _functionMetadataService = new FunctionMetadataService(_dataStore, _logger);
             _concurrencyExecutingService = new SimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateStore,
+                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateStore,
                     _functionMetadataService), _transactionTraceManager, _stateStore,
                 new ChainContextService(GetChainService()));
             _txHub = txHub;
@@ -101,7 +105,7 @@ namespace AElf.Synchronization.Tests
         public IBlockExecutor GetBlockExecutor()
         {
             return new BlockExecutor(GetChainService(), _concurrencyExecutingService, 
-                _transactionResultManager, null, null, _txHub, _chainManager,_stateStore);
+                _transactionResultManager, null, null, _txHub,_stateStore);
         }
     }
 }

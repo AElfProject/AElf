@@ -17,21 +17,21 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     public class FunctionMetadataServiceTest
     {
         private IDataStore _dataStore;
-        private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public FunctionMetadataServiceTest(IFunctionMetadataService functionMetadataService, IDataStore dataStore, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public FunctionMetadataServiceTest(IFunctionMetadataService functionMetadataService, IDataStore dataStore, ISmartContractRunnerContainer smartContractRunnerContainer)
         {
             _functionMetadataService = functionMetadataService;
             _dataStore = dataStore;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
+            _smartContractRunnerContainer = smartContractRunnerContainer;
         }
 
         [Fact]
         public async Task TestDepolyContract()
         {   
             var chainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x06});
-            var runner = _smartContractRunnerFactory.GetRunner(0);
+            var runner = _smartContractRunnerContainer.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);
             var contractAType = typeof(TestContractA);
@@ -234,7 +234,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public async Task TestEmptyContract()
         {
             var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x07 });
-            var runner = _smartContractRunnerFactory.GetRunner(0);
+            var runner = _smartContractRunnerContainer.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);
             var contractAType = typeof(TestContractA);
@@ -632,7 +632,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         }
     
     }
-        
+
+#pragma warning disable CS0169,CS0649
     public class TestContractC
     {
         [SmartContractFieldData("${this}.resource4", DataAccessMode.AccountSpecific)]
@@ -652,6 +653,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         }
     }
 
+#pragma warning disable CS0169,CS0649
     internal class TestContractB
     {
         [SmartContractFieldData("${this}.resource2", DataAccessMode.AccountSpecific)]
@@ -673,7 +675,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         {
         }
     }
-
+    
+#pragma warning disable CS0169,CS0649
     internal class TestContractA
     {
         //test for different accessibility
@@ -740,6 +743,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         }
     }
 
+#pragma warning disable CS0169,CS0649
     public class TestRefNonAttrContract : CSharpSmartContract
     {
         [SmartContractReference("ref1", "ELF_1234_TestNonAttrContract1")]

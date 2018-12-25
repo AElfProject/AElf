@@ -31,7 +31,7 @@ namespace AElf.Miner.TxMemPool
         private readonly ITransactionReceiptManager _receiptManager;
         private readonly ITxSignatureVerifier _signatureVerifier;
         private readonly ITxRefBlockValidator _refBlockValidator;
-        private readonly IAuthorizationInfo _authorizationInfo;
+        private readonly IAuthorizationInfoReader _authorizationInfoReader;
         private readonly IChainService _chainService;
         
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
@@ -55,7 +55,7 @@ namespace AElf.Miner.TxMemPool
         };
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
-            IChainService chainService, IAuthorizationInfo authorizationInfo, ITxSignatureVerifier signatureVerifier,
+            IChainService chainService, IAuthorizationInfoReader authorizationInfoReader, ITxSignatureVerifier signatureVerifier,
             ITxRefBlockValidator refBlockValidator, ILogger logger)
         {
             _logger = logger;
@@ -64,7 +64,7 @@ namespace AElf.Miner.TxMemPool
             _chainService = chainService;
             _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
-            _authorizationInfo = authorizationInfo;
+            _authorizationInfoReader = authorizationInfoReader;
 
             _terminated = false;
 
@@ -156,30 +156,16 @@ namespace AElf.Miner.TxMemPool
             return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).ToList());
         }
 
-        public async Task<List<TransactionReceipt>> GetReceiptsForAsync(IEnumerable<Transaction> transactions,CancellationTokenSource cancellationTokenSource)
+        public async Task<TransactionReceipt> GetCheckedReceiptsAsync(Transaction txn)
         {
-            var trs = new List<TransactionReceipt>();
-            // TODO: Check if parallelization is needed
-            foreach (var txn in transactions)
+            if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
             {
-                if (cancellationTokenSource.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
-                {
-                    tr = new TransactionReceipt(txn);
-                    _allTxns.TryAdd(tr.TransactionId, tr);
-                }
-
-                VerifySignature(tr);
-                await ValidateRefBlock(tr);
-
-                trs.Add(tr);
+                tr = new TransactionReceipt(txn);
+                _allTxns.TryAdd(tr.TransactionId, tr);
             }
-
-            return trs;
+            VerifySignature(tr);
+            await ValidateRefBlock(tr);
+            return tr;
         }
 
         public async Task<TransactionReceipt> GetReceiptAsync(Hash txId)
@@ -234,7 +220,7 @@ namespace AElf.Miner.TxMemPool
             if(tr.Transaction.Sigs.Count > 1)
             {
                 // check msig account authorization
-                var validAuthorization = _authorizationInfo.CheckAuthority(tr.Transaction);
+                var validAuthorization = _authorizationInfoReader.CheckAuthority(tr.Transaction);
                 if (!validAuthorization)
                 {
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;

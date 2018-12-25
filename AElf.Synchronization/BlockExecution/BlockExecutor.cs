@@ -37,20 +37,15 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
-        private readonly IChainManager _chainManager;
-        private readonly IStateStore _stateStore;
         private readonly ConsensusDataProvider _consensusDataProvider;
-
         private static bool _executing;
         private static bool _prepareTerminated;
         private static bool _terminated;
-
         private static bool _isLimitExecutionTime;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManager chainManager,
-            IStateStore stateStore)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IStateStore stateStore)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -58,9 +53,7 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
-            _chainManager = chainManager;
-            _stateStore = stateStore;
-            _consensusDataProvider = new ConsensusDataProvider(_stateStore);
+            _consensusDataProvider = new ConsensusDataProvider(stateStore);
 
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
 
@@ -102,8 +95,6 @@ namespace AElf.Synchronization.BlockExecution
             });
         }
 
-        private string _current;
-
         private static bool _isMining;
 
         /// <inheritdoc/>
@@ -116,12 +107,9 @@ namespace AElf.Synchronization.BlockExecution
                 return BlockExecutionResult.Mining;
             }
 
-            _current = block.BlockHashToHex;
-
             var result = Prepare(block);
             if (result.IsFailed())
             {
-                _current = null;
                 return result;
             }
 
@@ -135,7 +123,6 @@ namespace AElf.Synchronization.BlockExecution
             }
 
             var txnRes = new List<TransactionResult>();
-            var readyTxs = new List<Transaction>();
             var cts = new CancellationTokenSource();
 
             var res = BlockExecutionResult.Fatal;
@@ -171,23 +158,22 @@ namespace AElf.Synchronization.BlockExecution
 
                 foreach (var tr in trs)
                 {
-                    if (!tr.IsExecutable)
-                    {
-                        throw new InvalidBlockException($"Transaction is not executable, transaction: {tr}, " +
-                                                        $"block height: {block.Header.Index}, block hash: {block.BlockHashToHex}, SignatureSt:{tr.SignatureSt},RefBlockSt:{tr.RefBlockSt},Status:{tr.Status}");
-                    }
+                    _logger?.Warn($"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
+                                  $"block hash: {block.BlockHashToHex}.");
+                    res = result;
+                    return res;
                 }
 
+                var readyTxs = block.Body.TransactionList.ToList();
                 var traces = await ExecuteTransactions(readyTxs, block.Header.ChainId,
                     block.Header.GetDisambiguationHash(), cts);
-                txnRes = ExtractTransactionResults(traces, crossChainIndexingSideChainTransactionId,
-                    out var sideChainTransactionsRoot);
-
-                if (block.Header.SideChainTransactionsRoot != null &&
-                    !block.Header.SideChainTransactionsRoot.Equals(sideChainTransactionsRoot))
+                
+                // Execute transactions.
+                // After this, rollback needed
+                if((res = ExtractTransactionResults(traces, crossChainIndexingSideChainTransactionId, 
+                    block.Header.SideChainTransactionsRoot, out txnRes)).IsFailed())
                 {
-                    res = BlockExecutionResult.InvalidSideChaiTransactionMerkleTree;
-                    throw new InvalidBlockException("Invalid side chain transaction merkle tree root.");
+                    throw new InvalidBlockException(res.ToString());
                 }
 
                 if (cts.IsCancellationRequested)
@@ -203,26 +189,23 @@ namespace AElf.Synchronization.BlockExecution
                 var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
                 {
+                    // Todo: this can happen? Why not rollback?
                     res = BlockExecutionResult.AlreadyAppended;
                     return res;
                 }
 
-                result = UpdateWorldState(block, txnRes);
-                if (result.IsFailed())
+                if ((result = UpdateWorldState(block, txnRes)).IsFailed())
                 {
                     res = result;
-                    throw new InvalidBlockException("Invalid block.");
+                    throw new InvalidBlockException(result.ToString());
                 }
-
-                await UpdateCrossChainInfo(block, txnRes);
-
+                
                 // BlockExecuting -> BlockAppending
                 // ExecutingLoop -> BlockAppending
                 MessageHub.Instance.Publish(StateEvent.StateUpdated);
 
                 await AppendBlock(block);
-                InsertTxs(txnRes, block);
-
+                await InsertTxs(txnRes, block);
                 await _txHub.OnNewBlock((Block) block);
 
                 res = BlockExecutionResult.Success;
@@ -238,7 +221,6 @@ namespace AElf.Synchronization.BlockExecution
             }
             finally
             {
-                _current = null;
                 _executing = false;
                 cts.Dispose();
                 if (_prepareTerminated)
@@ -281,8 +263,8 @@ namespace AElf.Synchronization.BlockExecution
             Hash chainIndexingSideChainTransactionId,
             out Hash sideChainTransactionsRoot)
         {
-            var results = new List<TransactionResult>();
-            sideChainTransactionsRoot = null;
+            results = new List<TransactionResult>();
+            
             foreach (var trace in traces)
             {
                 var res = new TransactionResult
@@ -305,7 +287,14 @@ namespace AElf.Synchronization.BlockExecution
                     res.StateHash = trace.GetSummarizedStateHash();
                     if (chainIndexingSideChainTransactionId != null &&
                         trace.TransactionId.Equals(chainIndexingSideChainTransactionId))
-                        sideChainTransactionsRoot = Hash.LoadByteArray(trace.RetVal.ToFriendlyBytes());
+                    {
+                        var calculatedSideChainTransactionsRoot = Hash.LoadByteArray(trace.RetVal.ToFriendlyBytes());
+                        if (sideChainTransactionsRoot != null 
+                            && !sideChainTransactionsRoot.Equals(calculatedSideChainTransactionsRoot))
+                        {
+                            return BlockExecutionResult.InvalidSideChaiTransactionMerkleTreeRoot;
+                        }
+                    }
                 }
 
                 if (trace.DeferredTransaction.Length != 0)
@@ -318,7 +307,7 @@ namespace AElf.Synchronization.BlockExecution
                 results.Add(res);
             }
 
-            return results;
+            return BlockExecutionResult.TransactionExecutionSuccess;
         }
 
         private List<TransactionResult> SortToOriginalOrder(List<TransactionResult> results, List<Transaction> txs)
@@ -379,13 +368,18 @@ namespace AElf.Synchronization.BlockExecution
         {
             var res = BlockExecutionResult.CollectTransactionsSuccess;
             var txs = block.Body.TransactionList.ToList();
-            var readyTxs = new List<Transaction>();
-            crossChainIndexingSideChainTransactionId = null;
+            Hash crossChainIndexingSideChainTransactionId = null;
+
+            if (txs.Count == 0)
+            {
+                return (BlockExecutionResult.NoTransaction, null);
+            }
+            var noIndexingSideChainTransaction = true;
+            var noIndexingParentChainTransaction = true;
             foreach (var tx in txs)
             {
                 if (tx.IsIndexingParentChainTransaction())
                 {
-                    // todo: verify transaction from address
                     var parentBlockInfos = (ParentChainBlockInfo[]) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(ParentChainBlockInfo[])})[0];
                     if (!ValidateParentChainBlockInfo(parentBlockInfos))
@@ -394,16 +388,23 @@ namespace AElf.Synchronization.BlockExecution
                         res = BlockExecutionResult.InvalidParentChainBlockInfo;
                         break;
                     }
+                    if (!noIndexingParentChainTransaction)
+                    {
+                        res = BlockExecutionResult.TooManyTxsForCrossChainIndexing;
+                        break;
+                    }
+                    noIndexingParentChainTransaction = false;
                 }
                 else if (tx.IsIndexingSideChainTransaction())
                 {
-                    // todo: verify transaction from address
                     var sideChainBlockInfos = (SideChainBlockInfo[]) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(SideChainBlockInfo[])})[0];
-                    if (!ValidateSideChainBlockInfo(sideChainBlockInfos))
+                    
+                    if (sideChainBlockInfos.Equals(block.Body.IndexedInfo.ToArray()) 
+                        || !ValidateSideChainBlockInfo(sideChainBlockInfos))
                     {
                         //errorLog = "Invalid parent chain block info.";
-                        res = BlockExecutionResult.InvalidSideChaiTransactionMerkleTree;
+                        res = BlockExecutionResult.InvalidSideChainBlockInfo;
                         break;
                     }
 
@@ -423,8 +424,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 res = BlockExecutionResult.NoTransaction;
             }
-
-            return new Tuple<BlockExecutionResult, List<Transaction>>(res, readyTxs);
+            return (res, crossChainIndexingSideChainTransactionId);
         }
 
         /// <summary>
@@ -463,14 +463,15 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns></returns>
         private BlockExecutionResult UpdateWorldState(IBlock block, IEnumerable<TransactionResult> results)
         {
-            var root = new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
+            var transactionResults = results.ToList();
+            var root = new BinaryMerkleTree().AddNodes(transactionResults.Select(x => x.StateHash)).ComputeRootHash();
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
                 _logger?.Trace($"{root.ToHex()} != {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
                 _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
                 _logger?.Trace("Transaction Results:");
-                foreach (var r in results)
+                foreach (var r in transactionResults)
                 {
                     _logger?.Trace($"TransactionId: {r.TransactionId.ToHex()}, " +
                                    $"StateHash: {r.StateHash.ToHex()}，" +
@@ -491,7 +492,6 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns></returns>
         private async Task AppendBlock(IBlock block)
         {
-            _logger?.Trace($"AppendingBlock {block.BlockHashToHex}");
             var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
             await blockchain.AddBlocksAsync(new List<IBlock> {block});
         }
@@ -501,11 +501,13 @@ namespace AElf.Synchronization.BlockExecution
         /// </summary>
         /// <param name="txResults"></param>
         /// <param name="block"></param>
-        private void InsertTxs(List<TransactionResult> txResults, IBlock block)
+        private async Task InsertTxs(List<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
 
+            await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
+                block.Header.ChainId, block.Header.Index);
             txResults.AsParallel().ToList().ForEach(async r =>
             {
                 r.BlockNumber = bn;

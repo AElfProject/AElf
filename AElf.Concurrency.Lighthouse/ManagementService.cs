@@ -43,7 +43,7 @@ namespace AElf.Concurrency.Lighthouse
 
         public async Task StopAsync()
         {
-            await CoordinatedShutdown.Get(_actorSystem).Run();
+            await CoordinatedShutdown.Get(_actorSystem).Run(CoordinatedShutdown.ClusterLeavingReason.Instance);
         }
     }
 }

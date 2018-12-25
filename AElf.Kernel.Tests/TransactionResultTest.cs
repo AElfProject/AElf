@@ -77,7 +77,7 @@ namespace AElf.Kernel.Tests
             var txId = Hash.Generate();
             var res = await _transactionResultService.GetResultAsync(txId);
             Assert.Equal(txId, res.TransactionId);
-            Assert.Equal(res.Status, Status.NotExisted);
+            Assert.True(res.Status == Status.NotExisted);
         }
 
         [Fact]

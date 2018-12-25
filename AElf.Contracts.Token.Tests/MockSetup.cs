@@ -42,17 +42,17 @@ namespace AElf.Contracts.Token.Tests
 
         private IChainCreationService _chainCreationService;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         public MockSetup(IStateStore stateStore, ISmartContractService smartContractService,
             IChainCreationService chainCreationService, IChainContextService chainContextService,
-            IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+            IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer)
         {
             StateStore = stateStore;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
+            _smartContractRunnerContainer = smartContractRunnerContainer;
             Task.Factory.StartNew(async () =>
             {
                 await Init();

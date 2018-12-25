@@ -37,7 +37,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return txList;
         }
 
-        public void GetTransactionReadyInList(Dictionary<Address, List<Transaction>> txList, int from, int to)
+        private void GetTransactionReadyInList(Dictionary<Address, List<Transaction>> txList, int from, int to)
         {
             var tx = GetTransaction(from, to);
             if (txList.ContainsKey(tx.From))

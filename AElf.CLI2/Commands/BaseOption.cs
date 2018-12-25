@@ -66,6 +66,25 @@ namespace AElf.CLI2.Commands
                 return dir;
             }
         }
+        
+        public string CertificateDir
+        {
+            get
+            {
+                var dir = Path.GetFullPath(Path.Combine(DataDir, "certs"));
+                try
+                {
+                    Directory.CreateDirectory(dir);
+                }
+                catch (Exception)
+                {
+                    // Ignore
+                }
+
+                return dir;
+            }
+        }
+
 
         public string GetPathForAccount(string address)
         {
