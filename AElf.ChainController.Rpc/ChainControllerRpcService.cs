@@ -46,8 +46,8 @@ namespace AElf.ChainController.Rpc
         public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSet BlockSet { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
-        public IElectionInfo ElectionInfo { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
+        public IElectionInfo ElectionInfo { get; set; }
 
         #endregion Properties
 

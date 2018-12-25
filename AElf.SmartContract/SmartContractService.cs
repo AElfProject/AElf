@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.ABI.CSharp;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using AElf.Kernel;
@@ -12,7 +13,6 @@ using AElf.Configuration;
 using AElf.Types.CSharp;
 using Type = System.Type;
 using AElf.Common;
-using AElf.Kernel.Managers;
 using Akka.Util.Internal;
 
 namespace AElf.SmartContract

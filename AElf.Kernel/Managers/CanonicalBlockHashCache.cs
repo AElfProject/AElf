@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
+using System.Collections.Concurrent;
 using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
 using NLog;
+using AElf.Common;
 
 namespace AElf.Kernel.Managers
 {

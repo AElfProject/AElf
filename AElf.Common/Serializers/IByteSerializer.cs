@@ -1,3 +1,4 @@
+
 namespace AElf.Common.Serializers
 {
     public interface IByteSerializer

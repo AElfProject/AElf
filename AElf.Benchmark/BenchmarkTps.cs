@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
@@ -17,7 +18,6 @@ using ServiceStack;
 using ServiceStack.Text;
 using AElf.Common;
 using AElf.Execution.Execution;
-using AElf.Kernel.Managers;
 
 namespace AElf.Benchmark
 {

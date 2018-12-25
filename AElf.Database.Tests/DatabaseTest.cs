@@ -1,5 +1,4 @@
 ﻿using System;
-using AElf.Common;
 using Xunit;
 
 namespace AElf.Database.Tests
@@ -26,7 +25,7 @@ namespace AElf.Database.Tests
             var key = "settest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync("Default",key, StringHelper.StringToBytes(value));
+            _database.SetAsync("Default",key, Helper.StringToBytes(value));
         }
 
         [Fact]
@@ -35,10 +34,10 @@ namespace AElf.Database.Tests
             var key = "gettest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync("Default",key, StringHelper.StringToBytes(value));
+            _database.SetAsync("Default",key, Helper.StringToBytes(value));
             var getResult = _database.GetAsync("Default",key);
 
-            Assert.Equal(value, StringHelper.BytesToString(getResult.Result));
+            Assert.Equal(value, Helper.BytesToString(getResult.Result));
         }
     }
 }

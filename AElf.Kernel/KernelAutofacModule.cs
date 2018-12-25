@@ -1,4 +1,4 @@
-﻿using AElf.Common.Serializers;
+using AElf.Common.Serializers;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Autofac;

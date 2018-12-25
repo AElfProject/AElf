@@ -127,7 +127,6 @@ namespace AElf.Common
         public const string StatePrefix = "s";
         public const string TransactionPrefix = "t";
 
-
         #endregion data key prefixes
         public static ulong BlockCacheLimit = 64; 
         

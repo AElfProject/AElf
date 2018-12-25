@@ -18,7 +18,6 @@ using Google.Protobuf;
 using Moq;
 using NLog;
 using AElf.Common;
-using AElf.Common.Serializers;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution.Execution;

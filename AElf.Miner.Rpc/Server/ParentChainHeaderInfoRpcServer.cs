@@ -6,10 +6,10 @@ using AElf.ChainController;
 using AElf.ChainController.CrossChain;
 using AElf.Common.Attributes;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using Grpc.Core;
 using NLog;
 using AElf.Common;
-using AElf.Kernel.Managers;
 using NLog.Fluent;
 
 namespace AElf.Miner.Rpc.Server
