@@ -9,7 +9,7 @@ using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
-using AElf.Kernel.Managers;
+using AElf.Kernel.Manager.Interfaces;
 using AElf.Kernel.Types;
 using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
@@ -46,8 +46,8 @@ namespace AElf.ChainController.Rpc
         public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSet BlockSet { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
-        public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
         public IElectionInfo ElectionInfo { get; set; }
+        public IMerkleTreeManager MerkleTreeManager { get; set; }
 
         #endregion Properties
 

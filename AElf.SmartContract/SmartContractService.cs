@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.ABI.CSharp;
-using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using AElf.Kernel;
@@ -13,7 +12,7 @@ using AElf.Configuration;
 using AElf.Types.CSharp;
 using Type = System.Type;
 using AElf.Common;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Manager.Interfaces;
 using Akka.Util.Internal;
 
 namespace AElf.SmartContract
@@ -24,15 +23,15 @@ namespace AElf.SmartContract
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
         private readonly ConcurrentDictionary<Address, Hash> _contractHashs = new ConcurrentDictionary<Address, Hash>();
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer, IStateStore stateStore,
+        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer, IStateManager stateManager,
             IFunctionMetadataService functionMetadataService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerContainer = smartContractRunnerContainer;
-            _stateStore = stateStore;
+            _stateManager = stateManager;
             _functionMetadataService = functionMetadataService;
         }
 
@@ -84,12 +83,12 @@ namespace AElf.SmartContract
 
             // get account dataprovider
             var dataProvider = DataProvider.GetRootDataProvider(chainId, contractAddress);
-            dataProvider.StateStore = _stateStore;
+            dataProvider.StateManager = _stateManager;
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
             executive.ContractHash = reg.ContractHash;
-            executive.SetStateStore(_stateStore);
+            executive.SetStateManager(_stateManager);
             
             executive.SetSmartContractContext(new SmartContractContext()
             {

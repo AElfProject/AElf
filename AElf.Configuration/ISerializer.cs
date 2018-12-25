@@ -6,8 +6,8 @@ namespace AElf.Configuration
     {
         string Serialize<T>(T obj);
 
-        T Deserialize<T>(string vaule) where T : class;
+        T Deserialize<T>(string value) where T : class;
 
-        object Deserialize(string vaule, Type type);
+        object Deserialize(string value, Type type);
     }
 }

@@ -13,10 +13,11 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using AElf.Kernel.Managers;
+using Newtonsoft.Json.Linq;
 using NLog;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Manager.Interfaces;
 
 namespace AElf.SideChain.Creation
 {

@@ -185,10 +185,15 @@ namespace AElf.Common
                     $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
             }
 
-            string pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
+            string pubKeyHash = GetPublicKeyHash();
             
             return string.IsNullOrEmpty(_formattedAddress) 
                 ? (_formattedAddress = GlobalConfig.AElfAddressPrefix + '_' + pubKeyHash) : _formattedAddress;
+        }
+
+        public string GetPublicKeyHash()
+        {
+            return Base58CheckEncoding.Encode(Value.ToByteArray());
         }
 
         /// <summary>
