@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel
 {
-    [DependsOn(typeof(TypesAElfModule),typeof(DatabaseAElfModule))]
+    [DependsOn(typeof(TypesAElfModule),typeof(DatabaseAElfModule),typeof(CoreAElfModule))]
     public class KernelAElfModule: AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -30,8 +30,6 @@ namespace AElf.Kernel
 
             services.AddAssemblyOf<KernelAElfModule>();
             
-            services.AddAssemblyOf<KernelAElfModule>();
-
             services.AddTransient(
                 typeof(ISerializer<>), 
                 typeof(Serializer<>));

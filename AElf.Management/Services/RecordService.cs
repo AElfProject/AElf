@@ -6,10 +6,13 @@ using AElf.Configuration.Config.Management;
 using AElf.Management.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Management.Services
 {
-    public class RecordService : IRecordService
+    
+    //TODO: timer is not stable, we should use something like hangfire
+    public class RecordService : IRecordService, ISingletonDependency
     {
         private readonly IChainService _chainService;
         private readonly ITransactionService _transactionService;
