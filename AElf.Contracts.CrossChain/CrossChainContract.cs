@@ -336,8 +336,8 @@ namespace AElf.Contracts.CrossChain
                 //Console.WriteLine("Side chain height: {0}", blockInfo.Height);
                 ulong sideChainHeight = blockInfo.Height;
                 Hash chainId = Hash.LoadByteArray(blockInfo.ChainId.DumpByteArray());
-                Api.NotEqual(new SideChainInfo(), _sideChainInfos[chainId], "Not registered side chain");
-                Api.Equal(SideChainStatus.Active, _sideChainInfos[chainId].SideChainStatus, "Side chain is not active.");
+                // Api.NotEqual(new SideChainInfo(), _sideChainInfos[chainId], "Not registered side chain");
+                // Api.Equal(SideChainStatus.Active, _sideChainInfos[chainId].SideChainStatus, "Side chain is not active.");
                 var currentHeight = _sideChainHeight.GetValue(chainId);
                 var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight;
                 var chainIdBase58 = blockInfo.ChainId.DumpByteArray().ToPlainBase58();
