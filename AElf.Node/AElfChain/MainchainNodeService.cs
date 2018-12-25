@@ -95,12 +95,7 @@ namespace AElf.Node.AElfChain
         
         private byte[] ReadCode(string path)
         {
-            byte[] code;
-            using (var file = File.OpenRead(Path.GetFullPath(path)))
-            {
-                code = file.ReadFully();
-            }
-
+            byte[] code = File.ReadAllBytes(Path.GetFullPath(path));
             return code;
         }
 

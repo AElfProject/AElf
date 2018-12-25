@@ -116,12 +116,10 @@ namespace AElf.Runtime.CSharp.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file =
-                    File.OpenRead(System.IO.Path.GetFullPath($"{SdkDir}/AElf.Runtime.CSharp.Tests.TestContract.dll")))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code =
+                    File.ReadAllBytes(
+                        System.IO.Path.GetFullPath($"{SdkDir}/AElf.Runtime.CSharp.Tests.TestContract.dll"));
+                
 
                 return code;
             }

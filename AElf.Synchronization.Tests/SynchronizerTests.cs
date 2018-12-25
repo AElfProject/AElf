@@ -28,11 +28,7 @@ public class SynchronizerTests
         {
             get
             {
-                byte[] code;
-                using (FileStream file = File.OpenRead(Path.GetFullPath(TestContractDllPath)))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath(TestContractDllPath));
 
                 return code;
             }

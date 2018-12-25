@@ -51,14 +51,10 @@ namespace AElf.Contracts.Consensus.Tests
 
         public byte[] GetContractCode(string contractName)
         {
-            byte[] code;
-            using (var file =
-                File.OpenRead(
-                    Path.GetFullPath($"../../../../{contractName}/bin/Debug/netstandard2.0/{contractName}.dll")))
-            {
-                code = file.ReadFully();
-            }
-
+            byte[] code =
+                File.ReadAllBytes(
+                    Path.GetFullPath($"../../../../{contractName}/bin/Debug/netstandard2.0/{contractName}.dll"));
+            
             return code;
         }
 

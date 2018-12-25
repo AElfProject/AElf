@@ -20,11 +20,8 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 string filePath =
                     "../../../../AElf.Sdk.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/AElf.Sdk.CSharp.Tests.TestContract.dll";
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(filePath)))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath(filePath));
+
 
                 return code;
             }

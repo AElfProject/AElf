@@ -159,8 +159,8 @@ namespace AElf.Benchmark
                 }
             
                 var sr = new StreamReader(filePath);
-                _maxTxNumber = sr.ReadLine().ToInt();
-                _maxGroupNumber = sr.ReadLine().ToInt();
+                _maxTxNumber = int.Parse( sr.ReadLine() );
+                _maxGroupNumber =int.Parse( sr.ReadLine() );
 
                 if (_maxGroupNumber <= 0 || _maxTxNumber <= 0 || _maxTxNumber < _maxGroupNumber)
                 {

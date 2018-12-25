@@ -19,11 +19,10 @@ namespace AElf.Contracts.Genesis.Tests
         {
             get
             {
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll")))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code =
+                    File.ReadAllBytes(Path.GetFullPath(
+                        "../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll"));
+      
                 return code;
             }
         }
@@ -31,11 +30,9 @@ namespace AElf.Contracts.Genesis.Tests
         {
             get
             {
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Benchmark.TestContract/bin/Debug/netstandard2.0/AElf.Benchmark.TestContract.dll")))
-                {
-                    code = file.ReadFully();
-                }
+                byte[] code = File.ReadAllBytes(Path.GetFullPath(
+                    "../../../../AElf.Benchmark.TestContract/bin/Debug/netstandard2.0/AElf.Benchmark.TestContract.dll"));
+
                 return code;
             }
         }
