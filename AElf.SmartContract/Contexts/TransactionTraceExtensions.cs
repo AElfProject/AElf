@@ -19,7 +19,7 @@ namespace AElf.SmartContract
             {
                 await trace.CommitChangesAsync(stateStore);
             }
-            else if (trace.Chargeable())
+            else if (trace.Chargeable() && trace.FeeTransactionTrace != null)
             {
                 await trace.FeeTransactionTrace.CommitChangesAsync(stateStore);
             }
@@ -27,7 +27,6 @@ namespace AElf.SmartContract
 
         private static async Task CommitChangesAsync(this TransactionTrace trace, IStateStore stateStore)
         {
-            Console.WriteLine(nameof(CommitChangesAsync));
             if (trace.ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
                 throw new InvalidOperationException(
