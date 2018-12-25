@@ -207,7 +207,7 @@ namespace AElf.Kernel.Consensus
             foreach (var candidate in candidates.PublicKeys)
             {
                 var tickets = GetTickets(candidate);
-                ticketsMap.Add(candidate, tickets.TotalTickets);
+                ticketsMap[candidate] = tickets.TotalTickets;
             }
 
             victories = ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)

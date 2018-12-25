@@ -70,9 +70,12 @@ namespace AElf.Kernel.Node
 
         private readonly Hash _chainId;
 
-        public Address ContractAddress =>
+        public Address ConsensusContractAddress =>
             ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
+        public Address TokenContractAddress =>
+            ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+        
         private readonly IMinersManager _minersManager;
 
         private static int _flag;
@@ -233,7 +236,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        private async Task<Transaction> GenerateTransactionAsync(string methodName, List<object> parameters)
+        private async Task<Transaction> GenerateDPoSTransactionAsync(string methodName, List<object> parameters)
         {
             try
             {
@@ -246,7 +249,7 @@ namespace AElf.Kernel.Node
                 var tx = new Transaction
                 {
                     From = Address.FromPublicKey(_ownPubKey),
-                    To = ContractAddress,
+                    To = ConsensusContractAddress,
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = methodName,
@@ -267,6 +270,40 @@ namespace AElf.Kernel.Node
             catch (Exception e)
             {
                 _logger?.Trace(e, "Error while during generating DPoS tx.");
+            }
+
+            return null;
+        }
+        
+        private async Task<Transaction> GenerateNormalTransactionAsync(string methodName, List<object> parameters)
+        {
+            try
+            {
+                var bn = await BlockChain.GetCurrentBlockHeightAsync();
+                bn = bn > 4 ? bn - 4 : 0;
+                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
+                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+
+                var tx = new Transaction
+                {
+                    From = Address.FromPublicKey(_ownPubKey),
+                    To = TokenContractAddress,
+                    RefBlockNumber = bn,
+                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
+                    MethodName = methodName,
+                    Type = TransactionType.ContractTransaction,
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
+                };
+
+                var signer = new ECSigner();
+                var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+
+                return tx;
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error while during generating normal tx.");
             }
 
             return null;
@@ -312,7 +349,7 @@ namespace AElf.Kernel.Node
                         firstTerm,
                         logLevel
                     };
-                    var txToInitialTerm = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    var txToInitialTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToInitialTerm);
 
                     await Mine();
@@ -393,7 +430,7 @@ namespace AElf.Kernel.Node
                     };
 
                     var txToPackageOutValue =
-                        await GenerateTransactionAsync(behavior.ToString(), parameters);
+                        await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToPackageOutValue);
 
                     await Mine();
@@ -464,7 +501,7 @@ namespace AElf.Kernel.Node
                         }
                     };
 
-                    var txToPublishInValue = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    var txToPublishInValue = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToPublishInValue);
                 }
             }
@@ -573,7 +610,7 @@ namespace AElf.Kernel.Node
                         }
                     };
 
-                    var txForNextRound = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    var txForNextRound = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
 
                     await BroadcastTransaction(txForNextRound);
                     await Mine();
@@ -643,7 +680,7 @@ namespace AElf.Kernel.Node
                             _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
                     };
 
-                    var txForNextTerm = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    var txForNextTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
 
                     await BroadcastTransaction(txForNextTerm);
                     await Mine();

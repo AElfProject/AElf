@@ -32,7 +32,10 @@ namespace AElf.Contracts.Consensus.Contracts
             
             Api.LockToken(GlobalConfig.LockTokenForElection);
             var candidates = _collection.CandidatesField.GetValue();
-            candidates.PublicKeys.Add(Api.RecoverPublicKey().ToHex());
+            if (!candidates.PublicKeys.Contains(publicKey))
+            {
+                candidates.PublicKeys.Add(publicKey);
+            }
             _collection.CandidatesField.SetValue(candidates);
 
             if (alias == "")
