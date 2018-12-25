@@ -14,9 +14,8 @@ using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Types.Transaction;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
@@ -27,6 +26,7 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using AElf.Kernel.Types.Transaction;
 
 namespace AElf.Miner.Miner
 {
@@ -44,6 +44,7 @@ namespace AElf.Miner.Miner
         private IBlockChain _blockChain;
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private ECKeyPair _keyPair;
+        private readonly IChainManager _chainManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;
@@ -52,8 +53,9 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,IBlockValidationService blockValidationService, IChainContextService chainContextService
-            ,IStateStore stateStore)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
+            IBlockValidationService blockValidationService, IChainContextService chainContextService
+            , IChainManager chainManager,IStateManager stateManager)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -66,7 +68,7 @@ namespace AElf.Miner.Miner
 
             Config = config;
             
-            _consensusDataProvider = new ConsensusDataProvider(stateStore);
+            _consensusDataProvider = new ConsensusDataProvider(stateManager);
 
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
             _crossChainIndexingTransactionGenerator = new CrossChainIndexingTransactionGenerator(clientManager,
@@ -192,9 +194,13 @@ namespace AElf.Miner.Miner
 
                 // insert to db
                 UpdateStorage(results, block);
+                
                 await _txHub.OnNewBlock((Block)block);
-                MessageHub.Instance.Publish(new BlockMinedAndStored(block));
+                
+                MessageHub.Instance.Publish(UpdateConsensus.Update); 
+                
                 stopwatch.Stop();
+                
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 

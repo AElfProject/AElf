@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Managers;
 using Google.Protobuf;
 
 namespace AElf.SmartContract
@@ -8,12 +8,12 @@ namespace AElf.SmartContract
     public class ContractInfoReader
     {
         private readonly Hash _chainId;
-        private readonly IStateStore _stateStore;
+        private readonly IStateManager _stateManager;
 
-        public ContractInfoReader(Hash chainId, IStateStore stateStore)
+        public ContractInfoReader(Hash chainId, IStateManager stateManager)
         {
             _chainId = chainId;
-            _stateStore = stateStore; 
+            _stateManager = stateManager; 
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace AElf.SmartContract
         {
             //Console.WriteLine("resourceStr: {0}", dataPath.ResourcePathHash.ToHex());
             var dp = DataProvider.GetRootDataProvider(_chainId, contractAddress);
-            dp.StateStore = _stateStore;
+            dp.StateManager = _stateManager;
 
             if (resourceStr == "") return await dp.GetAsync<T>(keyHash);
             var resourceDataProvider = dp.GetChild(resourceStr);

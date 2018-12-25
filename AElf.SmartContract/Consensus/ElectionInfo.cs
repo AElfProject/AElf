@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Managers;
 
 namespace AElf.SmartContract.Consensus
 {
@@ -21,10 +21,10 @@ namespace AElf.SmartContract.Consensus
         private static Address TokenContractAddress =>
             ContractHelpers.GetTokenContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
         
-        public ElectionInfo(IStateStore stateStore)
+        public ElectionInfo(IStateManager stateManager)
         {
             var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
-            _contractInfoReader = new ContractInfoReader(chainId, stateStore);
+            _contractInfoReader = new ContractInfoReader(chainId, stateManager);
         }
         
         public async Task<bool> IsCandidate(string publicKey)

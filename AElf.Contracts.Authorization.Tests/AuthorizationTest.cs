@@ -23,20 +23,14 @@ namespace AElf.Contracts.Authorization.Tests
 
         //private static byte[] ChainId = ChainHelpers.GetRandomChainId();
         
-        private void Init()
+        public AuthorizationTest(MockSetup mock)
         {
-            Mock = new MockSetup(_logger);
-        }
-        
-        public AuthorizationTest(ILogger logger)
-        {
-            _logger = logger;
+            Mock = mock;
         }
 
         [Fact]
         public void CreateMSigAccount()
         {
-            Init();
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             Address msig = Address.Generate();
             var auth = new Kernel.Authorization
@@ -72,9 +66,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         [Fact]
         public void ProposeInvalidProposal()
-        {
-            Init();
-            
+        {            
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
@@ -166,9 +158,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         [Fact]
         public void ProposeValidProposal()
-        {
-            Init();
-            
+        {            
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
@@ -224,9 +214,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         [Fact]
         public void SayYes()
-        {
-            Init();
-            
+        {            
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
@@ -315,9 +303,7 @@ namespace AElf.Contracts.Authorization.Tests
         
         [Fact]
         public void Release()
-        {
-            Init();
-            
+        {            
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
