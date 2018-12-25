@@ -155,6 +155,11 @@ namespace AElf.Contracts.Authorization.Tests
                     Transaction = tx
                 };
                 await Executive.SetTransactionContext(TransactionContext).Apply();
+
+                if (TransactionContext.Trace.DeferredTransaction == ByteString.Empty)
+                {
+                    TransactionContext.Trace.DeferredTransaction = null;
+                }
                 await CommitChangesAsync(TransactionContext.Trace);
                 return TransactionContext.Trace.DeferredTransaction != null
                     ? Transaction.Parser.ParseFrom(TransactionContext.Trace.DeferredTransaction)
