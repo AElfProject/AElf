@@ -163,6 +163,19 @@ namespace AElf.SmartContract
             ClearPool(contractAddress);
         }
 
+        public async Task RegistContractAsync(Hash contractHash, SmartContractRegistration registration, bool isPrivileged)
+        {
+            var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
+            runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
+            
+            // Todo handle metadata
+            
+            // add to db
+            
+            
+            
+        }
+
         public async Task<IMessage> GetAbiAsync(Address account)
         {
             var reg = await _smartContractManager.GetAsync(account);

@@ -68,6 +68,12 @@ namespace AElf.Sdk.CSharp
                 false);
         }
 
+        public static async Task RegistContractAsync(Hash contractHash, SmartContractRegistration registration)
+        {
+            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
+            
+        }
+
         #endregion Privileged API
 
         public static Hash ChainId => _smartContractContext.ChainId.ToReadOnly();
