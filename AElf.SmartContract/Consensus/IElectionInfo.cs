@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel;
 
 namespace AElf.SmartContract.Consensus
 {
     public interface IElectionInfo
     {
-        bool IsCandidate(string publicKey);
-        Tickets GetVotingInfo(string publicKey);
-        Tuple<ulong, ulong> GetVotesGeneral();
-        Round GetRoundInfo(ulong roundNumber);
-        List<string> GetCurrentMines();
+        Task<bool> IsCandidate(string publicKey);
+        Task<Tickets> GetVotingInfo(string publicKey);
+        Task<Tuple<ulong, ulong>> GetVotesGeneral();
+        Task<Round> GetRoundInfo(ulong roundNumber);
+        Task<List<string>> GetCurrentMines();
     }
 }

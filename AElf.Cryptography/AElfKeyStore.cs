@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
@@ -45,9 +46,9 @@ namespace AElf.Cryptography
             _openAccounts = new List<OpenAccount>();
         }
 
-        private void OpenAsync(string address, string password, TimeSpan? timeoutToClose)
+        private async Task OpenAsync(string address, string password, TimeSpan? timeoutToClose)
         {
-            ECKeyPair kp = ReadKeyPairAsync(address, password);
+            ECKeyPair kp = await ReadKeyPairAsync(address, password);
 
             OpenAccount acc = new OpenAccount(address);
             acc.KeyPair = kp;
@@ -61,7 +62,7 @@ namespace AElf.Cryptography
             _openAccounts.Add(acc);
         }
 
-        public Errors OpenAsync(string address, string password, bool withTimeout = true)
+        public async Task<Errors> OpenAsync(string address, string password, bool withTimeout = true)
         {
             try
             {
@@ -70,11 +71,11 @@ namespace AElf.Cryptography
 
                 if (withTimeout)
                 {
-                    OpenAsync(address, password, _defaultTimeoutToClose);
+                    await OpenAsync(address, password, _defaultTimeoutToClose);
                 }
                 else
                 {
-                    OpenAsync(address, password, null);
+                    await OpenAsync(address, password, null);
                 }
             }
             catch (InvalidPasswordException)
@@ -98,22 +99,22 @@ namespace AElf.Cryptography
             return _openAccounts.FirstOrDefault(oa => oa.AccountName == address)?.KeyPair;
         }
 
-        public ECKeyPair Create(string password, string chainId)
+        public async Task<ECKeyPair> CreateAsync(string password, string chainId)
         {
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            bool res = WriteKeyPair(keyPair, password, chainId);
+            var keyPair = new KeyPairGenerator().Generate();
+            var res = await WriteKeyPairAsync(keyPair, password, chainId);
             return !res ? null : keyPair;
         }
 
-        public List<string> ListAccounts()
+        public async Task<List<string>> ListAccountsAsync()
         {
             var dir = GetOrCreateKeystoreDir();
-            FileInfo[] files = dir.GetFiles("*" + KeyFileExtension);
+            var files = dir.GetFiles("*" + KeyFileExtension);
 
-            return files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList();
+            return await Task.FromResult(files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList());
         }
 
-        public ECKeyPair ReadKeyPairAsync(string address, string password)
+        public async Task<ECKeyPair> ReadKeyPairAsync(string address, string password)
         {
             try
             {
@@ -122,8 +123,8 @@ namespace AElf.Cryptography
                 AsymmetricCipherKeyPair cypherKeyPair;
                 using (var textReader = File.OpenText(keyFilePath))
                 {
-                    PemReader pr = new PemReader(textReader, new Password(password.ToCharArray()));
-                    cypherKeyPair = pr.ReadObject() as AsymmetricCipherKeyPair;
+                    var pr = new PemReader(textReader, new Password(password.ToCharArray()));
+                    cypherKeyPair = await Task.FromResult(pr.ReadObject() as AsymmetricCipherKeyPair);
                 }
 
                 if (cypherKeyPair == null)
@@ -148,7 +149,7 @@ namespace AElf.Cryptography
             }
         }
 
-        private bool WriteKeyPair(ECKeyPair keyPair, string password, string chainId)
+        private async Task<bool> WriteKeyPairAsync(ECKeyPair keyPair, string password, string chainId)
         {
             if (keyPair?.PrivateKey == null || keyPair.PublicKey == null)
                 throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
@@ -175,10 +176,8 @@ namespace AElf.Cryptography
                 return false;
             }
 
-            ECPrivateKeyParameters privateKeyParam =
-                new ECPrivateKeyParameters(new BigInteger(keyPair.PrivateKey), ECParameters.DomainParams);
-            ECPublicKeyParameters publicKeyParam =
-                new ECPublicKeyParameters(ECParameters.Curve.Curve.DecodePoint(keyPair.PublicKey),
+            var privateKeyParam = new ECPrivateKeyParameters(new BigInteger(keyPair.PrivateKey), ECParameters.DomainParams);
+            var publicKeyParam = new ECPublicKeyParameters(ECParameters.Curve.Curve.DecodePoint(keyPair.PublicKey),
                     ECParameters.DomainParams);
 
             var akp = new AsymmetricCipherKeyPair(publicKeyParam, privateKeyParam);
@@ -186,8 +185,11 @@ namespace AElf.Cryptography
             using (var writer = File.CreateText(fullPath))
             {
                 var pw = new PemWriter(writer);
-                pw.WriteObject(akp, _algo, password.ToCharArray(), _random);
-                pw.Writer.Close();
+                await Task.Run(() =>
+                {
+                    pw.WriteObject(akp, _algo, password.ToCharArray(), _random);
+                    pw.Writer.Close();
+                });
             }
 
             return true;

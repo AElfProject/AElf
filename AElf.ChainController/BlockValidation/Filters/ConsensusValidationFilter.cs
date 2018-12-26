@@ -133,7 +133,7 @@ namespace AElf.ChainController
 
         private async Task<BlockValidationResult> PoWValidation(IBlock block, IChainContext context)
         {
-            return BlockValidationResult.IncorrectPoWResult;
+            return await Task.FromResult(BlockValidationResult.IncorrectPoWResult);
         }
 
         private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair,

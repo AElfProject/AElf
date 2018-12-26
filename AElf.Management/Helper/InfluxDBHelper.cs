@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Configuration;
 using InfluxData.Net.Common.Enums;
 using InfluxData.Net.InfluxDb;
@@ -20,7 +21,7 @@ namespace AElf.Management.Helper
                 MonitorDatabaseConfig.Instance.Password, InfluxDbVersion.Latest);
         }
 
-        public static void Set(string database, string measurement, Dictionary<string, object> fields, Dictionary<string, object> tags, DateTime timestamp)
+        public static async Task Set(string database, string measurement, Dictionary<string, object> fields, Dictionary<string, object> tags, DateTime timestamp)
         {
             var point = new Point
             {
@@ -33,29 +34,29 @@ namespace AElf.Management.Helper
                 point.Tags = tags;
             }
 
-            InfluxDb.Client.WriteAsync(point, database);
+            await InfluxDb.Client.WriteAsync(point, database);
         }
 
-        public static List<Serie> Get(string database, string query)
+        public static async Task<List<Serie>> Get(string database, string query)
         {
-            var series = InfluxDb.Client.QueryAsync(query, database).Result;
+            var series = await InfluxDb.Client.QueryAsync(query, database);
             return series.ToList();
         }
 
-        public static string Version()
+        public static async Task<string> Version()
         {
-            var pong = InfluxDb.Diagnostics.PingAsync();
-            return pong.Result.Version;
+            var pong = await InfluxDb.Diagnostics.PingAsync();
+            return pong.Version;
         }
 
-        public static void CreateDatabase(string database)
+        public static async Task CreateDatabase(string database)
         {
-            InfluxDb.Database.CreateDatabaseAsync(database);
+            await InfluxDb.Database.CreateDatabaseAsync(database);
         }
 
-        public static void DropDatabase(string database)
+        public static async Task DropDatabase(string database)
         {
-            InfluxDb.Database.DropDatabaseAsync(database);
+            await InfluxDb.Database.DropDatabaseAsync(database);
         }
     }
 }

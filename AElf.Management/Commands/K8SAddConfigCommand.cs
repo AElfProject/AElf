@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
@@ -17,7 +19,7 @@ namespace AElf.Management.Commands
 {
     public class K8SAddConfigCommand : IDeployCommand
     {
-        public void Action(DeployArg arg)
+        public async Task Action(DeployArg arg)
         {
             var body = new V1ConfigMap
             {
@@ -30,31 +32,31 @@ namespace AElf.Management.Commands
                 },
                 Data = new Dictionary<string, string>
                 {
-                    {"actor.json", GetActorConfigJson(arg)}, 
-                    {"database.json", GetDatabaseConfigJson(arg)}, 
-                    {"miners.json", GetMinersConfigJson(arg)}, 
-                    {"parallel.json", GetParallelConfigJson(arg)}, 
+                    {"actor.json", GetActorConfigJson(arg)},
+                    {"database.json", GetDatabaseConfigJson(arg)},
+                    {"miners.json", GetMinersConfigJson(arg)},
+                    {"parallel.json", GetParallelConfigJson(arg)},
                     {"network.json", GetNetworkConfigJson(arg)},
-                    {"grpc-local.json",GetGrpcConfigJson(arg)},
-                    {"grpc-remote.json",GetGrpcRemoteConfigJson(arg)},
-                    {"api-key.json",GetApiKeyConfig(arg)}
+                    {"grpc-local.json", GetGrpcConfigJson(arg)},
+                    {"grpc-remote.json", GetGrpcRemoteConfigJson(arg)},
+                    {"api-key.json", GetApiKeyConfig(arg)}
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, arg.SideChainId);
+            await K8SRequestHelper.GetClient().CreateNamespacedConfigMapAsync(body, arg.SideChainId);
 
             if (!arg.IsDeployMainChain)
             {
-                var config = K8SRequestHelper.GetClient().ReadNamespacedConfigMap(GlobalSetting.CommonConfigName, arg.MainChainId).Data;
+                var config = await K8SRequestHelper.GetClient().ReadNamespacedConfigMapAsync(GlobalSetting.CommonConfigName, arg.MainChainId);
 
-                var grpcRemoteConfig = JsonSerializer.Instance.Deserialize<GrpcRemoteConfig>(config["grpc-remote.json"]);
+                var grpcRemoteConfig = JsonSerializer.Instance.Deserialize<GrpcRemoteConfig>(config.Data["grpc-remote.json"]);
                 grpcRemoteConfig.ChildChains.Add(arg.SideChainId, new Uri {Port = GlobalSetting.GrpcPort, Address = arg.LauncherArg.ClusterIp});
-                config["grpc-remote.json"] = JsonSerializer.Instance.Serialize(grpcRemoteConfig);
-                
-                var patch = new JsonPatchDocument<V1ConfigMap>();
-                patch.Replace(e => e.Data, config);
+                config.Data["grpc-remote.json"] = JsonSerializer.Instance.Serialize(grpcRemoteConfig);
 
-                K8SRequestHelper.GetClient().PatchNamespacedConfigMap(new V1Patch(patch), GlobalSetting.CommonConfigName, arg.MainChainId);
+                var patch = new JsonPatchDocument<V1ConfigMap>();
+                patch.Replace(e => e.Data, config.Data);
+
+                await K8SRequestHelper.GetClient().PatchNamespacedConfigMapAsync(new V1Patch(patch), GlobalSetting.CommonConfigName, arg.MainChainId);
             }
         }
 
@@ -87,7 +89,7 @@ namespace AElf.Management.Commands
                 Type = DatabaseType.Redis,
                 Hosts = new Dictionary<string, DatabaseHost>
                 {
-                    {"Default",new DatabaseHost{Host = "set-redis-0.service-redis",Port = 7001,Number = 0}}
+                    {"Default", new DatabaseHost {Host = "set-redis-0.service-redis", Port = 7001, Number = 0}}
                 }
             };
 
@@ -106,10 +108,10 @@ namespace AElf.Management.Commands
             }
 
             var i = 1;
-            config.Producers=new Dictionary<string, Dictionary<string, string>>();
+            config.Producers = new Dictionary<string, Dictionary<string, string>>();
             foreach (var miner in arg.Miners)
             {
-                config.Producers.Add(i.ToString(),new Dictionary<string, string>{{"address",miner}});
+                config.Producers.Add(i.ToString(), new Dictionary<string, string> {{"address", miner}});
                 i++;
             }
 
@@ -133,7 +135,7 @@ namespace AElf.Management.Commands
         private string GetNetworkConfigJson(DeployArg arg)
         {
             var config = new NetworkConfig();
-            config.Bootnodes=new List<string>();
+            config.Bootnodes = new List<string>();
 
             if (arg.LauncherArg.Bootnodes != null && arg.LauncherArg.Bootnodes.Any())
             {
@@ -149,14 +151,14 @@ namespace AElf.Management.Commands
         {
             var config = new GrpcLocalConfig
             {
-                LocalServerIP = "0.0.0.0",//arg.LauncherArg.ClusterIp,
+                LocalServerIP = "0.0.0.0", //arg.LauncherArg.ClusterIp,
                 LocalSideChainServerPort = GlobalSetting.GrpcPort,
                 ClientToParentChain = true,
                 ClientToSideChain = true,
                 WaitingIntervalInMillisecond = 10,
                 SideChainServer = true
             };
-            
+
             var result = JsonSerializer.Instance.Serialize(config);
 
             return result;
@@ -169,7 +171,7 @@ namespace AElf.Management.Commands
                 ParentChain = new Dictionary<string, Uri>(),
                 ChildChains = new Dictionary<string, Uri>()
             };
-            
+
             if (!arg.IsDeployMainChain)
             {
                 var service = K8SRequestHelper.GetClient().ReadNamespacedService(GlobalSetting.LauncherServiceName, arg.MainChainId);
@@ -184,11 +186,11 @@ namespace AElf.Management.Commands
         private string GetApiKeyConfig(DeployArg arg)
         {
             arg.ApiKey = Guid.NewGuid().ToString("N");
-            var config = new ApiKeyConfig()
+            var config = new ApiKeyConfig
             {
                 ChainKeys = new Dictionary<string, string> {{arg.SideChainId, arg.ApiKey}}
             };
-            
+
             var result = JsonSerializer.Instance.Serialize(config);
 
             return result;

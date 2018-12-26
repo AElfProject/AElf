@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -8,17 +9,17 @@ using k8s.Models;
 
 namespace AElf.Management.Commands
 {
-    public class K8SAddLighthouseCommand:IDeployCommand
+    public class K8SAddLighthouseCommand : IDeployCommand
     {
         private const int Port = 4053;
         private const int Replicas = 1;
-        
-        public void Action(DeployArg arg)
+
+        public async Task Action(DeployArg arg)
         {
             if (arg.LighthouseArg.IsCluster)
             {
-                AddService(arg);
-                var addSetResult = AddStatefulSet(arg);
+                await AddService(arg);
+                var addSetResult = await AddStatefulSet(arg);
                 if (!addSetResult)
                 {
                     throw new Exception("failed to deploy lighthouse");
@@ -26,7 +27,7 @@ namespace AElf.Management.Commands
             }
         }
 
-        private void AddService(DeployArg arg)
+        private async Task AddService(DeployArg arg)
         {
             var body = new V1Service
             {
@@ -52,10 +53,10 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedService(body, arg.SideChainId);
+            await K8SRequestHelper.GetClient().CreateNamespacedServiceAsync(body, arg.SideChainId);
         }
 
-        private bool AddStatefulSet(DeployArg arg)
+        private async Task<bool> AddStatefulSet(DeployArg arg)
         {
             var body = new V1StatefulSet
             {
@@ -92,7 +93,8 @@ namespace AElf.Management.Commands
                                     ImagePullPolicy = "Always",
                                     Ports = new List<V1ContainerPort>
                                     {
-                                        new V1ContainerPort(Port)                                    },
+                                        new V1ContainerPort(Port)
+                                    },
                                     Env = new List<V1EnvVar>
                                     {
                                         new V1EnvVar
@@ -122,9 +124,9 @@ namespace AElf.Management.Commands
                 }
             };
 
-            var result = K8SRequestHelper.GetClient().CreateNamespacedStatefulSet(body, arg.SideChainId);
-            
-            var set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, arg.SideChainId);
+            var result = await K8SRequestHelper.GetClient().CreateNamespacedStatefulSetAsync(body, arg.SideChainId);
+
+            var set = await K8SRequestHelper.GetClient().ReadNamespacedStatefulSetAsync(result.Metadata.Name, arg.SideChainId);
             var retryGetCount = 0;
             var retryDeleteCount = 0;
             while (true)
@@ -133,13 +135,14 @@ namespace AElf.Management.Commands
                 {
                     break;
                 }
+
                 if (retryGetCount > GlobalSetting.DeployRetryTime)
                 {
-                    DeletePod(arg);
+                    await DeletePod(arg);
                     retryDeleteCount++;
                     retryGetCount = 0;
                 }
-                
+
                 if (retryDeleteCount > GlobalSetting.DeployRetryTime)
                 {
                     return false;
@@ -147,15 +150,15 @@ namespace AElf.Management.Commands
 
                 retryGetCount++;
                 Thread.Sleep(3000);
-                set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, arg.SideChainId);
+                set = await K8SRequestHelper.GetClient().ReadNamespacedStatefulSetAsync(result.Metadata.Name, arg.SideChainId);
             }
 
             return true;
         }
-        
-        private void DeletePod(DeployArg arg)
+
+        private async Task DeletePod(DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(arg.SideChainId, labelSelector: "name=" + GlobalSetting.LighthouseName);
+            await K8SRequestHelper.GetClient().DeleteCollectionNamespacedPodAsync(arg.SideChainId, labelSelector: "name=" + GlobalSetting.LighthouseName);
         }
     }
 }

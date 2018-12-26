@@ -9,8 +9,8 @@ namespace AElf.Node.AElfChain
         void Initialize(NodeConfiguration conf);
         bool Start();
         bool Stop();
-        bool IsDPoSAlive();
-        bool IsForked();
+        Task<bool> CheckDPoSAliveAsync();
+        Task<bool> CheckForkedAsync();
 
         Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count);
 

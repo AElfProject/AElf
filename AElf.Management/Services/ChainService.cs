@@ -16,7 +16,7 @@ namespace AElf.Management.Services
     {
         public async Task<List<ChainResult>> GetAllChains()
         {
-            var namespaces = K8SRequestHelper.GetClient().ListNamespace();
+            var namespaces = await K8SRequestHelper.GetClient().ListNamespaceAsync();
 
             return (from np in namespaces.Items
                 where np.Metadata.Name != "default" && np.Metadata.Name != "kube-system" && np.Metadata.Name != "kube-public"
@@ -34,27 +34,31 @@ namespace AElf.Management.Services
             {
                 arg.MainChainId = GenerateChainId();
             }
+
             arg.IsDeployMainChain = true;
             arg.SideChainId = arg.MainChainId;
 
             var commands = new List<IDeployCommand>
             {
-                new K8SAddNamespaceCommand(), 
+                new K8SAddNamespaceCommand(),
                 new K8SAddRedisCommand(),
                 new K8SAddLauncherServiceCommand(),
-                new K8SAddAccountKeyCommand(), 
-                new K8SAddConfigCommand(), 
+                new K8SAddAccountKeyCommand(),
+                new K8SAddConfigCommand(),
                 new K8SAddChainInfoCommand(),
                 new K8SGrpcKeyCommand(),
-                new K8SAddLighthouseCommand(), 
-                new K8SAddWorkerCommand(), 
+                new K8SAddLighthouseCommand(),
+                new K8SAddWorkerCommand(),
                 new K8SAddLauncherCommand(),
                 new K8SAddMonitorCommand(),
                 new SaveApiKeyCommand(),
-                new AddMonitorDBCommand()
+                new AddMonitorDbCommand()
             };
 
-            commands.ForEach(c => c.Action(arg));
+            foreach (var command in commands)
+            {
+                await command.Action(arg);
+            }
         }
 
         public async Task RemoveMainChain(string chainId)
@@ -64,7 +68,10 @@ namespace AElf.Management.Services
                 new K8SDeleteNamespaceCommand()
             };
 
-            commands.ForEach(c => c.Action(new DeployArg {SideChainId = chainId}));
+            foreach (var command in commands)
+            {
+                await command.Action(new DeployArg {SideChainId = chainId});
+            }
         }
 
         private string GenerateChainId()

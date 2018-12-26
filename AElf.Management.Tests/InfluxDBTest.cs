@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using Xunit;
 
@@ -10,27 +11,27 @@ namespace AElf.Management.Tests
     {
         [Fact(Skip = "require InfluxDB")]
         // [Fact]
-        public void TestSetAndGet()
+        public async Task TestSetAndGet()
         {
             var database = "unittest";
-            InfluxDBHelper.CreateDatabase(database);
+            await InfluxDBHelper.CreateDatabase(database);
 
             var used = 50;
             var time = DateTime.Now;
-            InfluxDBHelper.Set(database, "cpu", new Dictionary<string, object> {{"used", used}}, null, time);
+            await InfluxDBHelper.Set(database, "cpu", new Dictionary<string, object> {{"used", used}}, null, time);
             Thread.Sleep(1000);
-            var result = InfluxDBHelper.Get(database, "select * from cpu");
+            var result = await InfluxDBHelper.Get(database, "select * from cpu");
 
             Assert.True(Convert.ToInt32(result[0].Values[0][1]) == used);
 
-            InfluxDBHelper.DropDatabase(database);
+            await InfluxDBHelper.DropDatabase(database);
         }
 
         [Fact(Skip = "require InfluxDB")]
         // [Fact]
-        public void TestVerison()
+        public async Task TestVerison()
         {
-            var version = InfluxDBHelper.Version();
+            var version = await InfluxDBHelper.Version();
             Assert.NotNull(version);
         }
     }

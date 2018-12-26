@@ -12,12 +12,12 @@ namespace AElf.Management.Website.Controllers
     public class TransactionController : ControllerBase
     {
         private readonly ITransactionService _transactionService;
-        
+
         public TransactionController(ITransactionService transactionService)
         {
             _transactionService = transactionService;
         }
-        
+
         [HttpGet]
         [Route("poolsize/{chainId}")]
         public async Task<ApiResult<ulong>> PoolSize(string chainId)
@@ -25,13 +25,13 @@ namespace AElf.Management.Website.Controllers
             var result = await _transactionService.GetPoolSize(chainId);
             return new ApiResult<ulong>(result);
         }
-        
+
         [HttpGet]
         [Route("poolsizehistory/{chainId}")]
         public async Task<ApiResult<List<PoolSizeHistory>>> PoolSizeHistory(string chainId)
         {
             var result = await _transactionService.GetPoolSizeHistory(chainId);
-            
+
             return new ApiResult<List<PoolSizeHistory>>(result);
         }
     }
