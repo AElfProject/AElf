@@ -73,6 +73,17 @@ namespace AElf.Kernel
 
             return ticketsDictionary;
         }
+        
+        public static TicketsDictionary ToTicketsDictionary(this IEnumerable<KeyValuePair<string, Tickets>> dictionary)
+        {
+            var ticketsDictionary = new TicketsDictionary();
+            foreach (var keyPair in dictionary)
+            {
+                ticketsDictionary.Maps.Add(keyPair.Key, keyPair.Value);
+            }
+
+            return ticketsDictionary;
+        }
 
         public static BlockAbstract GetAbstract(this IBlock block)
         {

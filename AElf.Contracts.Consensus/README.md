@@ -165,6 +165,11 @@ Result Type:
 
 To get the election information during the election.
 
+orderBy:
+0 - Announcement order. (Default)
+1 - Tickets count ascending.
+2 - Tickets count descending.
+
 ### `GetVotesCount`
 
 *No params*
@@ -396,6 +401,11 @@ Can only called by one of the initial miners.
 - `TicketsDictionary` / `string`
 
 竞选过程中获取所有候选人的选票详情。
+
+orderBy:
+0 - 参加竞选时间。（默认）
+1 - 选票数升序。
+2 - 选票数降序。
 
 ### `GetVotesCount`
 

@@ -163,6 +163,8 @@ namespace AElf.Contracts.Consensus
         /// <summary>
         /// Order by:
         /// 0 - Announcement order. (Default)
+        /// 1 - Tickets count ascending.
+        /// 2 - Tickets count descending.
         /// </summary>
         /// <param name="startIndex"></param>
         /// <param name="length"></param>
@@ -188,6 +190,44 @@ namespace AElf.Contracts.Consensus
                 }
 
                 return dict.ToTicketsDictionary();
+            }
+
+            if (orderBy == 1)
+            {
+                var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
+                if (length == 0)
+                {
+                    length = publicKeys.Count;
+                }
+                var dict = new Dictionary<string, Tickets>();
+                foreach (var publicKey in publicKeys)
+                {
+                    if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                    {
+                        dict.Add(publicKey, tickets);
+                    }
+                }
+
+                return dict.OrderBy(p => p.Value.TotalTickets).Skip(startIndex).Take(length - startIndex).ToTicketsDictionary();
+            }
+            
+            if (orderBy == 2)
+            {
+                var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
+                if (length == 0)
+                {
+                    length = publicKeys.Count;
+                }
+                var dict = new Dictionary<string, Tickets>();
+                foreach (var publicKey in publicKeys)
+                {
+                    if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                    {
+                        dict.Add(publicKey, tickets);
+                    }
+                }
+
+                return dict.OrderByDescending(p => p.Value.TotalTickets).Skip(startIndex).Take(length - startIndex).ToTicketsDictionary();
             }
 
             return new Dictionary<string, Tickets>().ToTicketsDictionary();
