@@ -422,9 +422,8 @@ namespace AElf.Contracts.CrossChain
             
             // update locked token balance
             Api.LockToken(sideChainInfo.LockedTokenAmount);
-            var chainId = Hash.LoadByteArray(sideChainInfo.ChainId.ToByteArray());
+            var chainId = sideChainInfo.ChainId;
             _indexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
-
             // Todo: enable resource
             // lock 
             /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
