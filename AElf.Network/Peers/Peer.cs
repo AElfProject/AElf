@@ -291,7 +291,7 @@ namespace AElf.Network.Peers
                 byte[] packet = nd.ToByteArray();
 
                 Logger.LogTrace(
-                    $"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()} }}");
+                    $"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()}, height: {nd.Height}, version {nd.Version} }}");
 
                 _messageWriter.EnqueueMessage(new Message
                     {Type = (int) MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});

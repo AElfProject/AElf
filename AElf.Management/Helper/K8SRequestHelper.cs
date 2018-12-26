@@ -1,11 +1,11 @@
-﻿using k8s;
-using k8s.Models;
+﻿using System.Threading.Tasks;
+using k8s;
 
 namespace AElf.Management.Helper
 {
     public static class K8SRequestHelper
     {
-        private static KubernetesClientConfiguration _clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile();
+        private static readonly KubernetesClientConfiguration _clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile();
 
         public static IKubernetes GetClient()
         {
@@ -13,7 +13,7 @@ namespace AElf.Management.Helper
             var client = new Kubernetes(_clientConfiguration);
             return client;
         }
-        
+
 //        public static V1Namespace CreateNamespace(V1Namespace body, string pretty = default(string))
 //        {
 //            using (var client = GetClient())
@@ -174,6 +174,5 @@ namespace AElf.Management.Helper
 //                return client.PatchNamespacedService(body, name, namespaceParameter, pretty);
 //            }
 //        }
-
     }
 }

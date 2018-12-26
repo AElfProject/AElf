@@ -8,7 +8,7 @@ using AElf.Management.Request;
 
 namespace AElf.Management.Services
 {
-    public class AkkaService:IAkkaService
+    public class AkkaService : IAkkaService
     {
         public async Task<List<ActorStateResult>> GetState(string chainId)
         {

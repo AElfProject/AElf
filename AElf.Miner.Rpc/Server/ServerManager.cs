@@ -203,6 +203,5 @@ namespace AElf.Miner.Rpc.Server
             StopSideChainServer();
             StopSideChainServer();
         }
-        
     }
 }

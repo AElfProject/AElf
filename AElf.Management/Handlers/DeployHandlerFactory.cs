@@ -17,6 +17,5 @@ namespace AElf.Management.Handlers
                     throw new ArgumentException("deploy type is incorrect");
             }
         }
-
     }
 }

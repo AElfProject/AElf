@@ -45,7 +45,6 @@ namespace AElf.ChainController.Rpc
         public ICrossChainInfoReader CrossChainInfoReader { get; set; }
         public IAuthorizationInfoReader AuthorizationInfoReader { get; set; }
         public IKeyValueDatabase KeyValueDatabase { get; set; }
-        public IBlockSet BlockSet { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
         public IElectionInfo ElectionInfo { get; set; }
@@ -85,10 +84,10 @@ namespace AElf.ChainController.Rpc
             }
             catch (Exception e)
             {
-                return new JObject
+                return await Task.FromResult(new JObject
                 {
                     ["error"] = e.ToString()
-                };
+                });
             }
         }
 
@@ -105,7 +104,7 @@ namespace AElf.ChainController.Rpc
                     ContractHelpers.GetAuthorizationContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
-                var response = new JObject()
+                var response = new JObject
                 {
                     ["result"] =
                         new JObject
@@ -195,7 +194,7 @@ namespace AElf.ChainController.Rpc
             if (!_canBroadcastTxs)
             {
                 res["error"] = "Sync still in progress, cannot send transactions.";
-                return await Task.FromResult(res);
+                return res;
             }
             
             try
@@ -209,7 +208,7 @@ namespace AElf.ChainController.Rpc
                 res["error"] = e.ToString();
             }
 
-            return await Task.FromResult(res);
+            return res;
         }
 
         [JsonRpcMethod("broadcast_txs", "rawtxs")]
@@ -265,8 +264,8 @@ namespace AElf.ChainController.Rpc
                 ulong boundParentChainHeight = 0;
                 try
                 {
-                    merklePathInParentChain = this.GetTxRootMerklePathInParentChain(txResult.BlockNumber);
-                    boundParentChainHeight = this.GetBoundParentChainHeight(txResult.BlockNumber);
+                    merklePathInParentChain = await this.GetTxRootMerklePathInParentChain(txResult.BlockNumber);
+                    boundParentChainHeight = await this.GetBoundParentChainHeight(txResult.BlockNumber);
                 }
                 catch (Exception e)
                 {
@@ -305,11 +304,12 @@ namespace AElf.ChainController.Rpc
                 {
                     throw new Exception("Invalid height");
                 }
-                var merklePathInParentChain = this.GetParentChainBlockInfo(h);
+                var merklePathInParentChain = await this.GetParentChainBlockInfo(h);
                 if (merklePathInParentChain == null)
                 {
                     throw new Exception("Unable to get parent chain block at height " + height);
                 }
+
                 return new JObject
                 {
                     ["parent_chainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
@@ -431,7 +431,7 @@ namespace AElf.ChainController.Rpc
                 var transaction = receipt.Transaction;
                 txInfo = transaction.GetTransactionInfo();
                 ((JObject) txInfo["tx"]).Add("params",
-                    String.Join(", ", await this.GetTransactionParameters(transaction)));
+                    string.Join(", ", await this.GetTransactionParameters(transaction)));
                 ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
                 ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
                 ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
@@ -567,7 +567,7 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("dpos_isalive")]
         public async Task<JObject> IsDPoSAlive()
         {
-            var isAlive = MainchainNodeService.IsDPoSAlive();
+            var isAlive = await MainchainNodeService.CheckDPoSAliveAsync();
             var response = new JObject
             {
                 ["IsAlive"] = isAlive
@@ -579,7 +579,7 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("node_isforked")]
         public async Task<JObject> NodeIsForked()
         {
-            var isForked = MainchainNodeService.IsForked();
+            var isForked = await MainchainNodeService.CheckForkedAsync();
             var response = new JObject
             {
                 ["IsForked"] = isForked
@@ -606,8 +606,8 @@ namespace AElf.ChainController.Rpc
                     throw new Exception("Invalid Hash Format");
                 }
 
-                var proposal = this.GetProposal(proposalHash);
-                DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+                var proposal = await this.GetProposal(proposalHash);
+                var origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
                 return new JObject
                 {
                     ["result"] = new JObject
@@ -637,7 +637,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var general = this.GetVotesGeneral();
+                var general = await this.GetVotesGeneral();
                 return new JObject
                 {
                     ["error"] = 0,
@@ -662,7 +662,7 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("get_invalid_block")]
         public async Task<JObject> InvalidBlockCount()
         {
-            var invalidBlockCount = await this.GetInvalidBlockCount();
+            var invalidBlockCount = await this.GetInvalidBlockCountAsync();
                 
             var response = new JObject
             {
@@ -675,7 +675,7 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("get_rollback_times")]
         public async Task<JObject> RollBackTimes()
         {
-            var rollBackTimes = this.GetRollBackTimes();
+            var rollBackTimes = await this.GetRollBackTimesAsync();
                 
             var response = new JObject
             {
@@ -698,14 +698,14 @@ namespace AElf.ChainController.Rpc
                 {
                     type = "State";
                     id = key.Substring(GlobalConfig.StatePrefix.Length, key.Length - GlobalConfig.StatePrefix.Length);
-                    var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
+                    var valueBytes = await KeyValueDatabase.GetAsync(type,key);
                     value = StateValue.Create(valueBytes);
                 }
                 else if(key.StartsWith(GlobalConfig.TransactionReceiptPrefix))
                 {
                     type = "TransactionReceipt";
                     id = key.Substring(GlobalConfig.TransactionReceiptPrefix.Length, key.Length - GlobalConfig.TransactionReceiptPrefix.Length);
-                    var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
+                    var valueBytes = await KeyValueDatabase.GetAsync(type,key);
                     value = valueBytes?.Deserialize<TransactionReceipt>();
                 }
                 else
@@ -713,7 +713,7 @@ namespace AElf.ChainController.Rpc
                     var keyObj = Key.Parser.ParseFrom(ByteArrayHelpers.FromHexString(key));
                     type = keyObj.Type;
                     id = JObject.Parse(keyObj.ToString());
-                    var valueBytes = KeyValueDatabase.GetAsync(type,key).Result;
+                    var valueBytes = await KeyValueDatabase.GetAsync(type,key);
                     var obj = this.GetInstance(type);
                     obj.MergeFrom(valueBytes);
                     value = obj;
@@ -723,7 +723,7 @@ namespace AElf.ChainController.Rpc
                 {
                     ["Type"] = type,
                     ["Id"] = id,
-                    ["Value"] = JObject.Parse(value.ToString())
+                    ["Value"] = JObject.Parse(value?.ToString())
                 };
 
                 return JObject.FromObject(response);

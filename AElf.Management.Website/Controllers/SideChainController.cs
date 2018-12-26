@@ -24,14 +24,14 @@ namespace AElf.Management.Website.Controllers
         {
             Console.WriteLine(JsonSerializer.Instance.Serialize(arg));
             arg.MainChainId = chainId;
-            _sideChainService.Deploy(arg);
+            await _sideChainService.Deploy(arg);
             return ApiEmptyResult.Default;
         }
 
         [HttpDelete("{chainId}")]
         public async Task<ApiEmptyResult> Delete(string chainId)
         {
-            _sideChainService.Remove(chainId);
+            await _sideChainService.Remove(chainId);
             return ApiEmptyResult.Default;
         }
     }

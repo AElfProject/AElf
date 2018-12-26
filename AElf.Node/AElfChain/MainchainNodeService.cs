@@ -153,15 +153,12 @@ namespace AElf.Node.AElfChain
             #endregion setup
 
             #region start
+            
+            _blockSynchronizer.Init();
 
             _txHub.Start();
 
             _consensus?.Start(NodeConfig.Instance.IsMiner);
-
-            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
-            {
-                await _blockSynchronizer.ReceiveBlock(inBlock.Block);
-            });
 
             MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });
@@ -179,14 +176,14 @@ namespace AElf.Node.AElfChain
             return true;
         }
 
-        public bool IsDPoSAlive()
+        public async Task<bool> CheckDPoSAliveAsync()
         {
-            return _consensus.IsAlive();
+            return await Task.FromResult(_consensus.IsAlive());
         }
 
-        public bool IsForked()
+        public async Task<bool> CheckForkedAsync()
         {
-            return _forkFlag;
+            return await Task.FromResult(_forkFlag);
         }
 
         #region private methods

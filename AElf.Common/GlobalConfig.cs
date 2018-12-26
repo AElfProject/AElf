@@ -128,9 +128,8 @@ namespace AElf.Common
         public const string TransactionPrefix = "t";
 
         #endregion data key prefixes
-        public static ulong BlockCacheLimit = 64; 
         
-        public const ulong ForkDetectionLength = 4;
+        public static ulong BlockCacheLimit = 2048; 
 
         #region Consensus Error String
         

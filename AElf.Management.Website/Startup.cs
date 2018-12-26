@@ -20,17 +20,11 @@ namespace AElf.Management.Website
                 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(options =>
-                {
-                    options.Filters.Add(new AuthenticationFilter());
-                }
+            services.AddMvc(options => { options.Filters.Add(new AuthenticationFilter()); }
             ).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Info { Title = "AElf API", Version = "v1" });
-            });
-            
+
+            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Info {Title = "AElf API", Version = "v1"}); });
+
             services.AddApplication<ManagementWebsiteAElfModule>(options =>
             {
                 options.UseAutofac();
@@ -49,7 +43,7 @@ namespace AElf.Management.Website
             {
                 app.UseHsts();
             }
-            
+
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
 

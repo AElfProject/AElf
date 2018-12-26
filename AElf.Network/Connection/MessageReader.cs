@@ -149,6 +149,8 @@ namespace AElf.Network.Connection
             }
             catch (Exception e)
             {
+                Logger.LogException(e,LogLevel.Error);
+                
                 if (!IsConnected && e is IOException)
                 {
                     // If the stream fails while the connection is logically closed (call to Close())

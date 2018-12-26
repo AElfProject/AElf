@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -14,9 +15,9 @@ namespace AElf.Management.Commands
         private const int ActorPort = 32550;
         private const int Replicas = 1;
 
-        public void Action(DeployArg arg)
+        public async Task Action(DeployArg arg)
         {
-            var addDeployResult = AddDeployment(arg);
+            var addDeployResult = await AddDeployment(arg);
 
             if (!addDeployResult)
             {
@@ -24,7 +25,7 @@ namespace AElf.Management.Commands
             }
         }
 
-        private bool AddDeployment(DeployArg arg)
+        private async Task<bool> AddDeployment(DeployArg arg)
         {
             var body = new V1Deployment
             {
@@ -91,7 +92,7 @@ namespace AElf.Management.Commands
                                         "--chain.id",
                                         arg.SideChainId,
                                         "--node.executor",
-                                        arg.LighthouseArg.IsCluster?"akka":"simple"
+                                        arg.LighthouseArg.IsCluster ? "akka" : "simple"
                                     },
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
@@ -128,7 +129,7 @@ namespace AElf.Management.Commands
                                         Name = GlobalSetting.KeysConfigName,
                                         Items = new List<V1KeyToPath>
                                         {
-                                            new V1KeyToPath{Key = arg.ChainAccount+".ak",Path = arg.ChainAccount+".ak"}
+                                            new V1KeyToPath {Key = arg.ChainAccount + ".ak", Path = arg.ChainAccount + ".ak"}
                                         }
                                     }
                                 },
@@ -141,12 +142,11 @@ namespace AElf.Management.Commands
                         }
                     }
                 }
-
             };
 
-            var result = K8SRequestHelper.GetClient().CreateNamespacedDeployment(body, arg.SideChainId);
-            
-            var deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, arg.SideChainId);
+            var result = await K8SRequestHelper.GetClient().CreateNamespacedDeploymentAsync(body, arg.SideChainId);
+
+            var deploy = await K8SRequestHelper.GetClient().ReadNamespacedDeploymentAsync(result.Metadata.Name, arg.SideChainId);
             var retryGetCount = 0;
             var retryDeleteCount = 0;
             while (true)
@@ -158,7 +158,7 @@ namespace AElf.Management.Commands
 
                 if (retryGetCount > GlobalSetting.DeployRetryTime)
                 {
-                    DeletePod(arg);
+                    await K8SRequestHelper.GetClient().DeleteCollectionNamespacedPodAsync(arg.SideChainId, labelSelector: "name=" + GlobalSetting.LauncherName);
                     retryDeleteCount++;
                     retryGetCount = 0;
                 }
@@ -170,15 +170,10 @@ namespace AElf.Management.Commands
 
                 retryGetCount++;
                 Thread.Sleep(3000);
-                deploy = K8SRequestHelper.GetClient().ReadNamespacedDeployment(result.Metadata.Name, arg.SideChainId);
+                deploy = await K8SRequestHelper.GetClient().ReadNamespacedDeploymentAsync(result.Metadata.Name, arg.SideChainId);
             }
 
             return true;
-        }
-
-        private void DeletePod(DeployArg arg)
-        {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(arg.SideChainId, labelSelector: "name=" + GlobalSetting.LauncherName);
         }
     }
 }

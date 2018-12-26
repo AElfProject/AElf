@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using AElf.Common.Application;
 using AElf.Cryptography.Certificate;
 using AElf.Management.Helper;
@@ -10,9 +11,9 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace AElf.Management.Commands
 {
-    public class K8SGrpcKeyCommand:IDeployCommand
+    public class K8SGrpcKeyCommand : IDeployCommand
     {
-        public void Action(DeployArg arg)
+        public async Task Action(DeployArg arg)
         {
             CreateGrpcKey(arg);
             var certFileName = arg.SideChainId + ".cert.pem";
@@ -24,15 +25,15 @@ namespace AElf.Management.Commands
 
             if (!arg.IsDeployMainChain)
             {
-                var certMainChain = K8SRequestHelper.GetClient().ReadNamespacedConfigMap(GlobalSetting.CertsConfigName, arg.MainChainId).Data;
+                var certMainChain = await K8SRequestHelper.GetClient().ReadNamespacedConfigMapAsync(GlobalSetting.CertsConfigName, arg.MainChainId);
                 var certName = arg.MainChainId + ".cert.pem";
-                configMapData.Add(certName, certMainChain[certName]);
+                configMapData.Add(certName, certMainChain.Data[certName]);
 
-                certMainChain.Add(certFileName, cert);
+                certMainChain.Data.Add(certFileName, cert);
                 var patch = new JsonPatchDocument<V1ConfigMap>();
-                patch.Replace(e => e.Data, certMainChain);
+                patch.Replace(e => e.Data, certMainChain.Data);
 
-                K8SRequestHelper.GetClient().PatchNamespacedConfigMap(new V1Patch(patch), GlobalSetting.CertsConfigName, arg.MainChainId);
+                await K8SRequestHelper.GetClient().PatchNamespacedConfigMapAsync(new V1Patch(patch), GlobalSetting.CertsConfigName, arg.MainChainId);
             }
 
 
@@ -48,7 +49,7 @@ namespace AElf.Management.Commands
                 Data = configMapData
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, arg.SideChainId);
+            await K8SRequestHelper.GetClient().CreateNamespacedConfigMapAsync(body, arg.SideChainId);
         }
 
         private void CreateGrpcKey(DeployArg arg)

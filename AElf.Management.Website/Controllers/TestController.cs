@@ -11,7 +11,7 @@ namespace AElf.Management.Website.Controllers
         [HttpGet("{value}")]
         public async Task<ApiResult<string>> Test(string value)
         {
-            return new ApiResult<string>(value);
+            return await Task.FromResult(new ApiResult<string>(value));
         }
     }
 }
