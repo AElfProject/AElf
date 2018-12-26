@@ -56,7 +56,8 @@ namespace AElf.Runtime.CSharp.Tests
                     ChainId = _mock.ChainId1,
                     ContractAddress = _mock.ContractAddress1,
                     DataProvider = _mock.DataProvider1,
-                    SmartContractService = _mock.SmartContractService
+                    SmartContractService = _mock.SmartContractService,
+                    ChainService = _mock.ChainService
                 });
             }
             else
@@ -69,7 +70,8 @@ namespace AElf.Runtime.CSharp.Tests
                     ChainId = _mock.ChainId2,
                     ContractAddress = _mock.ContractAddress2,
                     DataProvider = _mock.DataProvider2,
-                    SmartContractService = _mock.SmartContractService
+                    SmartContractService = _mock.SmartContractService,
+                    ChainService = _mock.ChainService
                 });
             }
         }
