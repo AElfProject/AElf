@@ -11,6 +11,7 @@ using Api = AElf.Sdk.CSharp.Api;
 namespace AElf.Contracts.Dividends
 {
     // ReSharper disable UnusedMember.Global
+    // ReSharper disable InconsistentNaming
     public class DividendsContract : CSharpSmartContract
     {
         // Term Number -> Dividends Amount

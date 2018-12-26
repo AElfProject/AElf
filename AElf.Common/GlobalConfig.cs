@@ -41,8 +41,10 @@ namespace AElf.Common
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
 
-        #region AElf DPoS
+        #region Consensus
 
+        public const ulong TotalSupply = 100_000_000_000;
+        public const ulong BalanceForInitialization = 100_000_000;
         public const ulong LockTokenForElection = 100_000;
         public const ulong DaysEachTerm = 7;
         public const ulong MaxMissedTimeSlots = 1024;
@@ -98,6 +100,7 @@ namespace AElf.Common
         public const double DividendsForReappointmentRatio = 0.1;
         public const double DividendsForBackupNodesRatio = 0.2;
         public const double DividendsForVotersRatio = 0.2;
+        public const double DividendsRatio = 0.12;
         public const string DividendsMapString = "__DividendsMapString__";
         public const string TotalWeightsMapString = "__TotalWeightsMapString__";
         public const string TransferMapString = "__TransferMapString__";

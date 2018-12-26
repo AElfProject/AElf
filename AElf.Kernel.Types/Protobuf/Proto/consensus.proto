@@ -111,12 +111,13 @@ message MinerInRound {
 
 // The information of a candidate.
 message CandidateInHistory {
-    repeated uint64 Terms = 1;
-    uint64 ProducedBlocks = 2;
-    uint64 MissedTimeSlots = 3;
-    uint64 ContinualAppointmentCount = 4;
-    uint64 ReappointmentCount = 5;
-    repeated string Aliases = 6;
+    string PublicKey = 1;
+    repeated uint64 Terms = 2;
+    uint64 ProducedBlocks = 3;
+    uint64 MissedTimeSlots = 4;
+    uint64 ContinualAppointmentCount = 5;
+    uint64 ReappointmentCount = 6;
+    repeated string Aliases = 7;
 }
 
 message TicketsDictionary {

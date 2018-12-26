@@ -33,6 +33,8 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             InitialBlockchain();
             
+            InitialMainchainToken();
+            
             _collection.BlockchainStartTimestamp.SetValue(firstTerm.Timestamp);
 
             _collection.MinersMap.SetValue(firstTerm.TermNumber.ToUInt64Value(), firstTerm.Miners);
@@ -198,6 +200,11 @@ namespace AElf.Contracts.Consensus.Contracts
             var lookUp = new TermNumberLookUp();
             lookUp.Map.Add(1, 1);
             _collection.TermNumberLookupField.SetValue(lookUp);
+        }
+
+        private void InitialMainchainToken()
+        {
+            Api.SendInline(Api.TokenContractAddress, "Initialize", "ELF", "AElf Token", GlobalConfig.TotalSupply, 2);
         }
 
         private void SetAliases(Term term)
@@ -382,6 +389,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 {
                     _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
                     {
+                        PublicKey = candidate.Key,
                         MissedTimeSlots = candidate.Value.MissedTimeSlots,
                         ProducedBlocks = candidate.Value.ProducedBlocks,
                         ContinualAppointmentCount = 0,
@@ -398,6 +406,7 @@ namespace AElf.Contracts.Consensus.Contracts
                     {
                         _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
                         {
+                            PublicKey = candidate.Key,
                             MissedTimeSlots = historyInfo.MissedTimeSlots + candidate.Value.MissedTimeSlots,
                             ProducedBlocks = historyInfo.ProducedBlocks + candidate.Value.ProducedBlocks,
                             ContinualAppointmentCount =
@@ -412,6 +421,7 @@ namespace AElf.Contracts.Consensus.Contracts
                     {
                         _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
                         {
+                            PublicKey = candidate.Key,
                             MissedTimeSlots = candidate.Value.MissedTimeSlots,
                             ProducedBlocks = candidate.Value.ProducedBlocks,
                             ContinualAppointmentCount = 0,

@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.Tests
     [UseAutofacTestFramework]
     public class ConsensusProcessTest
     {
-        private readonly ConsensusContractShim _consensusContract;
+        private readonly ContractsShim _contracts;
 
         private readonly List<ECKeyPair> _miners = new List<ECKeyPair>();
 
@@ -23,7 +23,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         public ConsensusProcessTest(MockSetup mock)
         {
-            _consensusContract = new ConsensusContractShim(mock);
+            _contracts = new ContractsShim(mock);
         }
 
         private void InitialMiners()
@@ -40,10 +40,10 @@ namespace AElf.Contracts.Consensus.Tests
             InitialMiners();
             
             InitialTerm(_miners[0]);
-            Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
             // Check the information of first round.
-            var firstRound = _consensusContract.GetRoundInfo(1);
+            var firstRound = _contracts.GetRoundInfo(1);
             Assert.True(firstRound.RoundNumber == 1);
             Assert.True(firstRound.RealTimeMinersInfo.Count == _miners.Count);
             Assert.True(firstRound.MiningInterval == MiningInterval);
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(firstRound.RealTimeMinersInfo.Values.Count(m => m.OutValue == null) == _miners.Count);
 
             // Check the information of second round.
-            var secondRound = _consensusContract.GetRoundInfo(2);
+            var secondRound = _contracts.GetRoundInfo(2);
             Assert.True(secondRound.RoundNumber == 2);
             Assert.True(secondRound.RealTimeMinersInfo.Count == _miners.Count);
             Assert.True(secondRound.MiningInterval == MiningInterval);
@@ -74,11 +74,11 @@ namespace AElf.Contracts.Consensus.Tests
             // Check the information of not generated round.
             try
             {
-                _consensusContract.GetRoundInfo(3);
+                _contracts.GetRoundInfo(3);
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.RoundNumberNotFound, _consensusContract.TransactionContext.Trace.StdErr);
+                Assert.Equal(GlobalConfig.RoundNumberNotFound, _contracts.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -88,7 +88,7 @@ namespace AElf.Contracts.Consensus.Tests
             InitialMiners();
 
             InitialTerm(_miners[0]);
-            var firstRound = _consensusContract.GetRoundInfo(1);
+            var firstRound = _contracts.GetRoundInfo(1);
 
             Assert.Equal((ulong) 1, firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].ProducedBlocks);
 
@@ -101,11 +101,11 @@ namespace AElf.Contracts.Consensus.Tests
                 RoundId = firstRound.RoundId,
                 Signature = signature
             };
-            _consensusContract.PackageOutValue(_miners[0], toPackage);
-            Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
+            _contracts.PackageOutValue(_miners[0], toPackage);
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
             // Check the round information.
-            firstRound = _consensusContract.GetRoundInfo(1);
+            firstRound = _contracts.GetRoundInfo(1);
             // Signature not changed.
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].Signature ==
                         signatureOfInitialization);
@@ -120,7 +120,7 @@ namespace AElf.Contracts.Consensus.Tests
             InitialMiners();
 
             InitialTerm(_miners[0]);
-            var firstRound = _consensusContract.GetRoundInfo(1);
+            var firstRound = _contracts.GetRoundInfo(1);
 
             var toPackage = new ToPackage
             {
@@ -131,11 +131,11 @@ namespace AElf.Contracts.Consensus.Tests
 
             try
             {
-                _consensusContract.PackageOutValue(_miners[0], toPackage);
+                _contracts.PackageOutValue(_miners[0], toPackage);
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.RoundIdNotMatched, _consensusContract.TransactionContext.Trace.StdErr);
+                Assert.Equal(GlobalConfig.RoundIdNotMatched, _contracts.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -152,15 +152,15 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].OutValue == outValue);
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].InValue == null);
 
-            _consensusContract.BroadcastInValue(_miners[0], new ToBroadcast
+            _contracts.BroadcastInValue(_miners[0], new ToBroadcast
             {
                 InValue = inValue,
                 RoundId = firstRound.RoundId
             });
-            Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
             // After
-            firstRound = _consensusContract.GetRoundInfo(1);
+            firstRound = _contracts.GetRoundInfo(1);
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].OutValue == outValue);
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].InValue == inValue);
         }
@@ -175,10 +175,10 @@ namespace AElf.Contracts.Consensus.Tests
 
             InitialTerm(_miners[0]);
             
-            var firstRound= _consensusContract.GetRoundInfo(1);
+            var firstRound= _contracts.GetRoundInfo(1);
             try
             {
-                _consensusContract.BroadcastInValue(_miners[0], new ToBroadcast
+                _contracts.BroadcastInValue(_miners[0], new ToBroadcast
                 {
                     InValue = outValue,
                     RoundId = firstRound.RoundId
@@ -186,7 +186,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.OutValueIsNull, _consensusContract.TransactionContext.Trace.StdErr);
+                Assert.Equal(GlobalConfig.OutValueIsNull, _contracts.TransactionContext.Trace.StdErr);
             }
         }
         
@@ -203,7 +203,7 @@ namespace AElf.Contracts.Consensus.Tests
 
             try
             {
-                _consensusContract.BroadcastInValue(_miners[0], new ToBroadcast
+                _contracts.BroadcastInValue(_miners[0], new ToBroadcast
                 {
                     InValue = inValue,
                     RoundId = firstRound.RoundId
@@ -211,7 +211,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.InValueNotMatchToOutValue, _consensusContract.TransactionContext.Trace.StdErr);
+                Assert.Equal(GlobalConfig.InValueNotMatchToOutValue, _contracts.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -222,7 +222,7 @@ namespace AElf.Contracts.Consensus.Tests
             
             InitialTerm(_miners[0]);
             
-            var firstRound = _consensusContract.GetRoundInfo(1);
+            var firstRound = _contracts.GetRoundInfo(1);
 
             // Generate in values and out values.
             var inValuesList = new Stack<Hash>();
@@ -237,58 +237,58 @@ namespace AElf.Contracts.Consensus.Tests
             // Actually their go one round.
             foreach (var keyPair in _miners)
             {
-                _consensusContract.PackageOutValue(keyPair, new ToPackage
+                _contracts.PackageOutValue(keyPair, new ToPackage
                 {
                     OutValue = outValuesList.Pop(),
                     RoundId = firstRound.RoundId,
                     Signature = Hash.Default
                 });
                 
-                _consensusContract.BroadcastInValue(keyPair, new ToBroadcast
+                _contracts.BroadcastInValue(keyPair, new ToBroadcast
                 {
                     InValue = inValuesList.Pop(),
                     RoundId = firstRound.RoundId
                 });
             }
             // Extra block.
-            firstRound = _consensusContract.GetRoundInfo(1);
+            firstRound = _contracts.GetRoundInfo(1);
             var suppliedFirstRound = firstRound.SupplementForFirstRound();
             var secondRound = new Miners
             {
                 TermNumber = 1,
                 PublicKeys = {_miners.Select(m => m.PublicKey.ToHex())}
             }.GenerateNextRound(suppliedFirstRound);
-            _consensusContract.NextRound(_miners[0], new Forwarding
+            _contracts.NextRound(_miners[0], new Forwarding
             {
                 CurrentAge = 1,
                 CurrentRoundInfo = suppliedFirstRound,
                 NextRoundInfo = secondRound
             });
             
-            Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
-            Assert.Equal((ulong) 2, _consensusContract.GetCurrentRoundNumber());
+            Assert.Equal((ulong) 2, _contracts.GetCurrentRoundNumber());
         }
         
         private void InitialTerm(ECKeyPair starterKeyPair)
         {
             var initialTerm =
                 new Miners {PublicKeys = {_miners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(MiningInterval);
-            _consensusContract.InitialTerm(starterKeyPair, initialTerm);
+            _contracts.InitialTerm(starterKeyPair, initialTerm);
         }
 
         private Round InitialTermAndPackageOutValue(ECKeyPair starterKeyPair, Hash outValue)
         {
             InitialTerm(starterKeyPair);
-            var firstRound = _consensusContract.GetRoundInfo(1);
-            _consensusContract.PackageOutValue(starterKeyPair, new ToPackage
+            var firstRound = _contracts.GetRoundInfo(1);
+            _contracts.PackageOutValue(starterKeyPair, new ToPackage
             {
                 OutValue = outValue,
                 RoundId = firstRound.RoundId,
                 Signature = Hash.Default
             });
             
-            return _consensusContract.GetRoundInfo(1);
+            return _contracts.GetRoundInfo(1);
         }
     }
 }

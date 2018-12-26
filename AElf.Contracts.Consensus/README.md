@@ -46,7 +46,8 @@ To get all the dividends for locked tokens of the caller, which should be a vote
 
 ### `WithdrawAll`
 
-*No params*
+Params:
+- `bool` withoutLimitation
 
 To withdraw all the locked tokens of the caller.
 
@@ -219,6 +220,16 @@ Return Type:
 
 To query the count of mined blocks by provided miner in current term.
 
+### `InitialBalance`
+
+Params:
+- `Address` address
+- `ulong` amount
+
+Initial balance for the provided account.
+
+Can only called by one of the initial miners.
+
 # 投票/选举系统
 
 ## 可用方法
@@ -267,7 +278,8 @@ To query the count of mined blocks by provided miner in current term.
 
 ### `WithdrawAll`
 
-*无参数*
+参数:
+- `bool` withoutLimitation
 
 投票者赎回自己的选票。
 
@@ -441,6 +453,16 @@ To query the count of mined blocks by provided miner in current term.
 `ulong`
 
 获取某节点当前届的出块数量。
+
+### `InitialBalance`
+
+参数:
+- `Address` address
+- `ulong` amount
+
+为其他账户进行余额初始化。
+
+仅可被初始化Miner调用。
 
 ## Data Structure
 

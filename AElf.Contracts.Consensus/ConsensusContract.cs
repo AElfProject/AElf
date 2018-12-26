@@ -342,9 +342,20 @@ namespace AElf.Contracts.Consensus
             Election.Withdraw(transactionId);
         }
 
-        public void WithdrawAll(string empty)
+        public void WithdrawAll(bool withoutLimitation)
         {
-            Election.Withdraw();
+            Election.Withdraw(withoutLimitation);
+        }
+
+        public void InitialBalance(Address address, ulong amount)
+        {
+            var sender = Api.RecoverPublicKey().ToHex();
+            Api.Assert(Collection.RoundsMap.TryGet(((ulong) 1).ToUInt64Value(), out var firstRound),
+                "First round not found.");
+            Api.Assert(firstRound.RealTimeMinersInfo.ContainsKey(sender),
+                "Sender should be one of the initial miners.");
+            
+            Api.SendInlineByContract(Api.TokenContractAddress, "Transfer", address, amount);
         }
         
         #endregion Election

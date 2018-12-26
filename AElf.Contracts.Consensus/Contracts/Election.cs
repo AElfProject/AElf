@@ -232,11 +232,13 @@ namespace AElf.Contracts.Consensus.Contracts
             }
         }
 
-        public void Withdraw()
+        public void Withdraw(bool withoutLimitation = false)
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
-                var votingRecords = tickets.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge);
+                var votingRecords = withoutLimitation
+                    ? tickets.VotingRecords.ToList()
+                    : tickets.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge).ToList();
 
                 foreach (var votingRecord in votingRecords)
                 {

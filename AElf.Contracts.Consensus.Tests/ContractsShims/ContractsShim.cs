@@ -12,7 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 // ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.Tests
 {
-    public class ConsensusContractShim
+    public class ContractsShim
     {
         private MockSetup _mock;
         public IExecutive ExecutiveForConsensus { get; set; }
@@ -30,7 +30,7 @@ namespace AElf.Contracts.Consensus.Tests
         public Address TokenContractAddress { get; set; }
         public Address DividendsContractAddress { get; set; }
 
-        public ConsensusContractShim(MockSetup mock)
+        public ContractsShim(MockSetup mock)
         {
             _mock = mock;
             Init();
@@ -227,6 +227,9 @@ namespace AElf.Contracts.Consensus.Tests
 
             TransactionContext = PrepareTransactionContext(tx);
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            var tc = PrepareTransactionContext(TransactionContext.Trace.InlineTransactions[0]);
+            ExecutiveForToken.SetTransactionContext(tc).Apply().Wait();
+            TransactionContext.Trace.InlineTraces.Add(tc.Trace);
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
@@ -321,6 +324,28 @@ namespace AElf.Contracts.Consensus.Tests
 
             TransactionContext = PrepareTransactionContext(tx);
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            CommitChangesAsync(TransactionContext.Trace).Wait();
+        }
+        
+        public void InitialBalance(ECKeyPair minerKeyPair, Address address, ulong amount)
+        {
+            var tx = new Transaction
+            {
+                From = GetAddress(minerKeyPair),
+                To = ConsensusContractAddress,
+                IncrementId = MockSetup.NewIncrementId,
+                MethodName = "InitialBalance",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(address, amount))
+            };
+            var signer = new ECSigner();
+            var signature = signer.Sign(minerKeyPair, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+
+            TransactionContext = PrepareTransactionContext(tx);
+            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
+            var tc = PrepareTransactionContext(TransactionContext.Trace.InlineTransactions[0]);
+            ExecutiveForToken.SetTransactionContext(tc).Apply().Wait();
+            TransactionContext.Trace.InlineTraces.Add(tc.Trace);
             CommitChangesAsync(TransactionContext.Trace).Wait();
         }
 
@@ -775,11 +800,11 @@ namespace AElf.Contracts.Consensus.Tests
         {
             var tx = new Transaction
             {
-                From = Sender,
+                From = from,
                 To = TokenContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
-                MethodName = "TransferFrom",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, amount))
+                MethodName = "Transfer",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(to, amount))
             };
 
             TransactionContext = PrepareTransactionContext(tx);
