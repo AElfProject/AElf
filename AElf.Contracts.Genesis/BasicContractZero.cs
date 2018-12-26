@@ -172,7 +172,8 @@ namespace AElf.Contracts.Genesis
             {
                 Category = existContract.Category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash
+                ContractHash = contractHash,
+                SerialNumber = existContract.SerialNumber
             };
 
             await Api.UpdateContractAsync(contractAddress, reg);
