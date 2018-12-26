@@ -108,7 +108,7 @@ namespace AElf.Kernel
                 return null;
             }
 
-            return await GetBlockByHashAsync(header.GetHash());
+            return await GetBlockByHashAsync(header.GetHash(), withTransaction);
         }
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
