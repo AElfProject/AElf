@@ -14,4 +14,20 @@
             return res.tx_status !== "Pending";
         }, 3000);
     };
+
+    updateCommand = function (address, code) {
+        var txHash = chain.contractZero.UpdateSmartContract(address, code).hash;
+        console.log("Updating contract ...");
+        console.log("TxHash is: " + txHash);
+        _repeatedCalls(function () {
+            var res = aelf.chain.getTxResult(txHash).result;
+            if (res.tx_status !== "Pending") {
+                console.log("TxStatus is: " + res.tx_status);
+            }
+            if (res.tx_status === "Mined") {
+                console.log('Success.');
+            }
+            return res.tx_status !== "Pending";
+        }, 3000);
+    };
 })();
