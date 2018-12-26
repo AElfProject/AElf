@@ -364,10 +364,10 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             else
             {
-                // BlockValidating -> Catching / Caught
+                _logger?.Warn( $"Invalid block ({blockValidationResult}) {block}");
                 MessageHub.Instance.Publish(StateEvent.InvalidBlock);
-                await HandleInvalidBlock(block, blockValidationResult);
-                _blockSet.RemoveInvalidBlock(block);
+                MessageHub.Instance.Publish(new LockMining(false));
+                _blockSet.RemoveInvalidBlock(block.GetHash());
             }
         }
 
@@ -386,14 +386,14 @@ namespace AElf.Synchronization.BlockSynchronization
             if (executionResult.CanExecuteAgain())
             {
                 // todo side chain logic
-                _blockSet.RemoveInvalidBlock(block);
+                _blockSet.RemoveInvalidBlock(block.GetHash());
                 MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 return;
             }
             else if (executionResult.CannotExecute())
             {
                 _executeNextBlock = false;
-                _blockSet.RemoveInvalidBlock(block);
+                _blockSet.RemoveInvalidBlock(block.GetHash());
                 return;
             }
 
@@ -408,22 +408,6 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Publish(StateEvent.BlockAppended);
             
             MessageHub.Instance.Publish(new BlockExecuted(block));
-        }
-
-        private Task HandleInvalidBlock(IBlock block, BlockValidationResult blockValidationResult)
-        {
-            _logger?.Warn( $"Invalid block ({blockValidationResult}) {block}");
-
-            MessageHub.Instance.Publish(new LockMining(false));
-
-            // Handle the invalid blocks according to their validation results.
-            if ((int) blockValidationResult < 100)
-            {
-                // todo probably wrong algo but the best is to add to cache
-                CacheBlock(block);
-            }
-
-            return Task.CompletedTask;
         }
         
         /// <summary>
