@@ -66,6 +66,34 @@ namespace AElf.Synchronization.Tests
         }
 
         [Fact]
+        public void GetBranch_WithFork_ShouldReturnFirstHeadsBranch()
+        {
+            var genesis = SyncTestHelpers.GetGenesisBlock();
+            
+            BlockSet blockSet = new BlockSet();
+            blockSet.Init(SyncTestHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
+            
+            IBlock forkRoot = SyncTestHelpers.BuildNext(genesis); // Height 2
+            
+            IBlock blockForkA = SyncTestHelpers.BuildNext(forkRoot); // Height 3
+            IBlock blockForkB = SyncTestHelpers.BuildNext(forkRoot); // Height 3
+            
+            IBlock blockForkB1 = SyncTestHelpers.BuildNext(blockForkB); // Height 4
+            
+            blockSet.PushBlock(forkRoot);
+            blockSet.PushBlock(blockForkA);
+            blockSet.PushBlock(blockForkB);
+            blockSet.PushBlock(blockForkB1);
+            
+            var branch = blockSet.GetBranch(blockSet.GetBlockStateByHash(blockForkB1.GetHash()), blockSet.GetBlockStateByHash(blockForkA.GetHash()));
+            
+            Assert.Equal(3, branch.Count);
+            Assert.Equal(branch.ElementAt(0).BlockHash, blockForkB1.GetHash());
+            Assert.Equal(branch.ElementAt(1).BlockHash, blockForkB.GetHash());
+            Assert.Equal(branch.ElementAt(2).BlockHash, forkRoot.GetHash());
+        }
+
+        [Fact]
         public void ExtendChainToLibBasicTest()
         {
             List<BlockState> eventList = new List<BlockState>();

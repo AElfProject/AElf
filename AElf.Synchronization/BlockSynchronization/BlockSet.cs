@@ -170,7 +170,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 currentOtherList = currentOtherList.PreviousState;
             }
 
-            while (currentBranchList.Previous != currentOtherList.Previous)
+            while (currentBranchList != currentOtherList)
             {
                 if (currentBranchList.Previous == null || currentOtherList.Previous == null)
                     throw new InvalidOperationException("Invalid branch list.");
@@ -182,7 +182,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 currentOtherList = currentOtherList.PreviousState;
             }
             
-            branchList.Add(currentBranchList.PreviousState.GetCopyBlockState());
+            branchList.Add(currentBranchList.GetCopyBlockState());
 
             return branchList;
         }
@@ -203,6 +203,22 @@ namespace AElf.Synchronization.BlockSynchronization
             }
 
             return res;
+        }
+
+        public BlockState GetBlockStateByHash(Hash blockHash)
+        {
+            _rwLock.AcquireReaderLock(Timeout);
+                        
+            BlockState blockSate;
+            
+            try
+            {
+                return _blocks.FirstOrDefault(b => b.BlockHash == blockHash);
+            }
+            finally
+            {
+                _rwLock.ReleaseReaderLock();
+            }
         }
 
         public IBlock GetBlockByHash(Hash blockHash)
