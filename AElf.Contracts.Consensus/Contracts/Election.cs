@@ -38,16 +38,17 @@ namespace AElf.Contracts.Consensus.Contracts
             }
             _collection.CandidatesField.SetValue(candidates);
 
-            if (alias == "")
+            if (alias == "" || alias == "Empty" || alias.Length > GlobalConfig.AliasLimit)
             {
                 alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
             }
-            
-            if (_collection.AliasesLookupMap.TryGet(alias.ToStringValue(), out _))
+
+            if (_collection.AliasesLookupMap.TryGet(alias.ToStringValue(), out var publicKeyOfThisAlias) && publicKey == publicKeyOfThisAlias.Value)
             {
                 return;
             }
             
+            _collection.AliasesLookupMap.SetValue(alias.ToStringValue(), publicKey.ToStringValue());
             _collection.AliasesMap.SetValue(publicKey.ToStringValue(), alias.ToStringValue());
 
             // Add this alias to history information of this candidate.

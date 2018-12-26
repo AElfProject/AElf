@@ -32,8 +32,8 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts = new ContractsShim(mock);
         }
         
-        [Fact]
-        //[Fact(Skip = "Time consuming")]
+        //[Fact]
+        [Fact(Skip = "Time consuming")]
         public void GetDividendsTest()
         {
             GlobalConfig.ElfTokenPerBlock = 1000;
