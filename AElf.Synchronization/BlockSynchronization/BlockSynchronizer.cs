@@ -212,6 +212,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (e is LibChangedArgs libChangedArgs)
             {
                 CurrentLib = libChangedArgs.NewLib;
+                _logger?.Debug($"New lib found: {{ id: {CurrentLib.BlockHash}, height: {CurrentLib.Index} }}");
                 
                 MessageHub.Instance.Publish(new NewLibFound
                 {
