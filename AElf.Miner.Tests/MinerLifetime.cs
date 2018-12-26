@@ -279,21 +279,21 @@ namespace AElf.Kernel.Tests.Miner
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
                 Thread.Sleep(t/2);
-                var result = manager.CollectSideChainBlockInfo();
+                var result = await manager.CollectSideChainBlockInfo();
                 int count = result.Count;
                 Assert.Equal(1, count);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight, result[0].Height);
                 _mock.GetTimes++;
                 
                 Thread.Sleep(t);
-                result = manager.CollectSideChainBlockInfo();
+                result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(1, count);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result[0].Height);
                 _mock.GetTimes++;
                 
                 Thread.Sleep(t);
-                result = manager.CollectSideChainBlockInfo();
+                result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(1, count);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result[0].Height);
@@ -301,7 +301,7 @@ namespace AElf.Kernel.Tests.Miner
                 _mock.GetTimes++;
                 
                 Thread.Sleep(t);
-                result = manager.CollectSideChainBlockInfo();
+                result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
                 Assert.Equal(0, count);
             }
@@ -350,7 +350,7 @@ namespace AElf.Kernel.Tests.Miner
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
                 
                 Thread.Sleep(t/2);
-                var result = manager.TryGetParentChainBlockInfo();
+                var result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.True(result.Count == 1);
                 Assert.True(GlobalConfig.GenesisBlockHeight == result[0].Height);
@@ -362,7 +362,7 @@ namespace AElf.Kernel.Tests.Miner
                 _mock.GetTimes++;
                 
                 Thread.Sleep(t);
-                result = manager.TryGetParentChainBlockInfo();
+                result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.True(result.Count == 1);
                 Assert.True(GlobalConfig.GenesisBlockHeight + 1 == result[0].Height);
@@ -373,7 +373,7 @@ namespace AElf.Kernel.Tests.Miner
                 _mock.GetTimes++;
 
                 Thread.Sleep(t);
-                result = manager.TryGetParentChainBlockInfo();
+                result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
                 Assert.True(result.Count == 1);
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 2, result[0].Height);

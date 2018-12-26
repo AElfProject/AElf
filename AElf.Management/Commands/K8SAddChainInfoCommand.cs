@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -8,7 +9,7 @@ namespace AElf.Management.Commands
 {
     public class K8SAddChainInfoCommand : IDeployCommand
     {
-        public void Action(DeployArg arg)
+        public async Task Action(DeployArg arg)
         {
             var body = new V1ConfigMap
             {
@@ -25,7 +26,7 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, arg.SideChainId);
+            await K8SRequestHelper.GetClient().CreateNamespacedConfigMapAsync(body, arg.SideChainId);
         }
     }
 }

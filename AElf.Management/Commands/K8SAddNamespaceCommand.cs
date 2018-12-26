@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -7,29 +8,29 @@ using k8s.Models;
 
 namespace AElf.Management.Commands
 {
-    public class K8SAddNamespaceCommand:IDeployCommand
-    {        
-        public void Action(DeployArg arg)
+    public class K8SAddNamespaceCommand : IDeployCommand
+    {
+        public async Task Action(DeployArg arg)
         {
             var retryCount = 0;
-            var deployResult = DeployNamespace(arg);
+            var deployResult = await DeployNamespace(arg);
             while (!deployResult)
             {
                 if (retryCount > GlobalSetting.DeployRetryTime)
                 {
                     throw new Exception("failed to deploy namespace");
                 }
+
                 retryCount++;
                 Thread.Sleep(3000);
-                deployResult = DeployNamespace(arg);
+                deployResult = await DeployNamespace(arg);
             }
-            
+
             Thread.Sleep(30000);
         }
 
-        private bool DeployNamespace(DeployArg arg)
+        private async Task<bool> DeployNamespace(DeployArg arg)
         {
-            
             var body = new V1Namespace
             {
                 Metadata = new V1ObjectMeta
@@ -37,10 +38,10 @@ namespace AElf.Management.Commands
                     Name = arg.SideChainId
                 }
             };
-            
-            K8SRequestHelper.GetClient().CreateNamespace(body);
 
-            var ns = K8SRequestHelper.GetClient().ReadNamespace(arg.SideChainId);
+            await K8SRequestHelper.GetClient().CreateNamespaceAsync(body);
+
+            var ns = await K8SRequestHelper.GetClient().ReadNamespaceAsync(arg.SideChainId);
             var retryCount = 0;
             while (true)
             {
@@ -56,12 +57,12 @@ namespace AElf.Management.Commands
 
                 retryCount++;
                 Thread.Sleep(3000);
-                ns = K8SRequestHelper.GetClient().ReadNamespace(arg.SideChainId);
+                ns = await K8SRequestHelper.GetClient().ReadNamespaceAsync(arg.SideChainId);
             }
 
             if (retryCount > GlobalSetting.DeployRetryTime)
             {
-                K8SRequestHelper.GetClient().DeleteNamespace(new V1DeleteOptions(), arg.SideChainId);
+                await K8SRequestHelper.GetClient().DeleteNamespaceAsync(new V1DeleteOptions(), arg.SideChainId);
                 return false;
             }
 

@@ -30,7 +30,7 @@ namespace AElf.Node
                         ? AskInvisible(NodeConfig.Instance.NodeAccount)
                         : NodeConfig.Instance.NodeAccountPassword;
 
-                    ks.OpenAsync(NodeConfig.Instance.NodeAccount, pass, false);
+                    ks.OpenAsync(NodeConfig.Instance.NodeAccount, pass, false).Wait();
 
                     NodeConfig.Instance.NodeAccountPassword = pass;
 

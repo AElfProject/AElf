@@ -7,11 +7,11 @@ using k8s;
 
 namespace AElf.Management.Services
 {
-    public class LighthouseService:ILighthouseService
+    public class LighthouseService : ILighthouseService
     {
         public async Task<List<LighthouseResult>> GetAllLighthouses(string chainId)
         {
-            var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LighthouseName);
+            var pods = await K8SRequestHelper.GetClient().ListNamespacedPodAsync(chainId, labelSelector: "name=" + GlobalSetting.LighthouseName);
 
             var result = new List<LighthouseResult>();
             foreach (var pod in pods.Items)
