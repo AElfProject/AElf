@@ -11,10 +11,10 @@ namespace AElf.Cryptography
     {
         private static readonly Secp256k1 Secp256K1 = new Secp256k1();
 
-        // ReaderWriterLock for thread-safe with Secp256k1 APIs 
+        // ReaderWriterLock for thread-safe with Secp256k1 APIs
         private static readonly ReaderWriterLock Lock = new ReaderWriterLock();
 
-        // TODO: maybe need refactor, both Cryptography and CryptoHelpers expose public method.
+        // TODO: maybe need refactor, both Cryptography.EC* and Cryptography.CryptoHelpers expose public method.
         static CryptoHelpers()
         {
             AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { Secp256K1.Dispose(); };
