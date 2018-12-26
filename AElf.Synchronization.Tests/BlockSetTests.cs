@@ -60,7 +60,7 @@ namespace AElf.Synchronization.Tests
             var invalidBlock = SyncTestHelpers.BuildNext(genesis);
             
             blockSet.PushBlock(invalidBlock);
-            blockSet.RemoveInvalidBlock(invalidBlock);
+            blockSet.RemoveInvalidBlock(invalidBlock.GetHash());
             
             Assert.False(blockSet.IsBlockReceived(invalidBlock));
         }
