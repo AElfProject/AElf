@@ -10,7 +10,7 @@ using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContract;
 using FunctionMetadata = AElf.Kernel.SmartContract.FunctionMetadata;
 

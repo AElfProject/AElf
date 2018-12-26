@@ -14,7 +14,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
@@ -37,7 +37,7 @@ namespace AElf.Miner.Miner
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IMerkleTreeManager _merkleTreeManager;
+        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
         private IBlockChain _blockChain;
@@ -52,7 +52,7 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
-            IMerkleTreeManager merkleTreeManager, ServerManager serverManager,
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IChainContextService chainContextService
             , IChainManager chainManager,IStateManager stateManager)
         {
@@ -61,7 +61,7 @@ namespace AElf.Miner.Miner
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
-            _merkleTreeManager = merkleTreeManager;
+            _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
 
@@ -377,7 +377,7 @@ namespace AElf.Miner.Miner
                 await _transactionResultManager.AddTransactionResultAsync(r);
             });
             // update merkle tree
-            _merkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
+            _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
                 block.Header.Index);
         }
 

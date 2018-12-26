@@ -4,7 +4,7 @@ using AElf.Common.Attributes;
 using NLog;
 using Org.BouncyCastle.Security;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContract;
 
 namespace AElf.SmartContract.Metadata
