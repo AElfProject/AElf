@@ -191,7 +191,7 @@ namespace AElf.Miner.Tests
         private Mock<IBlockChain> MockBlockChain()
         {
             Mock<IBlockChain> mock = new Mock<IBlockChain>();
-            mock.Setup(bc => bc.GetBlockByHeightAsync(It.IsAny<ulong>()))
+            mock.Setup(bc => bc.GetBlockByHeightAsync(It.IsAny<ulong>(), false))
                 .Returns<ulong>(p => Task.FromResult(_blocks[(int) p - 1]));
             return mock;
         }
