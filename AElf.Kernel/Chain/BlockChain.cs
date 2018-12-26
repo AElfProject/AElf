@@ -14,7 +14,7 @@ using AElf.Kernel.Types.Common;
 namespace AElf.Kernel
 {
     public class BlockChain : LightChain, IBlockChain
-    {    
+    {
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IStateStore _stateStore;
@@ -36,9 +36,9 @@ namespace AElf.Kernel
             _doingRollback = false;
             _prepareTerminated = false;
             _terminated = false;
-            
+
             _logger = LogManager.GetLogger(nameof(BlockChain));
-            
+
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
             {
                 if (signal.Module == TerminatedModuleEnum.BlockRollback)
@@ -83,9 +83,14 @@ namespace AElf.Kernel
             }
         }
 
-        public async Task<IBlock> GetBlockByHashAsync(Hash blockId, bool withTransaction=false)
+        public async Task<IBlock> GetBlockByHashAsync(Hash blockId, bool withTransaction = false)
         {
             var blk = await _blockManager.GetBlockAsync(blockId);
+            if (!withTransaction)
+            {
+                return blk;
+            }
+
             blk.Body.TransactionList.Clear();
             foreach (var txHash in blk.Body.Transactions)
             {
@@ -96,7 +101,7 @@ namespace AElf.Kernel
             return blk;
         }
 
-        public async Task<IBlock> GetBlockByHeightAsync(ulong height, bool withTransaction=false)
+        public async Task<IBlock> GetBlockByHeightAsync(ulong height, bool withTransaction = false)
         {
             var header = await GetHeaderByHeightAsync(height);
             if (header == null)
@@ -190,7 +195,8 @@ namespace AElf.Kernel
         private async Task RollbackStateForBlock(IBlock block)
         {
             var txIds = block.Body.Transactions;
-            var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index, Hash.FromRawBytes(block.Header.P.ToByteArray()));
+            var disambiguationHash =
+                HashHelpers.GetDisambiguationHash(block.Header.Index, Hash.FromRawBytes(block.Header.P.ToByteArray()));
             await RollbackStateForTransactions(txIds, disambiguationHash);
         }
 
