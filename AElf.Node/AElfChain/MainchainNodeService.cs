@@ -158,15 +158,12 @@ namespace AElf.Node.AElfChain
             #endregion setup
 
             #region start
+            
+            _blockSynchronizer.Init();
 
             _txHub.Start();
 
             _consensus?.Start(NodeConfig.Instance.IsMiner);
-
-            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
-            {
-                await _blockSynchronizer.ReceiveBlock(inBlock.Block);
-            });
 
             MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });

@@ -17,14 +17,12 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class StoragesTest
     {
-        private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
 
-        public StoragesTest(IDataStore dataStore, BlockTest blockTest, IChainService chainService, ILogger logger)
+        public StoragesTest(BlockTest blockTest, IChainService chainService, ILogger logger)
         {
-            _dataStore = dataStore;
             _blockTest = blockTest;
             _chainService = chainService;
             _logger = logger;

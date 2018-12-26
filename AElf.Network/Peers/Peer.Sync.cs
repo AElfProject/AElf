@@ -106,6 +106,8 @@ namespace AElf.Network.Peers
             // set sync state
             SyncTarget = target;
             CurrentlyRequestedHeight = start;
+            
+            _logger?.Debug($"[{this}] Syncing to height {SyncTarget}.");
 
             // request 
             RequestBlockByIndex(CurrentlyRequestedHeight);
@@ -122,6 +124,15 @@ namespace AElf.Network.Peers
         {
             if (CurrentlyRequestedHeight == SyncTarget)
             {
+                if (_announcements.Any())
+                {
+                    var aa = _announcements.OrderBy(a => a.Height).FirstOrDefault();
+                    if (aa != null && aa.Height != SyncTarget+1)
+                        _logger?.Warn($"[{this}] We're missing a block, first announce {aa.Height} sync target {SyncTarget}");
+                    else
+                        _logger?.Debug($"[{this}] All synced : next {aa?.Height} sync target {SyncTarget}");
+                }
+                
                 SyncTarget = 0;
                 CurrentlyRequestedHeight = 0;
                 MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
@@ -196,7 +207,7 @@ namespace AElf.Network.Peers
                 if (a.Height <= KnownHeight)
                 {
                     // todo just log for now, but this is probably a protocol error.
-                    _logger?.Warn($"[{this}] current know heigth: {KnownHeight} announcement height {a.Height}.");
+                    _logger?.Warn($"[{this}] current know height: {KnownHeight} announcement height {a.Height}.");
                 }
 
                 KnownHeight = a.Height;
@@ -333,7 +344,7 @@ namespace AElf.Network.Peers
 
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                     
-                    Dispose();
+                    //Dispose();
                 }
             }
         }

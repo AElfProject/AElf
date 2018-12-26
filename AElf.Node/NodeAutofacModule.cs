@@ -21,7 +21,6 @@ namespace AElf.Node
             builder.RegisterType<Node>().As<INode>();
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
-            builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
             builder.RegisterGeneric(typeof(EqualityIndex<,>)).As(typeof(IEqualityIndex<>));
             builder.RegisterGeneric(typeof(ComparisionIndex<,>)).As(typeof(IComparisionIndex<>));
             builder.RegisterType<ConsensusDataReader>();

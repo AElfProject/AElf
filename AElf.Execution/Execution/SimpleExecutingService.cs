@@ -7,6 +7,7 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
+using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Types.CSharp;
@@ -20,16 +21,16 @@ namespace AElf.Execution.Execution
         private ISmartContractService _smartContractService;
         private ITransactionTraceManager _transactionTraceManager;
         private IChainContextService _chainContextService;
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
 
         public SimpleExecutingService(ISmartContractService smartContractService,
-            ITransactionTraceManager transactionTraceManager, IStateStore stateStore,
+            ITransactionTraceManager transactionTraceManager, IStateManager stateManager,
             IChainContextService chainContextService)
         {
             _smartContractService = smartContractService;
             _transactionTraceManager = transactionTraceManager;
             _chainContextService = chainContextService;
-            _stateStore = stateStore;
+            _stateManager = stateManager;
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
@@ -49,7 +50,7 @@ namespace AElf.Execution.Execution
                     trace.SurfaceUpError();
                 }
 
-                await trace.SmartCommitChangesAsync(_stateStore);
+                await trace.SmartCommitChangesAsync(_stateManager);
 
                 if (_transactionTraceManager != null)
                 {

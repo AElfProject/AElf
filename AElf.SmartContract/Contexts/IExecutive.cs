@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Managers;
 
 namespace AElf.SmartContract
 {
@@ -12,7 +12,7 @@ namespace AElf.SmartContract
         IExecutive SetMaxCallDepth(int maxCallDepth);
         IExecutive SetSmartContractContext(ISmartContractContext contractContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
-        IExecutive SetStateStore(IStateStore stateStore);
+        IExecutive SetStateManager(IStateManager stateManager);
         void SetDataCache(Dictionary<StatePath, StateCache> cache); //temporary solution to let data provider access actor's state cache
         Task Apply();
         ulong GetFee(string methodName);

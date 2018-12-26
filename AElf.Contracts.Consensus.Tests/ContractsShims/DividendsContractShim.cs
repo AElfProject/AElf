@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private async Task CommitChangesAsync(TransactionTrace trace)
         {
-            await trace.SmartCommitChangesAsync(_mock.StateStore);
+            await trace.SmartCommitChangesAsync(_mock.StateManager);
         }
 
         private async Task DeployDividendsContractAsync()

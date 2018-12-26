@@ -286,13 +286,13 @@ namespace AElf.ChainController.Rpc
         
         internal static async Task<Block> GetBlock(this Svc s, Hash blockHash)
         {
-            var blockchain = s.ChainService.GetBlockChain(Hash.LoadHex(ChainConfig.Instance.ChainId));
+            var blockchain = s.ChainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHashAsync(blockHash);
         }
 
         internal static async Task<int> GetInvalidBlockCount(this Svc s)
         {
-            return s.BlockSet.InvalidBlockCount;
+            return 999; // todo better metric 
         }
         
         #region Consensus

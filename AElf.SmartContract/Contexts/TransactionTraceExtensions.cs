@@ -7,29 +7,28 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
 
 namespace AElf.SmartContract
 {
     public static class TransactionTraceExtensions
     {
-        public static async Task SmartCommitChangesAsync(this TransactionTrace trace, IStateStore stateStore)
+        public static async Task SmartCommitChangesAsync(this TransactionTrace trace, IStateManager stateManager)
         {
             if (trace.IsSuccessful() && trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
             {
                 if (trace.FeeTransactionTrace != null)
                 {
-                    await trace.FeeTransactionTrace.CommitChangesAsync(stateStore);    
+                    await trace.FeeTransactionTrace.CommitChangesAsync(stateManager);    
                 }
-                await trace.CommitChangesAsync(stateStore);
+                await trace.CommitChangesAsync(stateManager);
             }
             else if (trace.Chargeable() && trace.FeeTransactionTrace != null)
             {
-                await trace.FeeTransactionTrace.CommitChangesAsync(stateStore);
+                await trace.FeeTransactionTrace.CommitChangesAsync(stateManager);
             }
         }
 
-        private static async Task CommitChangesAsync(this TransactionTrace trace, IStateStore stateStore)
+        private static async Task CommitChangesAsync(this TransactionTrace trace, IStateManager stateManager)
         {
             if (trace.ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
@@ -39,8 +38,7 @@ namespace AElf.SmartContract
 
             if (trace.StateChanges.Count > 0)
             {
-                await stateStore.PipelineSetDataAsync(trace.StateChanges.ToDictionary(x => x.StatePath,
-                    x => x.StateValue.CurrentValue.ToByteArray()));
+                await stateManager.PipelineSetAsync(trace.StateChanges.ToDictionary(x => x.StatePath, x => x.StateValue.CurrentValue.ToByteArray()));
             }
 
             trace.StateHash = Hash.FromRawBytes(ByteArrayHelpers.Combine(trace.StateChanges
@@ -48,7 +46,7 @@ namespace AElf.SmartContract
             trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
             foreach (var trc in trace.InlineTraces)
             {
-                await trc.CommitChangesAsync(stateStore);
+                await trc.CommitChangesAsync(stateManager);
             }
         }
     }

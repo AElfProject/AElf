@@ -12,6 +12,5 @@ namespace AElf.Kernel
         Task<IBlock> GetBlockByHeightAsync(ulong height, bool withTransaction=false);
         Task<List<Transaction>> RollbackToHeight(ulong height);
         Task RollbackStateForTransactions(IEnumerable<Hash> txIds, Hash disambiguationHash);
-        Task<List<Transaction>> RollbackOneBlock();
     }
 }

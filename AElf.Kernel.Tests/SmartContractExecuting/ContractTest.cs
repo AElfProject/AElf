@@ -10,7 +10,6 @@ using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
-using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
@@ -33,19 +32,19 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         private IChainContextService _chainContextService;
         private IChainService _chainService;
         private ITransactionManager _transactionManager;
-        private IStateStore _stateStore;
+        private IStateManager _stateManager;
         private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
         private IFunctionMetadataService _functionMetadataService;
 
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        public ContractTest(IStateStore stateStore,
+        public ContractTest(IStateManager stateManager,
             IChainCreationService chainCreationService, IChainService chainService,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer)
         {
-            _stateStore = stateStore;
+            _stateManager = stateManager;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _transactionManager = transactionManager;
@@ -53,7 +52,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, stateStore, _functionMetadataService, _chainService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager, _functionMetadataService, _chainService);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -114,7 +113,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
-            await txnCtxt.Trace.SmartCommitChangesAsync(_stateStore);
+            await txnCtxt.Trace.SmartCommitChangesAsync(_stateManager);
             
             Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
@@ -167,7 +166,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
-            await txnCtxt.Trace.SmartCommitChangesAsync(_stateStore);
+            await txnCtxt.Trace.SmartCommitChangesAsync(_stateManager);
 
             var returnVal = txnCtxt.Trace.RetVal;
             var address = Address.FromBytes(returnVal.Data.DeserializeToBytes());
@@ -188,7 +187,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(address, ChainId);
             await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-            await txnInitCtxt.Trace.SmartCommitChangesAsync(_stateStore);
+            await txnInitCtxt.Trace.SmartCommitChangesAsync(_stateManager);
             
             #endregion initialize account balance
 
@@ -224,7 +223,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 Transaction = txnBal
             };
             await executiveUser.SetTransactionContext(txnPrintcxt).Apply();
-            await txnPrintcxt.Trace.SmartCommitChangesAsync(_stateStore);
+            await txnPrintcxt.Trace.SmartCommitChangesAsync(_stateManager);
 
             //Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
             #endregion
