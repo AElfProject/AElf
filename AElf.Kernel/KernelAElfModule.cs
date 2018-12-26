@@ -13,9 +13,6 @@ using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-using Microsoft.Extensions.Logging;
-using ProtobufSerializer = Akka.Remote.Serialization.ProtobufSerializer;
-
 namespace AElf.Kernel
 {
     [DependsOn(typeof(TypesAElfModule),typeof(DatabaseAElfModule),typeof(CoreAElfModule))]
