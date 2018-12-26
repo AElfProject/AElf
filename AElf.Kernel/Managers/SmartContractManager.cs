@@ -1,29 +1,28 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Types;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
 {
     public class SmartContractManager : ISmartContractManager
     {
-        private readonly IDataStore _dataStore;
+        private readonly ISmartContractStore _smartContractStore;
 
-        public SmartContractManager(IDataStore dataStore)
+        public SmartContractManager(ISmartContractStore smartContractStore)
         {
-            _dataStore = dataStore;
+            _smartContractStore = smartContractStore;
         }
 
         public async Task<SmartContractRegistration> GetAsync(Address contractAddress)
         {
-            return await _dataStore.GetAsync<SmartContractRegistration>(
-                Hash.FromMessage(contractAddress)
+            return await _smartContractStore.GetAsync<SmartContractRegistration>(
+                contractAddress.GetPublicKeyHash()
             );
         }
 
         public async Task InsertAsync(Address contractAddress, SmartContractRegistration reg)
         {
-            await _dataStore.InsertAsync(Hash.FromMessage(contractAddress), reg);
+            await _smartContractStore.SetAsync(contractAddress.GetPublicKeyHash(), reg);
         }
     }
 }

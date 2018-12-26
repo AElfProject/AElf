@@ -2,27 +2,26 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel.Storages;
-using Google.Protobuf;
 using NLog;
 
 namespace AElf.Kernel.Managers
 {
     public class MinersManager : IMinersManager
     {
-        private readonly IDataStore _dataStore;
+        private readonly IMinersStore _minersStore;
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(MinersManager));
 
         private static Hash Key => Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash());
 
-        public MinersManager(IDataStore dataStore)
+        public MinersManager(IMinersStore minersStore)
         {
-            _dataStore = dataStore;
+            _minersStore = minersStore;
         }
 
         public async Task<Miners> GetMiners()
         {
-            var miners = await _dataStore.GetAsync<Miners>(Key);
+            var miners = await GetMiners(Key.ToHex());
             if (miners != null && !miners.IsEmpty())
                 return miners;
 
@@ -39,7 +38,7 @@ namespace AElf.Kernel.Managers
 
         public async Task<bool> IsMinersInDatabase()
         {
-            var miners = await _dataStore.GetAsync<Miners>(Key);
+            var miners = await GetMiners(Key.ToHex());
             return miners != null && !miners.IsEmpty();
         }
 
@@ -50,7 +49,17 @@ namespace AElf.Kernel.Managers
                 _logger?.Trace($"Set miner {publicKey} to data store.");
             }
 
-            await _dataStore.InsertAsync(Key, miners);
+            await SetMiners(Key.ToHex(), miners);
+        }
+
+        private async Task<Miners> GetMiners(string key)
+        {
+            return await _minersStore.GetAsync<Miners>(key);
+        }
+
+        private async Task SetMiners(string key, Miners miners)
+        {
+            await _minersStore.SetAsync(key, miners);
         }
     }
 }

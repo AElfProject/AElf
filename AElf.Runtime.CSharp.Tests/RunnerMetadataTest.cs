@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Storages;
 using AElf.SmartContract;
 using AElf.SmartContract.MetaData;
@@ -19,12 +20,10 @@ namespace AElf.Runtime.CSharp.Tests
     [UseAutofacTestFramework]
     public class RunnerMetadataTest
     {
-        private IDataStore _store;
         private MockSetup _mock;
 
-        public RunnerMetadataTest(IDataStore store, MockSetup mock)
+        public RunnerMetadataTest(MockSetup mock)
         {
-            _store = store;
             _mock = mock;
         }
 

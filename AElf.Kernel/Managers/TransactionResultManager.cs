@@ -1,28 +1,26 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Types;
 using AElf.Common;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
 {
     public class TransactionResultManager : ITransactionResultManager
     {
-        private readonly IDataStore _dataStore;
-        public TransactionResultManager(IDataStore dataStore)
+        private readonly ITransactionResultStore _transactionResultStore;
+
+        public TransactionResultManager(ITransactionResultStore transactionResultStore)
         {
-            _dataStore = dataStore;
+            _transactionResultStore = transactionResultStore;
         }
 
         public async Task AddTransactionResultAsync(TransactionResult tr)
         {
-            var trKey = DataPath.CalculatePointerForTxResult(tr.TransactionId);
-            await _dataStore.InsertAsync(trKey, tr);
+            await _transactionResultStore.SetAsync(tr.TransactionId.ToHex(), tr);
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId)
         {
-            var trKey = DataPath.CalculatePointerForTxResult(txId);
-            return await _dataStore.GetAsync<TransactionResult>(trKey);
+            return await _transactionResultStore.GetAsync<TransactionResult>(txId.ToHex());
         }
     }
 }

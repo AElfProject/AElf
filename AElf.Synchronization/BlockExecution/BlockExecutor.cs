@@ -15,7 +15,6 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
 using AElf.Kernel.Types.Common;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
@@ -37,6 +36,8 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
+        private readonly IChainManager _chainManager;
+        private readonly IStateManager _stateManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private static bool _executing;
         private static bool _prepareTerminated;
@@ -45,7 +46,7 @@ namespace AElf.Synchronization.BlockExecution
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IStateStore stateStore)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManager chainManager, IStateManager stateManager)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -53,7 +54,9 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
-            _consensusDataProvider = new ConsensusDataProvider(stateStore);
+            _chainManager = chainManager;
+            _stateManager = stateManager;
+            _consensusDataProvider = new ConsensusDataProvider(_stateManager);
 
             _logger = LogManager.GetLogger(nameof(BlockExecutor));
 

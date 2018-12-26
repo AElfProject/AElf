@@ -212,6 +212,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (e is LibChangedArgs libChangedArgs)
             {
                 CurrentLib = libChangedArgs.NewLib;
+                _logger?.Debug($"New lib found: {{ id: {CurrentLib.BlockHash}, height: {CurrentLib.Index} }}");
                 
                 MessageHub.Instance.Publish(new NewLibFound
                 {
@@ -330,7 +331,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 
                 // At this point we're ready to execute the block
                 // Here if we detect that we're out of sync with the current blockset head -> switch forks
-                if (HeadBlock.BlockHash != _blockSet.CurrentHead.Previous) 
+                if (HeadBlock.BlockHash != _blockSet.CurrentHead.BlockHash && HeadBlock.BlockHash != _blockSet.CurrentHead.Previous) 
                 {
                     // The SwitchFork method should handle the FSMs state, rollback current branch and execute the other branch.
                     // and the updates the current branch in the blockset
@@ -480,7 +481,7 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        private void AddMinedBlock(IBlock block)
+        public void AddMinedBlock(IBlock block)
         {
             try
             {

@@ -10,6 +10,7 @@ using AElf.Kernel;
 using Grpc.Core;
 using NLog;
 using AElf.Common;
+using AElf.Kernel.Managers;
 using Easy.MessageHub;
 using NLog.Fluent;
 
@@ -21,6 +22,7 @@ namespace AElf.Miner.Rpc.Server
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private IBlockChain BlockChain { get; set; }
+        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         private ulong LibHeight { get; set; }
         public ParentChainBlockInfoRpcServer(IChainService chainService, ILogger logger, ICrossChainInfoReader crossChainInfoReader)
