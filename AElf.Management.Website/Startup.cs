@@ -21,22 +21,16 @@ namespace AElf.Management.Website
         }
 
         public IConfiguration Configuration { get; }
-                
+
         public IContainer ApplicationContainer { get; private set; }
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(options =>
-                {
-                    options.Filters.Add(new AuthenticationFilter());
-                }
+            services.AddMvc(options => { options.Filters.Add(new AuthenticationFilter()); }
             ).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Info { Title = "AElf API", Version = "v1" });
-            });
-            
+
+            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Info {Title = "AElf API", Version = "v1"}); });
+
             var builder = new ContainerBuilder();
 
             builder.RegisterModule(new LoggerAutofacModule());
@@ -53,7 +47,7 @@ namespace AElf.Management.Website
 
             builder.Populate(services);
             var ApplicationContainer = builder.Build();
-            
+
             ApplicationContainer.Resolve<IRecordService>().Start();
 
             return new AutofacServiceProvider(ApplicationContainer);
@@ -69,7 +63,7 @@ namespace AElf.Management.Website
             {
                 app.UseHsts();
             }
-            
+
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
 

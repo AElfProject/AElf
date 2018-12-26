@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
@@ -18,7 +17,7 @@ namespace AElf.Management.Website.Controllers
         {
             _chainService = chainService;
         }
-        
+
         [HttpGet]
         [Route("list")]
         public async Task<ApiResult<List<ChainResult>>> List()
@@ -30,15 +29,15 @@ namespace AElf.Management.Website.Controllers
         [HttpPost]
         public async Task<ApiEmptyResult> Deploy([FromBody] DeployArg arg)
         {
-            _chainService.DeployMainChain(arg);
+            await _chainService.DeployMainChain(arg);
             return ApiEmptyResult.Default;
         }
-        
+
         [HttpDelete]
         [Route("{chainId}")]
         public async Task<ApiEmptyResult> Remove(string chainId)
         {
-            _chainService.RemoveMainChain(chainId);
+            await _chainService.RemoveMainChain(chainId);
             return ApiEmptyResult.Default;
         }
     }

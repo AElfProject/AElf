@@ -44,7 +44,6 @@ namespace AElf.Miner.Miner
         private IBlockChain _blockChain;
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private ECKeyPair _keyPair;
-        private readonly IChainManager _chainManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;
@@ -239,13 +238,13 @@ namespace AElf.Miner.Miner
         private async Task GenerateCrossTransaction(ulong refBlockHeight, byte[] refBlockPrefix)
         {
             var address = Address.FromPublicKey(_keyPair.PublicKey);
-            var txnForIndexingSideChain = _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingSideChain(address, refBlockHeight,
+            var txnForIndexingSideChain = await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingSideChain(address, refBlockHeight,
                     refBlockPrefix);
             if (txnForIndexingSideChain != null)
                 await SignAndInsertToPool(txnForIndexingSideChain);
 
             var txnForIndexingParentChain =
-                _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingParentChain(address, refBlockHeight,
+                await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingParentChain(address, refBlockHeight,
                     refBlockPrefix);
             if (txnForIndexingParentChain != null)
                 await SignAndInsertToPool(txnForIndexingParentChain);

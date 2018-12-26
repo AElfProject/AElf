@@ -8,12 +8,12 @@ using k8s.Models;
 
 namespace AElf.Management.Services
 {
-    public class LauncherService:ILauncherService
+    public class LauncherService : ILauncherService
     {
         public async Task<List<LauncherResult>> GetAllLaunchers(string chainId)
         {
-            var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.LauncherName);
-            
+            var pods = await K8SRequestHelper.GetClient().ListNamespacedPodAsync(chainId, labelSelector: "name=" + GlobalSetting.LauncherName);
+
             var result = new List<LauncherResult>();
             foreach (var pod in pods.Items)
             {

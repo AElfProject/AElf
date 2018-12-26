@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
@@ -26,38 +27,40 @@ namespace AElf.SmartContract.Consensus
             _contractInfoReader = new ContractInfoReader(chainId, stateManager);
         }
         
-        public bool IsCandidate(string publicKey)
+        public async Task<bool> IsCandidate(string publicKey)
         {
-            var candidatesBytes = _contractInfoReader.GetBytes<Candidates>(ConsensusContractAddress,
+            var candidatesBytes = await _contractInfoReader.GetBytesAsync<Candidates>(ConsensusContractAddress,
                 Hash.FromString(GlobalConfig.AElfDPoSCandidatesString));
             var candidates = Candidates.Parser.ParseFrom(candidatesBytes);
             return candidates.PublicKeys.Contains(publicKey);
         }
 
-        public Tickets GetVotingInfo(string publicKey)
+        public async Task<Tickets> GetVotingInfo(string publicKey)
         {
-            var ticketsBytes = _contractInfoReader.GetBytes<Tickets>(ConsensusContractAddress,
+            var ticketsBytes = await _contractInfoReader.GetBytesAsync<Tickets>(ConsensusContractAddress,
                 Hash.FromMessage(publicKey.ToStringValue()), GlobalConfig.AElfDPoSCandidatesString);
             var tickets = Tickets.Parser.ParseFrom(ticketsBytes);
             return tickets;
         }
 
-        public Tuple<ulong, ulong> GetVotesGeneral()
+        public async Task<Tuple<ulong, ulong>> GetVotesGeneral()
         {
-            throw new NotImplementedException();
+            // TODO NotImplemented
+            return await Task.FromResult(default(Tuple<ulong, ulong>));
         }
 
-        public Round GetRoundInfo(ulong roundNumber)
+        public async Task<Round> GetRoundInfo(ulong roundNumber)
         {
-            var roundBytes = _contractInfoReader.GetBytes<Round>(ConsensusContractAddress,
+            var roundBytes = await _contractInfoReader.GetBytesAsync<Round>(ConsensusContractAddress,
                 Hash.FromMessage(roundNumber.ToUInt64Value()), GlobalConfig.AElfDPoSRoundsMapString);
             var round = Round.Parser.ParseFrom(roundBytes);
             return round;
         }
 
-        public List<string> GetCurrentMines()
+        public async Task<List<string>> GetCurrentMines()
         {
-            throw new NotImplementedException();
+            // TODO NotImplemented
+            return await Task.FromResult(default(List<string>));
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Website.Models;
@@ -9,7 +8,7 @@ namespace AElf.Management.Website.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class NetworkController: ControllerBase
+    public class NetworkController : ControllerBase
     {
         private readonly INetworkService _networkService;
 
@@ -17,16 +16,16 @@ namespace AElf.Management.Website.Controllers
         {
             _networkService = networkService;
         }
-        
+
         [HttpGet]
         [Route("peers/{chainId}")]
         public async Task<ApiResult<PeerResult>> Peers(string chainId)
         {
             var result = await _networkService.GetPeers(chainId);
-            
+
             return new ApiResult<PeerResult>(result);
         }
-        
+
 //        [HttpGet]
 //        [Route("pool/{chainId}")]
 //        public ApiResult<PoolStateResult> PoolState(string chainId)

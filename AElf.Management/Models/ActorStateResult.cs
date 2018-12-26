@@ -7,7 +7,7 @@ namespace AElf.Management.Models
     public class ActorStateResult
     {
         public string Roles { get; set; }
-        
+
         public string Address { get; set; }
 
         public string Status { get; set; }

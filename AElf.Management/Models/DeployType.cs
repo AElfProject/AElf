@@ -2,8 +2,8 @@
 {
     public enum DeployType
     {
-        Deploy=0,
-        
-        Remove=1
+        Deploy = 0,
+
+        Remove = 1
     }
 }

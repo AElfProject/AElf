@@ -6,7 +6,7 @@ namespace AElf.Management.Models
     {
         public BlockInfoResultDetail Result { get; set; }
     }
-    
+
     public class BlockInfoResultDetail
     {
         public BlockInfoHeader Header { get; set; }

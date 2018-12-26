@@ -30,7 +30,6 @@ namespace AElf.Synchronization.BlockSynchronization
         private List<BlockState> _blocks;
 
         private ReaderWriterLock _rwLock = new ReaderWriterLock();
-        private static int _flag;
 
         public ulong KeepHeight { get; set; } = ulong.MaxValue;
         

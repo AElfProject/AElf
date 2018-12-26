@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -12,18 +13,18 @@ namespace AElf.Management.Commands
     {
         private const int Replicas = 1;
 
-        public void Action(DeployArg arg)
+        public async Task Action(DeployArg arg)
         {
-            AddConfig(arg);
-            AddService(arg);
-            var addSetResult = AddStatefulSet(arg);
+            await AddConfig(arg);
+            await AddService(arg);
+            var addSetResult = await AddStatefulSet(arg);
             if (!addSetResult)
             {
                 throw new Exception("failed to deploy redis");
             }
         }
 
-        private void AddConfig(DeployArg arg)
+        private async Task AddConfig(DeployArg arg)
         {
             var body = new V1ConfigMap
             {
@@ -43,10 +44,10 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, arg.SideChainId);
+            await K8SRequestHelper.GetClient().CreateNamespacedConfigMapAsync(body, arg.SideChainId);
         }
 
-        private void AddService(DeployArg arg)
+        private async Task AddService(DeployArg arg)
         {
             var body = new V1Service
             {
@@ -72,10 +73,10 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.GetClient().CreateNamespacedService(body, arg.SideChainId);
+            await K8SRequestHelper.GetClient().CreateNamespacedServiceAsync(body, arg.SideChainId);
         }
 
-        private bool AddStatefulSet(DeployArg arg)
+        private async Task<bool> AddStatefulSet(DeployArg arg)
         {
             var body = new V1StatefulSet
             {
@@ -148,9 +149,9 @@ namespace AElf.Management.Commands
                 }
             };
 
-            var result = K8SRequestHelper.GetClient().CreateNamespacedStatefulSet(body, arg.SideChainId);
+            var result = await K8SRequestHelper.GetClient().CreateNamespacedStatefulSetAsync(body, arg.SideChainId);
 
-            var set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, arg.SideChainId);
+            var set = await K8SRequestHelper.GetClient().ReadNamespacedStatefulSetAsync(result.Metadata.Name, arg.SideChainId);
             var retryGetCount = 0;
             var retryDeleteCount = 0;
             while (true)
@@ -159,13 +160,14 @@ namespace AElf.Management.Commands
                 {
                     break;
                 }
+
                 if (retryGetCount > GlobalSetting.DeployRetryTime)
                 {
-                    DeletePod(arg.SideChainId, arg);
+                    await DeletePod(arg.SideChainId, arg);
                     retryDeleteCount++;
                     retryGetCount = 0;
                 }
-                
+
                 if (retryDeleteCount > GlobalSetting.DeployRetryTime)
                 {
                     return false;
@@ -173,15 +175,15 @@ namespace AElf.Management.Commands
 
                 retryGetCount++;
                 Thread.Sleep(3000);
-                set = K8SRequestHelper.GetClient().ReadNamespacedStatefulSet(result.Metadata.Name, arg.SideChainId);
+                set = await K8SRequestHelper.GetClient().ReadNamespacedStatefulSetAsync(result.Metadata.Name, arg.SideChainId);
             }
 
             return true;
         }
-        
-        private void DeletePod(string chainId, DeployArg arg)
+
+        private async Task DeletePod(string chainId, DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteCollectionNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.RedisName);
+            await K8SRequestHelper.GetClient().DeleteCollectionNamespacedPodAsync(chainId, labelSelector: "name=" + GlobalSetting.RedisName);
         }
     }
 }
