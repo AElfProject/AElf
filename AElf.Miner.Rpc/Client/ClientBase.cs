@@ -136,6 +136,7 @@ namespace AElf.Miner.Rpc.Client
                             await Task.Delay(UnavailableConnectionInterval);
                         }
 
+                        // TODO: maybe improvement for NO wait call, or change the try solution
                         var task = StartDuplexStreamingCall(cancellationToken, _next);
                         return;
                     }

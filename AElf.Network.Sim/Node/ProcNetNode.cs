@@ -61,6 +61,7 @@ namespace AElf.Network.Sim.Node
         public void Stop()
         {
             _process.Close();
+            // TODO: maybe improvement for NO wait call
             var task = _nodeEventStream?.StopAsync();
         }
     }

@@ -199,6 +199,7 @@ namespace AElf.Miner.Rpc.Server
         /// </summary>
         public void Close()
         {
+            // TODO: maybe improvement for NO wait call
             var stopSideChainServerTask = StopSideChainServer();
             var stopParentChainServerTask = StopParentChainServer();
         }

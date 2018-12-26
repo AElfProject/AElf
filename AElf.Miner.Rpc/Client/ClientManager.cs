@@ -124,6 +124,7 @@ namespace AElf.Miner.Rpc.Client
                 var height = await GetSideChainTargetHeight(Hash.LoadBase58(sideChainId));
 
                 // keep-alive
+                // TODO: maybe improvement for NO wait call 
                 var task = client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height);
                 _logger?.Info($"Created client to side chain {sideChainId}");
             }
@@ -173,7 +174,8 @@ namespace AElf.Miner.Rpc.Client
                     throw new ChainInfoNotFoundException("Unable to get parent chain info.");
                 _clientToParentChain =
                     (ClientToParentChain) CreateClient(parent.ElementAt(0).Value, parent.ElementAt(0).Key, false);
-                var targetHeight = await GetParentChainTargetHeight() ;
+                var targetHeight = await GetParentChainTargetHeight();
+                // TODO: maybe improvement for NO wait call
                 var task = _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, targetHeight);
                 _logger?.Info($"Created client to parent chain {parent.ElementAt(0).Key}");
             }
