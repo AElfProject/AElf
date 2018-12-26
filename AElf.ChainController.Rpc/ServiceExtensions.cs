@@ -245,25 +245,25 @@ namespace AElf.ChainController.Rpc
 
         #region Cross chain
 
-        internal static MerklePath GetTxRootMerklePathInParentChain(this Svc s, ulong height)
+        internal static async Task<MerklePath> GetTxRootMerklePathInParentChain(this Svc s, ulong height)
         {
-            var merklePath = s.CrossChainInfoReader.GetTxRootMerklePathInParentChain(height);
+            var merklePath = await s.CrossChainInfoReader.GetTxRootMerklePathInParentChainAsync(height);
             if (merklePath != null)
                 return merklePath;
             throw new Exception();
         }
 
-        internal static ParentChainBlockInfo GetParentChainBlockInfo(this Svc s, ulong height)
+        internal static async Task<ParentChainBlockInfo> GetParentChainBlockInfo(this Svc s, ulong height)
         {
-            var parentChainBlockInfo = s.CrossChainInfoReader.GetBoundParentChainBlockInfo(height);
+            var parentChainBlockInfo = await s.CrossChainInfoReader.GetBoundParentChainBlockInfoAsync(height);
             if (parentChainBlockInfo != null)
                 return parentChainBlockInfo;
             throw new Exception();
         }
 
-        internal static ulong GetBoundParentChainHeight(this Svc s, ulong height)
+        internal static async Task<ulong> GetBoundParentChainHeight(this Svc s, ulong height)
         {
-            var parentHeight = s.CrossChainInfoReader.GetBoundParentChainHeight(height);
+            var parentHeight = await s.CrossChainInfoReader.GetBoundParentChainHeightAsync(height);
             if (parentHeight != 0)
                 return parentHeight;
             throw new Exception();
@@ -273,14 +273,14 @@ namespace AElf.ChainController.Rpc
 
         #region Proposal
 
-        internal static Proposal GetProposal(this Svc s, Hash proposalHash)
+        internal static async Task<Proposal> GetProposal(this Svc s, Hash proposalHash)
         {
-            return s.AuthorizationInfoReader.GetProposal(proposalHash);
+            return await s.AuthorizationInfoReader.GetProposal(proposalHash);
         }
 
-        internal static Authorization GetAuthorization(this Svc s, Address msig)
+        internal static async Task<Authorization> GetAuthorization(this Svc s, Address msig)
         {
-            return s.AuthorizationInfoReader.GetAuthorization(msig);
+            return await s.AuthorizationInfoReader.GetAuthorization(msig);
         }
 
         #endregion
@@ -291,21 +291,22 @@ namespace AElf.ChainController.Rpc
             return (Block) await blockchain.GetBlockByHashAsync(blockHash);
         }
 
-        internal static async Task<int> GetInvalidBlockCount(this Svc s)
+        internal static async Task<int> GetInvalidBlockCountAsync(this Svc s)
         {
-            return s.BlockSet.InvalidBlockCount;
+            // TODO: change hard code
+            return await Task.FromResult(999); 
         }
         
         #region Consensus
 
-        internal static Tuple<ulong, ulong> GetVotesGeneral(this Svc s)
+        internal static async Task<Tuple<ulong, ulong>> GetVotesGeneral(this Svc s)
         {
-            return s.ElectionInfo.GetVotesGeneral();
+            return await s.ElectionInfo.GetVotesGeneral();
         }
         
-        internal static Tickets GetVotingInfo(this Svc s, string pubKey)
+        internal static async Task<Tickets> GetVotingInfo(this Svc s, string pubKey)
         {
-            return s.ElectionInfo.GetVotingInfo(pubKey);
+            return await s.ElectionInfo.GetVotingInfo(pubKey);
         }
         
         #endregion
@@ -337,10 +338,9 @@ namespace AElf.ChainController.Rpc
             }
         }
         
-        internal static int GetRollBackTimes(this Svc s)
+        internal static async Task<int> GetRollBackTimesAsync(this Svc s)
         {
-            return s.BlockSynchronizer.RollBackTimes;
+            return await Task.FromResult(s.BlockSynchronizer.RollBackTimes);
         }
     }
-
 }

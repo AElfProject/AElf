@@ -17,7 +17,7 @@ namespace AElf.Management.Models
         public List<string> Miners { get; set; }
 
         public float CpuResource { get; set; }
-        
+
         public float MemoryResource { get; set; }
 
         public string ApiKey { get; set; }
@@ -25,18 +25,18 @@ namespace AElf.Management.Models
         public DeployDBArg DBArg { get; set; }
 
         public DeployLighthouseArg LighthouseArg { get; set; }
-        
+
         public DeployWorkArg WorkArg { get; set; }
-        
+
         public DeployLauncherArg LauncherArg { get; set; }
 
         public DeployArg()
         {
-            Miners=new List<string>();
-            DBArg=new DeployDBArg();
-            LighthouseArg=new DeployLighthouseArg();
-            WorkArg=new DeployWorkArg();
-            LauncherArg=new DeployLauncherArg();
+            Miners = new List<string>();
+            DBArg = new DeployDBArg();
+            LighthouseArg = new DeployLighthouseArg();
+            WorkArg = new DeployWorkArg();
+            LauncherArg = new DeployLauncherArg();
         }
     }
 

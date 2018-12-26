@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -9,19 +9,19 @@ using k8s.Models;
 
 namespace AElf.Management.Commands
 {
-    public class K8SAddLauncherServiceCommand:IDeployCommand
+    public class K8SAddLauncherServiceCommand : IDeployCommand
     {
-        public void Action(DeployArg arg)
+        public async Task Action(DeployArg arg)
         {
-            var result = AddService(arg);
-            
+            var result = await AddService(arg);
+
             if (!result)
             {
                 throw new Exception("failed to deploy launcher service");
             }
         }
-        
-        private bool AddService(DeployArg arg)
+
+        private async Task<bool> AddService(DeployArg arg)
         {
             var body = new V1Service
             {
@@ -49,9 +49,9 @@ namespace AElf.Management.Commands
                 }
             };
 
-            var result = K8SRequestHelper.GetClient().CreateNamespacedService(body, arg.SideChainId);
-            
-            var service = K8SRequestHelper.GetClient().ReadNamespacedService(result.Metadata.Name, arg.SideChainId);
+            var result = await K8SRequestHelper.GetClient().CreateNamespacedServiceAsync(body, arg.SideChainId);
+
+            var service = await K8SRequestHelper.GetClient().ReadNamespacedServiceAsync(result.Metadata.Name, arg.SideChainId);
             var retryGetCount = 0;
             while (true)
             {
@@ -68,7 +68,7 @@ namespace AElf.Management.Commands
 
                 retryGetCount++;
                 Thread.Sleep(3000);
-                service = K8SRequestHelper.GetClient().ReadNamespacedService(result.Metadata.Name, arg.SideChainId);
+                service = await K8SRequestHelper.GetClient().ReadNamespacedServiceAsync(result.Metadata.Name, arg.SideChainId);
             }
 
             return true;

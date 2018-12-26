@@ -40,7 +40,7 @@
         public int Code { get; set; }
 
         public string Msg { get; set; }
-        
+
         public static ApiEmptyResult Default = new ApiEmptyResult();
 
         public ApiEmptyResult()

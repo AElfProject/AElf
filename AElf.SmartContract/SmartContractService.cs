@@ -35,9 +35,9 @@ namespace AElf.SmartContract
             _functionMetadataService = functionMetadataService;
         }
 
-        private ConcurrentBag<IExecutive> GetPoolFor(Hash chainId, Address account)
+        private async Task<ConcurrentBag<IExecutive>> GetPoolForAsync(Hash chainId, Address account)
         {
-            var contractHash = GetContractHash(chainId, account);
+            var contractHash = await GetContractHashAsync(chainId, account);
             if (!_executivePools.TryGetValue(contractHash, out var pool))
             {
                 pool = new ConcurrentBag<IExecutive>();
@@ -47,7 +47,7 @@ namespace AElf.SmartContract
             return pool;
         }
 
-        private Hash GetContractHash(Hash chainId, Address address)
+        private async Task<Hash> GetContractHashAsync(Hash chainId, Address address)
         {
             Hash contractHash;
             var zeroContractAdress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
@@ -58,7 +58,7 @@ namespace AElf.SmartContract
             else
             {
                 var contractInfoReader = new ContractInfoReader(chainId, _stateManager);
-                var contractBytes = contractInfoReader.GetBytes<ContractInfo>(zeroContractAdress, Hash.FromMessage(address), "__ContractInfos__");
+                var contractBytes = await contractInfoReader.GetBytesAsync<ContractInfo>(zeroContractAdress, Hash.FromMessage(address), "__ContractInfos__");
                 contractHash = ContractInfo.Parser.ParseFrom(contractBytes).ContractHash;
             }
 
@@ -67,7 +67,7 @@ namespace AElf.SmartContract
 
         public async Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId)
         {
-            var pool = GetPoolFor(chainId, contractAddress);
+            var pool = await GetPoolForAsync(chainId, contractAddress);
             if (pool.TryTake(out var executive))
                 return executive;
 
@@ -106,7 +106,7 @@ namespace AElf.SmartContract
         {
             executive.SetTransactionContext(new TransactionContext());
             executive.SetDataCache(new Dictionary<StatePath, StateCache>());
-            GetPoolFor(chainId, account).Add(executive);
+            (await GetPoolForAsync(chainId, account)).Add(executive);
 
             await Task.CompletedTask;
         }

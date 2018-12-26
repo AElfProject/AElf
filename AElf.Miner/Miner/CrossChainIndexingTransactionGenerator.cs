@@ -29,9 +29,9 @@ namespace AElf.Miner.Miner
         /// Generate system txs for parent chain block info and broadcast it.
         /// </summary>
         /// <returns></returns>
-        public Transaction GenerateTransactionForIndexingSideChain(Address from, ulong refBlockNumber, byte[] refBlockPrefix)
+        public async Task<Transaction> GenerateTransactionForIndexingSideChain(Address from, ulong refBlockNumber, byte[] refBlockPrefix)
         {
-            var sideChainBlockInfos = CollectSideChainIndexedInfo();
+            var sideChainBlockInfos = await CollectSideChainIndexedInfo();
             if (sideChainBlockInfos.Length == 0)
                 return null;
             return GenerateNotSignedTransaction(from, ContractHelpers.IndexingSideChainMethodName, refBlockNumber, refBlockPrefix,
@@ -42,9 +42,9 @@ namespace AElf.Miner.Miner
         /// Generate system txs for parent chain block info and broadcast it.
         /// </summary>
         /// <returns></returns>
-        public Transaction GenerateTransactionForIndexingParentChain(Address from, ulong refBlockNumber, byte[] refBlockPrefix)
+        public async Task<Transaction> GenerateTransactionForIndexingParentChain(Address from, ulong refBlockNumber, byte[] refBlockPrefix)
         {
-            var parentChainBlockInfo = CollectParentChainBlockInfo();
+            var parentChainBlockInfo = await CollectParentChainBlockInfo();
             if (parentChainBlockInfo != null && parentChainBlockInfo.Length != 0)
                  return GenerateNotSignedTransaction(from, ContractHelpers.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix,
                     new object[]{parentChainBlockInfo});
@@ -72,28 +72,27 @@ namespace AElf.Miner.Miner
                 Time = Timestamp.FromDateTime(DateTime.UtcNow)
             };
             return tx;
-            
         }
         
         /// <summary>
         /// Side chains header info    
         /// </summary>
         /// <returns></returns>
-        private SideChainBlockInfo[] CollectSideChainIndexedInfo()
+        private async Task<SideChainBlockInfo[]> CollectSideChainIndexedInfo()
         {
             // interval waiting for each side chain
-            return _clientManager.CollectSideChainBlockInfo().ToArray();
+            return (await _clientManager.CollectSideChainBlockInfo()).ToArray();
         }
 
         /// <summary>
         /// Get parent chain block info.
         /// </summary>
         /// <returns></returns>
-        private ParentChainBlockInfo[] CollectParentChainBlockInfo()
+        private async Task<ParentChainBlockInfo[]> CollectParentChainBlockInfo()
         {
             try
             {
-                var blocInfo = _clientManager.TryGetParentChainBlockInfo();
+                var blocInfo = await _clientManager.TryGetParentChainBlockInfo();
                 return blocInfo?.ToArray();
             }
             catch (Exception e)

@@ -17,7 +17,7 @@ namespace AElf.Management.Website.Controllers
         {
             _akkaService = akkaService;
         }
-        
+
         [HttpGet]
         [Route("state/{chainId}")]
         public async Task<ApiResult<List<ActorStateResult>>> State(string chainId)

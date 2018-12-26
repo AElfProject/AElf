@@ -8,8 +8,17 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
 {
-    public partial class Block : IBlock
+    public partial class Block : ICustomDiagnosticMessage, IBlock
     {
+        /// <summary>
+        /// Used to override IMessage's default string representation.
+        /// </summary>
+        /// <returns></returns>
+        public string ToDiagnosticString()
+        {
+            return $"{{ id: {GetHash()}, height: {Index} }}";
+        }
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AElf.Kernel.Block"/> class.
         /// A previous block must be referred, except for the genesis block.

@@ -165,7 +165,7 @@ namespace AElf.Synchronization.BlockExecution
                 if (cts.IsCancellationRequested)
                 {
                     _logger?.Trace(
-                        $"Execution Cancelled and rollback: block hash: {block.BlockHashToHex}, " +
+                        $"Execution cancelled and rollback: block hash: {block.BlockHashToHex}, " +
                         $"execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
                     res = BlockExecutionResult.ExecutionCancelled;
                     throw new InvalidBlockException("Block execution timeout");
@@ -334,9 +334,15 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns>
         /// Return true if side chain info is consistent with local node, otherwise return false;
         /// </returns>
-        private bool ValidateSideChainBlockInfo(SideChainBlockInfo[] sideChainBlockInfos)
+        private async Task<bool> ValidateSideChainBlockInfo(SideChainBlockInfo[] sideChainBlockInfos)
         {
-            return sideChainBlockInfos.All(_clientManager.TryGetSideChainBlockInfo);
+            foreach (var sideChainBlockInfo in sideChainBlockInfos)
+            {
+                if (!await _clientManager.TryGetSideChainBlockInfo(sideChainBlockInfo))
+                    return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -368,7 +374,7 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     var parentBlockInfos = (ParentChainBlockInfo[]) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(ParentChainBlockInfo[])})[0];
-                    if (!ValidateParentChainBlockInfo(parentBlockInfos))
+                    if (! await ValidateParentChainBlockInfo(parentBlockInfos))
                     {
                         //errorLog = "Invalid parent chain block info.";
                         res = BlockExecutionResult.InvalidParentChainBlockInfo;
@@ -387,7 +393,7 @@ namespace AElf.Synchronization.BlockExecution
                         new[] {typeof(SideChainBlockInfo[])})[0];
                     
                     if (sideChainBlockInfos.Equals(block.Body.IndexedInfo.ToArray()) 
-                        || !ValidateSideChainBlockInfo(sideChainBlockInfos))
+                        || ! await ValidateSideChainBlockInfo(sideChainBlockInfos))
                     {
                         //errorLog = "Invalid parent chain block info.";
                         res = BlockExecutionResult.InvalidSideChainBlockInfo;
@@ -422,11 +428,11 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns>
         /// Return false if validation failed and then that block execution would fail.
         /// </returns>
-        private bool ValidateParentChainBlockInfo(ParentChainBlockInfo[] parentBlockInfos)
+        private async Task<bool> ValidateParentChainBlockInfo(ParentChainBlockInfo[] parentBlockInfos)
         {
             try
             {
-                var cached = _clientManager.TryGetParentChainBlockInfo(parentBlockInfos);
+                var cached = await _clientManager.TryGetParentChainBlockInfo(parentBlockInfos);
                 if (cached != null)
                     return cached.ToArray().Equals(parentBlockInfos);
                 return false;

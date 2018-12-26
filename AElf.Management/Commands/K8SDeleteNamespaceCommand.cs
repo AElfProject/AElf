@@ -1,15 +1,16 @@
-﻿using AElf.Management.Helper;
+﻿using System.Threading.Tasks;
+using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
 using k8s.Models;
 
 namespace AElf.Management.Commands
 {
-    public class K8SDeleteNamespaceCommand:IDeployCommand
+    public class K8SDeleteNamespaceCommand : IDeployCommand
     {
-        public void Action(DeployArg arg)
+        public async Task Action(DeployArg arg)
         {
-            K8SRequestHelper.GetClient().DeleteNamespace(new V1DeleteOptions(), arg.SideChainId);
+            await K8SRequestHelper.GetClient().DeleteNamespaceAsync(new V1DeleteOptions(), arg.SideChainId);
         }
     }
 }

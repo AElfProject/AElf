@@ -18,7 +18,6 @@ namespace AElf.Contracts.Authorization.Tests
     public class AuthorizationTest
     {
         private AuthorizationContractShim _contract;
-        private ILogger _logger;
         private MockSetup Mock;
 
         //private static byte[] ChainId = ChainHelpers.GetRandomChainId();

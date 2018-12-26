@@ -145,7 +145,7 @@ namespace AElf.Miner.TxMemPool
             
             Task.Run(async () =>
             {
-                VerifySignature(tr);
+                await VerifySignature(tr);
                 await ValidateRefBlock(tr);
                 MaybePublishTransaction(tr);
             }).ConfigureAwait(false);
@@ -163,7 +163,7 @@ namespace AElf.Miner.TxMemPool
                 tr = new TransactionReceipt(txn);
                 _allTxns.TryAdd(tr.TransactionId, tr);
             }
-            VerifySignature(tr);
+            await VerifySignature(tr);
             await ValidateRefBlock(tr);
             return tr;
         }
@@ -210,7 +210,7 @@ namespace AElf.Miner.TxMemPool
 
         #region Private Methods
 
-        private void VerifySignature(TransactionReceipt tr)
+        private async Task VerifySignature(TransactionReceipt tr)
         {
             if (tr.SignatureSt != TransactionReceipt.Types.SignatureStatus.UnknownSignatureStatus)
             {
@@ -220,7 +220,7 @@ namespace AElf.Miner.TxMemPool
             if(tr.Transaction.Sigs.Count > 1)
             {
                 // check msig account authorization
-                var validAuthorization = _authorizationInfoReader.CheckAuthority(tr.Transaction);
+                var validAuthorization = await _authorizationInfoReader.CheckAuthority(tr.Transaction);
                 if (!validAuthorization)
                 {
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
