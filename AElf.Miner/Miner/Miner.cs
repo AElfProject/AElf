@@ -44,7 +44,6 @@ namespace AElf.Miner.Miner
         private IBlockChain _blockChain;
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private ECKeyPair _keyPair;
-        private readonly IChainManager _chainManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;

@@ -292,7 +292,8 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<int> GetInvalidBlockCountAsync(this Svc s)
         {
-            return 999; // todo better metric 
+            // TODO: change hard code
+            return await Task.FromResult(999); 
         }
         
         #region Consensus

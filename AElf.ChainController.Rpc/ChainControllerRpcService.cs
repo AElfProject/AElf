@@ -79,14 +79,14 @@ namespace AElf.ChainController.Rpc
                         ["commands"] = arrCommands
                     }
                 };
-                return JObject.FromObject(response);
+                return await Task.FromResult(JObject.FromObject(response));
             }
             catch (Exception e)
             {
-                return new JObject
+                return await Task.FromResult(new JObject
                 {
                     ["error"] = e.ToString()
-                };
+                });
             }
         }
 

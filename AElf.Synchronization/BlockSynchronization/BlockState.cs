@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
+using ServiceStack;
 
 namespace AElf.Synchronization.BlockSynchronization
 {
@@ -86,6 +87,16 @@ namespace AElf.Synchronization.BlockSynchronization
         public override string ToString()
         {
             return _block?.ToString() ?? "null block";
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = 1;
+            if (BlockHash != null) hash ^= BlockHash.GetHashCode();
+            if (Previous != null) hash ^= Previous.GetHashCode();
+            if (Producer.IsNullOrEmpty()) hash ^= Producer.GetHashCode();
+            if (Index != 0) hash ^= Index.GetHashCode();
+            return hash;
         }
     }
 }

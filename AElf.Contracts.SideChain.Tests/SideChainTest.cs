@@ -19,7 +19,6 @@ namespace AElf.Contracts.SideChain.Tests
     public class SideChainTest
     {
         private SideChainContractShim _contract;
-        private ILogger _logger;
         private MockSetup Mock;
 
         public SideChainTest(MockSetup mock)
