@@ -121,7 +121,6 @@ namespace AElf.ChainController
 
         private Transaction GetTransactionToValidateBlock(BlockAbstract blockAbstract)
         {
-
             var tx = new Transaction
             {
                 From = Address.Parse(NodeConfig.Instance.NodeAccount),

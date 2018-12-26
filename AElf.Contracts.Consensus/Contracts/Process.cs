@@ -404,6 +404,12 @@ namespace AElf.Contracts.Consensus.Contracts
                 {
                     if (_collection.HistoryMap.TryGet(candidate.Key.ToStringValue(), out var historyInfo))
                     {
+                        var terms = new List<ulong>(historyInfo.Terms.ToList());
+                        if (!terms.Contains(previousTerm.TermNumber))
+                        {
+                            terms.Add(previousTerm.TermNumber);
+                        }
+
                         _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
                         {
                             PublicKey = candidate.Key,
@@ -414,7 +420,7 @@ namespace AElf.Contracts.Consensus.Contracts
                                     ? historyInfo.ContinualAppointmentCount + 1
                                     : 0,
                             ReappointmentCount = historyInfo.ReappointmentCount + 1,
-                            Terms = {historyInfo.Terms, previousTerm.TermNumber}
+                            Terms = {terms}
                         });
                     }
                     else

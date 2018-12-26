@@ -38,6 +38,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
             _collection.CandidatesField.SetValue(candidates);
 
+            // TODO: Remove `Empty`
             if (alias == "" || alias == "Empty" || alias.Length > GlobalConfig.AliasLimit)
             {
                 alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
