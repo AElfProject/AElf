@@ -190,8 +190,8 @@ namespace AElf.Miner.Rpc.Server
             }
             
             // start servers if possible 
-            StartSideChainServer();
-            StartParentChainServer();
+            var startSideChainServerTask = StartSideChainServer();
+            var startParentChainServerTask =  StartParentChainServer();
         }
 
         /// <summary>
@@ -199,8 +199,8 @@ namespace AElf.Miner.Rpc.Server
         /// </summary>
         public void Close()
         {
-            StopSideChainServer();
-            StopSideChainServer();
+            var stopSideChainServerTask = StopSideChainServer();
+            var stopParentChainServerTask = StopParentChainServer();
         }
     }
 }

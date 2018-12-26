@@ -50,7 +50,7 @@ namespace AElf.Network.Sim.Node
             
             _nodeEventStream = new NodeEventStream(_conf.RpcPort, "net");
             _nodeEventStream.EventReceived += NodeEventStreamOnEventReceived;
-            _nodeEventStream.StartAsync();
+            var task = _nodeEventStream.StartAsync();
         }
 
         private void NodeEventStreamOnEventReceived(object sender, EventArgs e)
@@ -61,7 +61,7 @@ namespace AElf.Network.Sim.Node
         public void Stop()
         {
             _process.Close();
-            _nodeEventStream?.StopAsync();
+            var task = _nodeEventStream?.StopAsync();
         }
     }
 }
