@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using AElf.ABI.CSharp;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
@@ -21,8 +22,7 @@ namespace AElf.SmartContract
     {
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
-        private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
-        private readonly ConcurrentDictionary<Address, Hash> _contractHashs = new ConcurrentDictionary<Address, Hash>();
+        private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
         private readonly IStateManager _stateManager;
         private readonly IFunctionMetadataService _functionMetadataService;
 
@@ -35,38 +35,39 @@ namespace AElf.SmartContract
             _functionMetadataService = functionMetadataService;
         }
 
-        private ConcurrentBag<IExecutive> GetPoolFor(Address account)
+        private ConcurrentBag<IExecutive> GetPoolFor(Hash chainId, Address account)
         {
-            if (!_executivePools.TryGetValue(account, out var pool))
+            var contractHash = GetContractHash(chainId, account);
+            if (!_executivePools.TryGetValue(contractHash, out var pool))
             {
                 pool = new ConcurrentBag<IExecutive>();
-                _executivePools[account] = pool;
+                _executivePools[contractHash] = pool;
             }
 
             return pool;
         }
 
-        public void ClearPool(Address address)
+        private Hash GetContractHash(Hash chainId, Address address)
         {
-            if (_executivePools.ContainsKey(address))
+            Hash contractHash;
+            var zeroContractAdress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
+            if (address.Equals(zeroContractAdress))
             {
-                _executivePools[address] = new ConcurrentBag<IExecutive>();
+                contractHash = Hash.FromMessage(address);
             }
-        }
+            else
+            {
+                var contractInfoReader = new ContractInfoReader(chainId, _stateManager);
+                var contractBytes = contractInfoReader.GetBytes<ContractInfo>(zeroContractAdress, Hash.FromMessage(address), "__ContractInfos__");
+                contractHash = ContractInfo.Parser.ParseFrom(contractBytes).ContractHash;
+            }
 
-        private Hash GetContractVersion(Address address)
-        {
-            if (!_contractHashs.TryGetValue(address, out var hash))
-            {
-                hash = _smartContractManager.GetAsync(address).Result.ContractHash;
-                _contractHashs.TryAdd(address, hash);
-            }
-            return hash;
+            return contractHash;
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId)
         {
-            var pool = GetPoolFor(contractAddress);
+            var pool = GetPoolFor(chainId, contractAddress);
             if (pool.TryTake(out var executive))
                 return executive;
 
@@ -101,14 +102,11 @@ namespace AElf.SmartContract
             return executive;
         }
 
-        public async Task PutExecutiveAsync(Address account, IExecutive executive)
+        public async Task PutExecutiveAsync(Hash chainId, Address account, IExecutive executive)
         {
-            if (executive.ContractHash.Equals(GetContractVersion(account)))
-            {
-                executive.SetTransactionContext(new TransactionContext());
-                executive.SetDataCache(new Dictionary<StatePath, StateCache>());
-                GetPoolFor(account).Add(executive);
-            }
+            executive.SetTransactionContext(new TransactionContext());
+            executive.SetDataCache(new Dictionary<StatePath, StateCache>());
+            GetPoolFor(chainId, account).Add(executive);
 
             await Task.CompletedTask;
         }
@@ -138,7 +136,6 @@ namespace AElf.SmartContract
             }
             
             await _smartContractManager.InsertAsync(contractAddress, registration);
-            _contractHashs.AddOrSet(contractAddress, registration.ContractHash);
         }
         
         public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration newRegistration, bool isPrivileged)
@@ -158,22 +155,16 @@ namespace AElf.SmartContract
                 await _functionMetadataService.UpdateContract(chainId, contractAddress, newContractTemplate, oldContractTemplate);
             }
             await _smartContractManager.InsertAsync(contractAddress, newRegistration);
-            
-            _contractHashs.AddOrSet(contractAddress, newRegistration.ContractHash);
-            ClearPool(contractAddress);
         }
 
-        public async Task RegistContractAsync(Hash contractHash, SmartContractRegistration registration, bool isPrivileged)
+        public async Task RegistContractAsync(SmartContractRegistration registration, bool isPrivileged)
         {
             var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
             runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
             
             // Todo handle metadata
-            
-            // add to db
-            
-            
-            
+
+            await _smartContractManager.InsertAsync(registration);
         }
 
         public async Task<IMessage> GetAbiAsync(Address account)

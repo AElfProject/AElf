@@ -8,5 +8,7 @@ namespace AElf.Kernel.Managers
     {
         Task<SmartContractRegistration> GetAsync(Address contractAddress);
         Task InsertAsync(Address contractAddress, SmartContractRegistration reg);
+        Task<SmartContractRegistration> GetAsync(Hash contractHash);
+        Task InsertAsync(SmartContractRegistration registration);
     }
 }

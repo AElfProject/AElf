@@ -80,9 +80,6 @@ namespace AElf.Execution.Execution
                 case JobExecutionStatus status:
                     HandleExecutionStatus(status);
                     break;
-                case UpdateContractMessage updateContractMessage:
-                    _router.Tell(new Broadcast(updateContractMessage));
-                    break;
             }
         }
 

@@ -15,14 +15,24 @@ namespace AElf.Kernel.Managers
 
         public async Task<SmartContractRegistration> GetAsync(Address contractAddress)
         {
-            return await _smartContractStore.GetAsync<SmartContractRegistration>(
-                contractAddress.GetPublicKeyHash()
-            );
+            // Todo get contract hash from contract map
+            var contractHash = new Hash();
+            return await GetAsync(contractHash);
         }
 
         public async Task InsertAsync(Address contractAddress, SmartContractRegistration reg)
         {
-            await _smartContractStore.SetAsync(contractAddress.GetPublicKeyHash(), reg);
+            await InsertAsync(reg);
+        }
+        
+        public async Task<SmartContractRegistration> GetAsync(Hash contractHash)
+        {
+            return await _smartContractStore.GetAsync<SmartContractRegistration>(contractHash.ToHex());
+        }
+
+        public async Task InsertAsync(SmartContractRegistration registration)
+        {
+            await _smartContractStore.SetAsync(registration.ContractHash.ToHex(), registration);
         }
     }
 }

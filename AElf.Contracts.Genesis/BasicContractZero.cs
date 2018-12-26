@@ -64,10 +64,7 @@ namespace AElf.Contracts.Genesis
         {
             get
             {
-                if (_value == 0)
-                {
-                    _value = GetValue();
-                }
+                _value = GetValue();
 
                 if (GlobalConfig.BasicContractZeroSerialNumber > _value)
                 {

@@ -150,11 +150,6 @@ namespace AElf.Execution.Execution
         public Hash DisambiguationHash { get; }
     }
 
-    public sealed class UpdateContractMessage
-    {
-        public List<Address> ContractAddress { get; set; }
-    }
-
 //    public sealed class TransactionResultMessage
 //    {
 //        public TransactionResultMessage(TransactionResult transactionResult)

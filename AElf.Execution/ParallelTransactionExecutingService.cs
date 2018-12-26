@@ -41,23 +41,6 @@ namespace AElf.Execution
             if (transactionType == TransactionType.DposTransaction || transactionType == TransactionType.ContractDeployTransaction)
             {
                 results = await _singlExecutingService.ExecuteAsync(transactions, chainId, token);
-                
-                if (ActorConfig.Instance.IsCluster)
-                {
-                    var contractAddresses = new List<Address>();
-                    foreach (var tx in transactions)
-                    {
-                        if (tx.MethodName == "UpdateSmartContract")
-                        {
-                            contractAddresses.Add(tx.To);
-                        }
-                    }
-
-                    if (contractAddresses.Count > 0)
-                    {
-                        _actorEnvironment.Requestor.Tell(new UpdateContractMessage {ContractAddress = contractAddresses});
-                    }
-                }
             }
             else
             {

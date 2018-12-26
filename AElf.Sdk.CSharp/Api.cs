@@ -71,7 +71,8 @@ namespace AElf.Sdk.CSharp
         public static async Task RegistContractAsync(Hash contractHash, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
-            
+            await _smartContractContext.SmartContractService.RegistContractAsync(registration, false);
+
         }
 
         #endregion Privileged API
@@ -282,7 +283,7 @@ namespace AElf.Sdk.CSharp
                 }
                 finally
                 {
-                    await svc.PutExecutiveAsync(contractAddress, executive);
+                    await svc.PutExecutiveAsync(chainId, contractAddress, executive);
                 }
             }).Unwrap().Wait();
 
