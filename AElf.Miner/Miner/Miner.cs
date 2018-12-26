@@ -99,7 +99,10 @@ namespace AElf.Miner.Miner
                 var bn = currHeight > 4 ? currHeight - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await _blockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
-                await GenerateClaimFeesTransaction(currHeight, bn, bhPref);
+                if (!UnitTestDetector.IsInUnitTest)
+                {
+                    await GenerateClaimFeesTransaction(currHeight, bn, bhPref);    
+                }
                 // generate txns for cross chain indexing if possible
                 await GenerateCrossTransaction(bn, bhPref);
                 
