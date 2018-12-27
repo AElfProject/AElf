@@ -203,10 +203,10 @@ namespace AElf.SmartContract
             await _smartContractManager.InsertAsync(registration);
         }
 
-        public async Task<Address> DeploySystemContractAsync(Hash chainId, ulong serialNumber, int category, byte[] code)
+        public async Task<Address> DeploySystemContractAsync(Hash chainId, SmartContractRegistration registration)
         {
             var result = CallContract(chainId, ContractHelpers.GetGenesisBasicContractAddress(chainId),
-                "InitSmartContract", serialNumber, category, code);
+                "InitSmartContract", registration.SerialNumber, registration.Category, registration.ContractBytes.ToByteArray());
 
             return result.DeserializeToPbMessage<Address>();
         }

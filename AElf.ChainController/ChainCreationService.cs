@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -7,6 +8,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;
+using ServiceStack;
 
 namespace AElf.ChainController
 {
@@ -35,16 +37,15 @@ namespace AElf.ChainController
             {
                 // TODO: Centralize this function in Hash class
                 // SmartContractZero address can be derived from ChainId
+
+                var zeroRegistration = smartContractRegistration.Find(s => s.SerialNumber == 0);
+                await _smartContractService.DeployZeroContractAsync(chainId, zeroRegistration);
+                
                 foreach (var reg in smartContractRegistration)
                 {
-                    if (reg.SerialNumber == 0)
+                    if (reg.SerialNumber != 0)
                     {
-                        await _smartContractService.DeployZeroContractAsync(chainId, reg);
-                    }
-                    else
-                    {
-                        await _smartContractService.DeploySystemContractAsync(chainId, reg.SerialNumber, reg.Category,
-                            reg.ContractBytes.ToByteArray());
+                        await _smartContractService.DeploySystemContractAsync(chainId, reg);
                     }
                 }
 

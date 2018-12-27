@@ -36,6 +36,6 @@ namespace AElf.SmartContract
 
         Task DeployZeroContractAsync(Hash chainId, SmartContractRegistration registration);
 
-        Task<Address> DeploySystemContractAsync(Hash chainId, ulong serialNumber, int category, byte[] code);
+        Task<Address> DeploySystemContractAsync(Hash chainId, SmartContractRegistration registration);
     }
 }
