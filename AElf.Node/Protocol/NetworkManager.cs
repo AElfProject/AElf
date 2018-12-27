@@ -64,7 +64,7 @@ namespace AElf.Node.Protocol
 
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
 
-        private IBlock _currentLib;
+        private ulong _currentLibNum;
 
         internal IPeer CurrentSyncSource { get; set; }
         internal int LocalHeight;
@@ -124,7 +124,7 @@ namespace AElf.Node.Protocol
                 _logger?.Info($"Block produced, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}) with " +
                               $"{inBlock.Block.Body.TransactionsCount} txs, block height {inBlock.Block.Header.Index}.");
 
-                LocalHeight++;
+                LocalHeight = (int) inBlock.Block.Index;
             });
 
             MessageHub.Instance.Subscribe<BlockAccepted>(inBlock =>
@@ -176,7 +176,7 @@ namespace AElf.Node.Protocol
                 if (UnlinkableHeaderIndex != 0)
                     return;
                 
-                LocalHeight++;
+                LocalHeight = (int) inBlock.Block.Index;
 
                 IBlock acceptedBlock = inBlock.Block;
                 
@@ -371,6 +371,12 @@ namespace AElf.Node.Protocol
             });
             
             MessageHub.Instance.Subscribe<MinorityForkDetected>(inBlock => { OnMinorityForkDetected(); });
+
+            MessageHub.Instance.Subscribe<NewLibFound>(msg =>
+            {
+                _currentLibNum = msg.Height;
+                _logger?.Debug($"Network lib updated : {_currentLibNum}.");
+            });
         }
 
         private void OnMinorityForkDetected()
@@ -391,7 +397,7 @@ namespace AElf.Node.Protocol
                     _lastTxReceived.Clear();
                     _temp.Clear();
 
-                    LocalHeight = (int) _currentLib.Index;
+                    LocalHeight = (int) _currentLibNum;
                     
                     // todo should be from a BP that is not part of the minority
                     IPeer syncPeer = _peers.FirstOrDefault(p => p.KnownHeight > LocalHeight);
