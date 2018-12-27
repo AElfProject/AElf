@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using AElf.Kernel.Types;
@@ -44,6 +45,7 @@ namespace AElf.Execution
             //};
             
             //await smartContract.InvokeAsync(context);
+            await Task.FromException(new NotImplementedException());
         }
 
         
