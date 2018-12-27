@@ -203,7 +203,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 Logger.LogError(e, $"Exception while execute block {block.BlockHashToHex}.");
                 // TODO, no wait may need improve
-                Rollback(block, txnRes).ConfigureAwait(false);
+                var task = Rollback(block, txnRes);
 
                 return res;
             }
