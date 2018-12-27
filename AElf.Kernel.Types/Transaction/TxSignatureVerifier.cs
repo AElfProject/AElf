@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography;
@@ -15,22 +14,21 @@ namespace AElf.Kernel.Types.Transaction
                 return false;
             }
 
-            if (tx.Sigs.Count == 1 && tx.Type != AElf.Kernel.TransactionType.MsigTransaction)
+            if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
             {
-                var pubkey =
-                    CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(), tx.GetHash().DumpByteArray());
-                return Address.FromPublicKey(pubkey).Equals(tx.From);
+                var pubKey = CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(), tx.GetHash().DumpByteArray());
+                return Address.FromPublicKey(pubKey).Equals(tx.From);
             }
-            
+
             foreach (var sig in tx.Sigs)
             {
                 var verifier = new ECVerifier();
-                
-                if(verifier.Verify(new ECSignature(sig.ToByteArray()), tx.GetHash().DumpByteArray()))
+                if (verifier.Verify(new ECSignature(sig.ToByteArray()), tx.GetHash().DumpByteArray()))
                     continue;
-                
+
                 return false;
             }
+
             return true;
         }
     }

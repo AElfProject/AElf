@@ -1,13 +1,14 @@
-﻿using AElf.Management.Helper;
+﻿using System.Threading.Tasks;
+using AElf.Management.Helper;
 using AElf.Management.Models;
 
 namespace AElf.Management.Commands
 {
-    public class AddMonitorDBCommand:IDeployCommand
+    public class AddMonitorDbCommand : IDeployCommand
     {
-        public void Action(DeployArg arg)
+        public async Task Action(DeployArg arg)
         {
-            InfluxDBHelper.CreateDatabase(arg.SideChainId);
+            await InfluxDBHelper.CreateDatabase(arg.SideChainId);
         }
     }
 }

@@ -2,16 +2,15 @@
 using AElf.Common.MultiIndexDictionary;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Node;
 using AElf.Network;
 using AElf.Node.AElfChain;
+using AElf.Node.Consensus;
 using AElf.Node.Protocol;
-using AElf.Synchronization.BlockSynchronization;
 using Autofac;
-using IConsensus = AElf.Kernel.Node.IConsensus;
 
 namespace AElf.Node
 {
+    // TODO: confuse AElf.Kernel.Consensus and AElf.Node.Consensus, maybe refactor namespace later
     public class NodeAutofacModule : Module
     {
         protected override void Load(ContainerBuilder builder)
@@ -21,7 +20,6 @@ namespace AElf.Node
             builder.RegisterType<Node>().As<INode>();
             builder.RegisterType<MainchainNodeService>().As<INodeService>().SingleInstance();
             builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
-            builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
             builder.RegisterGeneric(typeof(EqualityIndex<,>)).As(typeof(IEqualityIndex<>));
             builder.RegisterGeneric(typeof(ComparisionIndex<,>)).As(typeof(IComparisionIndex<>));
             builder.RegisterType<ConsensusDataReader>();

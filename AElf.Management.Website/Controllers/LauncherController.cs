@@ -6,7 +6,7 @@ using AElf.Management.Website.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AElf.Management.Website.Controllers
-{    
+{
     [Route("api/[controller]")]
     [ApiController]
     public class LauncherController : ControllerBase

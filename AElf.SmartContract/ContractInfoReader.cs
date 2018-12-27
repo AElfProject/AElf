@@ -1,5 +1,6 @@
+using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using Google.Protobuf;
 
 namespace AElf.SmartContract
@@ -22,14 +23,15 @@ namespace AElf.SmartContract
         /// <param name="keyHash"></param>
         /// <param name="resourceStr"></param>
         /// <returns></returns>
-        public byte[] GetBytes<T>(Address contractAddress, Hash keyHash, string resourceStr = "") where T : IMessage, new()
+        public async Task<byte[]> GetBytesAsync<T>(Address contractAddress, Hash keyHash, string resourceStr = "") where T : IMessage, new()
         {
             //Console.WriteLine("resourceStr: {0}", dataPath.ResourcePathHash.ToHex());
             var dp = DataProvider.GetRootDataProvider(_chainId, contractAddress);
             dp.StateManager = _stateManager;
-            
-            return resourceStr != ""
-                ? dp.GetChild(resourceStr).GetAsync<T>(keyHash).Result : dp.GetAsync<T>(keyHash).Result;
+
+            if (resourceStr == "") return await dp.GetAsync<T>(keyHash);
+            var resourceDataProvider = dp.GetChild(resourceStr);
+            return await resourceDataProvider.GetAsync<T>(keyHash);
         }
     }
 }

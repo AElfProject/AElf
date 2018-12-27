@@ -8,7 +8,7 @@ using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract

@@ -14,7 +14,7 @@ using AElf.Configuration.Config.Consensus;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Common;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
@@ -35,7 +35,7 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IExecutingService _executingService;
         private readonly ILogger _logger;
         private readonly ClientManager _clientManager;
-        private readonly IMerkleTreeManager _merkleTreeManager;
+        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
         private readonly IChainManager _chainManager;
         private readonly IStateManager _stateManager;
@@ -47,13 +47,13 @@ namespace AElf.Synchronization.BlockExecution
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IMerkleTreeManager merkleTreeManager, ITxHub txHub, IChainManager chainManager, IStateManager stateManager)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManager chainManager, IStateManager stateManager)
         {
             _chainService = chainService;
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
             _clientManager = clientManager;
-            _merkleTreeManager = merkleTreeManager;
+            _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
             _chainManager = chainManager;
             _stateManager = stateManager;
@@ -166,7 +166,7 @@ namespace AElf.Synchronization.BlockExecution
                 if (cts.IsCancellationRequested)
                 {
                     _logger?.Trace(
-                        $"Execution Cancelled and rollback: block hash: {block.BlockHashToHex}, " +
+                        $"Execution cancelled and rollback: block hash: {block.BlockHashToHex}, " +
                         $"execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
                     res = BlockExecutionResult.ExecutionCancelled;
                     throw new InvalidBlockException("Block execution timeout");
@@ -203,7 +203,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 _logger?.Error(e, $"Exception while execute block {block.BlockHashToHex}.");
                 // TODO, no wait may need improve
-                Rollback(block, txnRes).ConfigureAwait(false);
+                var task = Rollback(block, txnRes);
 
                 return res;
             }
@@ -335,9 +335,15 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns>
         /// Return true if side chain info is consistent with local node, otherwise return false;
         /// </returns>
-        private bool ValidateSideChainBlockInfo(SideChainBlockInfo[] sideChainBlockInfos)
+        private async Task<bool> ValidateSideChainBlockInfo(SideChainBlockInfo[] sideChainBlockInfos)
         {
-            return sideChainBlockInfos.All(_clientManager.TryGetSideChainBlockInfo);
+            foreach (var sideChainBlockInfo in sideChainBlockInfos)
+            {
+                if (!await _clientManager.TryGetSideChainBlockInfo(sideChainBlockInfo))
+                    return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -369,7 +375,7 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     var parentBlockInfos = (ParentChainBlockInfo[]) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(ParentChainBlockInfo[])})[0];
-                    if (!ValidateParentChainBlockInfo(parentBlockInfos))
+                    if (! await ValidateParentChainBlockInfo(parentBlockInfos))
                     {
                         //errorLog = "Invalid parent chain block info.";
                         res = BlockExecutionResult.InvalidParentChainBlockInfo;
@@ -388,7 +394,7 @@ namespace AElf.Synchronization.BlockExecution
                         new[] {typeof(SideChainBlockInfo[])})[0];
                     
                     if (sideChainBlockInfos.Equals(block.Body.IndexedInfo.ToArray()) 
-                        || !ValidateSideChainBlockInfo(sideChainBlockInfos))
+                        || ! await ValidateSideChainBlockInfo(sideChainBlockInfos))
                     {
                         //errorLog = "Invalid parent chain block info.";
                         res = BlockExecutionResult.InvalidSideChainBlockInfo;
@@ -423,11 +429,11 @@ namespace AElf.Synchronization.BlockExecution
         /// <returns>
         /// Return false if validation failed and then that block execution would fail.
         /// </returns>
-        private bool ValidateParentChainBlockInfo(ParentChainBlockInfo[] parentBlockInfos)
+        private async Task<bool> ValidateParentChainBlockInfo(ParentChainBlockInfo[] parentBlockInfos)
         {
             try
             {
-                var cached = _clientManager.TryGetParentChainBlockInfo(parentBlockInfos);
+                var cached = await _clientManager.TryGetParentChainBlockInfo(parentBlockInfos);
                 if (cached != null)
                     return cached.ToArray().Equals(parentBlockInfos);
                 return false;
@@ -496,7 +502,7 @@ namespace AElf.Synchronization.BlockExecution
             var bn = block.Header.Index;
             var bh = block.Header.GetHash();
 
-            await _merkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
+            await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
                 block.Header.ChainId, block.Header.Index);
             txResults.AsParallel().ToList().ForEach(async r =>
             {

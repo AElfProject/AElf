@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using Akka.Dispatch;
 using ServiceStack;
 

@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Type = System.Type;

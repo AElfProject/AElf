@@ -9,7 +9,7 @@ namespace AElf.Management.Website.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class NodeController: ControllerBase
+    public class NodeController : ControllerBase
     {
         private readonly INodeService _nodeService;
 
@@ -23,25 +23,25 @@ namespace AElf.Management.Website.Controllers
         public async Task<ApiResult<bool>> IsAlive(string chainId)
         {
             var result = await _nodeService.IsAlive(chainId);
-            
+
             return new ApiResult<bool>(result);
         }
-        
+
         [HttpGet]
         [Route("isforked/{chainId}")]
         public async Task<ApiResult<bool>> IsForked(string chainId)
         {
             var result = await _nodeService.IsForked(chainId);
-            
+
             return new ApiResult<bool>(result);
         }
-        
+
         [HttpGet]
         [Route("statehistory/{chainId}")]
         public async Task<ApiResult<List<NodeStateHistory>>> StateHistory(string chainId)
         {
             var result = await _nodeService.GetHistoryState(chainId);
-            
+
             return new ApiResult<List<NodeStateHistory>>(result);
         }
     }

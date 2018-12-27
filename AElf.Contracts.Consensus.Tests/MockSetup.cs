@@ -8,7 +8,7 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 
 namespace AElf.Contracts.Consensus.Tests
 {

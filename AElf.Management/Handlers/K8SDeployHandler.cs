@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Management.Commands;
 using AElf.Management.Models;
 
@@ -31,21 +32,23 @@ namespace AElf.Management.Handlers
             _removeCommands.Add(new K8SDeleteNamespaceCommand());
         }
 
-        public void Execute(DeployType type, string chainId, DeployArg arg = null)
+        public async Task Execute(DeployType type, string chainId, DeployArg arg = null)
         {
             switch (type)
             {
                 case DeployType.Deploy:
                     foreach (var cmd in _deployCommands)
                     {
-                        cmd.Action(arg);
+                        await cmd.Action(arg);
                     }
+
                     break;
                 case DeployType.Remove:
                     foreach (var cmd in _removeCommands)
                     {
-                        cmd.Action(arg);
+                        await cmd.Action(arg);
                     }
+
                     break;
                 default:
                     throw new ArgumentException("deploy type is incorrect");

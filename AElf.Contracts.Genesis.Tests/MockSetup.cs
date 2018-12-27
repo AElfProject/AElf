@@ -10,13 +10,12 @@ using AElf.Kernel;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Managers;
 using AElf.Execution;
 using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
 using AElf.Execution.Execution;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Manager.Managers;
 
 namespace AElf.Contracts.Genesis.Tests
 {

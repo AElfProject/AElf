@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using AElf.Common;
 using AElf.Common.FSM;
@@ -52,6 +53,11 @@ namespace AElf.Synchronization
                 {
                     _caught = true;
                     return NodeState.GeneratingConsensusTx;
+                }
+
+                if (_fsm.StateEvent == StateEvent.LongerChainDetected)
+                {
+                    return NodeState.Reverting;
                 }
 
                 return NodeState.Stay;

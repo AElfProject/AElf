@@ -6,8 +6,7 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
-using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 
 namespace AElf.Execution.Execution
 {

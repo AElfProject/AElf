@@ -1,5 +1,5 @@
 ﻿using AElf.ChainController;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.SmartContract;
 
 namespace AElf.Execution.Execution

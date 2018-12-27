@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace AElf.Management.Website
 {
-    public class AuthenticationFilter: IActionFilter
+    public class AuthenticationFilter : IActionFilter
     {
         public void OnActionExecuting(ActionExecutingContext context)
         {
@@ -41,7 +41,6 @@ namespace AElf.Management.Website
 
         public void OnActionExecuted(ActionExecutedContext context)
         {
-            
         }
     }
 }

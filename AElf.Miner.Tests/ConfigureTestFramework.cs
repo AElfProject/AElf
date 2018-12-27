@@ -6,8 +6,7 @@ using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
@@ -42,7 +41,6 @@ namespace AElf.Miner.Tests
             builder.RegisterType<BlockValidationService>().As<IBlockValidationService>().SingleInstance();
             builder.RegisterType<ChainContextService>().As<IChainContextService>().SingleInstance();
             builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
-            builder.RegisterType<BlockSet>().As<IBlockSet>().SingleInstance();
             builder.RegisterType<ChainManager>().As<IChainManager>().SingleInstance();
             builder.RegisterType<BlockManager>().As<IBlockManager>().SingleInstance();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>().SingleInstance();

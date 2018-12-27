@@ -6,7 +6,7 @@ using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
 using NLog;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Common;
 
 // ReSharper disable once CheckNamespace
@@ -96,12 +96,6 @@ namespace AElf.Kernel
             }
 
             return await GetBlockByHashAsync(header.GetHash());
-        }
-
-        public async Task<List<Transaction>> RollbackOneBlock()
-        {
-            var currentHeight = await GetCurrentBlockHeightAsync();
-            return await RollbackToHeight(currentHeight - 1);
         }
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
