@@ -280,5 +280,19 @@ namespace AElf.Synchronization.BlockSynchronization
                 _rwLock.ReleaseWriterLock();
             }
         }
+
+        public void Clear()
+        {
+            _rwLock.AcquireWriterLock(Timeout);
+
+            try
+            {
+                _blocks.RemoveAll(b => b != CurrentLib);
+            }
+            finally
+            {
+                _rwLock.ReleaseWriterLock();
+            }
+        }
     }
 }

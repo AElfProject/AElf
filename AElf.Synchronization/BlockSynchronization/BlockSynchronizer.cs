@@ -166,6 +166,45 @@ namespace AElf.Synchronization.BlockSynchronization
             
                 await TryExecuteNextCachedBlock();
             });
+            
+            MessageHub.Instance.Subscribe<MinorityForkDetected>(async inBlock => { await OnMinorityForkDetected(); });
+        }
+
+        private async Task OnMinorityForkDetected()
+        {
+            // Get ourselves into the Reverting state 
+            MessageHub.Instance.Publish(StateEvent.LongerChainDetected);
+            
+            _logger?.Warn("The chain is about to be re-synced from the lib.");
+
+            try
+            {
+                lock (_blockCacheLock)
+                {
+                    // clear cache queue - this is to at least forget about current blocks in the queue
+                    // if some get added right after, they won't be valid (unlinkable)
+                    _blockCache.Clear();
+                    _blockSet.Clear();
+                }
+            
+                // We rollback to LIB if it exists
+                if (CurrentLib != null && CurrentLib.Index != 0)
+                {
+                    await _blockChain.RollbackToHeight(CurrentLib.Index);
+                    HeadBlock = CurrentLib;
+                }
+                else
+                {
+                    _logger?.Warn("No LIB found...");
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while handling minority fork situation.");
+                MessageHub.Instance.Publish(StateEvent.RollbackFinished);
+            }
+            
+            MessageHub.Instance.Publish(StateEvent.RollbackFinished);
         }
 
         public void Init()

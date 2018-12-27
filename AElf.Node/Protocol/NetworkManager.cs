@@ -19,6 +19,7 @@ using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
+using DotNetty.Common;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
@@ -62,6 +63,8 @@ namespace AElf.Node.Protocol
         private BoundedByteArrayQueue _temp = new BoundedByteArrayQueue(10);
 
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
+
+        private IBlock _currentLib;
 
         internal IPeer CurrentSyncSource { get; set; }
         internal int LocalHeight;
@@ -366,6 +369,50 @@ namespace AElf.Node.Protocol
                 _peerManager.Start();
                 Task.Run(StartProcessingIncoming).ConfigureAwait(false);
             });
+            
+            MessageHub.Instance.Subscribe<MinorityForkDetected>(inBlock => { OnMinorityForkDetected(); });
+        }
+
+        private void OnMinorityForkDetected()
+        {
+            try
+            {
+                // reset everything inside the lock to keep a coherent state
+                
+                lock (_syncLock)
+                {
+                    CurrentSyncSource = null;
+                    foreach (var peer in _peers)
+                    {
+                        peer.ResetSync();
+                    }
+
+                    _lastBlocksReceived.Clear();
+                    _lastTxReceived.Clear();
+                    _temp.Clear();
+
+                    LocalHeight = (int) _currentLib.Index;
+                    
+                    // todo should be from a BP that is not part of the minority
+                    IPeer syncPeer = _peers.FirstOrDefault(p => p.KnownHeight > LocalHeight);
+
+                    if (syncPeer != null)
+                    {
+                        CurrentSyncSource = syncPeer;
+                        CurrentSyncSource.SyncToHeight(LocalHeight + 1, syncPeer.KnownHeight);
+                        
+                        FireSyncStateChanged(true);
+                    }
+                    else
+                    {
+                        _logger?.Warn("Could not find any peer to sync to.");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while reset for minority fork.");
+            }
         }
 
         private void FireSyncStateChanged(bool newState)
@@ -423,7 +470,7 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger?.Error(e, "Error while initializing the network.");
                 throw;
             }
         }
