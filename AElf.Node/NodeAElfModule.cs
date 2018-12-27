@@ -16,6 +16,7 @@ using AElf.Kernel.Node;
 using AElf.Modularity;
 using AElf.Network;
 using AElf.Node.AElfChain;
+using AElf.Node.Consensus;
 using AElf.Node.Protocol;
 using AElf.Synchronization.BlockSynchronization;
 using Microsoft.Extensions.DependencyInjection;
