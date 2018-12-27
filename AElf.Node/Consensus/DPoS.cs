@@ -11,6 +11,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
@@ -23,8 +24,9 @@ using AElf.Miner.TxMemPool;
 using AElf.Kernel.Types.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Node
+namespace AElf.Node.Consensus
 {
     // ReSharper disable InconsistentNaming
     public class DPoS : IConsensus

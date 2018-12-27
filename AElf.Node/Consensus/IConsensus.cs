@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Node
+namespace AElf.Node.Consensus
 {
     public interface IConsensus
     {
