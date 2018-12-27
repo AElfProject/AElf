@@ -197,7 +197,7 @@ namespace AElf.Kernel.Consensus
 
         public ulong CalculateBlockchainAge()
         {
-            return (ulong) ((DateTime.UtcNow - BlockchainStartTimestamp.ToDateTime()).TotalDays + 1);
+            return BlockchainAge.Value;
         }
 
         public bool TryToGetVictories(out List<string> victories)
