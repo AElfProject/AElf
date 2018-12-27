@@ -145,6 +145,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.FeeReceiver", "AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj", "{201ED8C0-9CEC-451D-9A8B-824443ADE7B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Crosschain", "AElf.Crosschain\AElf.Crosschain.csproj", "{3B20D815-01B9-4EE4-B486-012302AB954E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -435,6 +437,10 @@ Global
 		{201ED8C0-9CEC-451D-9A8B-824443ADE7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{201ED8C0-9CEC-451D-9A8B-824443ADE7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{201ED8C0-9CEC-451D-9A8B-824443ADE7B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B20D815-01B9-4EE4-B486-012302AB954E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B20D815-01B9-4EE4-B486-012302AB954E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B20D815-01B9-4EE4-B486-012302AB954E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B20D815-01B9-4EE4-B486-012302AB954E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
