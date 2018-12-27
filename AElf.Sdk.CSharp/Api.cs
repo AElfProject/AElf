@@ -86,6 +86,8 @@ namespace AElf.Sdk.CSharp
 
         public static Address DividendsContractAddress => ContractHelpers.GetDividendsContractAddress(ChainId);
 
+        public static DateTime CurrentBlockTime => _transactionContext.CurrentBlockTime;
+        
         public static Address Genesis => Address.Genesis;
 
         public static Hash GetPreviousBlockHash()
@@ -444,7 +446,7 @@ namespace AElf.Sdk.CSharp
                 Type = TransactionType.MsigTransaction
             }.ToByteArray();
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = DateTime.UtcNow.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
+            TimeSpan diff = CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
             
             Proposal proposal = new Proposal
             {

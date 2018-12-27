@@ -152,7 +152,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 var readyTxs = block.Body.TransactionList.ToList();
                 var traces = await ExecuteTransactions(readyTxs, block.Header.ChainId,
-                    block.Header.GetDisambiguationHash(), cts);
+                    block.Header.GetDisambiguationHash(), cts, block.Header.Time.ToDateTime());
                 
                 // Execute transactions.
                 // After this, rollback needed
@@ -234,13 +234,14 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="chainId"></param>
         /// <param name="disambiguationHash"></param>
         /// <param name="cancellationTokenSource"></param>
+        /// <param name="toDateTime"></param>
         /// <returns></returns>
         private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId,
-            Hash disambiguationHash, CancellationTokenSource cancellationTokenSource)
+            Hash disambiguationHash, CancellationTokenSource cancellationTokenSource, DateTime toDateTime)
         {
             var traces = readyTxs.Count == 0
                 ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(readyTxs, chainId, cancellationTokenSource.Token,
+                : await _executingService.ExecuteAsync(readyTxs, chainId, cancellationTokenSource.Token, toDateTime,
                     disambiguationHash);
             return traces;
         }

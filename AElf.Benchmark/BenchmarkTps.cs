@@ -130,7 +130,7 @@ namespace AElf.Benchmark
                 swExec.Start();
 
                 var cts = new CancellationTokenSource();
-                var txResult = await _executingService.ExecuteAsync(txList, ChainId, cts.Token);
+                var txResult = await _executingService.ExecuteAsync(txList, ChainId, cts.Token, DateTime.Now);
         
                 swExec.Stop();
                 timeused += swExec.ElapsedMilliseconds;
@@ -326,7 +326,7 @@ namespace AElf.Benchmark
                 initTxList.Add(txnBalInit);
             }
             var cts = new CancellationTokenSource();
-            var txTrace = await _executingService.ExecuteAsync(initTxList, ChainId, cts.Token);
+            var txTrace = await _executingService.ExecuteAsync(initTxList, ChainId, cts.Token, DateTime.UtcNow);
             foreach (var trace in txTrace)
             {
                 if (!trace.StdErr.IsNullOrEmpty())

@@ -29,7 +29,7 @@ namespace AElf.Execution.Execution
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken cancellationToken, Hash disambiguationHash = null,
+            CancellationToken cancellationToken, DateTime currentBlockTime, Hash disambiguationHash = null,
             TransactionType transactionType = TransactionType.ContractTransaction)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
@@ -37,7 +37,8 @@ namespace AElf.Execution.Execution
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken);
+                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, currentBlockTime, stateCache,
+                    cancellationToken);
                 //Console.WriteLine($"{transaction.GetHash().ToHex()} : {trace.ExecutionStatus.ToString()}");
                 if (trace.IsSuccessful())
                 {
@@ -70,7 +71,7 @@ namespace AElf.Execution.Execution
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
-            IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
+            IChainContext chainContext, DateTime currentBlockTime, Dictionary<StatePath, StateCache> stateCache,
             CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -91,6 +92,7 @@ namespace AElf.Execution.Execution
             var txCtxt = new TransactionContext()
             {
                 PreviousBlockHash = chainContext.BlockHash,
+                CurrentBlockTime = currentBlockTime,
                 Transaction = transaction,
                 BlockHeight = chainContext.BlockHeight,
                 Trace = trace,
@@ -111,8 +113,8 @@ namespace AElf.Execution.Execution
 
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
-                    var inlineTrace = await ExecuteOneAsync(depth + 1, inlineTx, chainId, chainContext, stateCache,
-                        cancellationToken);
+                    var inlineTrace = await ExecuteOneAsync(depth + 1, inlineTx, chainId, chainContext, 
+                        currentBlockTime, stateCache, cancellationToken);
                     trace.InlineTraces.Add(inlineTrace);
                 }
             }
