@@ -267,12 +267,12 @@ namespace AElf.Miner.Miner
             return index;
         }
 
-        private async Task InsertTransactionToPool(Transaction tx)
+        private async Task InsertTransactionToPool(Transaction tx, bool skipValidation = true)
         {
             if (tx == null)
                 return;
             // insert to tx pool and broadcast
-            await _txHub.AddTransactionAsync(tx, skipValidation: true);
+            await _txHub.AddTransactionAsync(tx, skipValidation: skipValidation);
         }
 
         /// <summary>
@@ -309,7 +309,7 @@ namespace AElf.Miner.Miner
                             if (trace.DeferredTransaction.Length != 0)
                             {
                                 var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                                InsertTransactionToPool(deferredTxn).ConfigureAwait(false);
+                                InsertTransactionToPool(deferredTxn, false).ConfigureAwait(false);
                                 txRes.DeferredTxnId = deferredTxn.GetHash();
                             }
 

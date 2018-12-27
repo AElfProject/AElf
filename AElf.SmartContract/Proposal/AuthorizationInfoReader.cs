@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +7,6 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using Google.Protobuf;
 
 namespace AElf.SmartContract.Proposal
 {
@@ -24,30 +24,6 @@ namespace AElf.SmartContract.Proposal
             _contractInfoReader = new ContractInfoReader(chainId, stateManager);
         }
         
-        // todo review
-        public async Task<bool> CheckAuthority(Transaction transaction)
-        {
-            var sigCount = transaction.Sigs.Count;
-            if (sigCount == 0)
-                return false;
-            
-            // Get tx hash
-            var hash = transaction.GetHash().DumpByteArray();
-
-            if (transaction.Sigs.Count == 1)
-                return true;
-            // Get pub keys
-            List<byte[]> publicKeys = new List<byte[]>();
-
-            foreach (var sig in transaction.Sigs)
-            {
-                var pub = CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash);
-                publicKeys.Add(pub);
-            }
-            
-            return await CheckAuthority(transaction.From, publicKeys);
-        }
-
         public async Task<Kernel.Proposal> GetProposal(Hash proposalHash)
         {
             var bytes = await _contractInfoReader.GetBytesAsync<Authorization>(AuthorizationContractAddress,
@@ -65,14 +41,21 @@ namespace AElf.SmartContract.Proposal
         public async Task<bool> CheckAuthority(Address mSigAddress, IEnumerable<byte[]> pubKeys)
         {
             var auth = await GetAuthorization(mSigAddress);
-            return CheckAuthority(auth, pubKeys);
+            return ValidateAuthorization(auth, pubKeys);
         }
 
-        private bool CheckAuthority(Authorization authorization, IEnumerable<byte[]> pubKeys)
+        /// <summary>
+        /// Check authorization validness.
+        /// </summary>
+        /// <param name="authorization">Authorization data.</param>
+        /// <param name="pubKeys">Provided public keys.</param>
+        /// <returns></returns>
+        public bool ValidateAuthorization(Authorization authorization, IEnumerable<byte[]> pubKeys)
         {
-            var provided = pubKeys
-                .Select(pubKey => authorization.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
-                .Where(r => r != null).Aggregate<Reviewer, long>(0, (current, r) => current + r.Weight);
+            var enumerable = pubKeys as byte[][] ?? pubKeys.ToArray();
+            var provided = enumerable
+                .Select(pubKey => authorization.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
+                .Where(r => !(r is default(Reviewer))).Aggregate<Reviewer, long>(0, (current, r) => current + r.Weight);
 
             return provided >= authorization.ExecutionThreshold;
         }

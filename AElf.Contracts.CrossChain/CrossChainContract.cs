@@ -435,8 +435,8 @@ namespace AElf.Contracts.CrossChain
         private void UnlockTokenAndResource(SideChainInfo sideChainInfo)
         {
             //Api.Assert(sideChainInfo.LockedAddress.Equals(Api.GetFromAddress()), "Unable to withdraw token or resource.");
-            // withdraw token
-            var chainId = Hash.LoadByteArray(sideChainInfo.ChainId.ToByteArray());
+            // unlock token
+            var chainId = sideChainInfo.ChainId;
             var balance = _indexingBalance[chainId];
             if(balance != 0 )
                 Api.UnlockToken(sideChainInfo.Proposer, balance);
@@ -445,7 +445,7 @@ namespace AElf.Contracts.CrossChain
             // unlock resource 
             /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
             {
-                Api.WithdrawResource(resourceBalance.Amount, resourceBalance.Type);
+                Api.UnlockResource(resourceBalance.Amount, resourceBalance.Type);
             }*/
         }
         

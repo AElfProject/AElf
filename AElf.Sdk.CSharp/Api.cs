@@ -334,9 +334,9 @@ namespace AElf.Sdk.CSharp
             SendInline(ResourceContractAddress, "LockResource", GetContractAddress(), amount, resourceType);
         }
         
-        public static void WithdrawResource(ulong amount, ResourceType resourceType)
+        public static void UnlockResource(ulong amount, ResourceType resourceType)
         {
-            SendInlineByContract(ResourceContractAddress, "WithdrawResource", GetFromAddress(), amount, resourceType);
+            SendInlineByContract(ResourceContractAddress, "UnlockResource", GetFromAddress(), amount, resourceType);
         }
         
         #endregion Transaction API
@@ -403,18 +403,13 @@ namespace AElf.Sdk.CSharp
             var hash = _transactionContext.Transaction.GetHash().DumpByteArray();
 
             // Get pub keys
-            List<byte[]> publicKeys = new List<byte[]>();
-
-            foreach (var sig in _transactionContext.Transaction.Sigs)
-            {
-                var pub = CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash);
-                publicKeys.Add(pub);
-            }
+            var publicKeys = _transactionContext.Transaction.Sigs
+                .Select(sig => CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash)).ToArray();
 
             //todo review correctness
             uint provided = publicKeys
                 .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
-                .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
+                .Where(r => !(r is default(Reviewer))).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
             Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval." );
         }
 
