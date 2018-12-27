@@ -7,7 +7,6 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Akka.Dispatch;
-using ServiceStack;
 
 namespace AElf.ChainController
 {

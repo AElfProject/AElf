@@ -5,7 +5,7 @@ using AElf.Types.CSharp;
 using AElf.SmartContract;
 using Xunit.Frameworks.Autofac;
 using Xunit;
-using ServiceStack;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.Token.Tests
 {
@@ -14,12 +14,14 @@ namespace AElf.Contracts.Token.Tests
     {
         private TokenContractShim _contract;
         private MockSetup _mock;
+        private readonly ITestOutputHelper _testOutputHelper;
 
         private IExecutive Executive { get; set; }
 
-        public TokenContractTest(MockSetup mock)
+        public TokenContractTest(MockSetup mock, ITestOutputHelper testOutputHelper)
         {
             _mock = mock;
+            _testOutputHelper = testOutputHelper;
             Init();
         }
 
@@ -54,7 +56,7 @@ namespace AElf.Contracts.Token.Tests
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Got exception while TokenContractTest {e}");
+                _testOutputHelper.WriteLine($"Got exception while TokenContractTest {e}");
                 Assert.Equal(ExecutionStatus.ContractError, _contract.TransactionContext.Trace.ExecutionStatus);
             }
         }

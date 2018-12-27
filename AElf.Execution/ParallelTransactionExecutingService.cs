@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using AElf.ChainController;
 using Akka.Actor;
-using ServiceStack.Text;
 using AElf.Kernel;
 using AElf.Configuration;
 using AElf.Execution.Scheduling;
-using AElf.SmartContract;
 using AElf.Common;
 using AElf.Execution.Execution;
 using Address = AElf.Common.Address;
@@ -86,7 +83,7 @@ namespace AElf.Execution
                 var failedTrace = new TransactionTrace
                 {
                     StdErr = "Transaction with ID/hash " + failed.Key.GetHash().ToHex() +
-                             " failed, detail message: \n" + failed.Value.Dump(),
+                             " failed, detail message: \n" + failed.Value,
                     TransactionId = failed.Key.GetHash()
                 };
                 results.Add(failedTrace);

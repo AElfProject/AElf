@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
 using AElf.Kernel;
 using AElf.ChainController;
 using AElf.SmartContract;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
-using AElf.Execution;
 using Google.Protobuf;
-using ServiceStack;
 using AElf.Common;
 using AElf.Execution.Execution;
 
@@ -74,12 +67,8 @@ namespace AElf.Contracts.Genesis.Tests
         {
             get
             {
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
         

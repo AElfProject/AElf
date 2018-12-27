@@ -6,12 +6,9 @@ using AElf.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
-using ServiceStack;
-using    AElf.Common;
-using AElf.Database;
+using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Runtime.CSharp;
-using AElf.SmartContract.Metadata;
 using NLog;
 
 namespace AElf.Contracts.Authorization.Tests
@@ -82,15 +79,8 @@ namespace AElf.Contracts.Authorization.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath(
-                    "../../../../AElf.Contracts.Authorization/bin/Debug/netstandard2.0/AElf.Contracts.Authorization.dll"))
-                )
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.Authorization/bin/Debug/netstandard2.0/AElf.Contracts.Authorization.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
 
@@ -98,14 +88,8 @@ namespace AElf.Contracts.Authorization.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath(
-                    "../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
 

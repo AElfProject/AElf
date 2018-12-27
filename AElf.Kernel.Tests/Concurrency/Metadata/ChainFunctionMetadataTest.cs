@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.SmartContract;
-using AElf.Kernel.Tests.Concurrency.Scheduling;
-using Google.Protobuf;
-using Microsoft.Extensions.Logging;
-using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
