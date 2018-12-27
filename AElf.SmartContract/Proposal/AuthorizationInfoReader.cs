@@ -6,6 +6,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using Google.Protobuf;
 
 namespace AElf.SmartContract.Proposal
 {
@@ -35,15 +36,16 @@ namespace AElf.SmartContract.Proposal
 
             if (transaction.Sigs.Count == 1)
                 return true;
-
             // Get pub keys
-            var publicKey = new List<byte[]>(transaction.Sigs.Count);
-            for (var i = 0; i < transaction.Sigs.Count; i++)
-            {
-                publicKey[i] = CryptoHelpers.RecoverPublicKey(transaction.Sigs[i].ToByteArray(), hash);
-            }
+            List<byte[]> publicKeys = new List<byte[]>();
 
-            return await CheckAuthority(transaction.From, publicKey);
+            foreach (var sig in transaction.Sigs)
+            {
+                var pub = CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash);
+                publicKeys.Add(pub);
+            }
+            
+            return await CheckAuthority(transaction.From, publicKeys);
         }
 
         public async Task<Kernel.Proposal> GetProposal(Hash proposalHash)
@@ -56,8 +58,8 @@ namespace AElf.SmartContract.Proposal
         public async Task<Authorization> GetAuthorization(Address msig)
         {
             var bytes = await _contractInfoReader.GetBytesAsync<Authorization>(AuthorizationContractAddress,
-                Hash.FromMessage(msig), GlobalConfig.AElfTxRootMerklePathInParentChain);
-            return Authorization.Parser.ParseFrom(bytes);
+                Hash.FromMessage(msig), GlobalConfig.AElfMultiSig);
+            return bytes != null ? Authorization.Parser.ParseFrom(bytes) : new Authorization();
         }
 
         public async Task<bool> CheckAuthority(Address mSigAddress, IEnumerable<byte[]> pubKeys)

@@ -396,29 +396,26 @@ namespace AElf.Sdk.CSharp
             if (_transactionContext.Transaction.Sigs.Count == 1)
                 // No need to verify signature again if it is not multi sig account.
                 return;
-            
             Call(AuthorizationContractAddress, "GetAuth", _transactionContext.Transaction.From);
-
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
             
             // Get tx hash
             var hash = _transactionContext.Transaction.GetHash().DumpByteArray();
 
             // Get pub keys
-            int sigCount = _transactionContext.Transaction.Sigs.Count;
-            List<byte[]> publicKeys = new List<byte[]>(sigCount);
+            List<byte[]> publicKeys = new List<byte[]>();
 
-            for (int i = 0; i < sigCount; i++)
+            foreach (var sig in _transactionContext.Transaction.Sigs)
             {
-                publicKeys[i] =
-                    CryptoHelpers.RecoverPublicKey(_transactionContext.Transaction.Sigs[i].ToByteArray(), hash);
+                var pub = CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash);
+                publicKeys.Add(pub);
             }
 
             //todo review correctness
             uint provided = publicKeys
-                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
+                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
                 .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
-
+            Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval." );
         }
 
         public static void IsMiner(string err)
