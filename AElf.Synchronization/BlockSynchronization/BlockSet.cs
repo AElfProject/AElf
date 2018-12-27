@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
-using Easy.MessageHub;
 using NLog;
 
 namespace AElf.Synchronization.BlockSynchronization
@@ -30,8 +28,6 @@ namespace AElf.Synchronization.BlockSynchronization
         private List<BlockState> _blocks;
 
         private ReaderWriterLock _rwLock = new ReaderWriterLock();
-
-        public ulong KeepHeight { get; set; } = ulong.MaxValue;
         
         private List<string> _miners;
 
@@ -170,7 +166,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 currentOtherList = currentOtherList.PreviousState;
             }
 
-            while (currentBranchList.Previous != currentOtherList.Previous)
+            while (currentBranchList != currentOtherList)
             {
                 if (currentBranchList.Previous == null || currentOtherList.Previous == null)
                     throw new InvalidOperationException("Invalid branch list.");
@@ -182,7 +178,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 currentOtherList = currentOtherList.PreviousState;
             }
             
-            branchList.Add(currentBranchList.PreviousState.GetCopyBlockState());
+            branchList.Add(currentBranchList.GetCopyBlockState());
 
             return branchList;
         }
@@ -203,6 +199,20 @@ namespace AElf.Synchronization.BlockSynchronization
             }
 
             return res;
+        }
+
+        public BlockState GetBlockStateByHash(Hash blockHash)
+        {
+            _rwLock.AcquireReaderLock(Timeout);
+            
+            try
+            {
+                return _blocks.FirstOrDefault(b => b.BlockHash == blockHash);
+            }
+            finally
+            {
+                _rwLock.ReleaseReaderLock();
+            }
         }
 
         public IBlock GetBlockByHash(Hash blockHash)
@@ -238,84 +248,37 @@ namespace AElf.Synchronization.BlockSynchronization
             }
         }
 
-        public void RemoveInvalidBlock(IBlock block)
+        public void RemoveInvalidBlock(Hash blockHash)
         {
-            if (block == null)
-                throw new ArgumentNullException();
+            if (blockHash == null)
+                throw new ArgumentNullException(nameof(blockHash));
             
             _rwLock.AcquireWriterLock(Timeout);
             
             try
             {
-                var blockHash = block.GetHash();
-                var toRemove = _blocks.RemoveAll(b => b.BlockHash == blockHash);
-                
-                // todo handle branch removal
-//                var workingSet = _blocks.Where(b => b.Index >= block.Index).ToList();
-//                
-//                if (!workingSet.Any())
-//                    return;
-//                
-//                List<BlockState> toRemove = new List<BlockState>();
-//                
-//                foreach (var blk in workingSet)
-//                {
-//                    _blocks.Remove(blk);
-//                    _logger?.Trace($"Removed block {blk.BlockHash} from block cache.");
-//                }
+                var toRemove = _blocks.FirstOrDefault(b => b.BlockHash == blockHash);
 
+                if (toRemove == null)
+                {
+                    _logger?.Warn($"Cannot remove block {blockHash}, not found.");
+                    return;
+                }
+
+                _blocks.Remove(toRemove);
+
+                if (CurrentHead.BlockHash == blockHash)
+                {
+                    var prev = CurrentHead.PreviousState;
+                    CurrentHead = prev;
+                } 
+                
+                _logger?.Debug($"Removed {blockHash} from blockset. Head {CurrentHead.BlockHash}");
             }
             finally
             {
                 _rwLock.ReleaseWriterLock();
             }
         }
-        
-//        public BlockState UpdateCurrentHead()
-//        {
-//            // todo bad algo, refactor when refactor the block sync
-//            List<BlockState> orderedBlocks = _blocks.OrderByDescending(b => b.Index).ToList();
-//
-//            if (orderedBlocks.Count <= 0)
-//                return null;
-//            
-//            ulong highestBlockIndex = orderedBlocks.First().Index;
-//            
-//            // find the first N blocks where N.Index == highestBlockIndex;
-//            List<BlockState> highestBlocks = new List<BlockState>();
-//            foreach (var block in orderedBlocks)
-//            {
-//                if (block.Index == highestBlockIndex)
-//                    highestBlocks.Add(block);
-//                else
-//                    break;
-//            }
-//
-//            if (highestBlocks.Count == 1)
-//            {
-//                if (highestBlocks.ElementAt(0) == _currentHead)
-//                    return null; // one block is higher and it's the current head -> no switch needed.
-//                
-//                // this one block is not the head
-//                _currentHead = highestBlocks.ElementAt(0);
-//                return _currentHead;
-//            }
-//            else
-//            {
-//                // more than one we return the current head. Find current head there:
-//                var curr = highestBlocks.Where(b => b == _currentHead);
-//
-//                if (curr != null)
-//                {
-//                    // current block is part of the list of highest blocks (same hight)
-//                    // so no need to switch
-//                    return null;
-//                }
-//                
-//                // Here we have to switch to the head that has _currentHead as ancestor (normaly previous block)
-//                // for all 
-//                
-//            }
-//        }
     }
 }

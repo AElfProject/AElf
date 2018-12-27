@@ -142,13 +142,13 @@ namespace AElf.Miner.TxMemPool
             // todo this should be up to the caller of this method to choose
             // todo weither or not this is done on another thread, currently 
             // todo this gives the caller no choice.
-            
-            Task.Run(async () =>
+
+            var task = Task.Run(async () =>
             {
                 await VerifySignature(tr);
                 await ValidateRefBlock(tr);
                 MaybePublishTransaction(tr);
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task<List<TransactionReceipt>> GetReceiptsOfExecutablesAsync()

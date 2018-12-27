@@ -60,9 +60,37 @@ namespace AElf.Synchronization.Tests
             var invalidBlock = SyncTestHelpers.BuildNext(genesis);
             
             blockSet.PushBlock(invalidBlock);
-            blockSet.RemoveInvalidBlock(invalidBlock);
+            blockSet.RemoveInvalidBlock(invalidBlock.GetHash());
             
             Assert.False(blockSet.IsBlockReceived(invalidBlock));
+        }
+
+        [Fact]
+        public void GetBranch_WithFork_ShouldReturnFirstHeadsBranch()
+        {
+            var genesis = SyncTestHelpers.GetGenesisBlock();
+            
+            BlockSet blockSet = new BlockSet();
+            blockSet.Init(SyncTestHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
+            
+            IBlock forkRoot = SyncTestHelpers.BuildNext(genesis); // Height 2
+            
+            IBlock blockForkA = SyncTestHelpers.BuildNext(forkRoot); // Height 3
+            IBlock blockForkB = SyncTestHelpers.BuildNext(forkRoot); // Height 3
+            
+            IBlock blockForkB1 = SyncTestHelpers.BuildNext(blockForkB); // Height 4
+            
+            blockSet.PushBlock(forkRoot);
+            blockSet.PushBlock(blockForkA);
+            blockSet.PushBlock(blockForkB);
+            blockSet.PushBlock(blockForkB1);
+            
+            var branch = blockSet.GetBranch(blockSet.GetBlockStateByHash(blockForkB1.GetHash()), blockSet.GetBlockStateByHash(blockForkA.GetHash()));
+            
+            Assert.Equal(3, branch.Count);
+            Assert.Equal(branch.ElementAt(0).BlockHash, blockForkB1.GetHash());
+            Assert.Equal(branch.ElementAt(1).BlockHash, blockForkB.GetHash());
+            Assert.Equal(branch.ElementAt(2).BlockHash, forkRoot.GetHash());
         }
 
         [Fact]
