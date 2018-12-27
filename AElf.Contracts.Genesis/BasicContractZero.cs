@@ -113,6 +113,34 @@ namespace AElf.Contracts.Genesis
 
             return info.ToString();
         }
+        
+        public async Task<byte[]> InitSmartContract(ulong serialNumber, int category, byte[] code)
+        {
+            var contractAddress = Address.BuildContractAddress(Api.ChainId.DumpByteArray(), serialNumber);
+            
+            var contractHash = Hash.FromRawBytes(code);
+
+            var info = new ContractInfo
+            {
+                SerialNumber = serialNumber,
+                Category = category,
+                ContractHash = contractHash
+            };
+            _contractInfos[contractAddress] = info;
+            
+            var reg = new SmartContractRegistration
+            {
+                Category = category,
+                ContractBytes = ByteString.CopyFrom(code),
+                ContractHash = contractHash,
+                SerialNumber = serialNumber
+            };
+            
+            await Api.InitContractAsync(contractAddress, reg);
+
+            Console.WriteLine("InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
+            return contractAddress.DumpByteArray();
+        }
 
         public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
@@ -200,6 +228,12 @@ namespace AElf.Contracts.Genesis
         {
             var info = _contractInfos[contractAddress];
             return info?.Owner;
+        }
+        
+        public Hash GetContractHash(Address contractAddress)
+        {
+            var info = _contractInfos[contractAddress];
+            return info?.ContractHash;
         }
     }
 }

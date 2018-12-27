@@ -136,7 +136,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<IMessage> GetContractAbi(this Svc s, Address address)
         {
-            return await s.SmartContractService.GetAbiAsync(address);
+            return await s.SmartContractService.GetAbiAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId), address);
         }
 
         internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
@@ -174,7 +174,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                return await s.SmartContractService.GetInvokingParams(tx);
+                return await s.SmartContractService.GetInvokingParams(Hash.LoadBase58(ChainConfig.Instance.ChainId),tx);
             }
             catch (Exception)
             {

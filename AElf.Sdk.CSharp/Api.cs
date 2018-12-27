@@ -53,6 +53,13 @@ namespace AElf.Sdk.CSharp
                 registration, false);
             task.Wait();
         }
+        
+        public static async Task InitContractAsync(Address address, SmartContractRegistration registration)
+        {
+            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
+            await _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
+                true);
+        }
 
         public static async Task DeployContractAsync(Address address, SmartContractRegistration registration)
         {
@@ -66,13 +73,6 @@ namespace AElf.Sdk.CSharp
             Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
             await _smartContractContext.SmartContractService.UpdateContractAsync(ChainId, address, registration,
                 false);
-        }
-
-        public static async Task RegistContractAsync(Hash contractHash, SmartContractRegistration registration)
-        {
-            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
-            await _smartContractContext.SmartContractService.RegistContractAsync(registration, false);
-
         }
 
         #endregion Privileged API

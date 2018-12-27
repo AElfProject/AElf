@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Kernel";
+option csharp_namespace = "AElf.Contracts.Genesis";
 
 import "common.proto";
 
@@ -10,4 +10,5 @@ message ContractInfo
     int32 Category = 2;
     Address Owner = 3;
     Hash ContractHash = 4;
+
 }

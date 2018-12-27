@@ -12,18 +12,6 @@ namespace AElf.Kernel.Managers
         {
             _smartContractStore = smartContractStore;
         }
-
-        public async Task<SmartContractRegistration> GetAsync(Address contractAddress)
-        {
-            // Todo get contract hash from contract map
-            var contractHash = new Hash();
-            return await GetAsync(contractHash);
-        }
-
-        public async Task InsertAsync(Address contractAddress, SmartContractRegistration reg)
-        {
-            await InsertAsync(reg);
-        }
         
         public async Task<SmartContractRegistration> GetAsync(Hash contractHash)
         {

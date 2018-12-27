@@ -22,16 +22,20 @@ namespace AElf.SmartContract
         Task DeployContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
 
         Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
-        
-        Task<IMessage> GetAbiAsync(Address account);
-        
+
+        Task<IMessage> GetAbiAsync(Hash chainId, Address account);
+
         /// <summary>
         /// return invoking parameters in one tx
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<IEnumerable<string>> GetInvokingParams(Transaction transaction);
+        Task<IEnumerable<string>> GetInvokingParams(Hash chainId, Transaction transaction);
 
-        Task RegistContractAsync(SmartContractRegistration registration, bool isPrivileged);
+        Task<SmartContractRegistration> GetContractByAddressAsync(Hash chainId, Address address);
+
+        Task DeployZeroContractAsync(Hash chainId, SmartContractRegistration registration);
+
+        Task<Address> DeploySystemContractAsync(Hash chainId, ulong serialNumber, int category, byte[] code);
     }
 }
