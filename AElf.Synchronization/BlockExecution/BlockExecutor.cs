@@ -250,46 +250,72 @@ namespace AElf.Synchronization.BlockExecution
              Hash sideChainTransactionsRoot, out List<TransactionResult> results)
         {
             results = new List<TransactionResult>();
-            
+            int index = 0;
             foreach (var trace in traces)
-            {
-                var res = new TransactionResult
+            {                        
+                // Todo : This can be extracted out since it has to be consistent with miner processing.
+                switch (trace.ExecutionStatus)
                 {
-                    TransactionId = trace.TransactionId
-                };
-                if (string.IsNullOrEmpty(trace.StdErr))
-                {
-                    res.Logs.AddRange(trace.FlattenedLogs);
-                    res.Status = Status.Mined;
-                    res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
-                    res.StateHash = trace.GetSummarizedStateHash();
-                    if (chainIndexingSideChainTransactionId != null &&
-                        trace.TransactionId.Equals(chainIndexingSideChainTransactionId))
-                    {
-                        var calculatedSideChainTransactionsRoot = Hash.LoadByteArray(trace.RetVal.ToFriendlyBytes());
-                        if (sideChainTransactionsRoot != null 
-                            && !sideChainTransactionsRoot.Equals(calculatedSideChainTransactionsRoot))
+                    case ExecutionStatus.ExecutedAndCommitted:
+                        // Successful
+                        var txRes = new TransactionResult()
                         {
-                            return BlockExecutionResult.InvalidSideChaiTransactionMerkleTreeRoot;
+                            TransactionId = trace.TransactionId,
+                            Status = Status.Mined,
+                            RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                            StateHash = trace.GetSummarizedStateHash(),
+                            Index = index++
+                        };
+                        txRes.UpdateBloom();
+
+                        if (chainIndexingSideChainTransactionId != null &&
+                            trace.TransactionId.Equals(chainIndexingSideChainTransactionId))
+                        {
+                            var calculatedSideChainTransactionsRoot = Hash.LoadByteArray(trace.RetVal.ToFriendlyBytes());
+                            if (sideChainTransactionsRoot != null 
+                                && !sideChainTransactionsRoot.Equals(calculatedSideChainTransactionsRoot))
+                            {
+                                return BlockExecutionResult.InvalidSideChaiTransactionMerkleTreeRoot;
+                            }
                         }
-                    }
-                }
-                else
-                {
-                    res.Status = Status.Failed;
-                    res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
-                    res.StateHash = trace.GetSummarizedStateHash();
-                }
+                        
+                        // insert deferred txn to transaction pool and wait for execution 
+                        if (trace.DeferredTransaction.Length != 0)
+                        {
+                            var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                            _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
+                            txRes.DeferredTxnId = deferredTxn.GetHash();
+                        }
 
-                if (trace.DeferredTransaction.Length != 0)
-                {
-                    var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                    _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
-                    res.DeferredTxnId = deferredTxn.GetHash();
+                        results.Add(txRes);
+                        break;
+                    case ExecutionStatus.ContractError:
+                        var txResF = new TransactionResult()
+                        {
+                            TransactionId = trace.TransactionId,
+                            RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
+                            Status = Status.Failed,
+                            StateHash = Hash.Default,
+                            Index = index++
+                        };
+                        results.Add(txResF);
+                        break;
+                    /*case ExecutionStatus.Undefined:
+                        break;
+                    case ExecutionStatus.ExecutedButNotCommitted:
+                        break;
+                    case ExecutionStatus.Canceled:
+                        break;
+                    case ExecutionStatus.SystemError:
+                        break;
+                    case ExecutionStatus.ExceededMaxCallDepth:
+                        break;*/
+                    default:
+                        _logger.Trace(
+                            $"Transaction {trace.TransactionId} execution failed with status {trace.ExecutionStatus}");
+                        break;
                 }
-                results.Add(res);
             }
-
             return BlockExecutionResult.TransactionExecutionSuccess;
         }
 

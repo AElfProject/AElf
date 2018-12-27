@@ -301,7 +301,8 @@ namespace AElf.Miner.Miner
                                 Status = Status.Mined,
                                 RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
                                 StateHash = trace.GetSummarizedStateHash(),
-                                Index = index++
+                                Index = index++,
+                                Logs = {trace.FlattenedLogs}
                             };
                             txRes.UpdateBloom();
 
