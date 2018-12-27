@@ -103,7 +103,7 @@ namespace AElf.Contracts.Genesis
         }
         
         [View]
-        public string GetContractInfoFor(Address contractAddress)
+        public string GetContractInfo(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
             if (info == null)

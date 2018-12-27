@@ -59,15 +59,5 @@ namespace AElf.ChainController
                 return null;
             }
         }
-
-        public async Task DeployGenesisBasicContract(Hash chainId)
-        {
-            
-        }
-
-        public async Task ProduceGenesisBlock(Hash chainId)
-        {
-            
-        }
     }
 }
