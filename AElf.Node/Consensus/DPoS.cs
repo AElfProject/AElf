@@ -11,9 +11,10 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Miner.Miner;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
@@ -22,12 +23,9 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using AElf.Miner.TxMemPool;
 using AElf.Kernel.Types.Common;
-using AElf.Synchronization.EventMessages;
-using NLog.Fluent;
-using ServiceStack;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Node
+namespace AElf.Node.Consensus
 {
     // ReSharper disable InconsistentNaming
     public class DPoS : IConsensus

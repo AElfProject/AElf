@@ -51,7 +51,7 @@ namespace AElf.Synchronization.Tests
             
             // Validation service 
             ValidationService = new Mock<IBlockValidationService>();
-            ValidationService.Setup(vs => vs.ValidateBlockAsync(It.IsAny<IBlock>(), It.IsAny<IChainContext>()))
+            ValidationService.Setup(vs => vs.ValidateBlockAsync(It.IsAny<IBlock>()))
                 .ReturnsAsync(BlockValidationResult.Success);
             
             // Block executor
