@@ -31,8 +31,6 @@ namespace AElf.RPC
             
             var rpc = context.ServiceProvider.GetService<IRpcServer>();
 
-            var collections = context.ServiceProvider.GetRequiredService<IServiceCollection>();
-            
             //TODO! change the implement of rpc server.
             rpc.Init(context.ServiceProvider, RpcConfig.Instance.Host, RpcConfig.Instance.Port);
         }

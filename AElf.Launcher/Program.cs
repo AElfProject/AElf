@@ -25,21 +25,9 @@ namespace AElf.Launcher
                 using (var application = AbpApplicationFactory.Create<LauncherAElfModule>(options =>
                 {
                     options.UseAutofac(); //Autofac integration
-                    //options.UseInMemoryDatabase(); // 
-
-                    options.Services.AddLogging(builder =>
-                    {
-                        /*builder.SetMinimumLevel(LogLevel.Trace)
-                            .AddConsole()
-                            .AddFile();*/
-                    });
-                        
-                    //DatabaseConfig.Instance.Type = DatabaseType.Redis;
+                    
                 }))
                 {
-                    
-                    
-
                     application.Initialize();
                     
                     logger = application.ServiceProvider.GetRequiredService<ILogger<Program>>();
