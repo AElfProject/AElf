@@ -488,6 +488,7 @@ message TermNumberLookUp {
 // All the candidates.
 message Candidates {
     repeated string PublicKeys = 1;
+    bool IsInitialMiners = 2;
 }
 
 // The ticket / voting information for one user.
@@ -507,6 +508,10 @@ message VotingRecord {
     repeated int32 LockDaysList = 7;// Can be renewed by adding items.
     uint64 UnlockAge = 8;
     uint64 TermNumber = 9;
+    google.protobuf.Timestamp UnlockTimestamp = 10;
+    google.protobuf.Timestamp WithdrawTimestamp = 11;
+    google.protobuf.Timestamp VoteTimestamp = 12;
+    bool IsWithdrawn = 13;
 }
 
 // The snap shot of one term.
@@ -549,19 +554,12 @@ message MinerInRound {
 
 // The information of a candidate.
 message CandidateInHistory {
-    repeated uint64 Terms = 1;
-    uint64 ProducedBlocks = 2;
-    uint64 MissedTimeSlots = 3;
-    uint64 ContinualAppointmentCount = 4;
-    uint64 ReappointmentCount = 5;
-    repeated string Aliases = 6;
-}
-
-message TicketsDictionary {
-    map<string, Tickets> Maps = 1;
-}
-
-message StringList {
-    repeated string Values = 1;
+    string PublicKey = 1;
+    repeated uint64 Terms = 2;
+    uint64 ProducedBlocks = 3;
+    uint64 MissedTimeSlots = 4;
+    uint64 ContinualAppointmentCount = 5;
+    uint64 ReappointmentCount = 6;
+    repeated string Aliases = 7;
 }
 ```

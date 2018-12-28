@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
+using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus.Contracts
@@ -89,6 +90,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
             Api.LockToken(amount);
 
+            var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
             var votingRecord = new VotingRecord
             {
                 Count = amount,
@@ -98,7 +100,9 @@ namespace AElf.Contracts.Consensus.Contracts
                 TransactionId = Api.GetTxnHash(),
                 VoteAge = CurrentAge,
                 UnlockAge = CurrentAge + (ulong) lockTime,
-                TermNumber = _collection.CurrentTermNumberField.GetValue()
+                TermNumber = _collection.CurrentTermNumberField.GetValue(),
+                VoteTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp(),
+                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge + (ulong) lockTime).ToTimestamp()
             };
             votingRecord.LockDaysList.Add(lockTime);
 
@@ -204,11 +208,18 @@ namespace AElf.Contracts.Consensus.Contracts
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
                     
+                    var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
+                    votingRecord.WithdrawTimestamp =
+                        blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
+                    votingRecord.IsWithdrawn = true;
+
                     var ticketsCount = _collection.TicketsCountField.GetValue();
                     ticketsCount -= votingRecord.Count;
                     _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
+            
+            _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
         }
 
         public void Withdraw(Hash transactionId)
@@ -223,11 +234,18 @@ namespace AElf.Contracts.Consensus.Contracts
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
                     
+                    var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
+                    votingRecord.WithdrawTimestamp =
+                        blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
+                    votingRecord.IsWithdrawn = true;
+                    
                     var ticketsCount = _collection.TicketsCountField.GetValue();
                     ticketsCount -= votingRecord.Count;
                     _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
+            
+            _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
         }
 
         public void Withdraw(bool withoutLimitation = false)
@@ -244,11 +262,18 @@ namespace AElf.Contracts.Consensus.Contracts
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
                     
+                    var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
+                    votingRecord.WithdrawTimestamp =
+                        blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
+                    votingRecord.IsWithdrawn = true;
+
                     var ticketsCount = _collection.TicketsCountField.GetValue();
                     ticketsCount -= votingRecord.Count;
                     _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
+
+            _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
         }
     }
 }

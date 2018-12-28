@@ -69,6 +69,10 @@ message VotingRecord {
     repeated int32 LockDaysList = 7;// Can be renewed by adding items.
     uint64 UnlockAge = 8;
     uint64 TermNumber = 9;
+    google.protobuf.Timestamp UnlockTimestamp = 10;
+    google.protobuf.Timestamp WithdrawTimestamp = 11;
+    google.protobuf.Timestamp VoteTimestamp = 12;
+    bool IsWithdrawn = 13;
 }
 
 // The snap shot of one term.
