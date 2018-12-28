@@ -94,7 +94,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextRound(Forwarding forwarding)
         {
-            if (forwarding.NextRoundInfo.MinersHash() == GetCurrentRoundInfo().MinersHash())
+            if (forwarding.NextRoundInfo.MinersHash() != GetCurrentRoundInfo().MinersHash())
             {
                 _collection.MinersMap.SetValue(CurrentTermNumber.ToUInt64Value(),
                     forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.ToMiners());
