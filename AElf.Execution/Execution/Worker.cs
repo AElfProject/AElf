@@ -120,7 +120,7 @@ namespace AElf.Execution
  TODO: https://github.com/AElfProject/AElf/issues/338
             _state = State.Running;
 */
-            var result = await _proxyExecutingService.ExecuteAsync(request.Transactions, request.ChainId, _cancellationTokenSource.Token);
+            var result = await _proxyExecutingService.ExecuteAsync(request.Transactions, request.ChainId, _cancellationTokenSource.Token, request.CurrentBlockTime);
             request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
 
             // TODO: What if actor died in the middle

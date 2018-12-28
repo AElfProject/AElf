@@ -114,7 +114,7 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public Miners GetCurrentMiners(string empty)
+        public Miners GetCurrentMiners()
         {
             var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
             Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
