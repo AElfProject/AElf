@@ -275,7 +275,7 @@ namespace AElf.Contracts.Consensus
         {
             var map = Collection.TermNumberLookupField.GetValue().Map;
             Api.Assert(map != null, GlobalConfig.TermNumberLookupNotFound);
-            return map?.OrderBy(p => p.Key).First(p => roundNumber >= p.Value).Key ?? (ulong) 0;
+            return map?.OrderBy(p => p.Key).Last(p => roundNumber >= p.Value).Key ?? (ulong) 0;
         }
         
         [View]

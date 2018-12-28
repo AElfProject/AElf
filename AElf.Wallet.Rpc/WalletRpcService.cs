@@ -45,8 +45,8 @@ namespace AElf.Wallet.Rpc
                     Base58CheckEncoding.EncodePlain(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId));
 
                 var chainPrefix = chainPrefixBase58.Substring(0, 4);
-                
-                var keypair = KeyStore.Create(password, chainPrefix);
+
+                var keypair = await KeyStore.CreateAsync(password, chainPrefix);
                 if (keypair != null)
                 {
                     // todo warning return null for now
@@ -71,31 +71,31 @@ namespace AElf.Wallet.Rpc
         [JsonRpcMethod("list_accounts")]
         public async Task<List<string>> ListAccounts()
         {
-            return KeyStore.ListAccounts();
+            return await KeyStore.ListAccountsAsync();
         }
 
         [JsonRpcMethod("sign_hash", "address", "password", "hash")]
         public async Task<JObject> SignHash(string address, string password, string hash)
         {
-            var tryOpen = KeyStore.OpenAsync(address, password);
+            var tryOpen = await KeyStore.OpenAsync(address, password);
             if (tryOpen == AElfKeyStore.Errors.WrongPassword)
             {
-                return new JObject()
+                return new JObject
                 {
                     ["error"] = "Wrong password."
                 };
             }
 
-            ECKeyPair kp = KeyStore.GetAccountKeyPair(address);
+            var kp = KeyStore.GetAccountKeyPair(address);
 
-            byte[] toSig = ByteArrayHelpers.FromHexString(hash);
+            var toSig = ByteArrayHelpers.FromHexString(hash);
             // Sign the hash
-            ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(kp, toSig);
+            var signer = new ECSigner();
+            var signature = signer.Sign(kp, toSig);
 
             // TODO: Standardize encoding
             // todo test
-            return new JObject()
+            return new JObject
             {
                 ["sig"] = signature.SigBytes
             };

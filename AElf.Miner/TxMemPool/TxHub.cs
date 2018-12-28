@@ -11,7 +11,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Common;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.EventMessages;
@@ -142,13 +142,13 @@ namespace AElf.Miner.TxMemPool
             // todo this should be up to the caller of this method to choose
             // todo weither or not this is done on another thread, currently 
             // todo this gives the caller no choice.
-            
-            Task.Run(async () =>
+
+            var task = Task.Run(async () =>
             {
-                VerifySignature(tr);
+                await VerifySignature(tr);
                 await ValidateRefBlock(tr);
                 MaybePublishTransaction(tr);
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task<List<TransactionReceipt>> GetReceiptsOfExecutablesAsync()
@@ -163,7 +163,7 @@ namespace AElf.Miner.TxMemPool
                 tr = new TransactionReceipt(txn);
                 _allTxns.TryAdd(tr.TransactionId, tr);
             }
-            VerifySignature(tr);
+            await VerifySignature(tr);
             await ValidateRefBlock(tr);
             return tr;
         }
@@ -210,7 +210,7 @@ namespace AElf.Miner.TxMemPool
 
         #region Private Methods
 
-        private void VerifySignature(TransactionReceipt tr)
+        private async Task VerifySignature(TransactionReceipt tr)
         {
             if (tr.SignatureSt != TransactionReceipt.Types.SignatureStatus.UnknownSignatureStatus)
             {
@@ -220,7 +220,7 @@ namespace AElf.Miner.TxMemPool
             if(tr.Transaction.Sigs.Count > 1)
             {
                 // check msig account authorization
-                var validAuthorization = _authorizationInfoReader.CheckAuthority(tr.Transaction);
+                var validAuthorization = await _authorizationInfoReader.CheckAuthority(tr.Transaction);
                 if (!validAuthorization)
                 {
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;

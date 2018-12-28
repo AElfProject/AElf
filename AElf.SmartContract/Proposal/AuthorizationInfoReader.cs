@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 
 namespace AElf.SmartContract.Proposal
 {
@@ -23,7 +24,7 @@ namespace AElf.SmartContract.Proposal
         }
         
         // todo review
-        public bool CheckAuthority(Transaction transaction)
+        public async Task<bool> CheckAuthority(Transaction transaction)
         {
             var sigCount = transaction.Sigs.Count;
             if (sigCount == 0)
@@ -36,38 +37,38 @@ namespace AElf.SmartContract.Proposal
                 return true;
 
             // Get pub keys
-            List<byte[]> publicKey = new List<byte[]>(transaction.Sigs.Count);
-            for (int i = 0; i < transaction.Sigs.Count; i++)
+            var publicKey = new List<byte[]>(transaction.Sigs.Count);
+            for (var i = 0; i < transaction.Sigs.Count; i++)
             {
                 publicKey[i] = CryptoHelpers.RecoverPublicKey(transaction.Sigs[i].ToByteArray(), hash);
             }
 
-            return CheckAuthority(transaction.From, publicKey);
+            return await CheckAuthority(transaction.From, publicKey);
         }
 
-        public Kernel.Proposal GetProposal(Hash proposalHash)
+        public async Task<Kernel.Proposal> GetProposal(Hash proposalHash)
         {
-            var bytes = _contractInfoReader.GetBytes<Authorization>(AuthorizationContractAddress,
+            var bytes = await _contractInfoReader.GetBytesAsync<Authorization>(AuthorizationContractAddress,
                 Hash.FromMessage(proposalHash), GlobalConfig.AElfProposal);
             return Kernel.Proposal.Parser.ParseFrom(bytes);
         }
 
-        public Authorization GetAuthorization(Address msig)
+        public async Task<Authorization> GetAuthorization(Address msig)
         {
-            var bytes = _contractInfoReader.GetBytes<Authorization>(AuthorizationContractAddress,
+            var bytes = await _contractInfoReader.GetBytesAsync<Authorization>(AuthorizationContractAddress,
                 Hash.FromMessage(msig), GlobalConfig.AElfTxRootMerklePathInParentChain);
             return Authorization.Parser.ParseFrom(bytes);
         }
 
-        public bool CheckAuthority(Address mSigAddress, IEnumerable<byte[]> pubKeys)
+        public async Task<bool> CheckAuthority(Address mSigAddress, IEnumerable<byte[]> pubKeys)
         {
-            var auth = GetAuthorization(mSigAddress);
+            var auth = await GetAuthorization(mSigAddress);
             return CheckAuthority(auth, pubKeys);
         }
 
         private bool CheckAuthority(Authorization authorization, IEnumerable<byte[]> pubKeys)
         {
-            long provided = pubKeys
+            var provided = pubKeys
                 .Select(pubKey => authorization.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
                 .Where(r => r != null).Aggregate<Reviewer, long>(0, (current, r) => current + r.Weight);
 

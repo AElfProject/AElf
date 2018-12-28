@@ -10,11 +10,9 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using ServiceStack;
 using AElf.Common;
-using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Execution.Execution;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Managers;
 using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract.Metadata;
@@ -27,11 +25,10 @@ namespace AElf.Contracts.SideChain.Tests
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
         private static int _incrementId = 0;
-
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
-            return (ulong) n;
+            return (ulong)n;
         }
 
         public Hash ChainId1 { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());

@@ -1,24 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
-using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
-using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.Node;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
+using AElf.Node.Consensus;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
@@ -160,15 +155,12 @@ namespace AElf.Node.AElfChain
             #endregion setup
 
             #region start
+            
+            _blockSynchronizer.Init();
 
             _txHub.Start();
 
             _consensus?.Start(NodeConfig.Instance.IsMiner);
-
-            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
-            {
-                await _blockSynchronizer.ReceiveBlock(inBlock.Block);
-            });
 
             MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });
@@ -186,14 +178,14 @@ namespace AElf.Node.AElfChain
             return true;
         }
 
-        public bool IsDPoSAlive()
+        public async Task<bool> CheckDPoSAliveAsync()
         {
-            return _consensus.IsAlive();
+            return await Task.FromResult(_consensus.IsAlive());
         }
 
-        public bool IsForked()
+        public async Task<bool> CheckForkedAsync()
         {
-            return _forkFlag;
+            return await Task.FromResult(_forkFlag);
         }
 
         #region private methods

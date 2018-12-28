@@ -1,9 +1,5 @@
-﻿using System.Timers;
-using AElf.Management.Interfaces;
-using Autofac;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace AElf.Management.Website
 {
@@ -17,7 +13,6 @@ namespace AElf.Management.Website
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseUrls("http://0.0.0.0:9090")
-        ;
+                .UseUrls("http://0.0.0.0:9090");
     }
 }

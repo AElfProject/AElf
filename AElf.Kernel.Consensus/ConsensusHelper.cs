@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
-using AElf.Kernel.Manager.Interfaces;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using NLog.Fluent;
@@ -197,7 +197,7 @@ namespace AElf.Kernel.Consensus
 
         public ulong CalculateBlockchainAge()
         {
-            return (ulong) ((DateTime.UtcNow - BlockchainStartTimestamp.ToDateTime()).TotalDays + 1);
+            return BlockchainAge.Value;
         }
 
         public bool TryToGetVictories(out List<string> victories)

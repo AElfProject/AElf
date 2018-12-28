@@ -3,13 +3,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.SmartContract;
+using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {

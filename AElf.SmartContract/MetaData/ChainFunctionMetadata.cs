@@ -10,7 +10,7 @@ using AElf.SmartContract.MetaData;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContract;
 
 namespace AElf.SmartContract

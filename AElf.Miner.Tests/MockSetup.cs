@@ -18,12 +18,10 @@ using Google.Protobuf;
 using Moq;
 using NLog;
 using AElf.Common;
-using AElf.Common.Serializers;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution.Execution;
-using AElf.Kernel.Manager.Interfaces;
-using AElf.Kernel.Manager.Managers;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
@@ -51,7 +49,7 @@ namespace AElf.Miner.Tests
         private IExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
-        private IMerkleTreeManager _merkleTreeManager;
+        private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private IChainContextService _chainContextService;
         private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
@@ -65,7 +63,7 @@ namespace AElf.Miner.Tests
             IBlockManager blockManager, ISmartContractManager smartContractManager,
             ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager, 
             ITransactionTraceManager transactionTraceManager,IChainManager chainManager,IFunctionMetadataService functionMetadataService,
-            ITransactionManager transactionManager, IMerkleTreeManager merkleTreeManager)
+            ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
         {
             _logger = logger;
             _stateManager = stateManager;
@@ -80,7 +78,7 @@ namespace AElf.Miner.Tests
             _functionMetadataService = functionMetadataService;
             _transactionManager = transactionManager;
             _stateManager = stateManager;
-            _merkleTreeManager = merkleTreeManager;
+            _binaryMerkleTreeManager = binaryMerkleTreeManager;
             Initialize();
         }
 
@@ -146,7 +144,7 @@ namespace AElf.Miner.Tests
         internal IMiner GetMiner(IMinerConfig config, ITxHub hub, ClientManager clientManager = null)
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
-                _transactionResultManager, _logger, clientManager, _merkleTreeManager, null,
+                _transactionResultManager, _logger, clientManager, _binaryMerkleTreeManager, null,
                 MockBlockValidationService().Object, _chainContextService, _chainManager, _stateManager);
 
             return miner;
@@ -155,7 +153,7 @@ namespace AElf.Miner.Tests
         internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
-                _transactionResultManager, clientManager, _merkleTreeManager,
+                _transactionResultManager, clientManager, _binaryMerkleTreeManager,
                 new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, null), _chainManager, _stateManager);
 
             return blockExecutor;
@@ -287,15 +285,15 @@ namespace AElf.Miner.Tests
         private Mock<ICrossChainInfoReader> MockCrossChainInfoReader()
         {
             var mock = new Mock<ICrossChainInfoReader>();
-            mock.Setup(m => m.GetParentChainCurrentHeight()).Returns(() => GetTimes);
-            mock.Setup(m => m.GetMerkleTreeForSideChainTransactionRoot(It.IsAny<ulong>())).Returns<ulong>(u =>
+            mock.Setup(m => m.GetParentChainCurrentHeightAsync()).Returns(() => Task.FromResult(GetTimes));
+            mock.Setup(m => m.GetMerkleTreeForSideChainTransactionRootAsync(It.IsAny<ulong>())).Returns<ulong>(u =>
             {
                 var binaryMerkleTree = new BinaryMerkleTree();
                 binaryMerkleTree.AddNodes(_blocks[(int) u - 1].Body.IndexedInfo.Select(info => info.TransactionMKRoot));
                 Console.WriteLine($"merkle tree root for {u} : {binaryMerkleTree.ComputeRootHash()}");
-                return binaryMerkleTree;
+                return Task.FromResult(binaryMerkleTree);
             });
-            mock.Setup(m => m.GetSideChainCurrentHeight(It.IsAny<Hash>())).Returns<Hash>(chainId => GetTimes);
+            mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<Hash>())).Returns<Hash>(chainId => Task.FromResult(GetTimes));
             return mock;
         }
 

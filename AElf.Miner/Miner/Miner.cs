@@ -14,7 +14,8 @@ using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.EventMessages;
+using AElf.Kernel.Managers;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
@@ -37,13 +38,12 @@ namespace AElf.Miner.Miner
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IMerkleTreeManager _merkleTreeManager;
+        private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IChainContextService _chainContextService;
         private IBlockChain _blockChain;
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private ECKeyPair _keyPair;
-        private readonly IChainManager _chainManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;
@@ -52,7 +52,7 @@ namespace AElf.Miner.Miner
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
-            IMerkleTreeManager merkleTreeManager, ServerManager serverManager,
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IChainContextService chainContextService
             , IChainManager chainManager,IStateManager stateManager)
         {
@@ -61,7 +61,7 @@ namespace AElf.Miner.Miner
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
-            _merkleTreeManager = merkleTreeManager;
+            _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _blockValidationService = blockValidationService;
             _chainContextService = chainContextService;
 
@@ -192,9 +192,13 @@ namespace AElf.Miner.Miner
 
                 // insert to db
                 UpdateStorage(results, block);
+                
                 await _txHub.OnNewBlock((Block)block);
-                MessageHub.Instance.Publish(new BlockMinedAndStored(block));
+                
+                MessageHub.Instance.Publish(UpdateConsensus.Update); 
+                
                 stopwatch.Stop();
+                
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 
@@ -214,13 +218,13 @@ namespace AElf.Miner.Miner
         private async Task GenerateCrossTransaction(ulong refBlockHeight, byte[] refBlockPrefix)
         {
             var address = Address.FromPublicKey(_keyPair.PublicKey);
-            var txnForIndexingSideChain = _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingSideChain(address, refBlockHeight,
+            var txnForIndexingSideChain = await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingSideChain(address, refBlockHeight,
                     refBlockPrefix);
             if (txnForIndexingSideChain != null)
                 await SignAndInsertToPool(txnForIndexingSideChain);
 
             var txnForIndexingParentChain =
-                _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingParentChain(address, refBlockHeight,
+                await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingParentChain(address, refBlockHeight,
                     refBlockPrefix);
             if (txnForIndexingParentChain != null)
                 await SignAndInsertToPool(txnForIndexingParentChain);
@@ -376,7 +380,7 @@ namespace AElf.Miner.Miner
                 await _transactionResultManager.AddTransactionResultAsync(r);
             });
             // update merkle tree
-            _merkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
+            _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
                 block.Header.Index);
         }
 

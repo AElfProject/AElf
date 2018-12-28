@@ -26,7 +26,7 @@ namespace AElf.Execution
         }
 
         private State _state = State.PendingSetSericePack;
-        private long _servingRequestId = -1;
+        // private long _servingRequestId = -1;
         private ServicePack _servicePack;
         private IExecutingService _proxyExecutingService;
 
@@ -132,15 +132,11 @@ namespace AElf.Execution
  TODO: https://github.com/AElfProject/AElf/issues/338
             request.ResultCollector?.Tell(retMsg);
             request.Router?.Tell(retMsg);
-*/
+
             _servingRequestId = -1;
-/*
- Temporarily disabled.
- TODO: https://github.com/AElfProject/AElf/issues/338
             _state = State.Idle;
 */
             return retMsg;
         }
-
     }
 }

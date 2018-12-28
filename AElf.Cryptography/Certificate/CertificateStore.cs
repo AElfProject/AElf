@@ -33,7 +33,7 @@ namespace AElf.Cryptography.Certificate
             var certGenerator = GetCertificateGenerator(keyPair);
             
             // Todo: "127.0.0.1" would be removed eventually
-            certGenerator.AddALternativeName(ipAddress);
+            certGenerator.AddAlternativeName(ipAddress);
             
             // generate certificate
             var cert = certGenerator.Generate(keyPair.PrivateKey);

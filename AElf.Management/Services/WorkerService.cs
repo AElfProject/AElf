@@ -14,11 +14,11 @@ namespace AElf.Management.Services
     {
         public async Task<List<WorkerResult>> GetAllWorkers(string chainId)
         {
-            var configs = K8SRequestHelper.GetClient().ReadNamespacedConfigMap(GlobalSetting.CommonConfigName, chainId);
+            var configs = await K8SRequestHelper.GetClient().ReadNamespacedConfigMapAsync(GlobalSetting.CommonConfigName, chainId);
             var configName = GetConfigName<ActorConfig>();
-            var actorConfig = JsonSerializer.Instance.Deserialize<ActorConfig>(configs.Data[configName]); 
+            var actorConfig = JsonSerializer.Instance.Deserialize<ActorConfig>(configs.Data[configName]);
 
-            var pods = K8SRequestHelper.GetClient().ListNamespacedPod(chainId, labelSelector: "name=" + GlobalSetting.WorkerName);
+            var pods = await K8SRequestHelper.GetClient().ListNamespacedPodAsync(chainId, labelSelector: "name=" + GlobalSetting.WorkerName);
 
             var result = new List<WorkerResult>();
             foreach (var pod in pods.Items)
@@ -35,7 +35,7 @@ namespace AElf.Management.Services
 
             return result;
         }
-        
+
         private static string GetConfigName<T>()
         {
             var t = typeof(T);
@@ -47,7 +47,7 @@ namespace AElf.Management.Services
         {
             var patch = new JsonPatchDocument<V1Deployment>();
             patch.Replace(e => e.Spec.Replicas, workerCount);
-            K8SRequestHelper.GetClient().PatchNamespacedDeployment(new V1Patch(patch), GlobalSetting.WorkerName, chainId);
+            await K8SRequestHelper.GetClient().PatchNamespacedDeploymentAsync(new V1Patch(patch), GlobalSetting.WorkerName, chainId);
         }
     }
 }

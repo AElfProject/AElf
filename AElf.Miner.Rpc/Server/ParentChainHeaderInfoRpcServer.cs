@@ -6,10 +6,10 @@ using AElf.ChainController;
 using AElf.ChainController.CrossChain;
 using AElf.Common.Attributes;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using Grpc.Core;
 using NLog;
 using AElf.Common;
-using AElf.Kernel.Manager.Interfaces;
 using NLog.Fluent;
 
 namespace AElf.Miner.Rpc.Server
@@ -20,7 +20,6 @@ namespace AElf.Miner.Rpc.Server
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private IBlockChain BlockChain { get; set; }
-        private readonly IMerkleTreeManager _merkleTreeManager;
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         public ParentChainBlockInfoRpcServer(IChainService chainService, ILogger logger, ICrossChainInfoReader crossChainInfoReader)
         {
@@ -83,7 +82,7 @@ namespace AElf.Miner.Rpc.Server
                                 ChainId = header?.ChainId
                             }
                         };
-                        var tree = _crossChainInfoReader.GetMerkleTreeForSideChainTransactionRoot(requestedHeight);
+                        var tree = await _crossChainInfoReader.GetMerkleTreeForSideChainTransactionRootAsync(requestedHeight);
                         if (tree != null)
                         {
                             // This is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
@@ -152,7 +151,7 @@ namespace AElf.Miner.Rpc.Server
                             }
                         };
                         
-                        var tree = _crossChainInfoReader.GetMerkleTreeForSideChainTransactionRoot(height);
+                        var tree = await _crossChainInfoReader.GetMerkleTreeForSideChainTransactionRootAsync(height);
                         //Todo: this is to tell side chain the height of side chain block in this main chain block, which could be removed with subsequent improvement.
                         body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
                             .Select((info, index) =>

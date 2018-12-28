@@ -1,7 +1,10 @@
+using System;
+using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Kernel.Manager.Interfaces;
+using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;
 
@@ -24,9 +27,9 @@ namespace AElf.ChainController.CrossChain
         /// </summary>
         /// <param name="blockHeight">Child chain block height.</param>
         /// <returns></returns>
-        public MerklePath GetTxRootMerklePathInParentChain(ulong blockHeight)
+        public async Task<MerklePath> GetTxRootMerklePathInParentChainAsync(ulong blockHeight)
         {
-            var bytes = _contractInfoReader.GetBytes<MerklePath>(CrossChainContractAddress,
+            var bytes = await _contractInfoReader.GetBytesAsync<MerklePath>(CrossChainContractAddress,
                             Hash.FromMessage(new UInt64Value {Value = blockHeight}),
                             GlobalConfig.AElfTxRootMerklePathInParentChain);
             return bytes == null ? null : MerklePath.Parser.ParseFrom(bytes);
@@ -37,9 +40,9 @@ namespace AElf.ChainController.CrossChain
         /// </summary>
         /// <param name="localChainHeight"></param>
         /// <returns></returns>
-        public ulong GetBoundParentChainHeight(ulong localChainHeight)
+        public async Task<ulong> GetBoundParentChainHeightAsync(ulong localChainHeight)
         {
-            var bytes = _contractInfoReader.GetBytes<UInt64Value>(CrossChainContractAddress,
+            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(CrossChainContractAddress,
                             Hash.FromMessage(new UInt64Value {Value = localChainHeight}),
                             GlobalConfig.AElfBoundParentChainHeight);
             return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
@@ -49,9 +52,9 @@ namespace AElf.ChainController.CrossChain
         /// Get current height of parent chain block stored locally
         /// </summary>
         /// <returns></returns>
-        public ulong GetParentChainCurrentHeight()
+        public async Task<ulong> GetParentChainCurrentHeightAsync()
         {
-            var bytes = _contractInfoReader.GetBytes<UInt64Value>(CrossChainContractAddress,
+            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(CrossChainContractAddress,
                             Hash.FromString(GlobalConfig.AElfCurrentParentChainHeight));
             return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
         }
@@ -62,9 +65,9 @@ namespace AElf.ChainController.CrossChain
         /// <param name="chainId"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public ulong GetSideChainCurrentHeight(Hash chainId)
+        public async Task<ulong> GetSideChainCurrentHeightAsync(Hash chainId)
         {
-            var bytes = _contractInfoReader.GetBytes<UInt64Value>(CrossChainContractAddress, Hash.FromMessage(chainId),
+            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(CrossChainContractAddress, Hash.FromMessage(chainId),
                 GlobalConfig.AElfCurrentSideChainHeight);
             return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
         }
@@ -75,9 +78,9 @@ namespace AElf.ChainController.CrossChain
         /// <param name="height">Self chain height.</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public BinaryMerkleTree GetMerkleTreeForSideChainTransactionRoot(ulong height)
+        public async Task<BinaryMerkleTree> GetMerkleTreeForSideChainTransactionRootAsync(ulong height)
         {
-            var bytes = _contractInfoReader.GetBytes<MerklePath>(CrossChainContractAddress,
+            var bytes = await _contractInfoReader.GetBytesAsync<MerklePath>(CrossChainContractAddress,
                 Hash.FromMessage(new UInt64Value {Value = height}),
                 GlobalConfig.AElfBinaryMerkleTreeForSideChainTxnRoot);
             return bytes == null ? null : BinaryMerkleTree.Parser.ParseFrom(bytes);
@@ -88,9 +91,9 @@ namespace AElf.ChainController.CrossChain
         /// </summary>
         /// <param name="localChainHeight">Local chain height</param>
         /// <returns></returns>
-        public ParentChainBlockInfo GetBoundParentChainBlockInfo(ulong localChainHeight)
+        public async Task<ParentChainBlockInfo> GetBoundParentChainBlockInfoAsync(ulong localChainHeight)
         {
-            var bytes = _contractInfoReader.GetBytes<ParentChainBlockInfo>(CrossChainContractAddress,
+            var bytes = await _contractInfoReader.GetBytesAsync<ParentChainBlockInfo>(CrossChainContractAddress,
                             Hash.FromMessage(new UInt64Value {Value = localChainHeight}),
                             GlobalConfig.AElfParentChainBlockInfo);
             return bytes == null ? null : ParentChainBlockInfo.Parser.ParseFrom(bytes);

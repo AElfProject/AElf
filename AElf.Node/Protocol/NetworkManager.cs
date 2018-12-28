@@ -172,6 +172,8 @@ namespace AElf.Node.Protocol
                 // Note - This should not happen during header this
                 if (UnlinkableHeaderIndex != 0)
                     return;
+                
+                LocalHeight++;
 
                 IBlock acceptedBlock = inBlock.Block;
                 
@@ -200,6 +202,8 @@ namespace AElf.Node.Protocol
                         for (; _blockRequestedCount < DefaultBlockRequestCount; _blockRequestedCount++)
                         {
                             hasReqNext = CurrentSyncSource.SyncNextHistory();
+                            if(!hasReqNext)
+                                break;
                         }
 
                         if (hasReqNext)
@@ -486,8 +490,7 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                _logger.Error(e);
             }
         }
 
@@ -510,6 +513,7 @@ namespace AElf.Node.Protocol
 
                 lock (_syncLock)
                 {
+                    _logger?.Debug($"Peer {args.Peer} has been removed, trying to find another peer to sync.");
                     SyncNext();
                 }
             }
@@ -753,16 +757,16 @@ namespace AElf.Node.Protocol
                 Block block = Block.Parser.ParseFrom(serializedBlock);
 
                 byte[] blockHash = block.GetHashBytes();
+                
+                peer.StopBlockTimer(block);
 
                 if (_lastBlocksReceived.Contains(blockHash))
                 {
-                    _logger.Warn($"Block {block.BlockHashToHex} already in network cache.");
+                    _logger.Warn($"Block {blockHash.ToHex()} already in network cache.");
                     return null;
                 }
 
                 _lastBlocksReceived.Enqueue(blockHash);
-
-                peer.StopBlockTimer(block);
 
                 return block;
             }
