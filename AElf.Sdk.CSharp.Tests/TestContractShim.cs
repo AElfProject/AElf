@@ -18,12 +18,8 @@ namespace AElf.Sdk.CSharp.Tests
         {
             get
             {
-                string filePath =
-                    "../../../../AElf.Sdk.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/AElf.Sdk.CSharp.Tests.TestContract.dll";
-                byte[] code = File.ReadAllBytes(Path.GetFullPath(filePath));
-
-
-                return code;
+                var filePath = "../../../../AElf.Sdk.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/AElf.Sdk.CSharp.Tests.TestContract.dll";
+                return File.ReadAllBytes(Path.GetFullPath(filePath));
             }
         }
 
@@ -56,7 +52,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToUInt32();
         }
 
@@ -75,7 +71,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToBool();
         }
 
@@ -94,7 +90,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToString();
         }
 
@@ -114,7 +110,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace;
         }
     }

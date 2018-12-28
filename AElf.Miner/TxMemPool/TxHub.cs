@@ -8,6 +8,7 @@ using AElf.ChainController;
 using AElf.Common;
 
 using AElf.Configuration.Config.Chain;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
@@ -16,8 +17,10 @@ using AElf.Kernel.Types.Common;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
+using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
 using Easy.MessageHub;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -33,6 +36,7 @@ namespace AElf.Miner.TxMemPool
         private readonly ITxSignatureVerifier _signatureVerifier;
         private readonly ITxRefBlockValidator _refBlockValidator;
         private readonly IAuthorizationInfoReader _authorizationInfoReader;
+        private readonly IElectionInfo _electionInfo;
         private readonly IChainService _chainService;
         
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
@@ -57,9 +61,10 @@ namespace AElf.Miner.TxMemPool
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
             IChainService chainService, IAuthorizationInfoReader authorizationInfoReader, ITxSignatureVerifier signatureVerifier,
-            ITxRefBlockValidator refBlockValidator)
+            ITxRefBlockValidator refBlockValidator, IElectionInfo electionInfo)
         {
             Logger = NullLogger<TxHub>.Instance;
+            _electionInfo = electionInfo;
             _transactionManager = transactionManager;
             _receiptManager = receiptManager;
             _chainService = chainService;
@@ -220,13 +225,28 @@ namespace AElf.Miner.TxMemPool
 
             if(tr.Transaction.Sigs.Count > 1)
             {
-                // check msig account authorization
-                var validAuthorization = await _authorizationInfoReader.CheckAuthority(tr.Transaction);
-                if (!validAuthorization)
+                if (tr.Transaction.From.Equals(Address.Genesis))
                 {
-                    tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
-                    return;
+                    // validate miners authorization
+                    var authorizationResult = await ValidateMinersAuthorization(tr);
+                    if (!authorizationResult)
+                    {
+                        tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
+                        return;
+                    }
                 }
+                else
+                {
+                    // validate authorization for multi-sig address
+                    var validAuthorization = await CheckAuthority(tr.Transaction);
+                    if (!validAuthorization)
+                    {
+                        tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
+                        return;
+                    }
+                }
+                tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
+                return;
             }
             
             var validSig = _signatureVerifier.Verify(tr.Transaction);
@@ -235,6 +255,55 @@ namespace AElf.Miner.TxMemPool
                 : TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
         }
 
+        /// <summary>
+        /// Validate miners authorization if it is a multi-sig transaction from Genesis address.
+        /// </summary>
+        /// <param name="tr"></param>
+        /// <returns></returns>
+        private async Task<bool> ValidateMinersAuthorization(TransactionReceipt tr)
+        {
+            var minerPublicKeysInHex = await _electionInfo.GetCurrentMines();
+            var auth = new Authorization
+            {
+                MultiSigAccount =Address.Genesis,
+                ExecutionThreshold = (uint) minerPublicKeysInHex.Count * 2 / 3,
+                ProposerThreshold = 0
+            };
+            auth.Reviewers.AddRange(minerPublicKeysInHex.Select(r => new Reviewer
+            {
+                PubKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(r)),
+                Weight = 1 // BP weight
+            }));
+            var hash = tr.Transaction.GetHash().DumpByteArray();
+            return _authorizationInfoReader.ValidateAuthorization(auth,
+                tr.Transaction.Sigs.Select(sig => CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash)).ToArray());
+        }
+        
+        
+        /// <summary>
+        /// Check authority of multi-sig address.
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        private async Task<bool> CheckAuthority(Transaction transaction)
+        {
+            var sigCount = transaction.Sigs.Count;
+            if (sigCount == 0)
+                return false;
+            
+            // Get tx hash
+            var hash = transaction.GetHash().DumpByteArray();
+
+            if (transaction.Sigs.Count == 1)
+                return true;
+            // Get pub keys
+            var publicKeys = transaction.Sigs.Select(sig => CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash))
+                .ToArray();
+            
+            return await _authorizationInfoReader.CheckAuthority(transaction.From, publicKeys);
+        }
+        
+        
         private async Task ValidateRefBlock(TransactionReceipt tr)
         {
             if (tr.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.UnknownRefBlockStatus &&
@@ -265,6 +334,11 @@ namespace AElf.Miner.TxMemPool
         private void IdentifyTransactionType(TransactionReceipt tr)
         {
             if (SystemAddresses.Contains(tr.Transaction.To))
+            {
+                tr.IsSystemTxn = true;
+            }
+
+            if (tr.Transaction.IsClaimFeesTransaction())
             {
                 tr.IsSystemTxn = true;
             }
@@ -391,6 +465,11 @@ namespace AElf.Miner.TxMemPool
 //                        || tr.Transaction.Type == TransactionType.DposTransaction
 //                        && tr.Transaction.To.Equals(_dPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
                         continue;
+
+                    if (tr.Transaction.IsClaimFeesTransaction())
+                    {
+                        continue;
+                    }
                     
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
                     tr.Status = TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus;

@@ -3,19 +3,24 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
+using AElf.ChainController.EventMessages;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
+using AElf.Miner.Tests;
+using Google.Protobuf;
+using Xunit;
+using AElf.Runtime.CSharp;
+using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
+using Moq;
+using AElf.Common;
+using Address = AElf.Common.Address;
+using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
-using AElf.Types.CSharp;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Xunit;
-using Address = AElf.Common.Address;
+using Easy.MessageHub;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Miner.Tests
@@ -272,6 +277,8 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 manager.Init(dir, t);
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
+                var libHeight = GlobalConfig.GenesisBlockHeight;
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t/2);
                 var result = await manager.CollectSideChainBlockInfo();
                 int count = result.Count;
@@ -279,6 +286,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 Assert.Equal(GlobalConfig.GenesisBlockHeight, result[0].Height);
                 _mock.GetTimes++;
                 
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
@@ -286,6 +294,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result[0].Height);
                 _mock.GetTimes++;
                 
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
@@ -294,6 +303,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 manager.CloseClientsToSideChain();
                 _mock.GetTimes++;
                 
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
@@ -347,7 +357,9 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 manager.Init(dir, t);
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
-                
+
+                var libHeight = GlobalConfig.GenesisBlockHeight;
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t/2);
                 var result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
@@ -359,7 +371,8 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 var chainManager = _mock.MockChainManager().Object;
                 await chainManager.UpdateCurrentBlockHeightAsync(result[0].ChainId, result[0].Height);
                 _mock.GetTimes++;
-                
+
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
@@ -371,6 +384,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 await chainManager.UpdateCurrentBlockHeightAsync(result[0].ChainId, result[0].Height);
                 _mock.GetTimes++;
 
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);

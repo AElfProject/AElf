@@ -76,7 +76,7 @@ namespace AElf.Kernel.Tests
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
                 new SmartContractService(SmartContractManager, _smartContractRunnerContainer, _stateManager,
-                    functionMetadataService);
+                    functionMetadataService, ChainService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
 
@@ -111,7 +111,7 @@ namespace AElf.Kernel.Tests
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_stateManager);
+            await trace.SmartCommitChangesAsync(_stateManager);
         }
 
         public void Initialize1(Address account, ulong qty)

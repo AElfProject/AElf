@@ -345,7 +345,7 @@ namespace AElf.Network.Peers
 
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                     
-                    //Dispose();
+                    Dispose();
                 }
             }
         }

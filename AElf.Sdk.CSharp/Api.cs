@@ -24,6 +24,7 @@ namespace AElf.Sdk.CSharp
         private static ISmartContractContext _smartContractContext;
         private static ITransactionContext _transactionContext;
         private static ITransactionContext _lastCallContext;
+        private static IBlockChain _blockChain;
 
         public static ProtobufSerializer Serializer { get; } = new ProtobufSerializer();
 
@@ -32,6 +33,7 @@ namespace AElf.Sdk.CSharp
         public static void SetSmartContractContext(ISmartContractContext contractContext)
         {
             _smartContractContext = contractContext;
+            _blockChain = contractContext.ChainService.GetBlockChain(contractContext.ChainId);
             _dataProviders = new Dictionary<string, IDataProvider> {{"", _smartContractContext.DataProvider}};
         }
 
@@ -86,15 +88,24 @@ namespace AElf.Sdk.CSharp
 
         public static Address DividendsContractAddress => ContractHelpers.GetDividendsContractAddress(ChainId);
 
+        public static DateTime CurrentBlockTime => _transactionContext.CurrentBlockTime;
+        
         public static Address Genesis => Address.Genesis;
+
+        public static Block GetBlockByHeight(ulong height)
+        {
+            return (Block) _blockChain.GetBlockByHeightAsync(height, true).Result;
+        }
 
         public static Hash GetPreviousBlockHash()
         {
+            // TODO: Maybe use _blockChain to get
             return _transactionContext.PreviousBlockHash.ToReadOnly();
         }
 
         public static ulong GetCurrentHeight()
         {
+            // TODO: Maybe use _blockChain to get
             return _transactionContext.BlockHeight;
         }
 
@@ -332,9 +343,9 @@ namespace AElf.Sdk.CSharp
             SendInline(ResourceContractAddress, "LockResource", GetContractAddress(), amount, resourceType);
         }
         
-        public static void WithdrawResource(ulong amount, ResourceType resourceType)
+        public static void UnlockResource(ulong amount, ResourceType resourceType)
         {
-            SendInlineByContract(ResourceContractAddress, "WithdrawResource", GetFromAddress(), amount, resourceType);
+            SendInlineByContract(ResourceContractAddress, "UnlockResource", GetFromAddress(), amount, resourceType);
         }
         
         #endregion Transaction API
@@ -394,29 +405,21 @@ namespace AElf.Sdk.CSharp
             if (_transactionContext.Transaction.Sigs.Count == 1)
                 // No need to verify signature again if it is not multi sig account.
                 return;
-            
             Call(AuthorizationContractAddress, "GetAuth", _transactionContext.Transaction.From);
-
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
             
             // Get tx hash
             var hash = _transactionContext.Transaction.GetHash().DumpByteArray();
 
             // Get pub keys
-            int sigCount = _transactionContext.Transaction.Sigs.Count;
-            List<byte[]> publicKeys = new List<byte[]>(sigCount);
-
-            for (int i = 0; i < sigCount; i++)
-            {
-                publicKeys[i] =
-                    CryptoHelpers.RecoverPublicKey(_transactionContext.Transaction.Sigs[i].ToByteArray(), hash);
-            }
+            var publicKeys = _transactionContext.Transaction.Sigs
+                .Select(sig => CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash)).ToArray();
 
             //todo review correctness
             uint provided = publicKeys
-                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.Equals(pubKey)))
-                .Where(r => r != null).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
-
+                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
+                .Where(r => !(r is default(Reviewer))).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
+            Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval." );
         }
 
         public static void IsMiner(string err)
@@ -444,7 +447,7 @@ namespace AElf.Sdk.CSharp
                 Type = TransactionType.MsigTransaction
             }.ToByteArray();
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = DateTime.UtcNow.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
+            TimeSpan diff = CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
             
             Proposal proposal = new Proposal
             {

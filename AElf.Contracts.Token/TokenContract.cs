@@ -73,6 +73,9 @@ namespace AElf.Contracts.Token
         [SmartContractFieldData("${this}._allowancePlaceHolder", DataAccessMode.AccountSpecific)]
         private readonly object _allowancePlaceHolder;
 
+        private readonly MapToUInt64<Address> _chargedFees = new MapToUInt64<Address>("_ChargedFees_");
+        private readonly PbField<Address> _feePoolAddress = new PbField<Address>("_feePoolAddress_");
+
         #region ABI (Public) Methods
 
         #region View Only Methods
@@ -119,6 +122,18 @@ namespace AElf.Contracts.Token
             return Allowances.GetAllowance(owner, spender);
         }
 
+        [View]
+        public ulong ChargedFees(Address address)
+        {
+            return _chargedFees[address];
+        }
+
+        [View]
+        public Address FeePoolAddress()
+        {
+            return _feePoolAddress.GetValue();
+        }
+        
         #endregion View Only Methods
 
         #region Actions
@@ -128,6 +143,7 @@ namespace AElf.Contracts.Token
             "${this}._initialized", "${this}._symbol", "${this}._tokenName", "${this}._totalSupply",
             "${this}._decimals", "${this}._balances"
         })]
+        [Fee(0)]
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
             Api.Assert(!_initialized.GetValue(), "Already initialized.");
@@ -138,6 +154,15 @@ namespace AElf.Contracts.Token
             _decimals.SetValue(decimals);
             _balances[Api.GetFromAddress()] = totalSupply;
             _initialized.SetValue(true);
+        }
+
+        [Fee(0)]
+        public void SetFeePoolAddress(Address address)
+        {
+            var fromAddress = Api.GetFromAddress();
+            var notSet = _feePoolAddress.GetValue().Value == null || _feePoolAddress.GetValue().Value.Length == 0;
+            Api.Assert(notSet || fromAddress == _feePoolAddress.GetValue(), "Not allowed to perform this action.");
+            _feePoolAddress.SetValue(address);
         }
 
         [SmartContractFunction("${this}.Transfer", new string[] {"${this}.DoTransfer"}, new string[] { })]
@@ -197,6 +222,40 @@ namespace AElf.Contracts.Token
                 Amount = amount
             }.Fire();
         }
+
+        #region Used Transaction Fees
+
+        /// <summary>
+        /// The fees will be first locked according to transaction hash and will be claimed by the miner during
+        /// finalizing the block. This method is only called by the main transaction (non-inline transactions).
+        /// </summary>
+        /// <param name="txHash"></param>
+        /// <param name="feeAmount"></param>
+        public void ChargeTransactionFees(ulong feeAmount)
+        {
+            var fromAddress = Api.GetFromAddress();
+            _balances[fromAddress] = _balances[fromAddress].Sub(feeAmount);
+            _chargedFees[fromAddress] = _chargedFees[fromAddress].Add(feeAmount);
+        }
+
+        [Fee(0)]
+        public void ClaimTransactionFees(ulong height)
+        {
+            var feePoolAddressNotSet =
+                _feePoolAddress.GetValue().Value == null || _feePoolAddress.GetValue().Value.Length == 0;
+            Api.Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
+            var blk = Api.GetBlockByHeight(height);
+            var senders = blk.Body.TransactionList.Select(t => t.From).ToList();
+            var feePool = _feePoolAddress.GetValue();
+            foreach (var sender in senders)
+            {
+                var fee = _chargedFees[sender];
+                _chargedFees[sender] = 0UL;
+                _balances[feePool] = _balances[feePool].Add(fee);
+            }
+        }
+
+        #endregion Used Transaction Fees
 
         #endregion Actions
 

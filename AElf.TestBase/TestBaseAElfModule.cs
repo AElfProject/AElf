@@ -1,5 +1,4 @@
 using AElf.Modularity;
-using AElf.RuntimeSetup;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 

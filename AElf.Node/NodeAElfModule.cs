@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Net;
+using System.Runtime.InteropServices;
 using System.Security;
 using AElf.Common.Application;
 using AElf.Common.Enums;
@@ -40,26 +40,21 @@ namespace AElf.Node
             {
                 try
                 {
-                    var ks = new AElfKeyStore(ApplicationHelpers.ConfigPath);
-                    
-                    var pass = string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccountPassword)
-                        ? AskInvisible(NodeConfig.Instance.NodeAccount)
-                        : NodeConfig.Instance.NodeAccountPassword;
+                    var keyStore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
+                    var password = string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccountPassword) ? AskInvisible() : NodeConfig.Instance.NodeAccountPassword;
+                    keyStore.OpenAsync(NodeConfig.Instance.NodeAccount, password, false).Wait();
+                    NodeConfig.Instance.NodeAccountPassword = password;
 
-                    ks.OpenAsync(NodeConfig.Instance.NodeAccount, pass, false).Wait();
-
-                    NodeConfig.Instance.NodeAccountPassword = pass;
-
-                    nodeKey = ks.GetAccountKeyPair(NodeConfig.Instance.NodeAccount);
-
+                    nodeKey = keyStore.GetAccountKeyPair(NodeConfig.Instance.NodeAccount);
                     if (nodeKey == null)
                     {
-                        Console.WriteLine("Load keystore failed");
+                        Console.WriteLine("Load keystore failed.");
+                        Environment.Exit(-1);
                     }
                 }
                 catch (Exception e)
                 {
-                    throw new Exception("Load keystore failed", e);
+                    throw new Exception("Load keystore failed.", e);
                 }
             }
 
@@ -101,33 +96,48 @@ namespace AElf.Node
             node.Start();
         }
         
-        private static string AskInvisible(string prefix)
+        private static string AskInvisible()
         {
             Console.Write("Node account password: ");
-            var pwd = new SecureString();
+            var securePassword = new SecureString();
             while (true)
             {
-                var i = Console.ReadKey(true);
-                if (i.Key == ConsoleKey.Enter)
+                var consoleKeyInfo = Console.ReadKey(true);
+                if (consoleKeyInfo.Key == ConsoleKey.Enter)
                 {
                     break;
                 }
 
-                if (i.Key == ConsoleKey.Backspace)
+                if (consoleKeyInfo.Key == ConsoleKey.Backspace)
                 {
-                    if (pwd.Length > 0)
+                    if (securePassword.Length > 0)
                     {
-                        pwd.RemoveAt(pwd.Length - 1);
+                        securePassword.RemoveAt(securePassword.Length - 1);
                     }
                 }
                 else
                 {
-                    pwd.AppendChar(i.KeyChar);
+                    securePassword.AppendChar(consoleKeyInfo.KeyChar);
                 }
             }
 
             Console.WriteLine();
-            return new NetworkCredential("", pwd).Password;
+
+            var intPtr = IntPtr.Zero;
+            try
+            {
+                intPtr = Marshal.SecureStringToGlobalAllocUnicode(securePassword);
+                return Marshal.PtrToStringUni(intPtr);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Exception while get account password.", ex);
+            }
+            finally
+            {
+                if (intPtr != IntPtr.Zero)
+                    Marshal.ZeroFreeGlobalAllocUnicode(intPtr);
+            }
         }
     }
 }
