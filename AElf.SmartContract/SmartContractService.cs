@@ -58,8 +58,7 @@ namespace AElf.SmartContract
             }
             else
             {
-                var result = CallContract(chainId, ContractHelpers.GetGenesisBasicContractAddress(chainId),
-                    "GetContractHash", address);
+                var result = CallContract(chainId, zeroContractAdress, "GetContractHash", address);
 
                 contractHash = result.DeserializeToPbMessage<Hash>();
             }

@@ -120,7 +120,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero,
+                ContractHash = Hash.FromRawBytes(SmartContractZeroCode),
                 SerialNumber = GlobalConfig.GenesisBasicContract
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
@@ -130,6 +130,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private async Task DeploySampleContracts()
         {
             const ulong serialNumber = 10ul;
+            SampleContractAddress1 = Address.BuildContractAddress(ChainId1, serialNumber);
+            SampleContractAddress2 = Address.BuildContractAddress(ChainId2, serialNumber);
+            
             var reg = new SmartContractRegistration
             {
                 Category = 1,
@@ -142,9 +145,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             await SmartContractService.DeploySystemContractAsync(ChainId2, reg);
             Executive1 = await SmartContractService.GetExecutiveAsync(SampleContractAddress1, ChainId1);
             Executive2 = await SmartContractService.GetExecutiveAsync(SampleContractAddress2, ChainId2);
-            
-            SampleContractAddress1 = Address.BuildContractAddress(ChainId1, serialNumber);
-            SampleContractAddress2 = Address.BuildContractAddress(ChainId2, serialNumber);
         }
 
         public byte[] ExampleContractCode => ContractCodes.TestContractCode;

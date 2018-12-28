@@ -116,6 +116,8 @@ namespace AElf.Contracts.Genesis
         
         public async Task<byte[]> InitSmartContract(ulong serialNumber, int category, byte[] code)
         {
+            Api.Assert(Api.GetCurrentHeight() < 1, "The current height should be less than 1.");
+            
             var contractAddress = Address.BuildContractAddress(Api.ChainId.DumpByteArray(), serialNumber);
             
             var contractHash = Hash.FromRawBytes(code);
