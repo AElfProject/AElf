@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Types.CSharp;
-using Akka.Routing;
-using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus.Contracts
@@ -38,8 +34,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
             _collection.CandidatesField.SetValue(candidates);
 
-            // TODO: Remove `Empty`
-            if (alias == "" || alias == "Empty" || alias.Length > GlobalConfig.AliasLimit)
+            if (alias == "" || alias.Length > GlobalConfig.AliasLimit)
             {
                 alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
             }

@@ -2,8 +2,6 @@
 
 ## Available Methods
 
-- All the methods without parameter should a `string` type of parameter temporarily due to a bug in signature.
-
 ### `AnnounceElection`
 
 Params:
@@ -240,8 +238,6 @@ Can only called by one of the initial miners.
 ## 可用方法
 
 ### `AnnounceElection`
-
-- 由于一个签名相关的bug，没有参数的方法需要暂时加上一个string类型的参数。
 
 参数:
 - `string` alias
