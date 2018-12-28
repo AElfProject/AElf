@@ -47,13 +47,6 @@ namespace AElf.Concurrency.Worker
             using (var application = AbpApplicationFactory.Create<WorkerConcurrencyAElfModule>(options =>
             {
                 options.UseAutofac();
-
-                options.Services.AddLogging(builder =>
-                {
-                    builder.SetMinimumLevel(LogLevel.Trace)
-                        .AddConsole()
-                        .AddFile();
-                });
             }))
             {
                 application.Initialize();

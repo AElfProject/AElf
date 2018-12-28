@@ -89,8 +89,7 @@ namespace AElf.Node.AElfChain
         
         private byte[] ReadCode(string path)
         {
-            byte[] code = File.ReadAllBytes(Path.GetFullPath(path));
-            return code;
+            return File.ReadAllBytes(Path.GetFullPath(path));
         }
 
         #endregion

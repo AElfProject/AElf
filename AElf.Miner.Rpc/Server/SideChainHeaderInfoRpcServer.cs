@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
-
+using AElf.ChainController.EventMessages;
 using AElf.Kernel;
 using Grpc.Core;
 using AElf.Common;
+using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -17,6 +18,7 @@ namespace AElf.Miner.Rpc.Server
         private readonly IChainService _chainService;
         public ILogger<SideChainBlockInfoRpcServer> Logger {get;set;}
         private ILightChain LightChain { get; set; }
+        private ulong LibHeight { get; set; }
 
         public SideChainBlockInfoRpcServer(IChainService chainService)
         {
@@ -27,6 +29,7 @@ namespace AElf.Miner.Rpc.Server
         public void Init(Hash chainId)
         {
             LightChain = _chainService.GetLightChain(chainId);
+            MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
         }
 
         /// <summary>
@@ -49,8 +52,7 @@ namespace AElf.Miner.Rpc.Server
                 {
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
-                    var currentHeight = await LightChain.GetCurrentBlockHeightAsync();
-                    if (currentHeight - requestedHeight < (ulong)GlobalConfig.InvertibleChainHeight)
+                    if (requestedHeight > LibHeight)
                     {
                         await responseStream.WriteAsync(new ResponseSideChainBlockInfo
                         {
@@ -88,7 +90,7 @@ namespace AElf.Miner.Rpc.Server
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override async Task IndexServerStreaming(RequestBlockInfo request, 
+        /*public override async Task IndexServerStreaming(RequestBlockInfo request, 
             IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
@@ -120,6 +122,6 @@ namespace AElf.Miner.Rpc.Server
             {
                 Logger.LogError(e, "Exception while index server streaming.");
             }
-        }
+        }*/
     }
 }

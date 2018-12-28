@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.SmartContract.Consensus
 {
@@ -59,8 +61,13 @@ namespace AElf.SmartContract.Consensus
 
         public async Task<List<string>> GetCurrentMines()
         {
-            // TODO NotImplemented
-            return await Task.FromResult(default(List<string>));
+            var termNumberBytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(ConsensusContractAddress,
+                Hash.FromString(GlobalConfig.AElfDPoSCurrentTermNumber));
+            var termNumber = UInt64Value.Parser.ParseFrom(termNumberBytes);
+            var minersBytes = await _contractInfoReader.GetBytesAsync<Miners>(ConsensusContractAddress,
+                Hash.FromMessage(termNumber), GlobalConfig.AElfDPoSMinersMapString);
+            var miners = Miners.Parser.ParseFrom(minersBytes);
+            return miners.PublicKeys.ToList();
         }
     }
 }

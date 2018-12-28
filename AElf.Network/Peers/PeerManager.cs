@@ -6,9 +6,8 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
+using AElf.Kernel;
 using AElf.Common;
-
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
 using AElf.Cryptography.ECDSA;
@@ -20,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+
 [assembly: InternalsVisibleTo("AElf.Network.Tests")]
 
 namespace AElf.Network.Peers
@@ -445,29 +445,40 @@ namespace AElf.Network.Peers
 
         public void RemovePeer(IPeer peer)
         {
-            if (peer == null)
+            try
             {
-                Logger.LogWarning("removing peer but peer is null.");
-                return;
+                if (peer == null)
+                {
+                    Logger.LogWarning("removing peer but peer is null.");
+                    return;
+                }
+
+                // Will do nothing if already disposed
+                peer.Dispose();
+
+                peer.MessageReceived -= OnPeerMessageReceived;
+                peer.PeerDisconnected -= ProcessClientDisconnection;
+                peer.AuthFinished -= PeerOnPeerAuthentified;
+
+                lock (_peerListLock)
+                {
+                    _authentifyingPeer.RemoveAll(p => p.IsDisposed);
+                    _authentifyingPeer.Remove(peer);
+
+                    if (_peers.Remove(peer))
+                    {
+                        Logger.LogDebug($"{peer} removed.");
+                        PeerEvent?.Invoke(this, new PeerEventArgs(peer, PeerEventType.Removed));
+                    }
+                    else
+                    {
+                        Logger.LogWarning($"Tried to remove peer, but not in list {peer}");
+                    }
+                }
             }
-
-            // Will do nothing if already disposed
-            peer.Dispose();
-
-            peer.MessageReceived -= OnPeerMessageReceived;
-            peer.PeerDisconnected -= ProcessClientDisconnection;
-            peer.AuthFinished -= PeerOnPeerAuthentified;
-
-            _authentifyingPeer.Remove(peer);
-
-            if (_peers.Remove(peer))
+            catch (Exception e)
             {
-                Logger.LogDebug($"{peer} removed.");
-                PeerEvent?.Invoke(this, new PeerEventArgs(peer, PeerEventType.Removed));
-            }
-            else
-            {
-                Logger.LogWarning($"Tried to remove peer, but not in list {peer}");
+                Logger.LogError(e, "Error while removing peer.");
             }
         }
 
@@ -548,7 +559,7 @@ namespace AElf.Network.Peers
                 List<NodeData> currentPeers;
                 lock (_peerListLock)
                 {
-                    currentPeers = _peers.Select(p => p.DistantNodeData).ToList();
+                    currentPeers = _peers.Select(p => p.DistantNodeData).ToList().Concat(_authentifyingPeer.Where(ap => !ap.IsDisposed).Select(ap => ap.DistantNodeData)).ToList();
                 }
 
                 foreach (var peer in peerList.NodeData.Where(nd => !currentPeers.Contains(nd)))

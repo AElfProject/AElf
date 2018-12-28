@@ -17,6 +17,7 @@ using AElf.Network;
 using AElf.Node;
 using AElf.RPC;
 using AElf.Runtime.CSharp;
+using AElf.RuntimeSetup;
 using AElf.SideChain.Creation;
 using AElf.Wallet.Rpc;
 using Easy.MessageHub;
@@ -31,7 +32,10 @@ namespace AElf.Launcher
 {
     //TODO! need to change this file
 
-    [DependsOn(typeof(RpcChainControllerAElfModule),
+    [DependsOn(
+        typeof(RuntimeSetupAElfModule),
+        
+        typeof(RpcChainControllerAElfModule),
         typeof(ExecutionAElfModule),
         typeof(MinerAElfModule),
         typeof(NetRpcAElfModule),

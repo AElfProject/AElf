@@ -212,7 +212,7 @@ namespace AElf.Miner.Rpc.Client
                     CacheBlockInfo(blockInfo);
                 else
                 {
-                    Logger.LogTrace($"Timeout to get cached data from chain {_targetChainId}");
+                    Logger.LogTrace($"Timeout to get cached data from chain {_targetChainId.DumpBase58()}");
                 }
                 return res;
             }

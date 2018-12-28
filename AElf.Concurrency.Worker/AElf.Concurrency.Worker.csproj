@@ -25,5 +25,6 @@
     <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
     <ProjectReference Include="..\AElf.Network\AElf.Network.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+    <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
   </ItemGroup>
 </Project>

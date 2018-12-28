@@ -6,11 +6,9 @@ using AElf.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
-using    AElf.Common;
-using AElf.Database;
+using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Runtime.CSharp;
-using AElf.SmartContract.Metadata;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -71,10 +69,12 @@ namespace AElf.Contracts.Authorization.Tests
             _smartContractRunnerContainer.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    StateManager, _functionMetadataService));
-            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                StateManager, _functionMetadataService);
+                    StateManager, _functionMetadataService, ChainService));
+            Task.Factory.StartNew(async () =>
+            {
+                await Init();
+            }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateManager, _functionMetadataService, ChainService);
             ChainService = new ChainService(_chainManager, _blockManager, _transactionManager,
                 _transactionTraceManager, StateManager);
         }
@@ -83,10 +83,8 @@ namespace AElf.Contracts.Authorization.Tests
         {
             get
             {
-                byte[] code = File.ReadAllBytes(Path.GetFullPath("../../../../AElf.Contracts.Authorization/bin/Debug/netstandard2.0/AElf.Contracts.Authorization.dll"));
-
-
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.Authorization/bin/Debug/netstandard2.0/AElf.Contracts.Authorization.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
 
@@ -94,10 +92,8 @@ namespace AElf.Contracts.Authorization.Tests
         {
             get
             {
-                byte[] code = File.ReadAllBytes(Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll"));
-
-
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
 

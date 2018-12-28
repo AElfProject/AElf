@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -9,6 +10,7 @@ using Address = AElf.Common.Address;
 namespace AElf.Execution.Execution
 {
     #region LocalServices
+
     public sealed class RequestLocalSerivcePack
     {
         public RequestLocalSerivcePack(long requestId)
@@ -28,9 +30,11 @@ namespace AElf.Execution.Execution
 
         public ServicePack ServicePack { get; }
     }
+
     #endregion LocalServices
 
     #region ExecuteTransactions
+
     public sealed class RequestExecuteTransactions
     {
         public RequestExecuteTransactions(long requestId, List<Transaction> transactions)
@@ -50,7 +54,9 @@ namespace AElf.Execution.Execution
             Rejected,
             Executed
         }
-        public RespondExecuteTransactions(long requestId, RequestStatus status, List<TransactionTrace> transactionTraces)
+
+        public RespondExecuteTransactions(long requestId, RequestStatus status,
+            List<TransactionTrace> transactionTraces)
         {
             RequestId = requestId;
             Status = status;
@@ -61,15 +67,18 @@ namespace AElf.Execution.Execution
         public RequestStatus Status { get; }
         public List<TransactionTrace> TransactionTraces { get; }
     }
+
     #endregion ExecuteTransactions
 
     #region Chain Executors
+
     public sealed class RequestAddChainExecutor
     {
         public RequestAddChainExecutor(Hash chainId)
         {
             ChainId = chainId;
         }
+
         public Hash ChainId { get; }
     }
 
@@ -80,6 +89,7 @@ namespace AElf.Execution.Execution
             ChainId = chainId;
             ActorRef = actorRef;
         }
+
         public Hash ChainId { get; }
         public IActorRef ActorRef { get; }
     }
@@ -91,6 +101,7 @@ namespace AElf.Execution.Execution
         {
             ChainId = chainId;
         }
+
         public Hash ChainId { get; }
     }
 
@@ -101,6 +112,7 @@ namespace AElf.Execution.Execution
             ChainId = chainId;
             ActorRef = actorRef;
         }
+
         public Hash ChainId { get; }
         public IActorRef ActorRef { get; }
     }
@@ -111,6 +123,7 @@ namespace AElf.Execution.Execution
         {
             ChainId = chainId;
         }
+
         public Hash ChainId { get; }
     }
 
@@ -121,14 +134,17 @@ namespace AElf.Execution.Execution
             NotExisting,
             Removed
         }
+
         public RespondRemoveChainExecutor(Hash chainId, RemoveStatus status)
         {
             ChainId = chainId;
             Status = status;
         }
+
         public Hash ChainId { get; }
         public RemoveStatus Status { get; }
     }
+
     #endregion Chain Executors
 
     /// <summary>
@@ -136,18 +152,27 @@ namespace AElf.Execution.Execution
     /// </summary>
     public sealed class LocalExecuteTransactionsMessage
     {
-        public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource, Hash disambiguationHash=null)
+        public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions,
+            TaskCompletionSource<List<TransactionTrace>> taskCompletionSource, DateTime currentBlockTime,
+            Hash disambiguationHash = null,
+            TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee = false)
         {
             ChainId = chainId;
             Transactions = transactions;
             TaskCompletionSource = taskCompletionSource;
+            CurrentBlockTime = currentBlockTime;
             DisambiguationHash = disambiguationHash;
+            TransactionType = transactionType;
+            SkipFee = skipFee;
         }
 
         public Hash ChainId { get; }
         public List<Transaction> Transactions { get; }
         public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
+        public DateTime CurrentBlockTime { get; set; }
         public Hash DisambiguationHash { get; }
+        public TransactionType TransactionType { get; }
+        public bool SkipFee { get; }
     }
 
     public sealed class UpdateContractMessage
@@ -166,14 +191,16 @@ namespace AElf.Execution.Execution
 //    }
 
 
-
     #region Singleton Messages
+
     /// <summary>
     /// Short-lived executor actors require a <see cref="StartExecutionMessage"/> to start execution.
     /// </summary>
     public sealed class StartExecutionMessage
     {
-        private StartExecutionMessage() { }
+        private StartExecutionMessage()
+        {
+        }
 
         /// <summary>
         /// The singleton instance of StartExecutionMessage.
@@ -192,7 +219,9 @@ namespace AElf.Execution.Execution
     /// </summary>
     public sealed class StartGroupingMessage
     {
-        private StartGroupingMessage() { }
+        private StartGroupingMessage()
+        {
+        }
 
         /// <summary>
         /// The singleton instance of StartGroupingMessage.
@@ -211,7 +240,9 @@ namespace AElf.Execution.Execution
     /// </summary>
     public sealed class StartBatchingMessage
     {
-        private StartBatchingMessage() { }
+        private StartBatchingMessage()
+        {
+        }
 
         /// <summary>
         /// The singleton instance of StartBatchingMessage.
@@ -224,6 +255,7 @@ namespace AElf.Execution.Execution
             return "<StartBatchingMessage>";
         }
     }
+
     #endregion Singleton Messages
 
     #region Routed workers
@@ -242,14 +274,19 @@ namespace AElf.Execution.Execution
 
     public class JobExecutionRequest
     {
-        public JobExecutionRequest(long requestId, Hash chainId, List<Transaction> transactions, IActorRef resultCollector, IActorRef router, Hash disambiguationHash=null)
+        public JobExecutionRequest(long requestId, Hash chainId, List<Transaction> transactions,
+            IActorRef resultCollector, IActorRef router, DateTime currentBlockTime, Hash disambiguationHash = null,
+            TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee=false)
         {
             RequestId = requestId;
             ChainId = chainId;
             Transactions = transactions;
             ResultCollector = resultCollector;
             Router = router;
+            CurrentBlockTime = currentBlockTime;
             DisambiguationHash = disambiguationHash;
+            TransactionType = transactionType;
+            SkipFee = skipFee;
         }
 
         public long RequestId { get; set; }
@@ -258,12 +295,16 @@ namespace AElf.Execution.Execution
         public List<Transaction> Transactions { get; set; }
         public IActorRef ResultCollector { get; set; }
         public IActorRef Router { get; set; }
-
+        public DateTime CurrentBlockTime { get; set; }
+        public TransactionType TransactionType { get; set; }
+        public bool SkipFee { get; set; }
     }
 
     public sealed class JobExecutionCancelMessage
     {
-        private JobExecutionCancelMessage() { }
+        private JobExecutionCancelMessage()
+        {
+        }
 
         /// <summary>
         /// The singleton instance of JobExecutionCancelMessage.
@@ -279,7 +320,9 @@ namespace AElf.Execution.Execution
 
     public sealed class JobExecutionCancelAckMessage
     {
-        private JobExecutionCancelAckMessage() { }
+        private JobExecutionCancelAckMessage()
+        {
+        }
 
         /// <summary>
         /// The singleton instance of JobExecutionCancelMessage.
@@ -292,7 +335,7 @@ namespace AElf.Execution.Execution
             return "<JobExecutionCancelAckMessage>";
         }
     }
-    
+
     public sealed class JobExecutionStatusQuery
     {
         public JobExecutionStatusQuery(long requestId)
@@ -302,7 +345,7 @@ namespace AElf.Execution.Execution
 
         public long RequestId { get; }
     }
-    
+
     public sealed class JobExecutionStatus
     {
         public enum RequestStatus
@@ -314,7 +357,7 @@ namespace AElf.Execution.Execution
             Rejected,
             InvalidRequestId
         }
-        
+
         public JobExecutionStatus(long requestId, RequestStatus status)
         {
             RequestId = requestId;
@@ -326,5 +369,4 @@ namespace AElf.Execution.Execution
     }
 
     #endregion Routed workers
-
 }

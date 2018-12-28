@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using AElf.Kernel;
-using AElf.Common;
+﻿using AElf.Common;
 
-namespace AElf.ChainController
+namespace AElf.Kernel
 {
     public interface IChainService
     {

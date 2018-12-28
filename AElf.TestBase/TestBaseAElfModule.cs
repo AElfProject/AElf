@@ -4,7 +4,8 @@ using Volo.Abp.Modularity;
 
 namespace AElf.TestBase
 {
-    [DependsOn(typeof(AbpTestBaseModule))]
+    [DependsOn( 
+        typeof(AbpTestBaseModule))]
     public class TestBaseAElfModule : AElfModule
     {
         

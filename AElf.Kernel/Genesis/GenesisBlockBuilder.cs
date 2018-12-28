@@ -27,7 +27,7 @@ namespace AElf.Kernel
             // Genesis block is empty
             // TODO: Maybe add info like Consensus protocol in Genesis block
 
-            block.Complete();          
+            block.Complete(DateTime.UtcNow);          
             Block = block;
 
             return this;

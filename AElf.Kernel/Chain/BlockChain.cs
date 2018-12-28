@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace AElf.Kernel
 {
     public class BlockChain : LightChain, IBlockChain
-    {    
+    {
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IStateManager _stateManager;
@@ -37,9 +37,8 @@ namespace AElf.Kernel
             _doingRollback = false;
             _prepareTerminated = false;
             _terminated = false;
-            
+
             Logger = NullLogger<BlockChain>.Instance;
-            
             MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
             {
                 if (signal.Module == TerminatedModuleEnum.BlockRollback)
@@ -84,12 +83,25 @@ namespace AElf.Kernel
             }
         }
 
-        public async Task<IBlock> GetBlockByHashAsync(Hash blockId)
+        public async Task<IBlock> GetBlockByHashAsync(Hash blockId, bool withTransaction = false)
         {
-            return await _blockManager.GetBlockAsync(blockId);
+            var blk = await _blockManager.GetBlockAsync(blockId);
+            if (!withTransaction)
+            {
+                return blk;
+            }
+
+            blk.Body.TransactionList.Clear();
+            foreach (var txHash in blk.Body.Transactions)
+            {
+                var t = await _transactionManager.GetTransaction(txHash);
+                blk.Body.TransactionList.Add(t);
+            }
+
+            return blk;
         }
 
-        public async Task<IBlock> GetBlockByHeightAsync(ulong height)
+        public async Task<IBlock> GetBlockByHeightAsync(ulong height, bool withTransaction = false)
         {
             var header = await GetHeaderByHeightAsync(height);
             if (header == null)
@@ -97,7 +109,7 @@ namespace AElf.Kernel
                 return null;
             }
 
-            return await GetBlockByHashAsync(header.GetHash());
+            return await GetBlockByHashAsync(header.GetHash(), withTransaction);
         }
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
@@ -176,7 +188,8 @@ namespace AElf.Kernel
         private async Task RollbackStateForBlock(IBlock block)
         {
             var txIds = block.Body.Transactions;
-            var disambiguationHash = HashHelpers.GetDisambiguationHash(block.Header.Index, Hash.FromRawBytes(block.Header.P.ToByteArray()));
+            var disambiguationHash =
+                HashHelpers.GetDisambiguationHash(block.Header.Index, Hash.FromRawBytes(block.Header.P.ToByteArray()));
             await RollbackStateForTransactions(txIds, disambiguationHash);
         }
 

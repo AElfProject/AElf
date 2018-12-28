@@ -27,14 +27,16 @@ namespace AElf.SmartContract
         private readonly ConcurrentDictionary<Address, Hash> _contractHashs = new ConcurrentDictionary<Address, Hash>();
         private readonly IStateManager _stateManager;
         private readonly IFunctionMetadataService _functionMetadataService;
+        private readonly IChainService _chainService;
 
         public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer, IStateManager stateManager,
-            IFunctionMetadataService functionMetadataService)
+            IFunctionMetadataService functionMetadataService, IChainService chainService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateManager = stateManager;
             _functionMetadataService = functionMetadataService;
+            _chainService = chainService;
         }
 
         private ConcurrentBag<IExecutive> GetPoolFor(Address account)
@@ -97,7 +99,8 @@ namespace AElf.SmartContract
                 ChainId = chainId,
                 ContractAddress = contractAddress,
                 DataProvider = dataProvider,
-                SmartContractService = this
+                SmartContractService = this,
+                ChainService=_chainService
             });
 
             return executive;

@@ -82,7 +82,7 @@ namespace AElf.Synchronization.Tests
             // Setup blockchain 
             MockChain = new Mock<IBlockChain>();
             MockChain.Setup(b => b.GetCurrentBlockHeightAsync()).ReturnsAsync(1UL);
-            MockChain.Setup(b => b.GetBlockByHeightAsync(It.IsAny<ulong>())).ReturnsAsync(Genesis);
+            MockChain.Setup(b => b.GetBlockByHeightAsync(It.IsAny<ulong>(), It.IsAny<bool>())).ReturnsAsync(Genesis);
                 
             // Setup chain
             MockChainService = new Mock<IChainService>();

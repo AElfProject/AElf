@@ -3,18 +3,12 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.CrossChain;
-using AElf.Execution;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using AElf.Common;
-using AElf.Database;
-using AElf.Execution.Execution;
 using AElf.Kernel.Managers;
-using AElf.Miner.TxMemPool;
 using AElf.Runtime.CSharp;
-using AElf.SmartContract.Metadata;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -77,22 +71,20 @@ namespace AElf.Contracts.SideChain.Tests
             _smartContractRunnerContainer.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                    StateManager, _functionMetadataService));
-            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                StateManager, _functionMetadataService);
-            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, _transactionTraceManager,
-                StateManager);
+                    StateManager, _functionMetadataService, ChainService));
+            Task.Factory.StartNew(async () =>
+            {
+                await Init();
+            }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer, StateManager, _functionMetadataService, ChainService);
         }
 
         public byte[] CrossChainCode
         {
             get
             {
-                byte[] code = File.ReadAllBytes(Path.GetFullPath(
-                    "../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll"));
-
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
 
@@ -100,10 +92,8 @@ namespace AElf.Contracts.SideChain.Tests
         {
             get
             {
-                byte[] code =File.ReadAllBytes(Path.GetFullPath(
-                    "../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")) ;
-
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
 
