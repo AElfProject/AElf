@@ -25,6 +25,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
+using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
@@ -56,6 +57,7 @@ namespace AElf.Miner.Tests
         private IChainManager _chainManager;
         private IBlockManager _blockManager;
         private IAuthorizationInfoReader _authorizationInfoReader;
+        private IElectionInfo _electionInfo;
         private IStateManager _stateManager;
 
         public MockSetup(ILogger logger, IStateManager stateManager,
@@ -102,6 +104,7 @@ namespace AElf.Miner.Tests
 
             _chainContextService = new ChainContextService(_chainService);
             _authorizationInfoReader = new AuthorizationInfoReader(_stateManager);
+            _electionInfo = new ElectionInfo(_stateManager);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -154,7 +157,7 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, null), _chainManager, _stateManager);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, null, _electionInfo), _chainManager, _stateManager);
 
             return blockExecutor;
         }
@@ -166,7 +169,7 @@ namespace AElf.Miner.Tests
         
         internal ITxHub CreateAndInitTxHub()
         {
-            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, null);
+            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, null, _electionInfo);
             hub.Initialize();
             return hub;
         }

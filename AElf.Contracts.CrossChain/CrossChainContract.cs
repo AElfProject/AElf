@@ -336,8 +336,8 @@ namespace AElf.Contracts.CrossChain
                 //Console.WriteLine("Side chain height: {0}", blockInfo.Height);
                 ulong sideChainHeight = blockInfo.Height;
                 Hash chainId = Hash.LoadByteArray(blockInfo.ChainId.DumpByteArray());
-                Api.NotEqual(new SideChainInfo(), _sideChainInfos[chainId], "Not registered side chain");
-                Api.Equal(SideChainStatus.Active, _sideChainInfos[chainId].SideChainStatus, "Side chain is not active.");
+                // Api.NotEqual(new SideChainInfo(), _sideChainInfos[chainId], "Not registered side chain");
+                // Api.Equal(SideChainStatus.Active, _sideChainInfos[chainId].SideChainStatus, "Side chain is not active.");
                 var currentHeight = _sideChainHeight.GetValue(chainId);
                 var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight;
                 var chainIdBase58 = blockInfo.ChainId.DumpByteArray().ToPlainBase58();
@@ -422,9 +422,8 @@ namespace AElf.Contracts.CrossChain
             
             // update locked token balance
             Api.LockToken(sideChainInfo.LockedTokenAmount);
-            var chainId = Hash.LoadByteArray(sideChainInfo.ChainId.ToByteArray());
+            var chainId = sideChainInfo.ChainId;
             _indexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
-
             // Todo: enable resource
             // lock 
             /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
@@ -436,8 +435,8 @@ namespace AElf.Contracts.CrossChain
         private void UnlockTokenAndResource(SideChainInfo sideChainInfo)
         {
             //Api.Assert(sideChainInfo.LockedAddress.Equals(Api.GetFromAddress()), "Unable to withdraw token or resource.");
-            // withdraw token
-            var chainId = Hash.LoadByteArray(sideChainInfo.ChainId.ToByteArray());
+            // unlock token
+            var chainId = sideChainInfo.ChainId;
             var balance = _indexingBalance[chainId];
             if(balance != 0 )
                 Api.UnlockToken(sideChainInfo.Proposer, balance);
@@ -446,7 +445,7 @@ namespace AElf.Contracts.CrossChain
             // unlock resource 
             /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
             {
-                Api.WithdrawResource(resourceBalance.Amount, resourceBalance.Type);
+                Api.UnlockResource(resourceBalance.Amount, resourceBalance.Type);
             }*/
         }
         

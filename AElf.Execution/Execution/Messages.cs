@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -136,11 +137,12 @@ namespace AElf.Execution.Execution
     /// </summary>
     public sealed class LocalExecuteTransactionsMessage
     {
-        public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource, Hash disambiguationHash=null)
+        public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource, DateTime currentBlockTime, Hash disambiguationHash=null)
         {
             ChainId = chainId;
             Transactions = transactions;
             TaskCompletionSource = taskCompletionSource;
+            CurrentBlockTime = currentBlockTime;
             DisambiguationHash = disambiguationHash;
         }
 
@@ -148,6 +150,7 @@ namespace AElf.Execution.Execution
         public List<Transaction> Transactions { get; }
         public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
         public Hash DisambiguationHash { get; }
+        public DateTime CurrentBlockTime { get; set; }
     }
 
     public sealed class UpdateContractMessage
@@ -242,7 +245,7 @@ namespace AElf.Execution.Execution
 
     public class JobExecutionRequest
     {
-        public JobExecutionRequest(long requestId, Hash chainId, List<Transaction> transactions, IActorRef resultCollector, IActorRef router, Hash disambiguationHash=null)
+        public JobExecutionRequest(long requestId, Hash chainId, List<Transaction> transactions, DateTime currentBlockTime, IActorRef resultCollector, IActorRef router, Hash disambiguationHash=null)
         {
             RequestId = requestId;
             ChainId = chainId;
@@ -250,6 +253,7 @@ namespace AElf.Execution.Execution
             ResultCollector = resultCollector;
             Router = router;
             DisambiguationHash = disambiguationHash;
+            CurrentBlockTime = currentBlockTime;
         }
 
         public long RequestId { get; set; }
@@ -258,6 +262,8 @@ namespace AElf.Execution.Execution
         public List<Transaction> Transactions { get; set; }
         public IActorRef ResultCollector { get; set; }
         public IActorRef Router { get; set; }
+        
+        public DateTime CurrentBlockTime { get; set; }
 
     }
 

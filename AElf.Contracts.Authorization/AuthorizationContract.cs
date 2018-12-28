@@ -123,7 +123,7 @@ namespace AElf.Contracts.Authorization
                 && proposal.Proposer != null, "Invalid proposal.");
             DateTime timestamp = TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime);
 
-            Api.Assert(DateTime.UtcNow < timestamp, "Expired proposal.");
+            Api.Assert(Api.CurrentBlockTime < timestamp, "Expired proposal.");
 
             Hash hash = proposal.GetHash();
             Api.Assert(_proposals.GetValue(hash).Equals(new Proposal()), "Proposal already created.");
@@ -150,7 +150,7 @@ namespace AElf.Contracts.Authorization
             // check authorization and permission 
             var proposal = _proposals.GetValue(hash);
             Api.Assert(!proposal.Equals(new Proposal()), "Proposal not found.");
-            Api.Assert(DateTime.UtcNow < TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime), "Expired proposal.");
+            Api.Assert(Api.CurrentBlockTime < TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime), "Expired proposal.");
             
             var msig = proposal.MultiSigAccount;
             var authorization = GetAuth(msig);
@@ -181,7 +181,7 @@ namespace AElf.Contracts.Authorization
             var proposal = _proposals.GetValue(proposalHash);
             Api.Assert(!proposal.Equals(new Proposal()), "Proposal not found");
             // check expired time of proposal
-            //Api.Assert(DateTime.UtcNow < proposal.ExpiredTime.ToDateTime(), "Expired proposal.");
+            Api.Assert(Api.CurrentBlockTime < TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime), "Expired proposal.");
             Api.Assert(proposal.Status != ProposalStatus.Released, "Proposal already released");
             
             var msigAccount = proposal.MultiSigAccount;
@@ -309,7 +309,6 @@ namespace AElf.Contracts.Authorization
             Api.Assert(proposedTxn.From.Equals(msigAddress),
                 "From address in proposed transaction is not valid multisig account.");
             Api.Assert(proposedTxn.Sigs.Count == 0, "Invalid signatures in proposed transaction.");
-            //Api.Assert(proposedTxn.Type == TransactionType.MsigTransaction, "Incorrect proposed transaction type.");
         }
 
         private uint SystemThreshold(uint reviewerCount)
