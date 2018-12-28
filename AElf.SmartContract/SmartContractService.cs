@@ -25,14 +25,16 @@ namespace AElf.SmartContract
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
         private readonly IStateManager _stateManager;
         private readonly IFunctionMetadataService _functionMetadataService;
+        private readonly IChainService _chainService;
 
         public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer, IStateManager stateManager,
-            IFunctionMetadataService functionMetadataService)
+            IFunctionMetadataService functionMetadataService, IChainService chainService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateManager = stateManager;
             _functionMetadataService = functionMetadataService;
+            _chainService = chainService;
         }
 
         private async Task<ConcurrentBag<IExecutive>> GetPoolForAsync(Hash chainId, Address account)
@@ -58,7 +60,7 @@ namespace AElf.SmartContract
             }
             else
             {
-                var result = CallContract(chainId, zeroContractAdress, "GetContractHash", address);
+                var result = await CallContractAsync(chainId, zeroContractAdress, "GetContractHash", address);
 
                 contractHash = result.DeserializeToPbMessage<Hash>();
             }
@@ -103,7 +105,8 @@ namespace AElf.SmartContract
                 ChainId = chainId,
                 ContractAddress = contractAddress,
                 DataProvider = dataProvider,
-                SmartContractService = this
+                SmartContractService = this,
+                ChainService=_chainService
             });
 
             return executive;
@@ -204,13 +207,13 @@ namespace AElf.SmartContract
 
         public async Task<Address> DeploySystemContractAsync(Hash chainId, SmartContractRegistration registration)
         {
-            var result = CallContract(chainId, ContractHelpers.GetGenesisBasicContractAddress(chainId),
+            var result = await CallContractAsync(chainId, ContractHelpers.GetGenesisBasicContractAddress(chainId),
                 "InitSmartContract", registration.SerialNumber, registration.Category, registration.ContractBytes.ToByteArray());
 
             return result.DeserializeToPbMessage<Address>();
         }
         
-        private byte[] CallContract(Hash chainId, Address contractAddress, string methodName, params object[] args)
+        private async Task<byte[]> CallContractAsync(Hash chainId, Address contractAddress, string methodName, params object[] args)
         {
             var smartContractContext = new TransactionContext()
             {
@@ -243,7 +246,7 @@ namespace AElf.SmartContract
             {
                 if (smartContractContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
-                    smartContractContext.Trace.CommitChangesAsync(_stateManager);
+                    await smartContractContext.Trace.SmartCommitChangesAsync(_stateManager);
                 }
             }
 

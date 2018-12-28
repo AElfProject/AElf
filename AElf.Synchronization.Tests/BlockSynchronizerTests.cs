@@ -82,7 +82,7 @@ namespace AElf.Synchronization.Tests
             // Setup blockchain 
             MockChain = new Mock<IBlockChain>();
             MockChain.Setup(b => b.GetCurrentBlockHeightAsync()).ReturnsAsync(1UL);
-            MockChain.Setup(b => b.GetBlockByHeightAsync(It.IsAny<ulong>())).ReturnsAsync(Genesis);
+            MockChain.Setup(b => b.GetBlockByHeightAsync(It.IsAny<ulong>(), It.IsAny<bool>())).ReturnsAsync(Genesis);
                 
             // Setup chain
             MockChainService = new Mock<IChainService>();
@@ -95,6 +95,14 @@ namespace AElf.Synchronization.Tests
             MockChain.Setup(bc => bc.RollbackToHeight(It.IsAny<ulong>()))
                 .ReturnsAsync(new List<Transaction>())
                 .Callback<ulong>(m => RollbackToheightCalls.Add(m));
+        }
+        
+        protected List<IBlock> ExecuteBlockCalls = new List<IBlock>();
+        public void MonitorExecuteBlockCalls()
+        {
+            BlockExecutor.Setup(be => be.ExecuteBlock(It.IsAny<IBlock>()))
+                .ReturnsAsync(BlockExecutionResult.Success)
+                .Callback<IBlock>(m => ExecuteBlockCalls.Add(m));
         }
 
         public void Dispose()
@@ -167,6 +175,7 @@ namespace AElf.Synchronization.Tests
             Assert.Equal(Synchronizer.HeadBlock.BlockHash, blockForkA.GetHash());
 
             MonitorRollbackToHeightCalls();
+            MonitorExecuteBlockCalls();
                 
             // B should get longer
             await Synchronizer.TryPushBlock(blockForkB1);
@@ -175,6 +184,10 @@ namespace AElf.Synchronization.Tests
             Assert.Equal(Synchronizer.HeadBlock.BlockHash, blockForkB1.GetHash());
             Assert.Single(RollbackToheightCalls);
             Assert.Equal(2UL, RollbackToheightCalls.ElementAt(0));
+            
+            Assert.Equal(2, ExecuteBlockCalls.Count);
+            Assert.Equal(ExecuteBlockCalls.ElementAt(0).GetHash(), blockForkB.GetHash());
+            Assert.Equal(ExecuteBlockCalls.ElementAt(1).GetHash(), blockForkB1.GetHash());
         }
 
         [Fact]

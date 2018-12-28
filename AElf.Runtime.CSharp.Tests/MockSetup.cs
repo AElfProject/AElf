@@ -44,22 +44,29 @@ namespace AElf.Runtime.CSharp.Tests
         private ISmartContractManager _smartContractManager;
         private IChainCreationService _chainCreationService;
         private IFunctionMetadataService _functionMetadataService;
+        public IChainService ChainService;
 
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
             IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer,
-            ISmartContractManager smartContractManager)
+            ISmartContractManager smartContractManager, IChainService chainService)
         {
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _smartContractManager = smartContractManager;
-            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                StateManager, _functionMetadataService);
-            Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
+            ChainService = chainService;
+            Task.Factory.StartNew(async () =>
+            {
+                await Init();
+            }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateManager, _functionMetadataService, ChainService);
+            Task.Factory.StartNew(async () =>
+            {
+                await DeploySampleContracts();
+            }).Unwrap().Wait();
         }
 
         public byte[] SmartContractZeroCode

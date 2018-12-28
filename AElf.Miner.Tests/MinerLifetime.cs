@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
 using AElf.Miner.Tests;
@@ -21,6 +22,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
+using Easy.MessageHub;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Kernel.Tests.Miner
@@ -278,6 +280,8 @@ namespace AElf.Kernel.Tests.Miner
                 manager.Init(dir, t);
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
+                var libHeight = GlobalConfig.GenesisBlockHeight;
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t/2);
                 var result = await manager.CollectSideChainBlockInfo();
                 int count = result.Count;
@@ -285,6 +289,7 @@ namespace AElf.Kernel.Tests.Miner
                 Assert.Equal(GlobalConfig.GenesisBlockHeight, result[0].Height);
                 _mock.GetTimes++;
                 
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
@@ -292,6 +297,7 @@ namespace AElf.Kernel.Tests.Miner
                 Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, result[0].Height);
                 _mock.GetTimes++;
                 
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
@@ -300,6 +306,7 @@ namespace AElf.Kernel.Tests.Miner
                 manager.CloseClientsToSideChain();
                 _mock.GetTimes++;
                 
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.CollectSideChainBlockInfo();
                 count = result.Count;
@@ -348,7 +355,9 @@ namespace AElf.Kernel.Tests.Miner
                 manager.Init(dir, t);
 
                 GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
-                
+
+                var libHeight = GlobalConfig.GenesisBlockHeight;
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t/2);
                 var result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
@@ -360,7 +369,8 @@ namespace AElf.Kernel.Tests.Miner
                 var chainManager = _mock.MockChainManager().Object;
                 await chainManager.UpdateCurrentBlockHeightAsync(result[0].ChainId, result[0].Height);
                 _mock.GetTimes++;
-                
+
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);
@@ -372,6 +382,7 @@ namespace AElf.Kernel.Tests.Miner
                 await chainManager.UpdateCurrentBlockHeightAsync(result[0].ChainId, result[0].Height);
                 _mock.GetTimes++;
 
+                MessageHub.Instance.Publish(new NewLibFound{Height = libHeight++});
                 Thread.Sleep(t);
                 result = await manager.TryGetParentChainBlockInfo();
                 Assert.NotNull(result);

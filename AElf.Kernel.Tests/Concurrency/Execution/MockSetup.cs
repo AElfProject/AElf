@@ -91,7 +91,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
                 new SmartContractService(SmartContractManager, _smartContractRunnerContainer, _stateManager,
-                    functionMetadataService);
+                    functionMetadataService, _chainService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
             {
@@ -151,7 +151,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public async Task CommitTrace(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_stateManager);
+            await trace.SmartCommitChangesAsync(_stateManager);
 //            await StateDictator.ApplyCachedDataAction(changesDict);
         }
 

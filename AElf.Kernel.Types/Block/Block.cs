@@ -99,7 +99,8 @@ namespace AElf.Kernel
             return Header.GetHashBytes();
         }
 
-        public void Complete(SideChainBlockInfo[] indexedSideChainBlockInfo = null, HashSet<TransactionResult> results = null)
+        public void Complete(DateTime currentBlockTime, SideChainBlockInfo[] indexedSideChainBlockInfo = null,
+            HashSet<TransactionResult> results = null)
         {
             if (results != null)
             {
@@ -112,7 +113,7 @@ namespace AElf.Kernel
             
             Header.MerkleTreeRootOfTransactions = Body.CalculateMerkleTreeRoots();
             // Todo: improvement needed?
-            Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            Header.Time = Timestamp.FromDateTime(currentBlockTime);
             Body.Complete(Header.GetHash(), indexedSideChainBlockInfo);
         }
 

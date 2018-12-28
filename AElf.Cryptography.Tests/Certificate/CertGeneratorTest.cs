@@ -20,7 +20,7 @@ namespace AElf.Cryptography.Tests.Certificate
         {
             var keypair = new RSAKeyPairGenerator().Generate();
             var certGenerator = new CertGenerator().SetPublicKey(keypair.PublicKey);
-            certGenerator.AddALternativeName("127.0.0.1");
+            certGenerator.AddAlternativeName("127.0.0.1");
             var cert = certGenerator.Generate(keypair.PrivateKey);
             var cert_gen = new X509CertificateParser().ReadCertificate(cert.GetEncoded());
             Assert.Equal(cert, cert_gen);

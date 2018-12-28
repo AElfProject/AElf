@@ -6,6 +6,7 @@ using AElf.Kernel.Types;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
 using AElf.Common;
+using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -57,6 +58,8 @@ namespace AElf.Kernel
             };
             if (Params.Length != 0)
                 txData.Params = Params;
+            if (Time != null && !Time.Equals(Timestamp.FromDateTime(new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc))))
+                txData.Time = Time;
             if (Type == TransactionType.MsigTransaction) 
                 return txData.ToByteArray();
             txData.RefBlockNumber = RefBlockNumber;

@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common.Attributes;
 using AElf.Kernel;
 using Grpc.Core;
 using NLog;
 using AElf.Common;
+using Easy.MessageHub;
 
 namespace AElf.Miner.Rpc.Server
 {
@@ -16,6 +18,7 @@ namespace AElf.Miner.Rpc.Server
         private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private ILightChain LightChain { get; set; }
+        private ulong LibHeight { get; set; }
 
         public SideChainBlockInfoRpcServer(IChainService chainService, ILogger logger)
         {
@@ -26,6 +29,7 @@ namespace AElf.Miner.Rpc.Server
         public void Init(Hash chainId)
         {
             LightChain = _chainService.GetLightChain(chainId);
+            MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
         }
 
         /// <summary>
@@ -48,8 +52,7 @@ namespace AElf.Miner.Rpc.Server
                 {
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
-                    var currentHeight = await LightChain.GetCurrentBlockHeightAsync();
-                    if (currentHeight - requestedHeight < (ulong)GlobalConfig.InvertibleChainHeight)
+                    if (requestedHeight > LibHeight)
                     {
                         await responseStream.WriteAsync(new ResponseSideChainBlockInfo
                         {
@@ -87,7 +90,7 @@ namespace AElf.Miner.Rpc.Server
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override async Task IndexServerStreaming(RequestBlockInfo request, 
+        /*public override async Task IndexServerStreaming(RequestBlockInfo request, 
             IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
@@ -110,7 +113,6 @@ namespace AElf.Miner.Rpc.Server
                             ChainId = blockHeader.ChainId
                         }
                     };
-                    //_logger?.Log(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {height}");
                     await responseStream.WriteAsync(res);
                     height++;
                 }
@@ -119,6 +121,6 @@ namespace AElf.Miner.Rpc.Server
             {
                 _logger?.Error(e, "Exception while index server streaming.");
             }
-        }
+        }*/
     }
 }
