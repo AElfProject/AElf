@@ -7,7 +7,6 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
-using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Types.CSharp;
@@ -34,7 +33,7 @@ namespace AElf.Execution.Execution
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken cancellationToken, Hash disambiguationHash = null,
+            DateTime currentBlockTime, CancellationToken cancellationToken, Hash disambiguationHash = null,
             TransactionType transactionType = TransactionType.ContractTransaction,
             bool skipFee = false)
         {
@@ -43,7 +42,7 @@ namespace AElf.Execution.Execution
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, cancellationToken,
+                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, currentBlockTime, cancellationToken,
                     skipFee);
                 if (!trace.IsSuccessful())
                 {
@@ -72,7 +71,7 @@ namespace AElf.Execution.Execution
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
-            IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
+            IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache, DateTime currentBlockTime,
             CancellationToken cancellationToken, bool skipFee = false)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -93,6 +92,7 @@ namespace AElf.Execution.Execution
             var txCtxt = new TransactionContext()
             {
                 PreviousBlockHash = chainContext.BlockHash,
+                CurrentBlockTime = currentBlockTime,
                 Transaction = transaction,
                 BlockHeight = chainContext.BlockHeight,
                 Trace = trace,
@@ -108,7 +108,7 @@ namespace AElf.Execution.Execution
                 // Fee is only charged to the main transaction
                 var feeAmount = executive.GetFee(transaction.MethodName);
                 var chargeFeesTrace = await ChargeTransactionFeesFor(feeAmount, transaction, chainId, chainContext,
-                    stateCache, cancellationToken);
+                    stateCache, currentBlockTime, cancellationToken);
                 if (chargeFeesTrace.ExecutionStatus == ExecutionStatus.Canceled)
                 {
                     return new TransactionTrace()
@@ -147,7 +147,7 @@ namespace AElf.Execution.Execution
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
                     var inlineTrace = await ExecuteOneAsync(depth + 1, inlineTx, chainId, chainContext, stateCache,
-                        cancellationToken, skipFee);
+                        currentBlockTime, cancellationToken, skipFee);
                     trace.InlineTraces.Add(inlineTrace);
                 }
             }
@@ -165,9 +165,8 @@ namespace AElf.Execution.Execution
         }
 
         private async Task<TransactionTrace> ChargeTransactionFeesFor(ulong feeAmount, Transaction originalTxn,
-            Hash chainId,
-            IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
-            CancellationToken cancellationToken)
+            Hash chainId, IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
+            DateTime currentBlockTime, CancellationToken cancellationToken)
         {
             var chargeFeesTxn = new Transaction()
             {
@@ -176,7 +175,7 @@ namespace AElf.Execution.Execution
                 MethodName = "ChargeTransactionFees",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(feeAmount))
             };
-            return await ExecuteOneAsync(1, chargeFeesTxn, chainId, chainContext, stateCache, cancellationToken);
+            return await ExecuteOneAsync(1, chargeFeesTxn, chainId, chainContext, stateCache, currentBlockTime, cancellationToken);
         }
     }
 }

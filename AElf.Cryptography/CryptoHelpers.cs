@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
 using AElf.Cryptography.ECDSA;
 using Secp256k1Net;
 
@@ -8,75 +9,129 @@ namespace AElf.Cryptography
 {
     public static class CryptoHelpers
     {
-        // ReSharper disable once InconsistentNaming
-        // ReSharper disable once IdentifierTypo
-        /*private static readonly Secp256k1 secp256k1 = new Secp256k1();
+        private static readonly Secp256k1 Secp256K1 = new Secp256k1();
 
+        // ReaderWriterLock for thread-safe with Secp256k1 APIs
+        private static readonly ReaderWriterLock Lock = new ReaderWriterLock();
+
+        // TODO: maybe need refactor, both Cryptography.EC* and Cryptography.CryptoHelpers expose public method.
         static CryptoHelpers()
         {
-            AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { secp256k1.Dispose(); };
-        }*/
+            AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { Secp256K1.Dispose(); };
+        }
 
         public static ECKeyPair GenerateKeyPair()
         {
-            var privateKey = new byte[32];
-            var secp256k1PubKey = new byte[64];
-
-            // Generate a private key.
-            var rnd = RandomNumberGenerator.Create();
-            byte[] pubkey;
-            using (Secp256k1 secp256k1 = new Secp256k1())
+            try
             {
+                Lock.AcquireWriterLock(Timeout.Infinite);
+                var privateKey = new byte[32];
+                var secp256K1PubKey = new byte[64];
+
+                // Generate a private key.
+                var rnd = RandomNumberGenerator.Create();
                 do
                 {
                     rnd.GetBytes(privateKey);
-                } while (!secp256k1.SecretKeyVerify(privateKey));
+                } while (!Secp256K1.SecretKeyVerify(privateKey));
 
-                secp256k1.PublicKeyCreate(secp256k1PubKey, privateKey);
-
-                pubkey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-
-                secp256k1.PublicKeySerialize(pubkey, secp256k1PubKey);
+                Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey);
+                var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+                Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey);
+                return new ECKeyPair(privateKey, pubKey);
             }
-
-            return new ECKeyPair(privateKey, pubkey);
+            catch (Exception ex)
+            {
+                throw new Exception("Exception while GenerateKeyPair", ex);
+            }
+            finally
+            {
+                Lock.ReleaseWriterLock();
+            }
         }
 
         public static byte[] SignWithPrivateKey(byte[] privateKey, byte[] hash)
         {
-            var recSig = new byte[65];
-            var compactSig = new byte[65];
-            using (Secp256k1 secp256k1 = new Secp256k1())
+            try
             {
-                secp256k1.SignRecoverable(recSig, hash, privateKey);
-                secp256k1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig);
+                Lock.AcquireWriterLock(Timeout.Infinite);
+                var recSig = new byte[65];
+                var compactSig = new byte[65];
+                Secp256K1.SignRecoverable(recSig, hash, privateKey);
+                Secp256K1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig);
                 compactSig[64] = (byte) recoverId; // put recover id at the last slot
+                return compactSig;
             }
-            return compactSig;
+            catch (Exception ex)
+            {
+                throw new Exception("Exception while SignWithPrivateKey", ex);
+            }
+            finally
+            {
+                Lock.ReleaseWriterLock();
+            }
         }
 
         public static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            byte[] pubkey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-            using (Secp256k1 secp256k1 = new Secp256k1())
+            try
             {
-                byte[] recoveredPubKey;
-                recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
+                Lock.AcquireWriterLock(Timeout.Infinite);
+                var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+                var recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
                 var recSig = new byte[65];
-                secp256k1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
-                secp256k1.Recover(recoveredPubKey, recSig, hash);
-                secp256k1.PublicKeySerialize(pubkey, recoveredPubKey);
+                Secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
+                Secp256K1.Recover(recoveredPubKey, recSig, hash);
+                Secp256K1.PublicKeySerialize(pubKey, recoveredPubKey);
+                return pubKey;
             }
-            return pubkey;
+            catch (Exception ex)
+            {
+                throw new Exception("Exception while RecoverPublicKey", ex);
+            }
+            finally
+            {
+                Lock.ReleaseWriterLock();
+            }
         }
 
         public static bool Verify(byte[] signature, byte[] hash, byte[] pubKey)
         {
-            using (Secp256k1 secp256K1 = new Secp256k1())
+            try
             {
+                Lock.AcquireWriterLock(Timeout.Infinite);
                 var recSig = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];
-                secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
-                return secp256K1.Verify(recSig, hash, pubKey);
+                Secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
+                return Secp256K1.Verify(recSig, hash, pubKey);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Exception while Verify", ex);
+            }
+            finally
+            {
+                Lock.ReleaseWriterLock();
+            }
+        }
+
+        public static bool Verify(byte[] signature, byte[] hash)
+        {
+            try
+            {
+                Lock.AcquireWriterLock(Timeout.Infinite);
+                var publicKeyOutput = new byte[Secp256k1.PUBKEY_LENGTH];
+                var recSig = new byte[65];
+                Secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
+                Secp256K1.Recover(publicKeyOutput, recSig, hash);
+                return Secp256K1.Verify(recSig, hash, publicKeyOutput);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Exception while Verify", ex);
+            }
+            finally
+            {
+                Lock.ReleaseWriterLock();
             }
         }
 
@@ -85,11 +140,9 @@ namespace AElf.Cryptography
         /// </summary>
         public static byte[] RandomFill(int count)
         {
-            Random rnd = new Random();
-            byte[] random = new byte[count];
-
+            var rnd = new Random();
+            var random = new byte[count];
             rnd.NextBytes(random);
-
             return random;
         }
     }

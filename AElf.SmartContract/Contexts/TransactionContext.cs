@@ -1,4 +1,5 @@
-﻿﻿using AElf.Kernel;
+﻿﻿using System;
+ using AElf.Kernel;
 using AElf.Common;
 
 namespace AElf.SmartContract
@@ -19,6 +20,7 @@ namespace AElf.SmartContract
         public Address Miner { get; set; }
         public Hash PreviousBlockHash { get; set; }
         public ulong BlockHeight { get; set; }
+        public DateTime CurrentBlockTime { get; set; }
         public int CallDepth { get; set; }
         public Transaction Transaction { get; set; }
         public TransactionTrace Trace { get; set; }

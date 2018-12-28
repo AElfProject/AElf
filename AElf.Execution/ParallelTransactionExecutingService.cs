@@ -31,7 +31,7 @@ namespace AElf.Execution
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken token, Hash disambiguationHash = null,
+            DateTime currentBlockTime, CancellationToken token, Hash disambiguationHash = null,
             TransactionType transactionType = TransactionType.ContractTransaction,
             bool skipFee = false)
         {
@@ -44,7 +44,7 @@ namespace AElf.Execution
             if (transactionType == TransactionType.DposTransaction ||
                 transactionType == TransactionType.ContractDeployTransaction)
             {
-                results = await _singlExecutingService.ExecuteAsync(transactions, chainId, token, disambiguationHash,
+                results = await _singlExecutingService.ExecuteAsync(transactions, chainId, currentBlockTime, token, disambiguationHash,
                     transactionType, skipFee);
 
                 if (ActorConfig.Instance.IsCluster)
@@ -81,7 +81,7 @@ namespace AElf.Execution
                 }
 
                 var tasks = groups.Select(
-                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, disambiguationHash,
+                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, currentBlockTime, disambiguationHash, 
                         transactionType, skipFee), token)
                 ).ToArray();
 
@@ -104,14 +104,14 @@ namespace AElf.Execution
         }
 
         private async Task<List<TransactionTrace>> AttemptToSendExecutionRequest(Hash chainId,
-            List<Transaction> transactions, CancellationToken token, Hash disambiguationHash,
+            List<Transaction> transactions, CancellationToken token, DateTime currentBlockTime, Hash disambiguationHash,
             TransactionType transactionType, bool skipFee)
         {
             while (!token.IsCancellationRequested)
             {
                 var tcs = new TaskCompletionSource<List<TransactionTrace>>();
                 _actorEnvironment.Requestor.Tell(
-                    new LocalExecuteTransactionsMessage(chainId, transactions, tcs, disambiguationHash,
+                    new LocalExecuteTransactionsMessage(chainId, transactions, tcs, currentBlockTime, disambiguationHash,
                         transactionType, skipFee));
                 var traces = await tcs.Task;
 

@@ -1,10 +1,9 @@
 using System;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Node
+namespace AElf.Node.Consensus
 {
     public class NextTermException : Exception
     {
-        
     }
 }

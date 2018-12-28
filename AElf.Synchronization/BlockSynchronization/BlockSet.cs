@@ -204,8 +204,6 @@ namespace AElf.Synchronization.BlockSynchronization
         public BlockState GetBlockStateByHash(Hash blockHash)
         {
             _rwLock.AcquireReaderLock(Timeout);
-                        
-            BlockState blockSate;
             
             try
             {

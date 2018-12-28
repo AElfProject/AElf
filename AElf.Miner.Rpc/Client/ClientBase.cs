@@ -136,7 +136,8 @@ namespace AElf.Miner.Rpc.Client
                             await Task.Delay(UnavailableConnectionInterval);
                         }
 
-                        StartDuplexStreamingCall(cancellationToken, _next).ConfigureAwait(false);
+                        // TODO: maybe improvement for NO wait call, or change the try solution
+                        var task = StartDuplexStreamingCall(cancellationToken, _next);
                         return;
                     }
 
@@ -210,7 +211,7 @@ namespace AElf.Miner.Rpc.Client
                     CacheBlockInfo(blockInfo);
                 else
                 {
-                    _logger?.Trace($"Timeout to get cached data from chain {_targetChainId}");
+                    _logger?.Trace($"Timeout to get cached data from chain {_targetChainId.DumpBase58()}");
                 }
                 return res;
             }

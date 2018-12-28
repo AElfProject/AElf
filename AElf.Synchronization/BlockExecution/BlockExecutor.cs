@@ -155,7 +155,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 var readyTxs = block.Body.TransactionList.ToList();
                 var traces = await ExecuteTransactions(readyTxs, block.Header.ChainId,
-                    block.Header.GetDisambiguationHash(), cts);
+                block.Header.Time.ToDateTime(), block.Header.GetDisambiguationHash(), cts);
 
                 // Execute transactions.
                 // After this, rollback needed
@@ -205,7 +205,7 @@ namespace AElf.Synchronization.BlockExecution
             {
                 _logger?.Error(e, $"Exception while execute block {block.BlockHashToHex}.");
                 // TODO, no wait may need improve
-                Rollback(block, txnRes).ConfigureAwait(false);
+                var task = Rollback(block, txnRes);
 
                 return res;
             }
@@ -237,13 +237,14 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="chainId"></param>
         /// <param name="disambiguationHash"></param>
         /// <param name="cancellationTokenSource"></param>
+        /// <param name="toDateTime"></param>
         /// <returns></returns>
         private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId,
-            Hash disambiguationHash, CancellationTokenSource cancellationTokenSource)
+            DateTime toDateTime, Hash disambiguationHash, CancellationTokenSource cancellationTokenSource)
         {
             var traces = readyTxs.Count == 0
                 ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(readyTxs, chainId, cancellationTokenSource.Token,
+                : await _executingService.ExecuteAsync(readyTxs, chainId, toDateTime, cancellationTokenSource.Token,
                     disambiguationHash);
             return traces;
         }
@@ -253,57 +254,83 @@ namespace AElf.Synchronization.BlockExecution
             Hash sideChainTransactionsRoot, out List<TransactionResult> results)
         {
             results = new List<TransactionResult>();
-
+            int index = 0;
             foreach (var trace in traces)
             {
-                var res = new TransactionResult
-                {
-                    TransactionId = trace.TransactionId
-                };
+                // Todo : This can be extracted out since it has to be consistent with miner processing.
                 switch (trace.ExecutionStatus)
                 {
-                    case ExecutionStatus.ExecutedAndCommitted:
+                     case ExecutionStatus.ExecutedAndCommitted:
+                        // Successful
+                        var txRes = new TransactionResult()
+                        {
+                            TransactionId = trace.TransactionId,
+                            Status = Status.Mined,
+                            RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                            StateHash = trace.GetSummarizedStateHash(),
+                            Index = index++
+                        };
+                        txRes.UpdateBloom();
 
-                        res.Logs.AddRange(trace.FlattenedLogs);
-                        res.Status = Status.Mined;
-                        res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
-                        res.StateHash = trace.GetSummarizedStateHash();
                         if (chainIndexingSideChainTransactionId != null &&
                             trace.TransactionId.Equals(chainIndexingSideChainTransactionId))
                         {
-                            var calculatedSideChainTransactionsRoot =
-                                Hash.LoadByteArray(trace.RetVal.ToFriendlyBytes());
-                            if (sideChainTransactionsRoot != null
+                            var calculatedSideChainTransactionsRoot = Hash.LoadByteArray(trace.RetVal.ToFriendlyBytes());
+                            if (sideChainTransactionsRoot != null 
                                 && !sideChainTransactionsRoot.Equals(calculatedSideChainTransactionsRoot))
                             {
                                 return BlockExecutionResult.InvalidSideChaiTransactionMerkleTreeRoot;
                             }
                         }
+                        
+                        // insert deferred txn to transaction pool and wait for execution 
+                        if (trace.DeferredTransaction.Length != 0)
+                        {
+                            var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                            _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
+                            txRes.DeferredTxnId = deferredTxn.GetHash();
+                        }
 
+                        results.Add(txRes);
                         break;
                     case ExecutionStatus.ContractError:
-                        res.Status = Status.Failed;
-                        res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
-                        res.StateHash = Hash.Default;
+                        var txResF = new TransactionResult()
+                        {
+                            TransactionId = trace.TransactionId,
+                            RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
+                            Status = Status.Failed,
+                            StateHash = Hash.Default,
+                            Index = index++
+                        };
+                        results.Add(txResF);
                         break;
                     case ExecutionStatus.InsufficientTransactionFees:
-                        res.Status = Status.Failed;
-                        res.RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()); // Is this needed?
-                        res.Status = Status.Failed;
-                        res.StateHash = trace.GetSummarizedStateHash();
+                        var txResITF = new TransactionResult()
+                        {
+                            TransactionId = trace.TransactionId,
+                            RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
+                            Status = Status.Failed,
+                            StateHash = trace.GetSummarizedStateHash(),
+                            Index = index++
+                        };
+                        results.Add(txResITF);
+                        break;
+                    /*case ExecutionStatus.Undefined:
+                        break;
+                    case ExecutionStatus.ExecutedButNotCommitted:
+                        break;
+                    case ExecutionStatus.Canceled:
+                        break;
+                    case ExecutionStatus.SystemError:
+                        break;
+                    case ExecutionStatus.ExceededMaxCallDepth:
+                        break;*/
+                    default:
+                        _logger.Trace(
+                            $"Transaction {trace.TransactionId} execution failed with status {trace.ExecutionStatus}");
                         break;
                 }
-
-                if (trace.DeferredTransaction.Length != 0)
-                {
-                    var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                    _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
-                    res.DeferredTxnId = deferredTxn.GetHash();
-                }
-
-                results.Add(res);
             }
-
             return BlockExecutionResult.TransactionExecutionSuccess;
         }
 

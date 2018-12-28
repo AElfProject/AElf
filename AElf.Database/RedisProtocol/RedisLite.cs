@@ -563,31 +563,31 @@ namespace AElf.Database.RedisProtocol
             return ReadDeeplyNestedMultiData();
         }
 
-        [Conditional("DEBUG")]
+        [Conditional("DEBUG_REDIS")]
         protected void Log(string fmt, params object[] args)
         {
-            //Console.WriteLine("{0}", string.Format(fmt, args).Trim());
+            Console.WriteLine("{0}", string.Format(fmt, args).Trim());
         }
 
-        [Conditional("DEBUG")]
+        [Conditional("DEBUG_REDIS")]
         protected void CmdLog(byte[][] args)
         {
-            // var sb = new StringBuilder();
-            // foreach (var arg in args)
-            // {
-            //     if (sb.Length > 0)
-            //         sb.Append(" ");
+            var sb = new StringBuilder();
+            foreach (var arg in args)
+            {
+                if (sb.Length > 0)
+                    sb.Append(" ");
 
-            //     sb.Append(arg.FromUtf8Bytes());
-            // }
+                sb.Append(arg.FromUtf8Bytes());
+            }
 
-            // lastCommand = sb.ToString();
-            // if (lastCommand.Length > 100)
-            // {
-            //     lastCommand = lastCommand.Substring(0, 100) + "...";
-            // }
+            lastCommand = sb.ToString();
+            if (lastCommand.Length > 100)
+            {
+                lastCommand = lastCommand.Substring(0, 100) + "...";
+            }
 
-            // Console.WriteLine("S: " + lastCommand);
+            Console.WriteLine("S: " + lastCommand);
         }
 
         protected void ExpectSuccess()
