@@ -9,8 +9,8 @@ namespace AElf.SmartContract.Proposal
     public interface IAuthorizationInfoReader
     {
         Task<bool> CheckAuthority(Address mSigAddress, IEnumerable<byte[]> pubKeys);
-        Task<bool> CheckAuthority(Transaction transaction);
         Task<Kernel.Proposal> GetProposal(Hash proposalHash);
         Task<Authorization> GetAuthorization(Address msig);
+        bool ValidateAuthorization(Authorization authorization, IEnumerable<byte[]> pubKeys);
     }
 }
