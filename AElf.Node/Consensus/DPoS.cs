@@ -567,9 +567,9 @@ namespace AElf.Node.Consensus
                     var calculatedAge = _helper.BlockchainAge.Value;
 
                     if (calculatedAge % GlobalConfig.DaysEachTerm == 0 ||
-                        LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber ||
-                        (LatestTermNumber == 1 && _helper.TryToGetVictories(out var victories) &&
-                         victories.Count == GlobalConfig.BlockProducerNumber))
+                        LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
+                        LatestTermNumber == 1 && _helper.TryToGetVictories(out var victories) &&
+                        victories.Count == GlobalConfig.BlockProducerNumber)
                     {
                         _logger?.Trace("Will change term.");
                         throw new NextTermException();

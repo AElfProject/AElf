@@ -136,7 +136,7 @@ namespace AElf.Sdk.CSharp
         
         public static List<string> GetCurrentMiners()
         {
-            if (Call(ConsensusContractAddress, "GetCurrentMiners", ""))
+            if (Call(ConsensusContractAddress, "GetCurrentMiners"))
             {
                 return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
             }
@@ -146,7 +146,7 @@ namespace AElf.Sdk.CSharp
 
         public static ulong GetCurrentRoundNumber()
         {
-            if (Call(ConsensusContractAddress, "GetCurrentRoundNumber", ""))
+            if (Call(ConsensusContractAddress, "GetCurrentRoundNumber"))
             {
                 return GetCallResult().ToUInt64();
             }
@@ -156,7 +156,7 @@ namespace AElf.Sdk.CSharp
         
         public static ulong GetCurrentTermNumber()
         {
-            if (Call(ConsensusContractAddress, "GetCurrentTermNumber", ""))
+            if (Call(ConsensusContractAddress, "GetCurrentTermNumber"))
             {
                 return GetCallResult().ToUInt64();
             }
