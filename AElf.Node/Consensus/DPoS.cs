@@ -704,23 +704,18 @@ namespace AElf.Node.Consensus
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
-            // Update miners.
-            if (LatestTermNumber + 1 == _helper.CurrentTermNumber.Value)
-            {
-                _logger?.Trace("Term changed, will update miners.");
-                await _minersManager.SetMiners(_helper.GetCurrentMiners());
-            }
-            
             if (LatestRoundNumber == _helper.CurrentRoundNumber.Value)
             {
                 return;
             }
 
+            // Update miners.
             if (_helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
             {
                 var currentRoundInfo = _helper.GetCurrentRoundInfo();
                 if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
                 {
+                    _logger?.Trace("Updating miners.");
                     await _minersManager.SetMiners(_helper.GetCurrentMiners());
                 }
             }
