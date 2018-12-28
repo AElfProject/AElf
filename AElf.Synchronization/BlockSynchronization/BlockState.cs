@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
-using ServiceStack;
 
 namespace AElf.Synchronization.BlockSynchronization
 {

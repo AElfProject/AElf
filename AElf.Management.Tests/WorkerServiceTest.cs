@@ -1,4 +1,5 @@
-﻿using AElf.Management.Services;
+﻿using System.Threading.Tasks;
+using AElf.Management.Services;
 using Xunit;
 
 namespace AElf.Management.Tests
@@ -7,11 +8,10 @@ namespace AElf.Management.Tests
     {
         [Fact(Skip = "require aws account")]
         //[Fact]
-        public void TestModifyWorkerCount()
+        public async Task ModifyWorkerCountTest()
         {
             var service = new WorkerService();
-
-            service.ModifyWorkerCount("default", 2);
+            await service.ModifyWorkerCount("default", 2);
         }
     }
 }

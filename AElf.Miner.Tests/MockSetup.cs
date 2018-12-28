@@ -13,13 +13,11 @@ using AElf.Miner.Miner;
 using AElf.Miner.Rpc.Server;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
-using AElf.SmartContract.Metadata;
 using Google.Protobuf;
 using Moq;
 using NLog;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
-using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Transaction;
@@ -28,8 +26,6 @@ using AElf.Miner.TxMemPool;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockExecution;
-using AElf.Synchronization.BlockSynchronization;
-using ServiceStack;
 
 namespace AElf.Miner.Tests
 {
@@ -113,12 +109,8 @@ namespace AElf.Miner.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
         public async Task<IChain> CreateChain()

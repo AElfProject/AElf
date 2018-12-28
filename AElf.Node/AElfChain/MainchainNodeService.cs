@@ -20,7 +20,6 @@ using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
 
 namespace AElf.Node.AElfChain
 {
@@ -90,13 +89,7 @@ namespace AElf.Node.AElfChain
         
         private byte[] ReadCode(string path)
         {
-            byte[] code;
-            using (var file = File.OpenRead(Path.GetFullPath(path)))
-            {
-                code = file.ReadFully();
-            }
-
-            return code;
+            return File.ReadAllBytes(Path.GetFullPath(path));
         }
 
         #endregion

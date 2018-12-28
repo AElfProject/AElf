@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using AElf.Kernel;
-using ServiceStack;
+﻿using AElf.Kernel;
 using Google.Protobuf;
 using AElf.SmartContract;
 using AElf.Types.CSharp;

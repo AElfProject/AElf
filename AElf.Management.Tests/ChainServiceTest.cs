@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Threading.Tasks;
 using AElf.Management.Models;
 using AElf.Management.Services;
 using Xunit;
@@ -11,27 +11,27 @@ namespace AElf.Management.Tests
 
         [Fact(Skip = "require aws account")]
         //[Fact]
-        public void DeployTestChain()
+        public async Task DeployTestChainTest()
         {
             var arg = new DeployArg();
             arg.AccountPassword = "123";
             arg.DBArg = new DeployDBArg();
-            arg.LighthouseArg=new DeployLighthouseArg();
+            arg.LighthouseArg = new DeployLighthouseArg();
             arg.LighthouseArg.IsCluster = false;
             arg.WorkArg = new DeployWorkArg();
-            arg.LauncherArg=new DeployLauncherArg();
+            arg.LauncherArg = new DeployLauncherArg();
             arg.LauncherArg.IsConsensusInfoGenerator = true;
-            
+
             var service = new ChainService();
-            service.DeployMainChain(arg);
+            await service.DeployMainChain(arg);
         }
 
         [Fact(Skip = "require aws account")]
         //[Fact]
-        public void RemoveTestChain()
+        public async Task RemoveTestChainTest()
         {
             var service = new ChainService();
-            service.RemoveMainChain(chainId);
+            await service.RemoveMainChain(chainId);
         }
     }
 }
