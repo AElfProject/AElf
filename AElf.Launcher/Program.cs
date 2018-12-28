@@ -29,9 +29,9 @@ namespace AElf.Launcher
 
                     options.Services.AddLogging(builder =>
                     {
-                        builder.SetMinimumLevel(LogLevel.Trace)
+                        /*builder.SetMinimumLevel(LogLevel.Trace)
                             .AddConsole()
-                            .AddFile();
+                            .AddFile();*/
                     });
                         
                     //DatabaseConfig.Instance.Type = DatabaseType.Redis;
