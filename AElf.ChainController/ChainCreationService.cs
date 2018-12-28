@@ -8,7 +8,6 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
 
 namespace AElf.ChainController
 {
