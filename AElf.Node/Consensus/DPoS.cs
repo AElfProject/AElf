@@ -564,7 +564,7 @@ namespace AElf.Node.Consensus
 
                     var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
 
-                    var calculatedAge = _helper.CalculateBlockchainAge();
+                    var calculatedAge = _helper.BlockchainAge.Value;
 
                     if (calculatedAge % GlobalConfig.DaysEachTerm == 0 ||
                         LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber ||

@@ -195,11 +195,6 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public ulong CalculateBlockchainAge()
-        {
-            return BlockchainAge.Value;
-        }
-
         public bool TryToGetVictories(out List<string> victories)
         {
             var ticketsMap = new Dictionary<string, ulong>();

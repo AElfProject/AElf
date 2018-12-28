@@ -325,7 +325,7 @@ namespace AElf.Contracts.Consensus
         [View]
         public ulong QueryMinedBlockCountInCurrentTerm(string publicKey)
         {
-            if (Collection.RoundsMap.TryGet(Api.GetCurrentRoundNumber().ToUInt64Value(), out var round))
+            if (Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var round))
             {
                 if (round.RealTimeMinersInfo.ContainsKey(publicKey))
                 {
