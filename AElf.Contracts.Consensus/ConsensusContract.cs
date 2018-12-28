@@ -54,7 +54,8 @@ namespace AElf.Contracts.Consensus
         {
             return Collection.CurrentRoundNumberField.GetValue();
         }
-        
+
+        [Fee(0)]
         public void InitialTerm(Term term, int logLevel)
         {
             Api.Assert(term.FirstRound.RoundNumber == 1);
@@ -62,22 +63,26 @@ namespace AElf.Contracts.Consensus
             
             Process.InitialTerm(term, logLevel);
         }
-        
+
+        [Fee(0)]
         public void NextTerm(Term term)
         {
             Process.NextTerm(term);
         }
 
+        [Fee(0)]
         public void NextRound(Forwarding forwarding)
         {
             Process.NextRound(forwarding);
         }
 
+        [Fee(0)]
         public void PackageOutValue(ToPackage toPackage)
         {
             Process.PublishOutValue(toPackage);
         }
 
+        [Fee(0)]
         public void BroadcastInValue(ToBroadcast toBroadcast)
         {
             Process.PublishInValue(toBroadcast);
@@ -114,7 +119,7 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
-        public Miners GetCurrentMiners(string empty)
+        public Miners GetCurrentMiners()
         {
             var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
             Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
