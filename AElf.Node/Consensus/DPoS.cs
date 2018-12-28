@@ -567,8 +567,8 @@ namespace AElf.Node.Consensus
                     var calculatedAge = _helper.CalculateBlockchainAge();
                     _logger?.Trace("Current blockchain age: " + calculatedAge);
 
-                    if ((calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
-                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||
+                    if (/*(calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
+                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||*/
                         (LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
                          _helper.TryToGetVictories(out var victories) &&
                          victories.Count == GlobalConfig.BlockProducerNumber))
