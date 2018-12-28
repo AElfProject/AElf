@@ -50,7 +50,7 @@ namespace AElf.Contracts.Genesis.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
         
@@ -70,7 +70,7 @@ namespace AElf.Contracts.Genesis.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBytes();
         }
 
@@ -90,7 +90,7 @@ namespace AElf.Contracts.Genesis.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
         }
         
         public Address GetContractOwner(Address contractAddress)
@@ -109,7 +109,7 @@ namespace AElf.Contracts.Genesis.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Address>();
         }
     }

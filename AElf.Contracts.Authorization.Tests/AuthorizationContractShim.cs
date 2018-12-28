@@ -49,7 +49,7 @@ namespace AElf.Contracts.Authorization.Tests
         
         private async Task CommitChangesAsync(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_mock.StateManager);
+            await trace.SmartCommitChangesAsync(_mock.StateManager);
         }
 
         public async Task<byte[]> CreateMSigAccount(Kernel.Authorization authorization)
@@ -155,6 +155,11 @@ namespace AElf.Contracts.Authorization.Tests
                     Transaction = tx
                 };
                 await Executive.SetTransactionContext(TransactionContext).Apply();
+
+                if (TransactionContext.Trace.DeferredTransaction == ByteString.Empty)
+                {
+                    TransactionContext.Trace.DeferredTransaction = null;
+                }
                 await CommitChangesAsync(TransactionContext.Trace);
                 return TransactionContext.Trace.DeferredTransaction != null
                     ? Transaction.Parser.ParseFrom(TransactionContext.Trace.DeferredTransaction)

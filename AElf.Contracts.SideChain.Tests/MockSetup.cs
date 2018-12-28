@@ -68,12 +68,12 @@ namespace AElf.Contracts.SideChain.Tests
             _smartContractRunnerContainer.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                    StateManager, _functionMetadataService), _logger);
-            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                StateManager, _functionMetadataService);
-            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager, _transactionTraceManager,
-                StateManager);
+                    StateManager, _functionMetadataService, ChainService), _logger);
+            Task.Factory.StartNew(async () =>
+            {
+                await Init();
+            }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer, StateManager, _functionMetadataService, ChainService);
         }
 
         public byte[] CrossChainCode

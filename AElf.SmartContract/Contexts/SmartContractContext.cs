@@ -1,6 +1,5 @@
-﻿using System;
-using AElf.Kernel.Types;
-using AElf.Common;
+﻿using AElf.Common;
+using AElf.Kernel;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -11,5 +10,6 @@ namespace AElf.SmartContract
         public Address ContractAddress { get; set; }
         public IDataProvider DataProvider { get; set; }
         public ISmartContractService SmartContractService { get; set; }
+        public IChainService ChainService { get; set; }
     }
 }

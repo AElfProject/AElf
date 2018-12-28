@@ -337,6 +337,11 @@ namespace AElf.Miner.TxMemPool
                 tr.IsSystemTxn = true;
             }
 
+            if (tr.Transaction.IsClaimFeesTransaction())
+            {
+                tr.IsSystemTxn = true;
+            }
+
             // cross chain txn should not be  broadcasted
             if (tr.Transaction.IsCrossChainIndexingTransaction())
                 tr.ToBeBroadCasted = false;
@@ -459,6 +464,11 @@ namespace AElf.Miner.TxMemPool
 //                        || tr.Transaction.Type == TransactionType.DposTransaction
 //                        && tr.Transaction.To.Equals(_dPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
                         continue;
+
+                    if (tr.Transaction.IsClaimFeesTransaction())
+                    {
+                        continue;
+                    }
                     
                     tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
                     tr.Status = TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus;

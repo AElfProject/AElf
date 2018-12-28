@@ -67,10 +67,12 @@ namespace AElf.Contracts.Authorization.Tests
             _smartContractRunnerContainer.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    StateManager, _functionMetadataService), _logger);
-            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                StateManager, _functionMetadataService);
+                    StateManager, _functionMetadataService, ChainService), _logger);
+            Task.Factory.StartNew(async () =>
+            {
+                await Init();
+            }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateManager, _functionMetadataService, ChainService);
             ChainService = new ChainService(_chainManager, _blockManager, _transactionManager,
                 _transactionTraceManager, StateManager);
         }

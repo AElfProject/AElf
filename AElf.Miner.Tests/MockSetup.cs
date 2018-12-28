@@ -91,12 +91,12 @@ namespace AElf.Miner.Tests
             _smartContractRunnerContainer.AddRunner(0, runner);
             _concurrencyExecutingService = new SimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager,
-                    _functionMetadataService), _transactionTraceManager, _stateManager,
+                    _functionMetadataService, _chainService), _transactionTraceManager, _stateManager,
                 new ChainContextService(_chainService));
 
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    _stateManager, _functionMetadataService), _logger);
+                    _stateManager, _functionMetadataService, _chainService), _logger);
 
             _chainContextService = new ChainContextService(_chainService);
             _authorizationInfoReader = new AuthorizationInfoReader(_stateManager);
@@ -187,8 +187,8 @@ namespace AElf.Miner.Tests
         private Mock<IBlockChain> MockBlockChain()
         {
             Mock<IBlockChain> mock = new Mock<IBlockChain>();
-            mock.Setup(bc => bc.GetBlockByHeightAsync(It.IsAny<ulong>()))
-                .Returns<ulong>(p => Task.FromResult(_blocks[(int) p - 1]));
+            mock.Setup(bc => bc.GetBlockByHeightAsync(It.IsAny<ulong>(), It.IsAny<bool>()))
+                .Returns<ulong, bool>((p, w) => Task.FromResult(_blocks[(int) p - 1]));
             return mock;
         }
 
