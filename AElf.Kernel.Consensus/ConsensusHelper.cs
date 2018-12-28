@@ -304,6 +304,11 @@ namespace AElf.Kernel.Consensus
             return false;
         }
 
+        public ulong CalculateBlockchainAge()
+        {
+            return (ulong) (DateTime.UtcNow - BlockchainStartTimestamp.ToDateTime()).TotalMinutes + 1;
+        }
+
         public void SyncMiningInterval()
         {
             ConsensusConfig.Instance.DPoSMiningInterval = MiningInterval.Value;

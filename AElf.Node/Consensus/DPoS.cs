@@ -564,12 +564,14 @@ namespace AElf.Node.Consensus
 
                     var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
 
-                    var calculatedAge = _helper.BlockchainAge.Value;
+                    var calculatedAge = _helper.CalculateBlockchainAge();
+                    _logger?.Trace("Current blockchain age: " + calculatedAge);
 
-                    if (calculatedAge % GlobalConfig.DaysEachTerm == 0 ||
-                        LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
-                        LatestTermNumber == 1 && _helper.TryToGetVictories(out var victories) &&
-                        victories.Count == GlobalConfig.BlockProducerNumber)
+                    if ((calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
+                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||
+                        (LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
+                         _helper.TryToGetVictories(out var victories) &&
+                         victories.Count == GlobalConfig.BlockProducerNumber))
                     {
                         _logger?.Trace("Will change term.");
                         throw new NextTermException();
