@@ -7,6 +7,7 @@ using AElf.Miner.Rpc;
 using AElf.Modularity;
 using AElf.Network;
 using AElf.Runtime.CSharp;
+using AElf.RuntimeSetup;
 using AElf.SmartContract;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -14,6 +15,8 @@ using Volo.Abp.Modularity;
 namespace AElf.Concurrency.Worker
 {
     [DependsOn(
+        typeof(RuntimeSetupAElfModule),
+        
         typeof(CSharpRuntimeAElfModule),
         typeof(SmartContractAElfModule),
         typeof(ChainControllerAElfModule),

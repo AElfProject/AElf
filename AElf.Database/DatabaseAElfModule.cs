@@ -19,7 +19,7 @@ namespace AElf.Database
             {
                 context.Services.AddSingleton<IKeyValueDatabase, SsdbDatabase>();
             }
-            else if (DatabaseConfig.Instance.Type == DatabaseType.InMemory)
+            else if (DatabaseConfig.Instance.Type == DatabaseType.Redis)
             {
                 context.Services.AddSingleton<IKeyValueDatabase, RedisDatabase>();
             }
