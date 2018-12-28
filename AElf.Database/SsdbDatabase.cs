@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Configuration;
 using AElf.Database.RedisProtocol;
 
 namespace AElf.Database
