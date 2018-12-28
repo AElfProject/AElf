@@ -17,7 +17,6 @@ namespace AElf.Synchronization.BlockSynchronization
     {
         public event EventHandler LibChanged;
             
-        private const int MaxLenght = 200;
         private const int Timeout = int.MaxValue;
 
         private readonly ILogger _logger;

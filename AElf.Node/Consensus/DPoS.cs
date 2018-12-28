@@ -77,6 +77,8 @@ namespace AElf.Node.Consensus
 
         private static bool _terminated;
 
+        private static bool _executedBlockFromOtherMiners;
+
         private ConsensusObserver ConsensusObserver =>
             new ConsensusObserver(InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
 
@@ -105,7 +107,14 @@ namespace AElf.Node.Consensus
             
             MessageHub.Instance.Subscribe<UpdateConsensus>(async option =>
             {
-                if (option == UpdateConsensus.Update)
+                if (option == UpdateConsensus.UpdateAfterExecution)
+                {
+                    _executedBlockFromOtherMiners = true;
+                    _logger?.Trace("UpdateConsensus - Update");
+                    await UpdateConsensusInformation();
+                }
+
+                if (option == UpdateConsensus.UpdateAfterMining)
                 {
                     _logger?.Trace("UpdateConsensus - Update");
                     await UpdateConsensusInformation();
@@ -670,7 +679,7 @@ namespace AElf.Node.Consensus
             {
                 return;
             }
-
+            
             if (_helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
             {
                 var currentRoundInfo = _helper.GetCurrentRoundInfo();
@@ -678,6 +687,11 @@ namespace AElf.Node.Consensus
                 {
                     await _minersManager.SetMiners(_helper.GetCurrentMiners());
                 }
+            }
+
+            if (_executedBlockFromOtherMiners && _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
+            {
+                MessageHub.Instance.Publish(new MinorityForkDetected());
             }
             
             if (!NodeConfig.Instance.IsMiner)

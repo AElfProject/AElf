@@ -441,7 +441,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (HeadBlock == _blockSet.CurrentHead.PreviousState)
                 HeadBlock = _blockSet.CurrentHead;
 
-            MessageHub.Instance.Publish(UpdateConsensus.Update);
+            MessageHub.Instance.Publish(UpdateConsensus.UpdateAfterExecution);
 
             // BlockAppending -> Catching / Caught
             MessageHub.Instance.Publish(StateEvent.BlockAppended);
