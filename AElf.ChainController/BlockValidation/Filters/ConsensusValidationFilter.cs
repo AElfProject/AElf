@@ -12,7 +12,6 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using ServiceStack;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController

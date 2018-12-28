@@ -4,7 +4,6 @@ using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Akka.Dispatch;
-using ServiceStack;
 
 namespace AElf.Kernel
 {
