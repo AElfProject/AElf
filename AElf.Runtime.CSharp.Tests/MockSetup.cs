@@ -1,22 +1,13 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
 using AElf.Kernel;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Kernel.Tests;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using ServiceStack;
-using Xunit;
-using AElf.Runtime.CSharp;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
 
 namespace AElf.Runtime.CSharp.Tests
@@ -119,24 +110,8 @@ namespace AElf.Runtime.CSharp.Tests
             ContractAddress2 = Address.BuildContractAddress(ChainId2, serialNumber);
         }
 
-        public string SdkDir
-        {
-            get => "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0";
-        }
+        public string SdkDir => "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0";
 
-        public byte[] ContractCode
-        {
-            get
-            {
-                byte[] code = null;
-                using (FileStream file =
-                    File.OpenRead(System.IO.Path.GetFullPath($"{SdkDir}/AElf.Runtime.CSharp.Tests.TestContract.dll")))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
-            }
-        }
+        public byte[] ContractCode => File.ReadAllBytes(Path.GetFullPath($"{SdkDir}/AElf.Runtime.CSharp.Tests.TestContract.dll"));
     }
 }

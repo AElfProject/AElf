@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
-using AElf.Database;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using CommandLine;
+using Newtonsoft.Json;
 
 namespace AElf.Benchmark
 {
@@ -9,6 +12,7 @@ namespace AElf.Benchmark
         EvenGroup,
         GenerateAccounts
     }
+
     public class BenchmarkOptions
     {
         [Option(HelpText = "The directory where store the sdk dll file (usually named AElf.Sdk.CSharp.dll).")]
@@ -55,6 +59,19 @@ namespace AElf.Benchmark
 
                 return BenchmarkMethod.EvenGroup;
             }
+        }
+
+        public override string ToString()
+        {
+            var options = new StringBuilder();
+            var json = JsonConvert.SerializeObject(this);
+            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+            foreach (var (key, value) in dictionary)
+            {
+                options.Append($"{key}: {value}{Environment.NewLine}");
+            }
+
+            return options.ToString().TrimEnd(Environment.NewLine.ToCharArray());
         }
     }
 }

@@ -1,12 +1,9 @@
 ﻿using System.IO;
-using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Xunit.Frameworks.Autofac;
 using Xunit;
-using ServiceStack;
 using AElf.Common;
-using Google.Protobuf;
 
 namespace AElf.Contracts.Genesis.Tests
 {
@@ -21,24 +18,16 @@ namespace AElf.Contracts.Genesis.Tests
         {
             get
             {
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
         private byte[] CodeNew
         {
             get
             {
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Benchmark.TestContract/bin/Debug/netstandard2.0/AElf.Benchmark.TestContract.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Benchmark.TestContract/bin/Debug/netstandard2.0/AElf.Benchmark.TestContract.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
         
