@@ -38,12 +38,13 @@ namespace AElf.Sdk.CSharp.Tests
         public ServicePack ServicePack;
 
         private IChainCreationService _chainCreationService;
+        private IChainService _chainService;
 
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerContainer smartContractRunnerContainer, ISmartContractManager smartContractManager)
+            ISmartContractRunnerContainer smartContractRunnerContainer, ISmartContractManager smartContractManager, IChainService chainService)
         {
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
@@ -51,9 +52,12 @@ namespace AElf.Sdk.CSharp.Tests
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
-            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                StateManager, _functionMetadataService);
+            _chainService = chainService;
+            Task.Factory.StartNew(async () =>
+            {
+                await Init();
+            }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer, StateManager, _functionMetadataService, chainService);
 
             ServicePack = new ServicePack()
             {

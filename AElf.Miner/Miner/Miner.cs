@@ -98,10 +98,14 @@ namespace AElf.Miner.Miner
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
                 
-                var bn = await _blockChain.GetCurrentBlockHeightAsync();
-                bn = bn > 4 ? bn - 4 : 0;
+                var currHeight = await _blockChain.GetCurrentBlockHeightAsync();
+                var bn = currHeight > 4 ? currHeight - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await _blockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+                if (!UnitTestDetector.IsInUnitTest)
+                {
+                    await GenerateClaimFeesTransaction(currHeight, bn, bhPref);    
+                }
                 // generate txns for cross chain indexing if possible
                 await GenerateCrossTransaction(bn, bhPref);
                 DateTime currentBlockTime = DateTime.UtcNow;
@@ -204,6 +208,21 @@ namespace AElf.Miner.Miner
             }
         }
 
+        private async Task GenerateClaimFeesTransaction(ulong prevHeight, ulong refBlockHeight, byte[] refBlockPrefix)
+        {
+            var address = Address.FromPublicKey(_keyPair.PublicKey);
+            var tx = new Transaction()
+            {
+                From = address,
+                To = ContractHelpers.GetTokenContractAddress(Config.ChainId),
+                MethodName = "ClaimTransactionFees",
+                RefBlockNumber = refBlockHeight,
+                RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(prevHeight))
+            };
+            await SignAndInsertToPool(tx);
+        }
+
         /// <summary>
         /// Generate transactions for cross chain indexing.
         /// </summary>
@@ -254,7 +273,7 @@ namespace AElf.Miner.Miner
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _executingService.ExecuteAsync(txs, Config.ChainId, cts.Token, currentBlockTime, disambiguationHash,transactionType);
+                    : await _executingService.ExecuteAsync(txs, Config.ChainId, currentBlockTime, cts.Token, disambiguationHash, transactionType);
 
                 return traces;
             }
@@ -326,6 +345,17 @@ namespace AElf.Miner.Miner
                                 Index = index++
                             };
                             results.Add(txResF);
+                            break;
+                        case ExecutionStatus.InsufficientTransactionFees:
+                            var txResITF = new TransactionResult()
+                            {
+                                TransactionId = trace.TransactionId,
+                                RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
+                                Status = Status.Failed,
+                                StateHash = trace.GetSummarizedStateHash(),
+                                Index = index++
+                            };
+                            results.Add(txResITF);
                             break;
                         case ExecutionStatus.Undefined:
                             _logger?.Fatal(

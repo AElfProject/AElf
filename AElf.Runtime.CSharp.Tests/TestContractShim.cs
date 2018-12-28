@@ -56,7 +56,8 @@ namespace AElf.Runtime.CSharp.Tests
                     ChainId = _mock.ChainId1,
                     ContractAddress = _mock.ContractAddress1,
                     DataProvider = _mock.DataProvider1,
-                    SmartContractService = _mock.SmartContractService
+                    SmartContractService = _mock.SmartContractService,
+                    ChainService = _mock.ChainService
                 });
             }
             else
@@ -69,7 +70,8 @@ namespace AElf.Runtime.CSharp.Tests
                     ChainId = _mock.ChainId2,
                     ContractAddress = _mock.ContractAddress2,
                     DataProvider = _mock.DataProvider2,
-                    SmartContractService = _mock.SmartContractService
+                    SmartContractService = _mock.SmartContractService,
+                    ChainService = _mock.ChainService
                 });
             }
         }
@@ -89,7 +91,7 @@ namespace AElf.Runtime.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
 
             return true;
         }
@@ -114,7 +116,7 @@ namespace AElf.Runtime.CSharp.Tests
             };
             
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             
             return tc.Trace.RetVal.Data.DeserializeToBool();
         }
@@ -134,7 +136,7 @@ namespace AElf.Runtime.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToUInt64();
         }
 
@@ -153,7 +155,7 @@ namespace AElf.Runtime.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToString();
         }
 
@@ -172,7 +174,7 @@ namespace AElf.Runtime.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToString();
         }
     }
