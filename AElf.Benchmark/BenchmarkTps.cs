@@ -10,12 +10,9 @@ using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
-using AElf.Execution.Scheduling;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
-using ServiceStack.Text;
 using AElf.Common;
 using AElf.Execution.Execution;
 
@@ -38,18 +35,7 @@ namespace AElf.Benchmark
         private Hash ChainId { get; }
         private int _incrementId;
         
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                byte[] code;
-                using (FileStream file = File.OpenRead(Path.GetFullPath(Path.Combine(_options.DllDir, _options.ZeroContractDll))))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
-            }
-        }
+        public byte[] SmartContractZeroCode => File.ReadAllBytes(Path.GetFullPath(Path.Combine(_options.DllDir, _options.ZeroContractDll)));
 
         public Benchmarks(IStateManager stateManager, IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
@@ -73,16 +59,9 @@ namespace AElf.Benchmark
             };
 
             _dataGenerater = new TransactionDataGenerator(options);
-            byte[] code;
-            using (FileStream file = File.OpenRead(Path.GetFullPath(options.DllDir + "/" + options.ContractDll)))
-            {
-                code = file.ReadFully();
-            }
+            var code = File.ReadAllBytes(Path.GetFullPath(options.DllDir + "/" + options.ContractDll));
             _contractHash = Prepare(code).Result;
-            
         }
-
-        
 
         public async Task BenchmarkEvenGroup()
         {
@@ -96,8 +75,7 @@ namespace AElf.Benchmark
                     resDict.Add(res.Key, res.Value);
                 }
 
-                _logger.Info("Benchmark report \n \t Configuration: \n" + 
-                             string.Join("\n", _options.ToStringDictionary().Select(option => string.Format("\t {0} - {1}", option.Key, option.Value))) + 
+                _logger.Info("Benchmark report \n \t Configuration: \n" + _options +
                              "\n\n\n\t Benchmark result:\n" + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)));
             }
             catch (Exception e)
@@ -130,7 +108,7 @@ namespace AElf.Benchmark
                 swExec.Start();
 
                 var cts = new CancellationTokenSource();
-                var txResult = await _executingService.ExecuteAsync(txList, ChainId, cts.Token, DateTime.Now);
+                var txResult = await _executingService.ExecuteAsync(txList, ChainId, DateTime.Now, cts.Token);
         
                 swExec.Stop();
                 timeused += swExec.ElapsedMilliseconds;
@@ -267,7 +245,7 @@ namespace AElf.Benchmark
             try
             {
                 await executive.SetTransactionContext(txnCtxt).Apply();
-                await txnCtxt.Trace.CommitChangesAsync(_stateManager);
+                await txnCtxt.Trace.SmartCommitChangesAsync(_stateManager);
             }
             finally
             {
@@ -304,7 +282,7 @@ namespace AElf.Benchmark
             try
             {
                 await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-                await txnInitCtxt.Trace.CommitChangesAsync(_stateManager);
+                await txnInitCtxt.Trace.SmartCommitChangesAsync(_stateManager);
             }
             finally
             {
@@ -326,7 +304,7 @@ namespace AElf.Benchmark
                 initTxList.Add(txnBalInit);
             }
             var cts = new CancellationTokenSource();
-            var txTrace = await _executingService.ExecuteAsync(initTxList, ChainId, cts.Token, DateTime.UtcNow);
+            var txTrace = await _executingService.ExecuteAsync(initTxList, ChainId, DateTime.UtcNow, cts.Token);
             foreach (var trace in txTrace)
             {
                 if (!trace.StdErr.IsNullOrEmpty())

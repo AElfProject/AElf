@@ -77,7 +77,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private async Task CommitChangesAsync(TransactionTrace trace)
         {
-            await trace.CommitChangesAsync(_mock.StateManager);
+            await trace.SmartCommitChangesAsync(_mock.StateManager);
         }
 
         private async Task DeployConsensusContractAsync()
@@ -161,7 +161,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Round>();
         }
 
@@ -181,7 +181,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             var result = TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
             return result ?? 0;
         }
@@ -202,7 +202,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             var result = TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
             return result ?? 0;
         }
@@ -373,7 +373,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBool();
         }
         
@@ -393,7 +393,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
@@ -417,7 +417,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
 
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Tickets>();
         }
         
@@ -441,7 +441,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
 
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
@@ -461,7 +461,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<StringList>();
         }
         
@@ -481,7 +481,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TermSnapshot>();
         }
 
@@ -636,7 +636,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForDividends.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
@@ -656,7 +656,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
@@ -676,7 +676,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
@@ -696,7 +696,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
@@ -716,7 +716,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32() ?? 0;
         }
 
@@ -736,7 +736,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
@@ -756,7 +756,7 @@ namespace AElf.Contracts.Consensus.Tests
                 Transaction = tx
             };
             ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
-            TransactionContext.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 

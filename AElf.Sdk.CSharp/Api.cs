@@ -24,6 +24,7 @@ namespace AElf.Sdk.CSharp
         private static ISmartContractContext _smartContractContext;
         private static ITransactionContext _transactionContext;
         private static ITransactionContext _lastCallContext;
+        private static IBlockChain _blockChain;
 
         public static ProtobufSerializer Serializer { get; } = new ProtobufSerializer();
 
@@ -32,6 +33,7 @@ namespace AElf.Sdk.CSharp
         public static void SetSmartContractContext(ISmartContractContext contractContext)
         {
             _smartContractContext = contractContext;
+            _blockChain = contractContext.ChainService.GetBlockChain(contractContext.ChainId);
             _dataProviders = new Dictionary<string, IDataProvider> {{"", _smartContractContext.DataProvider}};
         }
 
@@ -90,13 +92,20 @@ namespace AElf.Sdk.CSharp
         
         public static Address Genesis => Address.Genesis;
 
+        public static Block GetBlockByHeight(ulong height)
+        {
+            return (Block) _blockChain.GetBlockByHeightAsync(height, true).Result;
+        }
+
         public static Hash GetPreviousBlockHash()
         {
+            // TODO: Maybe use _blockChain to get
             return _transactionContext.PreviousBlockHash.ToReadOnly();
         }
 
         public static ulong GetCurrentHeight()
         {
+            // TODO: Maybe use _blockChain to get
             return _transactionContext.BlockHeight;
         }
 

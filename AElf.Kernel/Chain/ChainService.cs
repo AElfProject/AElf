@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 using Akka.Dispatch;
-using ServiceStack;
 
-namespace AElf.ChainController
+namespace AElf.Kernel
 {
     public class ChainService : IChainService
     {

@@ -6,9 +6,6 @@ using AElf.Kernel;
 using AElf.Kernel.Types.Transaction;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using NLog;
-using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -404,11 +401,7 @@ namespace AElf.Contracts.Authorization.Tests
         
         private Transaction CreateDemoTxn(Address msig)
         {
-            byte[] code;
-            using (var file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll")))
-            {
-                code = file.ReadFully();
-            }
+            var code = File.ReadAllBytes(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll"));
             var tx = new Transaction
             {
                 From = msig,

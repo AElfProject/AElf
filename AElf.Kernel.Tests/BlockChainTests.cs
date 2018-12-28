@@ -46,7 +46,7 @@ namespace AElf.Kernel.Tests
             b1.Body.TransactionList.AddRange(txs);
             
             var disHash1 = b1.Header.GetDisambiguationHash();
-            _executingService.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None, DateTime.UtcNow, disHash1);
+            _executingService.ExecuteAsync(txs, _mock.ChainId1, DateTime.UtcNow, CancellationToken.None, disHash1);
             
             _mock.BlockChain.AddBlocksAsync(new List<IBlock>() {b1});
 
@@ -74,7 +74,7 @@ namespace AElf.Kernel.Tests
             b2.Body.TransactionList.AddRange(tfrs);
             
             var disHash2 = b2.Header.GetDisambiguationHash();
-            _executingService.ExecuteAsync(tfrs, _mock.ChainId1, CancellationToken.None, DateTime.UtcNow, disHash2);
+            _executingService.ExecuteAsync(tfrs, _mock.ChainId1, DateTime.UtcNow, CancellationToken.None, disHash2);
 
             _mock.BlockChain.AddBlocksAsync(new List<IBlock>() {b2});
             foreach (var i in Enumerable.Range(0, 5))
