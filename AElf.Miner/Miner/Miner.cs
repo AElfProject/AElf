@@ -194,7 +194,7 @@ namespace AElf.Miner.Miner
                 MessageHub.Instance.Publish(UpdateConsensus.Update); 
                 
                 stopwatch.Stop();
-                \
+                
                 _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 
