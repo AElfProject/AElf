@@ -10,6 +10,6 @@ namespace AElf.Execution.Execution
 {
     public interface IExecutingService
     {
-        Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId, CancellationToken cancellationToken, DateTime currentBlockTime, Hash disambiguationHash = null, TransactionType transactionType = TransactionType.ContractTransaction);
+        Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId, DateTime currentBlockTime, CancellationToken cancellationToken, Hash disambiguationHash = null, TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee=false);
     }
 }

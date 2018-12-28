@@ -7,8 +7,8 @@ namespace AElf.SmartContract
 {
     public interface ITransactionContext
     {
-        Hash Origin { get; set; }
-        Hash Miner { get; set; }
+        Address Origin { get; set; }
+        Address Miner { get; set; }
         Hash PreviousBlockHash { get; set; }
         ulong BlockHeight { get; set;}
         
