@@ -445,29 +445,40 @@ namespace AElf.Network.Peers
 
         public void RemovePeer(IPeer peer)
         {
-            if (peer == null)
+            try
             {
-                _logger?.Warn("removing peer but peer is null.");
-                return;
+                if (peer == null)
+                {
+                    _logger?.Warn("removing peer but peer is null.");
+                    return;
+                }
+
+                // Will do nothing if already disposed
+                peer.Dispose();
+
+                peer.MessageReceived -= OnPeerMessageReceived;
+                peer.PeerDisconnected -= ProcessClientDisconnection;
+                peer.AuthFinished -= PeerOnPeerAuthentified;
+
+                lock (_peerListLock)
+                {
+                    _authentifyingPeer.RemoveAll(p => p.IsDisposed);
+                    _authentifyingPeer.Remove(peer);
+
+                    if (_peers.Remove(peer))
+                    {
+                        _logger?.Debug($"{peer} removed.");
+                        PeerEvent?.Invoke(this, new PeerEventArgs(peer, PeerEventType.Removed));
+                    }
+                    else
+                    {
+                        _logger?.Warn($"Tried to remove peer, but not in list {peer}");
+                    }
+                }
             }
-
-            // Will do nothing if already disposed
-            peer.Dispose();
-
-            peer.MessageReceived -= OnPeerMessageReceived;
-            peer.PeerDisconnected -= ProcessClientDisconnection;
-            peer.AuthFinished -= PeerOnPeerAuthentified;
-
-            _authentifyingPeer.Remove(peer);
-
-            if (_peers.Remove(peer))
+            catch (Exception e)
             {
-                _logger?.Debug($"{peer} removed.");
-                PeerEvent?.Invoke(this, new PeerEventArgs(peer, PeerEventType.Removed));
-            }
-            else
-            {
-                _logger?.Warn($"Tried to remove peer, but not in list {peer}");
+                _logger?.Error(e, "Error while removing peer.");
             }
         }
 
@@ -548,7 +559,7 @@ namespace AElf.Network.Peers
                 List<NodeData> currentPeers;
                 lock (_peerListLock)
                 {
-                    currentPeers = _peers.Select(p => p.DistantNodeData).ToList();
+                    currentPeers = _peers.Select(p => p.DistantNodeData).ToList().Concat(_authentifyingPeer.Where(ap => !ap.IsDisposed).Select(ap => ap.DistantNodeData)).ToList();
                 }
 
                 foreach (var peer in peerList.NodeData.Where(nd => !currentPeers.Contains(nd)))
