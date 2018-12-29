@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
@@ -15,16 +16,18 @@ namespace AElf.Execution
 {
     public class ParallelTransactionExecutingService : IExecutingService
     {
+        protected bool TransactionFeeDisabled { get; set; } = false;
         private readonly IGrouper _grouper;
         private readonly IActorEnvironment _actorEnvironment;
-        private readonly IExecutingService _singlExecutingService;
+        private readonly IExecutingService _simpleExecutingService;
 
         public ParallelTransactionExecutingService(IActorEnvironment actorEnvironment, IGrouper grouper,
             ServicePack servicePack)
         {
             _actorEnvironment = actorEnvironment;
             _grouper = grouper;
-            _singlExecutingService = new SimpleExecutingService(servicePack.SmartContractService, servicePack.TransactionTraceManager, servicePack.StateManager, servicePack.ChainContextService);
+            _simpleExecutingService = new SimpleExecutingService(servicePack.SmartContractService,
+                servicePack.TransactionTraceManager, servicePack.StateManager, servicePack.ChainContextService);
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
@@ -41,8 +44,9 @@ namespace AElf.Execution
             if (transactionType == TransactionType.DposTransaction ||
                 transactionType == TransactionType.ContractDeployTransaction)
             {
-                results = await _singlExecutingService.ExecuteAsync(transactions, chainId, currentBlockTime, token, disambiguationHash,
-                    transactionType, skipFee);
+                results = await _simpleExecutingService.ExecuteAsync(transactions, chainId, currentBlockTime, token,
+                    disambiguationHash,
+                    transactionType, skipFee || TransactionFeeDisabled);
 
                 if (ActorConfig.Instance.IsCluster)
                 {
@@ -78,8 +82,8 @@ namespace AElf.Execution
                 }
 
                 var tasks = groups.Select(
-                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, currentBlockTime, disambiguationHash, 
-                        transactionType, skipFee), token)
+                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, currentBlockTime,
+                        disambiguationHash, transactionType, skipFee || TransactionFeeDisabled), token)
                 ).ToArray();
 
                 results = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
@@ -108,7 +112,8 @@ namespace AElf.Execution
             {
                 var tcs = new TaskCompletionSource<List<TransactionTrace>>();
                 _actorEnvironment.Requestor.Tell(
-                    new LocalExecuteTransactionsMessage(chainId, transactions, tcs, currentBlockTime, disambiguationHash,
+                    new LocalExecuteTransactionsMessage(chainId, transactions, tcs, currentBlockTime,
+                        disambiguationHash,
                         transactionType, skipFee));
                 var traces = await tcs.Task;
 

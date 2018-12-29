@@ -34,6 +34,10 @@ namespace AElf.Execution
                 services.AddTransient<IResourceUsageDetectionService,ResourceUsageDetectionService>();
 
             }
+            else if (NodeConfig.Instance.ExecutorType == "nofee")
+            {
+                services.AddTransient<IExecutingService, NoFeeSimpleExecutingService>();
+            }
             else
             {
                 // services were auto registered.
