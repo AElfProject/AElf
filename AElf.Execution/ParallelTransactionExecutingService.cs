@@ -44,8 +44,9 @@ namespace AElf.Execution
             if (transactionType == TransactionType.DposTransaction ||
                 transactionType == TransactionType.ContractDeployTransaction)
             {
-                results = await _simpleExecutingService.ExecuteAsync(transactions, chainId, currentBlockTime, token, disambiguationHash,
-                    transactionType, skipFee);
+                results = await _simpleExecutingService.ExecuteAsync(transactions, chainId, currentBlockTime, token,
+                    disambiguationHash,
+                    transactionType, skipFee || TransactionFeeDisabled);
             }
             else
             {
