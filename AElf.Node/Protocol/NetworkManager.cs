@@ -437,6 +437,17 @@ namespace AElf.Node.Protocol
             // Try and find a peer with an anouncement that corresponds to the next block we need.
             foreach (var p in _peers.Where(p => p.AnyStashed && p != oldSyncSource))
             {
+                if (p.KnownHeight > LocalHeight)
+                {
+                    CurrentSyncSource = p;
+                    CurrentSyncSource.SyncToHeight(LocalHeight + 1, p.KnownHeight);
+                    
+                    FireSyncStateChanged(true);
+                    _logger?.Debug($"Sync History with {p}.");
+                    
+                    return;
+                }
+                
                 if (p.SyncNextAnnouncement())
                 {
                     CurrentSyncSource = p;

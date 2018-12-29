@@ -367,15 +367,18 @@ namespace AElf.Synchronization.BlockSynchronization
                 MessageHub.Instance.Publish(new BlockAccepted(block));
 
                 _logger?.Trace($"Pushed {block}, current state {CurrentState}, current head {HeadBlock}, blockset head {_blockSet.CurrentHead.BlockHash}");
-                
-                if (HeadBlock.BlockHash != _blockSet.CurrentHead.BlockHash && HeadBlock.BlockHash != _blockSet.CurrentHead.Previous) 
+
+                if (HeadBlock.BlockHash != _blockSet.CurrentHead.BlockHash)
                 {
-                    // Here the blockset has switched fork -> attempt to switch the blockchain
-                    await TrySwitchFork();
-                }
-                else
-                {
-                    await HandleBlock(block);
+                    if (HeadBlock.BlockHash != _blockSet.CurrentHead.Previous)
+                    {
+                        // Here the blockset has switched fork -> attempt to switch the blockchain
+                        await TrySwitchFork();
+                    }
+                    else
+                    {
+                        await HandleBlock(block);
+                    }
                 }
             }
             catch (Exception e)
