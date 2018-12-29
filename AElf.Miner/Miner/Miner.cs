@@ -117,7 +117,8 @@ namespace AElf.Miner.Miner
                 if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
-                    _txFilter.Execute(sysTxs);
+                    var toRemove = _txFilter.Execute(sysTxs);
+                    // TODO: Remove useless consensus txs.
                     _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
                     traces = await ExecuteTransactions(sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
                     _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
@@ -174,9 +175,7 @@ namespace AElf.Miner.Miner
                 _logger?.Info($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
-                var chainContext =
-                    await _chainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
+                var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block);
                 if (blockValidationResult != BlockValidationResult.Success)
                 {
                     _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");

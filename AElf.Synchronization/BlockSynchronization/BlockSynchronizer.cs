@@ -408,7 +408,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
-            var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
+            var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block);
             _logger?.Info($"Block validation result {block} - {blockValidationResult}");
 
             if (blockValidationResult.IsSuccess())

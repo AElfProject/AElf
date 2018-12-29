@@ -118,7 +118,7 @@ namespace AElf.Miner.TxMemPool
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
 
-        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneUpdateAElfDPoSTxAndOnePublishInValueTxByMe = (list, logger) =>
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneNextRoundTxAndOnePublishInValueTxByMe = (list, logger) =>
         {
             var toRemove = new List<Transaction>();
             
@@ -146,6 +146,39 @@ namespace AElf.Miner.TxMemPool
             toRemove.AddRange(
                 list.FindAll(tx =>
                     tx.MethodName != ConsensusBehavior.NextRound.ToString() &&
+                    tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString()));
+
+            return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
+        };
+        
+        private readonly Func<List<Transaction>, ILogger, List<Transaction>> _oneNextTermTxAndOnePublishInValueTxByMe = (list, logger) =>
+        {
+            var toRemove = new List<Transaction>();
+            
+            var count = list.Count(tx =>
+                tx.MethodName == ConsensusBehavior.NextTerm.ToString() ||
+                tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
+            
+            if (count == 0)
+            {
+                logger?.Warn("No NextTerm tx or BroadcastInValue tx in pool.");
+                return toRemove;
+            }
+            
+            toRemove.AddRange(list.FindAll(tx => _latestTxs.All(id => id != tx.GetHash().ToHex())));
+
+            _latestTxs.Clear();
+            Console.WriteLine("Cleared latest txs.");
+            
+            var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString())?.RefBlockNumber;
+            if (correctRefBlockNumber.HasValue)
+            {
+                toRemove.RemoveAll(tx => tx.RefBlockNumber == correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
+            }
+            
+            toRemove.AddRange(
+                list.FindAll(tx =>
+                    tx.MethodName != ConsensusBehavior.NextTerm.ToString() &&
                     tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString()));
 
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
@@ -180,7 +213,11 @@ namespace AElf.Miner.TxMemPool
                             break;
                         case ConsensusBehavior.NextRound:
                             _txFilter = null;
-                            _txFilter += _oneUpdateAElfDPoSTxAndOnePublishInValueTxByMe;
+                            _txFilter += _oneNextRoundTxAndOnePublishInValueTxByMe;
+                            break;
+                        case ConsensusBehavior.NextTerm:
+                            _txFilter = null;
+                            _txFilter += _oneNextTermTxAndOnePublishInValueTxByMe;
                             break;
                     }
                 }
@@ -192,7 +229,7 @@ namespace AElf.Miner.TxMemPool
             _logger = LogManager.GetLogger(nameof(TransactionFilter));
         }
 
-        public void Execute(List<Transaction> txs)
+        public List<Transaction> Execute(List<Transaction> txs)
         {
             var filterList = _txFilter.GetInvocationList();
             foreach (var @delegate in filterList)
@@ -205,6 +242,8 @@ namespace AElf.Miner.TxMemPool
                     {
                         txs.Remove(transaction);
                     }
+
+                    return toRemove;
                 }
                 catch (Exception e)
                 {
@@ -212,6 +251,8 @@ namespace AElf.Miner.TxMemPool
                     throw;
                 }
             }
+
+            return new List<Transaction>();
         }
 
         private void PrintTxList(IEnumerable<Transaction> txs)

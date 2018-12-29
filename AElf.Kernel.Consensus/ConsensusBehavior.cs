@@ -2,7 +2,6 @@
 
 namespace AElf.Kernel.Consensus
 {
-    // ReSharper disable InconsistentNaming
     public enum ConsensusBehavior
     {
         NoOperationPerformed = 0,

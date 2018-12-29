@@ -10,7 +10,6 @@ using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
-using AElf.Configuration.Config.Consensus;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
