@@ -341,6 +341,10 @@ namespace AElf.Synchronization.BlockSynchronization
                         await HandleBlock(block);
                     }
                 }
+                else
+                {
+                    MessageHub.Instance.Publish(StateEvent.InvalidBlock);
+                }
             }
             catch (Exception e)
             {
