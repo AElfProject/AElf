@@ -91,16 +91,19 @@ namespace AElf.Sdk.CSharp.Tests
             DataProvider1.StateManager = StateManager;
         }
 
-        public async Task DeployContractAsync(byte[] code, Address address)
+        public async Task<Address> DeployContractAsync(byte[] code)
         {
+            const ulong serialNumber = 10ul;
             var reg = new SmartContractRegistration
             {
                 Category = 1,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.FromRawBytes(code)
+                ContractHash = Hash.FromRawBytes(code),
+                SerialNumber = serialNumber
             };
 
-            await SmartContractService.DeployContractAsync(ChainId1, address, reg, false);
+            await SmartContractService.DeploySystemContractAsync(ChainId1, reg);
+            return Address.BuildContractAddress(ChainId1, serialNumber);
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Address address)
