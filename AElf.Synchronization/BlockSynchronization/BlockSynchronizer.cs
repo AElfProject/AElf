@@ -292,7 +292,10 @@ namespace AElf.Synchronization.BlockSynchronization
                     return;
 
                 // execute the block with the lowest index
-                next = _blockCache.OrderBy(b => b.Index).FirstOrDefault();
+                next = _blockCache.Where(b => b.Index <= HeadBlock.Index+1).OrderBy(b => b.Index).FirstOrDefault();
+
+                if (next == null)
+                    return;
                 
                 _blockCache.Remove(next);
 
@@ -380,6 +383,8 @@ namespace AElf.Synchronization.BlockSynchronization
                         await HandleBlock(block);
                     }
                 }
+                
+                MessageHub.Instance.Publish(StateEvent.InvalidBlock);
             }
             catch (Exception e)
             {
