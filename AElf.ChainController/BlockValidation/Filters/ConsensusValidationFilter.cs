@@ -86,7 +86,8 @@ namespace AElf.ChainController
             }
             finally
             {
-                _smartContractService.PutExecutiveAsync(ConsensusContractAddress, executive).Wait();
+                _smartContractService.PutExecutiveAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
+                    ConsensusContractAddress, executive).Wait();
             }
             
             //If failed to execute the transaction of checking time slot
