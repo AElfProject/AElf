@@ -297,7 +297,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 if (next.Index > HeadBlock.Index + 1)
                 {
                     _logger.Warn($"Future block {next}, current height {HeadBlock.Index}, don't handle it.");
-                    MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
                     return;
                 }
 
