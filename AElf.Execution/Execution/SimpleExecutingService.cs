@@ -43,8 +43,7 @@ namespace AElf.Execution.Execution
             foreach (var transaction in transactions)
             {
                 var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, currentBlockTime,
-                    cancellationToken,
-                    skipFee);
+                    cancellationToken, skipFee);
                 if (!trace.IsSuccessful())
                 {
                     trace.SurfaceUpError();
@@ -103,7 +102,7 @@ namespace AElf.Execution.Execution
             var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
 
             #region Charge Fees
-Console.WriteLine($"TransactionFeeDisabled{TransactionFeeDisabled}" );
+
             if (depth == 0 && !skipFee && !TransactionFeeDisabled)
             {
                 // Fee is only charged to the main transaction
