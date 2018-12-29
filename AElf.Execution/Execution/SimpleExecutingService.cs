@@ -16,31 +16,7 @@ namespace AElf.Execution.Execution
 {
     public class SimpleExecutingService : IExecutingService
     {
-        private static int _transactionFeeDisabled = -1; // -1 not set, 0 not disabled, 1 disabled
-
-        private static bool TransactionFeeDisabled
-        {
-            get
-            {
-#if DEBUG
-                if (_transactionFeeDisabled == -1)
-                {
-                    if (bool.TryParse(Environment.GetEnvironmentVariable("AELF_DISABLE_FEE"), out var disabled))
-                    {
-                        _transactionFeeDisabled = disabled ? 1 : 0;
-                    }
-                    else
-                    {
-                        _transactionFeeDisabled = 0;
-                    }
-                }
-
-                return _transactionFeeDisabled == 1;
-#else
-                return false;
-#endif
-            }
-        }
+        protected bool TransactionFeeDisabled { get; set; } = false;
 
         private ISmartContractService _smartContractService;
         private ITransactionTraceManager _transactionTraceManager;
@@ -127,8 +103,8 @@ namespace AElf.Execution.Execution
             var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
 
             #region Charge Fees
-
-            if (depth == 0 && !skipFee && !UnitTestDetector.IsInUnitTest && !TransactionFeeDisabled)
+Console.WriteLine($"TransactionFeeDisabled{TransactionFeeDisabled}" );
+            if (depth == 0 && !skipFee && !TransactionFeeDisabled)
             {
                 // Fee is only charged to the main transaction
                 var feeAmount = executive.GetFee(transaction.MethodName);

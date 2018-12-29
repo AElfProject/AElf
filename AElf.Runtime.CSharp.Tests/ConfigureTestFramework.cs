@@ -1,6 +1,7 @@
 ﻿using AElf.ChainController;
 using AElf.Common;
 using AElf.Database;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Autofac;
@@ -27,7 +28,7 @@ namespace AElf.Runtime.CSharp.Tests
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
             var assembly4 = typeof(BlockValidationService).Assembly;
             builder.RegisterAssemblyTypes(assembly4).AsImplementedInterfaces();
-            var assembly5 = typeof(Execution.ParallelTransactionExecutingService).Assembly;
+            var assembly5 = typeof(Execution.NoFeeParallelTransactionExecutingService).Assembly;
             builder.RegisterAssemblyTypes(assembly5).AsImplementedInterfaces();
             var assembly6 = typeof(AElf.Node.Node).Assembly;
             builder.RegisterAssemblyTypes(assembly6).AsImplementedInterfaces();
