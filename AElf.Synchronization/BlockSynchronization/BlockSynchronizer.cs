@@ -292,11 +292,14 @@ namespace AElf.Synchronization.BlockSynchronization
                     return;
 
                 // execute the block with the lowest index
-                next = _blockCache.Where(b => b.Index <= HeadBlock.Index+1).OrderBy(b => b.Index).FirstOrDefault();
+                next = _blockCache.OrderBy(b => b.Index).FirstOrDefault();
 
-                if (next == null)
+                if (next.Index > HeadBlock.Index + 1)
+                {
+                    _logger.Warn($"Future block {next}, current height {HeadBlock.Index}, don't handle it.");
                     return;
-                
+                }
+
                 _blockCache.Remove(next);
 
                 _currentBlock = next;
