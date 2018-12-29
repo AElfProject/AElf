@@ -421,8 +421,12 @@ namespace AElf.Synchronization.BlockSynchronization
             var executionResult = await _blockExecutor.ExecuteBlock(block);
 
             _logger?.Trace($"Execution result of block {block} - {executionResult}");
-
-            if (executionResult.CanExecuteAgain())
+            
+            if (executionResult == BlockExecutionResult.AlreadyAppended)
+            {
+                // good to go
+            }
+            else if (executionResult.CanExecuteAgain())
             {
                 // todo side chain logic
                 _blockSet.RemoveInvalidBlock(block.GetHash());

@@ -287,6 +287,7 @@ namespace AElf.Synchronization.BlockSynchronization
             try
             {
                 _blocks.RemoveAll(b => b != CurrentLib);
+                CurrentHead = CurrentLib;
             }
             finally
             {

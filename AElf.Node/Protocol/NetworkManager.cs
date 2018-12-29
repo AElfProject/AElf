@@ -546,11 +546,11 @@ namespace AElf.Node.Protocol
                     {
                         _peers.Remove(peer.Peer);
 
-                        if (_peers.Count <= 0)
-                        {
-                            OnMinorityForkDetected();
-                            return;
-                        }
+//                        if (_peers.Count <= 0)
+//                        {
+//                            OnMinorityForkDetected();
+//                            return;
+//                        }
 
                         lock (_syncLock)
                         {
@@ -562,7 +562,7 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger?.Error(e);
             }
         }
 
