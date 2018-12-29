@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -34,12 +36,18 @@ namespace AElf.ChainController
             {
                 // TODO: Centralize this function in Hash class
                 // SmartContractZero address can be derived from ChainId
+
+                var zeroRegistration = smartContractRegistration.Find(s => s.SerialNumber == 0);
+                await _smartContractService.DeployZeroContractAsync(chainId, zeroRegistration);
+                
                 foreach (var reg in smartContractRegistration)
                 {
-                    var contractAddress = ContractHelpers.GetSystemContractAddress(chainId, reg.SerialNumber);
-                    await _smartContractService.DeployContractAsync(chainId, contractAddress, reg, true);
+                    if (reg.SerialNumber != 0)
+                    {
+                        await _smartContractService.DeploySystemContractAsync(chainId, reg);
+                    }
                 }
-                
+
                 var builder = new GenesisBlockBuilder();
                 builder.Build(chainId);
 

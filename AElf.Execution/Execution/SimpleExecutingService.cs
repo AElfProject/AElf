@@ -158,7 +158,7 @@ namespace AElf.Execution.Execution
             }
             finally
             {
-                await _smartContractService.PutExecutiveAsync(transaction.To, executive);
+                await _smartContractService.PutExecutiveAsync(chainId, transaction.To, executive);
             }
 
             return trace;

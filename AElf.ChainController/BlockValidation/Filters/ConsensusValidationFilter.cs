@@ -103,7 +103,7 @@ namespace AElf.ChainController
             }
             finally
             {
-                _smartContractService.PutExecutiveAsync(contractAccountHash, executive).Wait();
+                _smartContractService.PutExecutiveAsync(context.ChainId, contractAccountHash, executive).Wait();
             }
             
             //If failed to execute the transaction of checking time slot
