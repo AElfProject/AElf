@@ -26,6 +26,8 @@ namespace AElf.Contracts.Consensus
             BlockchainStartTimestamp = new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
             VotesCountField = new UInt64Field(GlobalConfig.AElfVotesCountString),
             TicketsCountField = new UInt64Field(GlobalConfig.AElfTicketsCountString),
+            // TODO: To implement.
+            TwoThirdsMinersMinedCurrentTermField = new BoolField(GlobalConfig.AElfTwoThirdsMinerMinedString),
 
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
             MinersMap = new Map<UInt64Value, Miners>(GlobalConfig.AElfDPoSMinersMapString),

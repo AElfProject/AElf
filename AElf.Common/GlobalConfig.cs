@@ -45,6 +45,7 @@ namespace AElf.Common
 
         public const ulong TotalSupply = 100_000_000_000;
         public const ulong BalanceForInitialization = 100_000_000;
+        public const int ForkDetectionRoundNumber = 3;
         public const ulong LockTokenForElection = 100_000;
         public const ulong DaysEachTerm = 7;
         public const ulong MaxMissedTimeSlots = 1024;
@@ -66,6 +67,7 @@ namespace AElf.Common
         public const string AElfDPoSAliasesLookupMapString = "__AElfDPoSAliasesLookupMapString__";
         public const string AElfVotesCountString = "__AElfVotesCountString__";
         public const string AElfTicketsCountString = "__AElfTicketsCountString__";
+        public const string AElfTwoThirdsMinerMinedString = "__AElfTwoThirdsMinerMinedString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
         public const string AElfDPoSAgeToRoundNumberMapString = "__AElfDPoSAgeToRoundNumberMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";

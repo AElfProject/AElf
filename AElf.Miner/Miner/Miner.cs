@@ -191,7 +191,7 @@ namespace AElf.Miner.Miner
                 
                 await _txHub.OnNewBlock((Block)block);
                 
-                MessageHub.Instance.Publish(UpdateConsensus.Update); 
+                MessageHub.Instance.Publish(UpdateConsensus.UpdateAfterMining); 
                 
                 stopwatch.Stop();
                 

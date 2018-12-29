@@ -383,8 +383,10 @@ namespace AElf.Kernel.Consensus
                     result += "In Value:\t" + minerInfo.Value.InValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() +
                               "\n";
                     result += "Mined Blocks:\t" + minerInfo.Value.ProducedBlocks + "\n";
+                    // TODO: `IsForked` Not implemented yet, maybe useless.
                     result += "Is Forked:\t" + minerInfo.Value.IsForked + "\n";
                     result += "Missed Slots:\t" + minerInfo.Value.MissedTimeSlots + "\n";
+                    result += "Latest Missed:\t" + minerInfo.Value.LatestMissedTimeSlots + "\n";
                 }
 
                 return result + $"\nEBP TimeSlot of current round: {roundInfo.GetEBPMiningTime(MiningInterval.Value).ToLocalTime():u}\n";
