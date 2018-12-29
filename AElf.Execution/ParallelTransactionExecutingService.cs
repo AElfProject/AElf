@@ -19,7 +19,7 @@ namespace AElf.Execution
         protected bool TransactionFeeDisabled { get; set; } = false;
         private readonly IGrouper _grouper;
         private readonly IActorEnvironment _actorEnvironment;
-        private IExecutingService _simpleExecutingService { get; set; }
+        private readonly IExecutingService _simpleExecutingService;
 
         public ParallelTransactionExecutingService(IActorEnvironment actorEnvironment, IGrouper grouper,
             ServicePack servicePack)
