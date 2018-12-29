@@ -14,9 +14,34 @@ using Google.Protobuf;
 
 namespace AElf.Execution.Execution
 {
-
     public class SimpleExecutingService : IExecutingService
     {
+        private static int _transactionFeeDisabled = -1; // -1 not set, 0 not disabled, 1 disabled
+
+        private static bool TransactionFeeDisabled
+        {
+            get
+            {
+#if DEBUG
+                if (_transactionFeeDisabled == -1)
+                {
+                    if (bool.TryParse(Environment.GetEnvironmentVariable("AELF_DISABLE_FEE"), out var disabled))
+                    {
+                        _transactionFeeDisabled = disabled ? 1 : 0;
+                    }
+                    else
+                    {
+                        _transactionFeeDisabled = 0;
+                    }
+                }
+
+                return _transactionFeeDisabled == 1;
+#else
+                return false;
+#endif
+            }
+        }
+
         private ISmartContractService _smartContractService;
         private ITransactionTraceManager _transactionTraceManager;
         private IChainContextService _chainContextService;
@@ -34,15 +59,15 @@ namespace AElf.Execution.Execution
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
             DateTime currentBlockTime, CancellationToken cancellationToken, Hash disambiguationHash = null,
-            TransactionType transactionType = TransactionType.ContractTransaction,
-            bool skipFee = false)
+            TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee = false)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<StatePath, StateCache>();
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, currentBlockTime, cancellationToken,
+                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, currentBlockTime,
+                    cancellationToken,
                     skipFee);
                 if (!trace.IsSuccessful())
                 {
@@ -103,7 +128,7 @@ namespace AElf.Execution.Execution
 
             #region Charge Fees
 
-            if (depth == 0 && !skipFee && !UnitTestDetector.IsInUnitTest)
+            if (depth == 0 && !skipFee && !UnitTestDetector.IsInUnitTest && !TransactionFeeDisabled)
             {
                 // Fee is only charged to the main transaction
                 var feeAmount = executive.GetFee(transaction.MethodName);
@@ -175,7 +200,8 @@ namespace AElf.Execution.Execution
                 MethodName = "ChargeTransactionFees",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(feeAmount))
             };
-            return await ExecuteOneAsync(1, chargeFeesTxn, chainId, chainContext, stateCache, currentBlockTime, cancellationToken);
+            return await ExecuteOneAsync(1, chargeFeesTxn, chainId, chainContext, stateCache, currentBlockTime,
+                cancellationToken);
         }
     }
 }
