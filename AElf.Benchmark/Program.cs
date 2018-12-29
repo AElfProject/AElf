@@ -104,11 +104,11 @@ namespace AElf.Benchmark
                     builder.RegisterType<Grouper>().As<IGrouper>();
                     builder.RegisterType<ServicePack>().As<ServicePack>().PropertiesAutowired();
                     builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
-                    builder.RegisterType<ParallelTransactionExecutingService>().As<IExecutingService>();
+                    builder.RegisterType<NoFeeParallelTransactionExecutingService>().As<IExecutingService>();
                 }
                 else
                 {
-                    builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
+                    builder.RegisterType<NoFeeSimpleExecutingService>().As<IExecutingService>();
                 }
                 
                 var container = builder.Build();

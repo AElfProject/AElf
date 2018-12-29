@@ -89,7 +89,7 @@ namespace AElf.Miner.Tests
             _smartContractRunnerContainer.AddRunner(0, runner);*/
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerContainer.AddRunner(0, runner);
-            _concurrencyExecutingService = new SimpleExecutingService(
+            _concurrencyExecutingService = new NoFeeSimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager,
                     _functionMetadataService, _chainService), _transactionTraceManager, _stateManager,
                 new ChainContextService(_chainService));
