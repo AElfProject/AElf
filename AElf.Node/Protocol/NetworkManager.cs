@@ -519,24 +519,43 @@ namespace AElf.Node.Protocol
         {
             try
             {
-                if (eventArgs is PeerEventArgs peer && peer.Peer != null && peer.Actiontype == PeerEventType.Added)
+                if (eventArgs is PeerEventArgs peer && peer.Peer != null)
                 {
-                    int peerHeight = peer.Peer.KnownHeight;
-                
-                    _peers.Add(peer.Peer);
-
-                    peer.Peer.MessageReceived += HandleNewMessage;
-                    peer.Peer.PeerDisconnected += ProcessClientDisconnection;
-
-                    // Sync if needed
-                    lock (_syncLock)
+                    if (peer.Actiontype == PeerEventType.Added)
                     {
-                        if (CurrentSyncSource == null && LocalHeight < peerHeight)
+                        int peerHeight = peer.Peer.KnownHeight;
+                
+                        _peers.Add(peer.Peer);
+
+                        peer.Peer.MessageReceived += HandleNewMessage;
+                        peer.Peer.PeerDisconnected += ProcessClientDisconnection;
+
+                        // Sync if needed
+                        lock (_syncLock)
                         {
-                            CurrentSyncSource = peer.Peer;
-                            CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
+                            if (CurrentSyncSource == null && LocalHeight < peerHeight)
+                            {
+                                CurrentSyncSource = peer.Peer;
+                                CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
                         
-                            FireSyncStateChanged(true);
+                                FireSyncStateChanged(true);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _peers.Remove(peer.Peer);
+
+                        if (_peers.Count <= 0)
+                        {
+                            OnMinorityForkDetected();
+                            return;
+                        }
+
+                        lock (_syncLock)
+                        {
+                            _logger?.Debug($"Peer {peer.Peer} has been removed, trying to find another peer to sync.");
+                            SyncNext();
                         }
                     }
                 }
