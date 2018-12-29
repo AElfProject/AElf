@@ -14,9 +14,10 @@ using Google.Protobuf;
 
 namespace AElf.Execution.Execution
 {
-
     public class SimpleExecutingService : IExecutingService
     {
+        protected bool TransactionFeeDisabled { get; set; } = false;
+
         private ISmartContractService _smartContractService;
         private ITransactionTraceManager _transactionTraceManager;
         private IChainContextService _chainContextService;
@@ -34,15 +35,15 @@ namespace AElf.Execution.Execution
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
             DateTime currentBlockTime, CancellationToken cancellationToken, Hash disambiguationHash = null,
-            TransactionType transactionType = TransactionType.ContractTransaction,
-            bool skipFee = false)
+            TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee = false)
         {
             var chainContext = await _chainContextService.GetChainContextAsync(chainId);
             var stateCache = new Dictionary<StatePath, StateCache>();
             var traces = new List<TransactionTrace>();
             foreach (var transaction in transactions)
             {
-                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, currentBlockTime, cancellationToken,
+                var trace = await ExecuteOneAsync(0, transaction, chainId, chainContext, stateCache, currentBlockTime,
+                    cancellationToken,
                     skipFee);
                 if (!trace.IsSuccessful())
                 {
@@ -102,8 +103,8 @@ namespace AElf.Execution.Execution
             var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
 
             #region Charge Fees
-
-            if (depth == 0 && !skipFee && !UnitTestDetector.IsInUnitTest)
+Console.WriteLine($"TransactionFeeDisabled{TransactionFeeDisabled}" );
+            if (depth == 0 && !skipFee && !TransactionFeeDisabled)
             {
                 // Fee is only charged to the main transaction
                 var feeAmount = executive.GetFee(transaction.MethodName);
@@ -175,7 +176,8 @@ namespace AElf.Execution.Execution
                 MethodName = "ChargeTransactionFees",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(feeAmount))
             };
-            return await ExecuteOneAsync(1, chargeFeesTxn, chainId, chainContext, stateCache, currentBlockTime, cancellationToken);
+            return await ExecuteOneAsync(1, chargeFeesTxn, chainId, chainContext, stateCache, currentBlockTime,
+                cancellationToken);
         }
     }
 }
