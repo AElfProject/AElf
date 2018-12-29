@@ -7,13 +7,13 @@ using Autofac;
 
 namespace AElf.Execution
 {
-    public class ExecutionAElfModule:IAElfModule
+    public class ExecutionAElfModule : IAElfModule
     {
         public void Init(ContainerBuilder builder)
         {
             var assembly = typeof(ParallelTransactionExecutingService).Assembly;
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
-            
+
             if (NodeConfig.Instance.ExecutorType == "akka")
             {
                 builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
@@ -21,6 +21,10 @@ namespace AElf.Execution
                 builder.RegisterType<ServicePack>().PropertiesAutowired();
                 builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
                 builder.RegisterType<ParallelTransactionExecutingService>().As<IExecutingService>();
+            }
+            else if (NodeConfig.Instance.ExecutorType == "nofee")
+            {
+                builder.RegisterType<NoFeeSimpleExecutingService>().As<IExecutingService>();
             }
             else
             {
