@@ -55,6 +55,13 @@ namespace AElf.Sdk.CSharp
                 registration, false);
             task.Wait();
         }
+        
+        public static async Task InitContractAsync(Address address, SmartContractRegistration registration)
+        {
+            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
+            await _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
+                true);
+        }
 
         public static async Task DeployContractAsync(Address address, SmartContractRegistration registration)
         {
@@ -318,7 +325,7 @@ namespace AElf.Sdk.CSharp
                 }
                 finally
                 {
-                    await svc.PutExecutiveAsync(contractAddress, executive);
+                    await svc.PutExecutiveAsync(chainId, contractAddress, executive);
                 }
             }).Unwrap().Wait();
 

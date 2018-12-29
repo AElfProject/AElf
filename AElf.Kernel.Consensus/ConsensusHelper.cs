@@ -312,7 +312,7 @@ namespace AElf.Kernel.Consensus
         public void SyncMiningInterval()
         {
             ConsensusConfig.Instance.DPoSMiningInterval = MiningInterval.Value;
-            _logger?.Info($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
+            _logger?.Info($"Set AElf DPoS mining interval to: {ConsensusConfig.Instance.DPoSMiningInterval} ms.");
         }
 
         public void LogDPoSInformation(ulong height)

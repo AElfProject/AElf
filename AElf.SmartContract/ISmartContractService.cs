@@ -10,7 +10,7 @@ namespace AElf.SmartContract
     public interface ISmartContractService
     {
         Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId);
-        Task PutExecutiveAsync(Address account, IExecutive executive);
+        Task PutExecutiveAsync(Hash chainId, Address account, IExecutive executive);
         /// <summary>
         /// Deploys a contract to the specified chain and account.
         /// </summary>
@@ -22,16 +22,20 @@ namespace AElf.SmartContract
         Task DeployContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
 
         Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
-        
-        Task<IMessage> GetAbiAsync(Address account);
-        
+
+        Task<IMessage> GetAbiAsync(Hash chainId, Address account);
+
         /// <summary>
         /// return invoking parameters in one tx
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<IEnumerable<string>> GetInvokingParams(Transaction transaction);
+        Task<IEnumerable<string>> GetInvokingParams(Hash chainId, Transaction transaction);
 
-        void ClearPool(Address address);
+        Task<SmartContractRegistration> GetContractByAddressAsync(Hash chainId, Address address);
+
+        Task DeployZeroContractAsync(Hash chainId, SmartContractRegistration registration);
+
+        Task<Address> DeploySystemContractAsync(Hash chainId, SmartContractRegistration registration);
     }
 }

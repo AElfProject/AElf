@@ -64,10 +64,7 @@ namespace AElf.Contracts.Genesis
         {
             get
             {
-                if (_value == 0)
-                {
-                    _value = GetValue();
-                }
+                _value = GetValue();
 
                 if (GlobalConfig.BasicContractZeroSerialNumber > _value)
                 {
@@ -106,7 +103,7 @@ namespace AElf.Contracts.Genesis
         }
         
         [View]
-        public string GetContractInfoFor(Address contractAddress)
+        public string GetContractInfo(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
             if (info == null)
@@ -115,6 +112,36 @@ namespace AElf.Contracts.Genesis
             }
 
             return info.ToString();
+        }
+        
+        public async Task<byte[]> InitSmartContract(ulong serialNumber, int category, byte[] code)
+        {
+            Api.Assert(Api.GetCurrentHeight() < 1, "The current height should be less than 1.");
+            
+            var contractAddress = Address.BuildContractAddress(Api.ChainId.DumpByteArray(), serialNumber);
+            
+            var contractHash = Hash.FromRawBytes(code);
+
+            var info = new ContractInfo
+            {
+                SerialNumber = serialNumber,
+                Category = category,
+                ContractHash = contractHash
+            };
+            _contractInfos[contractAddress] = info;
+            
+            var reg = new SmartContractRegistration
+            {
+                Category = category,
+                ContractBytes = ByteString.CopyFrom(code),
+                ContractHash = contractHash,
+                SerialNumber = serialNumber
+            };
+            
+            await Api.InitContractAsync(contractAddress, reg);
+
+            Console.WriteLine("InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
+            return contractAddress.DumpByteArray();
         }
 
         public async Task<byte[]> DeploySmartContract(int category, byte[] code)
@@ -175,7 +202,8 @@ namespace AElf.Contracts.Genesis
             {
                 Category = existContract.Category,
                 ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash
+                ContractHash = contractHash,
+                SerialNumber = existContract.SerialNumber
             };
 
             await Api.UpdateContractAsync(contractAddress, reg);
@@ -202,6 +230,12 @@ namespace AElf.Contracts.Genesis
         {
             var info = _contractInfos[contractAddress];
             return info?.Owner;
+        }
+        
+        public Hash GetContractHash(Address contractAddress)
+        {
+            var info = _contractInfos[contractAddress];
+            return info?.ContractHash;
         }
     }
 }
