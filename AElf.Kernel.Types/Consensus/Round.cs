@@ -98,5 +98,19 @@ namespace AElf.Kernel
             return RealTimeMinersInfo.Values.Select(mi => mi.ProducedBlocks)
                 .Aggregate<ulong, ulong>(0, (current, @ulong) => current + @ulong);
         }
+
+        public bool CheckWhetherMostMinersMissedTimeSlots()
+        {
+            var missedMinersCount = 0;
+            foreach (var minerInRound in RealTimeMinersInfo)
+            {
+                if (minerInRound.Value.LatestMissedTimeSlots == GlobalConfig.ForkDetectionRoundNumber)
+                {
+                    missedMinersCount++;
+                }
+            }
+
+            return missedMinersCount >= GlobalConfig.BlockProducerNumber - 1;
+        }
     }
 }

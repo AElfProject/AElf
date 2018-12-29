@@ -176,13 +176,13 @@ namespace AElf.Synchronization.BlockExecution
 
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
-                var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
-                {
-                    // Todo: this can happen? Why not rollback?
-                    res = BlockExecutionResult.AlreadyAppended;
-                    return res;
-                }
+//                var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+//                if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
+//                {
+//                    // Todo: this can happen? Why not rollback?
+//                    res = BlockExecutionResult.AlreadyAppended;
+//                    return res;
+//                }
 
                 if ((result = UpdateWorldState(block, txnRes)).IsFailed())
                 {

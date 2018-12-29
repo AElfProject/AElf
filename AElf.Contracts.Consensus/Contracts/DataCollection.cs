@@ -94,5 +94,10 @@ namespace AElf.Contracts.Consensus.Contracts
         /// Keep tracking of the count of tickets.
         /// </summary>
         public UInt64Field TicketsCountField;
+
+        /// <summary>
+        /// Whether 2/3 of miners mined in current term.
+        /// </summary>
+        public BoolField TwoThirdsMinersMinedCurrentTermField;
     }
 }

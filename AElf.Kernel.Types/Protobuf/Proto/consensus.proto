@@ -97,6 +97,8 @@ message MinerInRound {
     uint64 RoundNumber = 10;
     string PublicKey = 11;
     uint64 PackagedTxsCount = 12;
+    uint64 LatestMissedTimeSlots = 13;
+    bool IsMissed = 14;
 }
 
 message CandidateInHistory {

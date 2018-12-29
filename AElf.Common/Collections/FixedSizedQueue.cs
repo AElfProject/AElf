@@ -43,5 +43,13 @@ namespace AElf.Common.Collections
         {
             return q.Contains(element, comparer);
         }
+
+        public void Clear()
+        {
+            while (!q.IsEmpty) 
+            {
+                q.TryDequeue(out _);
+            }
+        }
     }
 }

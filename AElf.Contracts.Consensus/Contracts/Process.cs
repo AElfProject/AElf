@@ -141,6 +141,45 @@ namespace AElf.Contracts.Consensus.Contracts
                 }
 
                 forwarding.NextRoundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
+
+                if (CurrentRoundNumber > GlobalConfig.ForkDetectionRoundNumber)
+                {
+                    foreach (var minerInRound in forwarding.NextRoundInfo.RealTimeMinersInfo)
+                    {
+                        minerInRound.Value.LatestMissedTimeSlots = 0;
+                    }
+
+                    var rounds = new List<Round>();
+                    for (var i = CurrentRoundNumber - GlobalConfig.ForkDetectionRoundNumber + 1;
+                        i <= CurrentRoundNumber;
+                        i++)
+                    {
+                        Api.Assert(
+                            _collection.RoundsMap.TryGet(i.ToUInt64Value(), out var round),
+                            GlobalConfig.RoundNumberNotFound);
+                        rounds.Add(round);
+                    }
+
+                    foreach (var round in rounds)
+                    {
+                        foreach (var minerInRound in round.RealTimeMinersInfo)
+                        {
+                            if (minerInRound.Value.IsMissed &&
+                                forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
+                            {
+                                forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].LatestMissedTimeSlots +=
+                                    1;
+                            }
+
+                            if (!minerInRound.Value.IsMissed &&
+                                forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
+                            {
+                                forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].LatestMissedTimeSlots = 0;
+                            }
+                        }
+                    }
+                }
+
                 _collection.RoundsMap.SetValue(forwarding.NextRoundInfo.RoundNumber.ToUInt64Value(),
                     forwarding.NextRoundInfo);
                 _collection.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
@@ -235,6 +274,7 @@ namespace AElf.Contracts.Consensus.Contracts
                     roundInfo.RealTimeMinersInfo[suppliedMiner.Key].Signature = suppliedMiner.Value.Signature;
 
                     roundInfo.RealTimeMinersInfo[suppliedMiner.Key].MissedTimeSlots += 1;
+                    roundInfo.RealTimeMinersInfo[suppliedMiner.Key].IsMissed = true;
                 }
             }
 
