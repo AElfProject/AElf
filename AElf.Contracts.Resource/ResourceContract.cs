@@ -34,6 +34,12 @@ namespace AElf.Contracts.Resource
                 resourceType, ignoreCase: true);
         }
 
+        internal static StringValue GetConverterKey(string resourceType)
+        {
+            AssertCorrectResourceType(resourceType);
+            return new StringValue() {Value = resourceType.ToUpper()};
+        }
+
         #endregion static 
 
         #region Fields
@@ -87,8 +93,7 @@ namespace AElf.Contracts.Resource
         [View]
         public string GetConverter(string resourceType)
         {
-            AssertCorrectResourceType(resourceType);
-            return Converters[new StringValue() {Value = resourceType}].ToString();
+            return Converters[GetConverterKey(resourceType)].ToString();
         }
 
         /// <summary>
@@ -125,9 +130,7 @@ namespace AElf.Contracts.Resource
         [View]
         public ulong GetExchangeBalance(string resourceType)
         {
-            AssertCorrectResourceType(resourceType);
-            var rt = new StringValue() {Value = resourceType};
-            return Converters[rt].ResBalance;
+            return Converters[GetConverterKey(resourceType)].ResBalance;
         }
 
         /// <summary>
@@ -138,9 +141,7 @@ namespace AElf.Contracts.Resource
         [View]
         public ulong GetElfBalance(string resourceType)
         {
-            AssertCorrectResourceType(resourceType);
-            var rt = new StringValue() {Value = resourceType};
-            return Converters[rt].ElfBalance;
+            return Converters[GetConverterKey(resourceType)].ElfBalance;
         }
 
         #endregion Views
@@ -163,7 +164,7 @@ namespace AElf.Contracts.Resource
             ResourceControllerAddress.SetValue(resourceControllerAddress);
             foreach (var resourceType in ResourceTypes)
             {
-                var rt = new StringValue() {Value = resourceType};
+                var rt = GetConverterKey(resourceType);
                 Converters[rt] = new Converter()
                 {
                     ElfBalance = 1000000,
@@ -187,7 +188,7 @@ namespace AElf.Contracts.Resource
             Api.Assert(ResourceControllerAddress.GetValue() == Api.GetFromAddress(),
                 "Only resource controller is allowed to perform this action.");
             AssertCorrectResourceType(resourceType);
-            var rt = new StringValue() {Value = resourceType};
+            var rt = GetConverterKey(resourceType);
             var cvt = Converters[rt];
             cvt.ResBalance = cvt.ResBalance.Add(delta);
             Converters[rt] = cvt;
