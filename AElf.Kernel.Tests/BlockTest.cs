@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -81,6 +82,30 @@ namespace AElf.Kernel.Tests
 //            await _blockManager.AddBlockAsync(block);
 //            var b = await _blockManager.GetBlockAsync(block.GetHash());
             Assert.Equal(b, block);
+        }
+
+        [Fact]
+        public async Task Test()
+        {
+            var chain = await CreateChain();
+
+            var blocks = new List<Block>();
+            var preBlockHash = chain.GenesisBlockHash;
+            for (ulong i = 2; i < 610; i++)
+            {
+                var newBlock = CreateBlock(preBlockHash, chain.Id, i);
+                blocks.Add(newBlock);
+                preBlockHash = newBlock.GetHash();
+            }
+
+            var blockchain = _chainService.GetBlockChain(chain.Id);
+
+            await blockchain.AddBlocksAsync(blocks);
+
+            var block389 = await blockchain.GetBlockByHashAsync(blocks.First(b => b.Index == 389).GetHash());
+            var block605 = await blockchain.GetBlockByHashAsync(blocks.First(b => b.Index == 605).GetHash());
+
+
         }
         
         private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)

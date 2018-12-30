@@ -47,24 +47,6 @@ namespace AElf.Execution
                 results = await _simpleExecutingService.ExecuteAsync(transactions, chainId, currentBlockTime, token,
                     disambiguationHash,
                     transactionType, skipFee || TransactionFeeDisabled);
-
-                if (ActorConfig.Instance.IsCluster)
-                {
-                    var contractAddresses = new List<Address>();
-                    foreach (var tx in transactions)
-                    {
-                        if (tx.MethodName == "UpdateSmartContract")
-                        {
-                            contractAddresses.Add(tx.To);
-                        }
-                    }
-
-                    if (contractAddresses.Count > 0)
-                    {
-                        _actorEnvironment.Requestor.Tell(
-                            new UpdateContractMessage {ContractAddress = contractAddresses});
-                    }
-                }
             }
             else
             {

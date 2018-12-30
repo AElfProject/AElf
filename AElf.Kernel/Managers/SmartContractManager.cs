@@ -12,17 +12,15 @@ namespace AElf.Kernel.Managers
         {
             _smartContractStore = smartContractStore;
         }
-
-        public async Task<SmartContractRegistration> GetAsync(Address contractAddress)
+        
+        public async Task<SmartContractRegistration> GetAsync(Hash contractHash)
         {
-            return await _smartContractStore.GetAsync<SmartContractRegistration>(
-                contractAddress.GetPublicKeyHash()
-            );
+            return await _smartContractStore.GetAsync<SmartContractRegistration>(contractHash.ToHex());
         }
 
-        public async Task InsertAsync(Address contractAddress, SmartContractRegistration reg)
+        public async Task InsertAsync(SmartContractRegistration registration)
         {
-            await _smartContractStore.SetAsync(contractAddress.GetPublicKeyHash(), reg);
+            await _smartContractStore.SetAsync(registration.ContractHash.ToHex(), registration);
         }
     }
 }

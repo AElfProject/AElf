@@ -22,6 +22,7 @@ namespace AElf.Kernel.Tests
             _executingService = executingService;
         }
 
+        //TODO: Recover.
         [Fact(Skip = "Skip for now.")]
         public void StateRollbackTest()
         {

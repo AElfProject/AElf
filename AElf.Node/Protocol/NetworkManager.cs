@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
-
 using AElf.Common.Collections;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
@@ -19,6 +18,7 @@ using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
+using DotNetty.Common;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -63,6 +63,8 @@ namespace AElf.Node.Protocol
         private BoundedByteArrayQueue _temp = new BoundedByteArrayQueue(10);
 
         private readonly BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
+
+        private ulong _currentLibNum;
 
         internal IPeer CurrentSyncSource { get; set; }
         internal int LocalHeight;
@@ -122,7 +124,7 @@ namespace AElf.Node.Protocol
                 Logger.LogInformation($"Block produced, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}) with " +
                               $"{inBlock.Block.Body.TransactionsCount} txs, block height {inBlock.Block.Header.Index}.");
 
-                LocalHeight++;
+                LocalHeight = (int) inBlock.Block.Index;
             });
 
             MessageHub.Instance.Subscribe<BlockAccepted>(inBlock =>
@@ -174,7 +176,7 @@ namespace AElf.Node.Protocol
                 if (UnlinkableHeaderIndex != 0)
                     return;
                 
-                LocalHeight++;
+                LocalHeight = (int) inBlock.Block.Index;
 
                 IBlock acceptedBlock = inBlock.Block;
                 
@@ -367,6 +369,56 @@ namespace AElf.Node.Protocol
                 _peerManager.Start();
                 Task.Run(StartProcessingIncoming).ConfigureAwait(false);
             });
+            
+            MessageHub.Instance.Subscribe<MinorityForkDetected>(inBlock => { OnMinorityForkDetected(); });
+
+            MessageHub.Instance.Subscribe<NewLibFound>(msg =>
+            {
+                _currentLibNum = msg.Height;
+                Logger.LogDebug($"Network lib updated : {_currentLibNum}.");
+            });
+        }
+
+        private void OnMinorityForkDetected()
+        {
+            try
+            {
+                // reset everything inside the lock to keep a coherent state
+                
+                lock (_syncLock)
+                {
+                    CurrentSyncSource = null;
+                    foreach (var peer in _peers)
+                    {
+                        peer.ResetSync();
+                    }
+
+                    _lastBlocksReceived.Clear();
+                    _lastTxReceived.Clear();
+                    _temp.Clear();
+
+                    LocalHeight = (int) _currentLibNum;
+                    
+                    // todo should be from a BP that is not part of the minority
+                    IPeer syncPeer = _peers.FirstOrDefault(p => p.KnownHeight > LocalHeight);
+
+                    if (syncPeer != null)
+                    {
+                        CurrentSyncSource = syncPeer;
+                        CurrentSyncSource.SyncToHeight(LocalHeight + 1, syncPeer.KnownHeight);
+                        
+                        FireSyncStateChanged(true);
+                    }
+                    else
+                    {
+                        Logger.LogWarning("Could not find any peer to sync to.");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error while reset for minority fork.");
+            }
         }
 
         private void FireSyncStateChanged(bool newState)
@@ -435,7 +487,7 @@ namespace AElf.Node.Protocol
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Logger.LogError(e, "Error while initializing the network.");
                 throw;
             }
         }
@@ -478,31 +530,50 @@ namespace AElf.Node.Protocol
         {
             try
             {
-                if (eventArgs is PeerEventArgs peer && peer.Peer != null && peer.Actiontype == PeerEventType.Added)
+                if (eventArgs is PeerEventArgs peer && peer.Peer != null)
                 {
-                    int peerHeight = peer.Peer.KnownHeight;
-                
-                    _peers.Add(peer.Peer);
-
-                    peer.Peer.MessageReceived += HandleNewMessage;
-                    peer.Peer.PeerDisconnected += ProcessClientDisconnection;
-
-                    // Sync if needed
-                    lock (_syncLock)
+                    if (peer.Actiontype == PeerEventType.Added)
                     {
-                        if (CurrentSyncSource == null && LocalHeight < peerHeight)
+                        int peerHeight = peer.Peer.KnownHeight;
+                
+                        _peers.Add(peer.Peer);
+
+                        peer.Peer.MessageReceived += HandleNewMessage;
+                        peer.Peer.PeerDisconnected += ProcessClientDisconnection;
+
+                        // Sync if needed
+                        lock (_syncLock)
                         {
-                            CurrentSyncSource = peer.Peer;
-                            CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
+                            if (CurrentSyncSource == null && LocalHeight < peerHeight)
+                            {
+                                CurrentSyncSource = peer.Peer;
+                                CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
                         
-                            FireSyncStateChanged(true);
+                                FireSyncStateChanged(true);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _peers.Remove(peer.Peer);
+
+//                        if (_peers.Count <= 0)
+//                        {
+//                            OnMinorityForkDetected();
+//                            return;
+//                        }
+
+                        lock (_syncLock)
+                        {
+                            Logger.LogDebug($"Peer {peer.Peer} has been removed, trying to find another peer to sync.");
+                            SyncNext();
                         }
                     }
                 }
             }
             catch (Exception e)
             {
-                Logger.LogException(e);
+                Logger.LogException(e, LogLevel.Error);
             }
         }
 

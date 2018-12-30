@@ -204,7 +204,7 @@ namespace AElf.Benchmark
                 }
                 finally
                 {
-                    await _smartContractService.PutExecutiveAsync(tokenContractAddr, executive);    
+                    await _smartContractService.PutExecutiveAsync(ChainId, tokenContractAddr, executive);    
                 }
 
                 res.Add(txnCtxt.Trace.RetVal.Data.DeserializeToUInt64());
@@ -259,7 +259,7 @@ namespace AElf.Benchmark
             }
             finally
             {
-                await _smartContractService.PutExecutiveAsync(contractAddressZero, executive);    
+                await _smartContractService.PutExecutiveAsync(ChainId, contractAddressZero, executive);    
             }
             
             var contractAddr = txnCtxt.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
@@ -296,7 +296,7 @@ namespace AElf.Benchmark
             }
             finally
             {
-                await _smartContractService.PutExecutiveAsync(contractAddr, executiveUser);    
+                await _smartContractService.PutExecutiveAsync(ChainId, contractAddr, executiveUser);    
             }
             //init contract
             var initTxList = new List<Transaction>();

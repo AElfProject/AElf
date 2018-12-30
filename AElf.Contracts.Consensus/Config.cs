@@ -10,7 +10,7 @@ namespace AElf.Contracts.Consensus
             "YQ", "SM", "WK", "CP", "PG", 
             "SC", "ZX", "ZY", "YS", "MH", 
             "ZZ", "ZA", "GL", "LN", "DW",
-            "BB",
+            "BB", "MM", "DZ", "JJ", "DD"
         };
 
         public static ulong GetDividendsForEveryMiner(ulong minedBlocks)
@@ -21,14 +21,12 @@ namespace AElf.Contracts.Consensus
 
         public static ulong GetDividendsForTicketsCount(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForTicketsCountRatio /
-                            GlobalConfig.BlockProducerNumber);
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForTicketsCountRatio);
         }
         
         public static ulong GetDividendsForReappointment(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForReappointmentRatio /
-                            GlobalConfig.BlockProducerNumber);
+            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForReappointmentRatio);
         }
         
         public static ulong GetDividendsForBackupNodes(ulong minedBlocks)

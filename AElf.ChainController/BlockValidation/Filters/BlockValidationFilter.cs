@@ -11,7 +11,7 @@ namespace AElf.ChainController
     /// </summary>
     public class BlockValidationFilter : IBlockValidationFilter , ITransientDependency
     {
-        public Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
+        public Task<BlockValidationResult> ValidateBlockAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)
             {

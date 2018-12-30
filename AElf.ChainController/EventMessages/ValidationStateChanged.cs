@@ -1,3 +1,5 @@
+using AElf.Kernel;
+
 namespace AElf.ChainController.EventMessages
 {
     public class ValidationStateChanged

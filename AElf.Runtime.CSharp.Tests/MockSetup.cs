@@ -34,8 +34,8 @@ namespace AElf.Runtime.CSharp.Tests
         public DataProvider DataProvider1;
         public DataProvider DataProvider2;
 
-        public Address ContractAddress1 { get; } = Address.Generate();
-        public Address ContractAddress2 { get; } = Address.Generate();
+        public Address ContractAddress1;
+        public Address ContractAddress2;
 
         private ISmartContractManager _smartContractManager;
         private IChainCreationService _chainCreationService;
@@ -99,15 +99,20 @@ namespace AElf.Runtime.CSharp.Tests
 
         private async Task DeploySampleContracts()
         {
+            const ulong serialNumber = 10ul;
             var reg = new SmartContractRegistration
             {
                 Category = 1,
                 ContractBytes = ByteString.CopyFrom(ContractCode),
-                ContractHash = Hash.FromRawBytes(ContractCode)
+                ContractHash = Hash.FromRawBytes(ContractCode),
+                SerialNumber = serialNumber
             };
 
-            await SmartContractService.DeployContractAsync(ChainId1, ContractAddress1, reg, false);
-            await SmartContractService.DeployContractAsync(ChainId2, ContractAddress2, reg, false);
+            await SmartContractService.DeploySystemContractAsync(ChainId1, reg);
+            await SmartContractService.DeploySystemContractAsync(ChainId2, reg);
+            
+            ContractAddress1 = Address.BuildContractAddress(ChainId1, serialNumber);
+            ContractAddress2 = Address.BuildContractAddress(ChainId2, serialNumber);
         }
 
         public string SdkDir => "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0";
