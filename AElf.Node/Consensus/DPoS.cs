@@ -54,8 +54,6 @@ namespace AElf.Node.Consensus
 
         private readonly ConsensusHelper _helper;
 
-        private static int _lockNumber;
-
         private NodeState CurrentState { get; set; } = NodeState.Catching;
 
         /// <summary>
@@ -76,13 +74,17 @@ namespace AElf.Node.Consensus
         
         private readonly IMinersManager _minersManager;
 
-        private static int _flag;
+        private static int _lockNumber;
+
+        private static int _lockFlag;
 
         private static bool _prepareTerminated;
 
         private static bool _terminated;
 
         private static bool _executedBlockFromOtherMiners;
+
+        private static bool _announcedElection;
 
         private ConsensusObserver ConsensusObserver =>
             new ConsensusObserver(InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
@@ -335,7 +337,7 @@ namespace AElf.Node.Consensus
             var lockWasTaken = false;
             try
             {
-                lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
+                lockWasTaken = Interlocked.CompareExchange(ref _lockFlag, 1, 0) == 0;
                 if (lockWasTaken)
                 {
                     MessageHub.Instance.Publish(new DPoSStateChanged(behavior, true));
@@ -370,7 +372,7 @@ namespace AElf.Node.Consensus
             {
                 if (lockWasTaken)
                 {
-                    Thread.VolatileWrite(ref _flag, 0);
+                    Thread.VolatileWrite(ref _lockFlag, 0);
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
@@ -397,7 +399,7 @@ namespace AElf.Node.Consensus
             var lockWasTaken = false;
             try
             {
-                lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
+                lockWasTaken = Interlocked.CompareExchange(ref _lockFlag, 1, 0) == 0;
                 if (lockWasTaken)
                 {
                     MessageHub.Instance.Publish(new DPoSStateChanged(behavior, true));
@@ -451,7 +453,7 @@ namespace AElf.Node.Consensus
             {
                 if (lockWasTaken)
                 {
-                    Thread.VolatileWrite(ref _flag, 0);
+                    Thread.VolatileWrite(ref _lockFlag, 0);
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
@@ -480,7 +482,7 @@ namespace AElf.Node.Consensus
             var lockWasTaken = false;
             try
             {
-                lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
+                lockWasTaken = Interlocked.CompareExchange(ref _lockFlag, 1, 0) == 0;
                 if (lockWasTaken)
                 {
                     MessageHub.Instance.Publish(new DPoSStateChanged(behavior, true));
@@ -520,7 +522,7 @@ namespace AElf.Node.Consensus
             {
                 if (lockWasTaken)
                 {
-                    Thread.VolatileWrite(ref _flag, 0);
+                    Thread.VolatileWrite(ref _lockFlag, 0);
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
@@ -548,7 +550,7 @@ namespace AElf.Node.Consensus
             var lockWasTaken = false;
             try
             {
-                lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
+                lockWasTaken = Interlocked.CompareExchange(ref _lockFlag, 1, 0) == 0;
                 if (lockWasTaken)
                 {
                     MessageHub.Instance.Publish(new DPoSStateChanged(behavior, true));
@@ -638,7 +640,7 @@ namespace AElf.Node.Consensus
             {
                 if (lockWasTaken)
                 {
-                    Thread.VolatileWrite(ref _flag, 0);
+                    Thread.VolatileWrite(ref _lockFlag, 0);
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
@@ -671,7 +673,7 @@ namespace AElf.Node.Consensus
             var lockWasTaken = false;
             try
             {
-                lockWasTaken = Interlocked.CompareExchange(ref _flag, 1, 0) == 0;
+                lockWasTaken = Interlocked.CompareExchange(ref _lockFlag, 1, 0) == 0;
                 if (lockWasTaken)
                 {
                     MessageHub.Instance.Publish(new DPoSStateChanged(behavior, true));
@@ -704,7 +706,7 @@ namespace AElf.Node.Consensus
             {
                 if (lockWasTaken)
                 {
-                    Thread.VolatileWrite(ref _flag, 0);
+                    Thread.VolatileWrite(ref _lockFlag, 0);
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
@@ -716,13 +718,34 @@ namespace AElf.Node.Consensus
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
+            if (AmIContainedInCandidatesList())
+            {
+                // Not record as announced before.
+                if (!_announcedElection)
+                {
+                    _logger?.Trace("This node announced election.");
+                    _announcedElection = true;
+                }
+            }
+            else
+            {
+                // Record as announced before.
+                if (_announcedElection)
+                {
+                    _logger?.Trace("This node quit election.");
+                    _announcedElection = false;
+                }
+            }
+
+            // To detect whether the round number has changed.
+            // When the round number changed, it means this node has to update his consensus events, 
+            // or update the miners list.
             if (LatestRoundNumber == _helper.CurrentRoundNumber.Value)
             {
                 return;
             }
 
-            // Update miners.
-            
+            // Update miners list in database.
             if (_helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
             {
                 var currentRoundInfo = _helper.GetCurrentRoundInfo();
@@ -742,6 +765,7 @@ namespace AElf.Node.Consensus
             LatestRoundNumber = _helper.CurrentRoundNumber.Value;
             LatestTermNumber = _helper.CurrentTermNumber.Value;
 
+            // Whether this node willing to mine.
             if (!NodeConfig.Instance.IsMiner)
             {
                 return;
@@ -752,12 +776,12 @@ namespace AElf.Node.Consensus
             {
                 ConsensusDisposable.Dispose();
                 ConsensusDisposable = null;
-                _logger?.Trace("Disposed previous consensus observables list. Will update DPoS information.");
+                _logger?.Trace("Disposed previous consensus observables list. Will reload new consnesus events.");
             }
 
-            // Update observer.
-            var miners = _helper.Miners;
-            if (miners.All(m => m != _ownPubKey.ToHex()))
+            // Check whether this node is a miner.
+            var miners = await _minersManager.GetMiners();
+            if (miners.PublicKeys.All(m => m != _ownPubKey.ToHex()))
             {
                 _minerFlag = false;
                 return;
@@ -765,12 +789,18 @@ namespace AElf.Node.Consensus
 
             if (!_minerFlag)
             {
-                _logger?.Trace("Become a miner just now.");
+                _logger?.Trace("This node became a miner.");
             }
 
             _minerFlag = true;
 
+            // Subscribe consensus events here.
             ConsensusDisposable = ConsensusObserver.SubscribeMiningProcess(_helper.GetCurrentRoundInfo());
+        }
+
+        private bool AmIContainedInCandidatesList()
+        {
+            return _helper.Candidates.PublicKeys.Contains(NodeConfig.Instance.ECKeyPair.PublicKey.ToHex());
         }
 
         public bool IsAlive()
