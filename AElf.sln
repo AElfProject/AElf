@@ -166,6 +166,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestBase.Contract", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RuntimeSetup", "AElf.RuntimeSetup\AElf.RuntimeSetup.csproj", "{71DE375A-1037-4CDB-BC7C-6DC454B5D55D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.FullNodeHosting", "AElf.FullNodeHosting\AElf.FullNodeHosting.csproj", "{A391814B-A9A0-4138-B236-99C9C4FE54FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -472,6 +474,10 @@ Global
 		{71DE375A-1037-4CDB-BC7C-6DC454B5D55D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71DE375A-1037-4CDB-BC7C-6DC454B5D55D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71DE375A-1037-4CDB-BC7C-6DC454B5D55D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A391814B-A9A0-4138-B236-99C9C4FE54FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A391814B-A9A0-4138-B236-99C9C4FE54FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A391814B-A9A0-4138-B236-99C9C4FE54FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A391814B-A9A0-4138-B236-99C9C4FE54FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

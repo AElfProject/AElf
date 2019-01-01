@@ -21,7 +21,6 @@ namespace AElf.RPC
             
             context.Services.AddSingleton<IRpcServer,RpcServer>();
 
-
             context.Services.AddSingleton<IServiceCollection>(context.Services);
 
 
@@ -31,8 +30,6 @@ namespace AElf.RPC
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            
-            
             var rpc = context.ServiceProvider.GetService<IRpcServer>();
 
             //TODO! change the implement of rpc server.
