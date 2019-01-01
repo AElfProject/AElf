@@ -419,6 +419,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 TotalBlocks = minedBlocks,
                 CandidatesSnapshot = {candidateInTerms}
             });
+
+            Api.SendInline(Api.DividendsContractAddress, "KeepWeights");
         }
 
         private void UpdateCandidatesInfoInHistory(Round currentRoundInfo, TermSnapshot previousTerm)

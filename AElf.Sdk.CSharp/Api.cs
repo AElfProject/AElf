@@ -155,7 +155,7 @@ namespace AElf.Sdk.CSharp
         {
             if (Call(ConsensusContractAddress, "GetCurrentRoundNumber"))
             {
-                return GetCallResult().ToUInt64();
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
             }
             
             throw new InternalError("Failed to get current round number.\n" + _lastCallContext.Trace.StdErr);
@@ -165,7 +165,7 @@ namespace AElf.Sdk.CSharp
         {
             if (Call(ConsensusContractAddress, "GetCurrentTermNumber"))
             {
-                return GetCallResult().ToUInt64();
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
             }
             
             throw new InternalError("Failed to get current term number.\n" + _lastCallContext.Trace.StdErr);
