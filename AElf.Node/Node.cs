@@ -62,7 +62,7 @@ namespace AElf.Node
 
         public bool StartRpc()
         {
-            _rpcServer.Start();
+            _rpcServer.StartAsync();
             return true;
         }
     }

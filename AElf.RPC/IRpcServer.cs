@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public interface IRpcServer
 {
-    Task Start();
-    void Stop();
+    Task StartAsync();
+    Task StopAsync();
     bool Init(IServiceProvider scope, string rpcHost, int rpcPort);
 }

@@ -48,6 +48,7 @@ namespace AElf.RPC
             }
             var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] { type });
             methodInfoGeneric.Invoke(appBuilder, new object[] { appBuilder , path});
+            
         }
         
         /*

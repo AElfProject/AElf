@@ -22,14 +22,11 @@ namespace AElf.RPC
         {
             Logger = NullLogger<RpcServer>.Instance;
             
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.Rpc)
-                {
-                    Stop();
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.Rpc));
-                }
-            });
+        }
+
+        public async Task StopAsync()
+        {
+            await _host.StopAsync();
         }
 
         public bool Init(IServiceProvider scope, string rpcHost, int rpcPort)
@@ -52,7 +49,7 @@ namespace AElf.RPC
                     .UseUrls(url)
                     .Build();
 
-                //_host.Services.GetService<NetContext>();
+                _host.Services.GetService<NetContext>();
             }
             catch (Exception e)
             {
@@ -63,7 +60,7 @@ namespace AElf.RPC
             return true;
         }
 
-        public async Task Start()
+        public async Task StartAsync()
         {
             try
             {
@@ -76,11 +73,6 @@ namespace AElf.RPC
             }
         }
 
-        public void Stop()
-        {
-             _host.StopAsync();
-        }
-        
         
         public class Startup
         {
@@ -93,7 +85,7 @@ namespace AElf.RPC
                 sc.AddSignalRCore();
                 sc.AddSignalR();
 
-                sc.AddScoped<NetContext>();
+                //sc.AddScoped<NetContext>();
                 
                 return new ChildServiceProvider(Parent,sc.BuildServiceProviderFromFactory());
             }
