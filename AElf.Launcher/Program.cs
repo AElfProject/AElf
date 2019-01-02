@@ -2,6 +2,8 @@
 using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Database;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -12,7 +14,7 @@ namespace AElf.Launcher
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             ILogger<Program> logger = NullLogger<Program>.Instance;
             try
@@ -21,26 +23,23 @@ namespace AElf.Launcher
 
                 var parsed = new CommandLineParser();
                 parsed.Parse(args);
-                
-                using (var application = AbpApplicationFactory.Create<LauncherAElfModule>(options =>
-                {
-                    options.UseAutofac(); //Autofac integration
-                    
-                }))
-                {
-                    application.Initialize();
-                    
-                    logger = application.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-                    LauncherAElfModule.Closing.WaitOne();
-                }
+                CreateWebHostBuilder(args).Build().Run();
             }
             catch (Exception e)
             {
-                if(logger == NullLogger<Program>.Instance)
+                if (logger == NullLogger<Program>.Instance)
                     Console.WriteLine(e);
-                logger.LogCritical(e,"program crashed");
+                logger.LogCritical(e, "program crashed");
             }
         }
+
+
+        //create default https://github.com/aspnet/MetaPackages/blob/master/src/Microsoft.AspNetCore/WebHost.cs
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseUrls("http://localhost:8000")
+                .ConfigureLogging(builder => { builder.ClearProviders(); })
+                .UseStartup<Startup>();
     }
 }
