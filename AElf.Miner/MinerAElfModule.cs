@@ -3,10 +3,10 @@ using AElf.Common.Application;
 using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Crosschain;
+using AElf.Crosschain.Client;
+using AElf.Crosschain.Server;
 using AElf.Miner.Miner;
-using AElf.Miner.Rpc;
-using AElf.Miner.Rpc.Client;
-using AElf.Miner.Rpc.Server;
 using AElf.Miner.TxMemPool;
 using Autofac;
 using Google.Protobuf;
@@ -30,7 +30,7 @@ namespace AElf.Miner
             {
                 Value = ByteString.CopyFrom(ChainConfig.Instance.ChainId.DecodeBase58())
             };
-            builder.RegisterModule(new MinerRpcAutofacModule());
+            builder.RegisterModule(new CrosschainAutofacModule());
 
             builder.RegisterType<ClientManager>().SingleInstance().OnActivated(mc =>
                 {

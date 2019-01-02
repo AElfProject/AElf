@@ -4,14 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Kernel;
-using AElf.Miner.Rpc;
-using AElf.Miner.Rpc.Server;
 using Grpc.Core;
 using Moq;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.Crosschain;
+using AElf.Crosschain.Server;
 
 namespace AElf.Miner.Tests.Grpc
 {

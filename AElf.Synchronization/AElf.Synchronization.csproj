@@ -4,8 +4,8 @@
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Crosschain\AElf.Crosschain.csproj" />
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
-    <ProjectReference Include="..\AElf.Miner.Rpc\AElf.Miner.Rpc.csproj" />
     <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
   </ItemGroup>
 </Project>
