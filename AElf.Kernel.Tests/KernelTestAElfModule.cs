@@ -47,9 +47,7 @@ namespace AElf.Kernel.Tests
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
             //init test data here
-            ChainConfig.Instance.ChainId = "kPBx";
-            NodeConfig.Instance.NodeAccount = Address.FromString("ELF_kPBx_TestContractA").GetFormatted();
+            NodeConfig.Instance.NodeAccount = Address.FromString("ELF_TestContractA").GetFormatted();
         }
-
     }
 }

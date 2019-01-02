@@ -51,7 +51,7 @@ namespace AElf.Synchronization.Tests
             
             // Validation service 
             ValidationService = new Mock<IBlockValidationService>();
-            ValidationService.Setup(vs => vs.ValidateBlockAsync(It.IsAny<IBlock>(), It.IsAny<IChainContext>()))
+            ValidationService.Setup(vs => vs.ValidateBlockAsync(It.IsAny<IBlock>()))
                 .ReturnsAsync(BlockValidationResult.Success);
             
             // Block executor
@@ -216,6 +216,30 @@ namespace AElf.Synchronization.Tests
             await Synchronizer.TryPushBlock(block3);
             
             Assert.Equal(block1.GetHash(), Synchronizer.CurrentLib.BlockHash);
+        }
+
+        [Fact]
+        public async Task TryPushBlock_ReceiveBlockOnLowerFork_ShouldNotExecute()
+        {
+            GenesisChainSetup();
+
+            Synchronizer.Init();
+
+            IBlock forkRoot = SyncTestHelpers.BuildNext(Genesis); // Height 2
+            
+            IBlock blockForkA = SyncTestHelpers.BuildNext(forkRoot);  // Height 3
+            IBlock blockForkA1 = SyncTestHelpers.BuildNext(blockForkA); // Height 4
+            
+            IBlock blockForkB = SyncTestHelpers.BuildNext(forkRoot); // Height 3 - should not exec
+
+            await Synchronizer.TryPushBlock(forkRoot);
+            await Synchronizer.TryPushBlock(blockForkA);
+            await Synchronizer.TryPushBlock(blockForkA1);
+            
+            MonitorExecuteBlockCalls();
+            await Synchronizer.TryPushBlock(blockForkB);
+            
+            Assert.Empty(ExecuteBlockCalls);
         }
     }
 }

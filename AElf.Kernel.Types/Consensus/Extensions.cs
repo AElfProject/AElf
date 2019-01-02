@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
@@ -40,12 +41,6 @@ namespace AElf.Kernel
             return new Miners {PublicKeys = {minerPublicKeys}};
         }
 
-        public static string ToAString(this IEnumerable<string> minerPublicKeys)
-        {
-            var res = minerPublicKeys.Aggregate("", (current, minerPublicKey) => current + minerPublicKey + ";");
-            return res.Substring(0, res.Length - 1);
-        }
-
         /// <summary>
         /// For calculating hash.
         /// </summary>
@@ -58,7 +53,8 @@ namespace AElf.Kernel
                 Count = votingRecord.Count,
                 From = votingRecord.From,
                 To = votingRecord.To,
-                TermNumber = votingRecord.TermNumber
+                TermNumber = votingRecord.TermNumber,
+                
             };
         }
 
@@ -76,6 +72,31 @@ namespace AElf.Kernel
             }
 
             return ticketsDictionary;
+        }
+        
+        public static TicketsDictionary ToTicketsDictionary(this IEnumerable<KeyValuePair<string, Tickets>> dictionary)
+        {
+            var ticketsDictionary = new TicketsDictionary();
+            foreach (var keyPair in dictionary)
+            {
+                ticketsDictionary.Maps.Add(keyPair.Key, keyPair.Value);
+            }
+
+            return ticketsDictionary;
+        }
+
+        public static BlockAbstract GetAbstract(this IBlock block)
+        {
+            return new BlockAbstract
+            {
+                MinerPublicKey = block.Header.P.ToByteArray().ToHex(),
+                Time = block.Header.Time
+            };
+        }
+        
+        public static bool IsSuccess(this BlockValidationResult result)
+        {
+            return (int) result < 11;
         }
     }
 }

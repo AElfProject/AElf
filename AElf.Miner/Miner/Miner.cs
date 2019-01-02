@@ -6,9 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-
 using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
@@ -18,13 +16,11 @@ using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
-using AElf.Miner.Rpc.Exceptions;
 using AElf.Miner.Rpc.Server;
 using AElf.Miner.TxMemPool;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -119,7 +115,8 @@ namespace AElf.Miner.Miner
                 if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
-                    _txFilter.Execute(sysTxs);
+                    var toRemove = _txFilter.Execute(sysTxs);
+                    // TODO: Remove useless consensus txs.
                     Logger.LogTrace($"Start executing {sysTxs.Count} system transactions.");
                     traces = await ExecuteTransactions(sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
                     Logger.LogTrace($"Finish executing {sysTxs.Count} system transactions.");
@@ -176,9 +173,7 @@ namespace AElf.Miner.Miner
                 Logger.LogInformation($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
-                var chainContext =
-                    await _chainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, chainContext);
+                var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block);
                 if (blockValidationResult != BlockValidationResult.Success)
                 {
                     Logger.LogWarning($"Found the block generated before invalid: {blockValidationResult}.");
@@ -194,7 +189,7 @@ namespace AElf.Miner.Miner
                 
                 await _txHub.OnNewBlock((Block)block);
                 
-                MessageHub.Instance.Publish(UpdateConsensus.Update); 
+                MessageHub.Instance.Publish(UpdateConsensus.UpdateAfterMining); 
                 
                 stopwatch.Stop();
                 

@@ -1,13 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
+
 namespace AElf.Synchronization
 {
     public class BlockHeaderValidator : IBlockHeaderValidator
@@ -28,15 +25,8 @@ namespace AElf.Synchronization
         {
             var currentHeight = await BlockChain.GetCurrentBlockHeightAsync();
 
-            // Step 1: Check linkability to any of local blocks (contains block cache).
-            // Step 2: Check whether this block in branched chain.
             if (blockHeader.Index == currentHeight + 1)
             {
-//                if (!await CheckLinkabilityAsync(blockHeader))
-//                {
-//                    return BlockHeaderValidationResult.Unlinkable;
-//                }
-                
                 var localCurrentBlock = await BlockChain.GetBlockByHeightAsync(currentHeight);
                 if (localCurrentBlock.BlockHashToHex != blockHeader.PreviousBlockHash.ToHex())
                 {

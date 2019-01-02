@@ -16,12 +16,13 @@ namespace AElf.Kernel.Tests
         private BlockChainTests_MockSetup _mock;
         private IExecutingService _executingService;
 
-        public BlockChainTests(BlockChainTests_MockSetup mock, SimpleExecutingService executingService)
+        public BlockChainTests(BlockChainTests_MockSetup mock, IExecutingService executingService)
         {
             _mock = mock;
             _executingService = executingService;
         }
 
+        //TODO: Recover.
         [Fact(Skip = "Skip for now.")]
         public void StateRollbackTest()
         {

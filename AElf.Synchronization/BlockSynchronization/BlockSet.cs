@@ -20,7 +20,6 @@ namespace AElf.Synchronization.BlockSynchronization
     {
         public event EventHandler LibChanged;
             
-        private const int MaxLenght = 200;
         private const int Timeout = int.MaxValue;
 
         public ILogger<BlockSet> Logger {get;set;}
@@ -277,6 +276,21 @@ namespace AElf.Synchronization.BlockSynchronization
                 } 
                 
                 Logger.LogDebug($"Removed {blockHash} from blockset. Head {CurrentHead.BlockHash}");
+            }
+            finally
+            {
+                _rwLock.ReleaseWriterLock();
+            }
+        }
+
+        public void Clear()
+        {
+            _rwLock.AcquireWriterLock(Timeout);
+
+            try
+            {
+                _blocks.RemoveAll(b => b != CurrentLib);
+                CurrentHead = CurrentLib;
             }
             finally
             {

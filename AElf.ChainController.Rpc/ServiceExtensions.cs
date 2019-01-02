@@ -136,7 +136,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<IMessage> GetContractAbi(this Svc s, Address address)
         {
-            return await s.SmartContractService.GetAbiAsync(address);
+            return await s.SmartContractService.GetAbiAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId), address);
         }
 
         internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
@@ -174,7 +174,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                return await s.SmartContractService.GetInvokingParams(tx);
+                return await s.SmartContractService.GetInvokingParams(Hash.LoadBase58(ChainConfig.Instance.ChainId),tx);
             }
             catch (Exception)
             {
@@ -217,7 +217,8 @@ namespace AElf.ChainController.Rpc
                 TransactionId = tx.GetHash()
             };
 
-            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+            var chainContext = await s.ChainContextService.GetChainContextAsync(chainId);
             var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
@@ -226,7 +227,7 @@ namespace AElf.ChainController.Rpc
                 BlockHeight = chainContext.BlockHeight
             };
 
-            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, chainId);
 
             try
             {
@@ -234,7 +235,7 @@ namespace AElf.ChainController.Rpc
             }
             finally
             {
-                await s.SmartContractService.PutExecutiveAsync(tx.To, executive);
+                await s.SmartContractService.PutExecutiveAsync(chainId, tx.To, executive);
             }
 
             if(!string.IsNullOrEmpty(trace.StdErr))

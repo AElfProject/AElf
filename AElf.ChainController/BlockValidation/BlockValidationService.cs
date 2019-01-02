@@ -28,7 +28,7 @@ namespace AElf.ChainController
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inState => { _doingRollback = inState.DoingRollback; });
         }
 
-        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
+        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block)
         {
             if (_doingRollback)
             {
@@ -42,7 +42,7 @@ namespace AElf.ChainController
             var resultCollection = new List<BlockValidationResult>();
             foreach (var filter in _filters)
             {
-                var result = await filter.ValidateBlockAsync(block, context);
+                var result = await filter.ValidateBlockAsync(block);
                 if (result != BlockValidationResult.Success)
                     Logger.LogWarning($"Result of {filter.GetType().Name}: {result} - {block.BlockHashToHex}");
                 resultCollection.Add(result);

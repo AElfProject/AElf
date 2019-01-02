@@ -1,10 +1,10 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Consensus;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
@@ -22,36 +22,33 @@ namespace AElf.ChainController
     {
         private readonly ISmartContractService _smartContractService;
         public ILogger<ConsensusBlockValidationFilter> Logger {get;set;}
-        
-        private readonly Address _nodeAddress;
-        private readonly ECKeyPair _nodeKeyPair;
+
+        private Address ConsensusContractAddress =>
+            ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
         public ConsensusBlockValidationFilter(ISmartContractService smartContractService)
         {
             _smartContractService = smartContractService;
             
-            _nodeAddress = Address.Parse(NodeConfig.Instance.NodeAccount);
-            _nodeKeyPair = NodeConfig.Instance.ECKeyPair;
-            
             Logger= NullLogger<ConsensusBlockValidationFilter>.Instance;
         }
 
-        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block, IChainContext context)
+        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block)
         {
             if (NodeConfig.Instance.ConsensusKind == ConsensusKind.AElfDPoS)
             {
-                return await DPoSValidation(block, context);
+                return await DPoSValidation(block);
             }
 
             if (NodeConfig.Instance.ConsensusKind == ConsensusKind.AElfPoW)
             {
-                return await PoWValidation(block, context);
+                return await PoWValidation(block);
             }
 
             return BlockValidationResult.NotImplementConsensus;
         }
 
-        private async Task<BlockValidationResult> DPoSValidation(IBlock block, IChainContext context)
+        private async Task<BlockValidationResult> DPoSValidation(IBlock block)
         {
             // If the height of chain is 1, no need to check consensus validation
             if (block.Header.Index < GlobalConfig.GenesisBlockHeight + 2)
@@ -59,16 +56,6 @@ namespace AElf.ChainController
                 return BlockValidationResult.Success;
             }
 
-            // Get BP address
-            // todo temp solution
-            var uncompressedPrivateKey = block.Header.P.ToByteArray();
-            var address = Address.FromPublicKey(uncompressedPrivateKey);
-
-            // Get the address of consensus contract
-            var contractAccountHash = ContractHelpers.GetConsensusContractAddress(context.ChainId);
-            var timestampOfBlock = block.Header.Time;
-
-            long roundId = 1;
             var updateTx =
                 block.Body.TransactionList.Where(t => t.MethodName == ConsensusBehavior.NextRound.ToString())
                     .ToList();
@@ -76,20 +63,17 @@ namespace AElf.ChainController
             {
                 if (updateTx.Count > 1)
                 {
-                    return BlockValidationResult.IncorrectDPoSTxInBlock;
+                    return BlockValidationResult.IncorrectConsensusTransaction;
                 }
-
-                roundId = ((Round) ParamsPacker.Unpack(updateTx[0].Params.ToByteArray(),
-                    new[] {typeof(Round), typeof(Round), typeof(StringValue)})[1]).RoundId;
             }
 
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             TransactionTrace trace;
-            var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
+            var executive = await _smartContractService.GetExecutiveAsync(ConsensusContractAddress,
+                Hash.LoadBase58(ChainConfig.Instance.ChainId));
             try
             {
-                var tx = GetTxToVerifyBlockProducer(contractAccountHash, NodeConfig.Instance.ECKeyPair, address,
-                    timestampOfBlock, roundId);
+                var tx = GetTransactionToValidateBlock(block.GetAbstract());
                 if (tx == null)
                 {
                     return BlockValidationResult.FailedToCheckConsensusInvalidation;
@@ -104,7 +88,8 @@ namespace AElf.ChainController
             }
             finally
             {
-                _smartContractService.PutExecutiveAsync(contractAccountHash, executive).Wait();
+                _smartContractService.PutExecutiveAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
+                    ConsensusContractAddress, executive).Wait();
             }
             
             //If failed to execute the transaction of checking time slot
@@ -119,7 +104,7 @@ namespace AElf.ChainController
             switch (result)
             {
                 case 1:
-                    return BlockValidationResult.NotBP;
+                    return BlockValidationResult.NotMiner;
                 case 2:
                     return BlockValidationResult.InvalidTimeSlot;
                 case 3:
@@ -131,35 +116,24 @@ namespace AElf.ChainController
             }
         }
 
-        private async Task<BlockValidationResult> PoWValidation(IBlock block, IChainContext context)
+        private async Task<BlockValidationResult> PoWValidation(IBlock block)
         {
-            return await Task.FromResult(BlockValidationResult.IncorrectPoWResult);
+            return BlockValidationResult.Success;
         }
 
-        private Transaction GetTxToVerifyBlockProducer(Address contractAccountHash, ECKeyPair keyPair,
-            Address recipientAddress, Timestamp timestamp, long roundId)
+        private Transaction GetTransactionToValidateBlock(BlockAbstract blockAbstract)
         {
-            if (contractAccountHash == null || keyPair == null || recipientAddress == null)
-            {
-                Logger.LogError("Something wrong happened to consensus verification filter.");
-                return null;
-            }
-
             var tx = new Transaction
             {
-                From = contractAccountHash,
-                To = contractAccountHash,
+                From = Address.Parse(NodeConfig.Instance.NodeAccount),
+                To = ConsensusContractAddress,
                 IncrementId = 0,
-                MethodName = "Validation",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(
-                    new StringValue {Value = recipientAddress.GetFormatted()}.ToByteArray(),
-                    timestamp.ToByteArray(),
-                    new Int64Value {Value = roundId}))
+                MethodName = "ValidateBlock",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(blockAbstract))
             };
 
-            // todo review
             var signer = new ECSigner();
-            var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
+            var signature = signer.Sign(NodeConfig.Instance.ECKeyPair, tx.GetHash().DumpByteArray());
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes)); 
 
             return tx;

@@ -11,7 +11,7 @@ namespace AElf.Sdk.CSharp.Tests
     public class TestContractShim : ITransientDependency
     {
         private MockSetup _mock;
-        public Address ContractAddres = Address.Generate();
+        public Address ContractAddres;
         public IExecutive Executive { get; set; }
 
         public byte[] Code
@@ -31,7 +31,7 @@ namespace AElf.Sdk.CSharp.Tests
 
         private void Initialize()
         {
-            _mock.DeployContractAsync(Code, ContractAddres).Wait();
+            ContractAddres = _mock.DeployContractAsync(Code).Result;
             var task = _mock.GetExecutiveAsync(ContractAddres);
             task.Wait();
             Executive = task.Result;

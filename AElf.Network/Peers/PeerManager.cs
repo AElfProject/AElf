@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Volo.Abp.DependencyInjection;
 
 [assembly: InternalsVisibleTo("AElf.Network.Tests")]
 
@@ -38,7 +39,7 @@ namespace AElf.Network.Peers
     }
 
     
-    public class PeerManager : IPeerManager
+    public class PeerManager : IPeerManager, ISingletonDependency
     {
         public event EventHandler PeerEvent;
 

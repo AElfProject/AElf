@@ -16,7 +16,7 @@ for i in *Tests ; do
   printf '=%.0s' $(seq 1 $limit)
   echo ""
 
-  dotnet test "$i" --verbosity quiet --no-build
+  dotnet test "$i" --no-build
   if [ $? -ne 0 ] ; then
     exit 1
   fi

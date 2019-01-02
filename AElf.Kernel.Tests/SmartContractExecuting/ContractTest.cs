@@ -60,7 +60,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
            
             var contractAddressZero = ContractHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
-            var copy = await _smartContractManager.GetAsync(contractAddressZero);
+            var copy = await _smartContractManager.GetAsync(reg.ContractHash);
 
             // throw exception if not registered
             Assert.Equal(reg, copy);
@@ -111,8 +111,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 ContractBytes = ByteString.CopyFrom(code),
                 ContractHash = Hash.FromRawBytes(code)
             };
-            var copy = await _smartContractManager.GetAsync(address);
-
+            var copy = await _smartContractService.GetContractByAddressAsync(ChainId, address);
+            
             Assert.Equal(regExample.ContractHash, copy.ContractHash);
             Assert.Equal(regExample.ContractBytes, copy.ContractBytes);
         }

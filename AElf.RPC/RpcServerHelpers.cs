@@ -15,7 +15,7 @@ namespace AElf.RPC
         private static List<Type> GetServiceTypes(IServiceCollection scope)
         {
             return scope.Where(p => p.ImplementationType != null && typeof(IJsonRpcService).IsAssignableFrom(p.ServiceType))
-                .Select(p => p.ImplementationType).ToList();
+                .Select(p => p.ImplementationType).Distinct().ToList();
             
             //TODO! rewrite this project by aspnet core webapi
 
@@ -50,10 +50,10 @@ namespace AElf.RPC
             methodInfoGeneric.Invoke(appBuilder, new object[] { appBuilder , path});
         }
         
-        /*
+        
         internal static void ConfigureServices(IServiceCollection services, IServiceProvider scope)
         {
-            var types = GetServiceTypes(scope);
+            var types = GetServiceTypes(scope.GetRequiredService<IServiceCollection>());
             
             
             foreach (var serviceType in types)
@@ -61,7 +61,7 @@ namespace AElf.RPC
                 services.AddSingleton(serviceType, Resolve(scope, serviceType));
                 AddJsonRpcService(services, serviceType);
             }
-        }*/
+        }
 
         internal static void Configure(IApplicationBuilder appBuilder, IServiceCollection scope)
         {

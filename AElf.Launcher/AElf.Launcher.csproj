@@ -12,6 +12,7 @@
     <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
+    <ProjectReference Include="..\AElf.Contracts.Dividends\AElf.Contracts.Dividends.csproj" />
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

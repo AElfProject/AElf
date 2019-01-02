@@ -55,6 +55,13 @@ namespace AElf.Sdk.CSharp
                 registration, false);
             task.Wait();
         }
+        
+        public static async Task InitContractAsync(Address address, SmartContractRegistration registration)
+        {
+            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
+            await _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
+                true);
+        }
 
         public static async Task DeployContractAsync(Address address, SmartContractRegistration registration)
         {
@@ -133,23 +140,45 @@ namespace AElf.Sdk.CSharp
             Call(ConsensusContractAddress, "GetCurrentMiners");
             return GetCallResult().DeserializeToPbMessage<Miners>();
         }
+        
+        public static List<string> GetCurrentMiners()
+        {
+            if (Call(ConsensusContractAddress, "GetCurrentMiners"))
+            {
+                return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
+            }
+            
+            throw new InternalError("Failed to get current miners.\n" + _lastCallContext.Trace.StdErr);
+        }
 
         public static ulong GetCurrentRoundNumber()
         {
-            Call(ConsensusContractAddress, "GetCurrentRoundNumber");
-            return GetCallResult().ToUInt64();
+            if (Call(ConsensusContractAddress, "GetCurrentRoundNumber"))
+            {
+                return GetCallResult().ToUInt64();
+            }
+            
+            throw new InternalError("Failed to get current round number.\n" + _lastCallContext.Trace.StdErr);
         }
         
         public static ulong GetCurrentTermNumber()
         {
-            Call(ConsensusContractAddress, "GetCurrentTermNumber");
-            return GetCallResult().ToUInt64();
+            if (Call(ConsensusContractAddress, "GetCurrentTermNumber"))
+            {
+                return GetCallResult().ToUInt64();
+            }
+            
+            throw new InternalError("Failed to get current term number.\n" + _lastCallContext.Trace.StdErr);
         }
 
         public static TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            Call(ConsensusContractAddress, "GetTermSnapshot", termNumber);
-            return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
+            if (Call(ConsensusContractAddress, "GetTermSnapshot", termNumber))
+            {
+                return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
+            }
+            
+            throw new InternalError($"Failed to get term snapshot of term {termNumber}.\n" + _lastCallContext.Trace.StdErr);
         }
         
         public static Address GetContractOwner()
@@ -216,6 +245,12 @@ namespace AElf.Sdk.CSharp
             Call(TokenContractAddress, "BalanceOf", address);
             return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
         }
+
+        public static ulong GetBalanceOfDividendsContract()
+        {
+            Call(TokenContractAddress, "BalanceOf", DividendsContractAddress);
+            return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
+        }
         
         #endregion Getters used by contract
 
@@ -234,13 +269,16 @@ namespace AElf.Sdk.CSharp
 
         public static void SendDividends(params object[] args)
         {
-            _transactionContext.Trace.InlineTransactions.Add(new Transaction()
+            if (GetBalanceOfDividendsContract() > 0)
             {
-                From = DividendsContractAddress,
-                To = TokenContractAddress,
-                MethodName = "Transfer",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
-            });
+                _transactionContext.Trace.InlineTransactions.Add(new Transaction()
+                {
+                    From = DividendsContractAddress,
+                    To = TokenContractAddress,
+                    MethodName = "Transfer",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+                });
+            }
         }
 
         /// <summary>
@@ -287,7 +325,7 @@ namespace AElf.Sdk.CSharp
                 }
                 finally
                 {
-                    await svc.PutExecutiveAsync(contractAddress, executive);
+                    await svc.PutExecutiveAsync(chainId, contractAddress, executive);
                 }
             }).Unwrap().Wait();
 

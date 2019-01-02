@@ -156,6 +156,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
 ProjectSection(SolutionItems) = preProject
 	.travis.yml = .travis.yml
+	build.sh = build.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"

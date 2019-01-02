@@ -66,7 +66,7 @@ namespace AElf.Node
             {
                 case ConsensusType.AElfDPoS:
                     context.Services.AddSingleton<IConsensus, DPoS>();
-                    context.Services.AddTransient<ConsensusHelper>();
+                    context.Services.AddSingleton<ConsensusHelper>();
                     break;
                 case ConsensusType.PoW:
                     break;

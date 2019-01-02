@@ -165,6 +165,45 @@ namespace AElf.Synchronization.BlockSynchronization
             
                 await TryExecuteNextCachedBlock();
             });
+            
+            MessageHub.Instance.Subscribe<MinorityForkDetected>(async inBlock => { await OnMinorityForkDetected(); });
+        }
+
+        private async Task OnMinorityForkDetected()
+        {
+            // Get ourselves into the Reverting state 
+            MessageHub.Instance.Publish(StateEvent.LongerChainDetected);
+            
+            Logger.LogWarning("The chain is about to be re-synced from the lib.");
+
+            try
+            {
+                lock (_blockCacheLock)
+                {
+                    // clear cache queue - this is to at least forget about current blocks in the queue
+                    // if some get added right after, they won't be valid (unlinkable)
+                    _blockCache.Clear();
+                    _blockSet.Clear();
+                }
+            
+                // We rollback to LIB if it exists
+                if (CurrentLib != null && CurrentLib.Index != 0)
+                {
+                    await _blockChain.RollbackToHeight(CurrentLib.Index);
+                    HeadBlock = CurrentLib;
+                }
+                else
+                {
+                    Logger.LogWarning("No LIB found...");
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error while handling minority fork situation.");
+                MessageHub.Instance.Publish(StateEvent.RollbackFinished);
+            }
+            
+            MessageHub.Instance.Publish(StateEvent.RollbackFinished);
         }
 
         public void Init()
@@ -253,7 +292,16 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 // execute the block with the lowest index
                 next = _blockCache.OrderBy(b => b.Index).FirstOrDefault();
-                
+
+                if (next == null)
+                    return;
+
+                if (next.Index > HeadBlock.Index + 1)
+                {
+                    Logger.LogWarning($"Future block {next}, current height {HeadBlock.Index}, don't handle it.");
+                    return;
+                }
+
                 _blockCache.Remove(next);
 
                 _currentBlock = next;
@@ -327,15 +375,22 @@ namespace AElf.Synchronization.BlockSynchronization
                 MessageHub.Instance.Publish(new BlockAccepted(block));
 
                 Logger.LogTrace($"Pushed {block}, current state {CurrentState}, current head {HeadBlock}, blockset head {_blockSet.CurrentHead.BlockHash}");
-                
-                if (HeadBlock.BlockHash != _blockSet.CurrentHead.BlockHash && HeadBlock.BlockHash != _blockSet.CurrentHead.Previous) 
+
+                if (HeadBlock.BlockHash != _blockSet.CurrentHead.BlockHash)
                 {
-                    // Here the blockset has switched fork -> attempt to switch the blockchain
-                    await TrySwitchFork();
+                    if (HeadBlock.BlockHash != _blockSet.CurrentHead.Previous)
+                    {
+                        // Here the blockset has switched fork -> attempt to switch the blockchain
+                        await TrySwitchFork();
+                    }
+                    else
+                    {
+                        await HandleBlock(block);
+                    }
                 }
                 else
                 {
-                    await HandleBlock(block);
+                    MessageHub.Instance.Publish(StateEvent.InvalidBlock);
                 }
             }
             catch (Exception e)
@@ -352,7 +407,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
-            var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block, await GetChainContextAsync());
+            var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block);
             Logger.LogInformation($"Block validation result {block} - {blockValidationResult}");
 
             if (blockValidationResult.IsSuccess())
@@ -381,8 +436,12 @@ namespace AElf.Synchronization.BlockSynchronization
             var executionResult = await _blockExecutor.ExecuteBlock(block);
 
             Logger.LogTrace($"Execution result of block {block} - {executionResult}");
-
-            if (executionResult.CanExecuteAgain())
+            
+            if (executionResult == BlockExecutionResult.AlreadyAppended)
+            {
+                // good to go
+            }
+            else if (executionResult.CanExecuteAgain())
             {
                 // todo side chain logic
                 _blockSet.RemoveInvalidBlock(block.GetHash());
@@ -401,7 +460,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (HeadBlock == _blockSet.CurrentHead.PreviousState)
                 HeadBlock = _blockSet.CurrentHead;
 
-            MessageHub.Instance.Publish(UpdateConsensus.Update);
+            MessageHub.Instance.Publish(UpdateConsensus.UpdateAfterExecution);
 
             // BlockAppending -> Catching / Caught
             MessageHub.Instance.Publish(StateEvent.BlockAppended);
