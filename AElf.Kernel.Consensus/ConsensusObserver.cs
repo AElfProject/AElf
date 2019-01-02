@@ -113,7 +113,12 @@ namespace AElf.Kernel.Consensus
 
         public IDisposable SubscribeMiningProcess(Round roundInfo)
         {
-            var welcome = roundInfo.RealTimeMinersInfo[NodeConfig.Instance.ECKeyPair.PublicKey.ToHex()];
+            var publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
+            if (!roundInfo.RealTimeMinersInfo.ContainsKey(publicKey))
+            {
+                return null;
+            }
+            var welcome = roundInfo.RealTimeMinersInfo[publicKey];
             var extraBlockTimeSlot = roundInfo.GetEBPMiningTime(Interval).ToTimestamp();
             var myMiningTime = welcome.ExpectedMiningTime;
             var now = DateTime.UtcNow.ToTimestamp();

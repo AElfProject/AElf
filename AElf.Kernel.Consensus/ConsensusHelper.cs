@@ -6,6 +6,7 @@ using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using NLog.Fluent;
 
 namespace AElf.Kernel.Consensus
 {
@@ -91,12 +92,21 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return Candidates.Parser.ParseFrom(
+                    var candidates = Candidates.Parser.ParseFrom(
                         _reader.ReadFiled<Candidates>(GlobalConfig.AElfDPoSCandidatesString));
+                    if (candidates.PublicKeys.Count < GlobalConfig.BlockProducerNumber)
+                    {
+                        throw new Exception();
+                    }
+
+                    return candidates;
                 }
                 catch (Exception)
                 {
-                    return _minersManager.GetMiners().Result.PublicKeys.ToCandidates();
+                    _logger?.Trace("No candidate, so the miners of next term will still be the initial miners.");
+                    var initialMiners = _minersManager.GetMiners().Result.PublicKeys.ToCandidates();
+                    initialMiners.IsInitialMiners = true;
+                    return initialMiners;
                 }
             }
         }
@@ -185,28 +195,26 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public ulong CalculateBlockchainAge()
-        {
-            return (ulong) ((DateTime.UtcNow - BlockchainStartTimestamp.ToDateTime()).TotalDays + 1);
-        }
-
-        public List<string> GetVictories()
+        public bool TryToGetVictories(out List<string> victories)
         {
             var ticketsMap = new Dictionary<string, ulong>();
-            foreach (var candidate in Candidates.PublicKeys)
+            var candidates = Candidates;
+            foreach (var candidate in candidates.PublicKeys)
             {
                 var tickets = GetTickets(candidate);
-                ticketsMap.Add(candidate, tickets.TotalTickets);
+                ticketsMap[candidate] = tickets.TotalTickets;
             }
 
-            return ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
+            victories = ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
                 .ToList();
+            return !candidates.IsInitialMiners;
         }
 
         private Tickets GetTickets(string candidatePublicKey)
         {
-            return Tickets.Parser.ParseFrom(_reader.ReadMap<Tickets>(candidatePublicKey.ToStringValue(),
-                GlobalConfig.AElfDPoSTicketsMapString));
+            var bytes = _reader.ReadMap<Tickets>(candidatePublicKey.ToStringValue(),
+                GlobalConfig.AElfDPoSTicketsMapString);
+            return bytes == null ? new Tickets() : Tickets.Parser.ParseFrom(bytes);
         }
         
         public StringValue GetDPoSInfoToString()
@@ -296,17 +304,22 @@ namespace AElf.Kernel.Consensus
             return false;
         }
 
+        public ulong CalculateBlockchainAge()
+        {
+            return (ulong) (DateTime.UtcNow - BlockchainStartTimestamp.ToDateTime()).TotalMinutes + 1;
+        }
+
         public void SyncMiningInterval()
         {
             ConsensusConfig.Instance.DPoSMiningInterval = MiningInterval.Value;
-            _logger?.Info($"Set AElf DPoS mining interval to: {GlobalConfig.AElfDPoSMiningInterval} ms.");
+            _logger?.Info($"Set AElf DPoS mining interval to: {ConsensusConfig.Instance.DPoSMiningInterval} ms.");
         }
 
         public void LogDPoSInformation(ulong height)
         {
             _logger?.Trace("Log dpos information - Start");
             _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
-                           $". Current height: {height}");
+                           $". Current height: {height}. Current term: {CurrentTermNumber.Value}");
             _logger?.Trace("Log dpos information - End");
         }
 
@@ -317,6 +330,7 @@ namespace AElf.Kernel.Consensus
 
         public Miners GetCurrentMiners()
         {
+            _logger?.Trace($"Current term number: {CurrentTermNumber.Value}");
             var bytes = _reader.ReadMap<Miners>(CurrentTermNumber, GlobalConfig.AElfDPoSMinersMapString);
             var miners = AElf.Kernel.Miners.Parser.ParseFrom(bytes);
             return miners;
@@ -369,8 +383,10 @@ namespace AElf.Kernel.Consensus
                     result += "In Value:\t" + minerInfo.Value.InValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() +
                               "\n";
                     result += "Mined Blocks:\t" + minerInfo.Value.ProducedBlocks + "\n";
+                    // TODO: `IsForked` Not implemented yet, maybe useless.
                     result += "Is Forked:\t" + minerInfo.Value.IsForked + "\n";
                     result += "Missed Slots:\t" + minerInfo.Value.MissedTimeSlots + "\n";
+                    result += "Latest Missed:\t" + minerInfo.Value.LatestMissedTimeSlots + "\n";
                 }
 
                 return result + $"\nEBP TimeSlot of current round: {roundInfo.GetEBPMiningTime(MiningInterval.Value).ToLocalTime():u}\n";

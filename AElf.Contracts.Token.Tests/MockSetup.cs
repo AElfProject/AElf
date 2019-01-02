@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.ChainController;
 using AElf.SmartContract;
-using AElf.Execution;
-using AElf.Types.CSharp;
 using Google.Protobuf;
-using ServiceStack;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Managers;
@@ -73,12 +69,8 @@ namespace AElf.Contracts.Token.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath($"../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/{TokenName}.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                var filePath = Path.GetFullPath($"../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/{TokenName}.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
         
@@ -86,12 +78,8 @@ namespace AElf.Contracts.Token.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.Genesis/bin/Debug/netstandard2.0/AElf.Contracts.Genesis.dll");
+                return File.ReadAllBytes(filePath);
             }
         }
         

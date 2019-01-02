@@ -6,14 +6,10 @@ using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using Api = AElf.Sdk.CSharp.Api;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
-using AElf.Types.CSharp;
-using Google.Protobuf;
-using ServiceStack;
 
 #pragma warning disable CS0169,CS0649
 
+// ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 namespace AElf.Contracts.Token
 {
@@ -74,6 +70,9 @@ namespace AElf.Contracts.Token
         [SmartContractFieldData("${this}._allowancePlaceHolder", DataAccessMode.AccountSpecific)]
         private readonly object _allowancePlaceHolder;
 
+        private readonly MapToUInt64<Address> _chargedFees = new MapToUInt64<Address>("_ChargedFees_");
+        private readonly PbField<Address> _feePoolAddress = new PbField<Address>("_feePoolAddress_");
+
         #region ABI (Public) Methods
 
         #region View Only Methods
@@ -120,6 +119,18 @@ namespace AElf.Contracts.Token
             return Allowances.GetAllowance(owner, spender);
         }
 
+        [View]
+        public ulong ChargedFees(Address address)
+        {
+            return _chargedFees[address];
+        }
+
+        [View]
+        public Address FeePoolAddress()
+        {
+            return _feePoolAddress.GetValue();
+        }
+        
         #endregion View Only Methods
 
         #region Actions
@@ -129,6 +140,7 @@ namespace AElf.Contracts.Token
             "${this}._initialized", "${this}._symbol", "${this}._tokenName", "${this}._totalSupply",
             "${this}._decimals", "${this}._balances"
         })]
+        [Fee(0)]
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
             Api.Assert(!_initialized.GetValue(), "Already initialized.");
@@ -137,8 +149,20 @@ namespace AElf.Contracts.Token
             _tokenName.SetValue(tokenName);
             _totalSupply.SetValue(totalSupply);
             _decimals.SetValue(decimals);
-            _balances[Api.GetFromAddress()] = totalSupply;
+            _balances[Api.GetFromAddress()] = (ulong) (totalSupply * (1 - GlobalConfig.DividendsRatio)) - GlobalConfig.BalanceForInitialization;
+            // Give a specific amount of tokens to Dividends Contract for sending dividends to both candidates and voters.
+            _balances[Api.DividendsContractAddress] = (ulong) (totalSupply * GlobalConfig.DividendsRatio);
+            _balances[Api.ConsensusContractAddress] = GlobalConfig.BalanceForInitialization;
             _initialized.SetValue(true);
+        }
+
+        [Fee(0)]
+        public void SetFeePoolAddress(Address address)
+        {
+            var fromAddress = Api.GetFromAddress();
+            var notSet = _feePoolAddress.GetValue().Value == null || _feePoolAddress.GetValue().Value.Length == 0;
+            Api.Assert(notSet || fromAddress == _feePoolAddress.GetValue(), "Not allowed to perform this action.");
+            _feePoolAddress.SetValue(address);
         }
 
         [SmartContractFunction("${this}.Transfer", new string[] {"${this}.DoTransfer"}, new string[] { })]
@@ -149,8 +173,8 @@ namespace AElf.Contracts.Token
             Console.WriteLine($"Transferred {amount} tokens to - {to.GetFormatted()}");
         }
 
-        [SmartContractFunction("${this}.TransferFrom", new string[] {"${this}.DoTransfer"},
-            new string[] {"${this}._allowancePlaceHolder"})]
+        [SmartContractFunction("${this}.TransferFrom", new[] {"${this}.DoTransfer"},
+            new[] {"${this}._allowancePlaceHolder"})]
         public void TransferFrom(Address from, Address to, ulong amount)
         {
             var allowance = Allowances.GetAllowance(from, Api.GetFromAddress());
@@ -160,11 +184,11 @@ namespace AElf.Contracts.Token
             Allowances.Reduce(from, Api.GetFromAddress(), amount);
         }
 
-        [SmartContractFunction("${this}.Approve", new string[] { }, new string[] {"${this}._allowancePlaceHolder"})]
+        [SmartContractFunction("${this}.Approve", new string[] { }, new[] {"${this}._allowancePlaceHolder"})]
         public void Approve(Address spender, ulong amount)
         {
             Allowances.Approve(spender, amount);
-            new Approved()
+            new Approved
             {
                 Owner = Api.GetFromAddress(),
                 Spender = spender,
@@ -172,12 +196,12 @@ namespace AElf.Contracts.Token
             }.Fire();
         }
 
-        [SmartContractFunction("${this}.UnApprove", new string[] { }, new string[] {"${this}._allowancePlaceHolder"})]
+        [SmartContractFunction("${this}.UnApprove", new string[] { }, new[] {"${this}._allowancePlaceHolder"})]
         public void UnApprove(Address spender, ulong amount)
         {
             var amountOrAll = Math.Min(amount, Allowances.GetAllowance(Api.GetFromAddress(), spender));
             Allowances.Reduce(Api.GetFromAddress(), spender, amountOrAll);
-            new UnApproved()
+            new UnApproved
             {
                 Owner = Api.GetFromAddress(),
                 Spender = spender,
@@ -185,19 +209,53 @@ namespace AElf.Contracts.Token
             }.Fire();
         }
 
-        [SmartContractFunction("${this}.Burn", new string[] { }, new string[] {"${this}._balances"})]
+        [SmartContractFunction("${this}.Burn", new string[] { }, new[] {"${this}._balances"})]
         public void Burn(ulong amount)
         {
             var bal = _balances[Api.GetFromAddress()];
             Api.Assert(bal >= amount, "Burner doesn't own enough balance.");
             _balances[Api.GetFromAddress()] = bal.Sub(amount);
             _totalSupply.SetValue(_totalSupply.GetValue().Sub(amount));
-            new Burned()
+            new Burned
             {
                 Burner = Api.GetFromAddress(),
                 Amount = amount
             }.Fire();
         }
+
+        #region Used Transaction Fees
+
+        /// <summary>
+        /// The fees will be first locked according to transaction hash and will be claimed by the miner during
+        /// finalizing the block. This method is only called by the main transaction (non-inline transactions).
+        /// </summary>
+        /// <param name="txHash"></param>
+        /// <param name="feeAmount"></param>
+        public void ChargeTransactionFees(ulong feeAmount)
+        {
+            var fromAddress = Api.GetFromAddress();
+            _balances[fromAddress] = _balances[fromAddress].Sub(feeAmount);
+            _chargedFees[fromAddress] = _chargedFees[fromAddress].Add(feeAmount);
+        }
+
+        [Fee(0)]
+        public void ClaimTransactionFees(ulong height)
+        {
+            var feePoolAddressNotSet =
+                _feePoolAddress.GetValue().Value == null || _feePoolAddress.GetValue().Value.Length == 0;
+            Api.Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
+            var blk = Api.GetBlockByHeight(height);
+            var senders = blk.Body.TransactionList.Select(t => t.From).ToList();
+            var feePool = _feePoolAddress.GetValue();
+            foreach (var sender in senders)
+            {
+                var fee = _chargedFees[sender];
+                _chargedFees[sender] = 0UL;
+                _balances[feePool] = _balances[feePool].Add(fee);
+            }
+        }
+
+        #endregion Used Transaction Fees
 
         #endregion Actions
 
@@ -205,7 +263,7 @@ namespace AElf.Contracts.Token
 
         #region Private Methods
 
-        [SmartContractFunction("${this}.DoTransfer", new string[] { }, new string[] {"${this}._balances"})]
+        [SmartContractFunction("${this}.DoTransfer", new string[] { }, new[] {"${this}._balances"})]
         private void DoTransfer(Address from, Address to, ulong amount)
         {
             var balSender = _balances[from];
@@ -215,7 +273,7 @@ namespace AElf.Contracts.Token
             balReceiver = balReceiver.Add(amount);
             _balances[from] = balSender;
             _balances[to] = balReceiver;
-            new Transfered()
+            new Transfered
             {
                 From = from,
                 To = to,
@@ -239,13 +297,13 @@ namespace AElf.Contracts.Token
 
         public static void Approve(Address spender, ulong amount)
         {
-            var pair = new AddressPair() {First = Api.GetFromAddress(), Second = spender};
+            var pair = new AddressPair {First = Api.GetFromAddress(), Second = spender};
             _allowances[pair] = _allowances[pair].Add(amount);
         }
 
         public static void Reduce(Address owner, Address spender, ulong amount)
         {
-            var pair = new AddressPair() {First = owner, Second = spender};
+            var pair = new AddressPair {First = owner, Second = spender};
             _allowances[pair] = _allowances[pair].Sub(amount);
         }
     }

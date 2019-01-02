@@ -3,7 +3,6 @@ using AElf.Common.Attributes;
 using AElf.Common;
 using Grpc.Core;
 using NLog;
-using ServiceStack;
 
 namespace AElf.Miner.Rpc.Client
 {

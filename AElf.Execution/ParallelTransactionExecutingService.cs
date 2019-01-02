@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using AElf.ChainController;
 using Akka.Actor;
-using ServiceStack.Text;
 using AElf.Kernel;
 using AElf.Configuration;
 using AElf.Execution.Scheduling;
-using AElf.SmartContract;
 using AElf.Common;
 using AElf.Execution.Execution;
 using Address = AElf.Common.Address;
@@ -18,46 +16,37 @@ namespace AElf.Execution
 {
     public class ParallelTransactionExecutingService : IExecutingService
     {
+        protected bool TransactionFeeDisabled { get; set; } = false;
         private readonly IGrouper _grouper;
         private readonly IActorEnvironment _actorEnvironment;
-        private readonly IExecutingService _singlExecutingService;
+        private readonly IExecutingService _simpleExecutingService;
 
-        public ParallelTransactionExecutingService(IActorEnvironment actorEnvironment, IGrouper grouper,ServicePack servicePack)
+        public ParallelTransactionExecutingService(IActorEnvironment actorEnvironment, IGrouper grouper,
+            ServicePack servicePack)
         {
             _actorEnvironment = actorEnvironment;
             _grouper = grouper;
-            _singlExecutingService = new SimpleExecutingService(servicePack.SmartContractService, servicePack.TransactionTraceManager, servicePack.StateManager, servicePack.ChainContextService);
+            _simpleExecutingService = new SimpleExecutingService(servicePack.SmartContractService,
+                servicePack.TransactionTraceManager, servicePack.StateManager, servicePack.ChainContextService);
         }
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
-            CancellationToken token, Hash disambiguationHash=null, TransactionType transactionType = TransactionType.ContractTransaction)
+            DateTime currentBlockTime, CancellationToken token, Hash disambiguationHash = null,
+            TransactionType transactionType = TransactionType.ContractTransaction,
+            bool skipFee = false)
         {
             token.Register(() => _actorEnvironment.Requestor.Tell(JobExecutionCancelMessage.Instance));
 
             List<List<Transaction>> groups;
-            Dictionary<Transaction, Exception> failedTxs=new Dictionary<Transaction, Exception>();
+            Dictionary<Transaction, Exception> failedTxs = new Dictionary<Transaction, Exception>();
             var results = new List<TransactionTrace>();
 
-            if (transactionType == TransactionType.DposTransaction || transactionType == TransactionType.ContractDeployTransaction)
+            if (transactionType == TransactionType.DposTransaction ||
+                transactionType == TransactionType.ContractDeployTransaction)
             {
-                results = await _singlExecutingService.ExecuteAsync(transactions, chainId, token);
-                
-                if (ActorConfig.Instance.IsCluster)
-                {
-                    var contractAddresses = new List<Address>();
-                    foreach (var tx in transactions)
-                    {
-                        if (tx.MethodName == "UpdateSmartContract")
-                        {
-                            contractAddresses.Add(tx.To);
-                        }
-                    }
-
-                    if (contractAddresses.Count > 0)
-                    {
-                        _actorEnvironment.Requestor.Tell(new UpdateContractMessage {ContractAddress = contractAddresses});
-                    }
-                }
+                results = await _simpleExecutingService.ExecuteAsync(transactions, chainId, currentBlockTime, token,
+                    disambiguationHash,
+                    transactionType, skipFee || TransactionFeeDisabled);
             }
             else
             {
@@ -73,9 +62,10 @@ namespace AElf.Execution
                 {
                     groups = new List<List<Transaction>> {transactions};
                 }
-                
+
                 var tasks = groups.Select(
-                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, disambiguationHash), token)
+                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token, currentBlockTime,
+                        disambiguationHash, transactionType, skipFee || TransactionFeeDisabled), token)
                 ).ToArray();
 
                 results = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
@@ -86,23 +76,27 @@ namespace AElf.Execution
                 var failedTrace = new TransactionTrace
                 {
                     StdErr = "Transaction with ID/hash " + failed.Key.GetHash().ToHex() +
-                             " failed, detail message: \n" + failed.Value.Dump(),
+                             " failed, detail message: \n" + failed.Value,
                     TransactionId = failed.Key.GetHash()
                 };
                 results.Add(failedTrace);
                 Console.WriteLine(failedTrace.StdErr);
             }
-            
+
             return results;
         }
 
         private async Task<List<TransactionTrace>> AttemptToSendExecutionRequest(Hash chainId,
-            List<Transaction> transactions, CancellationToken token, Hash disambiguationHash)
+            List<Transaction> transactions, CancellationToken token, DateTime currentBlockTime, Hash disambiguationHash,
+            TransactionType transactionType, bool skipFee)
         {
             while (!token.IsCancellationRequested)
             {
                 var tcs = new TaskCompletionSource<List<TransactionTrace>>();
-                _actorEnvironment.Requestor.Tell(new LocalExecuteTransactionsMessage(chainId, transactions, tcs, disambiguationHash));
+                _actorEnvironment.Requestor.Tell(
+                    new LocalExecuteTransactionsMessage(chainId, transactions, tcs, currentBlockTime,
+                        disambiguationHash,
+                        transactionType, skipFee));
                 var traces = await tcs.Task;
 
                 if (traces.Count > 0)

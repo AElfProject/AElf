@@ -111,6 +111,7 @@ enum ExecutionStatus {
     //   Contract reasons
     ContractError = -10;
     ExceededMaxCallDepth = -11;
+    InsufficientTransactionFees = -12;
 }
 
 message TransactionTrace {
@@ -126,6 +127,7 @@ message TransactionTrace {
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
     bytes DeferredTransaction = 12;
+    TransactionTrace FeeTransactionTrace = 13;
 }
 
 message LogEvent {
@@ -267,4 +269,31 @@ message BinaryMerkleTree{
 
 message StringList {
     repeated string Values = 1;
+}
+
+message BlockAbstract {
+    string MinerPublicKey = 1;
+    google.protobuf.Timestamp Time = 2;
+}
+
+enum BlockValidationResult {
+    // The chosen one!
+    Success = 0;
+    
+    // Cache them.
+    NotMiner = 11;
+    InvalidTimeSlot = 12;
+    FailedToCheckConsensusInvalidation = 13;
+    DoingRollback = 14;
+    
+    // Discard.
+    BlockIsNull = 101;
+    SameWithCurrentRound = 102;
+    IncorrectConsensusTransaction = 103;
+    ParseProblem = 104;
+    NoTransaction = 105;
+    IncorrectTxMerkleTreeRoot = 106;
+    IncorrectSideChainInfo = 107;
+    IncorrectPoWResult = 108;
+    NotImplementConsensus = 109;
 }

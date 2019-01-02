@@ -108,7 +108,12 @@ namespace AElf.Kernel.Consensus
             }
             
             var round = await GetCurrentRoundInfo();
-            return round.RealTimeMinersInfo[publicKey];
+            if (round.RealTimeMinersInfo.ContainsKey(publicKey))
+            {
+                return round.RealTimeMinersInfo[publicKey];
+            }
+
+            return null;
         }
 
         public async Task<Timestamp> GetExpectMiningTime(string publicKey = null)
@@ -119,7 +124,7 @@ namespace AElf.Kernel.Consensus
             }
 
             var info = await GetMinerInfo(publicKey);
-            return info.ExpectedMiningTime;
+            return info?.ExpectedMiningTime;
         }
 
         public async Task<double> GetDistanceToTimeSlot(string publicKey = null)
@@ -130,6 +135,10 @@ namespace AElf.Kernel.Consensus
             }
 
             var timeSlot = await GetExpectMiningTime(publicKey);
+            if (timeSlot == null)
+            {
+                return double.MaxValue;
+            }
             var distance = timeSlot - DateTime.UtcNow.ToTimestamp();
             return distance.ToTimeSpan().TotalMilliseconds;
         }
@@ -141,6 +150,11 @@ namespace AElf.Kernel.Consensus
             if (currentRoundNumber != 0)
             {
                 var info = await GetMinerInfo(publicKey);
+
+                if (info == null)
+                {
+                    return ConsensusConfig.Instance.DPoSMiningInterval;
+                }
 
                 var now = DateTime.UtcNow.ToTimestamp();
                 distance += (info.ExpectedMiningTime - now).ToTimeSpan().TotalMilliseconds;

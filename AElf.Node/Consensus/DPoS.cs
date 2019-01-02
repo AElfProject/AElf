@@ -31,12 +31,14 @@ namespace AElf.Node.Consensus
     public class DPoS : IConsensus
     {
         private ulong LatestRoundNumber { get; set; }
-        
+
         private ulong LatestTermNumber { get; set; }
 
         private static IDisposable ConsensusDisposable { get; set; }
 
         private bool _consensusInitialized;
+
+        private bool _minerFlag;
 
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
@@ -66,9 +68,12 @@ namespace AElf.Node.Consensus
 
         private readonly Hash _chainId;
 
-        public Address ContractAddress =>
+        public Address ConsensusContractAddress =>
             ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
+        public Address TokenContractAddress =>
+            ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+        
         private readonly IMinersManager _minersManager;
 
         private static int _flag;
@@ -76,6 +81,8 @@ namespace AElf.Node.Consensus
         private static bool _prepareTerminated;
 
         private static bool _terminated;
+
+        private static bool _executedBlockFromOtherMiners;
 
         private ConsensusObserver ConsensusObserver =>
             new ConsensusObserver(InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
@@ -90,11 +97,11 @@ namespace AElf.Node.Consensus
             _helper = helper;
             _prepareTerminated = false;
             _terminated = false;
-            
+
             _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
 
             _logger = LogManager.GetLogger(nameof(DPoS));
-            
+
             var count = MinersConfig.Instance.Producers.Count;
 
             GlobalConfig.BlockProducerNumber = count;
@@ -102,10 +109,17 @@ namespace AElf.Node.Consensus
 
             _logger?.Info("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
             _logger?.Info("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
-            
+
             MessageHub.Instance.Subscribe<UpdateConsensus>(async option =>
             {
-                if (option == UpdateConsensus.Update)
+                if (option == UpdateConsensus.UpdateAfterExecution)
+                {
+                    _executedBlockFromOtherMiners = true;
+                    _logger?.Trace("UpdateConsensus - Update");
+                    await UpdateConsensusInformation();
+                }
+
+                if (option == UpdateConsensus.UpdateAfterMining)
                 {
                     _logger?.Trace("UpdateConsensus - Update");
                     await UpdateConsensusInformation();
@@ -152,7 +166,7 @@ namespace AElf.Node.Consensus
             {
                 return;
             }
-            
+
             // Consensus information already generated.
             if (ConsensusDisposable != null)
             {
@@ -229,7 +243,7 @@ namespace AElf.Node.Consensus
             }
         }
 
-        private async Task<Transaction> GenerateTransactionAsync(string methodName, List<object> parameters)
+        private async Task<Transaction> GenerateDPoSTransactionAsync(string methodName, List<object> parameters)
         {
             try
             {
@@ -238,18 +252,18 @@ namespace AElf.Node.Consensus
                 bn = bn > 4 ? bn - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
-                
+
                 var tx = new Transaction
                 {
                     From = Address.FromPublicKey(_ownPubKey),
-                    To = ContractAddress,
+                    To = ConsensusContractAddress,
                     RefBlockNumber = bn,
                     RefBlockPrefix = ByteString.CopyFrom(bhPref),
                     MethodName = methodName,
                     Type = TransactionType.DposTransaction,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
                 };
-                
+
                 var signer = new ECSigner();
                 var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
                 tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
@@ -263,6 +277,40 @@ namespace AElf.Node.Consensus
             catch (Exception e)
             {
                 _logger?.Trace(e, "Error while during generating DPoS tx.");
+            }
+
+            return null;
+        }
+        
+        private async Task<Transaction> GenerateNormalTransactionAsync(string methodName, List<object> parameters)
+        {
+            try
+            {
+                var bn = await BlockChain.GetCurrentBlockHeightAsync();
+                bn = bn > 4 ? bn - 4 : 0;
+                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
+                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
+
+                var tx = new Transaction
+                {
+                    From = Address.FromPublicKey(_ownPubKey),
+                    To = TokenContractAddress,
+                    RefBlockNumber = bn,
+                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
+                    MethodName = methodName,
+                    Type = TransactionType.ContractTransaction,
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
+                };
+
+                var signer = new ECSigner();
+                var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+
+                return tx;
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error while during generating normal tx.");
             }
 
             return null;
@@ -302,13 +350,13 @@ namespace AElf.Node.Consensus
                     var firstTerm = _minersManager.GetMiners().Result
                         .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
-                    
+
                     var parameters = new List<object>
                     {
                         firstTerm,
                         logLevel
                     };
-                    var txToInitialTerm = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    var txToInitialTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToInitialTerm);
 
                     await Mine();
@@ -389,7 +437,7 @@ namespace AElf.Node.Consensus
                     };
 
                     var txToPackageOutValue =
-                        await GenerateTransactionAsync(behavior.ToString(), parameters);
+                        await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToPackageOutValue);
 
                     await Mine();
@@ -460,7 +508,7 @@ namespace AElf.Node.Consensus
                         }
                     };
 
-                    var txToPublishInValue = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    var txToPublishInValue = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToPublishInValue);
                 }
             }
@@ -526,9 +574,16 @@ namespace AElf.Node.Consensus
                     var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
 
                     var calculatedAge = _helper.CalculateBlockchainAge();
+                    _logger?.Trace("Current blockchain age: " + calculatedAge);
 
-                    if (calculatedAge % GlobalConfig.DaysEachTerm == 0)
+                    // TODO: Recover after testing
+                    if (/*(calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
+                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||*/
+                        (LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
+                         _helper.TryToGetVictories(out var victories) &&
+                         victories.Count == GlobalConfig.BlockProducerNumber))
                     {
+                        _logger?.Trace("Will change term.");
                         throw new NextTermException();
                     }
 
@@ -541,13 +596,13 @@ namespace AElf.Node.Consensus
                             var poorGuyPublicKey = minerInRound.PublicKey;
                             var latestTermSnapshot = _helper.GetLatestTermSnapshot();
                             var luckyGuyPublicKey = latestTermSnapshot.GetNextCandidate(miners);
-                            
+
                             nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey] =
                                 nextRoundInfo.RealTimeMinersInfo[poorGuyPublicKey];
                             nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].MissedTimeSlots = 0;
                             nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].ProducedBlocks = 0;
                             nextRoundInfo.RealTimeMinersInfo.Remove(poorGuyPublicKey);
-                            
+
                             miners.PublicKeys.Remove(poorGuyPublicKey);
                             miners.PublicKeys.Add(luckyGuyPublicKey);
                         }
@@ -565,7 +620,7 @@ namespace AElf.Node.Consensus
                         }
                     };
 
-                    var txForNextRound = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    var txForNextRound = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
 
                     await BroadcastTransaction(txForNextRound);
                     await Mine();
@@ -628,13 +683,14 @@ namespace AElf.Node.Consensus
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
+                    _helper.TryToGetVictories(out var victories);
                     var parameters = new List<object>
                     {
-                        _helper.GetVictories().ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
+                        victories.ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
                             _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
                     };
 
-                    var txForNextTerm = await GenerateTransactionAsync(behavior.ToString(), parameters);
+                    var txForNextTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
 
                     await BroadcastTransaction(txForNextTerm);
                     await Mine();
@@ -660,31 +716,37 @@ namespace AElf.Node.Consensus
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
-            // Update miners.
-            if (LatestTermNumber == _helper.CurrentTermNumber.Value + 1)
-            {
-                await _minersManager.SetMiners(_helper.GetCurrentMiners());
-            }
-
             if (LatestRoundNumber == _helper.CurrentRoundNumber.Value)
             {
                 return;
             }
 
+            // Update miners.
+            
             if (_helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
             {
                 var currentRoundInfo = _helper.GetCurrentRoundInfo();
                 if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
                 {
+                    _logger?.Trace("Updating miners.");
                     await _minersManager.SetMiners(_helper.GetCurrentMiners());
                 }
             }
+
+            if (_executedBlockFromOtherMiners && _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
+            {
+                MessageHub.Instance.Publish(new MinorityForkDetected());
+            }
             
+            // Update current round number and current term number.
+            LatestRoundNumber = _helper.CurrentRoundNumber.Value;
+            LatestTermNumber = _helper.CurrentTermNumber.Value;
+
             if (!NodeConfig.Instance.IsMiner)
             {
                 return;
             }
-            
+
             // Dispose previous observer.
             if (ConsensusDisposable != null)
             {
@@ -697,20 +759,26 @@ namespace AElf.Node.Consensus
             var miners = _helper.Miners;
             if (miners.All(m => m != _ownPubKey.ToHex()))
             {
+                _minerFlag = false;
                 return;
             }
 
-            ConsensusDisposable = ConsensusObserver.SubscribeMiningProcess(_helper.GetCurrentRoundInfo());
+            if (!_minerFlag)
+            {
+                _logger?.Trace("Become a miner just now.");
+            }
 
-            // Update current round number.
-            LatestRoundNumber = _helper.CurrentRoundNumber.Value;
+            _minerFlag = true;
+
+            ConsensusDisposable = ConsensusObserver.SubscribeMiningProcess(_helper.GetCurrentRoundInfo());
         }
 
         public bool IsAlive()
         {
             var currentTime = DateTime.UtcNow;
             var currentRound = _helper.GetCurrentRoundInfo();
-            var startTimeSlot = currentRound.RealTimeMinersInfo.First(bp => bp.Value.Order == 1).Value.ExpectedMiningTime
+            var startTimeSlot = currentRound.RealTimeMinersInfo.First(bp => bp.Value.Order == 1).Value
+                .ExpectedMiningTime
                 .ToDateTime();
 
             var endTimeSlot =
@@ -741,7 +809,7 @@ namespace AElf.Node.Consensus
                 _logger?.Trace(
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().ToHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
-            
+
             await _txHub.AddTransactionAsync(tx, true);
         }
 
@@ -755,6 +823,5 @@ namespace AElf.Node.Consensus
         {
             return _lockNumber != 0;
         }
-
     }
 }

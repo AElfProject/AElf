@@ -1,24 +1,8 @@
 {
-    "producers":{
-      "1": {
-       "public_key": "04d8f8fd19cf9e3f7f84eb6be33ad28163d7e929b66bfd0a4059fbc9369cc770654d0506c5cdc9e69b86b6a14f06494e843998fb5565cbc30bb7ccb1cc3105e557",
-       "address": "ELF_5ta1yvi2dFEs4V7YLPgwkbnn816xVUvwWyTHPHcfxMVLrLB"
-      },
-      "2": {
-       "public_key": "045ee0713d2afedba03221b683b8e806f6b97449cb185c5d785fa0ad5282810771f9c20a174f1baacc43ca757819591b2515e1f9b2252cf4e23d787b3ac72c7eb0",
-       "address": "ELF_2uZkbxk7jzzn3jBdAUL7spJjUssGoRRJzxgANRQySt1NSY8"
-       },
-       "3": {
-        "public_key": "041edd6680e51819834b88c81186496a4bdf96a63e673a0c5b65afd033191a11b8794827ca5022557733ca3f5bceeb6b255224a2563b6ebe6449c14a6a01487144",
-        "address": "ELF_Zb7c1BcPdzUqRvz2ajuzhc2q7UaHdtLP5VprVNi8Y6KVwp"
-       },
-       "4": {
-         "public_key": "049c0972e4c90a447ed5c3e7a6a2d0e4111c720827d2aad905b6ce90fa25351ddff0fac27cfa4d8b086c416f4733b6d8669db9a18a3a27f711685d4888f009437c",
-         "address": "ELF_3A4s6smYw2bXNiFNxitdjh23m1JeJFCS28P2XhGoakcJRuN"
-       },
-       "5": {
-         "public_key": "04f510519a19309f2f4f12eca2630b166d59286d4dad3e7e429a2ab351d4e08cd3f9509f34bd500da222f57dc75943e5e454d660bb851b3fee1271b2200366323f",
-         "address": "ELF_4UF3HHUZrGbLRT8KQn8r8ESQaTDa4DkkcrSrqCkvaiNJGAi"
-       }
-     }
+  "producers": {
+    "1": {
+      "address": "ELF_4FeP2qLTgZLVFsziS7UDUA4hz2G47WHC8Lsbpx5df6QCCfq",
+      "public_key": "04c12d9459243cd31b3cc23caf9830fd35280928c4817e522b3e60235b09c7e828f777347640b15ac5102f21d9125832839973016fdcd835185079b4811725ecbb"
     }
+  }
+}

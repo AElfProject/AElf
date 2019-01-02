@@ -24,6 +24,7 @@ namespace AElf.Common
         public static readonly string GenesisCrossChainContractAssemblyName = "AElf.Contracts.CrossChain";
         public static readonly string GenesisAuthorizationContractAssemblyName = "AElf.Contracts.Authorization";
         public static readonly string GenesisResourceContractAssemblyName = "AElf.Contracts.Resource";
+        public static readonly string GenesisDividendsContractAssemblyName = "AElf.Contracts.Dividends";
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;
 
@@ -33,22 +34,23 @@ namespace AElf.Common
         public static readonly ulong CrossChainContract = 3;
         public static readonly ulong AuthorizationContract = 4;
         public static readonly ulong ResourceContract = 5;
-        public static readonly ulong DividendsContract = 5;
+        public static readonly ulong DividendsContract = 6;
 
         public static int InvertibleChainHeight = 4;
 
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
 
-        #region AElf DPoS
+        #region Consensus
 
+        public const ulong TotalSupply = 100_000_000_000;
+        public const ulong BalanceForInitialization = 100_000_000;
+        public const int ForkDetectionRoundNumber = 3;
         public const ulong LockTokenForElection = 100_000;
         public const ulong DaysEachTerm = 7;
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
-        public static int AElfDPoSMiningInterval = 4000;
         public const int AliasLimit = 20;
-        public static readonly int AElfMiningInterval = AElfDPoSMiningInterval * 9 / 10;
         public const int ProducerRepetitions = 8;
         public const int AElfWaitFirstRoundTime = 8000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
@@ -61,12 +63,13 @@ namespace AElf.Common
         public const string AElfDPoSCandidatesString = "__AElfDPoSCandidatesString__";
         public const string AElfDPoSTermNumberLookupString = "__AElfDPoSTermNumberLookUpString__";
         public const string AElfDPoSSnapshotMapString = "__AElfDPoSSnapshotFieldString__";
-        public const string AElfDPoSDividendsMapString = "__AElfDPoSDividendsMapString__";
         public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
         public const string AElfDPoSAliasesLookupMapString = "__AElfDPoSAliasesLookupMapString__";
         public const string AElfVotesCountString = "__AElfVotesCountString__";
         public const string AElfTicketsCountString = "__AElfTicketsCountString__";
+        public const string AElfTwoThirdsMinerMinedString = "__AElfTwoThirdsMinerMinedString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
+        public const string AElfDPoSAgeToRoundNumberMapString = "__AElfDPoSAgeToRoundNumberMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
         public const string AElfDPoSBlockchainStartTimestamp = "__AElfDPoSBlockchainStartTimestamp__";
 
@@ -99,8 +102,8 @@ namespace AElf.Common
         public const double DividendsForReappointmentRatio = 0.1;
         public const double DividendsForBackupNodesRatio = 0.2;
         public const double DividendsForVotersRatio = 0.2;
+        public const double DividendsRatio = 0.12;
         public const string DividendsMapString = "__DividendsMapString__";
-        public const string WeightsMapString = "__WeightsMapString__";
         public const string TotalWeightsMapString = "__TotalWeightsMapString__";
         public const string TransferMapString = "__TransferMapString__";
 
@@ -131,6 +134,8 @@ namespace AElf.Common
         
         public static ulong BlockCacheLimit = 2048; 
 
+        public const int RoundsPerTerm = 10;
+        
         #region Consensus Error String
         
         public const string TicketsNotFound = "Tickets not found.";

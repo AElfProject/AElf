@@ -23,7 +23,8 @@ namespace AElf.CLI2.Commands
             {
                 [typeof(CreateOption)] = typeof(CreateCommand),
                 [typeof(InteractiveConsoleOption)] = typeof(InteractiveConsoleCommand),
-                [typeof(DeployOption)] = typeof(DeployCommand),
+                [typeof(DeployContractOption)] = typeof(DeployContractCommand),
+                [typeof(UpdateContractOption)] = typeof(UpdateContractCommand),
                 [typeof(GetAbiOption)] = typeof(GetAbiCommand),
                 [typeof(SendTransactionOption)] = typeof(SendTransactionCommand),
                 [typeof(GetTxResultOption)] = typeof(GetTxResultCommand),

@@ -3,7 +3,8 @@ namespace AElf.Kernel.EventMessages
 {
     public enum UpdateConsensus
     {
-        Update,
+        UpdateAfterExecution,
+        UpdateAfterMining,
         Dispose
     }
 }

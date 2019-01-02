@@ -16,7 +16,7 @@ namespace AElf.Contracts.Consensus.Tests
         private const int CandidatesCount = 18;
         private const int VotersCount = 2;
         
-        private readonly ConsensusContractShim _consensusContract;
+        private readonly ContractsShim _contracts;
 
         private readonly MockSetup _mock;
 
@@ -29,12 +29,7 @@ namespace AElf.Contracts.Consensus.Tests
         public TermTest(MockSetup mock)
         {
             _mock = mock;
-            _consensusContract = new ConsensusContractShim(mock);
-
-            const ulong totalSupply = 100_000_000_000;
-            _consensusContract.Initialize("ELF", "AElf Token", totalSupply, 2);
-
-            _consensusContract.Transfer(_consensusContract.DividendsContractAddress, (ulong) (totalSupply * 0.12 * 0.2));
+            _contracts = new ContractsShim(mock);
         }
         
         private void InitialMiners()
@@ -52,8 +47,8 @@ namespace AElf.Contracts.Consensus.Tests
                 var keyPair = new KeyPairGenerator().Generate();
                 _candidates.Add(keyPair);
                 // Enough for him to announce election
-                _consensusContract.Transfer(GetAddress(keyPair), GlobalConfig.LockTokenForElection);
-                _consensusContract.AnnounceElection(keyPair);
+                _contracts.InitialBalance(_initialMiners[0], GetAddress(keyPair), GlobalConfig.LockTokenForElection);
+                _contracts.AnnounceElection(keyPair);
             }
         }
 
@@ -64,7 +59,7 @@ namespace AElf.Contracts.Consensus.Tests
                 var keyPair = new KeyPairGenerator().Generate();
                 _voters.Add(keyPair);
                 // Send them some tokens to vote.
-                _consensusContract.Transfer(GetAddress(keyPair), 100_000);
+                _contracts.InitialBalance(_initialMiners[0], GetAddress(keyPair), 100_000);
             }
         }
 
@@ -86,22 +81,22 @@ namespace AElf.Contracts.Consensus.Tests
                 {
                     if (new Random().Next(0, 10) < 5)
                     {
-                        _consensusContract.Vote(voter, candidate, (ulong) new Random().Next(1, 100), 90);
+                        _contracts.Vote(voter, candidate, (ulong) new Random().Next(1, 100), 90);
                     }
                 }
             }
 
             // Get victories of first term of election, they are miners then.
-            var victories = _consensusContract.GetCurrentVictories().Values;
+            var victories = _contracts.GetCurrentVictories().Values;
             
             // Next term.
             var nextTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 2);
-            _consensusContract.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), nextTerm);
-            Assert.Equal(string.Empty, _consensusContract.TransactionContext.Trace.StdErr);
+            _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), nextTerm);
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             
             // Check the information of the last round of previous term.
             // All the initial miners have missed 1 time slot.
-            var firstRound = _consensusContract.GetRoundInfo(1);
+            var firstRound = _contracts.GetRoundInfo(1);
             foreach (var initialMiner in _initialMiners)
             {
                 Assert.Equal((ulong) 1, firstRound.RealTimeMinersInfo[initialMiner.PublicKey.ToHex()].MissedTimeSlots);
@@ -110,9 +105,9 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.Equal((ulong) 1, firstRound.RealTimeMinersInfo[_initialMiners[0].PublicKey.ToHex()].MissedTimeSlots);
 
             // Check the mines of new term.
-            var firstRoundOfNewTerm = _consensusContract.GetRoundInfo(2);
+            var firstRoundOfNewTerm = _contracts.GetRoundInfo(2);
             Assert.True(!firstRoundOfNewTerm.RealTimeMinersInfo.Keys.Except(victories).Any());
-            var secondRoundOfNewTerm = _consensusContract.GetRoundInfo(3);
+            var secondRoundOfNewTerm = _contracts.GetRoundInfo(3);
             Assert.True(!secondRoundOfNewTerm.RealTimeMinersInfo.Keys.Except(victories).Any());
         }
         
@@ -120,7 +115,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             var initialTerm =
                 new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(MiningInterval);
-            _consensusContract.InitialTerm(starterKeyPair, initialTerm);
+            _contracts.InitialTerm(starterKeyPair, initialTerm);
         }
 
         private Address GetAddress(ECKeyPair keyPair)
