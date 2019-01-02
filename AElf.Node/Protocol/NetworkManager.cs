@@ -23,11 +23,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
-[assembly:InternalsVisibleTo("AElf.Network.Tests")]
+[assembly: InternalsVisibleTo("AElf.Network.Tests")]
+
 namespace AElf.Node.Protocol
 {
-    
-    public class NetworkManager : INetworkManager,ISingletonDependency
+    public class NetworkManager : INetworkManager, ISingletonDependency
     {
         #region Settings
 
@@ -45,9 +45,9 @@ namespace AElf.Node.Protocol
         public int RequestMaxRetry { get; set; } = DefaultRequestMaxRetry;
 
         #endregion
-        
+
         private readonly IPeerManager _peerManager;
-        public ILogger<NetworkManager> Logger {get;set;}
+        public ILogger<NetworkManager> Logger { get; set; }
         private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly INodeService _nodeService;
 
@@ -65,7 +65,7 @@ namespace AElf.Node.Protocol
         internal int LocalHeight;
 
         internal int UnlinkableHeaderIndex;
-        
+
         private readonly object _syncLock = new object();
 
         public NetworkManager(IPeerManager peerManager, IBlockSynchronizer blockSynchronizer, INodeService nodeService)
@@ -114,8 +114,9 @@ namespace AElf.Node.Protocol
 
                 AnnounceBlock((Block) inBlock.Block);
 
-                Logger.LogInformation($"Block produced, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}) with " +
-                              $"{inBlock.Block.Body.TransactionsCount} txs, block height {inBlock.Block.Header.Index}.");
+                Logger.LogInformation(
+                    $"Block produced, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}) with " +
+                    $"{inBlock.Block.Body.TransactionsCount} txs, block height {inBlock.Block.Header.Index}.");
 
                 LocalHeight = (int) inBlock.Block.Index;
             });
@@ -133,7 +134,7 @@ namespace AElf.Node.Protocol
                     return;
 
                 IBlock acceptedBlock = inBlock.Block;
-                
+
                 var blockHash = acceptedBlock.GetHash().DumpByteArray();
 
                 // todo TEMP 
@@ -141,13 +142,14 @@ namespace AElf.Node.Protocol
                     return;
 
                 _temp.Enqueue(blockHash);
-                
+
                 if (blockHash != null)
                     _lastBlocksReceived.Enqueue(blockHash);
 
-                Logger.LogTrace($"Block accepted, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}), " +
-                               $"block height {acceptedBlock.Header.Index}.");
-                
+                Logger.LogTrace(
+                    $"Block accepted, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}), " +
+                    $"block height {acceptedBlock.Header.Index}.");
+
                 lock (_syncLock)
                 {
                     if (CurrentSyncSource == null || !CurrentSyncSource.IsSyncingHistory)
@@ -156,86 +158,88 @@ namespace AElf.Node.Protocol
                     }
                 }
             });
-            
+
             MessageHub.Instance.Subscribe<BlockExecuted>(inBlock =>
-            {
-                if (inBlock?.Block == null)
                 {
-                    Logger.LogWarning("[event] Block null.");
-                    return;
-                }
-
-                // Note - This should not happen during header this
-                if (UnlinkableHeaderIndex != 0)
-                    return;
-                
-                LocalHeight = (int) inBlock.Block.Index;
-
-                IBlock acceptedBlock = inBlock.Block;
-                
-                var blockHash = acceptedBlock.GetHash().DumpByteArray();
-                var blockHeight = acceptedBlock.Header.Index;
-                
-                lock (_syncLock)
-                {
-                    if (CurrentSyncSource == null)
+                    if (inBlock?.Block == null)
                     {
-                        Logger.LogWarning("Unexpected situation, executed a block but no peer is currently syncing.");
+                        Logger.LogWarning("[event] Block null.");
+                        return;
                     }
-                    else if (!CurrentSyncSource.IsSyncing)
-                    {
-                        Logger.LogWarning($"{CurrentSyncSource} is sync source but not in sync state.");
-                    }
-                    else if (CurrentSyncSource.IsSyncingHistory)
-                    {
-                        if ((int)blockHeight != CurrentSyncSource.CurrentlyRequestedHeight)
-                            Logger.LogWarning($"{CurrentSyncSource} unexpected situation, the block executed was not the exepected height.");
-                    
-                        bool hasReqNext = CurrentSyncSource.SyncNextHistory();
 
-                        if (hasReqNext)
+                    // Note - This should not happen during header this
+                    if (UnlinkableHeaderIndex != 0)
+                        return;
+
+                    LocalHeight = (int) inBlock.Block.Index;
+
+                    IBlock acceptedBlock = inBlock.Block;
+
+                    var blockHash = acceptedBlock.GetHash().DumpByteArray();
+                    var blockHeight = acceptedBlock.Header.Index;
+
+                    lock (_syncLock)
+                    {
+                        if (CurrentSyncSource == null)
                         {
-                            Logger.LogTrace($"Request Block paused, blockRequestedCount {_blockRequestedCount} ");
-                            return;
-                    
-                        Logger.LogTrace($"{CurrentSyncSource} history blocks synced, local height {LocalHeight}.");
-                    
-                        // If this peer still has announcements and the next one is the next block we need.
-                        if (CurrentSyncSource.AnyStashed)
+                            Logger.LogWarning(
+                                "Unexpected situation, executed a block but no peer is currently syncing.");
+                        }
+                        else if (!CurrentSyncSource.IsSyncing)
                         {
-                            if (CurrentSyncSource.SyncNextAnnouncement())
-                            {
-                                Logger.LogTrace($"{CurrentSyncSource} has the next block - started sync.");
+                            Logger.LogWarning($"{CurrentSyncSource} is sync source but not in sync state.");
+                        }
+                        else if (CurrentSyncSource.IsSyncingHistory)
+                        {
+                            if ((int) blockHeight != CurrentSyncSource.CurrentlyRequestedHeight)
+                                Logger.LogWarning(
+                                    $"{CurrentSyncSource} unexpected situation, the block executed was not the exepected height.");
+
+                            bool hasReqNext = CurrentSyncSource.SyncNextHistory();
+
+                            if (hasReqNext)
                                 return;
-                            }
-                        
-                            Logger.LogWarning($"{CurrentSyncSource} Failed to start announcement sync.");
-                        }
-                    }
-                    else if (CurrentSyncSource.IsSyncingAnnounced)
-                    {
-                        // we check if the hash of the accepted block is the one the sync source fetched 
-                        if (!CurrentSyncSource.SyncedAnnouncement.Id.ToByteArray().BytesEqual(blockHash))
-                            Logger.LogWarning($"Block {blockHash.ToHex()} accepted by the chain but not currently synced.");
-                        
-                        foreach (var peer in _peers)
-                        {
-                            // Clear the announcement or any previous announcement to not request 
-                            // again.
-                            peer.CleanAnnouncements((int)blockHeight);
-                        }
-                        
-                        bool hasReqNext = CurrentSyncSource.SyncNextAnnouncement();
 
-                        if (hasReqNext)
-                            return;
-                    
-                        Logger.LogTrace($"Catched up to announcements with {CurrentSyncSource}.");
+                            Logger.LogTrace($"{CurrentSyncSource} history blocks synced, local height {LocalHeight}.");
+
+                            // If this peer still has announcements and the next one is the next block we need.
+                            if (CurrentSyncSource.AnyStashed)
+                            {
+                                if (CurrentSyncSource.SyncNextAnnouncement())
+                                {
+                                    Logger.LogTrace($"{CurrentSyncSource} has the next block - started sync.");
+                                    return;
+                                }
+
+                                Logger.LogWarning($"{CurrentSyncSource} Failed to start announcement sync.");
+                            }
+                        }
+                        else if (CurrentSyncSource.IsSyncingAnnounced)
+                        {
+                            // we check if the hash of the accepted block is the one the sync source fetched 
+                            if (!CurrentSyncSource.SyncedAnnouncement.Id.ToByteArray().BytesEqual(blockHash))
+                                Logger.LogWarning(
+                                    $"Block {blockHash.ToHex()} accepted by the chain but not currently synced.");
+
+                            foreach (var peer in _peers)
+                            {
+                                // Clear the announcement or any previous announcement to not request 
+                                // again.
+                                peer.CleanAnnouncements((int) blockHeight);
+                            }
+
+                            bool hasReqNext = CurrentSyncSource.SyncNextAnnouncement();
+
+                            if (hasReqNext)
+                                return;
+
+                            Logger.LogTrace($"Catched up to announcements with {CurrentSyncSource}.");
+                        }
+
+                        SyncNext();
                     }
-                    
-                    SyncNext();
                 }
-            });
+            );
 
             MessageHub.Instance.Subscribe<UnlinkableHeader>(unlinkableHeaderMsg =>
             {
@@ -244,19 +248,19 @@ namespace AElf.Node.Protocol
                     Logger.LogWarning("[event] message or header null.");
                     return;
                 }
-                
+
                 // The reception of this event means that the chain has discovered 
                 // that the current block it is trying to execute (height H) is 
                 // not linkable to the block we have at H-1.
-                
+
                 // At this point we stop all current syncing activities and repetedly 
                 // download previous headers to the block we couldn't link (in other 
                 // word "his branch") until we find a linkable block (at wich point 
                 // the HeaderAccepted event should be launched.
-                
+
                 // note that when this event is called, our knowledge of the local 
                 // height doesn't mean much.
-                
+
                 lock (_syncLock)
                 {
                     // If this is already != 0, it means that the previous batch of 
@@ -269,7 +273,7 @@ namespace AElf.Node.Protocol
                     else
                     {
                         CurrentSyncSource = null;
-                        
+
                         // Reset all syncing operations
                         foreach (var peer in _peers)
                         {
@@ -310,7 +314,7 @@ namespace AElf.Node.Protocol
                     Logger.LogWarning("[event] HeaderAccepted but network module not in recovery mode.");
                     return;
                 }
-                
+
                 if (CurrentSyncSource != null)
                 {
                     // todo possible sync reset
@@ -322,27 +326,28 @@ namespace AElf.Node.Protocol
                 {
                     // Local height reset 
                     LocalHeight = (int) header.Header.Index - 1;
-                    
+
                     // Reset Unlinkable header state
                     UnlinkableHeaderIndex = 0;
-                    
-                    Logger.LogTrace($"[event] header accepted, height {header.Header.Index}, local height reset to {header.Header.Index - 1}.");
-                    
+
+                    Logger.LogTrace(
+                        $"[event] header accepted, height {header.Header.Index}, local height reset to {header.Header.Index - 1}.");
+
                     // Use the peer with the highest target that is higher than our height.
                     IPeer target = _peers
                         .Where(p => p.KnownHeight > LocalHeight)
                         .OrderByDescending(p => p.KnownHeight)
                         .FirstOrDefault();
-    
+
                     if (target == null)
                     {
                         Logger.LogWarning("[event] no peers to sync from.");
                         return;
                     }
-                    
+
                     CurrentSyncSource = target;
                     CurrentSyncSource?.SyncToHeight(LocalHeight + 1, target.KnownHeight);
-                    
+
                     FireSyncStateChanged(true);
                 }
             });
@@ -352,7 +357,7 @@ namespace AElf.Node.Protocol
                 _peerManager.Start();
                 Task.Run(StartProcessingIncoming).ConfigureAwait(false);
             });
-            
+
             MessageHub.Instance.Subscribe<MinorityForkDetected>(inBlock => { OnMinorityForkDetected(); });
 
             MessageHub.Instance.Subscribe<NewLibFound>(msg =>
@@ -367,7 +372,7 @@ namespace AElf.Node.Protocol
             try
             {
                 // reset everything inside the lock to keep a coherent state
-                
+
                 lock (_syncLock)
                 {
                     CurrentSyncSource = null;
@@ -381,7 +386,7 @@ namespace AElf.Node.Protocol
                     _temp.Clear();
 
                     LocalHeight = (int) _currentLibNum;
-                    
+
                     // todo should be from a BP that is not part of the minority
                     IPeer syncPeer = _peers.FirstOrDefault(p => p.KnownHeight > LocalHeight);
 
@@ -389,7 +394,7 @@ namespace AElf.Node.Protocol
                     {
                         CurrentSyncSource = syncPeer;
                         CurrentSyncSource.SyncToHeight(LocalHeight + 1, syncPeer.KnownHeight);
-                        
+
                         FireSyncStateChanged(true);
                     }
                     else
@@ -412,32 +417,33 @@ namespace AElf.Node.Protocol
         internal void SyncNext()
         {
             var oldSyncSource = CurrentSyncSource;
-                    
+
             // At this point the current sync source either doesn't have the next announcement 
             // or has none at all.
             CurrentSyncSource = null;
-            
+
             // Try and find a peer with an anouncement that corresponds to the next block we need.
             foreach (var p in _peers.Where(p => p.AnyStashed && p != oldSyncSource))
             {
                 if (p.SyncNextAnnouncement())
                 {
                     CurrentSyncSource = p;
-                            
+
                     FireSyncStateChanged(true);
                     Logger.LogDebug($"Catching up with {p}.");
-                            
+
                     return;
                 }
             }
 
             if (CurrentSyncSource != null)
             {
-                Logger.LogError($"The current sync source {CurrentSyncSource} is not null even though sync should be finished.");
+                Logger.LogError(
+                    $"The current sync source {CurrentSyncSource} is not null even though sync should be finished.");
             }
-                    
+
             FireSyncStateChanged(false);
-                    
+
             Logger.LogDebug("Catched up all peers.");
         }
 
@@ -476,7 +482,7 @@ namespace AElf.Node.Protocol
                 Logger.LogError("Block or block header is null.");
                 return;
             }
-            
+
             if (_peers == null || !_peers.Any())
                 return;
 
@@ -507,7 +513,7 @@ namespace AElf.Node.Protocol
                     if (peer.Actiontype == PeerEventType.Added)
                     {
                         int peerHeight = peer.Peer.KnownHeight;
-                
+
                         _peers.Add(peer.Peer);
 
                         peer.Peer.MessageReceived += HandleNewMessage;
@@ -520,7 +526,7 @@ namespace AElf.Node.Protocol
                             {
                                 CurrentSyncSource = peer.Peer;
                                 CurrentSyncSource.SyncToHeight(LocalHeight + 1, peerHeight);
-                        
+
                                 FireSyncStateChanged(true);
                             }
                         }
@@ -572,17 +578,18 @@ namespace AElf.Node.Protocol
         {
             if (e is PeerMessageReceivedArgs args)
             {
-                if (args.Message.Type == (int)AElfProtocolMsgType.Block)
+                if (args.Message.Type == (int) AElfProtocolMsgType.Block)
                 {
                     // If we get a block deserialize it here to stop the request timer asap
                     var block = HandleBlockReception(args.Message.Payload, args.Peer);
 
                     if (block == null)
                         return;
-                    
+
                     args.Block = block;
                 }
-                else if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory && args.Message.Type == (int)AElfProtocolMsgType.NewTransaction)
+                else if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory &&
+                         args.Message.Type == (int) AElfProtocolMsgType.NewTransaction)
                 {
                     return;
                 }
@@ -618,7 +625,7 @@ namespace AElf.Node.Protocol
                 Logger.LogWarning("Peer is invalid.");
                 return;
             }
-            
+
             if (args.Message?.Payload == null)
             {
                 Logger.LogWarning($"Message from {args.Peer}, message/payload is null.");
@@ -655,18 +662,18 @@ namespace AElf.Node.Protocol
             try
             {
                 var hashReq = BlockHeaderRequest.Parser.ParseFrom(args.Message.Payload);
-                
+
                 var blockHeaderList = await _nodeService.GetBlockHeaderList((ulong) hashReq.Height, hashReq.Count);
-                
+
                 var req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Headers, blockHeaderList.ToByteArray());
-                
+
                 if (args.Message.HasId)
                     req.Id = args.Message.Id;
 
                 args.Peer.EnqueueOutgoing(req);
 
                 Logger.LogDebug($"Send {blockHeaderList.Headers.Count} block headers start " +
-                               $"from {blockHeaderList.Headers.FirstOrDefault()?.GetHash().ToHex()}, to node {args.Peer}.");
+                                $"from {blockHeaderList.Headers.FirstOrDefault()?.GetHash().ToHex()}, to node {args.Peer}.");
             }
             catch (Exception e)
             {
@@ -675,13 +682,13 @@ namespace AElf.Node.Protocol
         }
 
         private async Task HandleBlockRequestJob(PeerMessageReceivedArgs args)
-        { 
+        {
             try
             {
                 var breq = BlockRequest.Parser.ParseFrom(args.Message.Payload);
-                
+
                 Block b;
-                
+
                 if (breq.Id != null && breq.Id.Length > 0)
                 {
                     b = await _nodeService.GetBlockFromHash(breq.Id.ToByteArray());
@@ -696,17 +703,15 @@ namespace AElf.Node.Protocol
                     Logger.LogWarning($"Block not found {breq.Id?.ToByteArray().ToHex()}");
                     return;
                 }
-                
+
                 Message req = NetRequestFactory.CreateMessage(AElfProtocolMsgType.Block, b.ToByteArray());
-                
+
                 if (args.Message.HasId)
                     req.Id = args.Message.Id;
 
                 // Send response
-                args.Peer.EnqueueOutgoing(req, _ =>
-                {
-                    Logger.LogDebug($"Block sent {{ hash: {b.BlockHashToHex}, to: {args.Peer} }}");
-                });
+                args.Peer.EnqueueOutgoing(req,
+                    _ => { Logger.LogDebug($"Block sent {{ hash: {b.BlockHashToHex}, to: {args.Peer} }}"); });
             }
             catch (Exception e)
             {
@@ -734,20 +739,22 @@ namespace AElf.Node.Protocol
                 Announce a = Announce.Parser.ParseFrom(msg.Payload);
 
                 byte[] blockHash = a.Id.ToByteArray();
-                
+
                 peer.OnAnnouncementMessage(a); // todo - impr - move completely inside peer class.
 
                 // If we already know about this block don't stash the announcement and return.
                 if (_blockSynchronizer.GetBlockByHash(Hash.LoadByteArray(blockHash)) != null)
                 {
-                    Logger.LogDebug($"{peer} announced an already known block : {{ id: {blockHash.ToHex()}, height: {a.Height} }}");
+                    Logger.LogDebug(
+                        $"{peer} announced an already known block : {{ id: {blockHash.ToHex()}, height: {a.Height} }}");
                     return;
                 }
 
                 if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory &&
                     a.Height <= CurrentSyncSource.SyncTarget)
                 {
-                    Logger.LogTrace($"{peer} : ignoring announce {a.Height} because history sync will fetch (sync target {CurrentSyncSource.SyncTarget}).");
+                    Logger.LogTrace(
+                        $"{peer} : ignoring announce {a.Height} because history sync will fetch (sync target {CurrentSyncSource.SyncTarget}).");
                     return;
                 }
 
@@ -756,18 +763,18 @@ namespace AElf.Node.Protocol
                     Logger.LogTrace($"{peer} : ignoring announce {a.Height} because we're syncing unlinkable.");
                     return;
                 }
-                
+
                 lock (_syncLock)
                 {
                     // stash inside the lock because BlockAccepted will clear 
                     // announcements after the chain accepts
                     peer.StashAnnouncement(a);
-                    
+
                     if (CurrentSyncSource == null)
                     {
                         CurrentSyncSource = peer;
                         CurrentSyncSource.SyncNextAnnouncement();
-                        
+
                         FireSyncStateChanged(true);
                     }
                 }
@@ -806,7 +813,7 @@ namespace AElf.Node.Protocol
                 Block block = Block.Parser.ParseFrom(serializedBlock);
 
                 byte[] blockHash = block.GetHashBytes();
-                
+
                 peer.StopBlockTimer(block);
 
                 if (_lastBlocksReceived.Contains(blockHash))
@@ -843,11 +850,11 @@ namespace AElf.Node.Protocol
                 Logger.LogWarning("Cannot broadcast - no peers.");
                 return;
             }
-            
+
             try
             {
                 Message message = NetRequestFactory.CreateMessage(messageMsgType, payload);
-                
+
                 foreach (var peer in _peers)
                     peer.EnqueueOutgoing(message);
             }
