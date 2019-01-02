@@ -92,6 +92,9 @@ namespace AElf.RPC
 
                 sc.AddSignalRCore();
                 sc.AddSignalR();
+                
+                sc.AddSingleton(Parent.GetService<INetworkManager>());
+                sc.AddSingleton(Parent.GetService<IPeerManager>());
 
                 sc.AddScoped<NetContext>();
                 

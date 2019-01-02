@@ -23,12 +23,13 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Node.Protocol
 {
     
-    public class NetworkManager : INetworkManager
+    public class NetworkManager : INetworkManager,ISingletonDependency
     {
         #region Settings
 
