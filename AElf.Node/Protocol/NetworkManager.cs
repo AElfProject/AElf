@@ -15,10 +15,8 @@ using AElf.Network.Eventing;
 using AElf.Network.Peers;
 using AElf.Node.AElfChain;
 using AElf.Node.EventMessages;
-using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
-using DotNetty.Common;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -33,13 +31,9 @@ namespace AElf.Node.Protocol
     {
         #region Settings
 
-        // todo better detection 
-        // public const int JobQueueWarningLimit = 1000;
-
         public const int DefaultHeaderRequestCount = 3;
         public const int DefaultMaxBlockHistory = 15;
         public const int DefaultMaxTransactionHistory = 20;
-        public const int DefaultBlockRequestCount = 10;
 
         public const int DefaultRequestTimeout = 2000;
         public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
@@ -71,8 +65,6 @@ namespace AElf.Node.Protocol
         internal int LocalHeight;
 
         internal int UnlinkableHeaderIndex;
-
-        private int _blockRequestedCount;
         
         private readonly object _syncLock = new object();
 
@@ -186,11 +178,6 @@ namespace AElf.Node.Protocol
                 
                 lock (_syncLock)
                 {
-                    if (_blockRequestedCount > 0)
-                    {
-                        _blockRequestedCount--;
-                    }
-
                     if (CurrentSyncSource == null)
                     {
                         Logger.LogWarning("Unexpected situation, executed a block but no peer is currently syncing.");
@@ -201,21 +188,16 @@ namespace AElf.Node.Protocol
                     }
                     else if (CurrentSyncSource.IsSyncingHistory)
                     {
-                        bool hasReqNext =false;
-
-                        for (; _blockRequestedCount < DefaultBlockRequestCount; _blockRequestedCount++)
-                        {
-                            hasReqNext = CurrentSyncSource.SyncNextHistory();
-                            if(!hasReqNext)
-                                break;
-                        }
+                        if ((int)blockHeight != CurrentSyncSource.CurrentlyRequestedHeight)
+                            Logger.LogWarning($"{CurrentSyncSource} unexpected situation, the block executed was not the exepected height.");
+                    
+                        bool hasReqNext = CurrentSyncSource.SyncNextHistory();
 
                         if (hasReqNext)
                         {
                             Logger.LogTrace($"Request Block paused, blockRequestedCount {_blockRequestedCount} ");
                             return;
-                        }
-
+                    
                         Logger.LogTrace($"{CurrentSyncSource} history blocks synced, local height {LocalHeight}.");
                     
                         // If this peer still has announcements and the next one is the next block we need.
@@ -438,17 +420,6 @@ namespace AElf.Node.Protocol
             // Try and find a peer with an anouncement that corresponds to the next block we need.
             foreach (var p in _peers.Where(p => p.AnyStashed && p != oldSyncSource))
             {
-                if (p.KnownHeight > LocalHeight)
-                {
-                    CurrentSyncSource = p;
-                    CurrentSyncSource.SyncToHeight(LocalHeight + 1, p.KnownHeight);
-                    
-                    FireSyncStateChanged(true);
-                    Logger.LogDebug($"Sync History with {p}.");
-                    
-                    return;
-                }
-                
                 if (p.SyncNextAnnouncement())
                 {
                     CurrentSyncSource = p;
@@ -557,12 +528,6 @@ namespace AElf.Node.Protocol
                     else
                     {
                         _peers.Remove(peer.Peer);
-
-//                        if (_peers.Count <= 0)
-//                        {
-//                            OnMinorityForkDetected();
-//                            return;
-//                        }
 
                         lock (_syncLock)
                         {
