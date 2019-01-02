@@ -35,13 +35,13 @@ namespace AElf.Launcher
         typeof(MinerRpcAElfModule),
         typeof(NetworkAElfModule),
         typeof(ConsensusKernelAElfModule))]
-    public class FullNodeHostingAElfModule : AElfModule
+    public class LauncherAElfModule : AElfModule
     {
-        public ILogger<FullNodeHostingAElfModule> Logger { get; set; }
+        public ILogger<LauncherAElfModule> Logger { get; set; }
 
-        public FullNodeHostingAElfModule()
+        public LauncherAElfModule()
         {
-            Logger = NullLogger<FullNodeHostingAElfModule>.Instance;
+            Logger = NullLogger<LauncherAElfModule>.Instance;
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
