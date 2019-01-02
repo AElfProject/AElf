@@ -137,8 +137,10 @@ namespace AElf.Sdk.CSharp
         
         public static Miners GetMiners()
         {
-            Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<Miners>();
+            var res = Call(ConsensusContractAddress, "GetCurrentMiners");
+            Assert(res,"Failed to get current miners.");
+            Miners miners = GetCallResult().DeserializeToPbMessage<Miners>();
+            return miners;
         }
         
         public static List<string> GetCurrentMiners()
@@ -460,10 +462,10 @@ namespace AElf.Sdk.CSharp
             Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval." );
         }
 
-        public static void IsMiner(string err)
+        /*public static void IsMiner(string err)
         {
             Assert(GetMiners().PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(RecoverPublicKey())), err);
-        }
+        }*/
         
         /// <summary>
         /// Create and propose a proposal. Proposer is current transaction from account.
