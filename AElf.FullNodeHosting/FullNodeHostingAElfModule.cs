@@ -23,11 +23,15 @@ using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
+using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 
 namespace AElf.FullNodeHosting
 {
     [DependsOn(
+        typeof(AbpAutofacModule),
+        typeof(AbpAspNetCoreMvcModule),
         typeof(RuntimeSetupAElfModule),
         
         typeof(RpcChainControllerAElfModule),
