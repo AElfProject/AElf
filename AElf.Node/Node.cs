@@ -16,17 +16,15 @@ namespace AElf.Node
     public class Node : INode, ITransientDependency
     {
         public ILogger<Node> Logger {get;set;}
-        private readonly IRpcServer _rpcServer;
         private readonly INetworkManager _netManager;
 
         private readonly List<INodeService> _services = new List<INodeService>();
 
         private bool _startRpc;
 
-        public Node( IRpcServer rpcServer, INetworkManager netManager)
+        public Node( INetworkManager netManager)
         {
             Logger = NullLogger<Node>.Instance;
-            _rpcServer = rpcServer;
             _netManager = netManager;
         }
 
@@ -62,7 +60,6 @@ namespace AElf.Node
 
         public bool StartRpc()
         {
-            _rpcServer.StartAsync();
             return true;
         }
     }

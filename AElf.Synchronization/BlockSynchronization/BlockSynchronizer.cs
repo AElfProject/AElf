@@ -23,9 +23,7 @@ namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable InconsistentNaming
     public class BlockSynchronizer : IBlockSynchronizer
-    {
-        private bool _terminated;
-        
+    {        
         public ILogger<BlockSynchronizer> Logger {get;set;}
         
         private readonly IChainService _chainService;
@@ -68,7 +66,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
             Logger= NullLogger<BlockSynchronizer>.Instance;
 
-            _terminated = false;
             _executeNextBlock = true;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
@@ -323,8 +320,6 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         public async Task TryPushBlock(IBlock block)
         {
-            if (_terminated)
-                return;
             
             if (block == null)
                 throw new ArgumentNullException(nameof(block), "The block cannot be null");

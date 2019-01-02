@@ -7,6 +7,7 @@ namespace AElf.Network.Peers
 {
     public interface IPeerManager : IDisposable
     {
+        //todo: should remove event
         event EventHandler PeerEvent;
         
         void Start();
