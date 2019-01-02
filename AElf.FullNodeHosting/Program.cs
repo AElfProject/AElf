@@ -40,6 +40,10 @@ namespace AElf.FullNodeHosting
         //create default https://github.com/aspnet/MetaPackages/blob/master/src/Microsoft.AspNetCore/WebHost.cs
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                })
                 .UseStartup<Startup>();
     }
 }
