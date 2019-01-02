@@ -97,8 +97,12 @@ namespace AElf.RPC
                 sc.AddSingleton(Parent.GetService<IPeerManager>());
 
                 sc.AddScoped<NetContext>();
+
+                sc.AddLogging(o => o.AddProvider( Parent.GetRequiredService<ILoggerProvider>() ));
                 
-                return new ChildServiceProvider(Parent,sc.BuildServiceProviderFromFactory());
+                RpcServerHelpers.ConfigureServices(sc, Parent);
+                
+                return sc.BuildServiceProviderFromFactory();
             }
             
             public void Configure(IApplicationBuilder app)
