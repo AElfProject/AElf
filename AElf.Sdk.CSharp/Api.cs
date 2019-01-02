@@ -145,7 +145,7 @@ namespace AElf.Sdk.CSharp
         {
             if (Call(ConsensusContractAddress, "GetCurrentMiners"))
             {
-                return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
+                return GetCallResult().DeserializeToPbMessage<Miners>().PublicKeys.ToList();
             }
             
             throw new InternalError("Failed to get current miners.\n" + _lastCallContext.Trace.StdErr);

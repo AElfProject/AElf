@@ -64,8 +64,6 @@ namespace AElf.Node.Consensus
         private ECKeyPair _nodeKey;
         private byte[] _ownPubKey;
 
-        private readonly Hash _chainId;
-
         public Address ConsensusContractAddress =>
             ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
@@ -99,8 +97,6 @@ namespace AElf.Node.Consensus
             _helper = helper;
             _prepareTerminated = false;
             _terminated = false;
-
-            _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
 
             _logger = LogManager.GetLogger(nameof(DPoS));
 
