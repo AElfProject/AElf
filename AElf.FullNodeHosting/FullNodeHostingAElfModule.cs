@@ -21,9 +21,9 @@ using Volo.Abp.Modularity;
 namespace AElf.FullNodeHosting
 {
     [DependsOn(
+        typeof(RuntimeSetupAElfModule),
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
-        typeof(RuntimeSetupAElfModule),
         typeof(RpcChainControllerAElfModule),
         typeof(ExecutionAElfModule),
         typeof(MinerAElfModule),
