@@ -4,11 +4,29 @@ digraph G {
     
     "AElf.OS" -> "AElf.Kernel";
     "AElf.Execution" -> "AElf.Kernel";
+    "AElf.Execution"[label="AElf.Kernel.Execution" , fontcolor = red];
     "AElf.Execution.Akka" -> {"AElf.Execution", "Akka"};
+    
     "AElf.SmartContract" -> "AElf.Kernel";
-    "AElf.MiniSystem" -> {"AElf.Kernel";"AElf.SmartContract";"AElf.Execution"}[color=blue];
+    "AElf.SmartContract"[label="AElf.Kernel.SmartContract\n executing smart contract " , fontcolor = red];
+    
+    "AElf.ChainController" -> {"AElf.SmartContract","AElf.Kernel.Consensus"}
+    "AElf.ChainController"[fontcolor=darkgreen]
+    
+    "AElf.Kernel.Consensus" -> "AElf.Kernel";
+    
+    "AElf.MiniSystem" -> {"AElf.Kernel";"AElf.SmartContract";"AElf.Execution","AElf.ChainController"}[color=blue];
+    
+    
+    "AElf.ChainController"[label="AElf.Kernel.ChainController\nContext, Events, FSM "]
+    
     "AElf.MiniSystem"[color=blue];
+    
+    
+    "AElf.Network"[label="AElf.OS.Network"]
     "AElf.Network" -> "AElf.OS";
+    
+    
     "AElf.FullNode" -> {"AElf.MiniSystem"; "AElf.OS";"AElf.Network";"Autofac"} [color=red]; 
     "AElf.FullNode" [color=red] ;
     "AElf.Launcher" -> {"AElf.FullNode","ThirdParty.MongodbDatabse"};
