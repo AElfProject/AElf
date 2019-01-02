@@ -49,8 +49,6 @@ namespace AElf.Launcher
     public class LauncherAElfModule : AElfModule
     {
         public static readonly AutoResetEvent Closing = new AutoResetEvent(false);
-        private readonly Queue<TerminatedModuleEnum> _modules = new Queue<TerminatedModuleEnum>();
-        private TerminatedModuleEnum _prepareTerminatedModule;
         private static System.Timers.Timer _timer;
         public ILogger<LauncherAElfModule> Logger { get; set; }
 

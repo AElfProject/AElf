@@ -1,5 +1,6 @@
 ﻿namespace AElf.Kernel.Types.Common
 {
+    /*
     public class TerminationSignal
     {
         public TerminatedModuleEnum Module { get;}
@@ -28,5 +29,5 @@
         BlockSynchronizer,
         BlockExecutor,
         BlockRollback
-    }
+    }*/
 }

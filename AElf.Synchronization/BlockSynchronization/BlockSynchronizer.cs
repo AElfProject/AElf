@@ -11,7 +11,6 @@ using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
@@ -143,15 +142,6 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
             {
                 AddMinedBlock(inBlock.Block);
-            });
-
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.BlockSynchronizer)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockSynchronizer));
-                }
             });
             
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>

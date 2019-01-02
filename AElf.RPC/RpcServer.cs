@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Kernel.Types.Common;
 using AElf.Network;
 using AElf.Network.Peers;
 using AElf.RPC.Hubs.Net;
 using Microsoft.AspNetCore.Hosting;
-using Easy.MessageHub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,7 +19,6 @@ namespace AElf.RPC
         public RpcServer()
         {
             Logger = NullLogger<RpcServer>.Instance;
-            
         }
 
         public async Task StopAsync()
@@ -87,8 +84,6 @@ namespace AElf.RPC
                 
                 sc.AddSingleton(Parent.GetService<INetworkManager>());
                 sc.AddSingleton(Parent.GetService<IPeerManager>());
-
-                //sc.AddScoped<NetContext>();
 
                 sc.AddLogging(o => o.AddProvider( Parent.GetRequiredService<ILoggerProvider>() ));
                 

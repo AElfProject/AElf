@@ -21,7 +21,6 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Miner.TxMemPool;
-using AElf.Kernel.Types.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -143,14 +142,6 @@ namespace AElf.Node.Consensus
                 }
             });
 
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.Mining)
-                {
-                    _prepareTerminated = true;
-                }
-            });
-
             MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { CurrentState = inState.CurrentState; });
         }
 
@@ -226,12 +217,6 @@ namespace AElf.Node.Consensus
             try
             {
                 var block = await _miner.Mine();
-
-                if (_prepareTerminated)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.Mining));
-                }
 
                 return block;
             }
