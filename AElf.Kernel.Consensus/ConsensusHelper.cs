@@ -148,7 +148,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public ConsensusHelper(IMinersManager minersManager, ConsensusDataReader reader)
+        public ConsensusHelper(IMinersManager minersManager, ConsensusDataReader reader):this()
         {
             _minersManager = minersManager;
             _reader = reader;
