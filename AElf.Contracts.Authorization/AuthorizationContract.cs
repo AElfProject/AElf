@@ -107,7 +107,7 @@ namespace AElf.Contracts.Authorization
                 authorization.Reviewers.Aggregate<Reviewer, uint>(0, (weights, r) => weights + r.Weight);
             
             // Weight accumulation should be more than authorization execution threshold.
-            Api.Assert(accumulatedWeights > authorization.ExecutionThreshold, "Invalid authorization.");
+            Api.Assert(accumulatedWeights >= authorization.ExecutionThreshold, "Invalid authorization.");
             
             // At least one reviewer can propose.
             bool canBeProposed = authorization.Reviewers.Any(r => r.Weight >= authorization.ProposerThreshold);
@@ -162,6 +162,7 @@ namespace AElf.Contracts.Authorization
             Api.Assert(authorization.Reviewers.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)), "Not authorized approval.");
             
             CheckSignature(proposal.TxnData.ToByteArray(), approval.Signature.ToByteArray());
+            approved = approved ?? new Approved(); 
             approved.Approvals.Add(approval);
             _approved.SetValue(hash, approved);
 
