@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Folder Include="..\AElf.Sdk.CSharp\Protobuf\Generated"/>
+        <Folder Include="..\AElf.Sdk.CSharp\Protobuf\Proto"/>
+        <Folder Include="..\AElf.Sdk.CSharp\Readonly"/>
+        <Folder Include="..\AElf.Sdk.CSharp\Types"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\AElf.Sdk.CSharp\*.cs"></Compile>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="..\AElf.Sdk.CSharp\Readonly\*.cs"></Compile>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="..\AElf.Sdk.CSharp\Types\*.cs"></Compile>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj"/>
+        <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj"/>
+    </ItemGroup>
+
+</Project>
