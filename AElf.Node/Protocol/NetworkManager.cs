@@ -357,6 +357,38 @@ namespace AElf.Node.Protocol
                 _currentLibNum = msg.Height;
                 _logger?.Debug($"Network lib updated : {_currentLibNum}.");
             });
+
+            MessageHub.Instance.Subscribe<BlockRejected>(msg =>
+            {
+                // the block that is currently been synced has failed 
+                lock (_syncLock)
+                {
+                    if (msg?.Block == null)
+                        _logger?.Warn("[event] Block rejected: block null.");
+                    
+                    if (CurrentSyncSource == null)
+                        _logger?.Warn("Unexpected situation, rejected a block but no peer is currently syncing.");
+
+                    if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory)
+                    {
+                        // If we're currently syncing history
+                        var next = _peers.FirstOrDefault(p => p != CurrentSyncSource && p.KnownHeight > LocalHeight);
+
+                        if (next == null)
+                        {
+                            _logger?.Warn("Rejected block but no other peer to sync from. ");
+                            return;
+                        }
+                        
+                        CurrentSyncSource = next;
+                        CurrentSyncSource.SyncToHeight(LocalHeight + 1, next.KnownHeight);
+                    }
+                    else
+                    {
+                        SyncNext(); // get another peer to sync from
+                    }
+                }
+            });
         }
 
         private void OnMinorityForkDetected()
@@ -409,9 +441,6 @@ namespace AElf.Node.Protocol
         internal void SyncNext()
         {
             var oldSyncSource = CurrentSyncSource;
-                    
-            // At this point the current sync source either doesn't have the next announcement 
-            // or has none at all.
             CurrentSyncSource = null;
             
             // Try and find a peer with an anouncement that corresponds to the next block we need.

@@ -282,6 +282,9 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 if (!_blockCache.Any())
                     return;
+                
+                if (_blockCache.Count > 1)
+                    _logger?.Debug($"Info log cache count is high {_blockCache.Count}.");
 
                 // execute the block with the lowest index
                 next = _blockCache.OrderBy(b => b.Index).FirstOrDefault();
@@ -383,6 +386,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
                 else
                 {
+                    // not really invalid, just to go back to catching
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock);
                 }
             }
@@ -413,6 +417,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 _logger?.Warn( $"Invalid block ({blockValidationResult}) {block}");
                 MessageHub.Instance.Publish(StateEvent.InvalidBlock);
+                MessageHub.Instance.Publish(new BlockRejected(block));
                 MessageHub.Instance.Publish(new LockMining(false));
                 _blockSet.RemoveInvalidBlock(block.GetHash());
             }
@@ -450,9 +455,14 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // The block can be considered bad.
                 _blockSet.RemoveInvalidBlock(block.GetHash());
+                
+                MessageHub.Instance.Publish(StateEvent.StateUpdated); // todo just get back to catching
+                MessageHub.Instance.Publish(StateEvent.BlockAppended); // todo just get back to catching
+                
+                MessageHub.Instance.Publish(new BlockRejected(block));
                 return;
             }
-            else
+            else if (executionResult.IsSideChainError())
             {
                 // todo side chain logic
                 // these cases are currently unhandled 
