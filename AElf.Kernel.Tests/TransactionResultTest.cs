@@ -1,4 +1,6 @@
-﻿using System;
+﻿//TODO:! move to other project
+/*
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.ChainController;
@@ -12,11 +14,13 @@ using ITxSignatureVerifier = AElf.Kernel.Types.Transaction.ITxSignatureVerifier;
 
 namespace AElf.Kernel.Tests
 {
+
+
     public sealed class TransactionResultTest : AElfKernelIntegratedTest
     {
         private readonly ITransactionResultService _transactionResultService;
         private readonly ITransactionResultManager _transactionResultManager;
-
+    
         public TransactionResultTest()
         {
             ChainConfig.Instance.ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }).DumpBase58();
@@ -24,7 +28,7 @@ namespace AElf.Kernel.Tests
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _transactionResultService = GetRequiredService<ITransactionResultService>();
         }
-
+    
         private TransactionResult CreateResult(Hash txId, Status status)
         {
             return new TransactionResult
@@ -33,7 +37,7 @@ namespace AElf.Kernel.Tests
                 Status = status
             };
         }
-
+    
         
         [Fact]
         public async Task TxResultStorage()
@@ -65,17 +69,18 @@ namespace AElf.Kernel.Tests
             Assert.Equal(txId, res.TransactionId);
             Assert.True(res.Status == Status.NotExisted);
         }
-
+    
         [Fact]
         public async Task GetTxResultInStorage()
         {
             var txId = Hash.Generate();
             var res = CreateResult(txId, Status.Mined);
             await _transactionResultManager.AddTransactionResultAsync(res);
-
+    
             var r = await _transactionResultService.GetResultAsync(txId);
             Assert.Equal(res, r);
         }
-
+    
     }
 }
+*/
