@@ -114,7 +114,8 @@ namespace AElf.Contracts.Dividends
                 }
             }
 
-            return 0;
+            return (ulong) new Random().Next((int) termNumber + lockTime,
+                (int) ticketsAmount + (int) termNumber + lockTime);
         }
 
         [View]
