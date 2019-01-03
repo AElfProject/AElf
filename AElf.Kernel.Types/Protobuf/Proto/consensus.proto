@@ -39,6 +39,7 @@ message ToBroadcast {
 message Miners {
     uint64 TermNumber = 1;
     repeated string PublicKeys = 2;
+    string Remark = 3;
 }
 
 // To query to first round number of each term.
@@ -81,6 +82,7 @@ message TermSnapshot {
     uint64 TotalBlocks = 2;
     repeated CandidateInTerm CandidatesSnapshot = 3;
     uint64 TermNumber = 4;
+    string Remark = 5;
 }
 
 // The information of a candidate of a specific term.
@@ -95,6 +97,7 @@ message Round {
     map<string, MinerInRound> RealTimeMinersInfo = 2;
     int32 MiningInterval = 3;
     uint64 BlockchainAge = 4;
+    string Remark = 5;
 }
 
 // The information of a miner in a specific round.
