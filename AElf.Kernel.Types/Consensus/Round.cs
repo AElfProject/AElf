@@ -90,7 +90,7 @@ namespace AElf.Kernel
 
         public Hash MinersHash()
         {
-            return Hash.FromMessage(RealTimeMinersInfo.Keys.ToMiners());
+            return Hash.FromMessage(RealTimeMinersInfo.Values.Select(m => m.PublicKey).ToMiners());
         }
 
         public ulong GetMinedBlocks()

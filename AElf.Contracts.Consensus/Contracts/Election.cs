@@ -140,6 +140,7 @@ namespace AElf.Contracts.Consensus.Contracts
             ticketsCount += votingRecord.Count;
             _collection.TicketsCountField.SetValue(ticketsCount);
 
+            Console.WriteLine("Add weights:" + votingRecord.Weight);
             Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight,
                 _collection.CurrentTermNumberField.GetValue());
 
