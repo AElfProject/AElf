@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -10,6 +11,8 @@ namespace AElf.Contracts.Consensus.Tests
     [UseAutofacTestFramework]
     public class ConsensusElectionTest
     {
+        private SimpleExecutingService _executingService;
+
         private readonly ContractsShim _contracts;
 
         private readonly ECKeyPair _voter1 = new KeyPairGenerator().Generate();
@@ -24,9 +27,9 @@ namespace AElf.Contracts.Consensus.Tests
 
         private const ulong PinMoney = 100;
 
-        public ConsensusElectionTest(MockSetup mock)
+        public ConsensusElectionTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
         {
-            _contracts = new ContractsShim(mock);
+            _contracts = new ContractsShim(mock, simpleExecutingService);
         }
 
         private void InitializeToken()

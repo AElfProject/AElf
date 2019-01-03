@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Xunit;
@@ -24,9 +25,9 @@ namespace AElf.Contracts.Consensus.Tests
 
         private int MiningInterval => 1;
         
-        public DividendsTest(MockSetup mock)
+        public DividendsTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
         {
-            _contracts = new ContractsShim(mock);
+            _contracts = new ContractsShim(mock, simpleExecutingService);
         }
 
         [Fact]

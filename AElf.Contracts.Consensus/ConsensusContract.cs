@@ -178,6 +178,7 @@ namespace AElf.Contracts.Consensus
             return GetCurrentMiners().ToString();
         }
 
+        // TODO: Test case.
         [View]
         public Tickets GetTicketsInfo(string publicKey)
         {

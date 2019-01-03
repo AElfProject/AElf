@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Channels;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -26,10 +27,10 @@ namespace AElf.Contracts.Consensus.Tests
 
         private int MiningInterval => 1;
 
-        public TermTest(MockSetup mock)
+        public TermTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
         {
             _mock = mock;
-            _contracts = new ContractsShim(mock);
+            _contracts = new ContractsShim(mock, simpleExecutingService);
         }
         
         private void InitialMiners()
@@ -63,7 +64,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Skip")]
         public void ChangeTermTest()
         {
             // At very first, because none account of this blockchain has elf token,

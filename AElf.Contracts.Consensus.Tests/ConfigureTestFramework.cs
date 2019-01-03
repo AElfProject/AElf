@@ -42,6 +42,8 @@ namespace AElf.Contracts.Consensus.Tests
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
             
+            
+            
             var smartContractRunnerFactory = new SmartContractRunnerContainer();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             smartContractRunnerFactory.AddRunner(0, runner);

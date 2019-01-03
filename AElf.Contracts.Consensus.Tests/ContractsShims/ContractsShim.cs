@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.Kernel;
@@ -7,6 +9,7 @@ using AElf.Types.CSharp;
 using ByteString = Google.Protobuf.ByteString;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
@@ -15,6 +18,9 @@ namespace AElf.Contracts.Consensus.Tests
     public class ContractsShim
     {
         private MockSetup _mock;
+
+        private SimpleExecutingService _executingService;
+        
         public IExecutive ExecutiveForConsensus { get; set; }
         public IExecutive ExecutiveForToken { get; set; }
         public IExecutive ExecutiveForDividends { get; set; }
@@ -27,9 +33,10 @@ namespace AElf.Contracts.Consensus.Tests
         public Address TokenContractAddress { get; set; }
         public Address DividendsContractAddress { get; set; }
 
-        public ContractsShim(MockSetup mock)
+        public ContractsShim(MockSetup mock, SimpleExecutingService executingService)
         {
             _mock = mock;
+            _executingService = executingService;
             Init();
         }
 
@@ -222,12 +229,13 @@ namespace AElf.Contracts.Consensus.Tests
             var signature = signer.Sign(minerKeyPair, tx.GetHash().DumpByteArray());
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
-            TransactionContext = PrepareTransactionContext(tx);
-            ExecutiveForConsensus.SetTransactionContext(TransactionContext).Apply().Wait();
-            var tc = PrepareTransactionContext(TransactionContext.Trace.InlineTransactions[0]);
-            ExecutiveForToken.SetTransactionContext(tc).Apply().Wait();
-            TransactionContext.Trace.InlineTraces.Add(tc.Trace);
-            CommitChangesAsync(TransactionContext.Trace).Wait();
+            var traces = _executingService.ExecuteAsync(new List<Transaction> {tx}, Hash.FromString("AELF"),
+                DateTime.UtcNow,
+                new CancellationToken()).Result;
+            foreach (var transactionTrace in traces)
+            {
+                CommitChangesAsync(transactionTrace).Wait();
+            }
         }
 
         public void NextTerm(ECKeyPair minerKeyPair, Term nextTerm)
