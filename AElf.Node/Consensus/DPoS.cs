@@ -574,15 +574,18 @@ namespace AElf.Node.Consensus
                     var calculatedAge = _helper.CalculateBlockchainAge();
                     _logger?.Trace("Current blockchain age: " + calculatedAge);
 
-                    // TODO: Recover after testing
-                    if (/*(calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
-                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||*/
-                        (LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
-                         _helper.TryToGetVictories(out var victories) &&
-                         victories.Count == GlobalConfig.BlockProducerNumber))
+                    if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
                     {
-                        _logger?.Trace("Will change term.");
-                        throw new NextTermException();
+                        // TODO: Recover after testing
+                        if (/*(calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
+                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||*/
+                            (LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
+                             _helper.TryToGetVictories(out var victories) &&
+                             victories.Count == GlobalConfig.BlockProducerNumber))
+                        {
+                            _logger?.Trace("Will change term.");
+                            throw new NextTermException();
+                        }
                     }
 
                     var miners = Miners;
@@ -652,6 +655,12 @@ namespace AElf.Node.Consensus
 
         private async Task NextTerm()
         {
+            if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId)
+            {
+                _logger.Warn("Unexpected entering of next term becuase current chian is side chain.");
+                return;
+            }
+
             const ConsensusBehavior behavior = ConsensusBehavior.NextTerm;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
