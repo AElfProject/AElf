@@ -428,7 +428,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         private void UpdateCandidatesInfoInHistory(Round currentRoundInfo, TermSnapshot previousTerm)
         {
-            var candidateInHistory = new CandidateInHistory();
+            CandidateInHistory candidateInHistory;
             if (previousTerm == null)
             {
                 // Initial history information for initial miners.

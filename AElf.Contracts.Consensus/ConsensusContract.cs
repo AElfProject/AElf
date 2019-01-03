@@ -308,6 +308,14 @@ namespace AElf.Contracts.Consensus
                 Remark = "Invalid term number."
             };
         }
+
+        [View]
+        public string QueryAlias(string publicKey)
+        {
+            return Collection.AliasesMap.TryGet(new StringValue {Value = publicKey}, out var alias)
+                ? alias.Value
+                : publicKey.Substring(0, GlobalConfig.AliasLimit);
+        }
         
         [View]
         public string GetTermSnapshotToFriendlyString(ulong termNumber)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -171,6 +172,16 @@ namespace AElf.Sdk.CSharp
             }
             
             throw new InternalError("Failed to get current term number.\n" + _lastCallContext.Trace.StdErr);
+        }
+
+        public static List<VotingRecord> GetVotingRecords(string publicKey)
+        {
+            if (Call(ConsensusContractAddress, "GetTicketsInfo"))
+            {
+                return GetCallResult().DeserializeToPbMessage<Tickets>().VotingRecords.ToList();
+            }
+            
+            throw new InternalError("Failed to get voting records.\n" + _lastCallContext.Trace.StdErr);
         }
 
         public static TermSnapshot GetTermSnapshot(ulong termNumber)

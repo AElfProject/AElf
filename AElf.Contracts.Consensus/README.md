@@ -488,6 +488,16 @@ orderBy:
 
 获取当前轮数。
 
+### `QueryAlias`
+
+参数:
+- `string` publicKeyHexString
+
+返回类型:
+`string`
+
+根据公钥查询候选人别名。（不存在则返回公钥前20位）
+
 ## Data Structure
 
 ```Protobuf

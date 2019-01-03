@@ -74,6 +74,19 @@ namespace AElf.Contracts.Dividends
 
             return dividends;
         }
+        
+        [View]
+        public ulong GetAllAvailableDividends(string publicKey)
+        {
+            var votingRecords = Api.GetVotingRecords(publicKey);
+            ulong dividends = 0;
+            foreach (var votingRecord in votingRecords)
+            {
+                dividends += GetAvailableDividends(votingRecord);
+            }
+
+            return dividends;
+        }
 
         [View]
         public ulong GetAvailableDividendsByVotingInformation(Hash transactionId, ulong termNumber, ulong weight)

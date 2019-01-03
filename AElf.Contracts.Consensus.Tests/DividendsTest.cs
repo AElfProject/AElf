@@ -28,17 +28,24 @@ namespace AElf.Contracts.Consensus.Tests
         {
             _contracts = new ContractsShim(mock);
         }
+
+        [Fact]
+        public void DividendsInitializationTest()
+        {
+            InitialMiners();
+            InitialTerm(_initialMiners[0]);
+
+            Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
+            Assert.True(_contracts.BalanceOf(_contracts.DividendsContractAddress) > 0);
+        }
         
         //[Fact]
         [Fact(Skip = "Time consuming")]
-        public void GetDividendsTest()
+        public void ReceiveDividendsTest()
         {
             GlobalConfig.ElfTokenPerBlock = 1000;
-            InitialMiners();
-            InitialTerm(_initialMiners[0]);
-            
-            Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
-            Assert.True(_contracts.BalanceOf(_contracts.DividendsContractAddress) > 0);
+
+            DividendsInitializationTest();
 
             InitialCandidates();
             InitialVoters();

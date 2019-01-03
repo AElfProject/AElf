@@ -34,6 +34,16 @@ Result type:
 
 To get current available dividends of the provided VotingRecord instance.
 
+### `GetAllAvailableDividends`
+
+Params:
+- `string` publicKyeToHex
+
+Result type:
+- `ulong`
+
+To get current available dividends of the provided public key.
+
 ### `GetAvailableDividendsByVotingInformation`
 
 Params:
@@ -139,6 +149,16 @@ To check the final dividends of a given voting of previous term.
 - `ulong`
 
 用于获取所提供VotingRecord实例当前可领取的出块奖励分红。
+
+### `GetAllAvailableDividends`
+
+参数:
+- `string` publicKyeToHex
+
+返回类型:
+- `ulong`
+
+用于获取所提供私钥当前可领取的出块奖励分红。
 
 ### `GetAvailableDividendsByVotingInformation`
 

@@ -72,16 +72,7 @@ namespace AElf.Contracts.Consensus.Contracts
         public void Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
             //TODO: Recover after testing.
-//            if (lockTime.InRange(1, 3))
-//            {
-//                lockTime *= 360;
-//            }
-//            else if (lockTime.InRange(12, 36))
-//            {
-//                lockTime *= 30;
-//            }
-//
-//            Api.Assert(lockTime.InRange(90, 1080), GlobalConfig.LockDayIllegal);
+//            Api.Assert(lockTime.InRange(90, 1095), GlobalConfig.LockDayIllegal);
 
             Api.Assert(_collection.CandidatesField.GetValue().PublicKeys.Contains(candidatePublicKey),
                 GlobalConfig.TargetNotAnnounceElection);
