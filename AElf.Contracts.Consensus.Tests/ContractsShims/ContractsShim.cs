@@ -494,7 +494,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         #region Actions
 
-        public void AnnounceElection(ECKeyPair candidateKeyPair)
+        public void AnnounceElection(ECKeyPair candidateKeyPair, string alias = "")
         {
             var tx = new Transaction
             {
@@ -502,7 +502,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "AnnounceElection",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(alias))
             };
             var signer = new ECSigner();
             var signature = signer.Sign(candidateKeyPair, tx.GetHash().DumpByteArray());
@@ -524,7 +524,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "QuitElection",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             var signer = new ECSigner();
             var signature = signer.Sign(candidateKeyPair, tx.GetHash().DumpByteArray());
@@ -582,7 +582,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "ReceiveAllDividends",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             var signer = new ECSigner();
             var signature = signer.Sign(ownerKeyPair, tx.GetHash().DumpByteArray());
