@@ -43,7 +43,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private NodeState CurrentState => _stateFsm.CurrentState;
         
-        private bool _executeNextBlock;
         private IBlock _currentBlock;
 
         public int RollBackTimes { get; private set; }
@@ -71,7 +70,6 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
             _terminated = false;
-            _executeNextBlock = true;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
             {
@@ -266,12 +264,6 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         private async Task TryExecuteNextCachedBlock()
         {
-            if (!_executeNextBlock)
-            {
-                _executeNextBlock = true;
-                return;
-            }
-            
             // no handling of blocks in other states than Catching/Caught (case where the node is busy).
             if (_stateFsm.CurrentState != NodeState.Catching && _stateFsm.CurrentState != NodeState.Caught)
             {
@@ -440,19 +432,32 @@ namespace AElf.Synchronization.BlockSynchronization
             
             if (executionResult == BlockExecutionResult.AlreadyAppended)
             {
-                // good to go
+                // todo blocks should not be already appended when rollbacking
             }
-            else if (executionResult.CanExecuteAgain())
+            else if (executionResult == BlockExecutionResult.BlockIsNull || 
+                     executionResult == BlockExecutionResult.NoTransaction)
             {
-                // todo side chain logic
+                // todo Should be validated before => should throw exception
+            }
+            else if (executionResult == BlockExecutionResult.Mining 
+                     || executionResult == BlockExecutionResult.Terminated)
+            {
+                // todo should not happen, related to locking => should throw exception
+            }
+            else if (executionResult == BlockExecutionResult.Fatal
+                     || executionResult == BlockExecutionResult.ExecutionCancelled
+                     || executionResult == BlockExecutionResult.IncorrectStateMerkleTree)
+            {
+                // The block can be considered bad.
                 _blockSet.RemoveInvalidBlock(block.GetHash());
-                MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 return;
             }
-            else if (executionResult.CannotExecute())
+            else
             {
-                _executeNextBlock = false;
+                // todo side chain logic
+                // these cases are currently unhandled 
                 _blockSet.RemoveInvalidBlock(block.GetHash());
+                MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 return;
             }
 
