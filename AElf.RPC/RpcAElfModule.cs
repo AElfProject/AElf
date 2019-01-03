@@ -3,6 +3,7 @@ using AElf.Kernel;
 using AElf.Modularity;
 using AElf.Network;
 using AElf.RPC.Hubs.Net;
+using Community.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -38,6 +39,7 @@ namespace AElf.RPC
             RpcServerHelpers.ConfigureServices(context.Services);
 
             _serviceCollection = context.Services;
+            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

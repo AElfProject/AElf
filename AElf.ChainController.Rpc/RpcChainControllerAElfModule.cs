@@ -13,7 +13,8 @@ namespace AElf.ChainController.Rpc
         {
             context.Services.AddAssemblyOf<RpcChainControllerAElfModule>();
 
-            context.Services.AddTransient<ChainControllerRpcService>();
+            context.Services.AddSingleton<ChainControllerRpcService>();
+            
         }
 
     }

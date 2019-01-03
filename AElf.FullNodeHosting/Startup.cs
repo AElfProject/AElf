@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ChainController.Rpc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -14,12 +15,17 @@ namespace AElf.FullNodeHosting
     {
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddApplication<FullNodeHostingAElfModule>(options =>
             {
                 options.UseAutofac();
             });
+
+
+            var service = services.Where(p => p.ImplementationType == typeof(ChainControllerRpcService)).ToList();
+            
+            return services.BuildServiceProviderFromFactory();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -31,7 +37,8 @@ namespace AElf.FullNodeHosting
             {
                 app.UseDeveloperExceptionPage();
             }
-            
+
+            var service = app.ApplicationServices;
             
 
             //app.Run(async (context) => { await context.Response.WriteAsync("Hello World!"); });
