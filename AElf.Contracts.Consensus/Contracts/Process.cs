@@ -428,12 +428,13 @@ namespace AElf.Contracts.Consensus.Contracts
 
         private void UpdateCandidatesInfoInHistory(Round currentRoundInfo, TermSnapshot previousTerm)
         {
+            var candidateInHistory = new CandidateInHistory();
             if (previousTerm == null)
             {
                 // Initial history information for initial miners.
                 foreach (var candidate in currentRoundInfo.RealTimeMinersInfo)
                 {
-                    _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
+                    candidateInHistory = new CandidateInHistory
                     {
                         PublicKey = candidate.Key,
                         MissedTimeSlots = candidate.Value.MissedTimeSlots,
@@ -441,7 +442,9 @@ namespace AElf.Contracts.Consensus.Contracts
                         ContinualAppointmentCount = 0,
                         ReappointmentCount = 0,
                         Terms = {1}
-                    });
+                    };
+                    
+                    _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
                 }
             }
             else
@@ -456,7 +459,7 @@ namespace AElf.Contracts.Consensus.Contracts
                             terms.Add(previousTerm.TermNumber);
                         }
 
-                        _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
+                        candidateInHistory = new CandidateInHistory
                         {
                             PublicKey = candidate.Key,
                             MissedTimeSlots = historyInfo.MissedTimeSlots + candidate.Value.MissedTimeSlots,
@@ -467,11 +470,18 @@ namespace AElf.Contracts.Consensus.Contracts
                                     : 0,
                             ReappointmentCount = historyInfo.ReappointmentCount + 1,
                             Terms = {terms}
-                        });
+                        };
+                        
+                        if (candidateInHistory.Terms.Count > 1 && candidateInHistory.Terms[0] == 1 && candidateInHistory.Terms[1] > 2)
+                        {
+                            candidateInHistory.Terms.Remove(1);
+                        }
+                        
+                        _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
                     }
                     else
                     {
-                        _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), new CandidateInHistory
+                        candidateInHistory = new CandidateInHistory
                         {
                             PublicKey = candidate.Key,
                             MissedTimeSlots = candidate.Value.MissedTimeSlots,
@@ -479,7 +489,14 @@ namespace AElf.Contracts.Consensus.Contracts
                             ContinualAppointmentCount = 0,
                             ReappointmentCount = 0,
                             Terms = {previousTerm.TermNumber}
-                        });
+                        };
+
+                        if (candidateInHistory.Terms.Count > 1 && candidateInHistory.Terms[0] == 1 && candidateInHistory.Terms[1] > 2)
+                        {
+                            candidateInHistory.Terms.Remove(1);
+                        }
+                        
+                        _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
                     }
                 }
             }
