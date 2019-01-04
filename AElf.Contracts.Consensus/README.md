@@ -233,6 +233,15 @@ Initial balance for the provided account.
 
 Can only called by one of the initial miners.
 
+### `GetCurrentRoundNumber`
+
+*No params*
+
+Result Type:
+`ulong`
+
+To query current round number.
+
 # 投票/选举系统
 
 ## 可用方法
@@ -469,6 +478,15 @@ orderBy:
 为其他账户进行余额初始化。
 
 仅可被初始化Miner调用。
+
+### `GetCurrentRoundNumber`
+
+*无参数*
+
+返回类型:
+`ulong`
+
+获取当前轮数。
 
 ## Data Structure
 

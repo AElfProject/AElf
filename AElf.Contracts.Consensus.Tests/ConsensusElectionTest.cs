@@ -44,7 +44,7 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts.Transfer(GetAddress(_voter4), 100_000);
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void AnnounceElectionTest()
         {
             InitializeToken();
@@ -60,7 +60,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(balance == PinMoney);
         }
         
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void QuitElectionTest()
         {
             InitializeToken();
@@ -70,6 +70,41 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts.QuitElection(_candidate2);
             var res = _contracts.IsCandidate(_candidate2.PublicKey.ToHex());
             Assert.False(res);
+        }
+
+        [Fact]
+        public void ReAnnounceElectionTest()
+        {
+            InitializeToken();
+
+            _contracts.AnnounceElection(_candidate1);
+            Assert.True(_contracts.IsCandidate(_candidate1.PublicKey.ToHex()));
+
+            _contracts.QuitElection(_candidate1);
+            Assert.False(_contracts.IsCandidate(_candidate1.PublicKey.ToHex()));
+
+            _contracts.AnnounceElection(_candidate1);
+            Assert.True(_contracts.IsCandidate(_candidate1.PublicKey.ToHex()));
+        }
+        
+        [Fact]
+        public void VotedAccountReAnnounceElectionTest()
+        {
+            InitializeToken();
+
+            _contracts.AnnounceElection(_candidate1);
+            Assert.True(_contracts.IsCandidate(_candidate1.PublicKey.ToHex()));
+
+            _contracts.Vote(_voter1, _candidate1, 10_000, 90);
+
+            var ticketsOfCandidate = _contracts.GetTicketsInfo(_candidate1);
+            Assert.True(ticketsOfCandidate.TotalTickets > 0);
+
+            _contracts.QuitElection(_candidate1);
+            Assert.False(_contracts.IsCandidate(_candidate1.PublicKey.ToHex()));
+            
+            _contracts.AnnounceElection(_candidate1);
+            Assert.True(_contracts.IsCandidate(_candidate1.PublicKey.ToHex()));
         }
 
         [Fact(Skip = "Time consuming.")]

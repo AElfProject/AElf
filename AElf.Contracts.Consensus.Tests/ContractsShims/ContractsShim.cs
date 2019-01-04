@@ -21,10 +21,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         public TransactionContext TransactionContext { get; private set; }
 
-        public Address Sender
-        {
-            get => Address.Zero;
-        }
+        public Address Sender => Address.Zero;
 
         public Address ConsensusContractAddress { get; set; }
         public Address TokenContractAddress { get; set; }
@@ -258,6 +255,14 @@ namespace AElf.Contracts.Consensus.Tests
                 ExecutiveForDividends.SetTransactionContext(tc).Apply().Wait();
                 TransactionContext.Trace.InlineTraces.Add(tc.Trace);
             }
+            
+            tc = PrepareTransactionContext(
+                TransactionContext.Trace.InlineTransactions.FirstOrDefault(t => t.MethodName == "KeepWeights"));
+            if (tc != null)
+            {
+                ExecutiveForDividends.SetTransactionContext(tc).Apply().Wait();
+                TransactionContext.Trace.InlineTraces.Add(tc.Trace);
+            }
 
             foreach (var transaction in TransactionContext.Trace.InlineTransactions.Where(t =>
                 t.MethodName == "Transfer"))
@@ -385,7 +390,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetCandidatesListToFriendlyString",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
             TransactionContext = new TransactionContext
@@ -453,7 +458,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "GetCurrentVictories",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
             TransactionContext = new TransactionContext
@@ -489,7 +494,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         #region Actions
 
-        public void AnnounceElection(ECKeyPair candidateKeyPair)
+        public void AnnounceElection(ECKeyPair candidateKeyPair, string alias = "")
         {
             var tx = new Transaction
             {
@@ -497,7 +502,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "AnnounceElection",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(alias))
             };
             var signer = new ECSigner();
             var signature = signer.Sign(candidateKeyPair, tx.GetHash().DumpByteArray());
@@ -519,7 +524,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "QuitElection",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             var signer = new ECSigner();
             var signature = signer.Sign(candidateKeyPair, tx.GetHash().DumpByteArray());
@@ -577,7 +582,7 @@ namespace AElf.Contracts.Consensus.Tests
                 To = ConsensusContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
                 MethodName = "ReceiveAllDividends",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(""))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             var signer = new ECSigner();
             var signature = signer.Sign(ownerKeyPair, tx.GetHash().DumpByteArray());
@@ -640,14 +645,14 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
-        public string Symbol()
+        public ulong CheckStandardDividendsOfPreviousTerm()
         {
             var tx = new Transaction
             {
                 From = Sender,
-                To = TokenContractAddress,
+                To = DividendsContractAddress,
                 IncrementId = MockSetup.NewIncrementId,
-                MethodName = "Symbol",
+                MethodName = "CheckStandardDividendsOfPreviousTerm",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
 
@@ -655,9 +660,9 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 Transaction = tx
             };
-            ExecutiveForToken.SetTransactionContext(TransactionContext).Apply().Wait();
+            ExecutiveForDividends.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
         public string TokenName()

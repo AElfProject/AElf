@@ -9,7 +9,7 @@ namespace AElf.Kernel
 
         public static ulong CalculateWeight(ulong ticketsAmount, int lockTime)
         {
-            return (ulong) (lockTime / 270 + 2 / 3) * ticketsAmount;
+            return (ulong) (((double) lockTime / 270 + 2.0 / 3.0) * ticketsAmount);
         }
 
         public ulong GetDurationDays(ulong currentAge)
