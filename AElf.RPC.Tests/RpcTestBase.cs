@@ -33,11 +33,6 @@ namespace AElf.RPC.Tests
 
         protected override IWebHostBuilder CreateWebHostBuilder()
         {
-            var parsed = new CommandLineParser();
-            parsed.Parse(
-                "--mine.enable true --node.port 6800 --node.account ELF_kM1H2fkKQvWwbaju7Jbw5HvTEj9yi8RbwfdjjEGTpv1t9V --db.type Redis --rpc.port 8000 --db.host=localhost --db.port=6379 --rpc.host 0.0.0.0 --node.accountpassword wenkai"
-                    .Split(' '));
-
             return base.CreateWebHostBuilder()
                 .ConfigureLogging(builder =>
                 {
