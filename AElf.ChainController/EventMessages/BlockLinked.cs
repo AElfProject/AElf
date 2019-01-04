@@ -2,9 +2,9 @@
 
 namespace AElf.Node.EventMessages
 {
-    public sealed class BlockReceived
+    public sealed class BlockLinked
     {
-        public BlockReceived(IBlock block)
+        public BlockLinked(IBlock block)
         {
             Block = block;
         }

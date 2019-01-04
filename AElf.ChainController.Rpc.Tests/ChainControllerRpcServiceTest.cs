@@ -18,7 +18,7 @@ namespace AElf.ChainController.Rpc.Tests
     {
         private ChainControllerRpcService _chainControllerRpcService;
 
-        private ILogger<ChainControllerRpcServiceTest> _logger;
+        public ILogger<ChainControllerRpcServiceTest> Logger { get; set; }
 
 
         [Fact]
@@ -30,19 +30,19 @@ namespace AElf.ChainController.Rpc.Tests
         public ChainControllerRpcServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
             _chainControllerRpcService = GetRequiredService<ChainControllerRpcService>();
-            _logger = GetService<ILogger<ChainControllerRpcServiceTest>>() ??
+            Logger = GetService<ILogger<ChainControllerRpcServiceTest>>() ??
                       NullLogger<ChainControllerRpcServiceTest>.Instance;
         }
     }
 
     public class ChainControllerRpcServiceServerTest : RpcTestBase
     {
-        private ILogger<ChainControllerRpcServiceServerTest> _logger;
+        public ILogger<ChainControllerRpcServiceServerTest> Logger { get; set; }
 
         public ChainControllerRpcServiceServerTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
             
-            _logger = GetService<ILogger<ChainControllerRpcServiceServerTest>>() ??
+            Logger = GetService<ILogger<ChainControllerRpcServiceServerTest>>() ??
                       NullLogger<ChainControllerRpcServiceServerTest>.Instance;
         }
 
@@ -51,7 +51,7 @@ namespace AElf.ChainController.Rpc.Tests
         {
             var response = await JsonCallAsJObject("/chain", "get_block_height");
 
-            _logger.LogInformation(response.ToString());
+            Logger.LogInformation(response.ToString());
 
             var height = (int) response["result"]["result"]["block_height"];
 
@@ -64,7 +64,7 @@ namespace AElf.ChainController.Rpc.Tests
         {
             var response = await JsonCallAsJObject("/chain", "get_block_height");
 
-            _logger.LogInformation(response.ToString());
+            Logger.LogInformation(response.ToString());
 
             var height = (int) response["result"]["result"]["block_height"];
 

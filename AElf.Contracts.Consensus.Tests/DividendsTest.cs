@@ -72,7 +72,7 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
 
             // Get victories of first term of election, they are miners then.
             var victories = _contracts.GetCurrentVictories().Values;
-            // Next term.
+            // Second term.
             var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 1);
             _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), secondTerm);
 
@@ -119,6 +119,10 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             var balanceAfter = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.True(balanceAfter >= balanceBefore);
+
+            var standardDividendsOfPreviousTerm = _contracts.CheckStandardDividendsOfPreviousTerm();
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            Assert.True(standardDividendsOfPreviousTerm > 0);
         }
 
         private ECKeyPair GetCandidateKeyPair(string publicKey)

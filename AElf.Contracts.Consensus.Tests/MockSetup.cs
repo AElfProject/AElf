@@ -8,11 +8,12 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using AElf.Common;
 using AElf.Kernel.Managers;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Consensus.Tests
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class MockSetup
+    public class MockSetup : ITransientDependency
     {
         // To differentiate txn identified by From/To/IncrementId
         private static int _incrementId;
