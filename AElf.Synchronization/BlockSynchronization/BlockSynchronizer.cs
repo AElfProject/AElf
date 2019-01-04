@@ -11,7 +11,6 @@ using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
@@ -24,9 +23,7 @@ namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable InconsistentNaming
     public class BlockSynchronizer : IBlockSynchronizer
-    {
-        private bool _terminated;
-        
+    {        
         public ILogger<BlockSynchronizer> Logger {get;set;}
         
         private readonly IChainService _chainService;
@@ -69,7 +66,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
             Logger= NullLogger<BlockSynchronizer>.Instance;
 
-            _terminated = false;
             _executeNextBlock = true;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
@@ -143,15 +139,6 @@ namespace AElf.Synchronization.BlockSynchronization
             MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
             {
                 AddMinedBlock(inBlock.Block);
-            });
-
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.BlockSynchronizer)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockSynchronizer));
-                }
             });
             
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
@@ -333,8 +320,6 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         public async Task TryPushBlock(IBlock block)
         {
-            if (_terminated)
-                return;
             
             if (block == null)
                 throw new ArgumentNullException(nameof(block), "The block cannot be null");

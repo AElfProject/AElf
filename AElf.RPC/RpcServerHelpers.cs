@@ -48,17 +48,16 @@ namespace AElf.RPC
             }
             var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] { type });
             methodInfoGeneric.Invoke(appBuilder, new object[] { appBuilder , path});
+            
         }
         
         
-        internal static void ConfigureServices(IServiceCollection services, IServiceProvider scope)
+        internal static void ConfigureServices(IServiceCollection services)
         {
-            var types = GetServiceTypes(scope.GetRequiredService<IServiceCollection>());
-            
-            
+            var types = GetServiceTypes(services);
+
             foreach (var serviceType in types)
             {
-                services.AddSingleton(serviceType, Resolve(scope, serviceType));
                 AddJsonRpcService(services, serviceType);
             }
         }

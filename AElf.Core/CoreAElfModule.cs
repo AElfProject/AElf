@@ -10,5 +10,10 @@ namespace AElf
         {
             context.Services.AddConventionalRegistrar(new AElfDefaultConventionalRegistrar());
         }
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            
+        }
     }
 }

@@ -21,7 +21,6 @@ using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Miner.TxMemPool;
-using AElf.Kernel.Types.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -79,9 +78,6 @@ namespace AElf.Node.Consensus
 
         private static int _flag;
 
-        private static bool _prepareTerminated;
-
-        private static bool _terminated;
 
         private static bool _executedBlockFromOtherMiners;
 
@@ -96,8 +92,6 @@ namespace AElf.Node.Consensus
             _chainService = chainService;
             _minersManager = minersManager;
             _helper = helper;
-            _prepareTerminated = false;
-            _terminated = false;
 
             _chainId = Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58());
 
@@ -140,14 +134,6 @@ namespace AElf.Node.Consensus
                 else
                 {
                     DecrementLockNumber();
-                }
-            });
-
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.Mining)
-                {
-                    _prepareTerminated = true;
                 }
             });
 
@@ -226,12 +212,6 @@ namespace AElf.Node.Consensus
             try
             {
                 var block = await _miner.Mine();
-
-                if (_prepareTerminated)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.Mining));
-                }
 
                 return block;
             }
@@ -321,11 +301,6 @@ namespace AElf.Node.Consensus
 
             Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
-            if (_terminated)
-            {
-                return;
-            }
-
             if (!CurrentState.AbleToMine())
             {
                 return;
@@ -385,11 +360,6 @@ var logLevel = new Int32Value {Value = 0};
             const ConsensusBehavior behavior = ConsensusBehavior.PackageOutValue;
 
             Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
-
-            if (_terminated)
-            {
-                return;
-            }
 
             if (!CurrentState.AbleToMine())
             {
@@ -469,11 +439,6 @@ var logLevel = new Int32Value {Value = 0};
 
             Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
-            if (_terminated)
-            {
-                return;
-            }
-
             if (!CurrentState.AbleToMine())
             {
                 return;
@@ -536,11 +501,6 @@ var logLevel = new Int32Value {Value = 0};
             var goNextTerm = false;
 
             Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
-
-            if (_terminated)
-            {
-                return;
-            }
 
             if (!CurrentState.AbleToMine())
             {
@@ -659,11 +619,6 @@ var logLevel = new Int32Value {Value = 0};
             const ConsensusBehavior behavior = ConsensusBehavior.NextTerm;
 
             Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
-
-            if (_terminated)
-            {
-                return;
-            }
 
             if (!CurrentState.AbleToMine())
             {
@@ -817,8 +772,7 @@ var logLevel = new Int32Value {Value = 0};
 
         public bool Shutdown()
         {
-            _terminated = true;
-            return _terminated;
+            return true;
         }
 
         private static bool MiningLocked()

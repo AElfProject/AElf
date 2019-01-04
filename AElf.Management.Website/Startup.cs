@@ -30,7 +30,7 @@ namespace AElf.Management.Website
                 options.UseAutofac();
             });
 
-            return services.BuildServiceProviderFromFactory();
+            return services.BuildAutofacServiceProvider();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

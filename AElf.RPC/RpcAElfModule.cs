@@ -1,39 +1,67 @@
 ﻿using AElf.Configuration.Config.RPC;
 using AElf.Kernel;
 using AElf.Modularity;
+using AElf.Network;
 using AElf.RPC.Hubs.Net;
+using Community.AspNetCore;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
-
+using Volo.Abp.Threading;
+using Volo.Abp.AspNetCore.Modularity;
 namespace AElf.RPC
 {
-    [DependsOn(typeof(KernelAElfModule))]
+    [DependsOn(
+        typeof(Volo.Abp.AspNetCore.AbpAspNetCoreModule),
+        typeof(KernelAElfModule),
+        //TODO: remove it
+        typeof(NetworkAElfModule))]
     public class RpcAElfModule: AElfModule
     {
+
+        private IServiceCollection _serviceCollection=null;
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            //TODO! RPC server should change to controller
+
+            var services = context.Services;
             
-            context.Services.AddSingleton<IRpcServer,RpcServer>();
+            services.AddCors();
 
+            services.AddSignalRCore();
+            services.AddSignalR();
+            
+            context.Services.AddScoped<NetContext>();
+        }
 
-            context.Services.AddSingleton<IServiceCollection>(context.Services);
+        public override void PostConfigureServices(ServiceConfigurationContext context)
+        {
+            RpcServerHelpers.ConfigureServices(context.Services);
 
-
-            //TODO: should remove
-            //context.Services.AddScoped<NetContext>();
+            _serviceCollection = context.Services;
+            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            var app = context.GetApplicationBuilder();
             
-            
-            var rpc = context.ServiceProvider.GetService<IRpcServer>();
+            RpcServerHelpers.Configure(app,_serviceCollection);
 
-            //TODO! change the implement of rpc server.
-            rpc.Init(context.ServiceProvider, RpcConfig.Instance.Host, RpcConfig.Instance.Port);
+            
+            app.UseCors(builder => { builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
+            app.UseSignalR(routes => { routes.MapHub<NetworkHub>("/events/net"); });
+
         }
 
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+        {
+            context.ServiceProvider.GetRequiredService<NetContext>();
+        }
+
+        public override void OnApplicationShutdown(ApplicationShutdownContext context)
+        {
+            
+        }
     }
 }
