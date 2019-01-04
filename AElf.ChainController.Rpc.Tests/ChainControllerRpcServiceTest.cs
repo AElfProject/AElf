@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Net.Http;
+using System.Net.Http.Formatting;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Net.Rpc;
 using AElf.RPC.Tests;
 using Anemonis.JsonRpc;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Shouldly;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AElf.ChainController.Rpc.Tests
 {
@@ -14,36 +19,57 @@ namespace AElf.ChainController.Rpc.Tests
     {
         private ChainControllerRpcService _chainControllerRpcService;
 
-        public ChainControllerRpcServiceTest()
-        {
-            _chainControllerRpcService = GetRequiredService<ChainControllerRpcService>();
-        }
+        private ILogger<ChainControllerRpcServiceTest> _logger;
+
 
         [Fact]
         public async Task TestGetBlockHeight()
         {
-            
-            var height =  await _chainControllerRpcService.ProGetBlockHeight();
+            var height = await _chainControllerRpcService.ProGetBlockHeight();
         }
-        
-        
+
+        public ChainControllerRpcServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
+        {
+            _chainControllerRpcService = GetRequiredService<ChainControllerRpcService>();
+            _logger = GetService<ILogger<ChainControllerRpcServiceTest>>() ??
+                      NullLogger<ChainControllerRpcServiceTest>.Instance;
+        }
     }
 
     public class ChainControllerRpcServiceServerTest : RpcTestBase
     {
+        private ILogger<ChainControllerRpcServiceServerTest> _logger;
+
+        public ChainControllerRpcServiceServerTest(ITestOutputHelper outputHelper) : base(outputHelper)
+        {
+            
+            _logger = GetService<ILogger<ChainControllerRpcServiceServerTest>>() ??
+                      NullLogger<ChainControllerRpcServiceServerTest>.Instance;
+        }
+
         [Fact]
         public async Task TestGetBlockHeight()
         {
-            //var response2 = await CreateJsonRpcClient("path").InvokeAsync<long>("get_block_height", new JsonRpcId(1));
-            
-            //Todo: should make a base method to post json
-            var response = await Client.PostAsync("/chain",
-                new StringContent("{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"get_block_height\",\n  \"params\": {}\n}",Encoding.UTF8, "application/json"));
+            var response = await JsonCallAsJObject("/chain", "get_block_height");
 
-            await Task.Delay(10000000);
-            throw new Exception(response.StatusCode.ToString());
-            //
+            _logger.LogInformation(response.ToString());
 
+            var height = (int) response["result"]["result"]["block_height"];
+
+            height.ShouldBeGreaterThanOrEqualTo(0);
+        }
+
+        
+        [Fact]
+        public async Task TestGetBlockHeight2()
+        {
+            var response = await JsonCallAsJObject("/chain", "get_block_height");
+
+            _logger.LogInformation(response.ToString());
+
+            var height = (int) response["result"]["result"]["block_height"];
+
+            height.ShouldBeGreaterThanOrEqualTo(0);
         }
     }
 }

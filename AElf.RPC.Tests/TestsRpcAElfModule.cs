@@ -36,8 +36,8 @@ namespace AElf.RPC.Tests
 
             context.Services.AddLogging(builder =>
             {
-                builder.AddXUnit();
-                builder.SetMinimumLevel(LogLevel.Information);
+                //builder.AddXUnit();
+                //builder.SetMinimumLevel(LogLevel.Information);
             });
         }
     }
