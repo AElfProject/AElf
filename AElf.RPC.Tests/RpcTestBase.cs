@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Configuration;
-using AElf.TestBase;
-using Anemonis.JsonRpc.ServiceClient;
 using MartinCostello.Logging.XUnit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,7 +14,6 @@ using Newtonsoft.Json.Serialization;
 using Shouldly;
 using Volo.Abp.AspNetCore.TestBase;
 using Xunit.Abstractions;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace AElf.RPC.Tests
 {

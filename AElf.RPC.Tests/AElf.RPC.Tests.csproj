@@ -22,10 +22,4 @@
       <PackageReference Include="Volo.Abp.AspNetCore.TestBase" Version="0.10.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="System.Net.Http.Formatting, Version=5.2.6.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
-        <HintPath>..\..\..\..\.nuget\packages\microsoft.aspnet.webapi.client\5.2.6\lib\netstandard2.0\System.Net.Http.Formatting.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>
