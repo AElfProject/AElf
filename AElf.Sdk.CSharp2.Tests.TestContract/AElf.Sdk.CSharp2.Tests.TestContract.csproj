@@ -2,11 +2,11 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <RootNamespace>AElf.Sdk.CSharp.Tests.TestContract2</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
-      <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
+      <ProjectReference Include="..\AElf.Sdk.CSharp2\AElf.Sdk.CSharp2.csproj" />
     </ItemGroup>
 
 </Project>
