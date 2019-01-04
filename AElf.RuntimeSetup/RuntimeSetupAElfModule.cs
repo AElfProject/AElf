@@ -15,6 +15,7 @@ namespace AElf.RuntimeSetup
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+
             context.Services.AddLogging(builder =>
             {
                 builder.AddLog4Net(new Log4NetSettings()
