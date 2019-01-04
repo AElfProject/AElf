@@ -7,13 +7,15 @@ using Newtonsoft.Json;
 
 namespace AElf.RPC.Hubs.Net
 {
-    public class NetContext
+    public class NetContext: IDisposable
     {
         private readonly IHubContext<NetworkHub> _hubContext;
+        private readonly IPeerManager _peerManager;
 
         public NetContext(IHubContext<NetworkHub> hubContext, IPeerManager peerManager)
         {
             _hubContext = hubContext;
+            _peerManager = peerManager;
             peerManager.PeerEvent += ManagerOnMessageReceived;
         }
 
@@ -36,6 +38,12 @@ namespace AElf.RPC.Hubs.Net
             {
                 Console.WriteLine("Exception while publish event: " + e.Message);
             }
+        }
+
+        public void Dispose()
+        {
+            
+            _peerManager.PeerEvent -= ManagerOnMessageReceived;
         }
     }
 }

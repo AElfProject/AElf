@@ -18,7 +18,7 @@ using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 
-namespace AElf.Launcher
+namespace AElf.FullNodeHosting
 {
     [DependsOn(
         typeof(RuntimeSetupAElfModule),
@@ -35,13 +35,13 @@ namespace AElf.Launcher
         typeof(MinerRpcAElfModule),
         typeof(NetworkAElfModule),
         typeof(ConsensusKernelAElfModule))]
-    public class LauncherAElfModule : AElfModule
+    public class FullNodeHostingAElfModule : AElfModule
     {
-        public ILogger<LauncherAElfModule> Logger { get; set; }
+        public ILogger<FullNodeHostingAElfModule> Logger { get; set; }
 
-        public LauncherAElfModule()
+        public FullNodeHostingAElfModule()
         {
-            Logger = NullLogger<LauncherAElfModule>.Instance;
+            Logger = NullLogger<FullNodeHostingAElfModule>.Instance;
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)

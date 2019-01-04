@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using AElf.ChainController;
-using AElf.ChainController.Rpc;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
@@ -27,7 +26,7 @@ namespace AElf.Kernel.Tests
         
         //TODO: only test kernel aelf module here
         typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 
-        typeof(SmartContractAElfModule),typeof(RpcChainControllerAElfModule),
+        typeof(SmartContractAElfModule),
         typeof(MinerAElfModule),
         typeof(MinerRpcAElfModule),
         typeof(CSharpRuntimeAElfModule),

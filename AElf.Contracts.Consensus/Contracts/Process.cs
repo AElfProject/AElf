@@ -38,6 +38,7 @@ namespace AElf.Contracts.Consensus.Contracts
             
             _collection.BlockchainStartTimestamp.SetValue(firstTerm.Timestamp);
 
+            Console.WriteLine("Set miners.");
             _collection.MinersMap.SetValue(firstTerm.TermNumber.ToUInt64Value(), firstTerm.Miners);
 
             SetAliases(firstTerm);
@@ -79,6 +80,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
 
             term.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
+            
             _collection.MinersMap.SetValue(term.TermNumber.ToUInt64Value(), term.Miners);
             
             var lookUp = _collection.TermNumberLookupField.GetValue();
@@ -94,7 +96,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextRound(Forwarding forwarding)
         {
-            if (forwarding.NextRoundInfo.MinersHash() != GetCurrentRoundInfo().MinersHash())
+            if (forwarding.NextRoundInfo.MinersHash() != GetCurrentRoundInfo().MinersHash() &&
+                forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber)
             {
                 _collection.MinersMap.SetValue(CurrentTermNumber.ToUInt64Value(),
                     forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.ToMiners());
@@ -419,6 +422,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 TotalBlocks = minedBlocks,
                 CandidatesSnapshot = {candidateInTerms}
             });
+
+            Api.SendInline(Api.DividendsContractAddress, "KeepWeights");
         }
 
         private void UpdateCandidatesInfoInHistory(Round currentRoundInfo, TermSnapshot previousTerm)

@@ -1,18 +1,20 @@
 ﻿using System;
-using AElf.Common.Enums;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using AElf.Configuration;
-using AElf.Database;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
 
-
-namespace AElf.Launcher
+namespace AElf.FullNodeHosting
 {
-    class Program
+    public class Program
     {
         public static void Main(string[] args)
         {
@@ -38,8 +40,10 @@ namespace AElf.Launcher
         //create default https://github.com/aspnet/MetaPackages/blob/master/src/Microsoft.AspNetCore/WebHost.cs
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseUrls("http://localhost:8000")
-                .ConfigureLogging(builder => { builder.ClearProviders(); })
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                })
                 .UseStartup<Startup>();
     }
 }

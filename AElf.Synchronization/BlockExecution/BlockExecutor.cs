@@ -14,7 +14,6 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Common;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
@@ -39,9 +38,6 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IChainManager _chainManager;
         private readonly IStateManager _stateManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
-        private static bool _executing;
-        private static bool _prepareTerminated;
-        private static bool _terminated;
         private static bool _isLimitExecutionTime;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
@@ -62,26 +58,6 @@ namespace AElf.Synchronization.BlockExecution
             Logger= NullLogger<BlockExecutor>.Instance;
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
-
-            _executing = false;
-            _prepareTerminated = false;
-            _terminated = false;
-
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.BlockExecutor)
-                {
-                    if (!_executing)
-                    {
-                        _terminated = true;
-                        MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockExecutor));
-                    }
-                    else
-                    {
-                        _prepareTerminated = true;
-                    }
-                }
-            });
 
             MessageHub.Instance.Subscribe<StateEvent>(inState =>
             {
@@ -119,12 +95,6 @@ namespace AElf.Synchronization.BlockExecution
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-
-            _executing = true;
-            if (_terminated)
-            {
-                return BlockExecutionResult.Terminated;
-            }
 
             var txnRes = new List<TransactionResult>();
             var cts = new CancellationTokenSource();
@@ -211,14 +181,7 @@ namespace AElf.Synchronization.BlockExecution
             }
             finally
             {
-                _executing = false;
                 cts.Dispose();
-                if (_prepareTerminated)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockExecutor));
-                }
-
                 stopwatch.Stop();
                 if (res.CanExecuteAgain())
                 {

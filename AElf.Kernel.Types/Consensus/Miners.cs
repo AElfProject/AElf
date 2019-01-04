@@ -186,15 +186,19 @@ namespace AElf.Kernel
             var newEBP = CalculateNextExtraBlockProducer(round);
             round.RealTimeMinersInfo[newEBP].IsExtraBlockProducer = true;
 
-            // Exchange
-            var oldOrder = round.RealTimeMinersInfo[extraBlockProducer].Order;
-            var tempTime = round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime;
-            round.RealTimeMinersInfo[extraBlockProducer].Order = 1;
-            round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime =
-                round.RealTimeMinersInfo.First().Value.ExpectedMiningTime;
-
-            round.RealTimeMinersInfo.First().Value.Order = oldOrder;
-            round.RealTimeMinersInfo.First().Value.ExpectedMiningTime = tempTime;
+            if (GlobalConfig.BlockProducerNumber != 1)
+            {
+                // Exchange
+                var orderOfEBP = round.RealTimeMinersInfo[extraBlockProducer].Order;
+                var expectedMiningTimeOfEBP = round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime;
+                
+                round.RealTimeMinersInfo[extraBlockProducer].Order = 1;
+                round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime =
+                    round.RealTimeMinersInfo.First().Value.ExpectedMiningTime;
+                
+                round.RealTimeMinersInfo.First().Value.Order = orderOfEBP;
+                round.RealTimeMinersInfo.First().Value.ExpectedMiningTime = expectedMiningTimeOfEBP;
+            }
 
             round.MiningInterval = previousRound.MiningInterval;
 

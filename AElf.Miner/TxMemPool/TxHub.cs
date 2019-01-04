@@ -13,7 +13,6 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Common;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
@@ -44,8 +43,6 @@ namespace AElf.Miner.TxMemPool
         
         private IBlockChain _blockChain;
         
-        private static bool _terminated;
-
         private ulong _curHeight;
 
         private readonly Hash _chainId;
@@ -72,8 +69,6 @@ namespace AElf.Miner.TxMemPool
             _refBlockValidator = refBlockValidator;
             _authorizationInfoReader = authorizationInfoReader;
 
-            _terminated = false;
-
             _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
 
             _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(_chainId);
@@ -95,14 +90,6 @@ namespace AElf.Miner.TxMemPool
             MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
                 await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
             
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.TxPool)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.TxPool));
-                }
-            });
         }
 
         public void Start()
@@ -116,11 +103,6 @@ namespace AElf.Miner.TxMemPool
 
         public async Task AddTransactionAsync(Transaction transaction, bool skipValidation = false)
         {
-            if (_terminated)
-            {
-                return;
-            }
-
             var tr = new TransactionReceipt(transaction);
             if (skipValidation)
             {

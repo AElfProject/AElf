@@ -11,7 +11,6 @@ using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
@@ -24,9 +23,7 @@ namespace AElf.Synchronization.BlockSynchronization
 {
     // ReSharper disable InconsistentNaming
     public class BlockSynchronizer : IBlockSynchronizer
-    {
-        private bool _terminated;
-        
+    {        
         public ILogger<BlockSynchronizer> Logger {get;set;}
         
         private readonly IChainService _chainService;
@@ -54,7 +51,6 @@ namespace AElf.Synchronization.BlockSynchronization
         private List<string> _currentMiners;
 
         private Hash _chainId;
-        private string _nodePubKey;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IMinersManager minersManager)
@@ -69,7 +65,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
             Logger= NullLogger<BlockSynchronizer>.Instance;
 
-            _terminated = false;
             _executeNextBlock = true;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
@@ -144,17 +139,8 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 AddMinedBlock(inBlock.Block);
             });
-
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.BlockSynchronizer)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockSynchronizer));
-                }
-            });
             
-            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
+            MessageHub.Instance.Subscribe<BlockLinked>(async inBlock =>
             {
                 if (inBlock.Block == null)
                     return;
@@ -218,7 +204,6 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
                 _blockChain = _chainService.GetBlockChain(_chainId);
-                _nodePubKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             
                 Miners miners = _minersManager.GetMiners().Result;
             
@@ -333,8 +318,6 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         public async Task TryPushBlock(IBlock block)
         {
-            if (_terminated)
-                return;
             
             if (block == null)
                 throw new ArgumentNullException(nameof(block), "The block cannot be null");
@@ -391,6 +374,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 else
                 {
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock);
+                    
+                    Logger.LogDebug($"Block {block} has been linked.");
+                    MessageHub.Instance.Publish(new BlockLinked(block));
                 }
             }
             catch (Exception e)
