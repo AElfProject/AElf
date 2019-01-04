@@ -22,10 +22,7 @@ namespace AElf.FullNodeHosting
                 options.UseAutofac();
             });
 
-
-            var service = services.Where(p => p.ImplementationType == typeof(ChainControllerRpcService)).ToList();
-            
-            return services.BuildServiceProviderFromFactory();
+            return services.BuildAutofacServiceProvider();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
