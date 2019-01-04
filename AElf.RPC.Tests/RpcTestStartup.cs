@@ -25,12 +25,6 @@ namespace AElf.RPC.Tests
             
             app.InitializeApplication();
             
-            app.Run((async context =>
-            {
-                context.ToString();
-            }));
-            
-            
             app.UseCors(builder =>
                 builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
         }

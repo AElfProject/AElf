@@ -15,9 +15,6 @@ using Volo.Abp.Modularity;
 namespace AElf.RPC.Tests
 {
     [DependsOn(
-        
-        typeof(RuntimeSetupAElfModule),
-        
         typeof(RpcChainControllerAElfModule),
         typeof(MinerRpcAElfModule),
         typeof(NetRpcAElfModule),
@@ -34,11 +31,6 @@ namespace AElf.RPC.Tests
         {
             //TODO: here to generate basic chain data
 
-            context.Services.AddLogging(builder =>
-            {
-                //builder.AddXUnit();
-                //builder.SetMinimumLevel(LogLevel.Information);
-            });
         }
     }
 }
