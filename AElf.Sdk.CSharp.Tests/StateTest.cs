@@ -10,7 +10,7 @@ using Google.Protobuf;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace AElf.Sdk.CSharp2.Tests
+namespace AElf.Sdk.CSharp.Tests
 {
     public class StateTest
     {

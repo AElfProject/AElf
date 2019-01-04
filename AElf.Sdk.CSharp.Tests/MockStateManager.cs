@@ -5,7 +5,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 
-namespace AElf.Sdk.CSharp2.Tests
+namespace AElf.Sdk.CSharp.Tests
 {
     public class MockStateManager : IStateManager
     {

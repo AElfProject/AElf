@@ -1,7 +1,7 @@
 using AElf.Sdk.CSharp.State;
 using AElf.Common;
 
-namespace AElf.Sdk.CSharp2.Tests
+namespace AElf.Sdk.CSharp.Tests
 {
     public class MockStructuredState : StructuredState
     {
