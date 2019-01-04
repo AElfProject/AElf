@@ -11,8 +11,6 @@ namespace AElf.Contracts.Consensus.Tests
     [UseAutofacTestFramework]
     public class ConsensusElectionTest
     {
-        private SimpleExecutingService _executingService;
-
         private readonly ContractsShim _contracts;
 
         private readonly ECKeyPair _voter1 = new KeyPairGenerator().Generate();
@@ -34,8 +32,6 @@ namespace AElf.Contracts.Consensus.Tests
 
         private void InitializeToken()
         {
-            _contracts.Initialize("ELF", "AElf Token", 100_000_000, 2);
-            
             _contracts.Transfer(GetAddress(_candidate1), GlobalConfig.LockTokenForElection + PinMoney);
             _contracts.Transfer(GetAddress(_candidate2), GlobalConfig.LockTokenForElection + PinMoney);
             _contracts.Transfer(GetAddress(_candidate3), GlobalConfig.LockTokenForElection + PinMoney);
@@ -110,7 +106,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(_contracts.IsCandidate(_candidate1.PublicKey.ToHex()));
         }
 
-        [Fact(Skip = "Time consuming.")]
+        [Fact]
         public void VoteTest()
         {
             InitializeToken();
@@ -161,7 +157,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void VoteTest_VoteToSomeoneDidNotAnnounceElection()
         {
             InitializeToken();
@@ -182,7 +178,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void VoteTest_CandidateVote()
         {
             InitializeToken();
@@ -216,7 +212,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void VoteTest_VoteWithInvalidLockDays()
         {
             InitializeToken();

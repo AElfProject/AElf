@@ -35,7 +35,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void InitialTermTest()
         {
             InitialMiners();
@@ -83,7 +83,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void PackageOutValueTest()
         {
             InitialMiners();
@@ -115,7 +115,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.Equal((ulong) 2, firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].ProducedBlocks);
         }
         
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void PackageOutValueTest_RoundIdNotMatched()
         {
             InitialMiners();
@@ -140,7 +140,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void BroadcastInValueTest()
         {
             InitialMiners();
@@ -166,7 +166,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].InValue == inValue);
         }
         
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void BroadcastInValueTest_OutValueIsNull()
         {
             InitialMiners();
@@ -191,7 +191,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
         
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void BroadcastInValueTest_InValueNotMatchToOutValue()
         {
             InitialMiners();
@@ -216,7 +216,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void NextRoundTest()
         {
             InitialMiners();

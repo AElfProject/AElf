@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.Tests
         }
 
         public IStateManager StateManager { get; }
-        public Hash ChainId { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
+        public Hash ChainId { get; } = Hash.FromString(GlobalConfig.DefaultChainId);
         private ISmartContractService SmartContractService { get; }
 
         public readonly IChainContextService ChainContextService;
