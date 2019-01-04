@@ -52,15 +52,15 @@ namespace AElf.SmartContract
         private async Task<Hash> GetContractHashAsync(Hash chainId, Address address)
         {
             Hash contractHash;
-            var zeroContractAdress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
+            var zeroContractAddress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
 
-            if (address == zeroContractAdress)
+            if (address == zeroContractAddress)
             {
-                contractHash = Hash.FromMessage(zeroContractAdress);
+                contractHash = Hash.FromMessage(zeroContractAddress);
             }
             else
             {
-                var result = await CallContractAsync(chainId, zeroContractAdress, "GetContractHash", address);
+                var result = await CallContractAsync(chainId, zeroContractAddress, "GetContractHash", address);
 
                 contractHash = result.DeserializeToPbMessage<Hash>();
             }

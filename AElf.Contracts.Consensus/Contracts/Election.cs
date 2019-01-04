@@ -24,7 +24,8 @@ namespace AElf.Contracts.Consensus.Contracts
             // A voter cannot join the election before all his voting record expired.
             if (_collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
-                Api.Assert(tickets.VotingRecords.All(t => t.IsExpired(_collection.AgeField.GetValue())), GlobalConfig.VoterCannotAnnounceElection);
+                Api.Assert(!tickets.VotingRecords.Any(t => !t.IsExpired(_collection.AgeField.GetValue()) && t.From == publicKey),
+                    GlobalConfig.VoterCannotAnnounceElection);
             }
             
             Api.LockToken(GlobalConfig.LockTokenForElection);
@@ -140,6 +141,7 @@ namespace AElf.Contracts.Consensus.Contracts
             ticketsCount += votingRecord.Count;
             _collection.TicketsCountField.SetValue(ticketsCount);
 
+            Console.WriteLine("Add weights:" + votingRecord.Weight);
             Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight,
                 _collection.CurrentTermNumberField.GetValue());
 

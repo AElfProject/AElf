@@ -50,8 +50,15 @@ namespace AElf.Contracts.Consensus
         [View]
         public Round GetRoundInfo(ulong roundNumber)
         {
-            Api.Assert(Collection.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out var roundInfo), GlobalConfig.RoundNumberNotFound);
-            return roundInfo;
+            if (Collection.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out var roundInfo))
+            {
+                return roundInfo;
+            }
+            
+            return new Round
+            {
+                Remark = "Round information not found."
+            };
         }
 
         [View]
@@ -124,11 +131,21 @@ namespace AElf.Contracts.Consensus
         [View]
         public CandidateInHistory GetCandidateHistoryInfo(string publicKey)
         {
-            Api.Assert(Collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var info),
-                GlobalConfig.CandidateNotFound);
-            return info;
+            if (Collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var info))
+            {
+                return info;
+            }
+
+            return new CandidateInHistory
+            {
+                PublicKey = publicKey,
+                ContinualAppointmentCount = 0,
+                MissedTimeSlots = 0,
+                ProducedBlocks = 0,
+                ReappointmentCount = 0
+            };
         }
-        
+
         [View]
         public string GetCandidateHistoryInfoToFriendlyString(string publicKey)
         {
@@ -143,9 +160,16 @@ namespace AElf.Contracts.Consensus
             {
                 currentTermNumber = 1;
             }
-            Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
-                GlobalConfig.TermNumberNotFound);
-            return currentMiners;
+
+            if (Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners))
+            {
+                return currentMiners;
+            }
+            
+            return new Miners
+            {
+                Remark = "Can't get current miners."
+            };
         }
         
         [View]
@@ -157,8 +181,15 @@ namespace AElf.Contracts.Consensus
         [View]
         public Tickets GetTicketsInfo(string publicKey)
         {
-            Api.Assert(Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets), GlobalConfig.TicketsNotFound);
-            return tickets;
+            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            {
+                return tickets;
+            }
+
+            return new Tickets
+            {
+                TotalTickets = 0
+            };
         }
         
         [View]
@@ -267,8 +298,15 @@ namespace AElf.Contracts.Consensus
         [View]
         public TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            Api.Assert(Collection.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot), GlobalConfig.TermSnapshotNotFound);
-            return snapshot;
+            if (Collection.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot))
+            {
+                return snapshot;
+            }
+            
+            return new TermSnapshot
+            {
+                Remark = "Invalid term number."
+            };
         }
         
         [View]
