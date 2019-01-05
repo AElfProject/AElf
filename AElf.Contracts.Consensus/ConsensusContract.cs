@@ -47,6 +47,40 @@ namespace AElf.Contracts.Consensus
 
         #region Process
         
+        [Fee(0)]
+        public void InitialTerm(Term term, int logLevel)
+        {
+            Api.Assert(term.FirstRound.RoundNumber == 1, "It seems that the term number of initial term is incorrect.");
+            Api.Assert(term.SecondRound.RoundNumber == 2, "It seems that the term number of initial term is incorrect.");
+            Process.InitialTerm(term, logLevel);
+        }
+
+        [Fee(0)]
+        public void NextTerm(Term term)
+        {
+            Process.NextTerm(term);
+        }
+
+        [Fee(0)]
+        public void NextRound(Forwarding forwarding)
+        {
+            Process.NextRound(forwarding);
+        }
+
+        [Fee(0)]
+        public void PackageOutValue(ToPackage toPackage)
+        {
+            Process.PackageOutValue(toPackage);
+        }
+
+        [Fee(0)]
+        public void BroadcastInValue(ToBroadcast toBroadcast)
+        {
+            Process.BroadcastInValue(toBroadcast);
+        }
+        
+        #endregion Process
+
         [View]
         public Round GetRoundInfo(ulong roundNumber)
         {
@@ -66,42 +100,7 @@ namespace AElf.Contracts.Consensus
         {
             return Collection.CurrentRoundNumberField.GetValue();
         }
-
-        [Fee(0)]
-        public void InitialTerm(Term term, int logLevel)
-        {
-            Api.Assert(term.FirstRound.RoundNumber == 1);
-            Api.Assert(term.SecondRound.RoundNumber == 2);
-            
-            Process.InitialTerm(term, logLevel);
-        }
-
-        [Fee(0)]
-        public void NextTerm(Term term)
-        {
-            Process.NextTerm(term);
-        }
-
-        [Fee(0)]
-        public void NextRound(Forwarding forwarding)
-        {
-            Process.NextRound(forwarding);
-        }
-
-        [Fee(0)]
-        public void PackageOutValue(ToPackage toPackage)
-        {
-            Process.PublishOutValue(toPackage);
-        }
-
-        [Fee(0)]
-        public void BroadcastInValue(ToBroadcast toBroadcast)
-        {
-            Process.PublishInValue(toBroadcast);
-        }
         
-        #endregion Process
-
         #region Election
         
         [View]

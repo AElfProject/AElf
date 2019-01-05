@@ -19,8 +19,6 @@ namespace AElf.Contracts.Consensus.Tests
         
         private readonly ContractsShim _contracts;
 
-        private readonly MockSetup _mock;
-
         private readonly List<ECKeyPair> _initialMiners = new List<ECKeyPair>();
         private readonly List<ECKeyPair> _candidates = new List<ECKeyPair>();
         private readonly List<ECKeyPair> _voters = new List<ECKeyPair>();
@@ -29,7 +27,6 @@ namespace AElf.Contracts.Consensus.Tests
 
         public TermTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
         {
-            _mock = mock;
             _contracts = new ContractsShim(mock, simpleExecutingService);
         }
         

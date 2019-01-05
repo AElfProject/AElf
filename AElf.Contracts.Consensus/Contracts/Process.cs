@@ -191,7 +191,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
         }
 
-        public void PublishOutValue(ToPackage toPackage)
+        public void PackageOutValue(ToPackage toPackage)
         {
             Api.Assert(toPackage.RoundId == GetCurrentRoundInfo().RoundId, GlobalConfig.RoundIdNotMatched);
 
@@ -209,7 +209,7 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), roundInfo);
         }
 
-        public void PublishInValue(ToBroadcast toBroadcast)
+        public void BroadcastInValue(ToBroadcast toBroadcast)
         {
             if (toBroadcast.RoundId != GetCurrentRoundInfo().RoundId)
             {

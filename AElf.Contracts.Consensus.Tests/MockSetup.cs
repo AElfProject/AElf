@@ -11,7 +11,7 @@ using AElf.Kernel.Managers;
 
 namespace AElf.Contracts.Consensus.Tests
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
+    // ReSharper disable ClassNeverInstantiated.Global
     public class MockSetup
     {
         // To differentiate txn identified by From/To/IncrementId
@@ -27,21 +27,21 @@ namespace AElf.Contracts.Consensus.Tests
         }
 
         public IStateManager StateManager { get; }
+        
         public Hash ChainId { get; } = Hash.FromString(GlobalConfig.DefaultChainId);
+        
         private ISmartContractService SmartContractService { get; }
-
-        public readonly IChainContextService ChainContextService;
 
         private readonly IChainCreationService _chainCreationService;
 
         public MockSetup(IStateManager stateManager, ISmartContractService smartContractService,
-            IChainCreationService chainCreationService, IChainContextService chainContextService)
+            IChainCreationService chainCreationService)
         {
             StateManager = stateManager;
-            _chainCreationService = chainCreationService;
-            ChainContextService = chainContextService;
-            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService = smartContractService;
+
+            _chainCreationService = chainCreationService;
+            Task.Factory.StartNew(async () => { await Initialize(); }).Unwrap().Wait();
         }
 
         public string ConsensusContractName => "AElf.Contracts.Consensus";
@@ -49,12 +49,12 @@ namespace AElf.Contracts.Consensus.Tests
         public string TokenContractName => "AElf.Contracts.Token";
         public string ZeroContractName => "AElf.Contracts.Genesis";
 
-        public byte[] GetContractCode(string contractName)
+        public static byte[] GetContractCode(string contractName)
         {
             return File.ReadAllBytes(Path.GetFullPath($"../../../../{contractName}/bin/Debug/netstandard2.0/{contractName}.dll"));
         }
 
-        private async Task Init()
+        private async Task Initialize()
         {
             var consensusReg = new SmartContractRegistration
             {
@@ -87,11 +87,6 @@ namespace AElf.Contracts.Consensus.Tests
 
             await _chainCreationService.CreateNewChainAsync(ChainId,
                 new List<SmartContractRegistration> {basicReg, consensusReg, dividendsReg, tokenReg});
-        }
-
-        public async Task<IExecutive> GetExecutiveAsync(Address address)
-        {
-            return await SmartContractService.GetExecutiveAsync(address, ChainId);
         }
     }
 }
