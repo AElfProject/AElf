@@ -81,6 +81,8 @@ namespace AElf.Contracts.Consensus
         
         #endregion Process
 
+        #region Query
+        
         [View]
         public Round GetRoundInfo(ulong roundNumber)
         {
@@ -100,8 +102,6 @@ namespace AElf.Contracts.Consensus
         {
             return Collection.CurrentRoundNumberField.GetValue();
         }
-        
-        #region Election
         
         [View]
         public ulong GetCurrentTermNumber()
@@ -308,6 +308,12 @@ namespace AElf.Contracts.Consensus
                 Remark = "Invalid term number."
             };
         }
+        
+        [View]
+        public string GetTermSnapshotToFriendlyString(ulong termNumber)
+        {
+            return GetTermSnapshot(termNumber).ToString();
+        }
 
         [View]
         public string QueryAlias(string publicKey)
@@ -315,12 +321,6 @@ namespace AElf.Contracts.Consensus
             return Collection.AliasesMap.TryGet(new StringValue {Value = publicKey}, out var alias)
                 ? alias.Value
                 : publicKey.Substring(0, GlobalConfig.AliasLimit);
-        }
-        
-        [View]
-        public string GetTermSnapshotToFriendlyString(ulong termNumber)
-        {
-            return GetTermSnapshot(termNumber).ToString();
         }
 
         [View]
@@ -394,6 +394,10 @@ namespace AElf.Contracts.Consensus
         {
             return QueryAliasesInUse().ToString();
         }
+        
+        #endregion
+        
+        #region Election
         
         public void AnnounceElection(string alias)
         {

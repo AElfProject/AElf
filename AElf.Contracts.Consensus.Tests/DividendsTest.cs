@@ -67,16 +67,16 @@ namespace AElf.Contracts.Consensus.Tests
                     if (new Random().Next(0, 10) < 5)
                     {
                         mustVotedVoter = voter;
-                        _contracts.Vote(voter, candidate, (ulong) new Random().Next(1, 100), 90);
+                        _contracts.Vote(voter, candidate.PublicKey.ToHex(), (ulong) new Random().Next(1, 100), 90);
                     }
                 }
             }
             Assert.NotNull(mustVotedVoter);
 
-            var ticketsInformationInJson = _contracts.GetTicketsInfoToFriendlyString(mustVotedVoter);
+            var ticketsInformationInJson = _contracts.GetTicketsInfoToFriendlyString(mustVotedVoter.PublicKey.ToHex());
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
-            var ticketsInformation = _contracts.GetTicketsInfo(mustVotedVoter);
+            var ticketsInformation = _contracts.GetTicketsInfo(mustVotedVoter.PublicKey.ToHex());
             var votedTickets = ticketsInformation.TotalTickets;
             var balanceAfterVoting = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(votedTickets + balanceAfterVoting == 100_000);

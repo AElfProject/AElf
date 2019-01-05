@@ -23,6 +23,8 @@ namespace AElf.Contracts.Consensus.Tests
         private readonly ECKeyPair _candidate3 = new KeyPairGenerator().Generate();
         private readonly ECKeyPair _candidate4 = new KeyPairGenerator().Generate();
 
+        private readonly ECKeyPair _initialMiner = new KeyPairGenerator().Generate();
+
         private const ulong PinMoney = 100;
 
         public ConsensusElectionTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
@@ -32,15 +34,15 @@ namespace AElf.Contracts.Consensus.Tests
 
         private void InitializeToken()
         {
-            _contracts.Transfer(GetAddress(_candidate1), GlobalConfig.LockTokenForElection + PinMoney);
-            _contracts.Transfer(GetAddress(_candidate2), GlobalConfig.LockTokenForElection + PinMoney);
-            _contracts.Transfer(GetAddress(_candidate3), GlobalConfig.LockTokenForElection + PinMoney);
-            _contracts.Transfer(GetAddress(_candidate4), GlobalConfig.LockTokenForElection + PinMoney);
+            _contracts.Transfer(_initialMiner, GetAddress(_candidate1), GlobalConfig.LockTokenForElection + PinMoney);
+            _contracts.Transfer(_initialMiner, GetAddress(_candidate2), GlobalConfig.LockTokenForElection + PinMoney);
+            _contracts.Transfer(_initialMiner, GetAddress(_candidate3), GlobalConfig.LockTokenForElection + PinMoney);
+            _contracts.Transfer(_initialMiner, GetAddress(_candidate4), GlobalConfig.LockTokenForElection + PinMoney);
             
-            _contracts.Transfer(GetAddress(_voter1), 100_000);
-            _contracts.Transfer(GetAddress(_voter2), 100_000);
-            _contracts.Transfer(GetAddress(_voter3), 100_000);
-            _contracts.Transfer(GetAddress(_voter4), 100_000);
+            _contracts.Transfer(_initialMiner, GetAddress(_voter1), 100_000);
+            _contracts.Transfer(_initialMiner, GetAddress(_voter2), 100_000);
+            _contracts.Transfer(_initialMiner, GetAddress(_voter3), 100_000);
+            _contracts.Transfer(_initialMiner, GetAddress(_voter4), 100_000);
         }
 
         [Fact]
@@ -94,9 +96,9 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts.AnnounceElection(_candidate1);
             Assert.True(_contracts.IsCandidate(_candidate1.PublicKey.ToHex()));
 
-            _contracts.Vote(_voter1, _candidate1, 10_000, 90);
+            _contracts.Vote(_voter1, _candidate1.PublicKey.ToHex(), 10_000, 90);
 
-            var ticketsOfCandidate = _contracts.GetTicketsInfo(_candidate1);
+            var ticketsOfCandidate = _contracts.GetTicketsInfo(_candidate1.PublicKey.ToHex());
             Assert.True(ticketsOfCandidate.TotalTickets > 0);
 
             _contracts.QuitElection(_candidate1);
@@ -119,12 +121,12 @@ namespace AElf.Contracts.Consensus.Tests
             // Voter vote to aforementioned candidate.
             var balanceOfVoter = _contracts.BalanceOf(GetAddress(_voter1));
             Assert.True(balanceOfVoter >= amount);
-            _contracts.Vote(_voter1, _candidate2, amount, 90);
+            _contracts.Vote(_voter1, _candidate2.PublicKey.ToHex(), amount, 90);
             var balanceAfterVoting = _contracts.BalanceOf(GetAddress(_voter1));
             Assert.True(balanceOfVoter == balanceAfterVoting + amount);
             
             // Check tickets of voter
-            var ticketsOfVoter = _contracts.GetTicketsInfo(_voter1);
+            var ticketsOfVoter = _contracts.GetTicketsInfo(_voter1.PublicKey.ToHex());
             Assert.True(ticketsOfVoter.VotingRecords.Count == 1);
             Assert.True(ticketsOfVoter.TotalTickets == amount);
             var votingRecordOfVoter = ticketsOfVoter.VotingRecords.First();
@@ -135,7 +137,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(votingRecordOfVoter.To == _candidate2.PublicKey.ToHex());
 
             // Check tickets of candidate
-            var ticketsOfCandidate = _contracts.GetTicketsInfo(_candidate2);
+            var ticketsOfCandidate = _contracts.GetTicketsInfo(_candidate2.PublicKey.ToHex());
             Assert.True(ticketsOfCandidate.VotingRecords.Count == 1);
             Assert.True(ticketsOfVoter.VotingRecords.Count == 1);
             Assert.True(ticketsOfVoter.TotalTickets == amount);
@@ -149,7 +151,7 @@ namespace AElf.Contracts.Consensus.Tests
             // Check tickets of a passerby.
             try
             {
-                _contracts.GetTicketsInfo(_candidate3);
+                _contracts.GetTicketsInfo(_candidate3.PublicKey.ToHex());
             }
             catch (Exception)
             {
@@ -170,7 +172,7 @@ namespace AElf.Contracts.Consensus.Tests
             
             try
             {
-                _contracts.Vote(_voter1, _candidate2, amount, 90);
+                _contracts.Vote(_voter1, _candidate2.PublicKey.ToHex(), amount, 90);
             }
             catch (Exception)
             {
@@ -194,7 +196,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(balanceOfVoter >= amount);
             try
             {
-                _contracts.Vote(_candidate2, _candidate1, amount, 90);
+                _contracts.Vote(_candidate2, _candidate1.PublicKey.ToHex(), amount, 90);
             }
             catch (Exception)
             {
@@ -204,7 +206,7 @@ namespace AElf.Contracts.Consensus.Tests
             // Voter vote to himself.
             try
             {
-                _contracts.Vote(_candidate2, _candidate2, amount, 90);
+                _contracts.Vote(_candidate2, _candidate2.PublicKey.ToHex(), amount, 90);
             }
             catch (Exception)
             {
@@ -228,7 +230,7 @@ namespace AElf.Contracts.Consensus.Tests
 
             try
             {
-                _contracts.Vote(_voter1, _candidate2, amount, 13);
+                _contracts.Vote(_voter1, _candidate2.PublicKey.ToHex(), amount, 13);
             }
             catch (Exception)
             {

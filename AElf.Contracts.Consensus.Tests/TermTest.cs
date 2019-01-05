@@ -79,7 +79,7 @@ namespace AElf.Contracts.Consensus.Tests
                 {
                     if (new Random().Next(0, 10) < 5)
                     {
-                        _contracts.Vote(voter, candidate, (ulong) new Random().Next(1, 100), 90);
+                        _contracts.Vote(voter, candidate.PublicKey.ToHex(), (ulong) new Random().Next(1, 100), 90);
                     }
                 }
             }

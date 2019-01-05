@@ -9,7 +9,6 @@ using ByteString = Google.Protobuf.ByteString;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
-using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.Tests
@@ -96,124 +95,165 @@ namespace AElf.Contracts.Consensus.Tests
         public ulong GetCurrentRoundNumber()
         {
             ExecuteAction(ConsensusContractAddress, nameof(GetCurrentRoundNumber), SenderKeyPair);
-            var result = TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
-            return result ?? 0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
         public ulong GetCurrentTermNumber()
         {
             ExecuteAction(ConsensusContractAddress, nameof(GetCurrentTermNumber), SenderKeyPair);
-
             var result = TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
             return result ?? 0;
         }
         
         public bool? IsCandidate(string publicKey)
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "IsCandidate",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(publicKey))
-            };
-
-            ExecuteTransaction(tx);
-
-            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+            ExecuteAction(ConsensusContractAddress, nameof(IsCandidate), SenderKeyPair, publicKey);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToBool();
+        }
+        
+        public StringList GetCandidatesList()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetCandidatesList), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<StringList>();
         }
 
         public string GetCandidatesListToFriendlyString()
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "GetCandidatesListToFriendlyString",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
-            };
-
-            ExecuteTransaction(tx);
-
-            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+            ExecuteAction(ConsensusContractAddress, nameof(GetCandidatesListToFriendlyString), SenderKeyPair);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
-        public Tickets GetTicketsInfo(ECKeyPair keyPair)
+        public CandidateInHistory GetCandidateHistoryInfo()
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "GetTicketsInfo",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(keyPair.PublicKey.ToHex()))
-            };
-            var signer = new ECSigner();
-            var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+            ExecuteAction(ConsensusContractAddress, nameof(GetCandidateHistoryInfo), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<CandidateInHistory>();
+        }
+        
+        public string GetCandidateHistoryInfoToFriendlyString()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetCandidateHistoryInfoToFriendlyString), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
 
-            ExecuteTransaction(tx);
+        public Miners GetCurrentMiners()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetCurrentMiners), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Miners>();
+        }
+        
+        public string GetCurrentMinersToFriendlyString()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetCurrentMinersToFriendlyString), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
 
-            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+        public Tickets GetTicketsInfo(string publicKey)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetTicketsInfo), SenderKeyPair, publicKey);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Tickets>();
         }
 
-        public string GetTicketsInfoToFriendlyString(ECKeyPair keyPair)
+        public string GetTicketsInfoToFriendlyString(string publicKey)
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "GetTicketsInfoToFriendlyString",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(keyPair.PublicKey.ToHex()))
-            };
-            var signer = new ECSigner();
-            var signature = signer.Sign(keyPair, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-
-            ExecuteTransaction(tx);
-
-            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+            ExecuteAction(ConsensusContractAddress, nameof(GetTicketsInfoToFriendlyString), SenderKeyPair,
+                publicKey);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
+
+        public TicketsDictionary GetCurrentElectionInfo(int startIndex = 0, int length = 0, int orderBy = 0)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetTicketsInfo), SenderKeyPair, startIndex, length, orderBy);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TicketsDictionary>();
+        }
+        
+        public string GetCurrentElectionInfoToFriendlyString(int startIndex = 0, int length = 0, int orderBy = 0)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetTicketsInfo), SenderKeyPair, startIndex, length, orderBy);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
+
+        public ulong GetBlockchainAge()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetCurrentVictories), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
         public StringList GetCurrentVictories()
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "GetCurrentVictories",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
-            };
-
-            ExecuteTransaction(tx);
-
-            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+            ExecuteAction(ConsensusContractAddress, nameof(GetCurrentVictories), SenderKeyPair);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<StringList>();
+        }
+        
+        public string GetCurrentVictoriesToFriendlyString()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetCurrentVictoriesToFriendlyString), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
         public TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "GetTermSnapshot",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(termNumber))
-            };
-
-            ExecuteTransaction(tx);
-
-            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+            ExecuteAction(ConsensusContractAddress, nameof(GetTermSnapshot), SenderKeyPair, termNumber);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TermSnapshot>();
+        }
+
+        public string GetTermSnapshotToFriendlyString(ulong termNumber)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetTermSnapshotToFriendlyString), SenderKeyPair, termNumber);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
+
+        public string QueryAlias(string publicKey)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(QueryAlias), SenderKeyPair, publicKey);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
+
+        public ulong GetTermNumberByRoundNumber(ulong roundNumber)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetTermNumberByRoundNumber), SenderKeyPair, roundNumber);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+
+        public ulong GetVotesCount()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetVotesCount), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+        
+        public ulong GetTicketsCount()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetTicketsCount), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+        
+        public ulong QueryCurrentDividendsForVoters()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(QueryCurrentDividendsForVoters), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+        
+        public ulong QueryCurrentDividends()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(QueryCurrentDividends), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+        
+        public StringList QueryAliasesInUse()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(QueryAliasesInUse), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<StringList>();
+        }
+        
+        public ulong QueryMinedBlockCountInCurrentTerm(string publicKey)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(QueryMinedBlockCountInCurrentTerm), SenderKeyPair, publicKey);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+        
+        public string QueryAliasesInUseToFriendlyString()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(QueryAliasesInUseToFriendlyString), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
         #endregion
@@ -245,119 +285,129 @@ namespace AElf.Contracts.Consensus.Tests
             ExecuteAction(ConsensusContractAddress, nameof(NextRound), minerKeyPair, forwarding);
         }
 
-        public void InitialBalance(ECKeyPair minerKeyPair, Address address, ulong amount)
-        {
-            ExecuteAction(ConsensusContractAddress, nameof(InitialBalance), minerKeyPair, address, amount);
-        }
-
         #endregion
 
         #region Consensus.Election
         
         public void AnnounceElection(ECKeyPair candidateKeyPair, string alias = "")
         {
-            var tx = new Transaction
-            {
-                From = GetAddress(candidateKeyPair),
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "AnnounceElection",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(alias))
-            };
-            var signer = new ECSigner();
-            var signature = signer.Sign(candidateKeyPair, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-
-            ExecuteTransaction(tx);
+            ExecuteAction(ConsensusContractAddress, nameof(AnnounceElection), candidateKeyPair, alias);
         }
 
         public void QuitElection(ECKeyPair candidateKeyPair)
         {
-            var tx = new Transaction
-            {
-                From = GetAddress(candidateKeyPair),
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "QuitElection",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
-            };
-            var signer = new ECSigner();
-            var signature = signer.Sign(candidateKeyPair, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-
-            ExecuteTransaction(tx);
+            ExecuteAction(ConsensusContractAddress, nameof(QuitElection), candidateKeyPair);
         }
 
-        public void Vote(ECKeyPair voterKeyPair, ECKeyPair candidateKeyPair, ulong amount, int lockDays)
+        public void Vote(ECKeyPair voterKeyPair, string candidatePublicKey, ulong amount, int lockDays)
         {
-            var tx = new Transaction
-            {
-                From = GetAddress(voterKeyPair),
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "Vote",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(candidateKeyPair.PublicKey.ToHex(), amount, lockDays,
-                    DateTime.UtcNow.ToTimestamp()))
-            };
-            var signer = new ECSigner();
-            var signature = signer.Sign(voterKeyPair, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-
-            ExecuteTransaction(tx);
+            ExecuteAction(ConsensusContractAddress, nameof(Vote), voterKeyPair, candidatePublicKey, amount, lockDays);
         }
 
         public void ReceiveAllDividends(ECKeyPair ownerKeyPair)
         {
-            var tx = new Transaction
-            {
-                From = GetAddress(ownerKeyPair),
-                To = ConsensusContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "ReceiveAllDividends",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
-            };
-            var signer = new ECSigner();
-            var signature = signer.Sign(ownerKeyPair, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-
-            ExecuteTransaction(tx);
+            ExecuteAction(ConsensusContractAddress, nameof(ReceiveAllDividends), ownerKeyPair);
         }
+        
+        public void WithdrawAll(ECKeyPair ownerKeyPair)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(WithdrawAll), ownerKeyPair);
+        }
+        
+        public void InitialBalance(ECKeyPair minerKeyPair, Address address, ulong amount)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(InitialBalance), minerKeyPair, address, amount);
+        }
+        
         #endregion Consensus.Election
 
         #region Dividends
 
         public ulong GetTermDividends(ulong termNumber)
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = DividendsContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "GetTermDividends",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(termNumber))
-            };
-
-            ExecuteTransaction(tx);
-
-            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+            ExecuteAction(DividendsContractAddress, nameof(GetTermDividends), SenderKeyPair, termNumber);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
+        public ulong GetTermTotalWeights(ulong termNumber)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(GetTermTotalWeights), SenderKeyPair, termNumber);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+
+        public ulong GetLatestRequestDividendsTermNumber(VotingRecord votingRecord)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(GetLatestRequestDividendsTermNumber), SenderKeyPair, votingRecord);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+
+        public ulong GetAvailableDividends(VotingRecord votingRecord)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(GetAvailableDividends), SenderKeyPair, votingRecord);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+
+        public ulong GetAllAvailableDividends(string publicKey)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(GetAllAvailableDividends), SenderKeyPair, publicKey);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+
+        public ulong GetAvailableDividendsByVotingInformation(Hash transactionId, ulong termNumber, ulong weight)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(GetAvailableDividendsByVotingInformation), SenderKeyPair, transactionId,
+                termNumber, weight);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+
+        public ulong CheckDividends(ulong ticketsAmount, int lockTime, ulong termNumber)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(CheckDividends), SenderKeyPair, ticketsAmount,
+                lockTime, termNumber);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+
+        public ulong CheckDividendsOfPreviousTerm(ulong ticketsAmount, int lockTime)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(CheckDividendsOfPreviousTerm), SenderKeyPair, ticketsAmount, lockTime);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+
+        public ulong CheckStandardDividends(ulong termNumber)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(CheckStandardDividends), SenderKeyPair, termNumber);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+        
         public ulong CheckStandardDividendsOfPreviousTerm()
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = DividendsContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "CheckStandardDividendsOfPreviousTerm",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
-            };
-
-            ExecuteTransaction(tx);
-
-            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+            ExecuteAction(DividendsContractAddress, nameof(GetTermDividends), SenderKeyPair);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+        }
+
+        public void TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(TransferDividends), SenderKeyPair, votingRecord, maxTermNumber);
+        }
+
+        public void AddDividends(ulong termNumber, ulong dividendsAmount)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(AddDividends), SenderKeyPair, termNumber, dividendsAmount);
+        }
+
+        public void AddWeights(ulong weights, ulong termNumber)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(AddWeights), SenderKeyPair, weights, termNumber);
+        }
+
+        public void KeepWeights()
+        {
+            ExecuteAction(DividendsContractAddress, nameof(KeepWeights), SenderKeyPair);
+        }
+
+        public void SubWeights(ulong weights, ulong termNumber)
+        {
+            ExecuteAction(DividendsContractAddress, nameof(SubWeights), SenderKeyPair, weights, termNumber);
         }
 
         #endregion
@@ -366,33 +416,13 @@ namespace AElf.Contracts.Consensus.Tests
 
         public ulong BalanceOf(Address owner)
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = TokenContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "BalanceOf",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(owner))
-            };
-
-            ExecuteTransaction(tx);
-
-            TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+            ExecuteAction(TokenContractAddress, nameof(BalanceOf), SenderKeyPair, owner);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
         
-        public void Transfer(Address to, ulong amount)
+        public void Transfer(ECKeyPair callerKeyPair, Address to, ulong amount)
         {
-            var tx = new Transaction
-            {
-                From = Sender,
-                To = TokenContractAddress,
-                IncrementId = MockSetup.NewIncrementId,
-                MethodName = "Transfer",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(to, amount))
-            };
-
-            ExecuteTransaction(tx);
+            ExecuteAction(TokenContractAddress, nameof(BalanceOf), callerKeyPair, to, amount);
         }
 
         #endregion
