@@ -33,8 +33,8 @@ namespace AElf.Contracts.Consensus.Tests
         [Fact]
         public void DividendsInitializationTest()
         {
-            InitialMiners();
-            InitialTerm(_initialMiners[0]);
+            InitializeMiners();
+            InitializeTerm(_initialMiners[0]);
 
             Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             Assert.True(_contracts.BalanceOf(_contracts.DividendsContractAddress) > 0);
@@ -48,8 +48,8 @@ namespace AElf.Contracts.Consensus.Tests
 
             DividendsInitializationTest();
 
-            InitialCandidates();
-            InitialVoters();
+            InitializeCandidates();
+            InitializeVoters();
 
             var candidatesList = _contracts.GetCandidatesListToFriendlyString();
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
@@ -143,7 +143,7 @@ namespace AElf.Contracts.Consensus.Tests
             return _candidates.First(c => c.PublicKey.ToHex() == publicKey);
         }
         
-        private void InitialMiners()
+        private void InitializeMiners()
         {
             for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
             {
@@ -151,7 +151,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        private void InitialCandidates()
+        private void InitializeCandidates()
         {
             for (var i = 0; i < CandidatesCount; i++)
             {
@@ -163,7 +163,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        private void InitialVoters()
+        private void InitializeVoters()
         {
             for (var i = 0; i < VotersCount; i++)
             {
@@ -174,7 +174,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
         
-        private void InitialTerm(ECKeyPair starterKeyPair)
+        private void InitializeTerm(ECKeyPair starterKeyPair)
         {
             var initialTerm =
                 new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(MiningInterval);
