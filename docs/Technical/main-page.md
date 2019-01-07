@@ -4,9 +4,31 @@ As the whitepaper already states the AElf kernel will be built in a similar way 
 
 ## Table of Contents
 
+* [Basic Codes](#basic-codes)
 * [Data Structures](#1data-structures)
 * [Components](#2components)
 * [AElf Topology](#3aelf-topology)
+
+## Basic Codes
+
+**Types**: define basic types, such as block, transaction, etc.
+
+**Managers**: logic for process single type or aggressive of types. It should be stateless and transient.
+
+**Contexts**: can contain managers, are stateful. singleton or scoped.
+
+**Services**: logic for process a work. Managers are for types, but Services are for a request. when you received a request, you need to do it in a way with some contexts and managers. and also a service can publish some events.
+
+**Events**: events are defined in the project of service interfaces. and we should describe how a event will be triggered in the comment of a method in the interface.
+
+**EventHandlers**: to subscribe a event and process it.they can use services and context. transient and stateless.
+
+Component | Description | stateless | lifetime
+---------|----------|---------|---------
+ A1 | B1 | C1
+ A2 | B2 | C2
+ A3 | B3 | C3
+
 
 ## Data Structures
 
