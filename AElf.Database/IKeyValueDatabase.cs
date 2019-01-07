@@ -12,10 +12,4 @@ namespace AElf.Database
         Task<bool> PipelineSetAsync(Dictionary<string, byte[]> cache);
         bool IsConnected();
     }
-
-    public class KeyValueDatabaseOptions<TKeyValueDbContext>
-        where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
-    {
-        public string ConnectionString { get; set; }
-    }
 }

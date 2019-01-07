@@ -16,6 +16,8 @@ namespace AElf.Database
 
         public RedisDatabase(KeyValueDatabaseOptions<TKeyValueDbContext> options)
         {
+            Check.NotNullOrWhiteSpace(options.ConnectionString, nameof(options.ConnectionString));
+            
             var endpoint = options.ConnectionString.ToRedisEndpoint();
             
             _pooledRedisLite = new PooledRedisLite(endpoint.Host,endpoint.Port,(int)endpoint.Db);
