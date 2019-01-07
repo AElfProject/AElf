@@ -1,5 +1,6 @@
 using AElf.Database;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -26,7 +27,8 @@ namespace AElf.Contracts.Genesis.Tests
         protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
         {
             base.SetAbpApplicationCreationOptions(options);
-            options.UseInMemoryDatabase();
-        }
+
+            options.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            options.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());        }
     }
 }

@@ -9,6 +9,7 @@ namespace AElf.TestBase
         protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
         {
             options.UseAutofac();
+            
         }
     }
 

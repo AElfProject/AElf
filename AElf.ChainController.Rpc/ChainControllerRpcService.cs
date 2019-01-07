@@ -44,7 +44,6 @@ namespace AElf.ChainController.Rpc
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfoReader CrossChainInfoReader { get; set; }
         public IAuthorizationInfoReader AuthorizationInfoReader { get; set; }
-        public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
         public IElectionInfo ElectionInfo { get; set; }
@@ -688,60 +687,6 @@ namespace AElf.ChainController.Rpc
             };
 
             return JObject.FromObject(response);
-        }
-
-        [JsonRpcMethod("get_db_value","key")]
-        public async Task<JObject> GetDbValue(string key)
-        {
-            string type = string.Empty;
-            JToken id;
-            try
-            {
-                object value;
-
-                if (key.StartsWith(GlobalConfig.StatePrefix))
-                {
-                    type = "State";
-                    id = key.Substring(GlobalConfig.StatePrefix.Length, key.Length - GlobalConfig.StatePrefix.Length);
-                    var valueBytes = await KeyValueDatabase.GetAsync(type,key);
-                    value = StateValue.Create(valueBytes);
-                }
-                else if(key.StartsWith(GlobalConfig.TransactionReceiptPrefix))
-                {
-                    type = "TransactionReceipt";
-                    id = key.Substring(GlobalConfig.TransactionReceiptPrefix.Length, key.Length - GlobalConfig.TransactionReceiptPrefix.Length);
-                    var valueBytes = await KeyValueDatabase.GetAsync(type,key);
-                    value = valueBytes?.Deserialize<TransactionReceipt>();
-                }
-                else
-                {
-                    var keyObj = Key.Parser.ParseFrom(ByteArrayHelpers.FromHexString(key));
-                    type = keyObj.Type;
-                    id = JObject.Parse(keyObj.ToString());
-                    var valueBytes = await KeyValueDatabase.GetAsync(type,key);
-                    var obj = this.GetInstance(type);
-                    obj.MergeFrom(valueBytes);
-                    value = obj;
-                }
-
-                var response = new JObject
-                {
-                    ["Type"] = type,
-                    ["Id"] = id,
-                    ["Value"] = JObject.Parse(value?.ToString())
-                };
-
-                return JObject.FromObject(response);
-            }
-            catch (Exception e)
-            {
-                var response = new JObject
-                {
-                    ["Type"]=type,
-                    ["Value"] = e.Message
-                };
-                return JObject.FromObject(response);
-            }
         }
 
         #endregion Methods
