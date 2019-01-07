@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.SmartContract;
@@ -27,6 +28,7 @@ namespace AElf.Runtime.CSharp2.Tests
         }
 
         private IExecutive Executive { get; set; }
+        private Dictionary<StatePath, StateCache> GetEmptyCache() => new Dictionary<StatePath, StateCache>();
 
         private Hash ChainId
         {
@@ -95,6 +97,7 @@ namespace AElf.Runtime.CSharp2.Tests
             {
                 Transaction = tx
             };
+            Executive.SetDataCache(GetEmptyCache());
             Executive.SetTransactionContext(tc).Apply().Wait();
             Console.WriteLine(tc.Trace);
             tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
@@ -114,10 +117,9 @@ namespace AElf.Runtime.CSharp2.Tests
             {
                 Transaction = tx
             };
-
+            Executive.SetDataCache(GetEmptyCache());
             Executive.SetTransactionContext(tc).Apply().Wait();
             tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
-
             return tc.Trace.RetVal.Data.DeserializeToBool();
         }
 
@@ -135,8 +137,9 @@ namespace AElf.Runtime.CSharp2.Tests
             {
                 Transaction = tx
             };
+            Executive.SetDataCache(GetEmptyCache());
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+//            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToUInt64();
         }
     }
