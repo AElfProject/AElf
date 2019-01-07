@@ -25,7 +25,7 @@
                 console.log("TxStatus is: " + res.tx_status);
             }
             if (res.tx_status === "Mined") {
-                console.log('Success.');
+                console.log("Result is: " + res.return);
             }
             return res.tx_status !== "Pending";
         }, 3000);
