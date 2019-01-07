@@ -55,10 +55,10 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextTerm(Term term)
         {
-            Api.Assert(ValidateMiners(term.FirstRound),
-                $"Miners list is wrong of round {term.FirstRound.RoundNumber}.");
-            Api.Assert(ValidateMiners(term.SecondRound),
-                $"Miners list is wrong of round {term.SecondRound.RoundNumber}.");
+//            Api.Assert(ValidateMiners(term.FirstRound),
+//                $"Miners list is wrong of round {term.FirstRound.RoundNumber}.");
+//            Api.Assert(ValidateMiners(term.SecondRound),
+//                $"Miners list is wrong of round {term.SecondRound.RoundNumber}.");
 
             CountMissedTimeSlots();
             SnapshotAndDividends();
@@ -341,7 +341,7 @@ namespace AElf.Contracts.Consensus.Contracts
                         : 0);
             }
 
-            return ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
+            return ticketsMap.OrderByDescending(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
                 .ToList();
         }
 
