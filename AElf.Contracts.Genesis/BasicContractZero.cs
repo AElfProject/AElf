@@ -141,7 +141,7 @@ namespace AElf.Contracts.Genesis
                 SerialNumber = serialNumber
             };
             
-            await Api.InitContractAsync(contractAddress, reg);
+            await Api.DeployContractAsync(contractAddress, reg);
 
             Console.WriteLine("InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();

@@ -48,21 +48,6 @@ namespace AElf.Sdk.CSharp
 
         #region Privileged API
 
-        public static void DeployContract(Address address, SmartContractRegistration registration)
-        {
-            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
-            var task = _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address,
-                registration, false);
-            task.Wait();
-        }
-
-        public static async Task InitContractAsync(Address address, SmartContractRegistration registration)
-        {
-            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
-            await _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
-                true);
-        }
-
         public static async Task DeployContractAsync(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
