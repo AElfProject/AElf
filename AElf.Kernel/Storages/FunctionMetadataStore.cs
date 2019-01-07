@@ -6,7 +6,7 @@ namespace AElf.Kernel.Storages
 {
     public class FunctionMetadataStore : KeyValueStoreBase<StateKeyValueDbContext>, IFunctionMetadataStore
     {
-        public FunctionMetadataStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix)
+        public FunctionMetadataStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext)
             : base(byteSerializer, keyValueDbContext, GlobalConfig.FunctionMetadataPrefix)
         {
         }

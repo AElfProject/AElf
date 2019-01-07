@@ -6,7 +6,7 @@ namespace AElf.Kernel.Storages
 {
     public class TransactionTraceStore : KeyValueStoreBase<StateKeyValueDbContext>, ITransactionTraceStore
     {
-        public TransactionTraceStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix) 
+        public TransactionTraceStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
             : base(byteSerializer, keyValueDbContext, GlobalConfig.TransactionTracePrefix)
         {
         }

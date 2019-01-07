@@ -13,7 +13,7 @@ namespace AElf.Kernel.Storages
 {
     public class StateStore : KeyValueStoreBase<StateKeyValueDbContext>, IStateStore, ISingletonDependency
     {
-        public StateStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix)
+        public StateStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext)
             : base(byteSerializer, keyValueDbContext, GlobalConfig.StatePrefix)
         {
         }

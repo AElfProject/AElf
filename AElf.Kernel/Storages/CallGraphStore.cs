@@ -6,7 +6,7 @@ namespace AElf.Kernel.Storages
 {
     public class CallGraphStore : KeyValueStoreBase<StateKeyValueDbContext>, ICallGraphStore
     {
-        public CallGraphStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix)
+        public CallGraphStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext)
             : base(byteSerializer, keyValueDbContext, GlobalConfig.CallGraphPrefix)
         {
         }

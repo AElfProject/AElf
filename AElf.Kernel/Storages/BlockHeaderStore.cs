@@ -6,7 +6,7 @@ namespace AElf.Kernel.Storages
 {
     public class BlockHeaderStore : KeyValueStoreBase<BlockChainKeyValueDbContext>, IBlockHeaderStore
     {
-        public BlockHeaderStore(IByteSerializer byteSerializer, BlockChainKeyValueDbContext keyValueDbContext, string dataPrefix) 
+        public BlockHeaderStore(IByteSerializer byteSerializer, BlockChainKeyValueDbContext keyValueDbContext) 
             : base(byteSerializer, keyValueDbContext, GlobalConfig.BlockHeaderPrefix)
         {
         }

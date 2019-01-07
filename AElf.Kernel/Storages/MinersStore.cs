@@ -6,7 +6,7 @@ namespace AElf.Kernel.Storages
 {
     public class MinersStore : KeyValueStoreBase<StateKeyValueDbContext>, IMinersStore
     {
-        public MinersStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix) 
+        public MinersStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
             : base(byteSerializer, keyValueDbContext, GlobalConfig.MinersPrefix)
         {
         }

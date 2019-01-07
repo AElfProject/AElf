@@ -7,7 +7,7 @@ namespace AElf.Kernel.Storages
     //TODO: should store in the state of chain
     public class GenesisBlockHashStore : KeyValueStoreBase<StateKeyValueDbContext>, IGenesisBlockHashStore
     {
-        public GenesisBlockHashStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix) 
+        public GenesisBlockHashStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
             : base(byteSerializer, keyValueDbContext, GlobalConfig.GenesisBlockHashPrefix)
         {
         }

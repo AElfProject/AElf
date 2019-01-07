@@ -6,7 +6,7 @@ namespace AElf.Kernel.Storages
 {
     public class TransactionReceiptStore : KeyValueStoreBase<StateKeyValueDbContext>,ITransactionReceiptStore
     {
-        public TransactionReceiptStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix) 
+        public TransactionReceiptStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
             : base(byteSerializer, keyValueDbContext, GlobalConfig.TransactionReceiptPrefix)
         {
         }

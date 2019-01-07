@@ -6,7 +6,7 @@ namespace AElf.Kernel.Storages
 {
     public class ChainHeightStore : KeyValueStoreBase<StateKeyValueDbContext>, IChainHeightStore
     {
-        public ChainHeightStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix) 
+        public ChainHeightStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
             : base(byteSerializer, keyValueDbContext, GlobalConfig.ChianHeightPrefix)
         {
         }

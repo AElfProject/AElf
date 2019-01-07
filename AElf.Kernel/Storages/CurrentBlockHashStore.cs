@@ -7,7 +7,7 @@ namespace AElf.Kernel.Storages
     //TODO: change the implement
     public class CurrentBlockHashStore : KeyValueStoreBase<StateKeyValueDbContext>, ICurrentBlockHashStore
     {
-        public CurrentBlockHashStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix)
+        public CurrentBlockHashStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext)
             : base(byteSerializer, keyValueDbContext, GlobalConfig.CurrentBlockHashPrefix)
         {
         }
