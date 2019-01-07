@@ -204,15 +204,15 @@ namespace AElf.Contracts.Dividends
         {
             var currentTermNumber = Api.GetCurrentTermNumber();
 
-            if (_totalWeightsMap.TryGet(currentTermNumber.ToUInt64Value(), out var totalWeights))
+            if (_totalWeightsMap.TryGet((currentTermNumber - 1).ToUInt64Value(), out var totalWeights))
             {
-                _totalWeightsMap.SetValue((currentTermNumber + 1).ToUInt64Value(), totalWeights);
-                Console.WriteLine($"Kept {totalWeights} weights to {currentTermNumber + 1} term.");
+                _totalWeightsMap.SetValue(currentTermNumber.ToUInt64Value(), totalWeights);
+                Console.WriteLine($"Kept {totalWeights} weights to {currentTermNumber} term.");
             }
             else
             {
-                _totalWeightsMap.SetValue((currentTermNumber + 1).ToUInt64Value(), ((ulong) 0).ToUInt64Value());
-                Console.WriteLine($"Kept {0} weights to {currentTermNumber + 1} term.");
+                _totalWeightsMap.SetValue(currentTermNumber.ToUInt64Value(), ((ulong) 0).ToUInt64Value());
+                Console.WriteLine($"Kept {0} weights to {currentTermNumber} term.");
             }
         }
 

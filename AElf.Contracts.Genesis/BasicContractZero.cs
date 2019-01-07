@@ -234,9 +234,7 @@ namespace AElf.Contracts.Genesis
         
         public Hash GetContractHash(Address contractAddress)
         {
-            Console.WriteLine($"Getting contract hash of: {contractAddress}");
             var info = _contractInfos[contractAddress];
-            Console.WriteLine($"Getting contract hash: {contractAddress} - {info?.ContractHash.ToHex()}");
             return info?.ContractHash;
         }
     }
