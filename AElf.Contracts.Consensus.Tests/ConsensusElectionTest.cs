@@ -15,9 +15,9 @@ namespace AElf.Contracts.Consensus.Tests
     {
         private readonly ContractsShim _contracts;
 
-        private List<ECKeyPair> _voters = new List<ECKeyPair>();
+        private readonly List<ECKeyPair> _voters = new List<ECKeyPair>();
         
-        private List<ECKeyPair> _candidates = new List<ECKeyPair>();
+        private readonly List<ECKeyPair> _candidates = new List<ECKeyPair>();
 
         private readonly List<ECKeyPair> _initialMiners = new List<ECKeyPair>();
 

@@ -85,7 +85,8 @@ namespace AElf.Contracts.Consensus.Tests
             var victories = _contracts.GetCurrentVictories().Values;
             
             // Second term.
-            var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 1);
+            var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
+                _contracts.GetCurrentTermNumber());
             _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), secondTerm);
 
             var secondRound = _contracts.GetRoundInfo(2);
@@ -117,7 +118,8 @@ namespace AElf.Contracts.Consensus.Tests
             }
 
             // Third item.
-            var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3, 2);
+            var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
+                _contracts.GetCurrentTermNumber());
             _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);
 
             var snapshotOfSecondTerm = _contracts.GetTermSnapshot(2);

@@ -47,7 +47,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         public Round GetRoundInfo(ulong roundNumber)
         {
-            ExecuteAction(ConsensusContractAddress, nameof(GetRoundInfo), SenderKeyPair);
+            ExecuteAction(ConsensusContractAddress, nameof(GetRoundInfo), SenderKeyPair, roundNumber);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Round>();
         }
 
@@ -344,7 +344,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         public ulong CheckStandardDividendsOfPreviousTerm()
         {
-            ExecuteAction(DividendsContractAddress, nameof(GetTermDividends), SenderKeyPair);
+            ExecuteAction(DividendsContractAddress, nameof(CheckStandardDividendsOfPreviousTerm), SenderKeyPair);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 

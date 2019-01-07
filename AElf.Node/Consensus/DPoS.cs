@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
@@ -64,12 +63,9 @@ namespace AElf.Node.Consensus
         private ECKeyPair _nodeKey;
         private byte[] _ownPubKey;
 
-        public Address ConsensusContractAddress =>
+        private static Address ConsensusContractAddress =>
             ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
 
-        public Address TokenContractAddress =>
-            ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-        
         private readonly IMinersManager _minersManager;
 
         private static int _lockNumber;
@@ -203,13 +199,13 @@ namespace AElf.Node.Consensus
             _logger?.Trace("Mining stopped. Disposed previous consensus observables list.");
         }
 
-        public void IncrementLockNumber()
+        private void IncrementLockNumber()
         {
             Interlocked.Add(ref _lockNumber, 1);
             _logger?.Trace($"Lock number increment: {_lockNumber}");
         }
 
-        public void DecrementLockNumber()
+        private void DecrementLockNumber()
         {
             if (_lockNumber <= 0)
             {
@@ -280,40 +276,6 @@ namespace AElf.Node.Consensus
             return null;
         }
         
-        private async Task<Transaction> GenerateNormalTransactionAsync(string methodName, List<object> parameters)
-        {
-            try
-            {
-                var bn = await BlockChain.GetCurrentBlockHeightAsync();
-                bn = bn > 4 ? bn - 4 : 0;
-                var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
-                var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
-
-                var tx = new Transaction
-                {
-                    From = Address.FromPublicKey(_ownPubKey),
-                    To = TokenContractAddress,
-                    RefBlockNumber = bn,
-                    RefBlockPrefix = ByteString.CopyFrom(bhPref),
-                    MethodName = methodName,
-                    Type = TransactionType.ContractTransaction,
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
-                };
-
-                var signer = new ECSigner();
-                var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
-                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-
-                return tx;
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, "Error while during generating normal tx.");
-            }
-
-            return null;
-        }
-
         private async Task InitialTerm()
         {
             const ConsensusBehavior behavior = ConsensusBehavior.InitialTerm;
@@ -560,14 +522,9 @@ namespace AElf.Node.Consensus
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
                     var roundInfo = _helper.GetCurrentRoundInfo();
-                    if (_helper.TryGetRoundInfo(currentRoundNumber.Value - 1, out var previousRoundInfo))
-                    {
-                        roundInfo = roundInfo.Supplement(previousRoundInfo);
-                    }
-                    else
-                    {
-                        roundInfo = roundInfo.SupplementForFirstRound();
-                    }
+                    roundInfo = _helper.TryGetRoundInfo(currentRoundNumber.Value - 1, out var previousRoundInfo)
+                        ? roundInfo.Supplement(previousRoundInfo)
+                        : roundInfo.SupplementForFirstRound();
 
                     var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
 
@@ -592,21 +549,21 @@ namespace AElf.Node.Consensus
 
                     foreach (var minerInRound in nextRoundInfo.RealTimeMinersInfo.Values)
                     {
-                        if (minerInRound.MissedTimeSlots >= GlobalConfig.MaxMissedTimeSlots)
-                        {
-                            var poorGuyPublicKey = minerInRound.PublicKey;
-                            var latestTermSnapshot = _helper.GetLatestTermSnapshot();
-                            var luckyGuyPublicKey = latestTermSnapshot.GetNextCandidate(miners);
+                        if (minerInRound.MissedTimeSlots < GlobalConfig.MaxMissedTimeSlots) 
+                            continue;
+                        
+                        var poorGuyPublicKey = minerInRound.PublicKey;
+                        var latestTermSnapshot = _helper.GetLatestTermSnapshot();
+                        var luckyGuyPublicKey = latestTermSnapshot.GetNextCandidate(miners);
 
-                            nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey] =
-                                nextRoundInfo.RealTimeMinersInfo[poorGuyPublicKey];
-                            nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].MissedTimeSlots = 0;
-                            nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].ProducedBlocks = 0;
-                            nextRoundInfo.RealTimeMinersInfo.Remove(poorGuyPublicKey);
+                        nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey] =
+                            nextRoundInfo.RealTimeMinersInfo[poorGuyPublicKey];
+                        nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].MissedTimeSlots = 0;
+                        nextRoundInfo.RealTimeMinersInfo[luckyGuyPublicKey].ProducedBlocks = 0;
+                        nextRoundInfo.RealTimeMinersInfo.Remove(poorGuyPublicKey);
 
-                            miners.PublicKeys.Remove(poorGuyPublicKey);
-                            miners.PublicKeys.Add(luckyGuyPublicKey);
-                        }
+                        miners.PublicKeys.Remove(poorGuyPublicKey);
+                        miners.PublicKeys.Add(luckyGuyPublicKey);
                     }
 
                     await _minersManager.SetMiners(miners);
