@@ -1,4 +1,6 @@
 using AElf.ChainController.Rpc;
+using AElf.Database;
+using AElf.Kernel.Storages;
 using AElf.Miner.Rpc;
 using AElf.Modularity;
 using AElf.Net.Rpc;
@@ -31,6 +33,8 @@ namespace AElf.RPC.Tests
         {
             //TODO: here to generate basic chain data
 
+            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o=>o.UseInMemoryDatabase());
         }
     }
 }

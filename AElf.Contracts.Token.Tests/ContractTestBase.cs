@@ -6,11 +6,5 @@ namespace AElf.Contracts.Token.Tests
 {
     public class ContractTestBase : TestBase.AElfIntegratedTest<ContractTestAElfModule>
     {
-        protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
-        {
-            base.SetAbpApplicationCreationOptions(options);
-
-            options.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            options.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());        }
     }
 }

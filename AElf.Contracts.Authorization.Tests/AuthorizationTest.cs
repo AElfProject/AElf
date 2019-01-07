@@ -14,7 +14,7 @@ using Xunit;
 
 namespace AElf.Contracts.Authorization.Tests
 {
-public class AuthorizationTest : ContractTestBase
+public class AuthorizationTest : AuthroizationContractTestBase
     {
         private AuthorizationContractShim _contract;
         public ILogger<AuthorizationTest> Logger {get;set;}
