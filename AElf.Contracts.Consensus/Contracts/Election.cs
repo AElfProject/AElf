@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
@@ -189,15 +190,16 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
         {
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            var voterPublicKey = Api.RecoverPublicKey().ToHex();
+            if (_collection.TicketsMap.TryGet(voterPublicKey.ToStringValue(), out var ticketsOfVoter))
             {
                 var votingRecord =
-                    tickets.VotingRecords.FirstOrDefault(vr =>
+                    ticketsOfVoter.VotingRecords.FirstOrDefault(vr =>
                         vr.To == candidatePublicKey && vr.Count == amount && vr.LockDaysList.Last() == lockDays);
 
                 if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
                 {
-                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    Api.SendInline(Api.ConsensusContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
                     
@@ -211,19 +213,38 @@ namespace AElf.Contracts.Consensus.Contracts
                     _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
+
+            if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var ticketsOfCandidate))
+            {
+                var votingRecord =
+                    ticketsOfCandidate.VotingRecords.FirstOrDefault(vr =>
+                        vr.From == voterPublicKey && vr.Count == amount && vr.LockDaysList.Last() == lockDays);
+
+                if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
+                {
+                    var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
+                    votingRecord.WithdrawTimestamp =
+                        blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
+                    votingRecord.IsWithdrawn = true;
+                }
+            }
             
-            _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
+            _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), ticketsOfVoter);
+            _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), ticketsOfCandidate);
         }
 
         public void Withdraw(Hash transactionId)
         {
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            var voterPublicKey = Api.RecoverPublicKey().ToHex();
+            var candidatePublicKey = "";
+            if (_collection.TicketsMap.TryGet(voterPublicKey.ToStringValue(), out var tickets))
             {
                 var votingRecord = tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
 
                 if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
                 {
-                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    candidatePublicKey = votingRecord.To;
+                    Api.SendInline(Api.ConsensusContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
                     
@@ -238,12 +259,29 @@ namespace AElf.Contracts.Consensus.Contracts
                 }
             }
             
+            if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var ticketsOfCandidate))
+            {
+                var votingRecord =
+                    ticketsOfCandidate.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
+
+                if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
+                {
+                    var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
+                    votingRecord.WithdrawTimestamp =
+                        blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
+                    votingRecord.IsWithdrawn = true;
+                }
+            }
+            
             _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
+            _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), ticketsOfCandidate);
         }
 
         public void Withdraw(bool withoutLimitation = false)
         {
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            var voterPublicKey = Api.RecoverPublicKey().ToHex();
+            var candidatePublicKeys = new List<string>();
+            if (_collection.TicketsMap.TryGet(voterPublicKey.ToStringValue(), out var tickets))
             {
                 var votingRecords = withoutLimitation
                     ? tickets.VotingRecords.ToList()
@@ -251,7 +289,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 foreach (var votingRecord in votingRecords)
                 {
-                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    Api.SendInline(Api.ConsensusContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
                     
@@ -259,14 +297,38 @@ namespace AElf.Contracts.Consensus.Contracts
                     votingRecord.WithdrawTimestamp =
                         blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
                     votingRecord.IsWithdrawn = true;
+                    
+                    candidatePublicKeys.Add(votingRecord.To);
 
                     var ticketsCount = _collection.TicketsCountField.GetValue();
                     ticketsCount -= votingRecord.Count;
                     _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
-
+            
             _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
+
+            foreach (var candidatePublicKey in candidatePublicKeys)
+            {
+                if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var ticketsOfCandidate))
+                {
+                    var votingRecords = withoutLimitation
+                        ? ticketsOfCandidate.VotingRecords.ToList()
+                        : ticketsOfCandidate.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge).ToList();
+
+                    foreach (var votingRecord in votingRecords)
+                    {
+                        if (votingRecord == null) 
+                            continue;
+                        
+                        var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
+                        votingRecord.WithdrawTimestamp =
+                            blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
+                        votingRecord.IsWithdrawn = true;
+                    }
+                }
+                _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), ticketsOfCandidate);
+            }
         }
     }
 }
