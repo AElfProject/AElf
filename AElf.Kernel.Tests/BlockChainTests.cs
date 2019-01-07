@@ -15,8 +15,8 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class BlockChainTests
     {
-        private BlockChainTests_MockSetup _mock;
-        private IExecutingService _executingService;
+        private readonly BlockChainTests_MockSetup _mock;
+        private readonly IExecutingService _executingService;
 
         public BlockChainTests(BlockChainTests_MockSetup mock, IExecutingService executingService)
         {
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Tests
         }
 
         //TODO: Recover.
-        [Fact(Skip = "Skip for now.")]
+        [Fact]
         public void StateRollbackTest()
         {
             var key =  new KeyPairGenerator().Generate();

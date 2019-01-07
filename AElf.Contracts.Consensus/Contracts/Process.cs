@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -295,18 +294,6 @@ namespace AElf.Contracts.Consensus.Contracts
 
         #endregion
 
-        private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
-        {
-            return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
-        }
-
-        private string GetAlias(string publicKey)
-        {
-            return _collection.AliasesMap.TryGet(new StringValue {Value = publicKey}, out var alias)
-                ? alias.Value
-                : publicKey.Substring(0, GlobalConfig.AliasLimit);
-        }
-
         private Round GetCurrentRoundInfo()
         {
             Api.Assert(_collection.RoundsMap.TryGet(CurrentRoundNumber.ToUInt64Value(), out var currentRoundInfo),
@@ -341,7 +328,7 @@ namespace AElf.Contracts.Consensus.Contracts
                         : 0);
             }
 
-            return ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
+            return ticketsMap.OrderByDescending(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
                 .ToList();
         }
 
@@ -549,18 +536,6 @@ namespace AElf.Contracts.Consensus.Contracts
             {
                 Console.WriteLine(ex);
             }
-        }
-
-        /// <summary>
-        /// Return true if ts1 >= ts2
-        /// </summary>
-        /// <param name="ts1"></param>
-        /// <param name="ts2"></param>
-        /// <returns></returns>
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private bool CompareTimestamp(Timestamp ts1, Timestamp ts2)
-        {
-            return ts1.ToDateTime() >= ts2.ToDateTime();
         }
     }
 }

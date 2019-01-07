@@ -255,6 +255,7 @@ namespace AElf.Miner.TxMemPool
             return new List<Transaction>();
         }
 
+        // ReSharper disable once UnusedMember.Local
         private void PrintTxList(IEnumerable<Transaction> txs)
         {
             _logger?.Trace("Txs list:");
