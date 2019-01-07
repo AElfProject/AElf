@@ -1,14 +1,14 @@
-﻿using AElf.Kernel;
+using AElf.Kernel;
 
-namespace AElf.Node.EventMessages
+namespace AElf.ChainController.EventMessages
 {
     public sealed class BlockLinked
     {
+        public IBlock Block { get; }
+        
         public BlockLinked(IBlock block)
         {
             Block = block;
         }
-
-        public IBlock Block { get; }
     }
 }

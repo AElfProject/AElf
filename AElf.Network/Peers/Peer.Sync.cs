@@ -125,23 +125,6 @@ namespace AElf.Network.Peers
             if (CurrentlyRequestedHeight == SyncTarget)
             {
                 // Clean any announcements that are lower than current height
-                CleanAnnouncements(SyncTarget);
-                
-                if (_announcements.Any())
-                {
-                    var next = _announcements.OrderBy(a => a.Height).FirstOrDefault();
-
-                    if (next != null && next.Height != SyncTarget + 1)
-                    {
-                        // Some announcements are higher than the current height
-                        _logger?.Warn($"[{this}] Blocks missing: syncing from {SyncTarget} to sync target {next.Height}");
-                        
-                        SyncToHeight(SyncTarget+1, next.Height-1);
-
-                        return true;
-                    }
-                }
-                
                 SyncTarget = 0;
                 CurrentlyRequestedHeight = 0;
                 MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
@@ -238,7 +221,7 @@ namespace AElf.Network.Peers
             byte[] blockHash = block.GetHashBytes();
             int blockHeight = (int) block.Header.Index;
 
-            _logger.Info($"Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
+            _logger.Info($"[{this}] Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
                          $"with {block.Body.Transactions.Count} txns. (TransactionListCount = {block.Body.TransactionList.Count})");
 
             lock (_blockReqLock)

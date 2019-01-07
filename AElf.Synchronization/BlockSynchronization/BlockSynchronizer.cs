@@ -154,7 +154,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
             });
             
-            MessageHub.Instance.Subscribe<BlockLinked>(async inBlock =>
+            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
                 if (inBlock.Block == null)
                     return;
