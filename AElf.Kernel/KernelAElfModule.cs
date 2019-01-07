@@ -26,6 +26,10 @@ namespace AElf.Kernel
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var configuration = context.Services.GetConfiguration();
+
+            //Configure<DbConnectionOptions>(configuration);
+            
             var services = context.Services;
 
             services.AddAssemblyOf<KernelAElfModule>();

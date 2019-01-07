@@ -3,13 +3,13 @@ using Volo.Abp.Data;
 
 namespace AElf.Kernel.Storages
 {
-    [ConnectionStringName("blockchain")]
+    [ConnectionStringName("BlockchainDb")]
     public class BlockChainKeyValueDbContext : KeyValueDbContext<BlockChainKeyValueDbContext>
     {
         
     }
 
-    [ConnectionStringName("state")]
+    [ConnectionStringName("StateDb")]
     public class StateKeyValueDbContext : KeyValueDbContext<StateKeyValueDbContext>
     {
         
