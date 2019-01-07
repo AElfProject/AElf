@@ -54,10 +54,10 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextTerm(Term term)
         {
-            Api.Assert(ValidateMiners(term.FirstRound),
-                $"Miners list is wrong of round {term.FirstRound.RoundNumber}.");
-            Api.Assert(ValidateMiners(term.SecondRound),
-                $"Miners list is wrong of round {term.SecondRound.RoundNumber}.");
+//            Api.Assert(ValidateMiners(term.FirstRound),
+//                $"Miners list is wrong of round {term.FirstRound.RoundNumber}.");
+//            Api.Assert(ValidateMiners(term.SecondRound),
+//                $"Miners list is wrong of round {term.SecondRound.RoundNumber}.");
 
             CountMissedTimeSlots();
             SnapshotAndDividends();
@@ -402,13 +402,17 @@ namespace AElf.Contracts.Consensus.Contracts
             var currentTermNumber =
                 CurrentTermNumber == 0 ? ((ulong) 1).ToUInt64Value() : CurrentTermNumber.ToUInt64Value();
 
-            _collection.SnapshotField.SetValue(currentTermNumber, new TermSnapshot
+            var snapshot = new TermSnapshot
             {
                 TermNumber = currentTermNumber.Value,
                 EndRoundNumber = CurrentRoundNumber,
                 TotalBlocks = minedBlocks,
                 CandidatesSnapshot = {candidateInTerms}
-            });
+            };
+            
+            _collection.SnapshotField.SetValue(currentTermNumber, snapshot);
+
+            Console.WriteLine($"{currentTermNumber.Value} - {snapshot}");
 
             Api.SendInline(Api.DividendsContractAddress, "KeepWeights");
         }
