@@ -105,7 +105,13 @@ namespace AElf.SmartContract
         {
             if (executive.ContractHash.Equals(GetContractVersion(account)))
             {
-                executive.SetTransactionContext(new TransactionContext());
+                executive.SetTransactionContext(new TransactionContext()
+                {
+                    Transaction = new Transaction()
+                    {
+                        To = account // This is to ensure that the contract has same address
+                    }
+                });
                 executive.SetDataCache(new Dictionary<StatePath, StateCache>());
                 GetPoolFor(account).Add(executive);
             }

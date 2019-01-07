@@ -30,6 +30,10 @@ namespace AElf.Sdk.CSharp
 
         internal override void SetContractAddress(Address address)
         {
+            if (address == null)
+            {
+                throw new Exception($"Input {nameof(address)} is null.");
+            }
             var path = new StatePath();
             path.Path.Add(ByteString.CopyFromUtf8(address.GetFormatted()));
             State.Path = path;
