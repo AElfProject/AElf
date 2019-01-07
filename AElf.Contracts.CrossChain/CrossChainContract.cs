@@ -204,6 +204,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
+        [Fee(0)]
         public string CreateSideChain(string chainId)
         {
             // side chain creation should be triggered by multi sig txn from system address.
@@ -251,6 +252,7 @@ namespace AElf.Contracts.CrossChain
         /// Dispose side chain. It is a proposal result from system address. 
         /// </summary>
         /// <param name="chainId"></param>
+        [Fee(0)]
         public void DisposeSideChain(string chainId)
         {
             // side chain disposal should be triggered by multi sig txn from system address.
@@ -286,6 +288,7 @@ namespace AElf.Contracts.CrossChain
         /// Index parent chain blocks.
         /// </summary>
         /// <param name="parentChainBlockInfo"></param>
+        [Fee(0)]
         public void IndexParentChainBlockInfo(ParentChainBlockInfo[] parentChainBlockInfo)
         {
             // only miner can do this.
@@ -324,6 +327,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="sideChainBlockInfo"></param>
         /// <returns>Root of merkle tree created from side chain txn roots.</returns>
+        [Fee(0)]
         public byte[] IndexSideChainBlockInfo(SideChainBlockInfo[] sideChainBlockInfo)
         {
             // only miner can do this.
