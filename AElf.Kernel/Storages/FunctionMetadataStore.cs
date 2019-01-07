@@ -4,10 +4,10 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class FunctionMetadataStore : KeyValueStoreBase, IFunctionMetadataStore
+    public class FunctionMetadataStore : KeyValueStoreBase<StateKeyValueDbContext>, IFunctionMetadataStore
     {
-        public FunctionMetadataStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
-            : base(keyValueDatabase, byteSerializer, GlobalConfig.MetadataPrefix)
+        public FunctionMetadataStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix)
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.FunctionMetadataPrefix)
         {
         }
     }

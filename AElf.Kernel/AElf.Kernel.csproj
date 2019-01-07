@@ -50,10 +50,16 @@
     <Compile Remove="Merkle\BinaryMerkleNode.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj">
       <Project>{DAEEB200-1D20-4A56-8C21-CA2ADE976AD5}</Project>
       <Name>AElf.Kernel.Types</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Volo.Abp.Data, Version=0.10.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\..\..\.nuget\packages\volo.abp.data\0.10.0\lib\netstandard2.0\Volo.Abp.Data.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

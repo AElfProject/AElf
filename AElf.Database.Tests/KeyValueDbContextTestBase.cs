@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace AElf.Database.Tests
@@ -6,9 +7,9 @@ namespace AElf.Database.Tests
     public abstract class KeyValueDbContextTestBase<TKeyValueDbContext> : DatabaseTestBase
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
-        private TKeyValueDbContext _context;
+        protected TKeyValueDbContext _context;
 
-        private IKeyValueDatabase<TKeyValueDbContext> _database;
+        protected IKeyValueDatabase<TKeyValueDbContext> _database;
 
         protected KeyValueDbContextTestBase()
         {
@@ -26,32 +27,24 @@ namespace AElf.Database.Tests
         }
 
         [Fact]
-        public void SetTest()
+        public async Task SetTest()
         {
             var key = "settest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync(key, Helper.StringToBytes(value));
+            await _database.SetAsync(key, Helper.StringToBytes(value));
         }
 
         [Fact]
-        public void GetTest()
+        public async Task GetTest()
         {
             var key = "gettest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync(key, Helper.StringToBytes(value));
-            var getResult = _database.GetAsync(key);
+            await _database.SetAsync(key, Helper.StringToBytes(value));
+            var getResult = await _database.GetAsync(key);
 
-            Assert.Equal(value, Helper.BytesToString(getResult.Result));
+            Assert.Equal(value, Helper.BytesToString(getResult));
         }
-    }
-    
-    public class MyDbContextTestBase: KeyValueDbContextTestBase<MyContext>
-    {
-    }
-    
-    public class InMemoryTestBase: KeyValueDbContextTestBase<InMemoryDbContext>
-    {
     }
 }

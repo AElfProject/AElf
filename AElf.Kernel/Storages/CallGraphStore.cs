@@ -4,10 +4,10 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class CallGraphStore : KeyValueStoreBase, ICallGraphStore
+    public class CallGraphStore : KeyValueStoreBase<StateKeyValueDbContext>, ICallGraphStore
     {
-        public CallGraphStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
-            : base(keyValueDatabase, byteSerializer, GlobalConfig.CallGraphPrefix)
+        public CallGraphStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix)
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.CallGraphPrefix)
         {
         }
     }

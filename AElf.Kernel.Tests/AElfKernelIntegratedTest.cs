@@ -15,7 +15,7 @@ namespace AElf.Kernel.Tests
         {
             base.SetAbpApplicationCreationOptions(options);
             //config test project to use in memory database
-            options.UseInMemoryDatabase();
+            //options.UseInMemoryDatabase();
         }
     }
 }

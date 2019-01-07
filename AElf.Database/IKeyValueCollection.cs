@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AElf.Database
@@ -8,6 +10,8 @@ namespace AElf.Database
         Task<byte[]> GetAsync(string key);
         Task<bool> SetAsync(string key, byte[] value);
         Task<bool> RemoveAsync(string key);
+        
+        Task<bool> PipelineSetAsync(IDictionary<string, byte[]> cache);
 
     }
 
@@ -42,6 +46,12 @@ namespace AElf.Database
         public async Task<bool> RemoveAsync(string key)
         {
             return await _keyValueDatabase.RemoveAsync(GetKey(key));
+        }
+
+        public async Task<bool> PipelineSetAsync(IDictionary<string, byte[]> cache)
+        {
+            var dic =  cache.ToDictionary(k=> GetKey(k.Key),v => v.Value);
+            return await _keyValueDatabase.PipelineSetAsync(dic);
         }
     }
 }

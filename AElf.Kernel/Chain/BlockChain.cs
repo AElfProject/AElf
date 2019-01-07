@@ -17,17 +17,8 @@ namespace AElf.Kernel
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IStateManager _stateManager;
-
-<<<<<<< HEAD
-        public new ILogger<BlockChain> Logger { get; set; }
-        
-        private static bool _doingRollback;
-        private static bool _prepareTerminated;
-        private static bool _terminated;
-=======
         public ILogger<BlockChain> Logger { get; set; }
 
->>>>>>> release/0.7.0
 
         public BlockChain(Hash chainId, IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,

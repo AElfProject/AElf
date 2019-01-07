@@ -19,6 +19,9 @@ namespace AElf.Database.Tests
             ));
 
             services.AddKeyValueDbContext<MyContext>(builder => builder.UseRedisDatabase());
+            
+            services.AddKeyValueDbContext<MyContext>(builder => builder.UseInMemoryDatabase());
+
             services.AddKeyValueDbContext<MyContext2>(builder => builder.UseSsdbDatabase());
             services.AddKeyValueDbContext<InMemoryDbContext>(builder => builder.UseInMemoryDatabase());
 

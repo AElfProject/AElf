@@ -4,10 +4,10 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class TransactionTraceStore : KeyValueStoreBase, ITransactionTraceStore
+    public class TransactionTraceStore : KeyValueStoreBase<StateKeyValueDbContext>, ITransactionTraceStore
     {
-        public TransactionTraceStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
-            : base(keyValueDatabase, byteSerializer, GlobalConfig.TransactionTracePrefix)
+        public TransactionTraceStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext, string dataPrefix) 
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.TransactionTracePrefix)
         {
         }
     }

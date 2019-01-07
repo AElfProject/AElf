@@ -6,6 +6,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.Network;
 using AElf.Database;
+using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,7 +39,11 @@ namespace AElf.Kernel
             services.AddTransient(
                 typeof(IComparisionIndex<>), 
                 typeof(ComparisionIndex<,>));
-            
+
+            services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(p => p.UseRedisDatabase());
+            services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
+
+
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
