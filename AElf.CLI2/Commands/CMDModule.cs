@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.CLI2.Commands.Contract;
 using AElf.CLI2.Commands.CrossChain;
 using AElf.CLI2.Commands.Proposal;
 using Autofac;
@@ -25,6 +26,8 @@ namespace AElf.CLI2.Commands
                 [typeof(InteractiveConsoleOption)] = typeof(InteractiveConsoleCommand),
                 [typeof(DeployContractOption)] = typeof(DeployContractCommand),
                 [typeof(UpdateContractOption)] = typeof(UpdateContractCommand),
+                [typeof(GetContractOption)] = typeof(GetContractCommand),
+                [typeof(ChangeContractOwnerOption)] = typeof(ChangeContractOwnerCommand),
                 [typeof(GetAbiOption)] = typeof(GetAbiCommand),
                 [typeof(SendTransactionOption)] = typeof(SendTransactionCommand),
                 [typeof(GetTxResultOption)] = typeof(GetTxResultCommand),

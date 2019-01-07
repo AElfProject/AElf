@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -104,7 +103,6 @@ namespace AElf.Contracts.Genesis
             return _contractSerialNumber.Value;
         }
         
-        [View]
         public string GetContractInfo(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
