@@ -21,7 +21,8 @@ Composed of a Header and a Body. This structure is used as a container for trans
 ### **Transaction**
 
 Represents a transaction in the AElf system. It is used to:
-* Transfer tokens 
+
+* Transfer tokens
 * Call a smart contract method
 * Deploy a smart contract
 
@@ -42,7 +43,7 @@ To learn more about how we organize serialization please check out [this page](s
 
 This section describes the components implemented in the kernel. It clarifies the roles that they have in the system.
 
-## **Smart Contracts**
+### **Smart Contracts**
 
   A `Smart Contract` can be seen as a protocol. It’s implemented as a service (micro-service). 
   For example, this means that since the **Consensus Protocol** is defined as a `Smart Contract`, it is in fact a service. 
@@ -72,6 +73,7 @@ This section describes the components implemented in the kernel. It clarifies th
 - `SmartContractService` provides functionality for obtaining `SmartContract`
 
 ### **Manager**
+
 - `BlockManager` provides entries(get/set) for `BlockStore`
 - `ChainManager` provides functionality of appending the given Block to specified Chain and entries for `ChainBlockRelationStrore`
 - `ChainManager` provides entries(get/set）for `ChainStore`
@@ -81,6 +83,7 @@ This section describes the components implemented in the kernel. It clarifies th
 - `WorldStateManager` provides entry for `WoldStateStore` and functionality to obtain `AccountDataProvider` objects associated with given `Account`
 
 ### **Storage**
+
 | Storage | Description |
 | --- | --- |
 | `BlockStore` | Insert and get `BLock` |
