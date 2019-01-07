@@ -3,36 +3,30 @@ using System.Collections.Generic;
 
 namespace AElf.Database
 {
-    public abstract class KeyValueDbContext<TKeyValueDbContext>: IKeyValueDbContext
+    public abstract class KeyValueDbContext<TKeyValueDbContext>
         where TKeyValueDbContext:KeyValueDbContext<TKeyValueDbContext>
     {
-        protected KeyValueDbContext(IKeyValueDatabase database)
+        protected KeyValueDbContext()
         {
-            Database = database;
-            _keyValueCollections=new Dictionary<string, object>();
+            _keyValueCollections=new Dictionary<string, IKeyValueCollection>();
         }
 
-        public IKeyValueDatabase Database { get; }
+        public IKeyValueDatabase<TKeyValueDbContext> Database { get; set; }
 
-        private readonly Dictionary<string, object> _keyValueCollections;
+        protected readonly Dictionary<string, IKeyValueCollection> _keyValueCollections;
         
-        public IKeyValueCollection<TValue> Collection<TValue>(string name)
+        public IKeyValueCollection Collection(string name)
         {
             _keyValueCollections.TryGetValue(name, out var collection);
             if (collection == null)
             {
-                var typedCollection = new KeyValueCollection<TValue>(name, Database);
-                _keyValueCollections[name] = typedCollection;
-                return typedCollection;
+                return _keyValueCollections[name] = new KeyValueCollection<TKeyValueDbContext>(name, Database);
             }
-            else
-            {
-                var typedCollection = collection as IKeyValueCollection<TValue>;
-                if(typedCollection == null)
-                    throw new InvalidOperationException("Invalid TValue, check collection value type");
-                return typedCollection;
-            }
-            
+            return collection;
+        }
+
+        protected virtual void Configure()
+        {
             
         }
     }

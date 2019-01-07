@@ -2,32 +2,46 @@ using System.Threading.Tasks;
 
 namespace AElf.Database
 {
-    public interface IKeyValueCollection<TValue>
+    public interface IKeyValueCollection
     {
         string Name { get; }
-        Task<TValue> GetAsync(string key);
-        Task SetAsync(TValue value);
+        Task<byte[]> GetAsync(string key);
+        Task<bool> SetAsync(string key, byte[] value);
+        Task<bool> RemoveAsync(string key);
+
     }
 
-    public class KeyValueCollection<TValue> : IKeyValueCollection<TValue>
+    public class KeyValueCollection<TKeyValueDbContext> : IKeyValueCollection
+        where TKeyValueDbContext: KeyValueDbContext<TKeyValueDbContext>
     {
-        private IKeyValueDatabase _keyValueDatabase;
+        private IKeyValueDatabase<TKeyValueDbContext> _keyValueDatabase;
         
-        public KeyValueCollection(string name, IKeyValueDatabase keyValueDatabase)
+        public KeyValueCollection(string name, IKeyValueDatabase<TKeyValueDbContext> keyValueDatabase)
         {
             Name = name;
             _keyValueDatabase = keyValueDatabase;
         }
 
         public string Name { get; }
-        public Task<TValue> GetAsync(string key)
+        public Task<byte[]> GetAsync(string key)
         {
-            throw new System.NotImplementedException();
+            return _keyValueDatabase.GetAsync(GetKey(key));
         }
 
-        public Task SetAsync(TValue value)
+        public async Task<bool> SetAsync(string key, byte[] value)
         {
-            throw new System.NotImplementedException();
+            return await _keyValueDatabase.SetAsync(GetKey(key), value);
+        }
+
+
+        protected virtual string GetKey(string key)
+        {
+            return Name + key;
+        }
+        
+        public async Task<bool> RemoveAsync(string key)
+        {
+            return await _keyValueDatabase.RemoveAsync(GetKey(key));
         }
     }
 }
