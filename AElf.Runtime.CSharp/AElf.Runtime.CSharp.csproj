@@ -3,6 +3,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Runtime.CSharp.VM\AElf.Runtime.CSharp.VM.csproj" />
     <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
     <ProjectReference Include="..\AElf.ABI.CSharp\AElf.ABI.CSharp.csproj" />
   </ItemGroup>

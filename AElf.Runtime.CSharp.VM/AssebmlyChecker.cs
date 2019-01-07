@@ -29,7 +29,7 @@ namespace AElf.Runtime.CSharp
             "System.Reflection.AssemblyTitleAttribute".Replace(".", "\\."),
             @"AElf\..+"
         };
-        
+
         public AssemblyChecker(IEnumerable<string> blackList, IEnumerable<string> whiteList)
         {
             _blackList = (blackList ?? new string[0]).Concat(_systemBlackList).Select(x => new Regex(x)).ToList();
@@ -43,6 +43,23 @@ namespace AElf.Runtime.CSharp
                 .Where(x => _whiteList.All(y => !y.IsMatch(x.FullName)))
                 .Select(x => x).ToList();
             return blackListed;
+        }
+
+        public void CodeCheck(byte[] code, bool isPrivileged)
+        {
+            var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
+            var forbiddenTypeRefs = GetBlackListedTypeReferences(modDef);
+            if (isPrivileged)
+            {
+                // Allow system user to use multi-thread
+                forbiddenTypeRefs = forbiddenTypeRefs.Where(x => !x.FullName.StartsWith("System.Threading")).ToList();
+            }
+
+            if (forbiddenTypeRefs.Count > 0)
+            {
+                throw new InvalidCodeException(
+                    $"\nForbidden type references detected:\n{string.Join("\n  ", forbiddenTypeRefs.Select(x => x.FullName))}");
+            }
         }
     }
 }

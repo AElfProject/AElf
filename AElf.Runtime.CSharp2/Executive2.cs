@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -13,27 +12,21 @@ using Type = System.Type;
 using Module = AElf.ABI.CSharp.Module;
 using Method = AElf.ABI.CSharp.Method;
 using AElf.SmartContract;
-using AElf.SmartContract.Proposal;
 
 namespace AElf.Runtime.CSharp
 {
-    public class Executive : IExecutive
+    public class Executive2 : IExecutive
     {
         private readonly Dictionary<string, Method> _methodMap = new Dictionary<string, Method>();
 
-        private delegate void SetSmartContractContextHandler(ISmartContractContext contractContext);
-
-        private delegate void SetTransactionContextHandler(ITransactionContext transactionContext);
-
-        private SetSmartContractContextHandler _setSmartContractContextHandler;
-        private SetTransactionContextHandler _setTransactionContextHandler;
+        private CSharpSmartContractProxy _smartContractProxy;
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
-        private IStateManager _stateManager;
+        private CachedStateManager _stateManager;
         private int _maxCallDepth = 4;
 
-        public Executive(Module abiModule)
+        public Executive2(Module abiModule)
         {
             foreach (var m in abiModule.Methods)
             {
@@ -51,37 +44,34 @@ namespace AElf.Runtime.CSharp
 
         public IExecutive SetStateManager(IStateManager stateManager)
         {
-            _stateManager = stateManager;
+            _stateManager = new CachedStateManager(stateManager);
+            _smartContractProxy.SetStateManager(_stateManager);
             return this;
         }
 
         public void SetDataCache(Dictionary<StatePath, StateCache> cache)
         {
-            _currentSmartContractContext.DataProvider.StateCache = cache;
-            _currentSmartContractContext.DataProvider.ClearCache();
+            _stateManager.Cache = cache;
+        }
+
+        private T GetHandler<T>(Type apiType)
+        {
+            var methodName = nameof(T).Replace("Handler", "");
+            var methodInfo = apiType.GetMethod(methodName,
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            return (T) (object) Delegate.CreateDelegate(typeof(T), methodInfo);
         }
 
         // ReSharper disable once InconsistentNaming
-        public Executive SetApi(Type ApiType)
+        public Executive2 SetApi(Type ApiType)
         {
-            var scc = ApiType.GetMethod("SetSmartContractContext", BindingFlags.Public | BindingFlags.Static);
-            var stc = ApiType.GetMethod("SetTransactionContext", BindingFlags.Public | BindingFlags.Static);
-            var scch = Delegate.CreateDelegate(typeof(SetSmartContractContextHandler), scc);
-            var stch = Delegate.CreateDelegate(typeof(SetTransactionContextHandler), stc);
-
-            if (scch == null || stch == null)
-            {
-                throw new InvalidOperationException("Input is not a valid Api type");
-            }
-
-            _setSmartContractContextHandler = (SetSmartContractContextHandler) scch;
-            _setTransactionContextHandler = (SetTransactionContextHandler) stch;
             return this;
         }
 
-        public Executive SetSmartContract(ISmartContract smartContract)
+        public Executive2 SetSmartContract(ISmartContract smartContract)
         {
             _smartContract = smartContract;
+            _smartContractProxy = new CSharpSmartContractProxy(smartContract);
             _asyncHandlersCache.Clear();
             _handlersCache.Clear();
             return this;
@@ -89,30 +79,21 @@ namespace AElf.Runtime.CSharp
 
         public IExecutive SetSmartContractContext(ISmartContractContext smartContractContext)
         {
-            if (_setSmartContractContextHandler == null)
-            {
-                throw new InvalidOperationException("Api type is not set yet.");
-            }
-
-            _setSmartContractContextHandler(smartContractContext);
+            _smartContractProxy.SetSmartContractContext(smartContractContext);
             _currentSmartContractContext = smartContractContext;
             return this;
         }
 
         public IExecutive SetTransactionContext(ITransactionContext transactionContext)
         {
-            if (_setTransactionContextHandler == null)
-            {
-                throw new InvalidOperationException("Api type is not set yet.");
-            }
-
-            _setTransactionContextHandler(transactionContext);
+            _smartContractProxy.SetTransactionContext(transactionContext);
             _currentTransactionContext = transactionContext;
             return this;
         }
 
         public void Cleanup()
         {
+            _smartContractProxy.Cleanup();
         }
 
         public async Task Apply()
@@ -191,7 +172,7 @@ namespace AElf.Runtime.CSharp
                 if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() &&
                     _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
-                    var changes = _currentSmartContractContext.DataProvider.GetChanges().Select(kv => new StateChange()
+                    var changes = _smartContractProxy.GetChanges().Select(kv => new StateChange()
                     {
                         StatePath = kv.Key,
                         StateValue = kv.Value

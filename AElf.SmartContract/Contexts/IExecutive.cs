@@ -14,6 +14,7 @@ namespace AElf.SmartContract
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
         IExecutive SetStateManager(IStateManager stateManager);
         void SetDataCache(Dictionary<StatePath, StateCache> cache); //temporary solution to let data provider access actor's state cache
+        void Cleanup();
         Task Apply();
     }
 }

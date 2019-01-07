@@ -1,32 +1,30 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.ABI.CSharp;
 using AElf.Common;
 using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using AElf.SmartContract;
+using AElf.Kernel.SmartContract;
 using AElf.SmartContract.MetaData;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
-using Mono.Cecil;
-using Module = AElf.ABI.CSharp.Module;
-using Resource = AElf.Kernel.SmartContract.Resource;
 using Type = System.Type;
 
 namespace AElf.Runtime.CSharp
 {
-    public class SmartContractRunner : ISmartContractRunner
+    public class SmartContractRunnerForCategoryTwo : ISmartContractRunner
     {
-        public int Category { get; protected set; } = 0;
-
-//        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams = new ConcurrentDictionary<string, MemoryStream>();
+        public int Category { get; protected set; } = 2;
         private readonly ISdkStreamManager _sdkStreamManager;
+
+        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
+            new ConcurrentDictionary<string, MemoryStream>();
 
         private readonly ConcurrentDictionary<Hash, Type> _cachedContractTypeByHash =
             new ConcurrentDictionary<Hash, Type>();
@@ -34,12 +32,12 @@ namespace AElf.Runtime.CSharp
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
-        public SmartContractRunner() : this(RunnerConfig.Instance.SdkDir, RunnerConfig.Instance.BlackList,
+        public SmartContractRunnerForCategoryTwo() : this(RunnerConfig.Instance.SdkDir, RunnerConfig.Instance.BlackList,
             RunnerConfig.Instance.WhiteList)
         {
         }
 
-        public SmartContractRunner(string sdkDir, IEnumerable<string> blackList = null,
+        public SmartContractRunnerForCategoryTwo(string sdkDir, IEnumerable<string> blackList = null,
             IEnumerable<string> whiteList = null)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
@@ -80,7 +78,7 @@ namespace AElf.Runtime.CSharp
 
             // TODO: Change back
             var types = assembly.GetTypes();
-            var type = types.FirstOrDefault(x => x.FullName.Contains(abiModule.Name));
+            var type = types.FirstOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t));
             if (type == null)
             {
                 throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");
@@ -88,19 +86,19 @@ namespace AElf.Runtime.CSharp
 
             var instance = (ISmartContract) Activator.CreateInstance(type);
 
-            var ApiSingleton = loadContext.Sdk.GetTypes().FirstOrDefault(x => x.Name.EndsWith("Api"));
+//            var ApiSingleton = loadContext.Sdk.GetTypes().FirstOrDefault(x => x.Name.EndsWith("Api"));
+//
+//            if (ApiSingleton == null)
+//            {
+//                throw new InvalidCodeException("No Api was found.");
+//            }
 
-            if (ApiSingleton == null)
-            {
-                throw new InvalidCodeException("No Api was found.");
-            }
-
-            Executive executive = new Executive(abiModule).SetSmartContract(instance).SetApi(ApiSingleton);
+            Executive2 executive = new Executive2(abiModule).SetSmartContract(instance);//.SetApi(ApiSingleton);
 
             return await Task.FromResult(executive);
         }
 
-        private Module GetAbiModule(SmartContractRegistration reg)
+        private AElf.ABI.CSharp.Module GetAbiModule(SmartContractRegistration reg)
         {
             var code = reg.ContractBytes.ToByteArray();
             var abiModule = Generator.GetABIModule(code);

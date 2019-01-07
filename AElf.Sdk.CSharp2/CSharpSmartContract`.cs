@@ -7,27 +7,12 @@ using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
 {
-    public class CSharpSmartContract<TContractState> : CSharpSmartContractAbstract
-        where TContractState : ContractState
+    public partial class CSharpSmartContract<TContractState> where TContractState : ContractState
     {
-        internal override void SetStateManager(IStateManager stateManager)
-        {
-            State.Manager = stateManager;
-        }
+        private readonly Context _context = new Context();
 
-        internal override void SetContractAddress(Address address)
-        {
-            var path = new StatePath();
-            path.Path.Add(ByteString.CopyFromUtf8(address.GetFormatted()));
-            State.Path = path;
-        }
+        public IContext Context => _context;
 
-        internal override void Cleanup()
-        {
-            State.Clear();
-        }
-
-        public IContext Context { get; internal set; }
         public TContractState State { get; internal set; }
 
         public CSharpSmartContract()

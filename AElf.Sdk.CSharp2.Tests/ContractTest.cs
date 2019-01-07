@@ -17,21 +17,19 @@ namespace AElf.Sdk.CSharp2.Tests
             var addresses = new[] {"a", "b", "c"}.Select(Address.FromString).ToList();
             var stateManager = new MockStateManager();
             var contract = new TokenContract();
-            contract.Context = new Context()
+            contract.SetSmartContractContext(new SmartContractContext()
             {
-                SmartContractContext = new SmartContractContext()
+                ContractAddress = addresses[0]
+            });
+            contract.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = new Transaction()
                 {
-                    ContractAddress = addresses[0]
-                },
-                TransactionContext = new TransactionContext()
-                {
-                    Transaction = new Transaction()
-                    {
-                        From = addresses[1],
-                        To = addresses[0]
-                    }
+                    From = addresses[1],
+                    To = addresses[0]
                 }
-            };
+            });
+
             contract.SetStateManager(stateManager);
             contract.SetContractAddress(addresses[0]);
             contract.Initialize("ELF", "ELF Token", 1000000000, 0);

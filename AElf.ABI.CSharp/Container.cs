@@ -30,7 +30,7 @@ namespace AElf.ABI.CSharp
 
         private void AddOneType(TypeDefinition type)
         {
-            string baseName = type.BaseType?.FullName;
+            string baseName = type.BaseType?.FullName.Split('`').First();
             if (baseName == null)
                 return;
             if (!_baseChildrenMap.TryGetValue(baseName, out var children))

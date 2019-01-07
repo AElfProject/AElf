@@ -1,12 +1,18 @@
+using System.Collections.Generic;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.SmartContract;
 
 namespace AElf.Sdk.CSharp
 {
     public abstract class CSharpSmartContractAbstract : CSharpSmartContract
     {
+        internal abstract void SetSmartContractContext(ISmartContractContext smartContractContext);
+        internal abstract void SetTransactionContext(ITransactionContext transactionContext);
         internal abstract void SetStateManager(IStateManager stateManager);
         internal abstract void SetContractAddress(Address address);
+        internal abstract Dictionary<StatePath, StateValue> GetChanges();
         internal abstract void Cleanup();
 
         public void Assert(bool asserted, string message = "Assertion failed!")

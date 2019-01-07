@@ -8,7 +8,7 @@ using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
 {
-    public class Context : IContext, IContextSetter
+    public class Context : IContext
     {
         public ITransactionContext TransactionContext { get; set; }
         public ISmartContractContext SmartContractContext { get; set; }
