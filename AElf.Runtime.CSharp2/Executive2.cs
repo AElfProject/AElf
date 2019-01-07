@@ -185,6 +185,10 @@ namespace AElf.Runtime.CSharp
                 _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
                 _currentTransactionContext.Trace.StdErr += ex + "\n";
             }
+            finally
+            {
+                Cleanup();
+            }
 
             var e = _currentTransactionContext.Trace.EndTime = DateTime.UtcNow;
             _currentTransactionContext.Trace.Elapsed = (e - s).Ticks;
