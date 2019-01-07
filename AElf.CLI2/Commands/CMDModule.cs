@@ -26,7 +26,6 @@ namespace AElf.CLI2.Commands
                 [typeof(InteractiveConsoleOption)] = typeof(InteractiveConsoleCommand),
                 [typeof(DeployContractOption)] = typeof(DeployContractCommand),
                 [typeof(UpdateContractOption)] = typeof(UpdateContractCommand),
-                [typeof(GetContractOption)] = typeof(GetContractCommand),
                 [typeof(ChangeContractOwnerOption)] = typeof(ChangeContractOwnerCommand),
                 [typeof(GetAbiOption)] = typeof(GetAbiCommand),
                 [typeof(SendTransactionOption)] = typeof(SendTransactionCommand),

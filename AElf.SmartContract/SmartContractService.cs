@@ -60,7 +60,7 @@ namespace AElf.SmartContract
             }
             else
             {
-                var result = await CallContractAsync(chainId, zeroContractAddress, "GetContractHash", address);
+                var result = await CallContractAsync(true, chainId, zeroContractAddress, "GetContractHash", address);
 
                 contractHash = result.DeserializeToPbMessage<Hash>();
             }
@@ -207,19 +207,20 @@ namespace AElf.SmartContract
 
         public async Task<Address> DeploySystemContractAsync(Hash chainId, SmartContractRegistration registration)
         {
-            var result = await CallContractAsync(chainId, ContractHelpers.GetGenesisBasicContractAddress(chainId),
+            var result = await CallContractAsync(false, chainId, ContractHelpers.GetGenesisBasicContractAddress(chainId),
                 "InitSmartContract", registration.SerialNumber, registration.Category, registration.ContractBytes.ToByteArray());
 
             return result.DeserializeToPbMessage<Address>();
         }
-        
-        private async Task<byte[]> CallContractAsync(Hash chainId, Address contractAddress, string methodName, params object[] args)
+
+        private async Task<byte[]> CallContractAsync(bool isReadonly, Hash chainId, Address contractAddress,
+            string methodName, params object[] args)
         {
             var smartContractContext = new TransactionContext()
             {
                 Transaction = new Transaction()
                 {
-                    From = contractAddress,
+                    From = Address.Genesis,
                     To = contractAddress,
                     MethodName = methodName,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
@@ -241,8 +242,8 @@ namespace AElf.SmartContract
                     await PutExecutiveAsync(chainId, contractAddress, executive);
                 }
             }).Unwrap().Wait();
-            
-            if (smartContractContext.Trace.IsSuccessful())
+
+            if (!isReadonly && smartContractContext.Trace.IsSuccessful())
             {
                 if (smartContractContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {

@@ -103,6 +103,7 @@ namespace AElf.Contracts.Genesis
             return _contractSerialNumber.Value;
         }
         
+        [View]
         public string GetContractInfo(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
@@ -113,10 +114,11 @@ namespace AElf.Contracts.Genesis
 
             return info.ToString();
         }
-        
+
         public async Task<byte[]> InitSmartContract(ulong serialNumber, int category, byte[] code)
         {
             Api.Assert(Api.GetCurrentHeight() < 1, "The current height should be less than 1.");
+            Api.Assert(Api.GetFromAddress().Equals(Api.Genesis));
             
             var contractAddress = Address.BuildContractAddress(Api.ChainId.DumpByteArray(), serialNumber);
             
