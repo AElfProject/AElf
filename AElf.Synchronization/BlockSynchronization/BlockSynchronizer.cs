@@ -390,6 +390,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 else
                 {
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock);
+                    
+                    _logger?.Debug($"Block {block} has been linked.");
+                    MessageHub.Instance.Publish(new BlockLinked(block));
                 }
             }
             catch (Exception e)
