@@ -1,7 +1,9 @@
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Database;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -21,7 +23,11 @@ namespace AElf.Miner.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            
             context.Services.AddAssemblyOf<MinerTestAElfModule>();
+            
+            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
         }
 
 

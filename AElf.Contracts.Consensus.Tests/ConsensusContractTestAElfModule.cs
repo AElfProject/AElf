@@ -6,7 +6,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Contracts.Consensus.Tests
 {
     [DependsOn(
-        typeof(AElf.TestBase.Contract.ContractTestAElfModule)
+        typeof(TestBase.ContractTestAElfModule)
     )]
     public class ConsensusContractTestAElfModule : AElfModule
     {

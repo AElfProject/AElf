@@ -1,3 +1,4 @@
+using AElf.Contracts.TestBase;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
@@ -12,6 +13,7 @@ namespace AElf.Contracts.Genesis.Tests
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
+        typeof(ContractTestAElfModule),
         typeof(KernelAElfModule)
         )]
     public class GenesisContractTestAElfModule : AElfModule
@@ -22,13 +24,7 @@ namespace AElf.Contracts.Genesis.Tests
         }
     }
 
-    public class GenesisContractTestBase : TestBase.AElfIntegratedTest<GenesisContractTestAElfModule>
+    public class GenesisContractTestBase : ContractTestBase<GenesisContractTestAElfModule>
     {
-        protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
-        {
-            base.SetAbpApplicationCreationOptions(options);
-
-            options.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            options.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());        }
     }
 }

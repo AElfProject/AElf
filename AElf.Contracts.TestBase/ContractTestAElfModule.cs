@@ -5,7 +5,7 @@ using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.TestBase.Contract
+namespace AElf.Contracts.TestBase
 {
     [DependsOn(
         typeof(AElf.ChainController.ChainControllerAElfModule),

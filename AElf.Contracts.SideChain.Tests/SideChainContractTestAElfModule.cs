@@ -1,6 +1,6 @@
 using AElf.Kernel;
 using AElf.Modularity;
-using AElf.TestBase.Contract;
+using AElf.Contracts.TestBase;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -10,7 +10,7 @@ namespace AElf.Contracts.SideChain.Tests
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
-        typeof(AElf.TestBase.Contract.ContractTestAElfModule),
+        typeof(TestBase.ContractTestAElfModule),
         typeof(KernelAElfModule)
     )]
     public class SideChainContractTestAElfModule : AElfModule

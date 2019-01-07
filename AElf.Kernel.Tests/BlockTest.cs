@@ -12,7 +12,7 @@ using AElf.Common;
 
 namespace AElf.Kernel.Tests
 {
-    public class BlockTest: AElfKernelIntegratedTest
+    public class BlockTest: AElfKernelTestBase
     {
         private readonly IChainCreationService _chainCreationService;
         private readonly IChainService _chainService;

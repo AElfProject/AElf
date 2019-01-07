@@ -8,7 +8,7 @@ using AElf.TestBase;
 
 namespace AElf.Kernel.Tests
 {
-    public class ChainCreationServiceTests : AElfKernelIntegratedTest
+    public class ChainCreationServiceTests : AElfKernelTestBase
     {
         private readonly IChainCreationService _service;
 

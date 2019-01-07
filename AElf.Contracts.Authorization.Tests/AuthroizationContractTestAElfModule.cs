@@ -1,6 +1,6 @@
 using AElf.Kernel;
 using AElf.Modularity;
-using AElf.TestBase.Contract;
+using AElf.Contracts.TestBase;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 

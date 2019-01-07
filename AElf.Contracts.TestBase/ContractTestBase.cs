@@ -1,11 +1,12 @@
 using AElf.Database;
 using AElf.Kernel.Storages;
 using AElf.Modularity;
+using AElf.TestBase;
 using Volo.Abp;
 
-namespace AElf.TestBase.Contract
+namespace AElf.Contracts.TestBase
 {
-    public class ContractTestBase<TModule> : TestBase.AElfIntegratedTest<TModule>
+    public class ContractTestBase<TModule> : AElfIntegratedTest<TModule>
         where TModule:AElfModule
     {
         protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)

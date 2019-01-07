@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace AElf.Contracts.Token.Tests
 {
-public sealed class TokenContractTest : ContractTestBase
+public sealed class TokenContractTest : TokenContractTestBase
     {
         private TokenContractShim _contract;
         private MockSetup _mock;

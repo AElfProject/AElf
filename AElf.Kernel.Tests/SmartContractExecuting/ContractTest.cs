@@ -14,7 +14,7 @@ using AElf.TestBase;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
-    public sealed class ContractTest : AElfKernelIntegratedTest
+    public sealed class ContractTest : AElfKernelTestBase
     {
         // todo warning this test obviously uses bad  
         

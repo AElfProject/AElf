@@ -15,7 +15,7 @@ using Xunit;
 
 namespace AElf.Kernel.Tests
 {
-    public class DataProviderTest : AElfKernelIntegratedTest
+    public class DataProviderTest : AElfKernelTestBase
     {
         private readonly IStateManager _stateManager;
         

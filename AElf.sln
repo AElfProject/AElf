@@ -161,7 +161,7 @@ EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestBase.Contract", "AElf.TestBase.Contract\AElf.TestBase.Contract.csproj", "{F7017767-0BD0-4882-948D-E15C6FF7C15D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase", "AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj", "{F7017767-0BD0-4882-948D-E15C6FF7C15D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RuntimeSetup", "AElf.RuntimeSetup\AElf.RuntimeSetup.csproj", "{71DE375A-1037-4CDB-BC7C-6DC454B5D55D}"
 EndProject

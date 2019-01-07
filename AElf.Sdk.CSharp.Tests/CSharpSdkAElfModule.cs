@@ -1,4 +1,6 @@
+using AElf.Database;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -11,11 +13,14 @@ namespace AElf.Sdk.CSharp.Tests
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(KernelAElfModule)
     )]
-    public class CSharpSdkAElfModule : AElfModule
+    public class TestCSharpSdkAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<CSharpSdkAElfModule>();
+            context.Services.AddAssemblyOf<TestCSharpSdkAElfModule>();
+            
+            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
         }
     }
 }

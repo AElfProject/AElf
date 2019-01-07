@@ -13,7 +13,7 @@ using FunctionMetadata = AElf.Kernel.SmartContract.FunctionMetadata;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
-    public sealed class ChainFunctionMetadataTest : AElfKernelIntegratedTest
+    public sealed class ChainFunctionMetadataTest : AElfKernelTestBase
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IFunctionMetadataService _functionMetadataService;

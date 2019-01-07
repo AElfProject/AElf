@@ -1,6 +1,5 @@
-using AElf.Database;
+using AElf.Contracts.TestBase;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -11,17 +10,14 @@ namespace AElf.Contracts.Token.Tests
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
+        typeof(ContractTestAElfModule),
         typeof(KernelAElfModule)
     )]
-    public class ContractTestAElfModule : AElfModule
+    public class TokenContractTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<ContractTestAElfModule>();
-            
-
-            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());  
+            context.Services.AddAssemblyOf<TokenContractTestAElfModule>();
         }
     }
 }

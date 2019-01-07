@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Tests
 {
-    public sealed class StoragesTest : AElfKernelIntegratedTest
+    public sealed class StoragesTest : AElfKernelTestBase
     {
         private readonly BlockTest _blockTest;
         private readonly IChainService _chainService;
