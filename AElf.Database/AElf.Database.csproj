@@ -6,8 +6,6 @@
     <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Volo.Abp.Data, Version=0.10.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\..\.nuget\packages\volo.abp.data\0.10.0\lib\netstandard2.0\Volo.Abp.Data.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Volo.Abp.Data" Version="0.10.0" />
   </ItemGroup>
 </Project>
