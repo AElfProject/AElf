@@ -147,7 +147,7 @@ namespace AElf.Kernel
                     }
 
                     await _chainManager.RemoveCanonical(_chainId, i);
-                    await RollbackSideChainInfo(block);
+                    //await RollbackSideChainInfo(block);
                     await RollbackStateForBlock(block);
                     blocks.Add((Block) block);
                 }

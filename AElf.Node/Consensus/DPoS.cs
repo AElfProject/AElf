@@ -182,7 +182,8 @@ namespace AElf.Node.Consensus
                 return;
             }
 
-            if (!_minersManager.IsMinersInDatabase().Result)
+            if (!_minersManager.IsMinersInDatabase().Result ||
+                ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId)
             {
                 ConsensusDisposable = ConsensusObserver.Initialization();
                 return;

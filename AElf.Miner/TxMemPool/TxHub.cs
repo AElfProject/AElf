@@ -458,11 +458,8 @@ namespace AElf.Miner.TxMemPool
                         tr = new TransactionReceipt(t);
                     }
                     
-                    // cross chain type and dpos type transaction should not be reverted.
-                    if (tr.Transaction.IsCrossChainIndexingTransaction()
-                        && tr.Transaction.To.Equals(_crossChainContractAddress))
-//                        || tr.Transaction.Type == TransactionType.DposTransaction
-//                        && tr.Transaction.To.Equals(_dPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
+                    // cross chain transactions should not be reverted.
+                    if (tr.Transaction.IsCrossChainIndexingTransaction())
                         continue;
 
                     if (tr.Transaction.IsClaimFeesTransaction())
