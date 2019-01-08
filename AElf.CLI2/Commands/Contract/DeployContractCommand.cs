@@ -1,33 +1,27 @@
-using System;
-using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Xml.Serialization;
 using AElf.CLI2.JS;
-using AElf.Common;
 using Alba.CsConsoleFormat.Fluent;
-using Autofac;
-using ChakraCore.NET;
 using CommandLine;
 
-namespace AElf.CLI2.Commands
+namespace AElf.CLI2.Commands.Contract
 {
-    [Verb("update", HelpText = "Update a smart contract.")]
-    public class UpdateContractOption : BaseOption
+    [Verb("deploy", HelpText = "Deploy a smart contract.")]
+    public class DeployContractOption : BaseOption
     {
-        [Value(0, MetaName = "ContractAddress", HelpText = "The address of the contract to be updated.", Required = true)]
-        public string ContractAddress { get; set; }
+        [Value(0, MetaName = "Category", HelpText = "The category of the contract to be deployed.", Required = true)]
+        public int Category { get; set; }
 
         [Value(1, MetaName = "CodeFile", HelpText = "The compiled contract code file of the contract to be deployed.",
             Required = true)]
         public string CodeFile { get; set; }
     }
 
-    public class UpdateContractCommand : Command
+    public class DeployContractCommand : Command
     {
-        private readonly UpdateContractOption _option;
+        private readonly DeployContractOption _option;
 
-        public UpdateContractCommand(UpdateContractOption option) : base(option)
+        public DeployContractCommand(DeployContractOption option) : base(option)
         {
             _option = option;
         }
@@ -41,7 +35,7 @@ namespace AElf.CLI2.Commands
             }
             _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
                 .GetManifestResourceStream("AElf.CLI2.Scripts.contract.js"));
-            _engine.GlobalObject.CallMethod<string, string>("updateCommand", _option.ContractAddress,
+            _engine.GlobalObject.CallMethod<int, string>("deployCommand", _option.Category,
                 GetCode(_option.CodeFile));
         }
     }

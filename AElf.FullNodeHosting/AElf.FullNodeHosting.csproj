@@ -23,4 +23,8 @@
       <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Logs" />
+    </ItemGroup>
+
 </Project>

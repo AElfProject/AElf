@@ -140,7 +140,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 AddMinedBlock(inBlock.Block);
             });
             
-            MessageHub.Instance.Subscribe<BlockLinked>(async inBlock =>
+            MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
                 if (inBlock.Block == null)
                     return;

@@ -95,7 +95,7 @@ namespace AElf.Node
             node.Initialize(confContext);
             node.Start();
         }
-        
+
         private static string AskInvisible()
         {
             Console.Write("Node account password: ");
