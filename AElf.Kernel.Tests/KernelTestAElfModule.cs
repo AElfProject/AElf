@@ -3,9 +3,11 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
+using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner;
@@ -41,6 +43,10 @@ namespace AElf.Kernel.Tests
             //should move out of this project
             services.AddSingleton<IActorEnvironment, ActorEnvironment>();
             services.AddSingleton<ServicePack>();
+
+            services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

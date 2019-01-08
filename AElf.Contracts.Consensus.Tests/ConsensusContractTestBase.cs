@@ -1,4 +1,4 @@
-using AElf.TestBase.Contract;
+using AElf.Contracts.TestBase;
 
 namespace AElf.Contracts.Consensus.Tests
 {

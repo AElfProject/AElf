@@ -8,7 +8,7 @@ using AElf.Miner.TxMemPool;
 
 namespace AElf.Kernel.Tests
 {
-    public sealed class TransactionManagerTests:AElfKernelIntegratedTest
+    public sealed class TransactionManagerTests:AElfKernelTestBase
     {
         private ITransactionManager _transactionManager;
 

@@ -47,8 +47,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cryptography", "AElf.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cryptography.Tests", "AElf.Cryptography.Tests\AElf.Cryptography.Tests.csproj", "{F493AA95-89E6-4F90-BA8F-129A6FE64A6D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Configuration", "AElf.Configuration\AElf.Configuration.csproj", "{3F9A7502-300D-4A09-9BFF-B17F929D71AB}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Configuration.Tests", "AElf.Configuration.Tests\AElf.Configuration.Tests.csproj", "{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types.CSharp.Tests", "AElf.Types.CSharp.Tests\AElf.Types.CSharp.Tests.csproj", "{BE325074-BE8D-448D-931B-57F5812F7714}"
@@ -163,7 +161,7 @@ EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestBase.Contract", "AElf.TestBase.Contract\AElf.TestBase.Contract.csproj", "{F7017767-0BD0-4882-948D-E15C6FF7C15D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase", "AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj", "{F7017767-0BD0-4882-948D-E15C6FF7C15D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RuntimeSetup", "AElf.RuntimeSetup\AElf.RuntimeSetup.csproj", "{71DE375A-1037-4CDB-BC7C-6DC454B5D55D}"
 EndProject
@@ -174,6 +172,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RPC.Tests", "AElf.RPC.Tests\AElf.RPC.Tests.csproj", "{FA7C293F-038D-4717-830C-FD0F99351EBC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ChainController.Rpc.Tests", "AElf.ChainController.Rpc.Tests\AElf.ChainController.Rpc.Tests.csproj", "{48D25035-5446-47BD-8006-3D3590094310}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Configuration", "AElf.Configuration\AElf.Configuration.csproj", "{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -273,10 +273,6 @@ Global
 		{F493AA95-89E6-4F90-BA8F-129A6FE64A6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F493AA95-89E6-4F90-BA8F-129A6FE64A6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F493AA95-89E6-4F90-BA8F-129A6FE64A6D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3F9A7502-300D-4A09-9BFF-B17F929D71AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F9A7502-300D-4A09-9BFF-B17F929D71AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F9A7502-300D-4A09-9BFF-B17F929D71AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F9A7502-300D-4A09-9BFF-B17F929D71AB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -493,6 +489,10 @@ Global
 		{48D25035-5446-47BD-8006-3D3590094310}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48D25035-5446-47BD-8006-3D3590094310}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48D25035-5446-47BD-8006-3D3590094310}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

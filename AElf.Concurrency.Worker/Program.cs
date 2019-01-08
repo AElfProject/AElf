@@ -63,18 +63,5 @@ namespace AElf.Concurrency.Worker
         }
 
 
-        private static bool CheckDBConnect(IServiceProvider sp)
-        {
-            var db = sp.GetRequiredService<IKeyValueDatabase>();
-            try
-            {
-                return db.IsConnected();
-            }
-            catch (Exception e)
-            {
-                //Logger.LogError(e);
-                return false;
-            }
-        }
     }
 }

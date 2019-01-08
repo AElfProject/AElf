@@ -11,37 +11,24 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Storages
 {
-    public class StateStore : KeyValueStoreBase, IStateStore, ISingletonDependency
+    public class StateStore : KeyValueStoreBase<StateKeyValueDbContext>, IStateStore, ISingletonDependency
     {
-
-        public StateStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
-            : base(keyValueDatabase, byteSerializer, GlobalConfig.StatePrefix)
+        public StateStore(StateKeyValueDbContext keyValueDbContext)
+            : base(new StateByteSerializer(), keyValueDbContext, GlobalConfig.StatePrefix)
         {
         }
 
-        public override async Task SetAsync(string key, object value)
+        public class StateByteSerializer : IByteSerializer
         {
-            CheckKey(key);
-            CheckValue(value);
+            public byte[] Serialize(object obj)
+            {
+                return (byte[]) obj;
+            }
 
-            var databaseKey = GetDatabaseKey(key);
-            await KeyValueDatabase.SetAsync(DataPrefix, databaseKey, (byte[]) value);
-        }
-
-        public override async Task<bool> PipelineSetAsync(Dictionary<string, object> pipelineSet)
-        {
-            var dict = pipelineSet.ToDictionary(kv => GetDatabaseKey(kv.Key), kv => (byte[])kv.Value);
-            return await KeyValueDatabase.PipelineSetAsync(DataPrefix, dict);
-        }
-
-        public override async Task<T> GetAsync<T>(string key)
-        {
-            CheckKey(key);
-
-            var databaseKey = GetDatabaseKey(key);
-            var result = await KeyValueDatabase.GetAsync(DataPrefix, databaseKey);
-
-            return (T) Convert.ChangeType(result, typeof(T));
+            public T Deserialize<T>(byte[] bytes)
+            {
+                return (T) Convert.ChangeType(bytes, typeof(T));
+            }
         }
     }
 }

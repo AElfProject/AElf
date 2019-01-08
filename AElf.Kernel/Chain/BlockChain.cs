@@ -17,7 +17,6 @@ namespace AElf.Kernel
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IStateManager _stateManager;
-
         public ILogger<BlockChain> Logger { get; set; }
 
 

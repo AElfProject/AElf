@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
-using AElf.TestBase.Contract;
+using AElf.Contracts.TestBase;
 using Xunit;
 
 

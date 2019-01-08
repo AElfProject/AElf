@@ -14,7 +14,7 @@ using Xunit;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
-    public sealed class FunctionMetadataServiceTest : AElfKernelIntegratedTest
+    public sealed class FunctionMetadataServiceTest : AElfKernelTestBase
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IFunctionMetadataService _functionMetadataService;

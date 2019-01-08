@@ -4,10 +4,10 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class TransactionStore : KeyValueStoreBase, ITransactionStore
+    public class TransactionStore : KeyValueStoreBase<BlockChainKeyValueDbContext>, ITransactionStore
     {
-        public TransactionStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
-            : base(keyValueDatabase, byteSerializer, GlobalConfig.TransactionPrefix)
+        public TransactionStore(IByteSerializer byteSerializer, BlockChainKeyValueDbContext keyValueDbContext) 
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.TransactionPrefix)
         {
         }
     }

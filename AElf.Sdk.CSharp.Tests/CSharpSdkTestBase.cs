@@ -1,14 +1,10 @@
 using AElf.Database;
+using AElf.Kernel.Storages;
 using Volo.Abp;
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    public class CSharpSdkTestBase : AElf.TestBase.AElfIntegratedTest<CSharpSdkAElfModule>
+    public class CSharpSdkTestBase : AElf.TestBase.AElfIntegratedTest<TestCSharpSdkAElfModule>
     {
-        protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
-        {
-            base.SetAbpApplicationCreationOptions(options);
-            options.UseInMemoryDatabase();
-        }
     }
 }

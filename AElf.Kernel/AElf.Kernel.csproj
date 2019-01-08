@@ -50,6 +50,7 @@
     <Compile Remove="Merkle\BinaryMerkleNode.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj">
       <Project>{DAEEB200-1D20-4A56-8C21-CA2ADE976AD5}</Project>

@@ -10,14 +10,13 @@ using Xunit;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
-using AElf.Contracts.Authorization.Tests;
 using AElf.Miner.TxMemPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Contracts.SideChain.Tests
 {
-public class SideChainTest : ContractTestBase
+public class SideChainTest : SideChainContractTestBase
     {
         private SideChainContractShim _contract;
         private MockSetup Mock;

@@ -121,7 +121,7 @@ namespace AElf.Common
         public const string BlockHeaderPrefix = "h";
         public const string MerkleTreePrefix = "k";
         public const string TransactionResultPrefix = "l";
-        public const string MetadataPrefix = "m";
+        public const string FunctionMetadataPrefix = "m";
         public const string ChianHeightPrefix = "n";
         public const string CanonicalPrefix = "o";
         public const string MinersPrefix = "p";

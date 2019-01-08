@@ -1,4 +1,5 @@
 using AElf.Database;
+using AElf.Kernel.Storages;
 using Volo.Abp;
 
 namespace AElf.Runtime.CSharp.Tests
@@ -8,7 +9,9 @@ namespace AElf.Runtime.CSharp.Tests
         protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
         {
             base.SetAbpApplicationCreationOptions(options);
-            options.UseInMemoryDatabase();
+
         }
+        
+        
     }
 }
